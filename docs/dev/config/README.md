@@ -19,6 +19,7 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [Notifications](Notifications.md) | `NotificationsConfig` (`config/NotificationsConfig.qml`) | Notifications |
 | [Compositor](Compositor.md) | `CompositorConfig` (`config/CompositorConfig.qml`) | Compositor |
 | [Keybinds](Keybinds.md) | `KeybindsConfig` (`config/KeybindsConfig.qml`) | Compositor |
+| [Monitors](Monitors.md) | `MonitorsConfig` (`config/MonitorsConfig.qml`) | Compositor |
 | [Hyprland](Hyprland.md) | `HyprlandConfig` (`config/HyprlandConfig.qml`) | Compositor |
 | [Input](Input.md) | `InputConfig` (`config/InputConfig.qml`) | Compositor |
 | [Session](Session.md) | `SessionConfig` (`config/SessionConfig.qml`) | Compositor |

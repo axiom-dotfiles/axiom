@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 60,
+      "default": 61,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -643,6 +643,18 @@
       }
     },
 
+    "Monitors": {
+      "type": "object",
+      "x-category": "Compositor",
+      "x-settings": false,
+      "title": "Monitors",
+      "description": "Edited on the Monitors page.",
+      "additionalProperties": false,
+      "properties": {
+        "profiles": { "type": "array", "default": [], "description": "Monitor layouts, one per set of connected monitors.", "items": { "$ref": "#/definitions/MonitorProfile" } }
+      }
+    },
+
     "Hyprland": {
       "type": "object",
       "x-category": "Compositor",
@@ -651,16 +663,6 @@
       "description": "Hyprland's own options, written while axiom manages its config. Needs Hyprland 0.55+ with a Lua config.",
       "additionalProperties": false,
       "properties": {
-        "monitors": {
-          "type": "object",
-          "title": "Monitors",
-          "x-settings": false,
-          "description": "Edited on the Monitors page.",
-          "additionalProperties": false,
-          "properties": {
-            "profiles": { "type": "array", "default": [], "items": { "$ref": "#/definitions/MonitorProfile" } }
-          }
-        },
         "managed": {
           "type": "object",
           "title": "Managed config",

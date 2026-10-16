@@ -111,9 +111,9 @@ QtObject {
     lines.push(...lookLines());
     // Monitors only when their profiles changed, or a reload dropped them:
     // re-applying them unchanged could still flicker a mode set
-    if (_monitorsApplied !== HyprlandConfig._monitorsJson) {
-      lines.push(...HyprLua.monitorsLua(HyprlandConfig.monitorProfiles));
-      _monitorsApplied = HyprlandConfig._monitorsJson;
+    if (_monitorsApplied !== MonitorsConfig._profilesJson) {
+      lines.push(...HyprLua.monitorsLua(MonitorsConfig.profiles));
+      _monitorsApplied = MonitorsConfig._profilesJson;
     }
     lines.push(...stripsLines());
     lines.push(`AXIOM_RUNTIME_KEYS = { ${keys.map(key => HyprLua.string(key)).join(", ")} }`);

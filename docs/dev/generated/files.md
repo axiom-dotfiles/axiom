@@ -631,7 +631,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `LayerManager.qml`: Where axiom's layer-shell windows are on their outputs, worked out by axiom itself on every compositor (methods/LayerArrange; docs/dev/ compositor/layer-arrangement.md).
 - `LockManager.qml`: The one way to lock the session, whatever locks it (Lockscreen.mode): "quickshell" the built-in locker (shell/Lockscreen.qml: Wayland session lock + PAM through AuthManager) "hyprlock" hyprlock, with a config ThemeManag…
 - `MediaManager.qml`: The active MPRIS player (Spotify first, else one playing, else one that can play; or the one picked with selectPlayer) for the media widgets, the lockscreen and the media keys: its track, position and controls, and its …
-- `MonitorManager.qml`: The Monitors page: the connected outputs (HyprlandManager.withOutputs, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Hyprland.monitors, a draft of profiles (each a la…
+- `MonitorManager.qml`: The Monitors page: the connected outputs (CompositorManager. withOutputDetails, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Monitors.profiles, a draft of profiles (…
 - `NetworkingManager.qml`: Wi-Fi state and actions over NetworkManager (Quickshell.Networking, D-Bus, so nothing polls).
 - `NightLightManager.qml`: The night light (the NightLight section): warmer colors through hyprsunset, or wlsunset without it, started and stopped by axiom.
 - `NotesManager.qml`: Notes: Markdown files in NotesConfig.directory ($XDG_DATA_HOME/axiom/notes/ by default, or a linked folder).
@@ -681,6 +681,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `KeybindsConfig.qml`: Reader for the Keybinds section: axiom's own binds, edited on the Keybinds page (KeybindManager) and applied by the compositor's config writer (on Hyprland, HyprlandConfigManager)
 - `LauncherConfig.qml`: Reader for the Launcher section (the search launcher).
 - `LockscreenConfig.qml`: Reader for the Lockscreen section: which locker locks the session, and what the built-in one shows (`layout`, as saved: the lock never shows the layouts editor's unsaved draft, LockManager.editor.localLayout).
+- `MonitorsConfig.qml`: Reader for the Monitors section: the monitor profiles ({ name, outputs: [MonitorRule] }), edited on the Monitors page (MonitorManager) and applied by the compositor's config writer
 - `NightLight.qml`: Reader for the NightLight section: warmer colors through hyprsunset or wlsunset, run by NightLightManager.
 - `NotesConfig.qml`: Reader for the Notes section (see NotesManager).
 - `NotificationsConfig.qml`: Reader for the Notifications section (toasts and the history).

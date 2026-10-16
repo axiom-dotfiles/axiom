@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 60
+  readonly property int currentVersion: 61
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -147,6 +147,8 @@ QtObject {
       result = _v58ToV59(result, changes);
     if (version < 60)
       result = _v59ToV60(result, changes);
+    if (version < 61)
+      result = _v60ToV61(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2041,6 +2043,23 @@ QtObject {
         changes.push(`Keybinds.binds: ${bind.key} lua -> raw (hyprland)`);
       }
     }
+    return config;
+  }
+
+  // Monitor profiles leave the Hyprland section, so every compositor has
+  // the same layouts (Hyprland.monitors.profiles -> Monitors.profiles)
+  function _v60ToV61(config, changes) {
+    const monitors = config.Hyprland?.monitors;
+    if (!monitors || typeof monitors !== "object")
+      return config;
+    if (monitors.profiles !== undefined) {
+      config.Monitors = config.Monitors ?? {};
+      if (config.Monitors.profiles === undefined) {
+        config.Monitors.profiles = monitors.profiles;
+        changes.push("Hyprland.monitors.profiles -> Monitors.profiles");
+      }
+    }
+    delete config.Hyprland.monitors;
     return config;
   }
 }

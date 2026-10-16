@@ -56,7 +56,8 @@ Singleton {
       "namedSpecial": true,
       "mouseBinds": true,
       "pseudoTile": true,
-      "windowGroups": true
+      "windowGroups": true,
+      "outputProfiles": true
     })
 
   // Re-reads the monitors and the windows soon (Quickshell re-reads the
@@ -311,12 +312,18 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     HyprlandIpcManager.jsonBatch(["monitors", "layers"], ([monitors, layers]) => callback(Array.isArray(monitors) && layers ? HyprState.layerRects(monitors, layers) : null));
   }
 
-  // Calls back with every output, disabled ones too (Hyprland's monitors
-  // as JSON: name, description, width, height, refreshRate, x, y, scale,
-  // transform, disabled, mirrorOf, vrr, …), or null. For the Monitors
-  // editor (Hyprland only).
-  function withOutputs(callback) {
+  // Calls back with every output, disabled ones too, or null (the output
+  // details of docs/dev/compositor/contract.md, which are Hyprland's
+  // monitors as JSON)
+  function withOutputDetails(callback) {
     HyprlandIpcManager.json("monitors all", outputs => callback(Array.isArray(outputs) ? outputs : null));
+  }
+
+  // Sets the outputs as `rules` (MonitorRule) say now, `details` being the
+  // outputs as withOutputDetails gave them (for a mirror's connector)
+  function applyOutputs(rules, details) {
+    const mirrorName = output => MonitorLayout.find(output, details)?.name ?? "";
+    root.runLua(HyprLua.monitorCalls(rules, mirrorName).join("\n"));
   }
 
   // Calls back with Hyprland's version ("0.56.2"), or "" when it didn't

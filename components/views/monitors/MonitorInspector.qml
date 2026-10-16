@@ -190,7 +190,7 @@ ColumnLayout {
 
     SchemaComboBox {
       readonly property var targets: MonitorManager.rules.filter(other => other.output !== root.output && !other.disabled && !other.mirror)
-      visible: targets.length > 0 || !!root.rule?.mirror
+      visible: CompositorManager.supports.monitorMirror === true && (targets.length > 0 || !!root.rule?.mirror)
       label: "Mirror"
       options: [""].concat(targets.map(other => other.output))
       optionLabels: targets.reduce((labels, other) => {
@@ -279,6 +279,7 @@ ColumnLayout {
       }
 
       SchemaComboBox {
+        visible: CompositorManager.supports.monitorColor === true
         label: "Color mode"
         options: ["auto", "srgb", "dcip3", "dp3", "adobe", "wide", "edid", "hdr", "hdredid"]
         optionLabels: ({
@@ -297,7 +298,7 @@ ColumnLayout {
       }
 
       SchemaNumberField {
-        visible: root.rule?.cm === "hdr" || root.rule?.cm === "hdredid"
+        visible: CompositorManager.supports.monitorColor === true && (root.rule?.cm === "hdr" || root.rule?.cm === "hdredid")
         label: "SDR brightness"
         unit: "%"
         minimum: 50
@@ -307,7 +308,7 @@ ColumnLayout {
       }
 
       SchemaNumberField {
-        visible: root.rule?.cm === "hdr" || root.rule?.cm === "hdredid"
+        visible: CompositorManager.supports.monitorColor === true && (root.rule?.cm === "hdr" || root.rule?.cm === "hdredid")
         label: "SDR saturation"
         unit: "%"
         minimum: 50

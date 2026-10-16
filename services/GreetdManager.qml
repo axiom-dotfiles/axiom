@@ -222,7 +222,7 @@ QtObject {
     if (CompositorManager.kind !== "hyprland")
       return;
     const config = ConfigManager.config;
-    const lua = HyprLua.greeterLua(config.Hyprland.monitors.profiles, ConfigManager.configSchema.properties.Input, config.Input, name => HyprConfigLua.hex(Theme.resolveColor(name)));
+    const lua = HyprLua.greeterLua(config.Monitors.profiles, ConfigManager.configSchema.properties.Input, config.Input, name => HyprConfigLua.hex(Theme.resolveColor(name)));
     HyprlandManager.runLua(lua.join("\n"));
     const cursor = CompositorLayer.input(config.Input).cursor;
     if (cursor)

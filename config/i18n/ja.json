@@ -1407,9 +1407,6 @@
     "Toolbar": "ツールバー",
     "Where the Notes module keeps its notes: plain Markdown files, one per note, in folders of your own. Checklists are Markdown tasks (- [ ] item), so other Markdown editors read them too.": "ノートモジュールの保存先。ノートごとに 1 つのプレーンな Markdown ファイルで、フォルダは自由に作れます。チェックリストは Markdown のタスク（- [ ] 項目）なので、他の Markdown エディタでも読めます。",
     "{0} already exists": "{0} は既に存在します",
-    "Saved into axiom's Hyprland module, which your hyprland.lua loads.": "hyprland.lua が読み込む axiom の Hyprland モジュールに保存されます。",
-    "Saved into the hyprland.lua axiom manages; files in user/ load after it.": "axiom が管理する hyprland.lua に保存されます。user/ のファイルはその後に読み込まれます。",
-    "Applied by axiom while it runs: your own Hyprland config sets the monitors until then.": "axiom の実行中に適用されます。それまではご自身の Hyprland 設定がモニターを設定します。",
     "Apply": "適用",
     "{0} (connected)": "{0}（接続中）",
     "Layout name": "レイアウト名",
@@ -1445,7 +1442,6 @@
     "Every monitor is off": "すべてのモニターがオフです",
     "{0} doesn't touch the others, so the cursor can't reach it": "{0} が他のモニターに接していないため、カーソルが届きません",
     "{0} mirrors a monitor that isn't shown": "{0} は表示されていないモニターをミラーしています",
-    "Hyprland rounds {0}'s scale to one that fits its resolution": "Hyprland は {0} のスケールを解像度に合う値に丸めます",
     "{0} sets monitors too, and loads after axiom, so its rules win": "{0} もモニターを設定しており、axiom の後に読み込まれるため、そちらのルールが優先されます",
     "Primary": "プライマリ",
     "Resolution": "解像度",
@@ -2958,6 +2954,11 @@
     "Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen), command, or a compositor command in its own language (Hyprland: a dispatcher as Lua, hl.dsp.layout(\"swapsplit\")).": "検索テキスト、ページ、エッジメニューまたはドックの ID、方向、ワークスペース番号、特殊ワークスペース名、リサイズ量（\"50 0\"）、スクリーンショットの種類（region、window、screen）、コマンド、またはコンポジター独自の言語のコマンド（Hyprland：Lua のディスパッチャー、hl.dsp.layout(\"swapsplit\")）。",
     "exitSession": "ログアウト",
     "sway": "sway",
-    "Compositor command": "コンポジターのコマンド"
+    "Compositor command": "コンポジターのコマンド",
+    "Saved into axiom's module, which your compositor's config loads.": "axiom のモジュールに保存され、コンポジターの設定がそれを読み込みます。",
+    "Saved into the config axiom manages; your own files load after it.": "axiom が管理する設定に保存されます。自分のファイルはその後に読み込まれます。",
+    "Applied by axiom while it runs: your compositor's own config sets the monitors until then.": "axiom の実行中に適用されます。それまではコンポジター自身の設定がモニターを設定します。",
+    "{0}'s scale is rounded to one that fits its resolution": "{0} のスケールは解像度に合う値に丸められます",
+    "Monitor layouts, one per set of connected monitors.": "接続されたモニターの組み合わせごとのモニターレイアウト。"
   }
 }

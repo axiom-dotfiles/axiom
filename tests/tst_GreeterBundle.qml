@@ -24,7 +24,7 @@ TestCase {
     config.Input.keyboard = mode === "managed";
     config.Input.kbLayout = "us,de";
     config.Hyprland.managed.dimStrength = 9;
-    config.Hyprland.monitors.profiles = [
+    config.Monitors.profiles = [
       {
         "name": "desk",
         "outputs": [
@@ -45,9 +45,9 @@ TestCase {
 
   function test_export_takes_only_its_sections() {
     const bundle = GreeterBundle.exportConfig(config("detached"), inputSchema, copies);
-    compare(Object.keys(bundle).sort(), ["Appearance", "Compositor", "General", "Greeter", "Hyprland", "Input", "Lockscreen", "Weather", "version"]);
-    compare(bundle.Hyprland.monitors.profiles[0].name, "desk");
-    compare(bundle.Hyprland.managed, undefined);
+    compare(Object.keys(bundle).sort(), ["Appearance", "Compositor", "General", "Greeter", "Input", "Lockscreen", "Monitors", "Weather", "version"]);
+    compare(bundle.Monitors.profiles[0].name, "desk");
+    compare(bundle.Hyprland, undefined);
     compare(bundle.Compositor.mode, "detached");
   }
 
@@ -66,7 +66,7 @@ TestCase {
     compare(bundle.Input.keyboard, true);
     compare(bundle.Input.kbLayout, "us,de");
     verify(bundle.Input.sensitivity !== undefined);
-    compare(bundle.Hyprland.managed, undefined, "Hyprland's own options stay home");
+    compare(bundle.Hyprland, undefined, "Hyprland's own options stay home");
   }
 
   // The exported bundle is a valid config once filled with defaults

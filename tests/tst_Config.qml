@@ -178,7 +178,7 @@ TestCase {
     compare(modules[3].properties.note, "");
     compare(modules[3].properties.lockNote, false);
     // v18: no monitor profiles until the Monitors page saves one
-    compare(config.Hyprland.monitors.profiles, []);
+    compare(config.Monitors.profiles, []);
     // v31: a column's cells become modules placed down the grid; empty
     // cells leave nothing behind
     compare(config.Overlay.views[1].columns, undefined);
@@ -1908,5 +1908,40 @@ TestCase {
     verify(load({
       "version": 59
     }).config.Keybinds.binds.some(bind => bind.action === "exitSession"), "the defaults");
+  }
+
+  function test_v61_monitors_leave_hyprland() {
+    const profiles = [
+      {
+        "name": "desk",
+        "outputs": [
+          {
+            "output": "desc:Dell U2720Q",
+            "mode": "3840x2160@60",
+            "scale": 1.5
+          }
+        ]
+      }
+    ];
+    const migrated = load({
+      "version": 60,
+      "Hyprland": {
+        "monitors": {
+          "profiles": profiles
+        }
+      }
+    });
+    compare(migrated.config.Monitors.profiles[0].name, "desk");
+    compare(migrated.config.Monitors.profiles[0].outputs[0].scale, 1.5);
+    compare(migrated.config.Hyprland.monitors, undefined);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
+      "version": 60
+    })))).config;
+    compare(again.Monitors.profiles.length, 1);
+    compare(load({
+      "version": 60
+    }).config.Monitors.profiles, []);
   }
 }

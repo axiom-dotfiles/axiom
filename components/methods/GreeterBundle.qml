@@ -38,14 +38,11 @@ QtObject {
       }
       appearance.wallpapers = wallpapers;
     }
-    const hyprland = config.Hyprland ?? {};
     out.Compositor = {
       "mode": config.Compositor?.mode
     };
-    out.Hyprland = {
-      "monitors": {
-        "profiles": JSON.parse(JSON.stringify(hyprland.monitors?.profiles ?? []))
-      }
+    out.Monitors = {
+      "profiles": JSON.parse(JSON.stringify(config.Monitors?.profiles ?? []))
     };
     out.Input = root.greeterOptions(inputSchema, config.Input);
     return out;

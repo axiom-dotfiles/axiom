@@ -295,6 +295,26 @@ Singleton {
     root.backend?.exitSession();
   }
 
+  // --- Outputs (the Monitors page) ---
+
+  // Calls back with every output in detail, disabled ones too ({ name,
+  // description, width, height, refreshRate, x, y, scale, transform,
+  // disabled, mirrorOf, vrr, availableModes, … }, contract.md), or null.
+  // Needs monitors
+  function withOutputDetails(callback) {
+    if (root.supports.monitors)
+      root.backend.withOutputDetails(callback);
+    else
+      callback(null);
+  }
+
+  // Sets the outputs as `rules` (MonitorRule) say, now; `details` are the
+  // outputs as withOutputDetails gave them. Needs monitors
+  function applyOutputs(rules, details) {
+    if (root.supports.monitors)
+      root.backend.applyOutputs(rules, details);
+  }
+
   // --- Binds (the Keybinds page) ---
 
   // Calls back with the compositor's binds in effect ({ modmask, key,

@@ -1,7 +1,7 @@
 # Hyprland config modes
 
 > **Files:** `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprConfigLua.qml`, `components/methods/HyprLua.qml`, `components/methods/BindKeys.qml`, `config/CompositorConfig.qml`, `config/InputConfig.qml`, `config/SessionConfig.qml`, `components/views/settings/CompositorStatusCard.qml`, `scripts/claim_hyprland.sh`
-> **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `Input.*`, `Session.*`, `Keybinds.binds`, `Hyprland.managed`, `WindowLook`, `Hyprland.monitors`, `Workspaces.strips`
+> **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `Input.*`, `Session.*`, `Keybinds.binds`, `Hyprland.managed`, `WindowLook`, `Monitors.profiles`, `Workspaces.strips`
 > **Related:** [Managed takeover](managed-takeover.md), [Window look](../compositor/window-look.md), [Bind merge](bind-merge.md), [Keybinds](keybinds.md), [Monitors](monitors.md), [Workspace strips](workspace-strips.md)
 
 How axiom sets up Hyprland (`HyprlandConfigManager`, which owns `HyprlandRuntimeLayer`, `HyprlandTakeover` and `HyprlandBindMerge`), and the three `mode`s it can do it in: `detached`, `included` and `managed`. Read this before touching anything axiom writes into Hyprland.

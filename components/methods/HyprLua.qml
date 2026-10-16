@@ -249,7 +249,7 @@ QtObject {
     return [`if AXIOM_STRIPS == nil then`].concat(lines.map(line => "  " + line), [`  AXIOM_STRIPS = ${string(key)}`, `elseif AXIOM_STRIPS ~= ${string(key)} then`, `  hl.dispatch(hl.dsp.exec_cmd("hyprctl reload"))`, `end`]);
   }
 
-  // --- Monitors (Hyprland.monitors, MonitorLayout) ---
+  // --- Monitors (Monitors.profiles, MonitorLayout) ---
 
   // A monitor rule (the MonitorRule schema) as hl.monitor()'s spec: output,
   // mode, position and scale always, the rest only when changed. `mirror`

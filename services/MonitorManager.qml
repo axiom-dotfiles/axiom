@@ -7,21 +7,23 @@ import qs.config
 import qs.components.methods
 
 /*
- * The Monitors page: the connected outputs (HyprlandManager.withOutputs, read
- * at startup and when monitors come, go or the config reloads; never
- * polled) and the editor for Hyprland.monitors, a draft of profiles (each a
- * layout for one set of monitors). HyprlandConfigManager writes the saved
- * profiles into axiom's Lua layer in every mode, where the one matching
- * what's connected applies (again on every hotplug).
+ * The Monitors page: the connected outputs (CompositorManager.
+ * withOutputDetails, read at startup and when monitors come, go or the
+ * config reloads; never polled) and the editor for Monitors.profiles, a
+ * draft of profiles (each a layout for one set of monitors). The
+ * compositor's config writer applies the saved profiles, the one matching
+ * what's connected (again on every hotplug; with `outputProfiles` the
+ * compositor picks it itself, else this does on outputsHotplugged).
  *
- * Apply tries the selected profile at once (hl.monitor through
- * HyprlandManager.runLua) and asks to keep it: keep() saves the draft, and revert() (or the
+ * Apply tries the selected profile at once (CompositorManager.applyOutputs)
+ * and asks to keep it: keep() saves the draft, and revert() (or the
  * countdown running out) puts back what was there before.
  */
 QtObject {
   id: root
 
-  // Hyprland's monitors (HyprlandManager.withOutputs), disabled ones included
+  // The outputs in detail (CompositorManager.withOutputDetails), disabled
+  // ones included
   property var outputs: []
   readonly property var enabledOutputs: outputs.filter(monitor => !monitor.disabled)
 
@@ -29,7 +31,7 @@ QtObject {
 
   property ConfigDraft _draft: ConfigDraft {
     id: draft
-    path: ["Hyprland", "monitors"]
+    path: ["Monitors"]
   }
   readonly property var profiles: draft.local?.profiles ?? []
   readonly property alias isDirty: draft.isDirty
@@ -239,7 +241,7 @@ QtObject {
       if (monitor && mode && !rule.disabled && MonitorLayout.validScales(mode.width, mode.height).indexOf(rule.scale) < 0)
         result.push({
           "level": "warning",
-          "text": I18n.tr("Hyprland rounds {0}'s scale to one that fits its resolution", root.labelFor(rule))
+          "text": I18n.tr("{0}'s scale is rounded to one that fits its resolution", root.labelFor(rule))
         });
     }
     for (const file of HyprlandConfigManager.monitorConflicts)
@@ -263,7 +265,9 @@ QtObject {
   property bool pending: false
   property int secondsLeft: 0
   readonly property int confirmSeconds: 15
-  property var _revertLua: []
+  // The rules putting back what was there before Apply
+  property var _revertRules: []
+  property var _revertDetails: []
 
   // Tries the selected profile now; keep() saves it. A profile for other
   // monitors can only be saved.
@@ -275,9 +279,9 @@ QtObject {
       return;
     }
     const all = outputs;
-    const mirrorName = output => MonitorLayout.find(output, all)?.name ?? "";
-    _revertLua = HyprLua.monitorCalls(all.map(monitor => MonitorLayout.ruleFromMonitor(monitor, all)), mirrorName);
-    HyprlandManager.runLua(HyprLua.monitorCalls(rules.filter(rule => monitorFor(rule) !== null), mirrorName).join("\n"));
+    _revertRules = all.map(monitor => MonitorLayout.ruleFromMonitor(monitor, all));
+    _revertDetails = all;
+    CompositorManager.applyOutputs(rules.filter(rule => monitorFor(rule) !== null), all);
     secondsLeft = confirmSeconds;
     pending = true;
     _countdown.restart();
@@ -304,7 +308,7 @@ QtObject {
   }
 
   function _runRevert() {
-    HyprlandManager.runLua(_revertLua.join("\n"));
+    CompositorManager.applyOutputs(_revertRules, _revertDetails);
     _refreshSoon.restart();
   }
 
@@ -342,14 +346,17 @@ QtObject {
   // --- Reading the monitors ---
 
   function refresh() {
-    // The Monitors page edits Hyprland's monitors only
     if (_reading || !CompositorManager.supports.monitors)
       return;
     _reading = true;
-    HyprlandManager.withOutputs(outputs => {
+    CompositorManager.withOutputDetails(outputs => {
       root._reading = false;
       if (outputs)
         root.outputs = outputs;
+      if (root._applyProfilePending) {
+        root._applyProfilePending = false;
+        root._applySavedProfile();
+      }
     });
   }
 
@@ -377,18 +384,20 @@ QtObject {
       return;
     }
     _wholeScalePending = false;
-    if (HyprlandConfig.monitorProfiles.length > 0 || !enabledOutputs.some(monitor => !Number.isInteger(monitor.scale)))
+    if (MonitorsConfig.profiles.length > 0 || !enabledOutputs.some(monitor => !Number.isInteger(monitor.scale)))
       return;
     SettingsManager.commitValues({
-      "Hyprland.monitors.profiles": [
+      "Monitors.profiles": [
         {
           "name": I18n.tr("Layout {0}", 1),
           "outputs": MonitorLayout.wholeScaleRules(outputs)
         }
       ]
     });
-    // After axiom's layer has applied it (debounced, then evaluated)
+    // After the config writer has applied it (debounced, then evaluated)
     _refreshLater.restart();
+    if (!CompositorManager.supports.outputProfiles)
+      _applyProfilePending = true;
   }
 
   property bool _wholeScalePending: false
@@ -406,11 +415,28 @@ QtObject {
         draft.load();
         root._detectPending = true;
       }
+      if (!CompositorManager.supports.outputProfiles)
+        root._applyProfilePending = true;
       root._refreshSoon.restart();
     }
     function onConfigReloaded() {
       root._refreshSoon.restart();
     }
+  }
+
+  // --- The saved profile for what's connected, without outputProfiles ---
+
+  // The compositor can't pick a profile on a hotplug itself: once the
+  // outputs are read, the saved one matching them is applied
+  property bool _applyProfilePending: !CompositorManager.supports.outputProfiles
+
+  function _applySavedProfile() {
+    if (root.pending)
+      return;
+    const saved = MonitorsConfig.profiles;
+    const index = MonitorLayout.matchProfile(saved, root.enabledOutputs);
+    if (index >= 0)
+      CompositorManager.applyOutputs(saved[index].outputs.filter(rule => root.monitorFor(rule) !== null), root.outputs);
   }
 
   Component.onCompleted: refresh()

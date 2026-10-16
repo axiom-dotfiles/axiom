@@ -43,7 +43,8 @@ CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprl
 - `withKeyboard(callback)`: Calls back with the main keyboard's layouts ({ layouts, index, keymap }, HyprState.keyboard), or null
 - `cycleKeyboardLayout(direction, callback)`: Switches every keyboard to its "next" or "prev" layout, then calls back
 - `withLayerRects(callback)`: Calls back with each monitor's layer surfaces (HyprState.layerRects), or null when Hyprland didn't answer
-- `withOutputs(callback)`: Calls back with every output, disabled ones too (Hyprland's monitors as JSON: name, description, width, height, refreshRate, x, y, scale, transform, disabled, mirrorOf, vrr, …), or null.
+- `withOutputDetails(callback)`: Calls back with every output, disabled ones too, or null (the output details of docs/dev/compositor/contract.md, which are Hyprland's monitors as JSON)
+- `applyOutputs(rules, details)`: Sets the outputs as `rules` (MonitorRule) say now, `details` being the outputs as withOutputDetails gave them (for a mirror's connector)
 - `withVersion(callback)`: Calls back with Hyprland's version ("0.56.2"), or "" when it didn't answer
 - `withBinds(callback)`: Calls back with every bind Hyprland has (its binds as JSON: modmask, key, keycode, submap, description, dispatcher, arg, …), or null
 - `withMainBinds(callback)`: Calls back with the binds in effect outside axiom's own submaps (the key recorder's, the window switcher's), or null (CompositorManager)

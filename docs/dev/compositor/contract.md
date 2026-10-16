@@ -38,6 +38,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
   - `scrollStrip(direction)`
   - `applyRemap(plan, outputNames)`
   - `refresh()`
+- **Outputs** (the Monitors page; `monitors`): `withOutputDetails(cb)`: every output, disabled ones too, as `{ name, description, width, height, refreshRate, x, y, scale, transform (0-7, Wayland's), disabled, mirrorOf ("none" or a name), vrr, availableModes: ["WxH@RHz"] }` plus optional `currentFormat`, `colorManagementPreset`, `sdrBrightness`, `sdrSaturation` (Hyprland's monitors JSON; `MonitorLayout` reads them), or null; `applyOutputs(rules, details)`: set the outputs as the `MonitorRule`s say, now (`details` resolve a mirror's connector). With `outputProfiles` the compositor also picks the saved profile for what's connected on every hotplug (Hyprland's Lua layer); without it `MonitorManager` applies it after `outputsHotplugged`.
 - **Binds** (the Keybinds page): `withMainBinds(cb)`: the binds in effect outside the backend's own modes, as `{ modmask, key, keycode, description, submap }` (`modmask` in X11 bits: SHIFT 1, CAPS 2, CTRL 4, ALT 8, MOD2 16, MOD3 32, SUPER 64, MOD5 128; `BindKeys`), or null (`bindMerge`); `captureKeys(on)`: while on, every key reaches axiom instead of a bind (`keyCapture`). The facade's `withBinds` / `captureKeys` check the capability.
 - **Session and input**: `withKeyboard(cb)`, `cycleKeyboardLayout(direction, cb)`, `withCursorPos(cb)`, `warpCursorToLayer(…)`, `withLayerRects(cb)`, `exitSession()`, `dpmsCommand(on)` (a shell command, for the idle daemon).
 - **Look**: `applyLook(look)`, `look` being `CompositorLayer.look()`'s spec: `{ parts, values, borders: { active, inactive } ("rrggbb"), shape: { width, radius }, gaps: { inner, outer }, blur: { windows, surfaces }, opacity: { active, inactive, fullscreen } }`, a part `null` while off. Only for backends without `configModes`.
@@ -64,6 +65,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `bindMerge` | the user's own binds can be read (the Keybinds page's List, conflicts, Merge) |
 | `monitorColor` | a monitor rule's bit depth, color management and SDR fields |
 | `monitorMirror` | a monitor rule can mirror another output |
+| `outputProfiles` | the compositor applies the saved monitor profile for what's connected by itself, on every hotplug |
 | `namedSpecial` | named special workspaces (the `toggleSpecial` / `moveToSpecial` binds) |
 | `scratchpad` | a scratchpad (sway's), standing in for the special workspace in those binds |
 | `mouseBinds` | binds on mouse buttons (`mouseDrag`, `mouseResize`) |

@@ -8,10 +8,6 @@ import qs.services
 QtObject {
   readonly property var _c: ConfigManager.config.Hyprland
 
-  // Monitor profiles ({ name, outputs: [MonitorRule] }), edited on the
-  // Monitors page (MonitorManager)
-  readonly property string _monitorsJson: JSON.stringify(_c.monitors.profiles)
-  readonly property var monitorProfiles: JSON.parse(_monitorsJson)
   // The managed hyprland.lua's own settings (layout, input, ...)
   readonly property string _managedJson: JSON.stringify(_c.managed)
   readonly property var managed: JSON.parse(_managedJson)
