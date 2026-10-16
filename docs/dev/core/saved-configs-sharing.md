@@ -37,7 +37,7 @@ Walks a value along the schema.
 
 ### Loading an example or import
 - `applyExample(name)` and `confirmImport(personal)`:
-  1. Load the file through `ConfigManager.normalizeConfig`, so any version migrates.
+  1. Load the file (`_load`) through `ConfigManager.normalizeConfig`, so any version migrates. A file older than the window look's move out of `Hyprland.managed` (v58, v63) never held those settings, so `ConfigExamples.keepMovedLook` keeps the running config's (restoring a snapshot does the same).
   2. Save the running config as `before-<name>`.
   3. Once that is written, restore `ConfigExamples.apply`.
 - `browseImport()` opens the desktop's file picker for a JSON file ([File picker](file-picker.md)).

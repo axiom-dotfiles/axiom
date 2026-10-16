@@ -451,6 +451,41 @@ TestCase {
     });
   }
 
+  function test_keep_moved_look() {
+    const current = {
+      "WindowLook": {
+        "shape": true,
+        "rounding": 3,
+        "shadow": true,
+        "shadowSize": 7,
+        "dim": true,
+        "borders": true
+      }
+    };
+    const file = {
+      "WindowLook": {
+        "shape": false,
+        "rounding": 8,
+        "shadow": false,
+        "shadowSize": 10,
+        "dim": false,
+        "borders": false
+      }
+    };
+    compare(ConfigExamples.keepMovedLook(file, current, 49).WindowLook, {
+      "shape": true,
+      "rounding": 3,
+      "shadow": true,
+      "shadowSize": 7,
+      "dim": true,
+      "borders": false
+    }, "a file older than v58 never held any of them");
+    const v60 = ConfigExamples.keepMovedLook(file, current, 60).WindowLook;
+    compare([v60.shape, v60.rounding, v60.shadow, v60.dim], [false, 8, true, true], "the shape is the file's since v58");
+    compare(ConfigExamples.keepMovedLook(file, current, 63), file, "the file's own since v63");
+    compare(file.WindowLook.shadow, false, "the file is left as it was");
+  }
+
   function test_sparse_defaults_are_empty() {
     compare(ConfigExamples.sparse(defaults(), schema), {});
   }

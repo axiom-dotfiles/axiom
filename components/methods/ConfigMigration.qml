@@ -2123,6 +2123,8 @@ QtObject {
     if (moved("shadow", ["shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor"])) {
       if (look.shadow === undefined) {
         look.shadow = wasManaged && managed.shadow !== false;
+        // The managed shadow's own size and color, not Bar style's
+        look.shadowMatchShell = false;
         if (managed.shadowRange !== undefined)
           look.shadowSize = managed.shadowRange;
         if (managed.shadowPower !== undefined)

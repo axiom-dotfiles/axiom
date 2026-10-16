@@ -2007,7 +2007,7 @@ TestCase {
     compare(look.surfaceBlurThroughWindows, false);
     compare(look.surfaceBlurPauseFullscreen, false);
     compare(look.surfaceBlurBackdrops, false, "the default");
-    compare([look.shadow, look.shadowSize, look.shadowColor], [true, 7, "base01"]);
+    compare([look.shadow, look.shadowMatchShell, look.shadowSize, look.shadowColor], [true, false, 7, "base01"]);
     compare([look.dim, look.dimStrength], [true, 12]);
     compare(migrated.config.Hyprland.managed.shadow, undefined);
     compare(migrated.config.Hyprland.managed.dimInactive, undefined);
