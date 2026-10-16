@@ -766,7 +766,9 @@ mode "resize" {
     def test_extract(self):
         found = self.run_script("extract", str(self.tmp))
         by_key = {b["key"]: b for b in found["binds"]}
-        self.assertEqual(by_key["SUPER + Q"], {"key": "SUPER + Q", "action": "closeWindow", "repeating": True})
+        # Repeats only where axiom's action does (or a raw command as sway had it)
+        self.assertEqual(by_key["SUPER + Q"], {"key": "SUPER + Q", "action": "closeWindow"})
+        self.assertTrue(by_key["XF86AudioRaiseVolume"]["repeating"])
         self.assertEqual(by_key["SUPER + Return"], {"key": "SUPER + Return", "action": "exec", "argument": "foot"})
         self.assertEqual(by_key["SUPER + H"]["action"], "focusDir")
         self.assertEqual(by_key["XF86AudioRaiseVolume"]["action"], "volumeUp")
@@ -775,7 +777,7 @@ mode "resize" {
         self.assertEqual((by_key["SUPER + 1"]["action"], by_key["SUPER + 1"]["argument"]), ("workspaceNth", "1"))
         self.assertEqual(by_key["SUPER + X"], {"key": "SUPER + X", "action": "raw", "argument": "layout tabbed",
                                                "compositor": "sway", "repeating": True})
-        self.assertEqual(by_key["SUPER + code:49"]["action"], "exec")
+        self.assertEqual(by_key["SUPER + code:49"], {"key": "SUPER + code:49", "action": "exec", "argument": "thing"})
         # A mode's binds aren't seen; sway options axiom binds lack stay
         self.assertNotIn("H", by_key)
         self.assertEqual([(k["key"], k["reason"]) for k in found["kept"]], [("$mod+button2".replace("$mod", "Mod4"), "options")])

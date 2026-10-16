@@ -68,6 +68,16 @@ def ipc_actions():
 
 
 IPC = ipc_actions()
+
+
+def repeating_actions():
+    """The actions axiom repeats while held by default (BindActions.actionFlags)."""
+    text = (ROOT / "components/methods/BindActions.qml").read_text()
+    table = text[text.index("actionFlags:"):text.index("flagNames:")]
+    return {name for name, flags in re.findall(r'"(\w+)": \[([^\]]*)\]', table) if '"repeating"' in flags}
+
+
+REPEATING = repeating_actions()
 # axiom started or called over IPC: qs -c axiom / qs -p <…axiom>
 SHELL = r"""(?:qs|quickshell) +(?:-c +axiom|-p +['"]?\S*axiom['"]?)"""
 
@@ -213,8 +223,11 @@ def extract(sway, only):
             for flag, name in FLAGS.items():
                 if flag in flags:
                     entry[name] = True
-            # Sway repeats a held bind unless told not to
-            if "--no-repeat" not in flags:
+            # Sway repeats a held bind unless told not to, but that's rarely
+            # meant (a held close would close one window after another):
+            # an action repeats as axiom's own does, a raw command as sway
+            # had it
+            if "--no-repeat" not in flags and (entry["action"] in REPEATING or entry["action"] == "raw"):
                 entry["repeating"] = True
             result["binds"].append(entry)
             result["sites"].append({**site, "binds": [entry], "text": raw})

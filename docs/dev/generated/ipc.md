@@ -20,6 +20,11 @@ Every `IpcHandler`: call with `qs -c axiom ipc call <target> <function> [args]`.
 - `toggleMute(): void`
 - `toggleMicMute(): void`
 
+## bindsTmp
+
+`shell.qml`
+- `fix(): string`
+
 ## brightness
 
 `services/BrightnessManager.qml`

@@ -6,12 +6,31 @@
 
 pragma ComponentBehavior: Bound
 import Quickshell
+import Quickshell.Io // TEMP
+import qs.components.methods // TEMP
+import qs.config // TEMP
 import qs.services
 import qs.shell
 
 // The shell's entrypoint: one top-level piece per surface (shell/), plus
 // _services, which creates the services nothing else would reference.
 ShellRoot {
+  IpcHandler { // TEMP
+    target: "bindsTmp"
+    function fix(): string {
+      const repeats = action => (BindActions.actionFlags[action] ?? []).includes("repeating") || action === "raw";
+      const changed = [];
+      const binds = KeybindsConfig.binds.map(bind => {
+        if (!bind.repeating || repeats(bind.action))
+          return bind;
+        changed.push(bind.key);
+        return Object.assign({}, bind, { "repeating": false });
+      });
+      if (changed.length === 0)
+        return "nothing to change";
+      return (SettingsManager.commitValues({ "Keybinds.binds": binds }) ? "saved: " : "REJECTED: ") + changed.join(", ");
+    }
+  }
   id: shellRoot
 
   // Services with no UI of their own, which nothing else would create
