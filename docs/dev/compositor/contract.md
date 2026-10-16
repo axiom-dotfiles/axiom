@@ -52,9 +52,9 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `switcher` | Alt+Tab driven by compositor keys (`WindowSwitcherManager`) |
 | `strips` | the strip settings, scrolling a strip |
 | `focusGrab` | the native grab in `FocusGrab` |
-| `layerOrder` | stacking rules for axiom's layers (`HyprLua.layers`); without it surfaces stack in map order |
+| `layerOrder` | stacking and arranging axiom's layers by `HyprLua.layers`. Nothing reads it yet: without it surfaces stack and reserve space in map order, uncorrected (`issues.md` › Layer order and positions without Hyprland) |
 | `blur` | the compositor blurs axiom's translucent surfaces |
 | `cursorPos`, `cursorWarp` | `withCursorPos`, `warpCursorToLayer` |
-| `windowGeometry` | window positions and sizes are real (the overview, screenshot window picks, dock intellihide) |
+| `windowGeometry` | window positions and sizes are real: without it the screenshot's window mode is left out (`ScreenshotManager.kinds`; a `window` request takes a region) and no window obscures a dock (`DockManager.obscured`). The overview still draws windows where they say they are |
 | `workspaceSlide` | `travel` legs slide |
 | `windowBorders`, `windowShape`, `windowGaps`, `windowBlur`, `windowOpacity` | the `WindowLook` parts shown and applied |

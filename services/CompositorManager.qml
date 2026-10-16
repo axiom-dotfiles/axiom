@@ -38,7 +38,7 @@ Singleton {
 
   // What the compositor can do, by capability (contract.md › Capabilities):
   // false for anything the backend doesn't say, and for what
-  // AXIOM_COMPOSITOR_OFF ("focusGrab,layerOrder") turns off, so the
+  // AXIOM_COMPOSITOR_OFF ("focusGrab,blur") turns off, so the
   // fallbacks can be tried on a compositor that has them
   readonly property var supports: {
     const own = root.backend?.supports ?? {};

@@ -65,8 +65,11 @@ PanelWindow {
 
   // This screen's windows, topmost first (fullscreen, then floating, then
   // most recently focused), as local boxes clipped to the screen (by the
-  // screen's size: the window has none yet when this runs)
+  // screen's size: the window has none yet when this runs). None where
+  // the compositor doesn't say where windows are
   function _windows() {
+    if (CompositorManager.supports.windowGeometry !== true)
+      return [];
     const output = CompositorManager.outputFor(root.screen);
     const shown = [output?.activeWorkspaceId ?? -1, output?.specialWorkspaceId ?? 0].filter(id => id !== -1 && id !== 0);
     const covers = w => w.fullscreen || w.maximized;

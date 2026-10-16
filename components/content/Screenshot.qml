@@ -17,7 +17,7 @@ Card {
 
   // [mode, icon, label]; the record tile's icon and label follow
   // `recording` in the delegate, so a toggle rebuilds nothing
-  readonly property var modes: [["region", "screenshot_region", I18n.tr("Region")], ["window", "wrap_text", I18n.tr("Window")], ["screen", "screenshot_monitor", I18n.tr("Screen")]].concat(ScreenshotManager.hasRecorder ? [["record", "fiber_manual_record", I18n.tr("Record")]] : [])
+  readonly property var modes: [["region", "screenshot_region", I18n.tr("Region")], ["window", "wrap_text", I18n.tr("Window")], ["screen", "screenshot_monitor", I18n.tr("Screen")]].filter(mode => ScreenshotManager.kinds.includes(mode[0])).concat(ScreenshotManager.hasRecorder ? [["record", "fiber_manual_record", I18n.tr("Record")]] : [])
 
   function capture(mode) {
     if (mode === "record")

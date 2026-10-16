@@ -436,7 +436,7 @@ QtObject {
       usage: "<region|window|screen>",
       description: () => I18n.tr("Take a screenshot"),
       // I18n.tr("region") I18n.tr("window") I18n.tr("screen")
-      options: () => ["region", "window", "screen"].map(kind => ({
+      options: () => ScreenshotManager.kinds.map(kind => ({
               title: kind,
               subtitle: I18n.tr(kind),
               value: kind

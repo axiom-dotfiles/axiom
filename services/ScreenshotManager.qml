@@ -78,7 +78,12 @@ QtObject {
 
   readonly property var _state: StateManager.createStateHandler("screenshot")
 
-  // kind: "region" | "window" | "screen"
+  // The kinds take() offers: "window" only where the compositor knows
+  // where windows are (CompositorManager.supports.windowGeometry)
+  readonly property var kinds: ["region"].concat(CompositorManager.supports.windowGeometry === true ? ["window"] : [], ["screen"])
+
+  // kind: "region" | "window" | "screen" ("window" is "region" where it
+  // isn't in `kinds`)
   function take(kind) {
     if (root.busy)
       return;
@@ -110,6 +115,8 @@ QtObject {
       console.warn(`[ScreenshotManager] Unknown screenshot kind "${kind}" (region, window, screen or record)`);
       return;
     }
+    if (kind === "window" && !root.kinds.includes("window"))
+      kind = "region";
     root._directory = kind.startsWith("record") ? root.recordingFolder : root.folder;
     Quickshell.execDetached(["mkdir", "-p", root._directory, root._scratchDir]);
     root.annotate = false;
