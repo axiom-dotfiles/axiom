@@ -230,16 +230,19 @@ def main():
         if re.search(r"\bHyprlandManager\.", code) and not re.fullmatch(r"services/Hyprland\w*\.qml", path) and path not in hyprland_features:
             errors.append(f"{path}: uses HyprlandManager (only the Hyprland* services and the Hyprland-only features may; use CompositorManager)")
 
-    # Hyprland's Lua and state helpers are the backend's: outside the
-    # Hyprland* services and the Hyprland-only features, the rest of the
-    # shell goes through CompositorManager and CompositorConfigManager
+    # A backend's text and state helpers are its own (Hyprland's Lua,
+    # sway's commands): outside its services and helpers (and the
+    # Hyprland-only features), the rest of the shell goes through
+    # CompositorManager and CompositorConfigManager
     # (docs/dev/compositor/config-modes.md)
     for path, text in sources.items():
         code = "\n".join(line.split("//", 1)[0] for line in re.sub(r"/\*.*?\*/", "", text, flags=re.S).splitlines())
-        if not path.startswith(("services/", "components/", "shell/", "config/")) or re.fullmatch(r"(services|components/methods)/Hypr\w*\.qml", path) or path in hyprland_features:
+        if not path.startswith(("services/", "components/", "shell/", "config/")):
             continue
-        if re.search(r"\b(HyprLua|HyprConfigLua|HyprState)\.", code):
+        if not re.fullmatch(r"(services|components/methods)/Hypr\w*\.qml", path) and path not in hyprland_features and re.search(r"\b(HyprLua|HyprConfigLua|HyprState)\.", code):
             errors.append(f"{path}: uses a Hyprland Lua helper (only the Hyprland* services and helpers may; go through CompositorManager / CompositorConfigManager)")
+        if not re.fullmatch(r"(services|components/methods)/Sway\w*\.qml", path) and re.search(r"\b(SwayConf|SwayState)\.", code):
+            errors.append(f"{path}: uses a sway helper (only the Sway* services and helpers may; go through CompositorManager / CompositorConfigManager)")
 
     # Singleton references: FooManager. must be a service, and a near-miss
     # of any project singleton (AudioManger.) is a typo
