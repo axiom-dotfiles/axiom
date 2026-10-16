@@ -569,8 +569,15 @@ Singleton {
   }
 
   function _syncFile() {
-    if (!root.live || root._appliedMode !== root.mode || root.status !== "loaded" || root._reloading)
+    // A change to the rest waiting to apply writes the file itself, and
+    // reloads: written first, it would find the file as it wants it and
+    // reload nothing (a new bind unloaded)
+    if (!root.live || root._appliedMode !== root.mode || root.status !== "loaded" || root._debounce.running)
       return;
+    if (root._reloading) {
+      root._fileSync.restart();
+      return;
+    }
     const path = root.mode === "managed" ? root.managedPath : root.mode === "included" ? root.includePath : "";
     if (path === "")
       return;

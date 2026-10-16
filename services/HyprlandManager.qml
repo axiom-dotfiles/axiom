@@ -52,6 +52,8 @@ Singleton {
       "windowRounding": true,
       "windowGaps": true,
       "windowBlur": true,
+      "windowShadow": true,
+      "windowDim": true,
       "windowOpacity": true,
       "inputConfig": true,
       "keyCapture": true,
