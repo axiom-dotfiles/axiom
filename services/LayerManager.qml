@@ -87,7 +87,7 @@ QtObject {
     for (const uid in root._specs) {
       const spec = root._specs[uid];
       const seq = root._seqs[uid];
-      if (seq === undefined && spec.zone > 0)
+      if (seq === undefined && LayerArrange.reserves(spec))
         continue;
       out.push(Object.assign({}, spec, {
         "id": Number(uid),

@@ -59,6 +59,12 @@ QtObject {
     };
   }
 
+  // Whether a surface reserves a zone: a positive one on an edge it can
+  // reserve on (the protocol treats any other positive zone as 0)
+  function reserves(surface) {
+    return surface.zone > 0 && root.zoneEdge(surface.anchors) !== "";
+  }
+
   // `bounds` less a surface's zone (and its margin on that edge)
   function _reserve(bounds, surface) {
     const edge = root.zoneEdge(surface.anchors);
@@ -105,7 +111,8 @@ QtObject {
    * `surfaces` are { id, output, namespace, layer (layerNames), order,
    * seq (map order), anchors { left, right, top, bottom }, margins
    * { left, right, top, bottom }, w, h (0 to stretch), zone (> 0
-   * reserves, 0 keeps out of what others reserve, -1 ignores it) }.
+   * reserves where zoneEdge has an edge, 0 keeps out of what others
+   * reserve, -1 ignores it) }.
    * Surfaces reserving are arranged first, layer by layer, each taking
    * the room the ones before it left; the rest are placed in what's left
    * at the end (the whole output with zone -1).
@@ -129,12 +136,12 @@ QtObject {
           "namespace": s.namespace
         }, r));
       for (const layer of byLayer)
-        for (const s of layer.filter(s => s.zone > 0)) {
+        for (const s of layer.filter(s => root.reserves(s))) {
           add(s, root.place(s, usable));
           usable = root._reserve(usable, s);
         }
       for (const layer of byLayer)
-        for (const s of layer.filter(s => !(s.zone > 0)))
+        for (const s of layer.filter(s => !root.reserves(s)))
           add(s, root.place(s, s.zone < 0 ? full : usable));
       result[name] = {
         "w": out.w,

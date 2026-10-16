@@ -157,6 +157,32 @@ TestCase {
     compare(LayerArrange.zoneEdge(corner.anchors), "", "a corner reserves nothing");
   }
 
+  // A positive zone with no edge to reserve on counts as 0: placed in
+  // what's left at the end, after a strip mapped later
+  function test_zone_without_edge() {
+    const corner = {
+      "id": "k",
+      "output": "O",
+      "seq": 0,
+      "anchors": {
+        "bottom": true,
+        "right": true
+      },
+      "w": 20,
+      "h": 20,
+      "zone": 50
+    };
+    const bottom = strip("bottom", 1, "bottom", 30, 30);
+    const r = rectsById(LayerArrange.arrange({
+      "O": {
+        "w": 400,
+        "h": 300
+      }
+    }, [corner, bottom], false), "O");
+    compare(r.k, [380, 250, 20, 20], "above the strip");
+    compare(r.bottom, [0, 270, 400, 30], "the strip reserves the whole edge");
+  }
+
   function test_layers_and_outputs() {
     const top = strip("top", 1, "top", 20, 20);
     const over = Object.assign(strip("over", 5, "top", 10, 10), {
