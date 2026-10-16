@@ -111,8 +111,15 @@ PopoutWrapperBase {
   PanelWindow {
     id: panel
     screen: root.screen
-    // Mapped only while open: the zone (and the windows moving) goes with it
-    visible: root.occupied && loader.status === Loader.Ready
+    // Mapped only while open: the zone (and the windows moving) goes with
+    // it; once the windows before it in the stack have mapped
+    visible: menuSlot.shown
+    readonly property LayerSlot _slot: LayerSlot {
+      id: menuSlot
+      window: panel
+      namespace: "axiom-edge-menu"
+      wanted: root.occupied && loader.status === Loader.Ready
+    }
     color: "transparent"
 
     WlrLayershell.layer: WlrLayer.Top

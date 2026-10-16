@@ -226,6 +226,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `EdgeTrigger.qml`: A thin hover strip on a screen edge that fires `triggered` once the pointer has rested on it for `hoverDelay`
 - `FloatingPopout.qml`: A popout that floats on the screen instead of growing out of an edge (EdgePopout): a plain rounded box in an Overlay-layer window covering the area the bars and border leave free, fading and scaling in.
 - `LayerOrigin.qml`: Where a layer-shell `window` is on its screen, as LayerManager works it out from how every window there asks to be laid out (and reports this one's): for surfaces whose fill the blur window draws, the joins in the borde…
+- `LayerSlot.qml`: A layer-shell `window` with a fixed place in the stack (a bar, the border, a dock, an integrated edge menu): bind its `visible` to `shown`, and what used to decide it to `wanted`.
 - `OutsideShadow.qml`: The shadow or glow (SurfaceShadow) a sibling `target` casts, kept only outside its shape, so none shows through a translucent fill.
 - `PillBarJoin.qml`: A surface's end joining a pill bar on a perpendicular screen edge: its end sits on that bar's far stroke, and the bar's pill at this edge's end runs out along the surface (BarContainer.setEndReach: the end pill stretche…
 - `PillStretch.qml`: Puts a surface's pill (or island) stretch (EdgeAttach.place's `stretch`) on the bar it stands on (`container`, a BarContainer) under its own owner key, and takes it off again when it clears, the bar changes or this goes.

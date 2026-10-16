@@ -69,6 +69,13 @@ PanelWindow {
   exclusiveZone: root.frameWidth
   aboveWindows: true
   WlrLayershell.namespace: "axiom-border"
+  // Once the windows before it in the stack have mapped
+  visible: slot.shown
+  LayerSlot {
+    id: slot
+    window: root
+    namespace: "axiom-border"
+  }
   color: "transparent"
   mask: Region {}
 

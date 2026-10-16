@@ -124,7 +124,13 @@ Item {
     // frame (BlurShape.shadow): the window stays mapped and draws nothing.
     // Hyprland puts a layer mapped while a fullscreen window is shown over
     // it (CLayerSurface::onMap), and a fullscreen window is what unbacks it.
-    visible: look.shadow !== "none"
+    visible: shadowSlot.shown
+    readonly property LayerSlot _slot: LayerSlot {
+      id: shadowSlot
+      window: shadowWindow
+      namespace: "axiom-border-shadow"
+      wanted: shadowWindow.look.shadow !== "none"
+    }
     screen: root.screen
     anchors {
       left: true
@@ -298,6 +304,12 @@ Item {
       mask: Region {}
       aboveWindows: true
       WlrLayershell.namespace: "axiom-border"
+      visible: cornerSlot.shown
+      readonly property LayerSlot _slot: LayerSlot {
+        id: cornerSlot
+        window: corner
+        namespace: "axiom-border"
+      }
 
       // Where it is on screen: a stroke out from the frame's inner side,
       // past the integrated edge menus (cornerMargin is taken from what

@@ -40,4 +40,77 @@ TestCase {
     compare(LayerStack.orderOf("axiom-desktop"), 0, "listed without an order");
     compare(LayerStack.orderOf("someone-else"), 0, "not listed");
   }
+
+  function entry(id, order, extra) {
+    return Object.assign({
+      "id": id,
+      "output": "O",
+      "layer": "top",
+      "order": order,
+      "wanted": true,
+      "held": false,
+      "mapped": false,
+      "seq": 0
+    }, extra ?? {});
+  }
+
+  // Highest order first: each waits for those before it to have mapped
+  function test_sequence_stages() {
+    const shadow = entry("shadow", 11), bar = entry("bar", 5), border = entry("border", 0), pill = entry("pill", -1);
+    compare(LayerStack.sequence([border, pill, bar, shadow], false).show, ["shadow"]);
+    shadow.mapped = true;
+    compare(LayerStack.sequence([border, pill, bar, shadow], false).show, ["bar", "shadow"]);
+    bar.mapped = true;
+    compare(LayerStack.sequence([border, pill, bar, shadow], false).show.sort(), ["bar", "border", "shadow"]);
+    border.mapped = true;
+    compare(LayerStack.sequence([border, pill, bar, shadow], false).show.length, 4);
+  }
+
+  // Not wanted, a window doesn't hold the others back; equal orders don't
+  // wait for each other; other outputs and layers don't count
+  function test_sequence_independent() {
+    const off = entry("off", 5, {
+      "wanted": false
+    });
+    const a = entry("a", 0), b = entry("b", 0);
+    const elsewhere = entry("elsewhere", 9, {
+      "output": "P"
+    });
+    const above = entry("above", 9, {
+      "layer": "overlay"
+    });
+    compare(LayerStack.sequence([off, a, b, elsewhere, above], false).show.sort(), ["a", "above", "b", "elsewhere"]);
+  }
+
+  // A bar remade (mapped after the border) puts the border out of place
+  // where the compositor stacks by map order alone
+  function test_sequence_remap() {
+    const bar = entry("bar", 5, {
+      "mapped": true,
+      "seq": 3
+    });
+    const border = entry("border", 0, {
+      "mapped": true,
+      "seq": 1
+    });
+    const dock = entry("dock", -7, {
+      "mapped": true,
+      "seq": 4
+    });
+    const result = LayerStack.sequence([bar, border, dock], false);
+    compare(result.remap, ["border"]);
+    verify(!result.show.includes("border"), "hidden to map again");
+    compare(LayerStack.sequence([bar, border, dock], true).remap, [], "Hyprland sorts by order itself");
+  }
+
+  // Held windows map at their place even unwanted, without layer order only
+  function test_sequence_held() {
+    const menu = entry("menu", 7, {
+      "wanted": false,
+      "held": true
+    });
+    const bar = entry("bar", 5);
+    compare(LayerStack.sequence([menu, bar], false).show, ["menu"]);
+    compare(LayerStack.sequence([menu, bar], true).show, ["bar"]);
+  }
 }

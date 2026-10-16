@@ -58,7 +58,14 @@ PanelWindow {
     right: -(root.barConfig.vertical ? root._outerReach : root.barConfig.ends.end.reach)
   }
 
-  visible: barConfig.enabled
+  // Once the windows before it in the stack have mapped (LayerSlot)
+  visible: slot.shown
+  LayerSlot {
+    id: slot
+    window: root
+    namespace: root.layerNamespace
+    wanted: root.barConfig.enabled
+  }
 
   // With pills, room past the bar for the fillet where an end pill meets
   // the perpendicular edge, and for a shadow; click-through (see mask),

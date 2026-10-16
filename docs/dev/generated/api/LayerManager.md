@@ -3,14 +3,17 @@
 
 > **File:** `services/LayerManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Where axiom's layer-shell windows are on their outputs, worked out by axiom itself on every compositor (methods/LayerArrange; docs/dev/ compositor/layer-arrangement.md). Each window that needs to know, or that reserves space others are placed against, reports how it asks to be laid out (hosts/popout/LayerOrigin): anchors, margins, size, zone, and when it mapped. Where the compositor can list its layers (Hyprland: CompositorManager.withLayerRects), the result is checked against that and each difference logged (console.log, "LayerManager:").
+Where axiom's layer-shell windows are on their outputs, worked out by axiom itself on every compositor (methods/LayerArrange; docs/dev/ compositor/layer-arrangement.md). Each window that needs to know, or that reserves space others are placed against, reports how it asks to be laid out (hosts/popout/LayerOrigin): anchors, margins, size, zone, and when it mapped. Where the compositor can list its layers (Hyprland: CompositorManager.withLayerRects), the result is checked against that and each difference logged (console.log, "LayerManager:"). It also maps the windows with a fixed place in the stack (bars, the border, docks, integrated edge menus: hosts/popout/LayerSlot) in LayerStack order, one stage at a time, and maps again any that land out of place where the compositor stacks by map order alone.
 
 ### Properties
 
 - `rects` (var): Every reported window's rect by output, as LayerArrange.arrange gives it ({ [output]: { w, h, layers: [{ id, namespace, x, y, w, h }] } }); replaced only when something moved
+- `shownSlots` (var): Slots that may show now ({ uid: true })
 
 ### Functions
 
 - `register()`: A reporting window's id: owners keep it for their lifetime
 - `report(uid, spec)`: A window's layout, again whenever it changes; null once it's gone
 - `rectOf(uid, output)`: Where window `uid` is on its output ({ x, y, w, h }), or null when it isn't laid out (no output, or reserving space and not mapped)
+- `reportSlot(uid, slot)`: A slot's state, again whenever it changes; null once it's gone
+- `slotShown(uid)`: Whether slot `uid` may show now

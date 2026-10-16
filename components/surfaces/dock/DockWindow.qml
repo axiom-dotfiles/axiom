@@ -394,7 +394,15 @@ Scope {
 
     screen: root.screen
     color: "transparent"
-    visible: root.count > 0
+    // Once the windows before it in the stack have mapped
+    visible: dockSlot.shown
+    readonly property LayerSlot _slot: LayerSlot {
+      id: dockSlot
+      window: panelWindow
+      namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
+      layer: root.preview ? WlrLayer.Overlay : WlrLayer.Top
+      wanted: root.count > 0
+    }
 
     // Top, with its layer rule ordering it after the border and bars: it
     // sits inside them without shortening the bars on the other edges. A

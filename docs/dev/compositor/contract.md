@@ -52,7 +52,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `switcher` | Alt+Tab driven by compositor keys (`WindowSwitcherManager`) |
 | `strips` | the strip settings, scrolling a strip |
 | `focusGrab` | the native grab in `FocusGrab` |
-| `layerOrder` | stacking and arranging axiom's layers by `LayerStack.layers`. Nothing reads it yet: without it surfaces stack and reserve space in map order, uncorrected (`issues.md` › Layer order and positions without Hyprland) |
+| `layerOrder` | the compositor stacks and arranges axiom's layers by `LayerStack.layers` itself (layer rules). Without it `LayerManager` maps them in that order and maps again any that land out of place ([layer arrangement](layer-arrangement.md)) |
 | `blur` | the compositor blurs axiom's translucent surfaces |
 | `cursorPos`, `cursorWarp` | `withCursorPos`, `warpCursorToLayer` |
 | `windowGeometry` | window positions and sizes are real: without it the screenshot's window mode is left out (`ScreenshotManager.kinds`; a `window` request takes a region) and no window obscures a dock (`DockManager.obscured`). The overview still draws windows where they say they are |

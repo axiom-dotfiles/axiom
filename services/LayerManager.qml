@@ -13,6 +13,10 @@ import qs.config
  * and when it mapped. Where the compositor can list its layers (Hyprland:
  * CompositorManager.withLayerRects), the result is checked against that
  * and each difference logged (console.log, "LayerManager:").
+ * It also maps the windows with a fixed place in the stack (bars, the
+ * border, docks, integrated edge menus: hosts/popout/LayerSlot) in
+ * LayerStack order, one stage at a time, and maps again any that land out
+ * of place where the compositor stacks by map order alone.
  */
 QtObject {
   id: root
@@ -134,6 +138,87 @@ QtObject {
     target: CompositorManager
     function onLayersChanged() {
       root._check.restart();
+    }
+  }
+
+  // --- Mapping in order (LayerSlot) ---
+
+  // { slot uid: { output, layer, namespace, wanted, held, mapped } }
+  property var _slots: ({})
+  property var _slotSeqs: ({})
+  // Slots mapped long enough for the compositor to have mapped them
+  property var _slotSettled: ({})
+  // Slots unmapped to map again in their place, until they've unmapped
+  property var _remapping: ({})
+  // Slots that may show now ({ uid: true })
+  property var shownSlots: ({})
+
+  // Whether the compositor stacks by LayerStack order itself
+  readonly property bool _ordered: CompositorManager.supports.layerOrder === true
+
+  // A slot's state, again whenever it changes; null once it's gone
+  function reportSlot(uid, slot) {
+    const slots = Object.assign({}, root._slots);
+    if (slot)
+      slots[uid] = slot;
+    else
+      delete slots[uid];
+    root._slots = slots;
+    if (slot?.mapped && root._slotSeqs[uid] === undefined) {
+      root._slotSeqs[uid] = ++root._lastSeq;
+      root._settle.restart();
+    } else if (!slot?.mapped) {
+      delete root._slotSeqs[uid];
+      delete root._slotSettled[uid];
+      delete root._remapping[uid];
+    }
+    root._sequence.restart();
+  }
+
+  // Whether slot `uid` may show now
+  function slotShown(uid) {
+    return root.shownSlots[uid] === true;
+  }
+
+  // A window just made visible is created at once but drawn (and mapped)
+  // a frame or so later: the next stage waits for that
+  property Timer _settle: Timer {
+    interval: 50
+    onTriggered: {
+      for (const uid in root._slotSeqs)
+        root._slotSettled[uid] = true;
+      root._sequence.restart();
+    }
+  }
+
+  property Timer _sequence: Timer {
+    interval: 0
+    onTriggered: {
+      const entries = Object.keys(root._slots).map(uid => {
+        const slot = root._slots[uid];
+        return {
+          "id": uid,
+          "output": slot.output,
+          "layer": slot.layer,
+          "order": LayerStack.orderOf(slot.namespace),
+          "wanted": slot.wanted,
+          "held": slot.held,
+          "mapped": root._slotSettled[uid] === true,
+          "seq": root._slotSeqs[uid] ?? 0
+        };
+      });
+      const result = LayerStack.sequence(entries, root._ordered);
+      for (const uid of result.remap) {
+        if (!root._remapping[uid])
+          console.log(`LayerManager: mapping ${root._slots[uid].namespace} on ${root._slots[uid].output} again, in its place`);
+        root._remapping[uid] = true;
+      }
+      const shown = result.show.filter(uid => !root._remapping[uid]).reduce((acc, uid) => {
+        acc[uid] = true;
+        return acc;
+      }, {});
+      if (JSON.stringify(shown) !== JSON.stringify(root.shownSlots))
+        root.shownSlots = shown;
     }
   }
 }
