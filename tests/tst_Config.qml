@@ -2039,4 +2039,31 @@ TestCase {
     compare(again.WindowLook.surfaceBlur, false);
     compare(again.WindowLook.shadowSize, 7);
   }
+
+  function test_v64_workspaces_icon_size_is_gone() {
+    const migrated = load({
+      "version": 63,
+      "Bars": [
+        {
+          "id": "main",
+          "widgets": {
+            "left": [
+              {
+                "type": "Workspaces",
+                "properties": {
+                  "showAppIcons": true,
+                  "appIconSize": 20
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+    const widget = migrated.config.Bars[0].widgets.left[0];
+    compare(widget.properties.showAppIcons, true);
+    compare(widget.properties.appIconSize, undefined);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+  }
 }

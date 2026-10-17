@@ -93,7 +93,6 @@ Panel {
         // The workspace id, or its place in the grid counted from 1, as on the bar
         label: root.properties.relativeNumbers ? index + 1 : wsId
         iconPath: windowData ? IconResolver.resolveWindowIcon(windowData.appId, windowData.title) : ""
-        iconSize: root.properties.appIconSize ?? 0
         clickable: root.properties.clickToSwitch ?? false
         animated: root._settled
         opacity: inBar ? 1.0 : 0.85

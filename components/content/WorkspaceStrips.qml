@@ -103,7 +103,6 @@ Panel {
           activeColor: root.activeColor
           occupiedColor: root.occupiedColor
           textColor: root.textColor
-          iconSize: root.properties.appIconSize ?? 0
           clickable: root.properties.clickToSwitch ?? false
           animated: root._settled
         }

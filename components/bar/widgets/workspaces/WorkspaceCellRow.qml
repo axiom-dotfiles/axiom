@@ -141,7 +141,6 @@ Item {
         label: root.properties.relativeNumbers ? wsId - root.base + 1 : wsId
         glyph: _glyph
         iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.appId, biggestWindow.title) : ""
-        iconSize: root.properties.appIconSize
         clickable: root.properties.clickToSwitch
         onClicked: CompositorManager.goToWorkspace(wsId, "go", root.monitor?.name ?? "")
         // Also when the cell under the pointer comes to stand for another

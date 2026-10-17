@@ -3060,7 +3060,6 @@
     "Windows as tabs": "ウィンドウをタブで",
     "Animation length": "アニメーションの長さ",
     "Keeps an empty workspace above the first one, as well as below the last.": "最後のワークスペースの下に加えて、最初のワークスペースの上にも空のワークスペースを置きます。",
-    "App icons on workspaces and a strip's windows, on the bar and in the popout. Off: sized to the cells.": "ワークスペースとストリップのウィンドウのアプリアイコン（バーとポップアウト）。オフ：セルに合わせたサイズ。",
     "Added": "追加済み",
     "Binds on keys your config uses are skipped.": "設定で使われているキーのバインドはスキップされます。",
     "{0} doesn't start axiom with the session. Add near the top of {1}:": "{0} はセッション開始時に axiom を起動しません。{1} の先頭付近に追加してください:",

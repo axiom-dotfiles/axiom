@@ -26,8 +26,6 @@ Grid {
   required property color occupiedColor
   required property color textColor
   required property color hoverColor
-  // The app icons' size in px; 0 sizes them to the cells
-  property real iconSize: 0
   property bool clickable: true
   // The widget's (BarWidget.hitArea), which the cells read hover from
   property var hitArea: null
@@ -63,7 +61,6 @@ Grid {
       radius: root.radius
       hoverColor: root.hoverColor
       iconPath: window ? IconResolver.resolveWindowIcon(window.appId, window.title) : ""
-      iconSize: root.iconSize
       clickable: root.clickable
       hitArea: root.hitArea
       animated: root.animated

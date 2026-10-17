@@ -164,7 +164,6 @@ Item {
         occupiedColor: root.occupiedColor
         textColor: root.textColor
         hoverColor: root.hoverColor
-        iconSize: root.properties.appIconSize
         clickable: root.properties.clickToSwitch
         hitArea: root.hitArea
       }

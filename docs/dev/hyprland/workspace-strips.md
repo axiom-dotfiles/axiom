@@ -35,7 +35,7 @@ Monitors on Hyprland's `scrolling` layout: how they're configured, how the Lua r
 - On a strip monitor, both workspace switchers follow their workspaces (all of them, or the shown grid row) with `workspaces/ActiveStrip`:
   - a divider: a `SeparatorMark` in the bar's `separatorStyle`, or a line when that's none
   - then the active workspace's windows, in strip order.
-- The windows are drawn by `workspaces/StripWindows`: bar cells with app icons (sized by the widget's `appIconSize` when set), the last focused one active, and a click focuses.
+- The windows are drawn by `workspaces/StripWindows`: bar cells with app icons sized to the cells, the last focused one active, and a click focuses.
 - **Wheel.** The wheel scrolls the strip a column at a time (`CompositorManager.stepStrip`: `layout("move ±col")`).
   - It acts on the focused monitor only, since layout messages act on the focused workspace.
   - It needs windows on the workspace; Hyprland refuses it on an empty one.
