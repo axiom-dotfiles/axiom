@@ -51,6 +51,8 @@ Rectangle {
       return [I18n.tr("Your shell isn't zsh, bash or fish: add the line to its startup file yourself.")];
     if (t.skipped === "profiles")
       return [I18n.tr("No browser profile found: start the browser once, then check again.")];
+    if (t.skipped === "readonly")
+      return [t.link ? I18n.tr("Skipped: {0} is a link to {1}, which you can't change. Add the text to a file of your own.", t.path, t.resolved) : I18n.tr("Skipped: you can't change {0}. Add the text yourself.", t.path)];
     if (t.copyOnly)
       return [];
     if (t.place === "copy")
@@ -59,6 +61,8 @@ Rectangle {
       return [I18n.tr("Already set up in {0}.", t.path)];
     if (t.conflicts.length > 0)
       return [I18n.tr("{0} already sets this ({1}): add axiom's file to it yourself.", t.path, t.conflicts.join(", "))];
+    if (t.wraps)
+      return [I18n.tr("{0} is a link to {1}, which you can't change: Apply replaces the link with a file that loads {1}, then axiom's file after it.", t.path, t.resolved), I18n.tr("The link is kept as {0}.", t.path + ".axiom-bak-<date>")];
     const lines = [];
     if (t.link)
       lines.push(I18n.tr("{0} is a link to {1}: that file is the one changed, and the link stays.", t.path, t.resolved));

@@ -379,6 +379,9 @@ class HookupScript(unittest.TestCase):
         self.config = Path(self.env["XDG_CONFIG_HOME"])
 
     def tearDown(self):
+        system = Path(self.tmp) / "system"
+        if system.is_dir():
+            system.chmod(0o755)
         shutil.rmtree(self.tmp)
 
     def hookup(self, action, key, schema=None, targets=None):
@@ -440,6 +443,46 @@ class HookupScript(unittest.TestCase):
         targets = self.hookup("status", "firefox")["targets"]
         self.assertTrue(targets)
         self.assertTrue(all(t["skipped"] == "profiles" for t in targets))
+
+    def readonly_file(self, name, text):
+        """A file in a directory the user can't write (like /usr/share/themes)"""
+        if os.geteuid() == 0:
+            self.skipTest("root can write anywhere")
+        theme = Path(self.tmp) / "system" / name
+        theme.parent.mkdir(parents=True)
+        theme.write_text(text)
+        theme.chmod(0o444)
+        theme.parent.chmod(0o555)
+        return theme
+
+    def test_link_to_a_readonly_file_is_skipped(self):
+        real = self.readonly_file("kitty.conf", "font_size 12\n")
+        link = self.config / "kitty" / "kitty.conf"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(real)
+        self.assertEqual(self.hookup("status", "kitty")["targets"][0]["skipped"], "readonly")
+        result = self.hookup("apply", "kitty")["results"][0]
+        self.assertFalse(result["changed"])
+        self.assertEqual(result["error"], "")
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(real.read_text(), "font_size 12\n")
+
+    def test_gtk_link_to_a_theme_is_wrapped(self):
+        real = self.readonly_file("gtk.css", "@define-color window_bg_color #fff;\n")
+        self.write("gtk-3.0/gtk.css", "")
+        link = self.config / "gtk-4.0" / "gtk.css"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(real)
+        status = self.hookup("status", "gtk")["targets"][1]
+        self.assertTrue(status["wraps"])
+        self.assertEqual(status["skipped"], "")
+        self.hookup("apply", "gtk")
+        self.assertFalse(link.is_symlink())
+        self.assertEqual(link.read_text(), f'@import url("file://{real}");\n@import url("axiom.css");\n')
+        backups = self.backups(link)
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(os.readlink(backups[0]), str(real))
+        self.assertTrue(self.hookup("status", "gtk")["targets"][1]["done"])
 
     def test_end_keeps_a_symlink_and_backs_up(self):
         real = Path(self.tmp) / "dotfiles" / "kitty.conf"

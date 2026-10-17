@@ -33,7 +33,7 @@ How axiom themes other apps: one script per app writing its own `axiom.*` file, 
 - ncspot can't include a file, so `theme_ncspot.sh` writes `$XDG_STATE_HOME/axiom/ncspot-theme.toml`.
 - It copies that between the two marker lines its Apply put in `config.toml`'s `[theme]` (`x-hookupNote` says so).
 - It leaves out keys the user sets in `[theme]` outside the markers. With no markers it only warns.
-- It edits the file a symlink points at, rewrites only on a change, and sends `reload` to ncspot's socket.
+- It edits the file a symlink points at (only a warning when the user can't write it, e.g. a `/nix/store` link), rewrites only on a change, and sends `reload` to ncspot's socket.
 
 ### Neovim
 - No line to add: colorschemes come from plugins, often loaded lazily after init.lua.
@@ -78,6 +78,7 @@ How axiom themes other apps: one script per app writing its own `axiom.*` file, 
 - Apply's safety:
   - backs each changed file up beside the real file (`<name>.axiom-bak-<time>`);
   - follows a symlink and keeps it (so a dotfiles repo's file is edited);
+  - never writes a file (or a directory) the user can't: such a target is skipped as `readonly`. With `wrapLink` (GTK 4's `gtk.css`, which nwg-look and others link to a theme's file under `/usr/share/themes`), Apply instead replaces the link with a file holding `wrapLink` (`{link}` = the file it pointed at) then the text, and keeps the link as the backup;
   - writes atomically;
   - never deletes a line;
   - does nothing for a target already done.

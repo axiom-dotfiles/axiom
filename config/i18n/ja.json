@@ -3086,6 +3086,10 @@
     "{0} can't bind a modifier on its own": "{0} は修飾キー単体をバインドできません",
     "Fires when tapped on its own": "単独でタップしたときに実行されます",
     "Modifiers and key, joined by +: \"SUPER + SHIFT + space\". A modifier key alone (\"Super_L\") fires when tapped, on compositors that can bind one.": "修飾キーとキーを + でつなぎます: \"SUPER + SHIFT + space\"。修飾キー単体（\"Super_L\"）は、対応するコンポジターではタップしたときに実行されます。",
-    "X11 apps (Steam, games, older apps)": "X11アプリ (Steam、ゲーム、古いアプリ)"
+    "X11 apps (Steam, games, older apps)": "X11アプリ (Steam、ゲーム、古いアプリ)",
+    "Skipped: {0} is a link to {1}, which you can't change. Add the text to a file of your own.": "スキップ: {0} は {1} へのリンクですが、そのファイルは変更できません。自分のファイルにテキストを追加してください。",
+    "Skipped: you can't change {0}. Add the text yourself.": "スキップ: {0} は変更できません。テキストを自分で追加してください。",
+    "The link is kept as {0}.": "リンクは {0} として残ります。",
+    "{0} is a link to {1}, which you can't change: Apply replaces the link with a file that loads {1}, then axiom's file after it.": "{0} は変更できない {1} へのリンクです。適用すると、リンクを {1} を読み込み、その後に axiom のファイルを読み込むファイルに置き換えます。"
   }
 }
