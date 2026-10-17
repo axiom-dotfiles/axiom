@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Every check CI runs (.github/workflows/checks.yml), in the same order
 # (the generated docs are rebuilt here, only checked in CI).
-# Needs Qt 6's tools, shellcheck, luac and jq; the script smoke tests set up
-# the python venv on their first run.
+# Needs Qt 6's tools, shellcheck, luac and jq; the theme and calendar script
+# tests also want python's numpy, Pillow and icalendar (skipped without).
 #
 #   scripts/check_all.sh             everything
 #   scripts/check_all.sh --no-docs   skip rebuilding the generated docs (the

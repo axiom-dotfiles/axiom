@@ -93,7 +93,7 @@ for f in "${changed[@]}"; do
   scripts/niri_kdl.py | scripts/niri_config.py) script_tests+=(NiriConfig MergeNiriBinds) ;;
   scripts/merge_hypr_binds.py | scripts/hypr_binds.lua) script_tests+=(MergeHyprBinds ClaimHyprland) ;;
   scripts/generate_theme.py) script_tests+=(GenerateTheme) ;;
-  scripts/calendar_sync.py | scripts/setup_venv.sh | scripts/requirements.txt) script_tests+=(CalendarSync GenerateTheme) ;;
+  scripts/calendar_sync.py) script_tests+=(CalendarSync) ;;
   scripts/greeter/*) script_tests+=(GreeterInstall) ;;
   scripts/pick_path.py) script_tests+=(PickPath) ;;
   scripts/sway_config_text.py) script_tests+=(SwayConfigText) ;;

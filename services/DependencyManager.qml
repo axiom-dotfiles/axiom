@@ -14,7 +14,8 @@ import qs.components.methods
  * name, checked again whenever it changes). Created from shell.qml's
  * `_services`.
  *
- * Also which commands are installed (`found`, filled by `check(commands)`),
+ * Also which commands (and Python modules, as "py:<module>") are installed
+ * (`found`, filled by `check(commands)`),
  * for the onboarder: the optional `tools` below, the apps it offers; and
  * what installs them on this distribution (`distro`, `installLines`).
  */
@@ -45,6 +46,14 @@ Singleton {
     return Packages.installLines(root.distro, keys);
   }
 
+  // A key as people read it: "python: numpy" for "py:numpy", the font's
+  // family for "iconFont"
+  function label(key) {
+    if (key === "iconFont")
+      return Appearance.iconFamily;
+    return String(key).startsWith("py:") ? "python: " + key.slice(3) : key;
+  }
+
   // One line that installs a command here ("" on an unknown distribution)
   function installCommand(key) {
     return Packages.installCommand(root.distro, key);
@@ -65,6 +74,7 @@ Singleton {
   // I18n.tr("The system's sound in screen recordings")
   // I18n.tr("Annotating screenshots (swappy works too)")
   // I18n.tr("Power profiles in the quick actions")
+  // I18n.tr("Theme generation from the wallpaper") I18n.tr("Calendar accounts and feeds")
   readonly property var tools: [
     {
       "command": "qalc",
@@ -101,6 +111,18 @@ Singleton {
     {
       "command": "python3",
       "purpose": "Theme generation, theme integrations and keybinds"
+    },
+    {
+      "command": "py:numpy",
+      "purpose": "Theme generation from the wallpaper"
+    },
+    {
+      "command": "py:PIL",
+      "purpose": "Theme generation from the wallpaper"
+    },
+    {
+      "command": "py:icalendar",
+      "purpose": "Calendar accounts and feeds"
     },
     {
       "command": "notify-send",
@@ -149,9 +171,10 @@ Singleton {
   // { command: bool } for every command checked so far
   property var found: ({})
 
-  // Looks the commands up (command -v) and adds them to `found`
+  // Looks the commands up (command -v; a "py:<module>" with python3's
+  // importlib) and adds them to `found`
   function check(commands) {
-    const wanted = (commands ?? []).map(c => String(c).trim().split(/\s+/)[0]).filter(c => /^[\w.+-]+$/.test(c));
+    const wanted = (commands ?? []).map(c => String(c).trim().split(/\s+/)[0]).filter(c => /^(py:)?[\w.+-]+$/.test(c));
     if (wanted.length === 0)
       return;
     _pendingChecks = _pendingChecks.concat(wanted);
@@ -178,7 +201,7 @@ Singleton {
     const commands = Array.from(new Set(_pendingChecks));
     _pendingChecks = [];
     _lookup.commands = commands;
-    _lookup.command = ["sh", "-c", 'for c in "$@"; do command -v "$c" >/dev/null 2>&1 && echo "$c"; done; true', "sh"].concat(commands);
+    _lookup.command = ["sh", "-c", 'for c in "$@"; do case "$c" in py:*) python3 -c "import importlib.util, sys; sys.exit(importlib.util.find_spec(sys.argv[1]) is None)" "${c#py:}" >/dev/null 2>&1 ;; *) command -v "$c" >/dev/null 2>&1 ;; esac && echo "$c"; done; true', "sh"].concat(commands);
     _lookup.running = true;
   }
 

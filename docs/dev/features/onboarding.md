@@ -53,7 +53,7 @@ The first-run onboarder: a paged window that sets up the look, the compositor's 
 ### Other pages
 - It reuses the Monitors view, `WallpaperPicker` and `ThemePicker` as they are.
 - The Look page's folder check, create and open are `WallpaperManager.checkFolder()` / `folderImages` / `createFolder()` / `openFolder()`.
-- `DependencyManager.check(commands)` / `found` / `tools` say what's installed.
+- `DependencyManager.check(commands)` / `found` / `tools` say what's installed. A `py:<module>` key (`py:numpy`, `py:icalendar`) is a Python module, looked up with python3's `importlib` rather than `command -v`; `DependencyManager.label` shows it as `python: <module>`. Python modules come from the distribution's own packages (no venv, no pip).
 - The Apps page shows the main modifier and the keys to know only where axiom binds keys (`CompositorManager.supports.keybinds`); elsewhere it's just the apps.
 - The Integrations page, top to bottom: updates, clipboard history, [Idle](idle.md), the lock screen, [Polkit](polkit.md), the login screen, then theme integrations.
   - Idle, the lock screen, polkit and the login screen are `OptionCard` choices. The lock screen has two (`Lockscreen.mode`): axiom's, or your own.

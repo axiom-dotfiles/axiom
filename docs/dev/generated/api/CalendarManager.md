@@ -3,7 +3,7 @@
 
 > **File:** `services/CalendarManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Calendars (the Calendar section): CalDAV accounts and .ics subscriptions, through scripts/calendar_sync.py (run in the venv; passwords from SecretsManager on its stdin). The helper keeps the server's objects in $XDG_STATE_HOME/axiom/calendar/objects.json and writes their occurrences in `range` to events.json, which this reads (so the calendar shows at once, and offline). Syncs every `Calendar.syncInterval` minutes while something has acquire()d it, or while reminders are on; one helper runs at a time, later jobs queued. CalendarManager.acquire(owner) / release(owner) CalendarManager.eventsOn("2026-10-05") // that day's, in order CalendarManager.dotsFor("2026-10-05") // its calendars' colors CalendarManager.save(draft, scope, cb) / remove(event, scope, cb) Nothing runs in the greeter, which can't read the user's state anyway.
+Calendars (the Calendar section): CalDAV accounts and .ics subscriptions, through scripts/calendar_sync.py (run with the system python3; passwords from SecretsManager on its stdin). The helper keeps the server's objects in $XDG_STATE_HOME/axiom/calendar/objects.json and writes their occurrences in `range` to events.json, which this reads (so the calendar shows at once, and offline). Syncs every `Calendar.syncInterval` minutes while something has acquire()d it, or while reminders are on; one helper runs at a time, later jobs queued. CalendarManager.acquire(owner) / release(owner) CalendarManager.eventsOn("2026-10-05") // that day's, in order CalendarManager.dotsFor("2026-10-05") // its calendars' colors CalendarManager.save(draft, scope, cb) / remove(event, scope, cb) Nothing runs in the greeter, which can't read the user's state anyway.
 
 ### Properties
 
@@ -12,7 +12,8 @@ Calendars (the Calendar section): CalDAV accounts and .ics subscriptions, throug
 - `errors` (var): The last sync's problems: [{ calendar, code, message }]
 - `syncing` (readonly bool)
 - `busy` (readonly bool): A helper is running (a sync, save or delete)
-- `available` (bool): False once the helper couldn't start (no python, or the venv failed)
+- `available` (bool): False once the helper couldn't start (no python3), or a Python package it needs is missing (`missingModule`, the module's name, else "")
+- `missingModule` (string)
 - `request` (var): What the page or a module was asked to show next ({ kind: "new" | "day", key }), taken by the first one that can (takeRequest)
 - `range` (var): The span of events kept, widened as views page past it
 - `byDay` (readonly var): Shown calendars' events by day ({ "YYYY-MM-DD": [event] })
@@ -35,4 +36,5 @@ Calendars (the Calendar section): CalDAV accounts and .ics subscriptions, throug
 - `quickAdd(text, callback)`: Adds a quick add's event to the new-event calendar; false when it can't (no title, or no calendar to add to)
 - `openPage(request)`: Opens the Calendar page (else the page with a Calendar module), asked to show `request` ({ kind: "new" | "day", key }) when given
 - `takeRequest()`: The pending request, once (null when there's none)
+- `missingText(module)`: What to install for a missing Python module, for people
 - `errorText(result)`: A helper's failure, for people

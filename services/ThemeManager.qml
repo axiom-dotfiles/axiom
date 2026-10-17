@@ -72,6 +72,10 @@ QtObject {
   // shared with scripts/generate_theme.py
   readonly property var defaults: _defaults
 
+  // Theme generation's Python packages (numpy, Pillow) aren't installed:
+  // set by the last run, which said so once (generate_theme.py exits 3)
+  property bool generationUnavailable: false
+
   signal generationFailed(string errorText)
   onGenerationFailed: errorText => NotificationManager.sendNotification("axiom", I18n.tr("Failed to generate themes"), I18n.tr("There was an error while processing the wallpaper. Details: {0}", errorText))
 
@@ -548,8 +552,8 @@ QtObject {
   }
 
   // --- Generation Logic ---
-  // One run generates every style's pair (generate_theme.py STYLES).
-  // venv_python.sh sets up (or updates) the venv first.
+  // One run generates every style's pair (generate_theme.py STYLES), with
+  // the system's python3 and its numpy and Pillow packages.
 
   property Process _generationProcess: Process {
     id: generationProcess
@@ -560,7 +564,7 @@ QtObject {
     function start(wallpaperUrl) {
       wallpaper = wallpaperUrl.toString();
       const wallpaperPath = wallpaperUrl.toString().replace("file://", "");
-      command = [Paths.scriptsPath + "venv_python.sh", root._pythonScriptPath, wallpaperPath, "--output_dir", Paths.generatedThemesPath];
+      command = ["python3", root._pythonScriptPath, wallpaperPath, "--output_dir", Paths.generatedThemesPath];
       console.log("[ThemeManager] Executing:", command.join(" "));
       running = true;
     }
@@ -574,11 +578,18 @@ QtObject {
     }
     onExited: (exitCode, exitStatus) => {
       const errors = stderrCollector.text.trim();
-      if (exitStatus !== 0 || exitCode !== 0) {
+      if (exitStatus === 0 && exitCode === 3) {
+        console.warn("[ThemeManager] Theme generation needs python packages:", errors);
+        if (!root.generationUnavailable) {
+          const install = DependencyManager.installCommand(["py:numpy", "py:PIL"]);
+          NotificationManager.sendNotification("axiom", I18n.tr("Themes can't be generated"), install ? I18n.tr("Generating themes from the wallpaper needs the Python packages numpy and Pillow. Install them with: {0}", install) : I18n.tr("Generating themes from the wallpaper needs the Python packages numpy and Pillow."));
+        }
+        root.generationUnavailable = true;
+      } else if (exitStatus !== 0 || exitCode !== 0) {
         console.error("[ThemeManager] Theme generation failed.", errors);
         root.generationFailed(errors);
       } else {
-        // The venv was set up
+        root.generationUnavailable = false;
         if (errors)
           console.warn("[ThemeManager] generate_theme.py:", errors);
         console.log("[ThemeManager] Theme generation finished successfully.");

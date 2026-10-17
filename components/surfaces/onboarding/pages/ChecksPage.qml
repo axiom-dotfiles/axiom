@@ -52,7 +52,7 @@ OnboardingPage {
       }
 
       StyledText {
-        text: tool.modelData.command
+        text: DependencyManager.label(tool.modelData.command)
         textFamily: "monospace"
       }
 
@@ -74,7 +74,7 @@ OnboardingPage {
     StyledText {
       Layout.topMargin: Widget.spacing
       Layout.fillWidth: true
-      text: root.installLines.length > 0 ? I18n.tr("To install what's missing:") : I18n.tr("Install these with your package manager: {0}", root.wanted.map(key => key === "iconFont" ? Appearance.iconFamily : key).join(", "))
+      text: root.installLines.length > 0 ? I18n.tr("To install what's missing:") : I18n.tr("Install these with your package manager: {0}", root.wanted.map(key => DependencyManager.label(key)).join(", "))
       wrapMode: Text.WordWrap
     }
 

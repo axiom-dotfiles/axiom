@@ -228,9 +228,9 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** trivial
 - **Found:** 2026-10-16, while auditing the layer-placement branch
 
-### The python venv and bytecode are written into the repo
-- **Where:** `scripts/setup_venv.sh`, `scripts/venv_python.sh`
-- **What:** The venv for `generate_theme.py`/`calendar_sync.py` is made at `<repo>/.venv`, and python leaves `__pycache__/` in `scripts/`. A packaged (read-only) install can't do either. Put the venv in `$XDG_DATA_HOME/axiom/venv` (or use the system python when the requirements already import), and set `PYTHONDONTWRITEBYTECODE=1`. Blocks packaging, not the XDG move.
+### Python bytecode is written into the repo
+- **Where:** `scripts/bind_merge_common.py`, `scripts/niri_kdl.py`
+- **What:** Scripts that import a sibling module (the bind mergers, the niri config scripts) leave `__pycache__/` in `scripts/`, which a packaged (read-only) install can't write. Set `PYTHONDONTWRITEBYTECODE=1` where the shell runs python. Blocks packaging, not the XDG move.
 - **Size:** small
 - **Found:** 2026-10-15, while moving config and state to the XDG folders
 

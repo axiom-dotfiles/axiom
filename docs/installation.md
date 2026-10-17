@@ -29,7 +29,8 @@ The whole shell runs on five things. Everything else is optional and only needed
 | NVIDIA GPU stats | `nvidia-smi` (AMD is read from sysfs) |
 | Idle (dim, lock, screen off, suspend) | `hypridle` |
 | Login screen | `greetd` and its text login `agreety` (`greetd-agreety` on Arch), the fallback; `pkexec` (polkit) to install it |
-| Calendar | `secret-tool` (libsecret) to keep account passwords in your keyring; the Python packages `icalendar` and `recurring-ical-events`, which the installer's venv holds (`scripts/requirements.txt`) |
+| Themes generated from the wallpaper | The Python packages numpy and Pillow (`python-numpy python-pillow` on Arch, `python3-numpy python3-pillow` on Fedora) |
+| Calendar | The Python package icalendar (`python-icalendar` on Arch, `python3-icalendar` on Fedora); `secret-tool` (libsecret) to keep account passwords in your keyring |
 | Browse buttons for folders, importing a shared config | xdg-desktop-portal with a file chooser backend (`xdg-desktop-portal-gtk` or KDE's) and `python-gobject`; or `zenity` or `kdialog`. Without them, type the path |
 | Polkit prompt | Nothing: axiom is the agent itself, and stops another one (hyprpolkitagent, KDE's, GNOME's) while it's on |
 | Night light | `hyprsunset` or `wlsunset` |
@@ -47,7 +48,7 @@ On Arch Linux, or a distribution based on it (CachyOS, EndeavourOS, Manjaro, …
 curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash
 ```
 
-Every package it installs comes from the official repositories. It lists the optional features and offers them all at once (recommended), or one at a time, skipping any already installed. It then shows the one `sudo pacman` command it will run, and why, before running it. Then it clones the latest release into `~/.config/quickshell/axiom` and sets up the Python venv. Then it asks before adding the line that starts axiom to the end of your `hyprland.lua`, backing up the file first. Run from a text console (a TTY) outside Hyprland, it last offers to start Hyprland. `--yes` answers yes to every question, and `--minimal` installs only what's required. Running it again is safe. From a clone, run `./install.sh`: that clone is used wherever it is, and if it isn't at `~/.config/quickshell/axiom` (where `qs -c axiom` looks), the installer offers to link it there, or to move it.
+Every package it installs comes from the official repositories. It lists the optional features and offers them all at once (recommended), or one at a time, skipping any already installed. It then shows the one `sudo pacman` command it will run, and why, before running it. Then it clones the latest release into `~/.config/quickshell/axiom`. Then it asks before adding the line that starts axiom to the end of your `hyprland.lua`, backing up the file first. Run from a text console (a TTY) outside Hyprland, it last offers to start Hyprland. `--yes` answers yes to every question, and `--minimal` installs only what's required. Running it again is safe. From a clone, run `./install.sh`: that clone is used wherever it is, and if it isn't at `~/.config/quickshell/axiom` (where `qs -c axiom` looks), the installer offers to link it there, or to move it.
 
 <details>
 <summary><b>By hand</b>, or on another distribution</summary>

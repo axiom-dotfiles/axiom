@@ -21,6 +21,10 @@ each pair looks different from the same image.
 The lightness/chroma/hue targets are measured from the hand-made themes in
 config/themes (Catppuccin, Tokyo Night, Gruvbox, Solarized), so generated
 themes sit in the same range.
+
+Needs numpy and Pillow from the system's packages; without them it exits 3
+with "missing python module: <name>" on stderr (ThemeManager says what to
+install).
 """
 import argparse
 import json
@@ -29,8 +33,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-import numpy as np
-from PIL import Image
+try:
+    import numpy as np
+    from PIL import Image
+except ModuleNotFoundError as err:
+    print(f"missing python module: {err.name}", file=sys.stderr)
+    sys.exit(3)
 
 # Each style's changes to the tonal build (every factor defaults to 1):
 #   chroma          accent chroma

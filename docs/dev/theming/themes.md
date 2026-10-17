@@ -1,6 +1,6 @@
 # Themes
 
-> **Files:** `services/ThemeManager.qml`, `config/Theme.qml`, `config/json/theme-defaults.json`, `config/themes/`, `scripts/generate_theme.py`, `scripts/venv_python.sh`, `components/views/Themes.qml`, `components/content/ThemePicker.qml`, `components/content/Palette.qml`
+> **Files:** `services/ThemeManager.qml`, `config/Theme.qml`, `config/json/theme-defaults.json`, `config/themes/`, `scripts/generate_theme.py`, `components/views/Themes.qml`, `components/content/ThemePicker.qml`, `components/content/Palette.qml`
 > **Config:** `Appearance.theme`
 > **Related:** [Theme integrations](theme-integrations.md), [Wallpaper and schedules](wallpaper-and-schedules.md), [Config readers](../core/config-readers.md)
 
@@ -40,7 +40,7 @@ How the active theme is loaded, how themes are grouped into dark/light families,
   - k-means in OKLab picks candidate colors;
   - the palette is built in OKLCH from targets measured off the hand-made themes;
   - the wallpaper's seed color goes in `base0F` as `accent`.
-- Run through `scripts/venv_python.sh`, which keeps `.venv` in sync with `scripts/requirements.txt`.
+- Run with the system `python3`; needs numpy and Pillow (system packages). Without them it exits 3, and `ThemeManager` notifies once with the install command (`DependencyManager.installCommand`) and sets `generationUnavailable`.
 - When automatic wallpaper changes regenerate: see [Wallpaper and schedules](wallpaper-and-schedules.md).
 
 ### Themes page

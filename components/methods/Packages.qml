@@ -51,7 +51,8 @@ QtObject {
   // them (and quickshell) for every current release
   readonly property string _hyprCopr: "nett00n/hyprland"
 
-  // { key: { distro: package } }, a key being a command (or "iconFont").
+  // { key: { distro: package } }, a key being a command, a Python module
+  // as "py:<module>", or "iconFont".
   // A package is a name, { name, repo } (from a repository enabled first),
   // { file, to } (a download), or null: nothing to install there (the
   // feature doesn't apply). Every key names every distribution.
@@ -98,6 +99,22 @@ QtObject {
       "python3": {
         "arch": "python",
         "fedora": "python3"
+      },
+      "py:numpy": {
+        "arch": "python-numpy",
+        "fedora": "python3-numpy"
+      },
+      "py:PIL": {
+        "arch": "python-pillow",
+        "fedora": "python3-pillow"
+      },
+      "py:icalendar": {
+        "arch": "python-icalendar",
+        "fedora": "python3-icalendar"
+      },
+      "py:dateutil": {
+        "arch": "python-dateutil",
+        "fedora": "python3-dateutil"
       },
       "notify-send": {
         "arch": "libnotify",

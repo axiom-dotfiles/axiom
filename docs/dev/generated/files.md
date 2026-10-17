@@ -599,7 +599,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BlurManager.qml`: The blur behind the shell's chrome: the border's frame, bars and their popouts, edge popouts, integrated edge menus and docks.
 - `BrightnessManager.qml`: Screen brightness per monitor: a laptop panel through its sysfs backlight (written with brightnessctl, which goes through logind), an external monitor over DDC/CI (ddcutil, VCP 0x10).
 - `CalculatorManager.qml`: Math, units and currencies through qalc (libqalculate, which fetches and caches its own exchange rates), for the launcher's calculator rows and the Calculator module.
-- `CalendarManager.qml`: Calendars (the Calendar section): CalDAV accounts and .ics subscriptions, through scripts/calendar_sync.py (run in the venv; passwords from SecretsManager on its stdin).
+- `CalendarManager.qml`: Calendars (the Calendar section): CalDAV accounts and .ics subscriptions, through scripts/calendar_sync.py (run with the system python3; passwords from SecretsManager on its stdin).
 - `ChatManager.qml`: The chat: conversations, sending and streaming replies (ChatRequest, ChatProtocol), attachments, and their history on disk.
 - `ChatRequest.qml`: One streaming chat request, sent with curl.
 - `ClaudeUsageManager.qml`: Claude plan usage (the numbers Claude Code's /usage shows) for one or more Claude Code accounts, each a CLAUDE_CONFIG_DIR.

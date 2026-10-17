@@ -2,9 +2,9 @@
 #
 # Description: Installs axiom on Arch Linux or a distribution based on it
 #              (CachyOS, EndeavourOS, Manjaro, …): its packages (all from the
-#              official repos), a clone at the latest release, the python
-#              venv, and (if you agree) one line in hyprland.lua that starts
-#              it; from a text console it then offers to start Hyprland.
+#              official repos), a clone at the latest release, and (if you
+#              agree) one line in hyprland.lua that starts it; from a text
+#              console it then offers to start Hyprland.
 #              Everything after that, keybinds and Hyprland settings
 #              included, is axiom's own Settings → Desktop → Hyprland.
 # Usage:       curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash
@@ -32,6 +32,8 @@ REQUIRED=(git hyprland quickshell jq python ttf-material-symbols-variable)
 # "feature|packages", offered one at a time
 OPTIONAL=(
   "Wallpapers|awww"
+  "Themes generated from your wallpaper|python-numpy python-pillow"
+  "Calendar accounts and feeds|python-icalendar libsecret"
   "Wi-Fi menu and network widget|networkmanager"
   "Package update checks|pacman-contrib"
   "Copying screenshots to the clipboard|wl-clipboard"
@@ -114,8 +116,8 @@ pacman_install() {
   printf '\n    sudo pacman %s %s\n\n' "${flags[*]}" "$*"
   cat <<'EOF'
    pacman writes to /usr and to its own database, which only root can do. This
-   is the only command run as root: the clone, the python venv and hyprland.lua
-   all stay in your home and run as you. Every package comes from the official
+   is the only command run as root: the clone and hyprland.lua stay in your
+   home and run as you. Every package comes from the official
    repositories, and pacman lists them all, dependencies included, before it
    installs anything. sudo may ask for your password.
 
@@ -198,8 +200,7 @@ if [[ "$mode" == ask ]] && ((have_tty)); then
    1. packages from the official repositories, through sudo pacman (you'll see
       the exact command first)
    2. $clone_step
-   3. a python venv inside it, for theme generation
-   4. the line that starts axiom, at the end of $HYPR_CONFIG
+   3. the line that starts axiom, at the end of $HYPR_CONFIG
 
 EOF
 fi
@@ -328,19 +329,15 @@ else
     rm -f "$QS_DIR"
     mv "$AXIOM_DIR" "$QS_DIR"
     AXIOM_DIR=$QS_DIR
-    # Its scripts name the old path; the venv step below rebuilds it
-    rm -rf "$AXIOM_DIR/.venv"
     ok "Moved the clone to $QS_DIR"
   else
     placed=0
   fi
 fi
 
-# ─── Python venv (theme generation) ──────────────────────────────────────────
-
-if [[ "$mode" != minimal ]]; then
-  "$AXIOM_DIR/scripts/setup_venv.sh" || warn "The python venv failed; theme generation retries it later."
-fi
+# The python venv older versions kept in the clone: its packages are system
+# packages now (the optional features above)
+rm -rf "$AXIOM_DIR/.venv"
 
 # ─── Autostart ───────────────────────────────────────────────────────────────
 

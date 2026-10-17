@@ -7,7 +7,7 @@ import qs.components.methods
 
 /*
  * Calendars (the Calendar section): CalDAV accounts and .ics subscriptions,
- * through scripts/calendar_sync.py (run in the venv; passwords from
+ * through scripts/calendar_sync.py (run with the system python3; passwords from
  * SecretsManager on its stdin). The helper keeps the server's objects in
  * $XDG_STATE_HOME/axiom/calendar/objects.json and writes their occurrences
  * in `range` to events.json, which this reads (so the calendar shows at
@@ -32,8 +32,10 @@ QtObject {
   readonly property bool syncing: root._running?.cmd === "sync" || root._jobs.some(job => job.cmd === "sync")
   // A helper is running (a sync, save or delete)
   readonly property bool busy: root._running !== null
-  // False once the helper couldn't start (no python, or the venv failed)
+  // False once the helper couldn't start (no python3), or a Python package
+  // it needs is missing (`missingModule`, the module's name, else "")
   property bool available: true
+  property string missingModule: ""
   // What the page or a module was asked to show next ({ kind: "new" |
   // "day", key }), taken by the first one that can (takeRequest)
   property var request: null
@@ -233,6 +235,12 @@ QtObject {
     return request;
   }
 
+  // What to install for a missing Python module, for people
+  function missingText(module) {
+    const install = DependencyManager.installCommand("py:" + module);
+    return install ? I18n.tr("Calendars need the Python package {0}. Install it with: {1}", module, install) : I18n.tr("Calendars need the Python package {0}.", module);
+  }
+
   // A helper's failure, for people
   function errorText(result) {
     switch (result?.code) {
@@ -254,6 +262,8 @@ QtObject {
       return I18n.tr("The server sent something unreadable.");
     case "helper":
       return I18n.tr("The calendar helper couldn't run: {0}", result.message);
+    case "missingModule":
+      return root.missingText(result.message);
     default:
       return result?.message ?? "";
     }
@@ -354,7 +364,7 @@ QtObject {
     root._jobs = root._jobs.slice(1);
     root._running = job;
     job.build(request => {
-      CommandManager.run([Paths.scriptsPath + "venv_python.sh", Paths.scriptsPath + "calendar_sync.py", job.cmd], (code, out, err) => {
+      CommandManager.run(["python3", Paths.scriptsPath + "calendar_sync.py", job.cmd], (code, out, err) => {
         let result = null;
         try {
           result = JSON.parse(out.trim().split("\n").pop());
@@ -367,7 +377,8 @@ QtObject {
         }
         if (err.trim())
           console.log("[CalendarManager]", job.cmd + ":", err.trim());
-        root.available = result.code !== "helper";
+        root.missingModule = result.code === "missingModule" ? result.message : "";
+        root.available = result.code !== "helper" && root.missingModule === "";
         if (job.cmd !== "discover")
           root._loadEvents();
         root._running = null;

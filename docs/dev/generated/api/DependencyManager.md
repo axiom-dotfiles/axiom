@@ -3,7 +3,7 @@
 
 > **File:** `services/DependencyManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Startup checks for what the whole shell needs to look right: the icon font (every icon is a Material Symbols name, StyledIcon, which shows as a word without it) and the text font (`Appearance.font.family`, a free-text setting: a misspelt name silently falls back to fontconfig's default). Warns in the log and notifies once per qs launch (the text font once per name, checked again whenever it changes). Created from shell.qml's `_services`. Also which commands are installed (`found`, filled by `check(commands)`), for the onboarder: the optional `tools` below, the apps it offers; and what installs them on this distribution (`distro`, `installLines`).
+Startup checks for what the whole shell needs to look right: the icon font (every icon is a Material Symbols name, StyledIcon, which shows as a word without it) and the text font (`Appearance.font.family`, a free-text setting: a misspelt name silently falls back to fontconfig's default). Warns in the log and notifies once per qs launch (the text font once per name, checked again whenever it changes). Created from shell.qml's `_services`. Also which commands (and Python modules, as "py:<module>") are installed (`found`, filled by `check(commands)`), for the onboarder: the optional `tools` below, the apps it offers; and what installs them on this distribution (`distro`, `installLines`).
 
 ### Properties
 
@@ -17,6 +17,7 @@ Startup checks for what the whole shell needs to look right: the icon font (ever
 
 - `hasFontFamily(name)`: Whether fontconfig knows the family (any of its names, in any case)
 - `installLines(keys)`: The shell lines that install these commands (or "iconFont") here: [] on an unknown distribution
+- `label(key)`: A key as people read it: "python: numpy" for "py:numpy", the font's family for "iconFont"
 - `installCommand(key)`: One line that installs a command here ("" on an unknown distribution)
-- `check(commands)`: Looks the commands up (command -v) and adds them to `found`
+- `check(commands)`: Looks the commands up (command -v; a "py:<module>" with python3's importlib) and adds them to `found`
 - `has(command)`: Whether a command (its first word) is installed: undefined until checked

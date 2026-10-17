@@ -16,6 +16,7 @@ ThemeManager owns the active theme's data (loaded from its file, watched, with d
 - `shownWallpapers` (readonly var): The wallpapers showing ({ wallpaper, wallpapers }): the fixed ones, the rotation's or the light/dark ones, by Appearance.wallpaperMode
 - `wallpaper` (readonly string): The primary monitor's (the lockscreen's)
 - `defaults` (readonly var): config/json/theme-defaults.json: fallback palette and semantic maps, shared with scripts/generate_theme.py
+- `generationUnavailable` (bool): Theme generation's Python packages (numpy, Pillow) aren't installed: set by the last run, which said so once (generate_theme.py exits 3)
 - `lastRotated` (readonly real): When the rotation last moved on (ms since the epoch; 0 for never)
 - `integrations` (readonly var): The ThemeIntegrations switches, in schema order: one per scripts/theme_<key>.sh
 

@@ -2511,7 +2511,6 @@
     "Nothing on this day": "この日の予定はありません",
     "(No title)": "（タイトルなし）",
     "in {0} min": "{0} 分後",
-    "The calendar helper couldn't run (it needs python3 and pip, and the network the first time).": "カレンダーのヘルパーを実行できませんでした（python3 と pip、初回はネットワーク接続が必要です）。",
     "Found {0} calendars": "{0} 件のカレンダーが見つかりました",
     "No accounts yet. Add one for a CalDAV server (iCloud, Fastmail, Nextcloud, …) or an .ics subscription.": "アカウントがありません。CalDAV サーバー（iCloud、Fastmail、Nextcloud など）または .ics の購読を追加してください。",
     "Account {0}": "アカウント {0}",
@@ -3076,6 +3075,14 @@
     "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu.": "クリックで実行します。空の場合はディストリビューションのアップグレード（`sudo pacman -Syu`、`sudo dnf upgrade`）、または AUR ヘルパーの -Syu を使います。",
     "Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (adw-gtk-theme on Arch, adw-gtk3-theme on Fedora).": "GTK 3 と GTK 4 の gtk.css の隣に axiom.css を書き出し、ライト/ダークに追従します。GTK3 アプリには adw-gtk3 テーマが必要です（Arch では adw-gtk-theme、Fedora では adw-gtk3-theme）。",
     "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in one.": "セッションをロックするロッカー。アイドル設定で一定時間後にロックできます。自分のアイドルデーモンを使う場合、ビルトインでは `qs -c axiom ipc call lockscreen lock` でロックしてください。",
-    "Built-in uses the Wayland session-lock protocol with PAM. None leaves locking to your own locker.": "ビルトインは Wayland のセッションロックプロトコルと PAM を使います。なしの場合、ロックは自分のロッカーに任せます。"
+    "Built-in uses the Wayland session-lock protocol with PAM. None leaves locking to your own locker.": "ビルトインは Wayland のセッションロックプロトコルと PAM を使います。なしの場合、ロックは自分のロッカーに任せます。",
+    "The calendar helper couldn't run (it needs python3).": "カレンダーのヘルパーを実行できませんでした（python3 が必要です）。",
+    "Themes can't be generated": "テーマを生成できません",
+    "Generating themes from the wallpaper needs the Python packages numpy and Pillow. Install them with: {0}": "壁紙からテーマを生成するには Python パッケージ numpy と Pillow が必要です。次のコマンドでインストールしてください: {0}",
+    "Generating themes from the wallpaper needs the Python packages numpy and Pillow.": "壁紙からテーマを生成するには Python パッケージ numpy と Pillow が必要です。",
+    "Calendars need the Python package {0}. Install it with: {1}": "カレンダーには Python パッケージ {0} が必要です。次のコマンドでインストールしてください: {1}",
+    "Calendars need the Python package {0}.": "カレンダーには Python パッケージ {0} が必要です。",
+    "Theme generation from the wallpaper": "壁紙からのテーマ生成",
+    "Calendar accounts and feeds": "カレンダーのアカウントとフィード"
   }
 }

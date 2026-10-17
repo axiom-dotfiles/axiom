@@ -96,6 +96,13 @@ TestCase {
     compare(Packages.installLines("fedora", ["checkupdates"]), [], "nothing to install");
   }
 
+  // Python modules ("py:<module>") from each distribution's own repositories
+  function test_pythonModules() {
+    compare(Packages.installCommand("arch", ["py:numpy", "py:PIL", "py:icalendar"]), "sudo pacman -S --needed python-numpy python-pillow python-icalendar");
+    compare(Packages.installCommand("fedora", ["py:numpy", "py:PIL", "py:icalendar"]), "sudo dnf install python3-numpy python3-pillow python3-icalendar", "no COPR");
+    compare(Packages.installCommand("fedora", "py:dateutil"), "sudo dnf install python3-dateutil");
+  }
+
   function test_unknownDistro() {
     compare(Packages.installLines("", ["qalc"]), []);
     compare(Packages.installCommand("", "qalc"), "");
