@@ -291,14 +291,23 @@ QtObject {
     };
   }
 
-  // What a shadow is drawn in: `shadow`/`shadowColor` as a bar's look or
-  // the BarStyle section has them. Automatic is black for a shadow, the
+  // The color of a shadow: `shadow`/`shadowColor` as a bar's look or the
+  // BarStyle section has them. Automatic is black for a shadow, the
   // accent for a glow.
-  // While surfaces blur, it stays under Hyprland's blur threshold
-  // (Appearance.shadowAlphaMax), so the blur doesn't spread into it.
+  function shadowBaseColor(look) {
+    return Qt.color(look.shadowColor ? Theme.resolveColor(look.shadowColor) : look.shadow === "glow" ? Theme.accent : Qt.alpha("black", 0.6));
+  }
+
+  // What a shadow is drawn in (shadowBaseColor). While surfaces blur, it
+  // stays under Hyprland's blur threshold (Appearance.shadowAlphaMax), so
+  // the blur doesn't spread into it.
+  // Premultiplied, as MultiEffect blends its shadowColor: a color made
+  // clearer by its alpha alone keeps its light (a glow capped to 0 still
+  // drew in full, and SwayFX blurred it again on every redraw nearby).
   function shadowColor(look) {
-    const color = Qt.color(look.shadowColor ? Theme.resolveColor(look.shadowColor) : look.shadow === "glow" ? Theme.accent : Qt.alpha("black", 0.6));
-    return color.a > Appearance.shadowAlphaMax ? Qt.alpha(color, Appearance.shadowAlphaMax) : color;
+    const color = shadowBaseColor(look);
+    const a = Math.min(color.a, Appearance.shadowAlphaMax);
+    return Qt.rgba(color.r * a, color.g * a, color.b * a, a);
   }
 
   // How much less than its extent a bar reserves, given Hyprland's

@@ -1,17 +1,17 @@
 # Monitors (profiles and the Monitors page)
 
-> **Files:** `services/MonitorManager.qml`, `components/views/Monitors.qml`, `components/views/monitors/` (`MonitorCanvas`, `MonitorInspector`), `components/methods/MonitorLayout.qml`, `components/methods/HyprLua.qml`, `shell/MonitorPrompt.qml`, `components/surfaces/monitors/MonitorPromptWindow.qml`
-> **Config:** `Hyprland.monitors.profiles`, `General.primaryMonitor`
+> **Files:** `services/MonitorManager.qml`, `config/MonitorsConfig.qml`, `components/views/Monitors.qml`, `components/views/monitors/` (`MonitorCanvas`, `MonitorInspector`), `components/methods/MonitorLayout.qml`, `components/methods/HyprLua.qml`, `shell/MonitorPrompt.qml`, `components/surfaces/monitors/MonitorPromptWindow.qml`
+> **Config:** `Monitors.profiles`, `General.primaryMonitor`
 > **Related:** [Config modes](config-modes.md), [Onboarding](../features/onboarding.md) (`useWholeScale`), [Shell targeting](../core/shell-manager-targeting.md)
 
-Monitor layouts saved per set of connected monitors, edited on the Monitors page and applied by Hyprland itself on hotplug.
+Monitor layouts saved per set of connected monitors, edited on the Monitors page and applied on hotplug: by Hyprland itself (its Lua layer, `outputProfiles`), else by `MonitorManager` on `outputsHotplugged`. The page reaches the compositor only through `CompositorManager` (`withOutputDetails`, `applyOutputs`; [contract](../compositor/contract.md)).
 
 ### Live outputs
-- `outputs` is Hyprland's monitors, disabled ones included (`HyprlandManager.withOutputs`).
+- `outputs` is every output in detail, disabled ones included (`CompositorManager.withOutputDetails`).
 - It is read at startup and on `monitoradded`/`monitorremoved`/`configreloaded`. It is never polled.
 
 ### Profiles
-- `Hyprland.monitors.profiles` (`x-settings: false`) is a list of `{ name, outputs: [MonitorRule] }`: one layout per set of monitors.
+- `Monitors.profiles` (`x-settings: false`; `Hyprland.monitors.profiles` before config version 61) is a list of `{ name, outputs: [MonitorRule] }`: one layout per set of monitors.
 - Each rule's `output` is `desc:<description>`, so the rule follows the monitor across ports. When two monitors share a description it is the connector name instead (`MonitorLayout.outputId`).
 - Each rule also holds:
   - mode, position, scale
@@ -20,6 +20,7 @@ Monitor layouts saved per set of connected monitors, edited on the Monitors page
   - `mirror` (another rule's `output`)
   - `vrr`, `bitdepth`, `cm`
   - `sdrBrightness`/`sdrSaturation`.
+- The inspector shows `mirror` only with `supports.monitorMirror`, and the color mode and SDR fields only with `supports.monitorColor`.
 
 ### Editing
 - The page edits a `ConfigDraft`.
@@ -39,7 +40,7 @@ Monitor layouts saved per set of connected monitors, edited on the Monitors page
 - Warnings:
   - islands (monitors not touching the rest)
   - scales Hyprland will round
-  - in managed mode, `user/*.lua` files that call `hl.monitor` (`HyprlandConfigManager.monitorConflicts`). Those rules load later and win.
+  - in managed mode, `user/*.lua` files that call `hl.monitor` (`CompositorConfigManager.monitorConflicts`). Those rules load later and win.
 
 ### Apply, Keep, Revert
 1. **Apply** evals the selected profile's `hl.monitor` calls (`HyprLua.monitorCalls`), after taking a snapshot of the old state.

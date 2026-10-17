@@ -621,7 +621,7 @@ Singleton {
           "label": I18n.tr("Submenu module in {0}", root.menuLabel(menu, m))
         });
     });
-    (KeybindManager.isDirty ? KeybindManager.binds : HyprlandConfig.binds).forEach(bind => {
+    (KeybindManager.isDirty ? KeybindManager.binds : KeybindsConfig.binds).forEach(bind => {
       if (bind?.action === "edgeMenu" && bind.argument === id)
         out.push({
           "kind": "bind",

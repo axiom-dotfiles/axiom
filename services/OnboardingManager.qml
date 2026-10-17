@@ -9,9 +9,9 @@ import qs.config
 
 /*
  * The first-run onboarder (shell/Onboarding): a series of pages that set
- * the essentials up (Hyprland, monitors, apps and keys, workspaces, the
- * look, integrations), each applying as the user goes, with the Hyprland
- * mode applied on Finish.
+ * the essentials up (the compositor, monitors, apps and keys, workspaces,
+ * the look, integrations), each applying as the user goes, with the
+ * compositor mode applied on Finish.
  *
  * It opens by itself when there was no config.json (ConfigManager.firstRun),
  * and again after a reload or restart until it's finished or skipped:
@@ -27,11 +27,12 @@ Singleton {
   readonly property int version: 1
 
   // The pages, in order: { id, title, icon }
-  // I18n.tr("Welcome") I18n.tr("Hyprland") I18n.tr("Monitors") I18n.tr("Apps & keys")
+  // I18n.tr("Welcome") I18n.tr("Compositor") I18n.tr("Monitors") I18n.tr("Apps & keys")
   // I18n.tr("Workspaces") I18n.tr("Look") I18n.tr("Integrations") I18n.tr("Checks") I18n.tr("Finish")
-  // Under another compositor the Hyprland and Monitors pages, which set
-  // Hyprland up, are left out
-  readonly property var pages: _pages.filter(page => CompositorManager.supports.configModes || (page.id !== "hyprland" && page.id !== "monitors"))
+  // The Compositor page sets the compositor up (its config mode), where
+  // axiom can (configModes); the Monitors page needs the compositor's
+  // monitors
+  readonly property var pages: _pages.filter(page => (page.id !== "compositor" || CompositorManager.supports.configModes) && (page.id !== "monitors" || CompositorManager.supports.monitors))
   readonly property var _pages: [
     {
       "id": "welcome",
@@ -39,8 +40,8 @@ Singleton {
       "icon": "waving_hand"
     },
     {
-      "id": "hyprland",
-      "title": "Hyprland",
+      "id": "compositor",
+      "title": "Compositor",
       "icon": "deployed_code"
     },
     {
@@ -85,21 +86,24 @@ Singleton {
   readonly property string pageId: pages[step]?.id ?? ""
   readonly property bool isLast: step === pages.length - 1
 
-  // --- Hyprland ---
+  // --- The compositor ---
 
   // Hyprland's version ("0.56.2"), and whether it has the Lua config axiom
-  // needs (0.55+); "" until read
+  // needs (0.55+); "" until read, and elsewhere
   property string hyprlandVersion: ""
   readonly property bool hyprlandSupported: {
     const [major, minor] = hyprlandVersion.split(".").map(Number);
     return major > 0 || minor >= 55;
   }
-  // What ~/.config/hypr holds: "none" (no config), "stock" (Hyprland's
-  // example config), "custom" (the user's own), "ours" (axiom's managed
-  // file), "blocked" (a symlink or git repository: never taken over) or
-  // "legacy" (only a hyprland.conf); "" until checked
+  // Whether axiom can set the compositor up: an older Hyprland can't
+  readonly property bool compositorSupported: CompositorManager.kind !== "hyprland" || hyprlandSupported
+  // What the compositor's config folder holds: "none" (no config), "stock"
+  // (the compositor's example config), "custom" (the user's own), "ours"
+  // (axiom's managed file), "blocked" (a symlink or git repository: never
+  // taken over) or "legacy" (Hyprland: only a hyprland.conf); "" until
+  // checked
   readonly property string configState: {
-    switch (HyprlandConfigManager.managedCheck) {
+    switch (CompositorConfigManager.managedCheck) {
     case "new":
       return _hasLegacyConfig ? "legacy" : "none";
     case "adopt":
@@ -110,7 +114,7 @@ Singleton {
     case "stock":
     case "ours":
     case "blocked":
-      return HyprlandConfigManager.managedCheck;
+      return CompositorConfigManager.managedCheck;
     }
     return "";
   }
@@ -118,25 +122,27 @@ Singleton {
 
   // Why managed can't be picked ("" when it can), for its option card
   readonly property string blockedReason: {
-    const hypr = Paths.shortenHome(Paths.hyprlandPath).replace(/\/$/, "");
-    if (HyprlandConfigManager.managedBlockedBy === "link")
-      return I18n.tr("{0} or its hyprland.lua is a symlink (dotfiles?), so axiom won't replace it.", hypr);
-    if (HyprlandConfigManager.managedBlockedBy === "git")
-      return I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Move or remove that repository's .git to allow it.", hypr, Paths.shortenHome(HyprlandConfigManager.managedBlockedRepo));
-    return configState === "blocked" ? I18n.tr("Your Hyprland config is a symlink or in a git repository, so axiom won't take it over.") : "";
+    const dir = Paths.shortenHome(CompositorConfigManager.configDir).replace(/\/$/, "");
+    if (CompositorConfigManager.managedBlockedBy === "link")
+      return I18n.tr("{0} or its config is a symlink (dotfiles?), so axiom won't replace it.", dir);
+    if (CompositorConfigManager.managedBlockedBy === "git")
+      return I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Move or remove that repository's .git to allow it.", dir, Paths.shortenHome(CompositorConfigManager.managedBlockedRepo));
+    return configState === "blocked" ? I18n.tr("Your {0} config is a symlink or in a git repository, so axiom won't take it over.", CompositorManager.displayName) : "";
   }
-  // Whether hyprland.lua already starts axiom (install.sh's line, or the
-  // Hyprland page's Apply); false until checked
-  readonly property bool autostartDone: IntegrationHookupManager.isDone("hyprlandAutostart")
-  // Whether hyprland.lua loads axiom's module (included mode)
-  readonly property bool includeDone: (IntegrationHookupManager.status.hyprlandInclude?.targets ?? [])[0]?.done === true
+  // Whether the compositor's config already starts axiom (install.sh's
+  // line, or the Compositor page's Apply); false until checked
+  readonly property bool autostartDone: IntegrationHookupManager.isDone("compositorAutostart")
+  // Whether the compositor's config loads axiom's module (included mode)
+  readonly property bool includeDone: (IntegrationHookupManager.status.compositorInclude?.targets ?? [])[0]?.done === true
 
-  // The mode the Hyprland page starts on: managed only when there's nothing
-  // of the user's to take over (Hyprland's generated example config, none,
-  // or axiom's already); a config of their own (custom, legacy, blocked)
-  // starts detached, which changes none of it
-  readonly property string recommendedMode: ["stock", "none", "ours"].includes(configState) ? "managed" : "detached"
-  // The mode picked on the Hyprland page, applied on Finish ("" follows
+  // The mode the Compositor page starts on: the one set up already (run
+  // again, Finish shouldn't quietly leave it, giving back its module or
+  // takeover); else managed only when there's nothing of the user's to take
+  // over (the compositor's example config, none, or axiom's already); a
+  // config of their own (custom, legacy, blocked) starts detached, which
+  // changes none of it
+  readonly property string recommendedMode: CompositorConfig.mode !== "detached" ? CompositorConfig.mode : ["stock", "none", "ours"].includes(configState) ? "managed" : "detached"
+  // The mode picked on the Compositor page, applied on Finish ("" follows
   // the recommendation)
   readonly property string chosenMode: _run.chosenMode !== "" ? _run.chosenMode : recommendedMode
   readonly property bool modeAllowed: configState !== "blocked" || chosenMode !== "managed"
@@ -145,12 +151,16 @@ Singleton {
     _run.chosenMode = mode;
   }
 
-  function detectHyprland() {
+  // What the Compositor page shows: the config folder, the include and
+  // autostart lines, and on Hyprland its version and an old hyprland.conf
+  function detectCompositor() {
+    if (!CompositorManager.supports.configModes)
+      return;
+    CompositorConfigManager.checkManaged();
+    IntegrationHookupManager.check("compositorInclude");
+    IntegrationHookupManager.check("compositorAutostart");
     if (CompositorManager.kind !== "hyprland")
       return;
-    HyprlandConfigManager.checkManaged();
-    IntegrationHookupManager.check("hyprlandInclude");
-    IntegrationHookupManager.check("hyprlandAutostart");
     root._hasLegacyConfig = FileManager.read(Paths.hyprlandPath + "hyprland.conf") !== null;
     HyprlandManager.withVersion(version => root.hyprlandVersion = /^\d+\.\d+/.test(version) ? version : "");
   }
@@ -160,7 +170,7 @@ Singleton {
   function open() {
     _run.shown = true;
     _save(false);
-    detectHyprland();
+    detectCompositor();
   }
 
   function goTo(index) {
@@ -179,11 +189,11 @@ Singleton {
     goTo(step - 1);
   }
 
-  // Applies the Hyprland mode (which may take over hyprland.lua) and closes
+  // Applies the compositor mode (which may take over its config) and closes
   function finish() {
-    if (hyprlandSupported && modeAllowed && chosenMode !== HyprlandConfig.mode)
+    if (pages.some(page => page.id === "compositor") && compositorSupported && modeAllowed && chosenMode !== CompositorConfig.mode)
       SettingsManager.commitValues({
-        "Hyprland.mode": chosenMode
+        "Compositor.mode": chosenMode
       });
     close();
   }
@@ -218,7 +228,7 @@ Singleton {
 
   property var _saved: ({})
 
-  // Survives hot reloads (a theme, config or Hyprland change mid-way)
+  // Survives hot reloads (a theme, config or compositor change mid-way)
   PersistentProperties {
     id: _run
     reloadableId: "axiomOnboarding"
@@ -227,7 +237,7 @@ Singleton {
     property string chosenMode: ""
   }
 
-  // Hyprland's example config on a first run: no fractional scales
+  // The compositor's example config on a first run: no fractional scales
   onConfigStateChanged: {
     if (shown && ConfigManager.firstRun && (configState === "stock" || configState === "none"))
       MonitorManager.useWholeScale();
@@ -251,7 +261,7 @@ Singleton {
       _run.step = root._saved.step ?? 0;
       root.open();
     } else if (_run.shown) {
-      root.detectHyprland();
+      root.detectCompositor();
     }
   }
 

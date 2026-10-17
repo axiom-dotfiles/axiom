@@ -27,7 +27,7 @@ Alt+Tab is the bind actions `windowSwitcher` and `windowSwitcherReverse`.
 - KeybindManager leaves the submap out of the page, and flags a switcher key that has no modifier to hold.
 
 ### Events and the manager
-- Events arrive on socket2 as `custom>>axiom-switcher:<verb>` (HyprlandManager's `switcherKey(verb, argument)`): no process per key, and in order. HyprlandManager fetches nothing for `custom` events.
+- Events arrive on socket2 as `custom>>axiom-switcher:<verb>` (HyprlandManager's `switcherKey(verb, argument)`, the backend signal `WindowSwitcherManager` listens to; [contract](../compositor/contract.md)): no process per key, and in order. HyprlandManager fetches nothing for `custom` events.
 - `WindowSwitcherManager.step(n)` opens the switcher on the first event.
   - It snapshots `CompositorManager.windows`, most recently used first (`methods/WindowOrder.mru`, by `focusHistoryID`).
   - The event-driven `CompositorManager.activeWindowId` goes first, since the fetched window list lags behind a quick second switch.

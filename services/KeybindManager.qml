@@ -5,14 +5,15 @@ import qs.config
 import qs.components.methods
 
 /*
- * KeybindManager reads the keybinds Hyprland has registered (HyprlandManager.withBinds).
- * With the Lua config every action is an opaque `__lua` dispatcher, so each bind's
- * `description` option is the label. A "Section: Label" prefix picks the overlay section.
+ * KeybindManager reads the keybinds the compositor has registered
+ * (CompositorManager.withBinds). Each bind's `description` is its label (on
+ * Hyprland's Lua config every action is an opaque `__lua` dispatcher). A
+ * "Section: Label" prefix picks the overlay section.
  *
- * Also the Keybinds page's editor for axiom's own binds (Hyprland.binds): a
+ * Also the Keybinds page's editor for axiom's own binds (Keybinds.binds): a
  * draft saved with save(), per-bind issues, presets, and recording a key
- * combo (Hyprland is put in an empty submap meanwhile, so its binds don't
- * swallow the keys being recorded).
+ * combo (CompositorManager.captureKeys meanwhile, so the compositor's binds
+ * don't swallow the keys being recorded).
  */
 QtObject {
   id: root
@@ -21,9 +22,9 @@ QtObject {
   // `title` is "" for binds with no section (shown as "Other"); `undescribed`
   // marks the section of binds without a description (label ""). A row's
   // `axiom` / `user` say whether any of its binds are axiom's own (applied
-  // from Hyprland.binds) / from the user's Hyprland config.
+  // from Keybinds.binds) / from the user's compositor config.
   readonly property var keybindings: root._buildKeybindings(root._entries, root._axiomIds)
-  // How many binds Hyprland reported
+  // How many binds the compositor reported
   property int count: 0
   // The Keybinds page's search and filter chips (KeybindFilter), here so
   // they survive the page reloading: section keys (KeybindFilter.sectionKey),
@@ -90,13 +91,13 @@ QtObject {
 
   property ConfigDraft _draft: ConfigDraft {
     id: draft
-    path: ["Hyprland", "binds"]
+    path: ["Keybinds", "binds"]
   }
   // [{ key, action, argument, description }]
   readonly property var binds: draft.local ?? []
   readonly property alias isDirty: draft.isDirty
 
-  readonly property var _actionSchema: ConfigManager.configSchema?.properties?.Hyprland?.properties?.binds?.items?.properties?.action ?? ({})
+  readonly property var _actionSchema: ConfigManager.configSchema?.properties?.Keybinds?.properties?.binds?.items?.properties?.action ?? ({})
   readonly property var actions: _actionSchema.enum ?? []
   // Action -> its label (translated; the schema's labels are keys already)
   readonly property var _actionLabelSchema: _actionSchema["x-enumLabels"] ?? ({})
@@ -171,13 +172,15 @@ QtObject {
       "browser": "language",
       "screenshot": "screenshot_region",
       "screenRecord": "videocam",
-      "exitHyprland": "logout",
+      "exitSession": "logout",
       "exec": "code",
-      "lua": "data_object"
+      "raw": "data_object"
     })
 
   // [{ action, label, section, icon }], one per action, in schema order
-  readonly property var actionInfo: root.actions.map(action => ({
+  // The actions the running compositor can do (BindActions.needs); a saved
+  // bind with another keeps it, flagged in `issues`
+  readonly property var actionInfo: root.actions.filter(action => BindActions.supported(action, CompositorManager.supports)).map(action => ({
         "action": action,
         "label": root.actionLabels[action] ?? action,
         "section": action === "exec" ? "Apps" : BindActions.sectionFor(action),
@@ -248,9 +251,9 @@ QtObject {
     return BindActions.hasOwnSection(bind.description) ? String(bind.description).split(":")[0] : BindActions.sectionFor(bind.action);
   }
 
-  // An editor bind's modifiers, by the names hyprctl's binds decode to
+  // An editor bind's modifiers, by the names the compositor's binds decode to
   function _bindMods(bind) {
-    const id = HyprBinds.keyId(bind.key);
+    const id = BindKeys.keyId(bind.key);
     return id === "" ? [] : root._decodeMods(parseInt(id));
   }
 
@@ -320,7 +323,7 @@ QtObject {
     if (!draft.isDirty)
       draft.load();
     refresh();
-    HyprlandConfigManager.previewMerge();
+    CompositorConfigManager.previewMerge();
   }
 
   function save() {
@@ -393,6 +396,9 @@ QtObject {
     // An argument meant for the old action rarely fits the new one, and
     // the flags follow the new action
     if (field === "action") {
+      // A raw command is written for the compositor running now
+      if (value === "raw")
+        bind.compositor = CompositorManager.kind || "hyprland";
       const options = argumentOptions(value);
       if (!needsArgument(value) || (options && !options.includes(bind.argument)))
         bind.argument = _argumentDefaults[value] ?? "";
@@ -405,19 +411,19 @@ QtObject {
     draft.changed();
   }
 
-  // Keys Hyprland binds outside axiom, by HyprBinds.keyId: every bind
-  // Hyprland reports, less the saved axiom binds it applied
-  readonly property var _userKeyCounts: HyprBinds.userKeyCounts(root._entries, root._appliedBinds)
+  // Keys the compositor binds outside axiom, by BindKeys.keyId: every bind
+  // it reports, less the saved axiom binds the layer applied
+  readonly property var _userKeyCounts: BindKeys.userKeyCounts(root._entries, root._appliedBinds)
 
   // The saved axiom binds the runtime layer applied (the rest it skipped)
   readonly property var _appliedBinds: {
-    const skipped = HyprlandConfigManager.skippedKeys.map(key => HyprBinds.keyId(key));
-    return HyprlandConfig.binds.filter(bind => HyprlandConfigManager.isComplete(bind) && !skipped.includes(HyprBinds.keyId(bind.key)));
+    const skipped = CompositorConfigManager.skippedKeys.map(key => BindKeys.keyId(key));
+    return KeybindsConfig.binds.filter(bind => CompositorConfigManager.isComplete(bind) && !skipped.includes(BindKeys.keyId(bind.key)));
   }
 
-  // Their keys, by HyprBinds.keyId: { "64:return": true }
+  // Their keys, by BindKeys.keyId: { "64:return": true }
   readonly property var _axiomIds: root._appliedBinds.reduce((ids, bind) => {
-    const id = HyprBinds.keyId(bind.key);
+    const id = BindKeys.keyId(bind.key);
     if (id !== "")
       ids[id] = true;
     return ids;
@@ -425,12 +431,12 @@ QtObject {
 
   // Per bind: [{ level: "error" | "warning", text }]
   readonly property var issues: {
-    const ids = root.binds.map(bind => HyprBinds.keyId(bind.key));
+    const ids = root.binds.map(bind => BindKeys.keyId(bind.key));
     const counts = {};
     for (const id of ids)
       if (id !== "")
         counts[id] = (counts[id] ?? 0) + 1;
-    const runtime = HyprlandConfigManager.status !== "loaded";
+    const runtime = CompositorConfigManager.status !== "loaded";
     return root.binds.map((bind, i) => {
       const found = [];
       const key = String(bind.key ?? "").trim();
@@ -450,10 +456,15 @@ QtObject {
           "text": I18n.tr("Needs an argument, so it isn't bound")
         });
       // The switcher picks when its modifier is released
-      if (BindActions.switcherSteps[bind.action] !== undefined && key !== "" && HyprLua.switcherHeld(KeyNames.split(key).mods).length === 0)
+      if (BindActions.switcherSteps[bind.action] !== undefined && key !== "" && BindActions.switcherHeld(KeyNames.split(key).mods).length === 0)
         found.push({
           "level": "warning",
           "text": I18n.tr("Needs a modifier to hold, like ALT + Tab")
+        });
+      if (!BindActions.appliesUnder(bind, CompositorManager.kind, CompositorManager.supports))
+        found.push({
+          "level": "warning",
+          "text": bind.action === "raw" ? I18n.tr("Written for another compositor, so it does nothing here") : I18n.tr("This compositor can't do this, so it isn't bound")
         });
       if (ids[i] !== "" && counts[ids[i]] > 1)
         found.push({
@@ -463,7 +474,7 @@ QtObject {
       if (ids[i] !== "" && root._userKeyCounts[ids[i]] > 0)
         found.push({
           "level": "warning",
-          "text": runtime ? I18n.tr("Your Hyprland config uses this key, so it's skipped") : I18n.tr("Your Hyprland config binds this key too")
+          "text": runtime ? I18n.tr("Your compositor config uses this key, so it's skipped") : I18n.tr("Your compositor config binds this key too")
         });
       return found;
     });
@@ -471,13 +482,13 @@ QtObject {
 
   readonly property int issueCount: issues.filter(found => found.length > 0).length
 
-  // The binds on keys the user's Hyprland config binds too
+  // The binds on keys the user's compositor config binds too
   readonly property var userConflicts: root.binds.map((bind, index) => {
-    const id = HyprBinds.keyId(bind.key);
+    const id = BindKeys.keyId(bind.key);
     return id !== "" && root._userKeyCounts[id] > 0 ? index : -1;
   }).filter(index => index >= 0)
 
-  // Removes every bind on a key the user's Hyprland config binds too (until
+  // Removes every bind on a key the user's compositor config binds too (until
   // Save, like any edit). Returns how many.
   function removeUserConflicts() {
     const indices = root.userConflicts;
@@ -491,22 +502,22 @@ QtObject {
   }
 
   // Managed mode moves the user's binds into axiom instead of dropping
-  // axiom's (HyprlandConfigManager.mergeUserBinds)
-  readonly property bool canMerge: HyprlandConfigManager.mode === "managed"
-  // How many binds in user/*.lua a Merge would move (0 until looked at,
+  // axiom's (CompositorConfigManager.mergeUserBinds)
+  readonly property bool canMerge: CompositorConfigManager.mode === "managed"
+  // How many binds in user/ a Merge would move (0 until looked at,
   // when the page opens): not every bind there can (a Lua function, a
   // shared module's, one in a submap), so it's not the conflict count
-  readonly property int mergeableCount: Math.max(0, HyprlandConfigManager.mergeable)
+  readonly property int mergeableCount: Math.max(0, CompositorConfigManager.mergeable)
 
   function mergeUserBinds() {
     stopRecording();
-    HyprlandConfigManager.mergeUserBinds();
+    CompositorConfigManager.mergeUserBinds();
   }
 
   // Moved binds are saved at once: a draft with unsaved edits takes them
   // too (so its Save keeps them), else it starts over from the config
   property Connections _mergeWatch: Connections {
-    target: HyprlandConfigManager
+    target: CompositorConfigManager
 
     function onBindsMerged(binds) {
       if (!draft.isDirty) {
@@ -514,8 +525,8 @@ QtObject {
         return;
       }
       const complete = binds.map(bind => root._completeBind(bind));
-      draft.local = HyprBinds.mergeBinds(draft.local, complete);
-      draft.saved = HyprBinds.mergeBinds(draft.saved, complete);
+      draft.local = BindKeys.mergeBinds(draft.local, complete);
+      draft.saved = BindKeys.mergeBinds(draft.saved, complete);
       draft.changed();
     }
 
@@ -617,10 +628,10 @@ QtObject {
         "added": 0,
         "skipped": 0
       };
-    const used = draft.local.map(bind => HyprBinds.keyId(bind.key));
+    const used = draft.local.map(bind => BindKeys.keyId(bind.key));
     let added = 0;
     for (const bind of preset.binds) {
-      const id = HyprBinds.keyId(bind.key);
+      const id = BindKeys.keyId(bind.key);
       if (used.includes(id))
         continue;
       used.push(id);
@@ -640,20 +651,13 @@ QtObject {
   // The bind whose key is being recorded, or -1
   property int recordingIndex: -1
 
-  // An empty submap (Hyprland only registers one with a bind, hence the
-  // unreachable one), so every key reaches the overlay. A Hyprland timer
-  // leaves it even if the shell dies meanwhile.
-  readonly property string _recordSubmap: "axiom_record"
-  readonly property string _leaveRecordLua: HyprLua.leaveSubmap(_recordSubmap)
-  readonly property string _enterRecordLua: `hl.define_submap("${_recordSubmap}", function() hl.bind("SUPER + CTRL + ALT + SHIFT + F24", hl.dsp.submap("reset")) end)
-hl.timer(function() ${_leaveRecordLua} end, { timeout = 30000, type = "oneshot" })
-hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
-
+  // Meanwhile every key reaches the recorder instead of a bind
+  // (CompositorManager.captureKeys)
   function startRecording(index) {
     if (root.recordingIndex === index)
       return;
-    if (root.recordingIndex < 0 && CompositorManager.supports.keybinds)
-      HyprlandManager.runLua(_enterRecordLua);
+    if (root.recordingIndex < 0)
+      CompositorManager.captureKeys(true);
     root.recordingIndex = index;
     _recordTimeout.restart();
   }
@@ -669,8 +673,7 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
       return;
     root.recordingIndex = -1;
     _recordTimeout.stop();
-    if (CompositorManager.supports.keybinds)
-      HyprlandManager.runLua(_leaveRecordLua);
+    CompositorManager.captureKeys(false);
   }
 
   property Timer _recordTimeout: Timer {
@@ -727,24 +730,22 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
       "down": "↓"
     })
 
-  // Every bind Hyprland reported (HyprlandManager.withBinds)
+  // Every bind the compositor reported (CompositorManager.withBinds)
   property var _entries: []
 
   function refresh() {
-    // The binds are Hyprland's (the Keybinds page is Hyprland only)
-    if (!CompositorManager.supports.keybinds)
+    if (!CompositorManager.supports.bindMerge)
       return;
     if (_reading) {
       _readAgain = true;
       return;
     }
     _reading = true;
-    HyprlandManager.withBinds(binds => {
+    CompositorManager.withBinds(binds => {
       root._reading = false;
       if (binds) {
-        const entries = binds.filter(entry => entry.submap !== root._recordSubmap && entry.submap !== HyprLua.switcherSubmap);
-        root._entries = entries;
-        root.count = entries.length;
+        root._entries = binds;
+        root.count = binds.length;
       }
       if (root._readAgain) {
         root._readAgain = false;
@@ -756,7 +757,7 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
   property bool _reading: false
   property bool _readAgain: false
 
-  // After binds were applied at runtime, which Hyprland announces no event for
+  // After binds were applied at runtime, which no compositor announces
   function refreshSoon() {
     _refreshDelay.restart();
   }
@@ -808,7 +809,7 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
       const key = root._formatKey(entry.key);
       const rowKey = `${section.title}\u0000${label}`;
       // Axiom's runtime binds are never in a submap
-      const isAxiom = !entry.submap && !!axiomIds[HyprBinds.entryId(entry)];
+      const isAxiom = !entry.submap && !!axiomIds[BindKeys.entryId(entry)];
 
       // Undescribed binds each get their own row, since they share an empty label.
       // Alternatives with the same modifiers share a combo: Super + H / ←.
@@ -920,7 +921,7 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
     return key.charAt(0).toUpperCase() + key.slice(1);
   }
 
-  property Connections _hyprlandEvents: Connections {
+  property Connections _compositorEvents: Connections {
     target: CompositorManager
 
     function onConfigReloaded() {
@@ -928,5 +929,10 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
     }
   }
 
+  // Read as soon as the compositor is known to list its binds: created
+  // early in the shell's start, this can come before
+  // CompositorManager.supports is filled in, and a refresh then does nothing
+  readonly property bool _canRead: CompositorManager.supports.bindMerge === true
+  on_CanReadChanged: refresh()
   Component.onCompleted: refresh()
 }

@@ -3,12 +3,14 @@
 
 > **File:** `services/CompositorManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The running compositor, for the rest of axiom: its windows, outputs and workspaces in shapes that don't depend on it, what it supports, and every workspace switch and window focus (docs/dev/compositor/README.md). The compositor's own work is its backend's (HyprlandManager); with none (an unknown compositor) everything here is empty and does nothing.
+The running compositor, for the rest of axiom: its windows, outputs and workspaces in shapes that don't depend on it, what it supports, and every workspace switch and window focus (docs/dev/compositor/README.md). The compositor's own work is its backend's (HyprlandManager, SwayManager); with none (an unknown compositor) everything here is empty and does nothing.
 
 ### Properties
 
+- `displayName` (readonly string): The compositor's name as people know it ("Hyprland"; the backend's own when it tells a variant apart, "SwayFX"), or "the compositor" for an unknown one.
 - `kind` (readonly string): Which compositor axiom runs under: "hyprland", "sway", "niri" or "" (unknown, or none).
 - `backend` (readonly var): The backend for `kind`, or null (docs/dev/compositor/contract.md).
+- `ready` (readonly bool): Whether `supports` is final: a backend that finds out what it can do by asking (sway: SwayFX or not) isn't until it knows
 - `supports` (readonly var): What the compositor can do, by capability (contract.md › Capabilities): false for anything the backend doesn't say, and for what AXIOM_COMPOSITOR_OFF ("focusGrab,blur") turns off, so the fallbacks ca…
 - `windows` (readonly var): Every mapped window: [{ id, appId, initialAppId, title, workspaceId, workspaceName, output, floating, fullscreen, maximized, hidden, focusRank, x, y, w, h }]
 - `outputs` (readonly var): Every monitor: [{ name, description, x, y, width, height, scale, focused, activeWorkspaceId, specialWorkspaceId, reserved }]
@@ -32,14 +34,16 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 
 ### Functions
 
+- `nameOf(kind)`: A compositor kind's name as people know it ("Hyprland")
+- `unsupportedNote(capability)`: Why a setting needing `capability` (a supports key) is greyed out: that the compositor can't do it, and what can, where the backend knows (its unsupportedHint).
 - `outputFor(screen)`: The output showing a screen, or null
 - `output(name)`: The output named `name`, or null
 - `activeWorkspaceId()`: The focused output's active workspace id (1 while unknown)
 - `refresh()`: Re-reads the outputs and windows soon
 - `focusWindow(id)`: Focuses a window.
 - `closeWindow(id)`
-- `placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt)`: The overview's drag and drop (HyprlandManager.placeWindow)
-- `resizeWindow(id, dw, dh, dx, dy)`: The overview's resize (HyprlandManager.resizeWindow)
+- `placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt)`: The overview's drag and drop (the backend's placeWindow)
+- `resizeWindow(id, dw, dh, dx, dy)`: The overview's resize (the backend's resizeWindow)
 - `toplevelFor(id)`: The live Wayland toplevel of a window (for previews), or null
 - `hasFullscreen(name)`: Whether the named output's active workspace, or the special workspace open on it, shows a fullscreen window (maximized ones don't count: they leave reserved space alone)
 - `biggestWindowForWorkspace(workspaceId)`: The largest window on a workspace (its icon stands for the workspace), or null
@@ -52,6 +56,10 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 - `withHoveredScreen(callback)`: Calls back with the name of the screen under the cursor (the focused one if the compositor can't say)
 - `warpCursorToLayer(namespace, output, width, height, x, y)`: Moves the cursor to (x, y) inside one of axiom's layer surfaces (the one in `namespace` on `output`, `width` × `height`), where the compositor can
 - `exitSession()`: Ends the session (the power menu's log out)
+- `withOutputDetails(callback)`: Calls back with every output in detail, disabled ones too ({ name, description, width, height, refreshRate, x, y, scale, transform, disabled, mirrorOf, vrr, availableModes, … }, contract.md), or null.
+- `applyOutputs(rules, details)`: Sets the outputs as `rules` (MonitorRule) say, now; `details` are the outputs as withOutputDetails gave them.
+- `withBinds(callback)`: Calls back with the compositor's binds in effect ({ modmask, key, keycode, description, submap }, BindKeys), or null.
+- `captureKeys(on)`: While on, every key reaches axiom instead of the compositor's binds (the key recorder).
 - `dpmsCommand(on)`: The shell command turning the screens off or on (the idle daemon's), or "" where axiom doesn't know one
 - `goToWorkspace(id, mode, output, focusId)`: Goes to workspace `id`. mode: "go" (default), "move" (taking the focused window along) or "moveSilent" (sending it there, staying put).
 - `stepWorkspace(direction, mode)`: One step left/right/up/down from the current workspace: within the output's grid, or through 1..count in the standard layout (where up is previous and down next).

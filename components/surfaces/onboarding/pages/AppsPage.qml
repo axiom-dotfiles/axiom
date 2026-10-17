@@ -85,7 +85,7 @@ OnboardingPage {
   // The main modifier: Super everywhere, or Alt (they trade places, so
   // Super + Alt binds stay distinct)
   readonly property string modifier: {
-    const launcher = HyprlandConfig.binds.find(bind => bind.action === "launcher");
+    const launcher = KeybindsConfig.binds.find(bind => bind.action === "launcher");
     return /^\s*ALT\b/i.test(launcher?.key ?? "") ? "ALT" : "SUPER";
   }
 
@@ -96,11 +96,11 @@ OnboardingPage {
       "SUPER": "ALT",
       "ALT": "SUPER"
     };
-    const binds = HyprlandConfig.binds.map(bind => Object.assign({}, bind, {
+    const binds = KeybindsConfig.binds.map(bind => Object.assign({}, bind, {
         "key": String(bind.key ?? "").split("+").map(part => swap[part.trim().toUpperCase()] ?? part.trim()).join(" + ")
       }));
     SettingsManager.commitValues({
-      "Hyprland.binds": binds
+      "Keybinds.binds": binds
     });
   }
 

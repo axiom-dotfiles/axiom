@@ -56,8 +56,8 @@ ReservedAreaWindow {
         scale: Math.min(root.overlayFit, (pageArea.width - OverlayConfig.cardSpacing * 2) / Math.max(1, implicitWidth), (pageArea.height - OverlayConfig.cardSpacing * 2) / Math.max(1, implicitHeight))
         sourceComponent: {
           switch (OnboardingManager.pageId) {
-          case "hyprland":
-            return hyprlandPage;
+          case "compositor":
+            return compositorPage;
           case "monitors":
             return monitorsPage;
           case "apps":
@@ -111,8 +111,8 @@ ReservedAreaWindow {
     }
   }
   Component {
-    id: hyprlandPage
-    HyprlandPage {
+    id: compositorPage
+    CompositorPage {
       grid: overlayGrid
     }
   }

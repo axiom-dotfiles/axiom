@@ -68,7 +68,7 @@ TestCase {
       "Calendar": {
         "accounts": []
       },
-      "Hyprland": {
+      "Keybinds": {
         "binds": [],
         "mode": "managed"
       },
@@ -101,7 +101,7 @@ TestCase {
       "Apps": {
         "terminal": "foot"
       },
-      "Hyprland": {
+      "Keybinds": {
         "binds": [
           {
             "key": "SUPER + T",
@@ -133,8 +133,8 @@ TestCase {
       "Apps": {
         "terminal": "foot"
       },
-      "Hyprland": {
-        "binds": config.Hyprland.binds
+      "Keybinds": {
+        "binds": config.Keybinds.binds
       },
       "Dock": {
         "docks": [
@@ -192,26 +192,26 @@ TestCase {
 
   function test_takeover_paths() {
     const paths = ConfigExamples.takeoverPaths(schema).map(path => path.join("."));
-    for (const path of ["Hyprland.mode", "Lockscreen.mode", "Greeter.enabled", "Idle.enabled", "Polkit.enabled"])
+    for (const path of ["Compositor.mode", "Lockscreen.mode", "Greeter.enabled", "Idle.enabled", "Polkit.enabled"])
       verify(paths.includes(path), path);
   }
 
   function test_keep_takeovers() {
     const current = defaults();
-    current.Hyprland.mode = "managed";
+    current.Compositor.mode = "managed";
     current.Idle.enabled = true;
     current.Lockscreen.mode = "hyprlock";
     const loaded = defaults();
     loaded.Polkit.enabled = true;
     loaded.Workspaces.count = 4;
     const result = ConfigExamples.keepTakeovers(loaded, current, ConfigExamples.takeoverPaths(schema));
-    compare(result.Hyprland.mode, "managed");
+    compare(result.Compositor.mode, "managed");
     compare(result.Idle.enabled, true);
     compare(result.Lockscreen.mode, "hyprlock");
     compare(result.Polkit.enabled, false);
     // Everything else is the loaded config's, and the input is left as it was
     compare(result.Workspaces.count, 4);
-    compare(loaded.Hyprland.mode, "detached");
+    compare(loaded.Compositor.mode, "detached");
   }
 
   function test_pick_leaves_out_takeovers() {
@@ -259,19 +259,19 @@ TestCase {
     };
     saved.Appearance.variantWallpapers.dark = "file:///walls/night.png";
     saved.Bars = [bar("main", "DP-1")];
-    saved.Hyprland.binds = [];
+    saved.Keybinds.binds = [];
     // Filled, as a running config is
     saved = load(saved);
     const snapshot = ConfigExamples.snapshot(saved, schema);
     compare(snapshot.Appearance.theme, "nord");
     compare(snapshot.Appearance.wallpaper, "file:///walls/a%20b.png");
-    compare(snapshot.Hyprland.binds, []);
+    compare(snapshot.Keybinds.binds, []);
     verify(snapshot.ThemeIntegrations === undefined, "machine sections are left out");
-    verify(snapshot.Hyprland.mode === undefined, "takeovers are left out");
+    verify(snapshot.Compositor?.mode === undefined, "takeovers are left out");
 
     const current = defaults();
     current.ThemeIntegrations.kitty = true;
-    current.Hyprland.mode = "managed";
+    current.Compositor.mode = "managed";
     current.Bars = [bar("main", "HDMI-A-1")];
     current.Appearance.wallpapers = {
       "HDMI-A-1": "file:///walls/mine.png"
@@ -283,9 +283,9 @@ TestCase {
     compare(ConfigExamples.snapshotFiles(loaded, schema).sort(), ["/walls/a b.png", "/walls/gone.png", "/walls/night.png"]);
     const restored = ConfigExamples.withSnapshot(ConfigExamples.apply(current, loaded, schema, true), loaded, schema, ["/walls/a b.png", "/walls/night.png"]);
     compare(restored.Appearance.theme, "nord");
-    compare(restored.Hyprland.binds, []);
+    compare(restored.Keybinds.binds, []);
     compare(restored.ThemeIntegrations.kitty, true);
-    compare(restored.Hyprland.mode, "managed");
+    compare(restored.Compositor.mode, "managed");
     compare(restored.Bars[0].monitor, "HDMI-A-1");
     compare(restored.Appearance.wallpaper, "file:///walls/a%20b.png");
     compare(restored.Appearance.wallpapers, {
@@ -385,7 +385,7 @@ TestCase {
           }
         ]
       },
-      "Hyprland": {
+      "Keybinds": {
         "binds": [
           {
             "key": "SUPER + T",
@@ -408,7 +408,7 @@ TestCase {
           }
         ]
       },
-      "Hyprland": {
+      "Keybinds": {
         "binds": []
       }
     };
@@ -418,13 +418,13 @@ TestCase {
     compare(kept.Bars[0].widgets.left[0].properties.command, "");
     compare(kept.Bars[0].monitor, "DP-1");
     compare(kept.Dock.docks.map(d => d.pinned), [["kitty"], []]);
-    compare(kept.Hyprland.binds, current.Hyprland.binds);
+    compare(kept.Keybinds.binds, current.Keybinds.binds);
 
     const taken = ConfigExamples.apply(current, example, schema, true);
     compare(taken.Bars[0].widgets.left[0].properties.command, "theirs");
     compare(taken.Bars[0].monitor, "DP-1");
     compare(taken.Dock.docks.map(d => d.pinned), [["firefox"], ["gimp"]]);
-    compare(taken.Hyprland.binds, []);
+    compare(taken.Keybinds.binds, []);
   }
 
   function test_apply_drops_values_of_another_type() {
@@ -449,6 +449,41 @@ TestCase {
       "type": "Time",
       "properties": {}
     });
+  }
+
+  function test_keep_moved_look() {
+    const current = {
+      "WindowLook": {
+        "shape": true,
+        "rounding": 3,
+        "shadow": true,
+        "shadowSize": 7,
+        "dim": true,
+        "borders": true
+      }
+    };
+    const file = {
+      "WindowLook": {
+        "shape": false,
+        "rounding": 8,
+        "shadow": false,
+        "shadowSize": 10,
+        "dim": false,
+        "borders": false
+      }
+    };
+    compare(ConfigExamples.keepMovedLook(file, current, 49).WindowLook, {
+      "shape": true,
+      "rounding": 3,
+      "shadow": true,
+      "shadowSize": 7,
+      "dim": true,
+      "borders": false
+    }, "a file older than v58 never held any of them");
+    const v60 = ConfigExamples.keepMovedLook(file, current, 60).WindowLook;
+    compare([v60.shape, v60.rounding, v60.shadow, v60.dim], [false, 8, true, true], "the shape is the file's since v58");
+    compare(ConfigExamples.keepMovedLook(file, current, 63), file, "the file's own since v63");
+    compare(file.WindowLook.shadow, false, "the file is left as it was");
   }
 
   function test_sparse_defaults_are_empty() {

@@ -9,7 +9,7 @@ How `services/` is built: one singleton per domain, owning state and side effect
 ### Shape
 - Every file is `pragma Singleton QtObject`: one global instance per name, imported as `qs.services`.
 - (Rule: AGENTS.md › Services, for naming, `_services` and singleton shadowing.)
-- A service with an IPC target that nothing else references is created from `shell.qml`'s `_services` (e.g. BatteryManager, HyprlandConfigManager).
+- A service with an IPC target that nothing else references is created from `shell.qml`'s `_services` (e.g. BatteryManager, CompositorConfigManager).
 
 ### Polled data: acquire / release
 (Rule: AGENTS.md › Services, "Anything polled".)

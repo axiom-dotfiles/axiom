@@ -40,7 +40,7 @@ QtObject {
         "direction": strip.direction
       })).filter((strip, i, all) => all.findIndex(other => other.monitor === strip.monitor) === i)
   readonly property bool hasStrips: strips.length > 0
-  // The strips and their settings as a string, for HyprlandConfigManager's
+  // The strips and their settings as a string, for CompositorConfigManager's
   // change check
   readonly property string _stripsJson: JSON.stringify([strips, stripOptions])
   // The strip settings Hyprland takes (HyprLua.stripsLua)

@@ -213,7 +213,7 @@ QtObject {
    * saved configuration), running it through the same migrate/prune/
    * defaults/validate pipeline as config.json, then saves it. This is an
    * explicit replacement, so it also lifts savesBlocked. The `x-takeover`
-   * settings (the Hyprland mode, the lock screen, idle, polkit, the
+   * settings (the compositor mode, the lock screen, idle, polkit, the
    * greeter) stay as they are (ConfigExamples.keepTakeovers): only their
    * own cards switch them, which do the takeover or give it back.
    * @return true if the config was valid and saved.

@@ -25,7 +25,8 @@ This file holds only the rules. **The mechanics of every service and surface are
 | Overlay pages, modules, Layouts editor | `docs/dev/overlay/` |
 | Edge menus | `docs/dev/edge-menus/` |
 | Windows, outputs, workspaces, focus; what a compositor supports; sway/niri | `docs/dev/compositor/` |
-| Hyprland modes, binds, monitors, workspaces | `docs/dev/hyprland/` |
+| Config modes (detached / included / managed), the config writer | `docs/dev/compositor/config-modes.md` |
+| Hyprland's writer, binds, monitors, workspaces | `docs/dev/hyprland/` |
 | Themes, integrations, wallpaper, blur | `docs/dev/theming/` |
 | A feature (launcher, lockscreen, greeter, dock, OSD, chat, notes, calendar, …) | `docs/dev/features/<feature>.md` |
 | Looking at or debugging the live shell | `docs/dev/testing.md` |
@@ -55,7 +56,7 @@ Enforced by `.claude/hooks/guard.py` (a PreToolUse hook in `.claude/settings.jso
 
 - Lock the built-in locker (only the user can type the password). Test `LockSurface` in a hidden window.
 - Simulate cursor movement to verify UI. Check logs and reason through bindings instead.
-- Switch the real Hyprland config into or out of `managed` mode, or out of `included` (leaving one gives hyprland.lua back or empties the module; test `claim_hyprland.sh` on scratch dirs), Keep a monitor layout, `apply` a self-update on the live repo, delete the real config.json (use `ipc call onboarding goTo <n>`), or enable `Idle` on the live config without asking (it replaces the user's hypridle).
+- Switch the real compositor config (Hyprland's or sway's, `Compositor.mode`) into or out of `managed` mode, or out of `included` (leaving one gives the config back or empties the module; test the `claim_*.sh` and `merge_*_binds.py remove` scripts on scratch dirs), allow a takeover for the user (`CompositorConfigManager.allowTakeover`, the card's Allow), Keep a monitor layout, `apply` a self-update on the live repo, delete the real config.json (use `ipc call onboarding goTo <n>`), or enable `Idle` on the live config without asking (it replaces the user's hypridle).
 - Apply a theme integration's hookup to the real configs (run `integration_hookup.py` with a scratch `HOME`/`XDG_CONFIG_HOME`).
 - Install, update or remove the greeter for real, or restart greetd (it ends the session). Test `scripts/greeter/greeter_install.sh` with a scratch `AXIOM_GREETER_ROOT`, and look at the greeter with `AXIOM_GREETER=1 AXIOM_GREETER_WINDOWED=1 AXIOM_GREETER_DIR=<scratch> qs -p "$PWD/greeter.qml"` (a window; `qs kill` only that instance).
 - The user's `~/.config/hypr/user/` is a symlink to `~/repos/dotfiles/hypr/user`.
@@ -132,7 +133,7 @@ Dependencies point one way:
 - Readers are named for their section, with a `Config` suffix where the name is a type (`OSDConfig`, `OverlayConfig`, `LauncherConfig`, …). `Paths` holds derived paths. A reader that also exposes the config as saved says so (`Bar.savedBars`, `ChatConfig.savedProviders`).
 - **Schema annotations drive the UI; prefer a new annotation to a hand-kept list in QML.** The complete list is `docs/dev/core/schema-annotations.md`. The ones with rules attached:
   - `x-scope` (`look`/`personal`/`machine`, inherited, root `machine`) is what an example, import or export carries: a new setting inside a look section that names a monitor, path, account or command needs `machine`/`personal`.
-  - `x-takeover` marks a setting that takes something over on this PC (Hyprland mode, locker, idle, polkit, greeter): loading or importing a config never changes it, only its own card does.
+  - `x-takeover` marks a setting that takes something over on this PC (compositor mode, locker, idle, polkit, greeter): loading or importing a config never changes it, only its own card does.
   - `x-hosts` on overlay modules: the lock screen and the greeter are opt-in hosts (see UI conventions).
   - `oneOf`s are discriminated by `type` (bar widgets, overlay views and modules).
 - An empty monitor means the primary monitor everywhere (`General.screensNamed`), except in `General.primaryMonitor` itself.

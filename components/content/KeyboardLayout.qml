@@ -9,7 +9,7 @@ import qs.components.content.base
 
 // The greeter's keyboard layout (x-hosts: greeter only): the active one,
 // and a click switches to the next (the layouts the greeter's Hyprland
-// has: Hyprland.managed's in managed mode, else its own). In the layouts
+// has: Input's while its keyboard part is on, else its own). In the layouts
 // editor's preview it shows a stand-in.
 Card {
   id: root

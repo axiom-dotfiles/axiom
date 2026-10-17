@@ -34,7 +34,7 @@ OnboardingPage {
         "layout": "standard",
         "icon": "view_column",
         "title": I18n.tr("Standard"),
-        "description": I18n.tr("One set of workspaces, 1 to N, shared by every monitor, as Hyprland does by default.")
+        "description": I18n.tr("One set of workspaces, 1 to N, shared by every monitor, as compositors do by default.")
       },
       {
         "layout": "grid",

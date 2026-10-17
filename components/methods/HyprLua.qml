@@ -87,8 +87,12 @@ QtObject {
   function serialize(table, indent) {
     const pad = indent ?? "";
     const keys = Object.keys(table).sort();
+    // An array is a Lua sequence (a vec2's { x, y }: Hyprland counts its
+    // elements, so { x = …, y = … } has none)
     const entry = key => {
       const v = table[key];
+      if (Array.isArray(v))
+        return `${key} = { ${v.map(value).join(", ")} }`;
       return `${key} = ${typeof v === "object" ? serialize(v, pad + "  ") : value(v)}`;
     };
     const flat = `{ ${keys.map(entry).join(", ")} }`;
@@ -102,54 +106,78 @@ QtObject {
   // --- The window look (WindowLook) ---
 
   /**
-   * Its parts that are on, as the lines of one hl.config(), or []: themed
-   * borders (hex colors without #), axiom's shape (border width, corner
-   * radius), gaps, and the blur and window opacity (`lookSchema`'s fields
-   * with `x-hyprIf` on those parts). Hyprland's blur stays on while
-   * `surfacesBlur` (axiom's translucent surfaces blur, which they can't
-   * with it off); with windowBlur off a rule then keeps windows unblurred.
+   * Hyprland's shadow standing in for axiom's own (a soft one: MultiEffect's
+   * blur; CompositorLayer.look's shadow, its baseAlpha axiom's and its
+   * strength the user's) as { range, power, alpha }. Hyprland's falls off
+   * differently, and its alpha isn't the strength it shows: a dark color
+   * darkens about in proportion, but a light one over a dark background
+   * shows several times stronger than its alpha says. Fitted on screen
+   * against axiom's glow and shadow (size 20, alpha 0.45 and 1, a dark
+   * theme, Hyprland 0.56; within ~0.01 of axiom's from 3px out): the reach
+   * 1.2 × axiom's size, power 4, and the alpha axiom's × 0.3 for black down
+   * to × 0.018 for a light color (relative luminance 0.45, c4a7e7),
+   * geometric in between.
    */
-  function lookLua(look, lookSchema, activeHex, inactiveHex, borderWidth, radius, surfacesBlur) {
+  function softShadow(shadow) {
+    const luminance = CompositorLayer.luminance(shadow.rgb);
+    const factor = Math.max(0.01, 0.3 * Math.pow(0.018 / 0.3, luminance / 0.45));
+    return {
+      "range": Math.round(shadow.size * 1.2),
+      "power": 4,
+      // Strength scales what's fitted, which then has room to grow
+      "alpha": Math.min(1, shadow.baseAlpha * factor * (shadow.strength ?? 1))
+    };
+  }
+
+  /**
+   * The look's parts that are on (`look`: CompositorLayer.look()), as the
+   * lines of one hl.config(), or []: the borders, the shape, gaps, shadows,
+   * dimming, and the blur and window opacity (`lookSchema`'s fields with
+   * `x-hyprIf` on those parts). Hyprland's blur stays on while axiom's
+   * surfaces blur (which they can't with it off); with windows not blurring
+   * a rule then keeps them unblurred.
+   */
+  function lookLua(look, lookSchema) {
     const overrides = {};
     if (look.blur) {
-      overrides["decoration.blur.enabled"] = look.windowBlur || surfacesBlur === true;
-      if (!look.windowBlur)
+      overrides["decoration.blur.enabled"] = look.blur.windows || look.blur.surfaces;
+      if (!look.blur.windows)
         overrides["decoration.blur.popups"] = false;
     }
-    const table = configTable(lookSchema, look, null, overrides);
+    const table = configTable(lookSchema, look.values, null, overrides);
     if (look.borders)
       _set(table, "general.col", {
-        "active_border": `rgb(${activeHex})`,
-        "inactive_border": `rgb(${inactiveHex})`
+        "active_border": `rgb(${look.borders.active})`,
+        "inactive_border": `rgb(${look.borders.inactive})`
       });
     if (look.shape) {
-      _set(table, "general.border_size", borderWidth);
-      _set(table, "decoration.rounding", radius);
+      _set(table, "general.border_size", look.shape.width);
+      _set(table, "decoration.rounding", look.shape.radius);
     }
     if (look.gaps) {
-      _set(table, "general.gaps_in", look.gapsIn);
-      _set(table, "general.gaps_out", look.gapsOut);
+      _set(table, "general.gaps_in", look.gaps.inner);
+      _set(table, "general.gaps_out", look.gaps.outer);
+    }
+    if (look.shadow) {
+      const soft = look.shadow.soft && look.shadow.rgb !== "" ? softShadow(look.shadow) : null;
+      _set(table, "decoration.shadow.enabled", true);
+      _set(table, "decoration.shadow.range", soft ? soft.range : look.shadow.size);
+      _set(table, "decoration.shadow.render_power", soft ? soft.power : look.shadow.power);
+      _set(table, "decoration.shadow.offset", [0, look.shadow.offset]);
+      if (look.shadow.rgb !== "")
+        _set(table, "decoration.shadow.color", `rgba(${look.shadow.rgb}${CompositorLayer.alphaHex(soft ? soft.alpha : look.shadow.alpha)})`);
+    }
+    if (look.dim) {
+      _set(table, "decoration.dim_inactive", true);
+      _set(table, "decoration.dim_strength", look.dim.strength / 100);
     }
     const lines = Object.keys(table).length > 0 ? `hl.config(${serialize(table)})`.split("\n") : [];
     // Redefined (on or off) while the blur part is on; turning the part off
     // reloads Hyprland, which drops it
     if (look.blur)
-      lines.push(`hl.window_rule({ name = "axiom-no-window-blur", match = { class = ".*" }, no_blur = true, enabled = ${!look.windowBlur && surfacesBlur === true} })`);
+      lines.push(`hl.window_rule({ name = "axiom-no-window-blur", match = { class = ".*" }, no_blur = true, enabled = ${!look.blur.windows && look.blur.surfaces} })`);
     return lines;
   }
-
-  // Which of its parts are on, e.g. ["borders", "gaps"]
-  function lookParts(look) {
-    return ["borders", "shape", "gaps", "blur", "opacity"].filter(part => look[part]);
-  }
-
-  // --- The environment (Hyprland.managed recommendedEnv) ---
-
-  // The variables Hyprland's wiki recommends, [name, value]: toolkits on
-  // Wayland first (falling back to X11 where they can), Qt scaled by pixel
-  // density and without decorations of its own. Not SDL_VIDEODRIVER, which
-  // breaks games bundling an older SDL.
-  readonly property var recommendedEnv: [["GDK_BACKEND", "wayland,x11,*"], ["QT_QPA_PLATFORM", "wayland;xcb"], ["CLUTTER_BACKEND", "wayland"], ["ELECTRON_OZONE_PLATFORM_HINT", "auto"], ["QT_AUTO_SCREEN_SCALE_FACTOR", "1"], ["QT_WAYLAND_DISABLE_WINDOWDECORATION", "1"]]
 
   // --- Layer stacking (LayerStack.layers) ---
 
@@ -175,7 +203,7 @@ QtObject {
   // menus, docks) doesn't blur itself: the blur window (BlurManager,
   // shell/BlurBacking) draws its fills and is blurred in their place. The
   // rest blur themselves, their popups too.
-  readonly property var blurSurfaces: ["blur-backing", "dock-preview", "overlay", "launcher", "switcher", "floating-popout", "notifications", "powermenu", "workspaces", "monitor-prompt"]
+  readonly property var blurSurfaces: LayerStack.blurSurfaces
   // The chrome's own windows, for their popups alone (tooltips, the dock's
   // menu): Hyprland blurs a layer's popups whether or not the layer blurs.
   // A submenu (SubPopout, a popup of its popout's window) is drawn
@@ -184,7 +212,7 @@ QtObject {
   readonly property var blurChrome: LayerStack.barLayers.concat(["popout", "popout-under", "edge-popout", "edge-menu", "dock"])
   // Backdrops (and the polkit prompt, whose window holds its own dim) blur
   // only when asked: the whole screen, at every alpha.
-  readonly property var blurBackdrops: ["backdrop", "polkit"]
+  readonly property var blurBackdrops: LayerStack.blurBackdrops
   // The windows whose fill, blur and shadow the blur window draws: not
   // animated by Hyprland while it does (they slide themselves), or their
   // stroke and content fade or pop in and out while what the blur window
@@ -192,7 +220,7 @@ QtObject {
   readonly property var blurBacked: LayerStack.barLayers.concat(["border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"])
   // The blur window over the overlay: what it blurs is the overlay, so
   // never with xray (which would blur the wallpaper in its place)
-  readonly property var blurOverOverlay: ["blur-backing-overlay"]
+  readonly property var blurOverOverlay: LayerStack.blurOverOverlay
 
   function _blurRule(name, namespaces, effects, enabled) {
     return `hl.layer_rule({ name = ${string(name)}, match = { namespace = ${string(`^axiom-(${namespaces.join("|")})$`)} }, ${effects}, enabled = ${enabled} })`;
@@ -254,7 +282,7 @@ QtObject {
     return [`if AXIOM_STRIPS == nil then`].concat(lines.map(line => "  " + line), [`  AXIOM_STRIPS = ${string(key)}`, `elseif AXIOM_STRIPS ~= ${string(key)} then`, `  hl.dispatch(hl.dsp.exec_cmd("hyprctl reload"))`, `end`]);
   }
 
-  // --- Monitors (Hyprland.monitors, MonitorLayout) ---
+  // --- Monitors (Monitors.profiles, MonitorLayout) ---
 
   // A monitor rule (the MonitorRule schema) as hl.monitor()'s spec: output,
   // mode, position and scale always, the rest only when changed. `mirror`
@@ -397,23 +425,30 @@ end`);
     return lines;
   }
 
+  // The input's parts that are on (`input`: CompositorLayer.input()) as
+  // one hl.config(), or []: `inputSchema`'s fields, each gated by x-hyprIf
+  // on its part. The cursor theme isn't an option (HyprlandManager.setCursor)
+  function inputLua(input, inputSchema) {
+    const table = configTable(inputSchema, input.values, null, {});
+    return Object.keys(table).length > 0 ? `hl.config(${serialize(table)})`.split("\n") : [];
+  }
+
   // The greeter's Hyprland, from its bundle (GreeterBundle): the monitor
-  // layouts (monitorsLua, in every mode), and in managed mode one
-  // hl.config of the options marked x-greeter (`managedSchema`:
-  // Hyprland.managed's schema; any other option in `managed` is left out).
-  // resolveHex as for configTable.
-  function greeterLua(profiles, managedSchema, managed, resolveHex) {
+  // layouts (monitorsLua), and the Input options marked x-greeter whose
+  // parts are on (`inputSchema`: Input's schema; any other option in
+  // `input` is left out). resolveHex as for configTable.
+  function greeterLua(profiles, inputSchema, input, resolveHex) {
     const lines = monitorsLua(profiles);
-    if (!managed)
+    if (!input)
       return lines;
-    const props = managedSchema?.properties ?? {};
+    const props = inputSchema?.properties ?? {};
     const greeterSchema = {
       "properties": {}
     };
     for (const key in props)
       if (props[key]["x-greeter"] === true)
         greeterSchema.properties[key] = props[key];
-    const table = configTable(greeterSchema, managed, resolveHex, {});
+    const table = configTable(greeterSchema, input, resolveHex, {});
     if (Object.keys(table).length > 0)
       lines.push(`hl.config(${serialize(table)})`);
     return lines;
@@ -448,13 +483,6 @@ end`);
       "SHIFT": ["Shift_L", "Shift_R"]
     })
 
-  // The modifiers a switcher combo is held by (KeyNames.split's `mods`):
-  // all but SHIFT, which only turns it around, unless SHIFT is all there is
-  function switcherHeld(mods) {
-    const held = (mods ?? []).filter(mod => mod !== "SHIFT" && _modifierKeys[mod]);
-    return held.length > 0 || !(mods ?? []).includes("SHIFT") ? held : ["SHIFT"];
-  }
-
   function _switcherDispatch(verb) {
     return `hl.dispatch(hl.dsp.event(${string(switcherEvent + verb)}))`;
   }
@@ -486,7 +514,7 @@ end`);
     const held = [];
     for (const entry of entries ?? []) {
       bind(entry.mods.concat([entry.key]).join(" + "), _switcherDispatch("step " + entry.step), "repeating = true");
-      for (const mod of switcherHeld(entry.mods))
+      for (const mod of BindActions.switcherHeld(entry.mods))
         for (const key of _modifierKeys[mod])
           if (!held.includes(key))
             held.push(key);

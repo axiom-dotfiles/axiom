@@ -34,13 +34,14 @@ Reader for the Appearance section. Values are always present: schema defaults ar
 - `screenBorder` (readonly bool)
 - `screenMargin` (readonly int): The frame can't be thinner than its own outline (a narrower one would draw the stroke over the screen edge); without a frame it's just a gap
 - `surfaceAlpha` (readonly real): --- Translucency --- How solid the shell's surfaces are (0.6–1).
+- `compositorBlurs` (bool): Whether the compositor blurs behind axiom's surfaces (CompositorManager.supports.blur), handed over by CompositorManager: a reader reads no service, and building CompositorManager reads this
 - `translucent` (readonly bool)
-- `blur` (readonly bool): Hyprland blurs behind them (HyprlandConfigManager's blur rules, which leave out pixels under blurThreshold: shadows, dims, fades), with its own blur (the window look's blur part, or the user's config)
+- `blur` (readonly bool)
 - `blurBackdrops` (readonly bool)
 - `blurThroughWindows` (readonly bool): Blurring what's under each surface, windows included, rather than the wallpaper alone (xray), which every surface shares
 - `blurPauseFullscreen` (readonly bool): Nothing blurs while a fullscreen window is open (BlurManager.active)
 - `blurThreshold` (readonly real)
-- `shadowAlphaMax` (readonly real): A shadow's darkest alpha while blurring: under the threshold, so its halo isn't blurred (the blur window casts the chrome's, and Hyprland blurs the chrome's popups)
+- `shadowAlphaMax` (readonly real): A shadow's darkest alpha while blurring: under the threshold, so its halo isn't blurred (the blur window casts the chrome's, and Hyprland blurs the chrome's popups).
 - `animations` (readonly bool): --- Motion --- Every animation in the shell uses one of these durations, so the single speed setting (and the on/off switch) applies uniformly.
 - `animFast` (readonly int)
 - `animNormal` (readonly int)

@@ -3,12 +3,12 @@
 
 > **File:** `services/KeybindManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-KeybindManager reads the keybinds Hyprland has registered (HyprlandManager.withBinds). With the Lua config every action is an opaque `__lua` dispatcher, so each bind's `description` option is the label. A "Section: Label" prefix picks the overlay section. Also the Keybinds page's editor for axiom's own binds (Hyprland.binds): a draft saved with save(), per-bind issues, presets, and recording a key combo (Hyprland is put in an empty submap meanwhile, so its binds don't swallow the keys being recorded).
+KeybindManager reads the keybinds the compositor has registered (CompositorManager.withBinds). Each bind's `description` is its label (on Hyprland's Lua config every action is an opaque `__lua` dispatcher). A "Section: Label" prefix picks the overlay section. Also the Keybinds page's editor for axiom's own binds (Keybinds.binds): a draft saved with save(), per-bind issues, presets, and recording a key combo (CompositorManager.captureKeys meanwhile, so the compositor's binds don't swallow the keys being recorded).
 
 ### Properties
 
 - `keybindings` (readonly var): [{ title, undescribed, binds: [{ label, combos: [{ mods: ["SUPER", "SHIFT"], keys: ["H", "←"] }], axiom, user }] }] `title` is "" for binds with no section (shown as "Other"); `undescribed` marks the…
-- `count` (int): How many binds Hyprland reported
+- `count` (int): How many binds the compositor reported
 - `query` (string): The Keybinds page's search and filter chips (KeybindFilter), here so they survive the page reloading: section keys (KeybindFilter.sectionKey), modifier names, sources ("axiom" | "user")
 - `sectionFilter` (var)
 - `modFilter` (var)
@@ -29,7 +29,7 @@ KeybindManager reads the keybinds Hyprland has registered (HyprlandManager.withB
 - `actions` (readonly var)
 - `actionLabels` (readonly var)
 - `actionSections` (readonly var): The action picker's categories, in tab order ("" is All).
-- `actionInfo` (readonly var): [{ action, label, section, icon }], one per action, in schema order
+- `actionInfo` (readonly var): [{ action, label, section, icon }], one per action, in schema order The actions the running compositor can do (BindActions.needs); a saved bind with another keeps it, flagged in `issues`
 - `keylessFirst` (bool): In the sorted views, whether binds with no key go first (after the top Add button) rather than last (after the bottom one)
 - `editSectionOptions` (readonly var): The editor's chips: [{ key, title, count }] per section (actionSections order, then any others), and the modifiers its binds use
 - `editModOptions` (readonly var)
@@ -37,9 +37,9 @@ KeybindManager reads the keybinds Hyprland has registered (HyprlandManager.withB
 - `visibleIndices` (readonly var)
 - `issues` (readonly var): Per bind: [{ level: "error" | "warning", text }]
 - `issueCount` (readonly int)
-- `userConflicts` (readonly var): The binds on keys the user's Hyprland config binds too
-- `canMerge` (readonly bool): Managed mode moves the user's binds into axiom instead of dropping axiom's (HyprlandConfigManager.mergeUserBinds)
-- `mergeableCount` (readonly int): How many binds in user/*.lua a Merge would move (0 until looked at, when the page opens): not every bind there can (a Lua function, a shared module's, one in a submap), so it's not the conflict count
+- `userConflicts` (readonly var): The binds on keys the user's compositor config binds too
+- `canMerge` (readonly bool): Managed mode moves the user's binds into axiom instead of dropping axiom's (CompositorConfigManager.mergeUserBinds)
+- `mergeableCount` (readonly int): How many binds in user/ a Merge would move (0 until looked at, when the page opens): not every bind there can (a Lua function, a shared module's, one in a submap), so it's not the conflict count
 - `presets` (readonly var): [{ id, title, description, binds }], for the current workspace layout.
 - `recordingIndex` (int): The bind whose key is being recorded, or -1
 
@@ -62,12 +62,12 @@ KeybindManager reads the keybinds Hyprland has registered (HyprlandManager.withB
 - `removeBind(index)`
 - `moveBind(from, to)`
 - `setField(index, field, value)`
-- `removeUserConflicts()`: Removes every bind on a key the user's Hyprland config binds too (until Save, like any edit).
+- `removeUserConflicts()`: Removes every bind on a key the user's compositor config binds too (until Save, like any edit).
 - `mergeUserBinds()`
 - `applyPreset(id)`: Adds a preset's binds, skipping keys the list already has.
-- `startRecording(index)`
+- `startRecording(index)`: Meanwhile every key reaches the recorder instead of a bind (CompositorManager.captureKeys)
 - `finishRecording(combo)`
 - `stopRecording()`
 - `refresh()`
-- `refreshSoon()`: After binds were applied at runtime, which Hyprland announces no event for
+- `refreshSoon()`: After binds were applied at runtime, which no compositor announces
 - `displayKey(key)`: A key name as shown on a keycap ("space" -> "Space", "left" -> "←")

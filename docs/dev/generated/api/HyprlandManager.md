@@ -12,6 +12,7 @@ CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprl
 - `workspaces` (readonly var): The workspaces (HyprState.workspace)
 - `focusedOutput` (readonly string): The focused monitor's name, or "" while Hyprland has none
 - `activeWindowId` (readonly string): The focused window's id (its "0x…" address), or ""
+- `configWriter` (readonly var): Writes axiom's layer into Hyprland's config (CompositorConfigManager)
 - `supports` (readonly var): What Hyprland does (CompositorManager.supports)
 - `travelingTo` (int): The workspace a slide still under way has reached, or -1
 - `gapsOut` (var): Hyprland's general:gaps_out per side, which it adds after every reserved zone (transparent bars subtract it, see BarPanel)
@@ -32,6 +33,7 @@ CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprl
 ### Functions
 
 - `refresh()`: Re-reads the monitors and the windows soon (Quickshell re-reads the monitors' lastIpcObject only on monitor events)
+- `leaveSwitcher()`: Leaves the window switcher's submap and its release listener (a tile was clicked while its keys were held)
 - `closeWindow(id)`
 - `activateWindow(id)`: Focuses a window where it is (CompositorManager.focusWindow switches workspace first, sliding)
 - `placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt)`: Moves a window onto a workspace, tiling it on `side` ("left" | "right" | "top" | "bottom") of `targetId`, or wherever when there's none.
@@ -43,9 +45,12 @@ CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprl
 - `withKeyboard(callback)`: Calls back with the main keyboard's layouts ({ layouts, index, keymap }, HyprState.keyboard), or null
 - `cycleKeyboardLayout(direction, callback)`: Switches every keyboard to its "next" or "prev" layout, then calls back
 - `withLayerRects(callback)`: Calls back with each monitor's layer surfaces (HyprState.layerRects), or null when Hyprland didn't answer
-- `withOutputs(callback)`: Calls back with every output, disabled ones too (Hyprland's monitors as JSON: name, description, width, height, refreshRate, x, y, scale, transform, disabled, mirrorOf, vrr, …), or null.
+- `withOutputDetails(callback)`: Calls back with every output, disabled ones too, or null (the output details of docs/dev/compositor/contract.md, which are Hyprland's monitors as JSON)
+- `applyOutputs(rules, details)`: Sets the outputs as `rules` (MonitorRule) say now, `details` being the outputs as withOutputDetails gave them (for a mirror's connector)
 - `withVersion(callback)`: Calls back with Hyprland's version ("0.56.2"), or "" when it didn't answer
 - `withBinds(callback)`: Calls back with every bind Hyprland has (its binds as JSON: modmask, key, keycode, submap, description, dispatcher, arg, …), or null
+- `withMainBinds(callback)`: Calls back with the binds in effect outside axiom's own submaps (the key recorder's, the window switcher's), or null (CompositorManager)
+- `captureKeys(on)`: While on, every key reaches axiom instead of a bind (the Keybinds page's recorder): an empty submap (Hyprland only registers one with a bind, hence the unreachable one).
 - `setCursor(theme, size)`: The cursor theme and size, for this session
 - `exitSession()`: Ends the Hyprland session (the power menu's log out)
 - `dpmsCommand(on)`: The shell command turning the screens off or on (hypridle's DPMS)

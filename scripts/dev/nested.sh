@@ -11,9 +11,13 @@
 #   - its config turns off what would reach outside it: the idle daemon
 #     (it would replace the session's) and the polkit agent
 #
-# Usage: scripts/dev/nested.sh <sway|niri> [--copy-config]
+# Usage: scripts/dev/nested.sh <sway|niri> [--copy-config] [--managed]
 #   --copy-config  start from a copy of ~/.config/axiom/config.json (with
 #                  the same parts off) instead of the defaults
+#   --managed      (sway) run sway on the scratch config folder's
+#                  sway/config, the one axiom's managed mode takes over
+#                  (written from the usual nested config the first time),
+#                  so the takeover, its reloads and a release can be tried
 #
 # Logs: qs log -p <repo> (the nested instance is the newest), or the
 # log.log under /run/user/$UID/quickshell/by-id/. IPC: qs ipc --newest call …
@@ -23,7 +27,13 @@ set -euo pipefail
 
 kind="${1:-}"
 copy=0
-[[ "${2:-}" == "--copy-config" ]] && copy=1
+managed=0
+for arg in "${@:2}"; do
+  case "$arg" in
+  --copy-config) copy=1 ;;
+  --managed) managed=1 ;;
+  esac
+done
 repo="$(cd "$(dirname "$0")/../.." && pwd)"
 scratch="${AXIOM_NESTED_DIR:-${XDG_RUNTIME_DIR:-/tmp}/axiom-nested-$kind}"
 
@@ -87,7 +97,13 @@ bindsym Mod4+Shift+e exit
 $(for i in 1 2 3 4 5; do echo "bindsym Mod4+$i workspace number $i"; done)
 exec "$launch"
 EOF
-  exec dbus-run-session -- env WLR_BACKENDS=wayland sway -c "$scratch/sway.conf"
+  conf="$scratch/sway.conf"
+  if [[ $managed -eq 1 ]]; then
+    conf="$scratch/config/sway/config"
+    mkdir -p "$(dirname "$conf")"
+    [[ -f "$conf" ]] || cp "$scratch/sway.conf" "$conf"
+  fi
+  exec dbus-run-session -- env WLR_BACKENDS=wayland sway -c "$conf"
 else
   cat >"$scratch/niri.kdl" <<EOF
 spawn-at-startup "$launch"

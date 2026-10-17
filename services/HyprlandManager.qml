@@ -29,14 +29,18 @@ Singleton {
   readonly property string focusedOutput: Hyprland.focusedMonitor?.name ?? ""
   // The focused window's id (its "0x…" address), or ""
   readonly property string activeWindowId: Hyprland.activeToplevel ? "0x" + Hyprland.activeToplevel.address : ""
+  // Writes axiom's layer into Hyprland's config (CompositorConfigManager)
+  readonly property var configWriter: HyprlandConfigWriter
   // What Hyprland does (CompositorManager.supports)
   readonly property var supports: ({
       "configModes": true,
       "keybinds": true,
       "monitors": true,
       "switcher": true,
+      "switcherRelease": true,
       "strips": true,
       "focusGrab": true,
+      "blurThreshold": true,
       "layerOrder": true,
       "blur": true,
       "cursorPos": true,
@@ -45,9 +49,22 @@ Singleton {
       "workspaceSlide": true,
       "windowBorders": true,
       "windowShape": true,
+      "windowRounding": true,
       "windowGaps": true,
       "windowBlur": true,
-      "windowOpacity": true
+      "windowShadow": true,
+      "windowDim": true,
+      "windowOpacity": true,
+      "inputConfig": true,
+      "keyCapture": true,
+      "bindMerge": true,
+      "monitorColor": true,
+      "monitorMirror": true,
+      "namedSpecial": true,
+      "mouseBinds": true,
+      "pseudoTile": true,
+      "windowGroups": true,
+      "outputProfiles": true
     })
 
   // Re-reads the monitors and the windows soon (Quickshell re-reads the
@@ -72,6 +89,12 @@ Singleton {
   // A window switcher key (HyprLua.switcherEvent): verb `step` (argument
   // the step), `commit` or `cancel`
   signal switcherKey(string verb, string argument)
+
+  // Leaves the window switcher's submap and its release listener (a tile
+  // was clicked while its keys were held)
+  function leaveSwitcher() {
+    root.runLua(HyprLua.switcherLeaveLua);
+  }
 
   // --- Actions ---
 
@@ -302,12 +325,18 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     HyprlandIpcManager.jsonBatch(["monitors", "layers"], ([monitors, layers]) => callback(Array.isArray(monitors) && layers ? HyprState.layerRects(monitors, layers) : null));
   }
 
-  // Calls back with every output, disabled ones too (Hyprland's monitors
-  // as JSON: name, description, width, height, refreshRate, x, y, scale,
-  // transform, disabled, mirrorOf, vrr, …), or null. For the Monitors
-  // editor (Hyprland only).
-  function withOutputs(callback) {
+  // Calls back with every output, disabled ones too, or null (the output
+  // details of docs/dev/compositor/contract.md, which are Hyprland's
+  // monitors as JSON)
+  function withOutputDetails(callback) {
     HyprlandIpcManager.json("monitors all", outputs => callback(Array.isArray(outputs) ? outputs : null));
+  }
+
+  // Sets the outputs as `rules` (MonitorRule) say now, `details` being the
+  // outputs as withOutputDetails gave them (for a mirror's connector)
+  function applyOutputs(rules, details) {
+    const mirrorName = output => MonitorLayout.find(output, details)?.name ?? "";
+    root.runLua(HyprLua.monitorCalls(rules, mirrorName).join("\n"));
   }
 
   // Calls back with Hyprland's version ("0.56.2"), or "" when it didn't
@@ -321,6 +350,26 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   function withBinds(callback) {
     HyprlandIpcManager.json("binds", binds => callback(Array.isArray(binds) ? binds : null));
   }
+
+  // Calls back with the binds in effect outside axiom's own submaps (the
+  // key recorder's, the window switcher's), or null (CompositorManager)
+  function withMainBinds(callback) {
+    root.withBinds(binds => callback(binds ? binds.filter(entry => entry.submap !== root._captureSubmap && entry.submap !== HyprLua.switcherSubmap) : null));
+  }
+
+  // While on, every key reaches axiom instead of a bind (the Keybinds
+  // page's recorder): an empty submap (Hyprland only registers one with a
+  // bind, hence the unreachable one). A Hyprland timer leaves it even if
+  // the shell dies meanwhile.
+  function captureKeys(on) {
+    root.runLua(on ? root._enterCaptureLua : root._leaveCaptureLua);
+  }
+
+  readonly property string _captureSubmap: "axiom_record"
+  readonly property string _leaveCaptureLua: HyprLua.leaveSubmap(_captureSubmap)
+  readonly property string _enterCaptureLua: `hl.define_submap("${_captureSubmap}", function() hl.bind("SUPER + CTRL + ALT + SHIFT + F24", hl.dsp.submap("reset")) end)
+hl.timer(function() ${_leaveCaptureLua} end, { timeout = 30000, type = "oneshot" })
+hl.dispatch(hl.dsp.submap("${_captureSubmap}"))`
 
   // The cursor theme and size, for this session
   function setCursor(theme, size) {
@@ -501,7 +550,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // why each sits where it does; docs/dev/generated/layers.md). Named, so
   // re-adding one replaces it instead of piling up copies. Rules added at
   // runtime are lost when Hyprland reloads its config.
-  // HyprlandConfigManager also writes them into its Lua files, since a
+  // HyprlandConfigWriter also writes them into its Lua files, since a
   // reload Hyprland does by itself (a watched file changing) doesn't always
   // send the configreloaded event that re-adds them here.
   readonly property var _layerRulesLua: HyprLua.layerRulesLua()

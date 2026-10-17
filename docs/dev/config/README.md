@@ -17,8 +17,15 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [Screenshots](Screenshots.md) | `Screenshots` (`config/Screenshots.qml`) | General |
 | [Battery](Battery.md) | `BatteryConfig` (`config/BatteryConfig.qml`) | General |
 | [Notifications](Notifications.md) | `NotificationsConfig` (`config/NotificationsConfig.qml`) | Notifications |
+| [Compositor](Compositor.md) | `CompositorConfig` (`config/CompositorConfig.qml`) | Compositor |
+| [Keybinds](Keybinds.md) | `KeybindsConfig` (`config/KeybindsConfig.qml`) | Compositor |
+| [Monitors](Monitors.md) | `MonitorsConfig` (`config/MonitorsConfig.qml`) | Compositor |
 | [Hyprland](Hyprland.md) | `HyprlandConfig` (`config/HyprlandConfig.qml`) | Compositor |
-| [WindowLook](WindowLook.md) | `WindowLookConfig` (`config/WindowLookConfig.qml`) | Compositor |
+| [WindowBehaviour](WindowBehaviour.md) | `WindowBehaviourConfig` (`config/WindowBehaviourConfig.qml`) | Compositor |
+| [Sway](Sway.md) | `SwayConfig` (`config/SwayConfig.qml`) | Compositor |
+| [Input](Input.md) | `InputConfig` (`config/InputConfig.qml`) | Compositor |
+| [Session](Session.md) | `SessionConfig` (`config/SessionConfig.qml`) | Compositor |
+| [WindowLook](WindowLook.md) | `Appearance` (`config/Appearance.qml`) | Compositor |
 | [Appearance](Appearance.md) | `Appearance` (`config/Appearance.qml`) | Look & Feel |
 | [Widget](Widget.md) | `Widget` (`config/Widget.qml`) | Look & Feel |
 | [BarStyle](BarStyle.md) | `BarStyle` (`config/BarStyle.qml`) | Look & Feel |

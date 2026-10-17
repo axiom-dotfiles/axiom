@@ -30,7 +30,12 @@ QtObject {
     {
       "namespace": "blur-backing",
       "order": 9,
-      "why": "The blur window (BlurManager, shell/BlurBacking), drawing the chrome's fills under it."
+      "why": "The blur window (BlurManager, shell/BlurBacking), drawing the chrome's fills under it. Held (a pixel while nothing blurs) where layers stack by map order."
+    },
+    {
+      "namespace": "shadows",
+      "order": 8,
+      "why": "The chrome's shadows, apart from the blur window where its blur has no alpha threshold (SwayFX, no supports.blurThreshold), so they aren't blurred: over the fills (they never meet) and under the chrome. Held as the blur window is."
     },
     {
       "namespace": "edge-menu",
@@ -112,6 +117,12 @@ QtObject {
       "why": "The blur window over the overlay (shell/BlurBacking, while the overlay is open on its screen), drawing the fills of the Overlay-layer surfaces above it: after the overlay, before them. Mapped at once, so the fills it draws under content already showing don't fade in."
     },
     {
+      "namespace": "shadows-overlay",
+      "order": -9,
+      "noAnim": true,
+      "why": "The shadows of the Overlay-layer surfaces over the overlay, apart from their blur window as `shadows` is: beside it (they never meet), before those surfaces."
+    },
+    {
       "namespace": "osd",
       "order": -10,
       "why": "The OSD: after the overlay, so a volume or brightness change shows over it."
@@ -155,6 +166,20 @@ QtObject {
   ]
   // The bars' namespaces (without "axiom-")
   readonly property var barLayers: root.layers.filter(l => l.bar).map(l => l.namespace)
+
+  // --- What blurs behind axiom (the compositor's, by namespace; HyprLua's
+  // layer rules, SwayConf's layer effects) ---
+
+  // Layers blurred whole, their transparent pixels left out: the blur
+  // window (drawing the chrome's fills: the chrome doesn't blur itself)
+  // and the big surfaces that blur themselves
+  readonly property var blurSurfaces: ["blur-backing", "dock-preview", "overlay", "launcher", "switcher", "floating-popout", "notifications", "powermenu", "workspaces", "monitor-prompt"]
+  // Backdrops (and the polkit prompt, whose window holds its own dim),
+  // only when asked: the whole screen, at every alpha
+  readonly property var blurBackdrops: ["backdrop", "polkit"]
+  // The blur window over the overlay: what it blurs is the overlay, so
+  // never see-through (xray would blur the wallpaper in its place)
+  readonly property var blurOverOverlay: ["blur-backing-overlay"]
 
   // A namespace's order (with or without its "axiom-" prefix); 0 (where
   // Hyprland puts a surface without a rule) for one not listed or without

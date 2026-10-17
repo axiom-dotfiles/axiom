@@ -1,12 +1,13 @@
 pragma Singleton
 import QtQuick
 
-// What each keybind action (the schema's Hyprland.binds[].action) is,
+// What each keybind action (the schema's Keybinds.binds[].action) is,
 // independent of the compositor: its IPC call into axiom, default label,
 // section on the Keybinds page, calls, starting flags and whether it takes
-// an argument. How an action is bound (Hyprland's Lua) is
-// HyprConfigLua.dispatcherLua. Labels aren't translated: they go to the
-// compositor, like the user's own bind descriptions.
+// an argument. How each compositor binds an action is its own:
+// HyprConfigLua.dispatcherLua (Hyprland's Lua), SwayConf.actionCommand.
+// Labels aren't translated: they go to the compositor, like the user's own
+// bind descriptions.
 QtObject {
   id: root
 
@@ -47,8 +48,8 @@ QtObject {
       "screenRecord": ["screenRecord {call}", "Screen recording", "Apps"]
     })
 
-  // Actions the compositor carries out itself (HyprConfigLua.dispatcherLua
-  // has each one's Lua): [default label, section]
+  // Actions the compositor carries out itself (HyprConfigLua.dispatcherLua,
+  // SwayConf.actionCommand): [default label, section]
   readonly property var compositorActions: ({
       "focusDir": ["Focus {0}", "Window"],
       "moveWindowDir": ["Move {0}", "Window"],
@@ -65,7 +66,7 @@ QtObject {
       "stripWider": ["Widen column", "Window"],
       "stripNarrower": ["Narrow column", "Window"],
       "stripFit": ["Fit visible columns", "Window"],
-      "lua": ["{0}", "Custom"],
+      "raw": ["{0}", "Custom"],
       "windowSwitcher": ["Switch windows", "Window"],
       "windowSwitcherReverse": ["Switch windows backwards", "Window"],
       "mouseDrag": ["Drag", "Window"],
@@ -73,7 +74,7 @@ QtObject {
       "toggleSpecial": ["Toggle {0}", "Special"],
       "moveToSpecial": ["Move window to {0}", "Special"],
       "restartShell": ["Restart shell", "Axiom"],
-      "exitHyprland": ["Exit Hyprland", "Axiom"],
+      "exitSession": ["Log out", "Axiom"],
       "terminal": ["Terminal", "Apps"],
       "fileManager": ["File manager", "Apps"],
       "browser": ["Browser", "Apps"]
@@ -120,11 +121,40 @@ QtObject {
       }
     })
 
+  // The compositor capabilities (CompositorManager.supports) an action
+  // needs, any one of them; actions not listed work everywhere
+  readonly property var needs: ({
+      "pseudo": ["pseudoTile"],
+      "toggleGroup": ["windowGroups"],
+      "stripSwapColumn": ["strips"],
+      "stripWider": ["strips"],
+      "stripNarrower": ["strips"],
+      "stripFit": ["strips"],
+      "windowSwitcher": ["switcher"],
+      "windowSwitcherReverse": ["switcher"],
+      "mouseDrag": ["mouseBinds"],
+      "mouseResize": ["mouseBinds"],
+      "toggleSpecial": ["namedSpecial", "scratchpad"],
+      "moveToSpecial": ["namedSpecial", "scratchpad"]
+    })
+
+  // Whether the compositor (its `supports`) can run `action`
+  function supported(action, supports) {
+    const caps = root.needs[action];
+    return !caps || caps.some(cap => supports?.[cap] === true);
+  }
+
+  // Whether `bind` does anything under compositor `kind` with `supports`:
+  // its action is supported, and a raw command is written for `kind`
+  function appliesUnder(bind, kind, supports) {
+    return root.supported(bind.action, supports) && (bind.action !== "raw" || (bind.compositor ?? "hyprland") === kind);
+  }
+
   // Flags an action starts with when it's picked (the bind can change them)
   readonly property var actionFlags: ({
       "resizeWindow": ["repeating"],
       "restartShell": ["release"],
-      "exitHyprland": ["release"],
+      "exitSession": ["release"],
       "volumeUp": ["locked", "repeating"],
       "volumeDown": ["locked", "repeating"],
       "toggleMute": ["locked"],
@@ -137,7 +167,7 @@ QtObject {
       "mediaStop": ["locked"]
     })
   // The flags a bind can set (bind[flag] === true)
-  // reads: Hyprland.binds[].repeating, Hyprland.binds[].locked, Hyprland.binds[].release (by flag name)
+  // reads: Keybinds.binds[].repeating, Keybinds.binds[].locked, Keybinds.binds[].release (by flag name)
   readonly property var flagNames: ["repeating", "locked", "release"]
 
   // The window switcher's actions, by the step each takes through the
@@ -146,6 +176,13 @@ QtObject {
       "windowSwitcher": 1,
       "windowSwitcherReverse": -1
     })
+
+  // The modifiers a switcher combo is held by (KeyNames.split's `mods`):
+  // all but SHIFT, which only turns it around, unless SHIFT is all there is
+  function switcherHeld(mods) {
+    const held = (mods ?? []).filter(mod => mod !== "SHIFT" && ["SUPER", "CTRL", "ALT"].includes(mod));
+    return held.length > 0 || !(mods ?? []).includes("SHIFT") ? held : ["SHIFT"];
+  }
 
   // Whether an action takes a call (toggle, open or close)
   function hasCalls(action) {
@@ -170,7 +207,7 @@ QtObject {
   readonly property var argumentKinds: ({
       "launcherSearch": "text",
       "exec": "text",
-      "lua": "lua",
+      "raw": "raw",
       "overlayPage": "view",
       "edgeMenu": "edgeMenu",
       "dock": "dock",

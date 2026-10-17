@@ -33,6 +33,24 @@ QtObject {
     return _merge(current, example, schema, "machine", _kept(personal), true, schema);
   }
 
+  // A copy of `config` (a file of `version`, loaded) with the window look
+  // settings that were machine settings when it was written (under
+  // Hyprland.managed, so the file never held them) as they are in
+  // `current`: applying an older file leaves them as the user set them,
+  // as it did then, instead of their defaults
+  function keepMovedLook(config, current, version) {
+    const keys = [].concat(version < 58 ? ["shape", "matchShell", "borderSize", "rounding"] : [], version < 63 ? ["shadow", "shadowMatchShell", "shadowSize", "shadowPower", "shadowColor", "dim", "dimStrength"] : []);
+    const result = Utils.clone(config);
+    const from = current?.WindowLook;
+    if (keys.length === 0 || !_isObject(from) || !_isObject(result.WindowLook))
+      return result;
+    for (const key of keys) {
+      if (from[key] !== undefined)
+        result.WindowLook[key] = Utils.clone(from[key]);
+    }
+    return result;
+  }
+
   // `config` without what loading fills back in: each key whose value is
   // the one it would get if it were missing
   function sparse(config, schema) {
@@ -40,7 +58,7 @@ QtObject {
   }
 
   // A copy of `config` with every `x-takeover` setting (one that takes
-  // something over on this PC: the Hyprland mode, the lock screen, idle,
+  // something over on this PC: the compositor mode, the lock screen, idle,
   // polkit, the greeter) as it is in `current`. Loading a saved config or
   // the defaults never changes them: each is switched by its own card,
   // which does the takeover or gives it back. `paths`: takeoverPaths(schema)

@@ -65,22 +65,33 @@ QtObject {
   // How solid the shell's surfaces are (0.6–1). Every surface fill goes
   // through fill(), outer and nested alike, so nested fills stack: a card
   // on a 60% panel reads about 84%.
-  readonly property real surfaceAlpha: _c.surface.opacity / 100
+  // Solid where the compositor can't blur behind them (plain sway): a
+  // translucent surface over another would show it through unblurred. The
+  // setting keeps its value (greyed out, x-enabledIf).
+  readonly property real surfaceAlpha: compositorBlurs ? _c.surface.opacity / 100 : 1
+  // Whether the compositor blurs behind axiom's surfaces
+  // (CompositorManager.supports.blur), handed over by CompositorManager: a
+  // reader reads no service, and building CompositorManager reads this
+  property bool compositorBlurs: false
   readonly property bool translucent: surfaceAlpha < 1
-  // Hyprland blurs behind them (HyprlandConfigManager's blur rules, which
-  // leave out pixels under blurThreshold: shadows, dims, fades), with its
-  // own blur (the window look's blur part, or the user's config)
-  readonly property bool blur: translucent && _c.surface.blur
-  readonly property bool blurBackdrops: blur && _c.surface.blurBackdrops
+  // The compositor blurs behind them (Hyprland's layer rules, which leave
+  // out pixels under blurThreshold: shadows, dims, fades; SwayFX's layer
+  // effects), with its own blur (the window look's blur part, or the
+  // user's config). The options are the window look's (Compositor ›
+  // Window look › Blur)
+  readonly property var _look: ConfigManager.config.WindowLook
+  readonly property bool blur: translucent && _look.surfaceBlur
+  readonly property bool blurBackdrops: blur && _look.surfaceBlurBackdrops
   // Blurring what's under each surface, windows included, rather than the
   // wallpaper alone (xray), which every surface shares
-  readonly property bool blurThroughWindows: _c.surface.throughWindows
+  readonly property bool blurThroughWindows: _look.surfaceBlurThroughWindows
   // Nothing blurs while a fullscreen window is open (BlurManager.active)
-  readonly property bool blurPauseFullscreen: _c.surface.pauseFullscreen
+  readonly property bool blurPauseFullscreen: _look.surfaceBlurPauseFullscreen
   readonly property real blurThreshold: 0.5
   // A shadow's darkest alpha while blurring: under the threshold, so its
   // halo isn't blurred (the blur window casts the chrome's, and Hyprland
-  // blurs the chrome's popups)
+  // blurs the chrome's popups). Where the blur has no threshold (SwayFX),
+  // a window it doesn't blur casts them (BlurBacking).
   readonly property real shadowAlphaMax: blur ? 0.45 : 1
 
   // A surface fill (a theme color, or a name or "#hex" as

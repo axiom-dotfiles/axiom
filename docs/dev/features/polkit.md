@@ -24,7 +24,7 @@ A session has one agent, and Quickshell never retries a failed registration. So:
 - **Turned off:** the units it stopped start again.
   - Those units and `replaced` are kept in a `PersistentProperties`, so a reload keeps them.
 - **Reloads:** a hot reload keeps the registration and the open request, because Quickshell hands the listener to the new generation.
-- Managed Hyprland mode's autostart skips agent commands while this is on.
+- The managed mode's autostart (`Session.autostart`) skips agent commands while this is on.
 
 ### Handling a request
 - It picks the monitor (the focused one).

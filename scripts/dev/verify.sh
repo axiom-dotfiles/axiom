@@ -84,11 +84,15 @@ for f in "${changed[@]}"; do
   scripts/integration_hookup.py) script_tests+=(HookupScript) ;;
   scripts/self_update.sh) script_tests+=(SelfUpdate) ;;
   scripts/claim_hyprland.sh) script_tests+=(ClaimHyprland) ;;
+  scripts/claim_sway.sh) script_tests+=(ClaimSway) ;;
+  scripts/merge_sway_binds.py | components/methods/BindActions.qml) script_tests+=(MergeSwayBinds) ;;
   scripts/merge_hypr_binds.py | scripts/hypr_binds.lua) script_tests+=(MergeHyprBinds ClaimHyprland) ;;
   scripts/generate_theme.py) script_tests+=(GenerateTheme) ;;
   scripts/calendar_sync.py | scripts/setup_venv.sh | scripts/requirements.txt) script_tests+=(CalendarSync GenerateTheme) ;;
   scripts/greeter/*) script_tests+=(GreeterInstall) ;;
   scripts/pick_path.py) script_tests+=(PickPath) ;;
+  scripts/sway_config_text.py) script_tests+=(SwayConfigText) ;;
+  scripts/dev/known_issues.py) script_tests+=(KnownIssues) ;;
   scripts/migrate_xdg.sh) script_tests+=(MigrateXdg) ;;
   tests/scripts/test_scripts.py) script_tests+=(all) ;;
   esac

@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 
-// The Lua axiom's Hyprland layer is made of (HyprlandConfigManager): each
+// The Lua axiom's Hyprland layer is made of (HyprlandConfigWriter): each
 // bind's hl.bind(), the included module, the managed hyprland.lua and the
 // one given back on leaving managed. Everything it reads from config comes
 // in as arguments; BindActions says what the actions are, this says how
@@ -21,7 +21,7 @@ QtObject {
 
   // A color ({ r, g, b } in 0-1) as "rrggbb"
   function hex(color) {
-    return [color.r, color.g, color.b].map(v => Math.round(v * 255).toString(16).padStart(2, "0")).join("");
+    return CompositorLayer.hex(color);
   }
 
   // `lines` joined, each but the empty ones after `prefix`
@@ -72,8 +72,9 @@ QtObject {
       return `hl.dsp.layout("fit visible")`;
     // Any dispatcher, as Lua (`hl.dsp.layout("swapsplit")`), compiled when
     // the bind is made so a mistake only leaves that bind doing nothing
-    // instead of breaking the whole file
-    case "lua":
+    // instead of breaking the whole file (bindLua leaves out a raw command
+    // written for another compositor)
+    case "raw":
       return `(function() local ok, d = pcall(load(${_lua("return " + argument)}) or error) if ok and d then return d end return hl.dsp.no_op() end)()`;
     // Lua functions entering the switcher's submap (HyprLua.switcherLua)
     case "windowSwitcher":
@@ -92,7 +93,7 @@ QtObject {
     // Run by Hyprland, not over IPC, so it works when the shell is stuck
     case "restartShell":
       return `hl.dsp.exec_cmd(${_lua(`qs kill ${ctx.shellCommand.slice(3)}; ${ctx.shellCommand} -d`)})`;
-    case "exitHyprland":
+    case "exitSession":
       return `hl.dsp.exec_cmd(${_lua("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'")})`;
     // The apps from the Apps settings, so a bind follows them
     case "terminal":
@@ -110,7 +111,7 @@ QtObject {
   // `ctx` as for dispatcherLua
   function bindLua(bind, ctx) {
     const argument = String(bind.argument ?? "").trim();
-    if (!String(bind.key ?? "").trim() || (BindActions.needsArgument(bind.action) && !argument))
+    if (!String(bind.key ?? "").trim() || (BindActions.needsArgument(bind.action) && !argument) || (bind.action === "raw" && (bind.compositor ?? "hyprland") !== "hyprland"))
       return "";
     let dispatcher;
     if (BindActions.compositorActions[bind.action]) {
@@ -157,13 +158,14 @@ QtObject {
 
   // The included module, a table whose setup() applies what's enabled.
   // `parts`: { header, includeLines, requiredSettings, and the Lua lines of
-  // binds, look, blur, layers, monitors, strips }
+  // binds, look, input, blur, layers, monitors, strips }
   function moduleLua(parts) {
     const setup = [];
     if (parts.requiredSettings)
       setup.push("M.required()");
     setup.push("M.binds()");
     setup.push("M.look()");
+    setup.push("M.input()");
     setup.push("M.blur()");
     setup.push("M.layers()");
     setup.push("M.monitors()");
@@ -195,6 +197,12 @@ ${indent(parts.look, "  ")}
 end
 -- Its old name
 M.theme = M.look
+
+-- The keyboard, mouse and touchpad, as enabled; applied again after every
+-- reload like the look
+function M.input()
+${indent(parts.input, "  ")}
+end
 
 -- Blur behind axiom's surfaces while they're translucent (on or off, so
 -- turning it off takes it back), at Hyprland's blur
@@ -238,36 +246,26 @@ return setmetatable({}, { __index = function() return function() end end })
 `;
   }
 
-  // The cursor's environment for the managed settings `m`, or ""
-  function cursorLua(m) {
-    if (!m.cursorTheme)
-      return "";
-    return `hl.env("XCURSOR_THEME", ${_lua(m.cursorTheme)})\nhl.env("XCURSOR_SIZE", ${_lua(String(m.cursorSize))})\n`;
-  }
-
-  // What the managed file runs once Hyprland has started: the cursor,
-  // axiom (`start.command`), then the autostart commands. A plain
-  // `hypridle` is left out while axiom runs its own (`start.idle`), and a
-  // polkit agent while axiom is the agent (`start.polkit`).
-  function startLua(m, start) {
+  // What the managed file runs once Hyprland has started: the cursor
+  // (`cursor`: CompositorLayer.input()'s), axiom (`start.command`), then
+  // the Session `session`'s autostart commands. A plain `hypridle` is left
+  // out while axiom runs its own (`start.idle`), and a polkit agent while
+  // axiom is the agent (`start.polkit`).
+  function startLua(session, cursor, start) {
     const lines = [];
-    if (m.cursorTheme)
-      lines.push(`hl.exec_cmd(${_lua(`hyprctl setcursor ${shellWord(m.cursorTheme)} ${m.cursorSize}`)})`);
+    if (cursor)
+      lines.push(`hl.exec_cmd(${_lua(`hyprctl setcursor ${shellWord(cursor.theme)} ${cursor.size}`)})`);
     lines.push(`hl.exec_cmd(${_lua(start.command)})`);
-    for (const entry of m.autostart)
+    for (const entry of session.autostart)
       if (entry.enabled && entry.command.trim() !== "" && !(start.idle && entry.command.trim() === "hypridle") && !(start.polkit && PolkitAgents.isAgentCommand(entry.command)))
         lines.push(`hl.exec_cmd(${_lua(entry.command.trim())})`);
     return lines;
   }
 
-  // The recommended environment (HyprLua.recommendedEnv), then the user's,
-  // which wins over it
-  function envLua(m) {
-    const recommended = m.recommendedEnv ? HyprLua.recommendedEnv.map(([name, value]) => ({
-          "name": name,
-          "value": value
-        })) : [];
-    return recommended.concat(m.env).filter(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name.trim())).map(entry => `hl.env(${_lua(entry.name.trim())}, ${_lua(entry.value)})\n`).join("");
+  // The session's environment (`env`: CompositorLayer.sessionEnv's) as
+  // hl.env calls
+  function envLua(env) {
+    return (env ?? []).map(entry => `hl.env(${_lua(entry.name)}, ${_lua(entry.value)})\n`).join("");
   }
 
   // Animation presets: curves { name: [x1, y1, x2, y2] } and leaves
@@ -359,13 +357,10 @@ return setmetatable({}, { __index = function() return function() end end })
 
   // The managed settings `m` as one hl.config() table. `opts`: { schema
   // (Hyprland.managed's), resolveHex (a theme color name → "rrggbb"),
-  // lookShape (the window look sets rounding and borders), motion }
+  // motion }. The border width and rounding are the window look's
+  // (M.look()).
   function configLua(m, opts) {
-    // The window look sets them when it matches axiom's shape (M.look())
-    const overrides = opts.lookShape ? {} : {
-      "decoration.rounding": m.rounding,
-      "general.border_size": m.borderSize
-    };
+    const overrides = {};
     // Following axiom's motion includes turning animations off with it
     if (m.animationPreset === "axiom" && !opts.motion.enabled)
       overrides["animations.enabled"] = false;
@@ -394,7 +389,8 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end`;
   // The managed hyprland.lua: `module` (moduleLua()'s text, its comments
   // dropped) wrapped, the managed settings `m`, setup(), the animations,
   // the start commands and user/*.lua. `opts`: configLua's, plus { header,
-  // userDir, start (startLua's) }
+  // userDir, session (Session's values), env (CompositorLayer.sessionEnv's),
+  // cursor and start (startLua's) }
   function managedLua(module, m, opts) {
     const body = module.split("\n").filter(line => !line.startsWith("--")).join("\n").trim();
     return `${opts.header} (Hyprland mode: managed) from its Hyprland settings,
@@ -407,13 +403,12 @@ ${indent(body.split("\n"), "  ")}
 end)()
 
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
-${envLua(m)}
+${envLua(opts.env)}
 ${configLua(m, opts)}
-${cursorLua(m)}
 axiom.setup()
 ${animationsLua(m, opts.motion)}
 hl.on("hyprland.start", function()
-${indent(startLua(m, opts.start), "  ")}
+${indent(startLua(opts.session, opts.cursor, opts.start), "  ")}
 end)
 
 ${userFilesLua(opts.userDir)}

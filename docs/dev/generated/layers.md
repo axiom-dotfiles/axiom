@@ -7,7 +7,8 @@ Every axiom layer namespace, from `LayerStack.layers`: Hyprland's layer rules (`
 |---|---|---|
 | `axiom-border-shadow` | 11 | The border's inward shadow window: under every other axiom surface, the overlay backdrop included. |
 | `axiom-backdrop` | 10 | Each screen's backdrop window (ScreenBackdrop: full-screen surfaces' dim background): on Top, under the bars and border. Without layer rules it stays mapped (held), so it keeps its place before them. |
-| `axiom-blur-backing` | 9 | The blur window (BlurManager, shell/BlurBacking), drawing the chrome's fills under it. |
+| `axiom-blur-backing` | 9 | The blur window (BlurManager, shell/BlurBacking), drawing the chrome's fills under it. Held (a pixel while nothing blurs) where layers stack by map order. |
+| `axiom-shadows` | 8 | The chrome's shadows, apart from the blur window where its blur has no alpha threshold (SwayFX, no supports.blurThreshold), so they aren't blurred: over the fills (they never meet) and under the chrome. Held as the blur window is. |
 | `axiom-edge-menu` | 7 | An integrated edge menu: arranged before the bars and border, so it sits at the screen edge and pushes them and the windows inwards. |
 | `axiom-popout-under` | 6 | Detached popouts and floating edge menus: drawn under the bars and border, so they slide out from beneath them. Only with layer rules (supports.layerOrder): elsewhere they open over the bar, as over the overlay. |
 | `axiom-bar` | 5 | Solid bars, on the screen's shorter edge: arranged before the border, whose strip then lands on the bar's inner part. Of two bars at a corner the one arranged first takes it (BarEnds). |
@@ -22,6 +23,7 @@ Every axiom layer namespace, from `LayerStack.layers`: Hyprland's layer rules (`
 | `axiom-dock` | -7 | Docks: after every bar and the border on their edge, so they sit inside them. |
 | `axiom-overlay` | -8 | The overlay's panel: after docks, inside an always-shown dock's zone and over a hover or intellihide one. |
 | `axiom-blur-backing-overlay` | -9 | The blur window over the overlay (shell/BlurBacking, while the overlay is open on its screen), drawing the fills of the Overlay-layer surfaces above it: after the overlay, before them. Mapped at once, so the fills it draws under content already showing don't fade in. (no animation) |
+| `axiom-shadows-overlay` | -9 | The shadows of the Overlay-layer surfaces over the overlay, apart from their blur window as `shadows` is: beside it (they never meet), before those surfaces. (no animation) |
 | `axiom-osd` | -10 | The OSD: after the overlay, so a volume or brightness change shows over it. |
 | `axiom-dock-preview` | -10 | A dock's preview (the settings card's Show): after the overlay, so it shows over the settings page. |
 | `axiom-edge-popout` | -11 | Edge popouts (floating edge menus): after the dock and the OSD, so a menu opened over the overlay draws over both. |

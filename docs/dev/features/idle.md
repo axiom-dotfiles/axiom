@@ -25,7 +25,7 @@ Axiom can run hypridle with its own generated config, and it keeps a caffeine (i
   - **Lock:** `lockscreen lock`. In `none` mode it uses `Lockscreen.lockCommand` instead, unless that's `loginctl lock-session`.
   - **Dim:** `brightness dim <percent>` / `undim`. These act on every monitor and are silent, so no OSD.
   - **DPMS:** `hl.dsp.dpms({ action = … })`.
-- Managed Hyprland mode's autostart skips a plain `hypridle` entry while this is on.
+- The managed mode's autostart (`Session.autostart`) skips a plain `hypridle` entry while this is on.
 - Settings → Idle starts with `IdleStatusCard`.
 - Created from `shell.qml`'s `_services`.
 

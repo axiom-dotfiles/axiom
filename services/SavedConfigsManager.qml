@@ -24,7 +24,7 @@ import qs.components.methods
  * config is first saved as "before-<name>", then the file's look and layout
  * replace the running ones), and exports the running config's look to the
  * home folder in the same format. Nothing loaded changes a takeover setting
- * (the schema's x-takeover: the Hyprland mode, lock screen, idle, polkit,
+ * (the schema's x-takeover: the compositor mode, lock screen, idle, polkit,
  * greeter; ConfigManager.restoreConfig keeps them).
  */
 QtObject {
@@ -145,7 +145,7 @@ QtObject {
       root.status = I18n.tr("\"{0}\" is not valid JSON", name);
       return;
     }
-    const config = typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? ConfigManager.normalizeConfig(parsed) : null;
+    const config = typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? root._load(parsed) : null;
     if (!config) {
       root.status = I18n.tr("\"{0}\" is not a valid config", name);
       return;
@@ -197,6 +197,13 @@ QtObject {
     }), true);
   }
 
+  // A file to apply, loaded (migrated, defaults filled; null if invalid),
+  // keeping what an older file never held (ConfigExamples.keepMovedLook)
+  function _load(parsed) {
+    const config = ConfigManager.normalizeConfig(parsed);
+    return config ? ConfigExamples.keepMovedLook(config, ConfigManager.config, parsed.version) : null;
+  }
+
   // Saves the running config as "before-<name>", then applies the example
   // (in _writer's onSaved, so a failed backup applies nothing)
   function applyExample(name) {
@@ -205,7 +212,7 @@ QtObject {
       root.status = I18n.tr("\"{0}\" could not be read", name);
       return;
     }
-    _backupThenApply(name, ConfigManager.normalizeConfig(example), false);
+    _backupThenApply(name, root._load(example), false);
   }
 
   // Opens the desktop's file picker; the chosen file goes to openImport
@@ -249,7 +256,7 @@ QtObject {
       root.status = I18n.tr("\"{0}\" is from a newer axiom. Update axiom to import it.", fileName);
       return;
     }
-    const config = ConfigManager.normalizeConfig(parsed);
+    const config = root._load(parsed);
     if (!config) {
       root.status = I18n.tr("\"{0}\" is not a valid config", fileName);
       return;
@@ -373,7 +380,7 @@ QtObject {
     if (!content)
       return;
     try {
-      const config = ConfigManager.normalizeConfig(JSON.parse(content));
+      const config = root._load(JSON.parse(content));
       root._baseline = config ? ConfigExamples.snapshot(config, ConfigManager.configSchema) : null;
     } catch (e) {
       console.warn("[SavedConfigsManager] Could not parse the active saved config", root._active + ":", e);

@@ -46,7 +46,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-group="Style"
   - read: `Bar.savedBars` (whole), `barConfig.background` · in: `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/EdgePopout.qml`, `components/surfaces/onboarding/pages/LookPage.qml`, `config/Bar.qml`
 - **`Bars[].floatGap`** · integer = -1 · -1–60 · px
-  - Float gap: How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends. Auto keeps Hyprland's gap to the screen edges, as your windows do. Windows always keep Hyprland's gap between windows from the bar.
+  - Float gap: How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends. Auto keeps the compositor's gap to the screen edges, as your windows do. Windows always keep the compositor's gap between windows from the bar.
   - x-group="Style", x-control="stepper", x-auto={"value":-1,"start":8}, x-showIf={"background":["floating","floatingPills"]}
   - read: `Bar.savedBars` (whole), `barConfig.floatGap` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
 - **`Bars[].pillPadding`** · integer = 4 · 0–20 · px
@@ -181,7 +181,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Shadow color: Auto: black for a shadow, the accent for a glow.
   - x-group="Shadow", x-options="colors", x-emptyLabel="Auto", x-showIf={"overrideShadow":true,"shadow":{"not":"none"}}
   - read: `barConfig.shadowColor`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].shadowSize`** · integer = 12 · 2–40 · px
+- **`Bars[].shadowSize`** · integer = 12 · 2–64 · px
   - Shadow size
   - x-group="Shadow", x-control="stepper", x-beside=true, x-showIf={"overrideShadow":true,"shadow":{"not":"none"}}
   - read: `Bar.savedBars` (whole), `barConfig.shadowSize` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
@@ -208,7 +208,9 @@ Every public member of `Bar`, with the files that use it.
   - in: only inside the reader
 - `Bar.autoColorFields` (var): Each widget type's Auto color fields: { type: { key: role } }
   - in: only inside the reader
-- `Bar.shadowColor(look)`: What a shadow is drawn in: `shadow`/`shadowColor` as a bar's look or the BarStyle section has them.
+- `Bar.shadowBaseColor(look)`: The color of a shadow: `shadow`/`shadowColor` as a bar's look or the BarStyle section has them.
+  - in: `config/WindowLookConfig.qml`
+- `Bar.shadowColor(look)`: What a shadow is drawn in (shadowBaseColor).
   - in: `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`
 - `Bar.reserveTrim(barConfig, gapsOut)`: How much less than its extent a bar reserves, given Hyprland's gaps_out on its edge.
   - in: `components/hosts/overlay/ReservedAreaWindow.qml`, `components/surfaces/border/RoundedBorders.qml`

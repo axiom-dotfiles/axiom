@@ -86,17 +86,17 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`BarStyle.shadowColor`** · string = ""
   - Shadow color: Auto: black for a shadow, the accent for a glow.
   - x-group="Bar shadow", x-options="colors", x-emptyLabel="Auto", x-showIf={"shadow":{"not":"none"}}
-  - read: `BarStyle.values` (whole), `barConfig.shadowColor` · in: `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `shell/BlurBackingWindow.qml`
-- **`BarStyle.shadowSize`** · integer = 12 · 2–40 · px
+  - read: `BarStyle.values` (whole), `barConfig.shadowColor` · in: `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `config/WindowLookConfig.qml`, `shell/BlurBackingWindow.qml`
+- **`BarStyle.shadowSize`** · integer = 12 · 2–64 · px
   - Shadow size
   - x-group="Bar shadow", x-control="stepper", x-beside=true, x-showIf={"shadow":{"not":"none"}}
-  - read: `BarStyle.values` (whole), `barConfig.shadowSize` · in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `shell/BlurBackingWindow.qml`
+  - read: `BarStyle.values` (whole), `barConfig.shadowSize` · in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `config/WindowLookConfig.qml`, `shell/BlurBackingWindow.qml`
 
 ### Reader members
 
 Every public member of `BarStyle`, with the files that use it.
 
 - `BarStyle.values` (var): The section's values by key, as a bar's own would be
-  - in: `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/SubPopout.qml`, `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `shell/BlurBackingWindow.qml`
+  - in: `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/SubPopout.qml`, `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `config/WindowLookConfig.qml`, `shell/BlurBackingWindow.qml`
 - `BarStyle.shadowed` (bool): Whether surfaces cast the shadow or glow
   - in: `components/hosts/popout/FloatingPopout.qml`

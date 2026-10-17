@@ -17,9 +17,9 @@ QtObject {
   // The bundle for `config`: its sections, the wallpapers renamed through
   // `wallpaperUrls` ({ the user's url: the bundle's copy }; a wallpaper
   // without a copy is left out, and the background falls back to its
-  // color), the monitor layouts, and in managed mode the Hyprland options
-  // marked x-greeter (`managedSchema`: Hyprland.managed's schema)
-  function exportConfig(config, managedSchema, wallpaperUrls) {
+  // color), the monitor layouts, and the Input options marked x-greeter
+  // (`inputSchema`: Input's schema)
+  function exportConfig(config, inputSchema, wallpaperUrls) {
     const out = {
       "version": config.version
     };
@@ -38,25 +38,23 @@ QtObject {
       }
       appearance.wallpapers = wallpapers;
     }
-    const hyprland = config.Hyprland ?? {};
-    out.Hyprland = {
-      "mode": hyprland.mode,
-      "monitors": {
-        "profiles": JSON.parse(JSON.stringify(hyprland.monitors?.profiles ?? []))
-      }
+    out.Compositor = {
+      "mode": config.Compositor?.mode
     };
-    if (hyprland.mode === "managed")
-      out.Hyprland.managed = root.greeterOptions(managedSchema, hyprland.managed);
+    out.Monitors = {
+      "profiles": JSON.parse(JSON.stringify(config.Monitors?.profiles ?? []))
+    };
+    out.Input = root.greeterOptions(inputSchema, config.Input);
     return out;
   }
 
-  // The x-greeter options of `managed` (Hyprland.managed's values)
-  function greeterOptions(managedSchema, managed) {
-    const props = managedSchema?.properties ?? {};
+  // The x-greeter options of `values` (a section's, of `sectionSchema`)
+  function greeterOptions(sectionSchema, values) {
+    const props = sectionSchema?.properties ?? {};
     const out = {};
     for (const key in props)
-      if (props[key]["x-greeter"] === true && managed?.[key] !== undefined)
-        out[key] = JSON.parse(JSON.stringify(managed[key]));
+      if (props[key]["x-greeter"] === true && values?.[key] !== undefined)
+        out[key] = JSON.parse(JSON.stringify(values[key]));
     return out;
   }
 

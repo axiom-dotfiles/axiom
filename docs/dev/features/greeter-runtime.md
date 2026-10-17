@@ -13,8 +13,8 @@ This doc covers what runs at the login screen and the data it reads: the bundle 
 ### The bundle
 - `GreeterBundle.exportConfig` (pure) builds the bundle from:
   - the `Greeter`, `Appearance`, `General`, `Weather` and `Lockscreen` sections;
-  - `Hyprland.mode` and `monitors.profiles`;
-  - in managed mode, the `Hyprland.managed` options marked `x-greeter` (keyboard, mouse, touchpad, cursor);
+  - `Compositor.mode` and `Monitors.profiles`;
+  - the `Input` options marked `x-greeter` (the part switches, keyboard, mouse, touchpad, cursor);
   - `theme.json` (`ThemeManager.currentTheme`);
   - each wallpaper showing (`ThemeManager.shownWallpapers`, exported as fixed ones in `fixed` mode, so the greeter shows what the desktop does), copied to `wallpapers/<md5 of its url>.<ext>` (cp + mv, stale ones removed). The bundle's `Appearance` names these copies.
 - **How it's written:** one `sh` (`GreeterManager._writeBundle`).
@@ -67,8 +67,8 @@ Built on `Quickshell.Services.Greetd`.
   - Keyboard layouts through `CompositorManager.withKeyboard` and `cycleKeyboardLayout`.
   - `avatarOf(name)` from AccountsService's icons.
 - **At start** (but not when windowed):
-  - it evals `HyprLua.greeterLua`: the profiles' `monitorsLua` in every mode, plus one `hl.config` of the `x-greeter` options in managed mode;
-  - it sets the cursor (`HyprlandManager.setCursor`).
+  - it evals `HyprLua.greeterLua`: the profiles' `monitorsLua`, plus one `hl.config` of the `x-greeter` input options whose parts are on;
+  - it sets the cursor while the cursor part is on with a theme (`HyprlandManager.setCursor`).
 
 ### Surfaces and modules
 - **`surfaces/greeter/GreeterSurface`** is a `ScreenLayoutView`, the same view the lock screen uses ([lockscreen.md](lockscreen.md#layout)).

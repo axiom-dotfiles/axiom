@@ -13,7 +13,9 @@ import qs.components.reusable
 // One blur window (BlurBacking): click-through, drawing each of `shapes`
 // (BlurShapes) filled, at the surface opacity, with their shadows cast
 // once per look and kept outside every shape, its own and the other
-// window's (`cutBy`).
+// window's (`cutBy`). `part` keeps one of the two: where the compositor
+// blurs every pixel that isn't clear, the shadows go to a window it
+// doesn't blur (BlurBacking).
 // The copies are keyed (KeyedModel): one coming or going adds or removes
 // only its own, so the others aren't remade (and don't restart).
 PanelWindow {
@@ -24,8 +26,11 @@ PanelWindow {
   // are cut by all the same: a shadow never falls on a surface joined to
   // the one casting it, whichever window draws that one
   property var cutBy: []
-  // Whether shadows are cut by `union` rather than their own group
-  readonly property bool cutByUnion: groups.count > 1 || backing.cutBy.length > 0
+  // What it draws: "all", the "fills" alone or the "shadows" alone
+  property string part: "all"
+  // Whether shadows are cut by `union` rather than their own group (never
+  // captured while it draws no shadows)
+  readonly property bool cutByUnion: backing.part !== "fills" && (groups.count > 1 || backing.cutBy.length > 0)
 
   // Which shadow a shape casts with: shapes of one look, falling the same
   // way, cast theirs together; "none" for no shadow
@@ -37,6 +42,28 @@ PanelWindow {
     return [look.shadow, look.shadowColor, look.shadowSize, even ? "even" : shape.shadowEdge].join("|");
   }
 
+  // Its namespace and layer, set here so its LayerSlot can read them
+  required property string layerNamespace
+  property int stackLayer: WlrLayer.Top
+  // Whether it draws (BlurManager.backing). Where the compositor stacks
+  // by map order alone (SwayFX) it stays mapped while not (held), a pixel
+  // drawing nothing, so it keeps its place under the chrome: mapped later
+  // it would land over the bars and cover their content
+  property bool wanted: true
+  property bool held: true
+
+  visible: layerSlot.shown
+  LayerSlot {
+    id: layerSlot
+    window: backing
+    namespace: backing.layerNamespace
+    layer: backing.stackLayer
+    wanted: backing.wanted
+    held: backing.held
+  }
+
+  WlrLayershell.namespace: backing.layerNamespace
+  WlrLayershell.layer: backing.stackLayer
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
   exclusionMode: ExclusionMode.Ignore
   color: "transparent"
@@ -44,10 +71,12 @@ PanelWindow {
 
   anchors {
     top: true
-    bottom: true
+    bottom: !layerSlot.idle
     left: true
-    right: true
+    right: !layerSlot.idle
   }
+  implicitWidth: 1
+  implicitHeight: 1
 
   // Shown as drawn, whatever Hyprland held on to (see FrameNudge)
   FrameNudge {
@@ -58,6 +87,7 @@ PanelWindow {
   Item {
     id: shadows
     anchors.fill: parent
+    visible: backing.part !== "fills"
   }
 
   // Every shape drawn opaque (by shadow, in `groups`), then the surface
@@ -66,8 +96,9 @@ PanelWindow {
   Item {
     id: fills
     anchors.fill: parent
-    layer.enabled: groups.count > 1
+    layer.enabled: groups.count > 1 && visible
     opacity: Appearance.surfaceAlpha
+    visible: backing.part !== "shadows"
   }
 
   // Every shape, as the shadows' cut: each is kept outside them all,

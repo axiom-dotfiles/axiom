@@ -178,7 +178,7 @@ TestCase {
     compare(modules[3].properties.note, "");
     compare(modules[3].properties.lockNote, false);
     // v18: no monitor profiles until the Monitors page saves one
-    compare(config.Hyprland.monitors.profiles, []);
+    compare(config.Monitors.profiles, []);
     // v31: a column's cells become modules placed down the grid; empty
     // cells leave nothing behind
     compare(config.Overlay.views[1].columns, undefined);
@@ -199,14 +199,14 @@ TestCase {
         ]
       }
     });
-    const binds = result.config.Hyprland.binds;
+    const binds = result.config.Keybinds.binds;
     // The user's own SUPER + Return stays; the rest are added once
     compare(binds.filter(bind => bind.action === "terminal").length, 0);
     compare(binds[0].argument, "foot");
     // (v22 adds SUPER + CTRL + S)
     compare(binds.filter(bind => bind.action === "screenshot").length, 4);
-    compare(binds.filter(bind => bind.action === "exitHyprland").length, 1);
-    compare(ConfigMigration.migrate(result.config).config.Hyprland.binds.length, binds.length);
+    compare(binds.filter(bind => bind.action === "exitSession").length, 1, "renamed in v60");
+    compare(ConfigMigration.migrate(result.config).config.Keybinds.binds.length, binds.length);
   }
 
   function test_v28_adds_wasd_binds_on_free_keys() {
@@ -222,14 +222,14 @@ TestCase {
         ]
       }
     });
-    const binds = result.config.Hyprland.binds;
+    const binds = result.config.Keybinds.binds;
     // The user's own SUPER + A stays; the other seven are added once (and
     // v38's three)
     compare(binds.length, 11);
     compare(binds[0].argument, "pavucontrol");
     compare(binds.filter(bind => bind.action === "workspaceStep").map(bind => bind.argument).sort(), ["down", "right", "up"]);
     compare(binds.filter(bind => bind.action === "moveWindowStep").length, 4);
-    compare(ConfigMigration.migrate(result.config).config.Hyprland.binds.length, binds.length);
+    compare(ConfigMigration.migrate(result.config).config.Keybinds.binds.length, binds.length);
   }
 
   function test_v26_moves_pywal_themes_to_tonal() {
@@ -704,7 +704,7 @@ TestCase {
           }
         ]
       }
-    }).config.Hyprland.binds;
+    }).config.Keybinds.binds;
     compare(free.length, 4);
     compare(free[1].key, "SUPER + X");
     compare(free[1].action, "toggleSplit");
@@ -721,7 +721,7 @@ TestCase {
           }
         ]
       }
-    }).config.Hyprland.binds;
+    }).config.Keybinds.binds;
     compare(taken.length, 3);
     compare(taken[0].action, "exec");
     compare(taken.filter(bind => bind.action === "toggleSplit").length, 0);
@@ -1286,8 +1286,8 @@ TestCase {
     compare(managed.WindowLook.inactiveOpacity, 90);
     compare(managed.WindowLook.windowBlur, true, "defaults fill the rest");
     compare(managed.Hyprland.managed.blurSize, undefined);
-    compare(managed.Hyprland.managed.recommendedEnv, true);
-    compare(managed.Hyprland.managed.env, [
+    compare(managed.Session.recommendedEnv, true);
+    compare(managed.Session.env, [
       {
         "name": "QT_QPA_PLATFORMTHEME",
         "value": "qt6ct"
@@ -1317,7 +1317,7 @@ TestCase {
       }
     }).config;
     compare(loaded.Hyprland.blur, undefined);
-    compare(loaded.Appearance.surface.blur, true);
+    compare(loaded.WindowLook.surfaceBlur, true, "(the window look's since v63)");
     compare(loaded.Appearance.surface.opacity, 100);
     compare(errors(loaded), []);
     compare(load({
@@ -1325,7 +1325,7 @@ TestCase {
       "Hyprland": {
         "blur": false
       }
-    }).config.Appearance.surface.blur, false);
+    }).config.WindowLook.surfaceBlur, false);
   }
 
   function test_v49_window_look_moves_to_hyprland_look() {
@@ -1348,7 +1348,7 @@ TestCase {
         [key]: migrated.WindowLook[key]
       }), {}), {
       "borders": true,
-      "shape": false,
+      "shape": true,
       "gaps": true,
       "gapsIn": 5,
       "gapsOut": 10
@@ -1356,7 +1356,10 @@ TestCase {
     compare(managed.theme, undefined);
     compare(managed.managed.gapsIn, undefined);
     compare(managed.managed.matchAxiom, undefined);
-    compare(managed.managed.rounding, 3);
+    // v58: the managed rounding moves into the look, its shape not axiom's
+    compare(managed.managed.rounding, undefined);
+    compare(migrated.WindowLook.matchShell, false);
+    compare(migrated.WindowLook.rounding, 3);
 
     // A managed config left at the defaults keeps matching axiom's shape
     compare(load({
@@ -1697,7 +1700,7 @@ TestCase {
     compare(config.Hyprland.look, undefined);
     compare(config.Hyprland.wallpaperDaemon, undefined);
     compare(config.Appearance.wallpaperDaemon, false);
-    compare(config.Hyprland.mode, "detached");
+    compare(config.Compositor.mode, "detached");
     compare(migrated.removed, []);
     compare(errors(config), []);
     // Idempotent: a config already moved keeps its WindowLook
@@ -1705,5 +1708,335 @@ TestCase {
       "version": 55
     })))).config;
     compare(again.WindowLook.gapsIn, 7);
+  }
+
+  function test_v57_compositor_setup_leaves_hyprland() {
+    const migrated = load({
+      "version": 56,
+      "Hyprland": {
+        "mode": "managed",
+        "requiredSettings": false,
+        "managed": {
+          "kbLayout": "de"
+        }
+      }
+    });
+    const config = migrated.config;
+    compare(config.Compositor.mode, "managed");
+    compare(config.Compositor.requiredSettings, false);
+    compare(config.Hyprland.mode, undefined);
+    compare(config.Hyprland.requiredSettings, undefined);
+    compare(config.Input.kbLayout, "de");
+    verify(migrated.changes.includes("Hyprland.mode -> Compositor.mode"));
+    compare(migrated.removed, []);
+    compare(errors(config), []);
+    // Idempotent: an already moved config keeps its Compositor values
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, config, {
+      "version": 56
+    })))).config;
+    compare(again.Compositor.mode, "managed");
+    compare(load({
+      "version": 56
+    }).config.Compositor.mode, "detached", "a config without the section gets the default");
+  }
+
+  function test_v58_window_shape_leaves_managed() {
+    // Managed without the look's shape: the look takes the managed values
+    const managed = load({
+      "version": 57,
+      "Compositor": {
+        "mode": "managed"
+      },
+      "Hyprland": {
+        "managed": {
+          "borderSize": 3,
+          "rounding": 4
+        }
+      },
+      "WindowLook": {
+        "borders": true
+      }
+    });
+    const look = managed.config.WindowLook;
+    compare(look.shape, true);
+    compare(look.matchShell, false);
+    compare(look.borderSize, 3);
+    compare(look.rounding, 4);
+    compare(look.borders, true);
+    compare(managed.config.Hyprland.managed.borderSize, undefined);
+    compare(managed.removed, []);
+    compare(errors(managed.config), []);
+    // Idempotent
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, managed.config, {
+      "version": 57
+    })))).config;
+    compare(again.WindowLook.rounding, 4);
+    compare(again.WindowLook.matchShell, false);
+
+    // Matching axiom's shape already: the managed values did nothing
+    const matching = load({
+      "version": 57,
+      "Compositor": {
+        "mode": "managed"
+      },
+      "Hyprland": {
+        "managed": {
+          "rounding": 4
+        }
+      },
+      "WindowLook": {
+        "shape": true
+      }
+    }).config.WindowLook;
+    compare(matching.matchShell, true);
+    compare(matching.rounding, 8, "the default");
+
+    // Detached: never written, the look stays off
+    const detached = load({
+      "version": 57,
+      "Hyprland": {
+        "managed": {
+          "rounding": 4
+        }
+      }
+    }).config;
+    compare(detached.WindowLook.shape, false);
+    compare(detached.Hyprland.managed.rounding, undefined);
+  }
+
+  function test_v59_input_and_session_leave_managed() {
+    const managed = load({
+      "version": 58,
+      "Compositor": {
+        "mode": "managed"
+      },
+      "Hyprland": {
+        "managed": {
+          "kbLayout": "de",
+          "touchpadScrollFactor": 150,
+          "cursorSize": 32,
+          "dimInactive": false,
+          "autostart": [
+            {
+              "command": "waybar",
+              "enabled": true
+            }
+          ],
+          "recommendedEnv": false
+        }
+      }
+    });
+    const config = managed.config;
+    compare(config.Input.keyboard, true);
+    compare(config.Input.kbLayout, "de");
+    compare(config.Input.touchpad, true);
+    compare(config.Input.scrollFactor, 150);
+    compare(config.Input.mouse, false, "nothing of it was in the config");
+    compare(config.Input.cursor, false, "no theme: the cursor was left alone");
+    compare(config.Input.cursorSize, 32);
+    compare(config.Session.autostart[0].command, "waybar");
+    compare(config.Session.recommendedEnv, false);
+    compare(config.Hyprland.managed.layout !== undefined, true, "Hyprland's own options stay");
+    compare(config.WindowLook.dim, false, "(dimming is the window look's since v63)");
+    compare(config.Hyprland.managed.kbLayout, undefined);
+    compare(config.Hyprland.managed.autostart, undefined);
+    compare(managed.removed, []);
+    compare(errors(config), []);
+    // Idempotent
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, config, {
+      "version": 58
+    })))).config;
+    compare(again.Input.kbLayout, "de");
+    compare(again.Input.keyboard, true);
+
+    // Detached: the values come along, their parts stay off
+    const detached = load({
+      "version": 58,
+      "Hyprland": {
+        "managed": {
+          "kbLayout": "fr",
+          "cursorTheme": "Bibata"
+        }
+      }
+    }).config;
+    compare(detached.Input.kbLayout, "fr");
+    compare(detached.Input.keyboard, false);
+    compare(detached.Input.cursor, false);
+    compare(load({
+      "version": 58
+    }).config.Session.autostart.length, 3, "defaults fill a config without them");
+  }
+
+  function test_v60_keybinds_leave_hyprland() {
+    const migrated = load({
+      "version": 59,
+      "Hyprland": {
+        "binds": [
+          {
+            "key": "SUPER + SHIFT + Escape",
+            "action": "exitHyprland",
+            "release": true
+          },
+          {
+            "key": "SUPER + S",
+            "action": "lua",
+            "argument": "hl.dsp.layout(\"swapsplit\")"
+          },
+          {
+            "key": "SUPER + Return",
+            "action": "terminal"
+          }
+        ]
+      }
+    });
+    const binds = migrated.config.Keybinds.binds;
+    compare(binds.length, 3);
+    compare(binds[0].action, "exitSession");
+    compare(binds[0].release, true);
+    compare(binds[1].action, "raw");
+    compare(binds[1].compositor, "hyprland");
+    compare(binds[1].argument, "hl.dsp.layout(\"swapsplit\")");
+    compare(binds[2].action, "terminal");
+    compare(migrated.config.Hyprland.binds, undefined);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    // Idempotent
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
+      "version": 59
+    })))).config;
+    compare(again.Keybinds.binds[1].action, "raw");
+    compare(again.Keybinds.binds.length, 3);
+    verify(load({
+      "version": 59
+    }).config.Keybinds.binds.some(bind => bind.action === "exitSession"), "the defaults");
+  }
+
+  function test_v61_monitors_leave_hyprland() {
+    const profiles = [
+      {
+        "name": "desk",
+        "outputs": [
+          {
+            "output": "desc:Dell U2720Q",
+            "mode": "3840x2160@60",
+            "scale": 1.5
+          }
+        ]
+      }
+    ];
+    const migrated = load({
+      "version": 60,
+      "Hyprland": {
+        "monitors": {
+          "profiles": profiles
+        }
+      }
+    });
+    compare(migrated.config.Monitors.profiles[0].name, "desk");
+    compare(migrated.config.Monitors.profiles[0].outputs[0].scale, 1.5);
+    compare(migrated.config.Hyprland.monitors, undefined);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
+      "version": 60
+    })))).config;
+    compare(again.Monitors.profiles.length, 1);
+    compare(load({
+      "version": 60
+    }).config.Monitors.profiles, []);
+  }
+
+  function test_v62_behaviour_leaves_hyprland() {
+    const migrated = load({
+      "version": 61,
+      "Hyprland": {
+        "managed": {
+          "layout": "master",
+          "followMouse": false,
+          "noWarps": true
+        }
+      }
+    });
+    compare(migrated.config.WindowBehaviour.followMouse, false);
+    compare(migrated.config.WindowBehaviour.noWarps, true);
+    compare(migrated.config.WindowBehaviour.focusOnActivate, true);
+    compare(migrated.config.Hyprland.managed.layout, "master");
+    compare(migrated.config.Hyprland.managed.followMouse, undefined);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
+      "version": 61
+    })))).config;
+    compare(again.WindowBehaviour.followMouse, false);
+    compare(load({
+      "version": 61
+    }).config.Sway.workspaceLayout, "default");
+  }
+
+  function test_v63_blur_and_shadows_join_the_window_look() {
+    const migrated = load({
+      "version": 62,
+      "Compositor": {
+        "mode": "managed"
+      },
+      "Appearance": {
+        "surface": {
+          "opacity": 85,
+          "blur": false,
+          "throughWindows": false,
+          "pauseFullscreen": false
+        }
+      },
+      "Hyprland": {
+        "managed": {
+          "layout": "master",
+          "shadow": true,
+          "shadowRange": 7,
+          "shadowThemed": true,
+          "shadowColor": "base01",
+          "dimInactive": true,
+          "dimStrength": 12,
+          "dimSpecial": 30
+        }
+      }
+    });
+    const look = migrated.config.WindowLook;
+    compare(migrated.config.Appearance.surface.opacity, 85);
+    compare(migrated.config.Appearance.surface.blur, undefined);
+    compare(look.surfaceBlur, false);
+    compare(look.surfaceBlurThroughWindows, false);
+    compare(look.surfaceBlurPauseFullscreen, false);
+    compare(look.surfaceBlurBackdrops, false, "the default");
+    compare([look.shadow, look.shadowMatchShell, look.shadowSize, look.shadowColor], [true, false, 7, "base01"]);
+    compare([look.dim, look.dimStrength], [true, 12]);
+    compare(migrated.config.Hyprland.managed.shadow, undefined);
+    compare(migrated.config.Hyprland.managed.dimInactive, undefined);
+    compare(migrated.config.Hyprland.managed.dimSpecial, 30, "Hyprland's own stays");
+    compare(migrated.config.Hyprland.managed.layout, "master");
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    // Not managed: the managed options were never written, so the parts
+    // stay off; an unthemed shadow is the compositor's color
+    const detached = load({
+      "version": 62,
+      "Compositor": {
+        "mode": "detached"
+      },
+      "Hyprland": {
+        "managed": {
+          "shadow": true,
+          "shadowThemed": false,
+          "shadowColor": "base00",
+          "dimInactive": true
+        }
+      }
+    }).config.WindowLook;
+    compare([detached.shadow, detached.shadowColor, detached.dim], [false, "", false]);
+    // Twice is once
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
+      "version": 62
+    })))).config;
+    compare(again.WindowLook.surfaceBlur, false);
+    compare(again.WindowLook.shadowSize, 7);
   }
 }

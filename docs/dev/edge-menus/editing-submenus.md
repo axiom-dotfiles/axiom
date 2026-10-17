@@ -19,7 +19,7 @@ How edge menus are edited on the Layouts page (draft, field groups, previewing, 
     - The page's `onDestruction` stops it.
   - **What else opens the menu** (`EdgeMenuManager.references(id)`):
     - bar Buttons and widgets opening it as their menu popout (`EdgeMenusConfig.menusOpenedBy`, which the bar inspector's link to the layouts editor reads too, `OverlayManager.openedBy`: a Button's click action first, then its menu popout, passing over one that's gone), in the bar editor's draft or saved bars;
-    - binds in the keybind editor's draft or `HyprlandConfig.binds`.
+    - binds in the keybind editor's draft or `KeybindsConfig.binds`.
   - **Buttons that add an opener**, drawn by `OpenerButtons` (shared with the page's Opening group):
     - a bar Button: `addBarButton` → `BarManager.addWidgetTo`, into the bar editor's draft, then the bar editor on that bar;
     - a keybind: `addKeybind` → `KeybindManager.addAndRecord`, then the Keybinds page's editor recording its key.

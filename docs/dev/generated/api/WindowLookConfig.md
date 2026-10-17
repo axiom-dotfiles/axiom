@@ -3,8 +3,20 @@
 
 > **File:** `config/WindowLookConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the WindowLook section: settings that make windows match axiom ({ borders, shape, gaps, gapsIn, gapsOut, blur…, opacity… }), applied by the compositor's backend (on Hyprland, HyprlandConfigManager's look layer). Named WindowLookConfig as the section is a whole object.
+Reader for the WindowLook section: settings that make windows match axiom ({ borders, activeColor, shape, matchShell, gaps, surfaceBlur…, blur…, shadow…, dim…, opacity… }), applied by the compositor's backend (its config writer's look layer) through CompositorLayer.look. Named WindowLookConfig as the section is a whole object.
 
 ### Properties
 
 - `look` (readonly var)
+- `activeBorder` (readonly color): The border colors: the ones picked, else the theme's
+- `inactiveBorder` (readonly color)
+- `shadowSoft` (readonly bool): Whether it stands in for axiom's own, a soft (blurred) shadow: as axiom draws it where nothing caps it (Appearance.shadowAlphaMax keeps the chrome's under the blur threshold; no blur reaches a window…
+- `shadowOn` (readonly bool)
+- `shadowSize` (readonly int)
+- `shadowThemed` (readonly bool): Its color: axiom's, the one picked, or none for the compositor's own
+- `shadowColor` (readonly color)
+- `shadowAlpha` (readonly real): (a picked color nearly opaque, as the compositors' own are)
+- `shadowStrength` (readonly real): How strong windows cast it (1 = as above), on top of its alpha
+- `shadowOffset` (readonly int): How far it falls downward: as axiom's shadow does (SurfaceShadow); a glow spreads evenly
+- `borderWidth` (readonly int): The shape: axiom's (Look & Feel → Shape) while it matches it, else its own
+- `radius` (readonly int)

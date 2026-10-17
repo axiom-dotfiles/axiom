@@ -397,11 +397,11 @@ assert(removed == 2, "earlier handlers removed")
     tryVerify(() => written.done, 2000);
   }
 
-  // The greeter's Hyprland: the monitors always, and only the x-greeter
-  // options of managed mode
+  // The greeter's Hyprland: the monitors always, and the x-greeter input
+  // options of the parts that are on
   function test_greeterLua() {
     const schema = files.json("config/json/config.schema.json");
-    const managedSchema = schema.properties.Hyprland.properties.managed;
+    const inputSchema = schema.properties.Input;
     const profiles = [
       {
         "name": "desk",
@@ -410,38 +410,132 @@ assert(removed == 2, "earlier handlers removed")
           })]
       }
     ];
-    const detached = HyprLua.greeterLua(profiles, managedSchema, undefined, hex);
-    verify(detached.some(line => line.startsWith("AXIOM_MONITOR_PROFILES")));
-    verify(!detached.some(line => line.startsWith("hl.config")));
+    const none = HyprLua.greeterLua(profiles, inputSchema, undefined, hex);
+    verify(none.some(line => line.startsWith("AXIOM_MONITOR_PROFILES")));
+    verify(!none.some(line => line.startsWith("hl.config")));
 
-    const managed = SchemaValidation.applyDefaults({}, managedSchema, schema);
-    managed.kbLayout = "us,de";
-    managed.sensitivity = -50;
-    managed.shadowRange = 33;
-    const lines = HyprLua.greeterLua(profiles, managedSchema, managed, hex);
+    const input = SchemaValidation.applyDefaults({}, inputSchema, schema);
+    input.kbLayout = "us,de";
+    input.sensitivity = -50;
+    compare(HyprLua.greeterLua(profiles, inputSchema, input, hex).length, none.length, "every part off: nothing set");
+    input.keyboard = true;
+    input.mouse = true;
+    const lines = HyprLua.greeterLua(profiles, inputSchema, input, hex);
     const config = lines[lines.length - 1];
     verify(config.startsWith("hl.config("));
     verify(config.includes('kb_layout = "us,de"'));
     verify(config.includes("sensitivity = -0.5"));
-    verify(!config.includes("range"));
+    verify(!config.includes("touchpad"), "its part is off");
     const lua = "hl = { config = function(t) end, monitor = function(t) end, get_monitors = function() return {} end, on = function() return { remove = function() end } end }\n" + lines.join("\n") + "\n";
     const written = files.write("tests/.out/greeter.run.lua", lua);
     tryVerify(() => written.done, 2000);
+  }
+
+  function test_inputLua() {
+    const schema = files.json("config/json/config.schema.json");
+    const inputSchema = schema.properties.Input;
+    const input = SchemaValidation.applyDefaults({}, inputSchema, schema);
+    compare(HyprLua.inputLua(CompositorLayer.input(input), inputSchema), [], "every part off");
+    input.touchpad = true;
+    const lines = HyprLua.inputLua(CompositorLayer.input(input), inputSchema);
+    verify(lines[0].startsWith("hl.config("));
+    verify(lines.every(line => !line.includes("\n")), "one line each, for indenting");
+    const lua = lines.join("\n");
+    verify(lua.includes("natural_scroll = false") && lua.includes("tap_to_click = true"), "the part's fields, defaults too");
+    verify(lua.includes("scroll_factor = 1"));
+    verify(!lua.includes("kb_layout"), "not the keyboard's");
+  }
+
+  // The look's spec (CompositorLayer.look) from WindowLook's values
+  function look(values, activeHex, inactiveHex, borderWidth, radius, surfacesBlur) {
+    return CompositorLayer.look(values, {
+      "activeHex": activeHex,
+      "inactiveHex": inactiveHex,
+      "borderWidth": borderWidth,
+      "radius": radius,
+      "surfacesBlur": surfacesBlur
+    });
+  }
+
+  function test_look_shadow_and_dim() {
+    const schema = files.json("config/json/config.schema.json");
+    const lookSchema = schema.properties.WindowLook;
+    const values = Object.assign(SchemaValidation.applyDefaults({}, lookSchema, schema), {
+      "shadow": true,
+      "shadowSize": 12,
+      "shadowPower": 2,
+      "dim": true,
+      "dimStrength": 20
+    });
+    const spec = opts => CompositorLayer.look(values, Object.assign({
+        "activeHex": "ffffff",
+        "inactiveHex": "000000",
+        "borderWidth": 2,
+        "radius": 8,
+        "surfacesBlur": false
+      }, opts));
+    const cast = (color, offset) => ({
+          "shadow": {
+            "size": 12,
+            "color": color,
+            "alpha": 0.6,
+            "offset": offset
+          }
+        });
+    const lua = HyprLua.lookLua(spec(cast("", 0)), lookSchema).join("\n");
+    verify(lua.includes("range = 12") && lua.includes("render_power = 2") && lua.includes("enabled = true"));
+    verify(!lua.includes("shadow = {") || !lua.includes("color ="), "no color: Hyprland's own");
+    verify(lua.includes("dim_inactive = true") && lua.includes("dim_strength = 0.2"));
+    const themed = HyprLua.lookLua(spec(cast("101010", 3)), lookSchema).join("\n");
+    verify(themed.includes('color = "rgba(10101099)"'), themed);
+    verify(themed.includes("offset = { 0, 3 }"), themed);
+    // Standing in for axiom's soft shadow: as long and as strong as that
+    // looks (fitted on screen: HyprLua.softShadow)
+    const soft = cast("101010", 0);
+    soft.shadow.soft = true;
+    const softLua = HyprLua.lookLua(spec(soft), lookSchema).join("\n");
+    verify(softLua.includes("range = 14") && softLua.includes("render_power = 4"), softLua);
+    verify(softLua.includes('color = "rgba(1010102c)"'), "a dark color: about 0.3 of axiom's alpha");
+  }
+
+  function test_softShadow() {
+    const glow = HyprLua.softShadow({
+      "size": 20,
+      "rgb": "c4a7e7",
+      "baseAlpha": 0.45
+    });
+    compare([glow.range, glow.power, CompositorLayer.alphaHex(glow.alpha)], [24, 4, "02"], "the fit for a light glow");
+    compare(CompositorLayer.alphaHex(HyprLua.softShadow({
+      "size": 20,
+      "rgb": "c4a7e7",
+      "baseAlpha": 1
+    }).alpha), "05");
+    compare(CompositorLayer.alphaHex(HyprLua.softShadow({
+      "size": 20,
+      "rgb": "000000",
+      "baseAlpha": 0.45
+    }).alpha), "22", "black: 0.3 of it");
+    compare(CompositorLayer.alphaHex(HyprLua.softShadow({
+      "size": 20,
+      "rgb": "c4a7e7",
+      "baseAlpha": 1,
+      "strength": 2
+    }).alpha), "09", "the strength scales the fitted alpha");
   }
 
   function test_look_writes_only_its_parts_that_are_on() {
     const schema = files.json("config/json/config.schema.json");
     const lookSchema = schema.properties.WindowLook;
     const off = SchemaValidation.applyDefaults({}, lookSchema, schema);
-    compare(HyprLua.lookLua(off, lookSchema, "ffffff", "000000", 2, 8, true), []);
-    compare(HyprLua.lookParts(off), []);
+    compare(HyprLua.lookLua(look(off, "ffffff", "000000", 2, 8, true), lookSchema), []);
+    compare(look(off).parts, []);
 
     const gaps = Object.assign({}, off, {
       "gaps": true,
       "gapsIn": 4,
       "gapsOut": 12
     });
-    const gapsLua = HyprLua.lookLua(gaps, lookSchema, "ffffff", "000000", 2, 8, true).join("\n");
+    const gapsLua = HyprLua.lookLua(look(gaps, "ffffff", "000000", 2, 8, true), lookSchema).join("\n");
     verify(gapsLua.includes("gaps_in = 4"));
     verify(gapsLua.includes("gaps_out = 12"));
     verify(!gapsLua.includes("rounding"));
@@ -458,7 +552,7 @@ assert(removed == 2, "earlier handlers removed")
       "opacity": true,
       "inactiveOpacity": 90
     });
-    const lines = HyprLua.lookLua(all, lookSchema, "aabbcc", "112233", 2, 8, false);
+    const lines = HyprLua.lookLua(look(all, "aabbcc", "112233", 2, 8, false), lookSchema);
     const lua = lines.join("\n");
     verify(lua.startsWith("hl.config("));
     verify(lua.includes('active_border = "rgb(aabbcc)"'));
@@ -468,7 +562,7 @@ assert(removed == 2, "earlier handlers removed")
     verify(lua.includes("size = 6") && lua.includes("passes = 2"), "the blur's strength");
     verify(lua.includes("noise = 0.012"), "every blur field, scaled, default or not");
     verify(lua.includes("inactive_opacity = 0.9") && lua.includes("active_opacity = 1"));
-    compare(HyprLua.lookParts(all), ["borders", "shape", "gaps", "blur", "opacity"]);
+    compare(look(all).parts, ["borders", "shape", "gaps", "blur", "opacity"]);
     verify(lua.includes('name = "axiom-no-window-blur"') && lua.includes("enabled = false })"), "windows blur: the rule redefined off");
     const written = files.write("tests/.out/look.lua", lua + "\n");
     tryVerify(() => written.done, 2000);
@@ -479,7 +573,7 @@ assert(removed == 2, "earlier handlers removed")
       "windowBlur": false,
       "blurPopups": true
     });
-    const run = (surfacesBlur, check) => `${HyprLua.lookLua(surfacesOnly, lookSchema, "aabbcc", "112233", 2, 8, surfacesBlur).join("\n")}\n${check}\n`;
+    const run = (surfacesBlur, check) => `${HyprLua.lookLua(look(surfacesOnly, "aabbcc", "112233", 2, 8, surfacesBlur), lookSchema).join("\n")}\n${check}\n`;
     const runLua = `local options, rules = {}, {}
 hl = {
   config = function(t) options = t end,
@@ -494,13 +588,6 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
 
     const ran = files.write("tests/.out/look_blur.run.lua", runLua);
     tryVerify(() => ran.done, 2000);
-  }
-
-  function test_recommendedEnv() {
-    const names = HyprLua.recommendedEnv.map(entry => entry[0]);
-    verify(names.includes("QT_QPA_PLATFORM") && names.includes("GDK_BACKEND"));
-    verify(!names.includes("SDL_VIDEODRIVER"), "breaks games with an older SDL");
-    verify(HyprLua.recommendedEnv.every(entry => entry.length === 2 && /^[A-Z_]+$/.test(entry[0])));
   }
 
   function test_blurLua() {
@@ -554,10 +641,10 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
   }
 
   function test_switcherHeld() {
-    compare(HyprLua.switcherHeld(["ALT"]), ["ALT"]);
-    compare(HyprLua.switcherHeld(["ALT", "SHIFT"]), ["ALT"], "SHIFT only turns it around");
-    compare(HyprLua.switcherHeld(["SHIFT"]), ["SHIFT"], "unless it's all there is");
-    compare(HyprLua.switcherHeld([]), [], "nothing to hold");
+    compare(BindActions.switcherHeld(["ALT"]), ["ALT"]);
+    compare(BindActions.switcherHeld(["ALT", "SHIFT"]), ["ALT"], "SHIFT only turns it around");
+    compare(BindActions.switcherHeld(["SHIFT"]), ["SHIFT"], "unless it's all there is");
+    compare(BindActions.switcherHeld([]), [], "nothing to hold");
   }
 
   function test_switcherLua_without_binds_only_unbinds() {

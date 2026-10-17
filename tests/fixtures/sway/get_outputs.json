@@ -1,0 +1,804 @@
+[
+  {
+    "id": 3,
+    "type": "output",
+    "orientation": "none",
+    "percent": 1.0,
+    "urgent": false,
+    "marks": [],
+    "layout": "output",
+    "border": "none",
+    "current_border_width": 0,
+    "rect": {
+      "x": 15,
+      "y": 83,
+      "width": 3440,
+      "height": 1440
+    },
+    "deco_rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "window_rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "geometry": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "name": "DP-1",
+    "window": null,
+    "nodes": [],
+    "floating_nodes": [],
+    "focus": [
+      11,
+      5
+    ],
+    "fullscreen_mode": 0,
+    "sticky": false,
+    "floating": null,
+    "scratchpad_state": null,
+    "primary": false,
+    "make": "AOC",
+    "model": "CU34G4Z",
+    "serial": "XJ9R7HA000000",
+    "modes": [
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 240001,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 60001,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 200000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 165001,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 144001,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 120000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 100000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 75000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 30000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 2560,
+        "height": 1440,
+        "refresh": 120000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 2560,
+        "height": 1080,
+        "refresh": 60000,
+        "picture_aspect_ratio": "64:27"
+      },
+      {
+        "width": 2560,
+        "height": 1080,
+        "refresh": 59940,
+        "picture_aspect_ratio": "64:27"
+      },
+      {
+        "width": 2560,
+        "height": 1080,
+        "refresh": 50000,
+        "picture_aspect_ratio": "64:27"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 120000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 119880,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 60000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 60000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 60000,
+        "picture_aspect_ratio": "64:27"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 59940,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 59940,
+        "picture_aspect_ratio": "64:27"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 50000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 50000,
+        "picture_aspect_ratio": "64:27"
+      },
+      {
+        "width": 1680,
+        "height": 1050,
+        "refresh": 59954,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1280,
+        "height": 1024,
+        "refresh": 75025,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1280,
+        "height": 1024,
+        "refresh": 60020,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1440,
+        "height": 900,
+        "refresh": 59887,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "refresh": 60000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "refresh": 60000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "refresh": 59940,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "refresh": 50000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1024,
+        "height": 768,
+        "refresh": 99991,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1024,
+        "height": 768,
+        "refresh": 75029,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1024,
+        "height": 768,
+        "refresh": 70069,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1024,
+        "height": 768,
+        "refresh": 60004,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 832,
+        "height": 624,
+        "refresh": 74551,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 800,
+        "height": 600,
+        "refresh": 99862,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 800,
+        "height": 600,
+        "refresh": 75000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 800,
+        "height": 600,
+        "refresh": 72188,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 800,
+        "height": 600,
+        "refresh": 60317,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 800,
+        "height": 600,
+        "refresh": 56250,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 720,
+        "height": 576,
+        "refresh": 50000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 720,
+        "height": 576,
+        "refresh": 50000,
+        "picture_aspect_ratio": "4:3"
+      },
+      {
+        "width": 720,
+        "height": 480,
+        "refresh": 60000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 720,
+        "height": 480,
+        "refresh": 60000,
+        "picture_aspect_ratio": "4:3"
+      },
+      {
+        "width": 720,
+        "height": 480,
+        "refresh": 59940,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 720,
+        "height": 480,
+        "refresh": 59940,
+        "picture_aspect_ratio": "4:3"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 99825,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 75000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 72809,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 66667,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 60000,
+        "picture_aspect_ratio": "4:3"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 59940,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 59940,
+        "picture_aspect_ratio": "4:3"
+      },
+      {
+        "width": 720,
+        "height": 400,
+        "refresh": 70082,
+        "picture_aspect_ratio": "none"
+      }
+    ],
+    "features": {
+      "adaptive_sync": true,
+      "hdr": false
+    },
+    "non_desktop": false,
+    "active": true,
+    "dpms": true,
+    "power": true,
+    "scale": 1.0,
+    "scale_filter": "nearest",
+    "transform": "normal",
+    "adaptive_sync_status": "disabled",
+    "current_workspace": "6",
+    "current_mode": {
+      "width": 3440,
+      "height": 1440,
+      "refresh": 240001,
+      "picture_aspect_ratio": "none"
+    },
+    "max_render_time": 0,
+    "allow_tearing": false,
+    "hdr": false,
+    "focused": true,
+    "subpixel_hinting": "unknown"
+  },
+  {
+    "id": 3,
+    "type": "output",
+    "orientation": "none",
+    "percent": 1.0,
+    "urgent": false,
+    "marks": [],
+    "layout": "output",
+    "border": "none",
+    "current_border_width": 0,
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "deco_rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "window_rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "geometry": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "name": "HDMI-A-1",
+    "window": null,
+    "nodes": [],
+    "floating_nodes": [],
+    "focus": [
+      11,
+      5
+    ],
+    "fullscreen_mode": 0,
+    "sticky": false,
+    "floating": null,
+    "scratchpad_state": null,
+    "primary": false,
+    "make": "Dell Inc.",
+    "model": "DELL U2415",
+    "serial": "ABC123",
+    "modes": [
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 240001,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 60001,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 200000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 165001,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 144001,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 120000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 100000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 75000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 3440,
+        "height": 1440,
+        "refresh": 30000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 2560,
+        "height": 1440,
+        "refresh": 120000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 2560,
+        "height": 1080,
+        "refresh": 60000,
+        "picture_aspect_ratio": "64:27"
+      },
+      {
+        "width": 2560,
+        "height": 1080,
+        "refresh": 59940,
+        "picture_aspect_ratio": "64:27"
+      },
+      {
+        "width": 2560,
+        "height": 1080,
+        "refresh": 50000,
+        "picture_aspect_ratio": "64:27"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 120000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 119880,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 60000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 60000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 60000,
+        "picture_aspect_ratio": "64:27"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 59940,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 59940,
+        "picture_aspect_ratio": "64:27"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 50000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1920,
+        "height": 1080,
+        "refresh": 50000,
+        "picture_aspect_ratio": "64:27"
+      },
+      {
+        "width": 1680,
+        "height": 1050,
+        "refresh": 59954,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1280,
+        "height": 1024,
+        "refresh": 75025,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1280,
+        "height": 1024,
+        "refresh": 60020,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1440,
+        "height": 900,
+        "refresh": 59887,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "refresh": 60000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "refresh": 60000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "refresh": 59940,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1280,
+        "height": 720,
+        "refresh": 50000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 1024,
+        "height": 768,
+        "refresh": 99991,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1024,
+        "height": 768,
+        "refresh": 75029,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1024,
+        "height": 768,
+        "refresh": 70069,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 1024,
+        "height": 768,
+        "refresh": 60004,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 832,
+        "height": 624,
+        "refresh": 74551,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 800,
+        "height": 600,
+        "refresh": 99862,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 800,
+        "height": 600,
+        "refresh": 75000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 800,
+        "height": 600,
+        "refresh": 72188,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 800,
+        "height": 600,
+        "refresh": 60317,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 800,
+        "height": 600,
+        "refresh": 56250,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 720,
+        "height": 576,
+        "refresh": 50000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 720,
+        "height": 576,
+        "refresh": 50000,
+        "picture_aspect_ratio": "4:3"
+      },
+      {
+        "width": 720,
+        "height": 480,
+        "refresh": 60000,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 720,
+        "height": 480,
+        "refresh": 60000,
+        "picture_aspect_ratio": "4:3"
+      },
+      {
+        "width": 720,
+        "height": 480,
+        "refresh": 59940,
+        "picture_aspect_ratio": "16:9"
+      },
+      {
+        "width": 720,
+        "height": 480,
+        "refresh": 59940,
+        "picture_aspect_ratio": "4:3"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 99825,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 75000,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 72809,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 66667,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 60000,
+        "picture_aspect_ratio": "4:3"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 59940,
+        "picture_aspect_ratio": "none"
+      },
+      {
+        "width": 640,
+        "height": 480,
+        "refresh": 59940,
+        "picture_aspect_ratio": "4:3"
+      },
+      {
+        "width": 720,
+        "height": 400,
+        "refresh": 70082,
+        "picture_aspect_ratio": "none"
+      }
+    ],
+    "features": {
+      "adaptive_sync": true,
+      "hdr": false
+    },
+    "non_desktop": false,
+    "active": false,
+    "dpms": true,
+    "power": false,
+    "scale": 1.5,
+    "scale_filter": "nearest",
+    "transform": "flipped-90",
+    "adaptive_sync_status": "disabled",
+    "current_workspace": null,
+    "current_mode": {
+      "width": 3440,
+      "height": 1440,
+      "refresh": 240001,
+      "picture_aspect_ratio": "none"
+    },
+    "max_render_time": 0,
+    "allow_tearing": false,
+    "hdr": false,
+    "focused": true,
+    "subpixel_hinting": "unknown"
+  }
+]

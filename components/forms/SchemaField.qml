@@ -26,7 +26,12 @@ Loader {
   // A row may relabel its field (`x-cardPerField`'s, whose card carries
   // the title and description)
   readonly property string label: row.label ?? row.title
-  readonly property string description: row.description ?? fieldSchema.description ?? ""
+  readonly property string description: {
+    const own = row.description ?? fieldSchema.description ?? "";
+    if (root.disabledNote === "")
+      return own;
+    return own !== "" ? root.disabledNote + "\n" + I18n.tr(own) : root.disabledNote;
+  }
   readonly property bool isColor: fieldSchema["x-options"] === "colors"
   // `x-enumShowIf` hides options whose condition doesn't hold (the current
   // value stays listed)
@@ -95,7 +100,33 @@ Loader {
   // `x-showIf`, checked against _valueOf
   readonly property bool shown: SchemaLayout.showIfHolds(fieldSchema["x-showIf"], root._valueOf)
 
+  // `x-enabledIf` (as x-showIf): while it doesn't hold the row is greyed
+  // out, its value kept, and says why (`x-disabledNote`, else what the
+  // compositor can't do, CompositorManager.unsupportedNote). Only a row
+  // shown on its own says it: one shown by a sibling (a part's fields,
+  // under its switch) is greyed with it, without repeating it.
+  readonly property string _blockedBy: SchemaLayout.failingKey(fieldSchema["x-enabledIf"], root._valueOf)
+  readonly property bool allowed: _blockedBy === ""
+  readonly property bool _followsSibling: Object.keys(fieldSchema["x-showIf"] ?? {}).some(key => !key.startsWith("/"))
+  // I18n.tr("{0} only.")
+  readonly property string disabledNote: {
+    // (A field one compositor alone has says so even under its part's
+    // switch: the switch itself isn't greyed out for it)
+    if (root.allowed || (root._followsSibling && _blockedBy !== "/$compositor"))
+      return "";
+    const own = fieldSchema["x-disabledNote"] ?? "";
+    if (own !== "")
+      return I18n.tr(own);
+    if (_blockedBy.startsWith("/$supports."))
+      return CompositorManager.unsupportedNote(_blockedBy.slice("/$supports.".length));
+    if (_blockedBy === "/$compositor")
+      return I18n.tr("{0} only.", CompositorManager.nameOf(String(fieldSchema["x-enabledIf"]["/$compositor"])));
+    return "";
+  }
+
   visible: shown
+  enabled: allowed
+  opacity: allowed ? 1 : 0.5
 
   Layout.fillWidth: true
 

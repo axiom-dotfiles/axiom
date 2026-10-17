@@ -6,33 +6,43 @@ import qs.config
 import qs.services
 import qs.components.reusable
 
-// The last page: what Finish does to Hyprland, whether axiom starts with
-// the session, and where to go from here
+// The last page: what Finish does to the compositor's config, whether
+// axiom starts with the session, and where to go from here
 OnboardingPage {
   id: root
 
   readonly property string mode: OnboardingManager.chosenMode
-  readonly property bool changesMode: OnboardingManager.hyprlandSupported && OnboardingManager.modeAllowed && root.mode !== HyprlandConfig.mode
+  // No Compositor step where axiom can't set the compositor up
+  readonly property bool hasCompositorPage: OnboardingManager.pages.some(page => page.id === "compositor")
+  readonly property bool changesMode: root.hasCompositorPage && OnboardingManager.compositorSupported && OnboardingManager.modeAllowed && root.mode !== CompositorConfig.mode
+  readonly property string compositor: CompositorManager.displayName
+  readonly property string config: Paths.shortenHome(CompositorConfigManager.managedPath)
 
   title: I18n.tr("All set")
-  intro: I18n.tr("That's the essentials. Press Finish to apply the Hyprland setup and start using axiom.")
+  intro: I18n.tr("That's the essentials. Press Finish to apply the {0} setup and start using axiom.", root.compositor)
 
   Notice {
     visible: root.changesMode && root.mode === "managed"
     tone: "info"
-    text: OnboardingManager.configState === "stock" ? I18n.tr("Finish replaces Hyprland's example hyprland.lua with axiom's (a dated backup stays beside it) and reloads Hyprland. axiom starts with every session from then on.") : OnboardingManager.configState === "custom" ? I18n.tr("Finish moves your hyprland.lua to user/00-previous.lua (a dated backup stays too), writes axiom's in its place and reloads Hyprland. axiom starts with every session from then on.") : I18n.tr("Finish writes hyprland.lua and reloads Hyprland. axiom starts with every session from then on.")
+    text: OnboardingManager.configState === "stock" ? I18n.tr("Finish replaces {0}'s example {1} with axiom's (a dated backup stays beside it) and reloads {0}. axiom starts with every session from then on.", root.compositor, root.config) : OnboardingManager.configState === "custom" ? I18n.tr("Finish moves your {1} into user/ (a dated backup stays too), writes axiom's in its place and reloads {0}. axiom starts with every session from then on.", root.compositor, root.config) : I18n.tr("Finish writes {1} and reloads {0}. axiom starts with every session from then on.", root.compositor, root.config)
+  }
+
+  Notice {
+    visible: root.changesMode && CompositorConfig.mode !== "detached"
+    tone: "warning"
+    text: I18n.tr("Finish changes how axiom sets up {0}: what the mode it's in now set up is given back.", root.compositor)
   }
 
   Notice {
     visible: root.mode === "included"
     tone: OnboardingManager.includeDone && OnboardingManager.autostartDone ? "info" : "warning"
-    text: !OnboardingManager.includeDone ? I18n.tr("Finish writes axiom's Hyprland module, but your hyprland.lua doesn't load it yet: Apply the lines on the Hyprland step. Until then, axiom adds its keybinds while it runs.") : !OnboardingManager.autostartDone ? I18n.tr("Finish writes axiom's Hyprland module, which your hyprland.lua loads. It doesn't start axiom yet: Apply the autostart line on the Hyprland step.") : I18n.tr("Finish writes axiom's Hyprland module, which your hyprland.lua loads.")
+    text: !OnboardingManager.includeDone ? I18n.tr("Finish writes axiom's module, but your {0} doesn't load it yet: Apply the lines on the Compositor step. Until then, axiom adds its keybinds while it runs.", root.config) : !OnboardingManager.autostartDone ? I18n.tr("Finish writes axiom's module, which your {0} loads. It doesn't start axiom yet: Apply the autostart line on the Compositor step.", root.config) : I18n.tr("Finish writes axiom's module, which your {0} loads.", root.config)
   }
 
   Notice {
-    visible: root.mode === "detached" && !OnboardingManager.autostartDone
+    visible: root.hasCompositorPage && root.mode === "detached" && !OnboardingManager.autostartDone
     tone: "warning"
-    text: I18n.tr("Hyprland won't start axiom by itself: Apply the autostart line on the Hyprland step, or add it to your hyprland.lua yourself.")
+    text: I18n.tr("{0} won't start axiom by itself: Apply the autostart line on the Compositor step, or add it to your {1} yourself.", root.compositor, root.config)
   }
 
   StyledText {
@@ -69,8 +79,8 @@ OnboardingPage {
         "label": I18n.tr("Restart axiom if it gets stuck")
       },
       {
-        "action": "exitHyprland",
-        "label": I18n.tr("Leave Hyprland")
+        "action": "exitSession",
+        "label": I18n.tr("Log out")
       }
     ]
   }

@@ -1,23 +1,21 @@
 # Translucency and blur
 
-> **Files:** `config/Appearance.qml`, `services/BlurManager.qml`, `components/methods/HyprLua.qml`, `services/HyprlandConfigManager.qml`, `components/views/settings/TranslucencyStatus.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`
-> **Config:** `Appearance.surface.*` (`opacity`, `blur`, `throughWindows`, `blurBackdrops`, `pauseFullscreen`)
-> **Related:** [Blur window and openings](blur-window-openings.md), [Window look](../hyprland/window-look.md), [Popout registry](../popouts/registry.md)
+> **Files:** `config/Appearance.qml`, `services/BlurManager.qml`, `components/methods/HyprLua.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/views/settings/TranslucencyStatus.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`
+> **Config:** `Appearance.surface.opacity`, `WindowLook.surfaceBlur*` (`surfaceBlur`, `surfaceBlurThroughWindows`, `surfaceBlurBackdrops`, `surfaceBlurPauseFullscreen`)
+> **Related:** [Blur window and openings](blur-window-openings.md), [Window look](../compositor/window-look.md), [Popout registry](../popouts/registry.md)
 
 The translucency setting, how fills apply it, the Hyprland layer rules axiom writes for blur, and per-screen and fullscreen behaviour. How chrome surfaces share one blurred backing window is in [Blur window and openings](blur-window-openings.md).
 
 ### The setting
-- Look & Feel → Translucency, `Appearance.surface`:
-  - `opacity`: 60–100%. 100 is solid and blurs nothing.
-  - `blur`, `throughWindows`, `blurBackdrops`;
-  - `pauseFullscreen` (`x-scope: machine`).
-  - The blur settings show only where the compositor blurs axiom's surfaces (`"/$supports.blur": true`). Elsewhere `BlurManager.active` stays false whatever `blur` says, and the surfaces fill themselves: nothing blurs the blur window (`issues.md` › Blur and transparency on other compositors).
-- The strength isn't axiom's. Hyprland has one blur, for windows and layers alike, set by the window look's blur part (Compositor → Window look, see [Window look](../hyprland/window-look.md)) or the user's own config.
+- Look & Feel → Translucency, `Appearance.surface.opacity`: 60–100%. 100 is solid and blurs nothing.
+- Compositor → Window look → Blur (`WindowLook`, since config version 63): `surfaceBlur`, `surfaceBlurThroughWindows`, `surfaceBlurBackdrops`, `surfaceBlurPauseFullscreen` (`x-scope: machine`), above the compositor's own blur. Shown while the opacity isn't 100.
+- **Without `supports.blur`** (plain sway) the surfaces are solid: `Appearance.surfaceAlpha` is 1 whatever the opacity says, which stays set but greyed out, as are the blur settings (`x-enabledIf`, "SwayFX can."). A translucent surface over another would show it through unblurred. `Appearance.compositorBlurs` is handed over by `CompositorManager` (a `Binding`): a reader reads no service, and building `CompositorManager` reads `Appearance` (reading it directly aborted the shell's start in a creation loop).
+- The strength isn't axiom's. Hyprland has one blur, for windows and layers alike, set by the window look's blur part (Compositor → Window look, see [Window look](../compositor/window-look.md)) or the user's own config.
 - The card's intro (`TranslucencyStatus`):
   - warns that transparency and blur are experimental;
   - while blurring, shows the blur in effect;
-  - with Hyprland's blur off (nothing blurs then), offers to set it.
-- Reader properties: `Appearance.surfaceAlpha`, `translucent`, `blur`, `blurThroughWindows`, `blurBackdrops`, `blurThreshold` (0.5), `shadowAlphaMax`.
+  - with the compositor's blur off (nothing blurs then), offers to set it.
+- Reader properties: `Appearance.surfaceAlpha`, `compositorBlurs`, `translucent`, `blur`, `blurThroughWindows`, `blurBackdrops`, `blurThreshold` (0.5), `shadowAlphaMax`.
 
 ### Fills
 - Every surface fill goes through `Appearance.fill(color)` at the shared pieces' draw sites:
@@ -29,10 +27,10 @@ The translucency setting, how fills apply it, the Hyprland layer rules axiom wri
 - Accent colors and hover tints are left alone.
 
 ### Hyprland layer rules
-Written by `HyprLua.blurLua` (HyprlandConfigManager's `_blurLua`, `M.blur()` in the module). The named layer rules are always written, `enabled` or not, since a rule is taken back by redefining it (no reload).
+Written by `HyprLua.blurLua` (HyprlandConfigWriter's `_blurLua`, `M.blur()` in the module). The named layer rules are always written, `enabled` or not, since a rule is taken back by redefining it (no reload).
 - `axiom-blur`, on the namespaces that blur themselves (`HyprLua.blurSurfaces`: the blur window, the overlay, the floating launcher and switcher, notifications, …):
   - `blur_popups`, and `ignore_alpha` at the threshold. The big transparent windows need it; shadows are capped under the threshold while blurring (`Bar.shadowColor`).
-  - `xray` is always written, off with `throughWindows`. Left out, a layer takes `decoration.blur.xray`, which the window look turns on.
+  - `xray` is always written, off with `surfaceBlurThroughWindows`. Left out, a layer takes `decoration.blur.xray`, which the window look turns on.
 - `axiom-blur-popups`, on the chrome's own namespaces (`HyprLua.blurChrome`), for their popups alone (tooltips, the dock's menu):
   - Hyprland blurs a layer's popups whether or not the layer blurs, never with xray, and with its `ignore_alpha`.
   - So a bar popout, a popup drawn transparent over the blur window, blurs only under its content.
@@ -44,8 +42,8 @@ Written by `HyprLua.blurLua` (HyprlandConfigManager's `_blurLua`, `M.blur()` in 
 - The module file holds the setting as saved (`_surfacesBlur(true)`). At runtime it's `BlurManager.active`, evaluated over the file after every reload.
 
 ### No reload per step
-- The window look and the blur are HyprlandConfigManager's `_liveInputs`.
-- In every mode a change is only evaluated at runtime (`_applyLook`, which also runs after every reload); the file catches up on its next write.
+- The window look and the blur are CompositorConfigManager's `_liveInputs`.
+- In every mode a change is only evaluated at runtime (`_applyLive`, which also runs after every reload); the file catches up on its next write.
 - Turning a look part off rewrites the file (an eval can't take a setting back).
 
 ### Per screen
@@ -56,7 +54,7 @@ Written by `HyprLua.blurLua` (HyprlandConfigManager's `_blurLua`, `M.blur()` in 
   - The blur window itself then rises to the Overlay layer on that screen (`overFullscreen`, order 9 keeping it under the surfaces there), so what shows over a fullscreen window still blurs.
 
 ### Paused over fullscreen
-- `pauseFullscreen` (on by default): while any screen shows a fullscreen window, `BlurManager.active` is false:
+- `surfaceBlurPauseFullscreen` (on by default): while any screen shows a fullscreen window, `BlurManager.active` is false:
   - the blur window goes and the chrome fills itself;
   - the rules are taken back at runtime, as is Hyprland's blur where the window look kept it on for the surfaces alone (the module file keeps the saved setting).
 - On the screens showing one, surfaces fill solid (`opaqueOn`): `AttachedSurface.opaque`, `BlurManager.fillOn` for floating popouts, `StyledContainer.solid` for toasts.

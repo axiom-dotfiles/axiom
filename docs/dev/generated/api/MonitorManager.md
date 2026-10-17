@@ -3,11 +3,12 @@
 
 > **File:** `services/MonitorManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The Monitors page: the connected outputs (HyprlandManager.withOutputs, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Hyprland.monitors, a draft of profiles (each a layout for one set of monitors). HyprlandConfigManager writes the saved profiles into axiom's Lua layer in every mode, where the one matching what's connected applies (again on every hotplug). Apply tries the selected profile at once (hl.monitor through HyprlandManager.runLua) and asks to keep it: keep() saves the draft, and revert() (or the countdown running out) puts back what was there before.
+The Monitors page: the connected outputs (CompositorManager. withOutputDetails, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Monitors.profiles, a draft of profiles (each a layout for one set of monitors). The compositor's config writer applies the saved profiles, the one matching what's connected (again on every hotplug; with `outputProfiles` the compositor picks it itself, else this does on outputsHotplugged). Apply tries the selected profile at once (CompositorManager.applyOutputs) and asks to keep it: keep() saves the draft, and revert() (or the countdown running out) puts back what was there before.
 
 ### Properties
 
-- `outputs` (var): Hyprland's monitors (HyprlandManager.withOutputs), disabled ones included
+- `outputs` (var): The outputs in detail (CompositorManager.withOutputDetails), disabled ones included
+- `outputsRead` (readonly bool): Whether `outputs` has been read yet (a config writer keeps what its file says about the monitors until then)
 - `enabledOutputs` (readonly var)
 - `profiles` (readonly var)
 - `isDirty` (readonly alias)

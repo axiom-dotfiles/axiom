@@ -84,7 +84,7 @@ FieldGroup {
 
   StyledText {
     visible: Idle.enabled && HypridleManager.replacedOther
-    text: I18n.tr("axiom stopped another hypridle, likely started by your own Hyprland config. Remove its autostart line so the two don't fight at login.")
+    text: I18n.tr("axiom stopped another hypridle, likely started by your own compositor config. Remove its autostart line so the two don't fight at login.")
     textColor: Theme.warning
     textSize: Appearance.fontSize - 1
     wrapMode: Text.WordWrap

@@ -174,6 +174,8 @@ To start it with Hyprland, add this line to your `hyprland.lua` (`-n` keeps a se
 hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)
 ```
 
+On sway (1.12+), add `exec qs -n -c axiom` to your sway config instead. Its workspaces, windows, keybinds, window look, input and monitors work as on Hyprland; what sway can't do (strips, blur behind the shell, window previews) is left out of the settings.
+
 </details>
 
 By default axiom runs in *detached* mode: it applies what it needs at runtime and never writes your Hyprland config. If you'd rather it did, it can also write a file you include, or manage `hyprland.lua` for you (see [Hyprland modes](docs/installation.md#installation)).
@@ -194,7 +196,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the layout and conventions, and [docs
 
 ## Roadmap
 
-- **Other Wayland compositors**, beyond Hyprland
+- **Other Wayland compositors**, beyond Hyprland and sway (niri next)
 - **More widgets** for bars and overlay pages
 - **More styles** for bars, widgets and menus
 - **More translations**

@@ -15,10 +15,10 @@ import qs.config
  * checks when it's shown. Only an Apply click edits a user's config (and an
  * Apply that changed something runs the integration again).
  *
- * Two keys aren't theme integrations: "hyprlandInclude" (the lines that load
- * axiom's module, and the autostart line) and "hyprlandAutostart" (only the
- * latter), in the user's hyprland.lua, for the onboarding's Hyprland page.
- * Their targets come from HyprlandConfigManager, passed to the script.
+ * Two keys aren't theme integrations: "compositorInclude" (the lines that load
+ * axiom's module, and the autostart line) and "compositorAutostart" (only the
+ * latter), in the user's compositor config, for the onboarding's Compositor page.
+ * Their targets come from CompositorConfigManager (its writer), passed to the script.
  */
 Singleton {
   id: root
@@ -31,8 +31,8 @@ Singleton {
   property var busy: ({})
 
   readonly property var _given: ({
-      "hyprlandInclude": [HyprlandConfigManager.includeTarget, HyprlandConfigManager.autostartTarget],
-      "hyprlandAutostart": [HyprlandConfigManager.autostartTarget]
+      "compositorInclude": [CompositorConfigManager.includeTarget, CompositorConfigManager.autostartTarget].filter(target => target !== null),
+      "compositorAutostart": [CompositorConfigManager.autostartTarget].filter(target => target !== null)
     })
 
   // The x-hookup targets of an integration, as the schema has them

@@ -11,10 +11,32 @@ import qs.components.methods
 /* The running compositor, for the rest of axiom: its windows, outputs and
  * workspaces in shapes that don't depend on it, what it supports, and every
  * workspace switch and window focus (docs/dev/compositor/README.md). The
- * compositor's own work is its backend's (HyprlandManager); with none
+ * compositor's own work is its backend's (HyprlandManager, SwayManager); with none
  * (an unknown compositor) everything here is empty and does nothing. */
 Singleton {
   id: root
+
+  // The compositor's name as people know it ("Hyprland"; the backend's own
+  // when it tells a variant apart, "SwayFX"), or "the compositor" for an
+  // unknown one. I18n.tr("the compositor")
+  readonly property string displayName: root.backend?.displayName || (kind !== "" ? nameOf(kind) : I18n.tr("the compositor"))
+
+  // A compositor kind's name as people know it ("Hyprland")
+  function nameOf(kind) {
+    return ({
+        "hyprland": "Hyprland",
+        "sway": "Sway",
+        "niri": "niri"
+      })[kind] ?? kind;
+  }
+
+  // Why a setting needing `capability` (a supports key) is greyed out:
+  // that the compositor can't do it, and what can, where the backend knows
+  // (its unsupportedHint). I18n.tr("{0} can't do this.")
+  function unsupportedNote(capability) {
+    const hint = root.backend?.unsupportedHint?.(capability) ?? "";
+    return [I18n.tr("{0} can't do this.", root.displayName), hint].filter(text => text !== "").join(" ");
+  }
 
   // Which compositor axiom runs under: "hyprland", "sway", "niri" or ""
   // (unknown, or none). AXIOM_COMPOSITOR overrides it, for testing
@@ -34,7 +56,11 @@ Singleton {
 
   // The backend for `kind`, or null (docs/dev/compositor/contract.md). Only
   // the one picked is ever created.
-  readonly property var backend: kind === "hyprland" ? HyprlandManager : null
+  readonly property var backend: kind === "hyprland" ? HyprlandManager : kind === "sway" ? SwayManager : null
+
+  // Whether `supports` is final: a backend that finds out what it can do
+  // by asking (sway: SwayFX or not) isn't until it knows
+  readonly property bool ready: root.backend?.ready ?? true
 
   // What the compositor can do, by capability (contract.md › Capabilities):
   // false for anything the backend doesn't say, and for what
@@ -47,6 +73,14 @@ Singleton {
       result[name] = own[name] === true && !off.includes(name);
       return result;
     }, {});
+  }
+
+  // Appearance's surfaces are translucent only where the compositor blurs
+  // behind them (Appearance.compositorBlurs: readers don't read services)
+  property Binding _appearanceBlur: Binding {
+    target: Appearance
+    property: "compositorBlurs"
+    value: root.supports.blur === true
   }
 
   // --- State (contract.md › Shapes) ---
@@ -162,12 +196,12 @@ Singleton {
     root.backend?.closeWindow(id);
   }
 
-  // The overview's drag and drop (HyprlandManager.placeWindow)
+  // The overview's drag and drop (the backend's placeWindow)
   function placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt) {
     root.backend?.placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt);
   }
 
-  // The overview's resize (HyprlandManager.resizeWindow)
+  // The overview's resize (the backend's resizeWindow)
   function resizeWindow(id, dw, dh, dx, dy) {
     root.backend?.resizeWindow(id, dw, dh, dx, dy);
   }
@@ -201,34 +235,6 @@ Singleton {
   // Of `windows`, the one focused last (focused now, if any is), or null
   function lastFocused(windows) {
     return windows.reduce((last, w) => last === null || (w.focusRank ?? Infinity) < (last.focusRank ?? Infinity) ? w : last, null);
-  }
-
-  // --- The window look ---
-
-  // The window look (WindowLookConfig) for a backend that applies it at
-  // runtime: one without config modes (on Hyprland, HyprlandConfigManager
-  // puts it in its Lua layer). Applied at startup, whenever it or the theme
-  // colors and shape it follows change, and after the compositor reloads
-  // its config (which drops it). The backend takes the parts it supports.
-  function _applyLook() {
-    if (!root.backend?.applyLook || root.supports.configModes)
-      return;
-    root.backend.applyLook({
-      "look": WindowLookConfig.look,
-      "activeColor": String(Theme.borderFocus),
-      "inactiveColor": String(Theme.border),
-      "borderWidth": Appearance.borderWidth,
-      "radius": Appearance.borderRadius
-    });
-  }
-
-  readonly property string _lookInputs: [WindowLookConfig._lookJson, Theme.borderFocus, Theme.border, Appearance.borderWidth, Appearance.borderRadius, root.kind].join("|")
-  on_LookInputsChanged: _lookDebounce.restart()
-  onConfigReloaded: _lookDebounce.restart()
-
-  property Timer _lookDebounce: Timer {
-    interval: 300
-    onTriggered: root._applyLook()
   }
 
   // --- Session, input, cursor ---
@@ -293,6 +299,44 @@ Singleton {
   // Ends the session (the power menu's log out)
   function exitSession() {
     root.backend?.exitSession();
+  }
+
+  // --- Outputs (the Monitors page) ---
+
+  // Calls back with every output in detail, disabled ones too ({ name,
+  // description, width, height, refreshRate, x, y, scale, transform,
+  // disabled, mirrorOf, vrr, availableModes, … }, contract.md), or null.
+  // Needs monitors
+  function withOutputDetails(callback) {
+    if (root.supports.monitors)
+      root.backend.withOutputDetails(callback);
+    else
+      callback(null);
+  }
+
+  // Sets the outputs as `rules` (MonitorRule) say, now; `details` are the
+  // outputs as withOutputDetails gave them. Needs monitors
+  function applyOutputs(rules, details) {
+    if (root.supports.monitors)
+      root.backend.applyOutputs(rules, details);
+  }
+
+  // --- Binds (the Keybinds page) ---
+
+  // Calls back with the compositor's binds in effect ({ modmask, key,
+  // keycode, description, submap }, BindKeys), or null. Needs bindMerge
+  function withBinds(callback) {
+    if (root.supports.bindMerge)
+      root.backend.withMainBinds(callback);
+    else
+      callback(null);
+  }
+
+  // While on, every key reaches axiom instead of the compositor's binds
+  // (the key recorder). Needs keyCapture
+  function captureKeys(on) {
+    if (root.supports.keyCapture)
+      root.backend.captureKeys(on);
   }
 
   // The shell command turning the screens off or on (the idle daemon's),

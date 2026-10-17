@@ -32,10 +32,10 @@ Every public member of `Apps`, with the files that use it.
 - `Apps.browser` (string)
   - in: `components/surfaces/onboarding/pages/AppsPage.qml`
 - `Apps.terminalCommand` (string): What a bind (or the onboarder) runs to open each
-  - in: `services/HyprlandConfigManager.qml`
+  - in: `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - `Apps.fileManagerCommand` (string)
-  - in: `services/HyprlandConfigManager.qml`
+  - in: `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - `Apps.inTerminal(argv, terminal)`: `argv` run in a terminal: `terminal` (a widget's own), else the Apps one (which may carry arguments of its own), else xdg-terminal-exec, which takes the comman…
   - in: `services/LauncherManager.qml`, `services/UpdatesManager.qml`
 - `Apps.browserCommand` (string)
-  - in: `services/HyprlandConfigManager.qml`
+  - in: `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`

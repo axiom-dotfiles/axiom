@@ -7,7 +7,7 @@ import qs.components.forms
 import qs.components.methods
 import qs.components.reusable
 
-// The Keybinds page's editor for axiom's own binds (Hyprland.binds):
+// The Keybinds page's editor for axiom's own binds (Keybinds.binds):
 // presets, then one row per bind, with a search and a sort that only
 // change what's shown. Edits wait in KeybindManager's draft until Save.
 ColumnLayout {
@@ -18,7 +18,8 @@ ColumnLayout {
 
   spacing: Widget.spacing * 2
 
-  // A merge's reason code (merge_hypr_binds.py) as text, with its detail
+  // A merge's reason code (merge_hypr_binds.py, merge_sway_binds.py) as
+  // text, with its detail
   function reasonText(entry) {
     switch (entry.reason) {
     case "key":
@@ -42,9 +43,11 @@ ColumnLayout {
     case "changed":
       return I18n.tr("the file changed");
     case "notUser":
-      return I18n.tr("it isn't one of user/*.lua");
+      return I18n.tr("it isn't one of your files in user/");
     case "syntax":
       return I18n.tr("the file wouldn't parse without it ({0})", entry.detail);
+    case "continued":
+      return I18n.tr("it goes on over several lines");
     case "crashed":
       return I18n.tr("the merge script failed ({0})", entry.detail);
     }
@@ -150,7 +153,7 @@ ColumnLayout {
 
     // What the last merge did, and what it left behind
     IssueList {
-      readonly property var merge: HyprlandConfigManager.lastMerge
+      readonly property var merge: CompositorConfigManager.lastMerge
       visible: merge !== null
       Layout.fillWidth: true
       issues: {
@@ -220,17 +223,17 @@ ColumnLayout {
         visible: !(KeybindManager.canMerge && KeybindManager.mergeableCount > 0) && KeybindManager.userConflicts.length > 0
         implicitHeight: Widget.height
         iconText: "delete_sweep"
-        text: I18n.tr("Remove {0} binds your Hyprland config also has", KeybindManager.userConflicts.length)
+        text: I18n.tr("Remove {0} binds your compositor config also has", KeybindManager.userConflicts.length)
         onClicked: KeybindManager.removeUserConflicts()
       }
 
       // Managed mode: the user's binds move in instead
       StyledTextButton {
         visible: KeybindManager.canMerge && KeybindManager.mergeableCount > 0
-        enabled: !HyprlandConfigManager.merging
+        enabled: !CompositorConfigManager.merging
         implicitHeight: Widget.height
         iconText: "merge"
-        text: I18n.tr("Merge {0} binds from your Hyprland config", KeybindManager.mergeableCount)
+        text: I18n.tr("Merge {0} binds from your compositor config", KeybindManager.mergeableCount)
         onClicked: KeybindManager.mergeUserBinds()
       }
 

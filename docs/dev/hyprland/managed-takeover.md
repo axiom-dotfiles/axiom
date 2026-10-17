@@ -1,14 +1,14 @@
 # Managed takeover (claim and release)
 
-> **Files:** `scripts/claim_hyprland.sh`, `services/HyprlandTakeover.qml`, `services/HyprlandConfigManager.qml`, `components/methods/HyprConfigLua.qml`, `tests/scripts/test_scripts.py`
-> **Config:** `Hyprland.mode` (`managed`), `Hyprland.managed`
+> **Files:** `scripts/claim_hyprland.sh`, `services/ConfigTakeover.qml`, `services/HyprlandConfigWriter.qml`, `services/CompositorConfigManager.qml`, `components/methods/HyprConfigLua.qml`, `tests/scripts/test_scripts.py`
+> **Config:** `Compositor.mode` (`managed`), `Hyprland.managed`
 > **Related:** [Config modes](config-modes.md), [Bind merge](bind-merge.md), [Onboarding](../features/onboarding.md)
 
 How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how leaving it gives the file back (`release`).
 
 ### The managed file
 - `managedLua()` becomes `~/.config/hypr/hyprland.lua` itself, plus the `managed` options.
-  - The options' `rounding`/`borderSize` are written only while the window look's `shape` is off ([Window look](window-look.md)).
+  - The border width and rounding aren't among them: they are the window look's (`WindowLook.shape`, [Window look](../compositor/window-look.md)).
 - It loads `user/*.lua` after itself, via `require("user.<name>")`.
   - Hyprland watches required files, so user edits reload it.
   - `user/lib/` is for shared modules.
@@ -29,7 +29,7 @@ How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how l
   - `claim` only backs a stock file up (`replaced`) instead of adopting it into `user/`, since its binds and `hl.monitor` rule would fight axiom's.
 - **Results.** `claim` prints one of:
   - `adopted:<name>`: the file is copied to `user/00-previous.lua`, or to `00-previous-<date>.lua` when that's taken.
-    - Lines in it that start axiom, or that `dofile` its included module, are commented out, unless `luac -p` then rejects the file.
+    - Lines in it that start axiom (not a bind calling its IPC, which the bind merge reads), or that `dofile` its included module, are commented out, unless `luac -p` then rejects the file.
     - Those lines are commented out because a second start without `-n` would be a second shell, and the include would bind everything twice.
   - `created`: there was no file.
 - **Released files.** A file that `release` wrote (`releasedLua()`, unedited apart from the include lines) is reported as `released` by `check`. It is only replaced, not kept.

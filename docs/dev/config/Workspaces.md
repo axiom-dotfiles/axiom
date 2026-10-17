@@ -30,12 +30,12 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Wrap around: Stepping past the last workspace (of a row or column in a grid) goes back to the first.
   - read: `WorkspacesConfig.wrap` · in: `services/CompositorManager.qml`
 - **`Workspaces.animate`** · boolean = true
-  - Directional slides: Slide between workspaces whatever Hyprland's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column.
+  - Directional slides: Slide between workspaces whatever the compositor's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column.
   - read: `WorkspacesConfig.animate` · in: `services/CompositorManager.qml`
 - **`Workspaces.strips`** · array<object> = []
   - Strips: Monitors whose windows sit side by side on a strip that scrolls (Hyprland's scrolling layout) instead of tiling. New windows open as a new column after the focused one.
   - x-group="Strips", x-showIf={"/$supports.strips":true}
-  - read: `WorkspacesConfig.strips` (part) · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/HyprlandConfigManager.qml`
+  - read: `WorkspacesConfig.strips` (part) · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/HyprlandConfigWriter.qml`
 
 ### `Workspaces.strips[]`
 
@@ -43,7 +43,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Workspaces.strips[].monitor`** · string = ""
   - Monitor: Empty uses the primary monitor; All monitors makes every monitor a strip, unless another entry names it.
   - x-scope="machine", x-options="screens", x-allScreens=true
-  - read: entry field, name match · in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `components/surfaces/workspaces/OverviewGrid.qml`, `config/WorkspacesConfig.qml`
+  - read: entry field, name match · in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `components/surfaces/workspaces/OverviewGrid.qml`, `config/WorkspacesConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Workspaces.strips[].direction`** · string = "horizontal" · enum horizontal|vertical
   - Direction: Horizontal: columns side by side, scrolling sideways. Vertical: rows one under another, scrolling up and down.
   - read: entry field, name match · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `config/WorkspacesConfig.qml`
@@ -53,11 +53,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Workspaces.stripColumnWidth`** · integer = 50 · 10–100 · %
   - Column width: A new column's share of the monitor.
   - x-group="Strips", x-showIf={"strips":{"notEmpty":true},"/$supports.strips":true}, x-hypr="scrolling.column_width", x-hyprScale=0.01
-  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigManager.qml`
+  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigWriter.qml`
 - **`Workspaces.stripFollowFocus`** · boolean = true
   - Scroll to the focused window
   - x-group="Strips", x-showIf={"strips":{"notEmpty":true},"/$supports.strips":true}, x-hypr="scrolling.follow_focus"
-  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigManager.qml`
+  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigWriter.qml`
 
 ### Reader members
 
@@ -86,11 +86,11 @@ Every public member of `WorkspacesConfig`, with the files that use it.
 - `WorkspacesConfig.boardRows` (int)
   - in: `components/surfaces/workspaces/OverviewGrid.qml`
 - `WorkspacesConfig.strips` (var): Strips (Hyprland's scrolling layout), per monitor: [{ monitor, direction }] with an empty monitor resolved to the primary one, "*" for every monitor a named en…
-  - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/HyprlandConfigManager.qml`
+  - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/HyprlandConfigWriter.qml`
 - `WorkspacesConfig.hasStrips` (bool)
   - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/KeybindManager.qml`
 - `WorkspacesConfig.stripOptions` (var): The strip settings Hyprland takes (HyprLua.stripsLua)
-  - in: `services/HyprlandConfigManager.qml`
+  - in: `services/HyprlandConfigWriter.qml`
 - `WorkspacesConfig.stripDirection(screenName)`: The strip direction of the monitor named `screenName`, "" when it tiles
   - in: `services/CompositorManager.qml`
 - `WorkspacesConfig.baseFor(monitorIndex)`: First id of the monitor at `monitorIndex` (a stable order, see CompositorManager.workspaceBase)

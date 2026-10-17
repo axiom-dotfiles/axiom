@@ -22,15 +22,15 @@ BaseView {
   }
   Component.onDestruction: MonitorManager.pageShown = false
 
-  // Where Hyprland gets the profiles from, per HyprlandConfig.mode
+  // Where the compositor gets the profiles from, per Compositor.mode
   readonly property string modeNote: {
-    switch (HyprlandConfigManager.mode) {
+    switch (CompositorConfig.mode) {
     case "included":
-      return I18n.tr("Saved into axiom's Hyprland module, which your hyprland.lua loads.");
+      return I18n.tr("Saved into axiom's module, which your compositor's config loads.");
     case "managed":
-      return I18n.tr("Saved into the hyprland.lua axiom manages; files in user/ load after it.");
+      return I18n.tr("Saved into the config axiom manages; your own files load after it.");
     }
-    return I18n.tr("Applied by axiom while it runs: your own Hyprland config sets the monitors until then.");
+    return I18n.tr("Applied by axiom while it runs: your compositor's own config sets the monitors until then.");
   }
 
   Item {

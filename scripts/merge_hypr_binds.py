@@ -3,10 +3,11 @@
 
   merge_hypr_binds.py extract <hypr dir> [--only <file name>]
       Prints JSON: { binds, sites, kept, remapped, tracked, errors }
-        binds    axiom binds (Hyprland.binds entries) for every bind that
+        binds    axiom binds (Keybinds.binds entries) for every bind that
                  can move: an axiom action where one does the same (the
                  bind actions cover Hyprland's example config), else the
-                 `lua` action with the dispatcher as written
+                 `raw` action (compositor hyprland) with the dispatcher as
+                 written
         sites    [{ file, line, binds }]: the hl.bind calls those come from
                  (`binds`: the ones each makes), plus the hl.unbind calls on
                  their keys (which would otherwise unbind the moved binds
@@ -99,7 +100,7 @@ def _exec_action(command):
     """An exec_cmd's command as an axiom action, when one does the same."""
     command = command.strip()
     if command == EXIT_COMMAND:
-        return "exitHyprland", ""
+        return "exitSession", ""
     words = command.split()
     if not words:
         return None
@@ -184,9 +185,11 @@ def to_axiom(entry, adopted=False):
     if unknown:
         return None, ("options", ", ".join(unknown))
     mapped = map_dispatcher(entry["dispatcher"], entry.get("args") or [])
-    action, argument = mapped if mapped else ("lua", entry["lua"])
+    action, argument = mapped if mapped else ("raw", entry["lua"])
     key = EXAMPLE_KEYS.get((key_id(entry["key"]), action), entry["key"]) if adopted else entry["key"]
     bind = {"key": key, "action": action, "argument": argument, "call": "toggle"}
+    if action == "raw":
+        bind["compositor"] = "hyprland"
     for flag in FLAGS:
         bind[flag] = opts.get(flag) is True
     description = opts.get("description")

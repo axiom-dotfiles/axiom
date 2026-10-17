@@ -207,18 +207,42 @@ def main():
         if re.search(r"^import Quickshell\.Hyprland\b", text, re.M) and not re.fullmatch(r"services/Hyprland\w*\.qml", path):
             errors.append(f"{path}: imports Quickshell.Hyprland (only the Hyprland* services may; use CompositorManager)")
 
+    # Likewise only the Sway* services read Quickshell.I3, run swaymsg or use
+    # SwayManager directly (docs/dev/compositor/sway-backend.md)
+    for path, text in sources.items():
+        if re.fullmatch(r"services/Sway\w*\.qml", path) or path == "services/CompositorManager.qml":
+            continue
+        code = "\n".join(line.split("//", 1)[0] for line in text.splitlines())
+        if re.search(r"^import Quickshell\.I3\b", text, re.M):
+            errors.append(f"{path}: imports Quickshell.I3 (only the Sway* services may; use CompositorManager)")
+        if re.search(r"\bSwayManager\.|\bSwayIpcManager\.|\"swaymsg\"", code):
+            errors.append(f"{path}: talks to sway directly (only the Sway* services may; use CompositorManager)")
+
     # The rest of the shell reaches the compositor through CompositorManager
     # (docs/dev/compositor/README.md). HyprlandManager is its Hyprland
     # backend; besides the Hyprland* services, only the Hyprland-only
     # features use it directly, each gated on CompositorManager.supports.
     hyprland_features = {
-        "services/CompositorManager.qml", "services/MonitorManager.qml", "services/KeybindManager.qml",
-        "services/GreetdManager.qml", "services/WindowSwitcherManager.qml", "services/OnboardingManager.qml",
+        "services/CompositorManager.qml", "services/GreetdManager.qml", "services/OnboardingManager.qml",
     }
     for path, text in sources.items():
         code = "\n".join(line.split("//", 1)[0] for line in text.splitlines())
         if re.search(r"\bHyprlandManager\.", code) and not re.fullmatch(r"services/Hyprland\w*\.qml", path) and path not in hyprland_features:
             errors.append(f"{path}: uses HyprlandManager (only the Hyprland* services and the Hyprland-only features may; use CompositorManager)")
+
+    # A backend's text and state helpers are its own (Hyprland's Lua,
+    # sway's commands): outside its services and helpers (and the
+    # Hyprland-only features), the rest of the shell goes through
+    # CompositorManager and CompositorConfigManager
+    # (docs/dev/compositor/config-modes.md)
+    for path, text in sources.items():
+        code = "\n".join(line.split("//", 1)[0] for line in re.sub(r"/\*.*?\*/", "", text, flags=re.S).splitlines())
+        if not path.startswith(("services/", "components/", "shell/", "config/")):
+            continue
+        if not re.fullmatch(r"(services|components/methods)/Hypr\w*\.qml", path) and path not in hyprland_features and re.search(r"\b(HyprLua|HyprConfigLua|HyprState)\.", code):
+            errors.append(f"{path}: uses a Hyprland Lua helper (only the Hyprland* services and helpers may; go through CompositorManager / CompositorConfigManager)")
+        if not re.fullmatch(r"(services|components/methods)/Sway\w*\.qml", path) and re.search(r"\b(SwayConf|SwayState)\.", code):
+            errors.append(f"{path}: uses a sway helper (only the Sway* services and helpers may; go through CompositorManager / CompositorConfigManager)")
 
     # Singleton references: FooManager. must be a service, and a near-miss
     # of any project singleton (AudioManger.) is a typo
