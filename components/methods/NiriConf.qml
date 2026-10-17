@@ -461,10 +461,9 @@ QtObject {
 
   // --- Outputs ---
 
-  // niri's config names for Wayland's transforms 0-7
+  // niri's config names for Wayland's transforms 0-7 (its IPC's are
+  // NiriState.transforms)
   readonly property var transforms: ["normal", "90", "180", "270", "flipped", "flipped-90", "flipped-180", "flipped-270"]
-  // ...and its IPC's (NiriState.transforms)
-  readonly property var ipcTransforms: ["Normal", "_90", "_180", "_270", "Flipped", "Flipped90", "Flipped180", "Flipped270"]
 
   // The connector a monitor rule's `output` names (a "desc:Make Model
   // Serial" is looked up in `details`, CompositorManager.withOutputDetails),
@@ -546,7 +545,7 @@ QtObject {
       });
       send({
         "Transform": {
-          "transform": ipcTransforms[rule.transform ?? 0] ?? "Normal"
+          "transform": NiriState.transforms[rule.transform ?? 0] ?? "Normal"
         }
       });
       send({

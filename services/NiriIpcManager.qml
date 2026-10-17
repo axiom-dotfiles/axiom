@@ -183,6 +183,11 @@ QtObject {
         root._reconnect.start();
       }
     }
+    // A connection that never came up changes no state: try it again too
+    onError: error => {
+      if (!stream.connected && root.socketPath !== "")
+        root._reconnect.start();
+    }
   }
 
   property Timer _reconnect: Timer {
