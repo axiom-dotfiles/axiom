@@ -36,6 +36,10 @@ jobs:
       - name: Docs match the code (links, paths, members)
         run: python3 scripts/check_docs.py
 
+      # install.sh and Packages.qml (the onboarder's hints)
+      - name: Package lists agree
+        run: python3 scripts/check_packages.py
+
       - name: JSON is valid
         run: git ls-files -z '*.json' | xargs -0 -n1 python3 -m json.tool --no-ensure-ascii > /dev/null
 

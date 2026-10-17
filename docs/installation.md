@@ -7,8 +7,8 @@
 The whole shell runs on five things. Everything else is optional and only needed for the feature that uses it.
 
 **Required**
-- [Hyprland](https://hypr.land) 0.55 or newer, with its Lua config (`hyprland.lua`)
-- [Quickshell](https://quickshell.org) 0.3.1 or newer (`qs`)
+- A compositor: [Hyprland](https://hypr.land) 0.55 or newer with its Lua config (`hyprland.lua`), the one with every feature; or [sway](https://swaywm.org) 1.12+ (or SwayFX, for blur and rounded corners); or [niri](https://github.com/YaLTeR/niri) 26.04+
+- [Quickshell](https://quickshell.org) 0.3.2 or newer (`qs`)
 - [Material Symbols](https://fonts.google.com/icons) for icons (`ttf-material-symbols-variable`). Any font works for text
 - `jq`, `python3`
 
@@ -17,7 +17,7 @@ The whole shell runs on five things. Everything else is optional and only needed
 
 | Feature | Needs |
 | --- | --- |
-| Wallpaper transitions (optional backend) | `awww` |
+| Wallpaper transitions (optional backend) | `awww` (not packaged for Fedora) |
 | Network widget / module, Wi-Fi menu | NetworkManager, Quickshell built with its Networking module, and `ip` (iproute2) |
 | Updates | Arch: `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates. Fedora: `dnf` (nothing extra). Hidden on other distributions |
 | Tailscale | `tailscale` |
@@ -42,13 +42,22 @@ The whole shell runs on five things. Everything else is optional and only needed
 
 ## Installation
 
-On Arch Linux, or a distribution based on it (CachyOS, EndeavourOS, Manjaro, …), run the installer:
+On Arch Linux, Fedora, or a distribution based on either (CachyOS, EndeavourOS, Manjaro, Nobara, …), run the installer:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash
 ```
 
-Every package it installs comes from the official repositories. It lists the optional features and offers them all at once (recommended), or one at a time, skipping any already installed. It then shows the one `sudo pacman` command it will run, and why, before running it. Then it clones the latest release into `~/.config/quickshell/axiom`. Then it asks before adding the line that starts axiom to the end of your `hyprland.lua`, backing up the file first. Run from a text console (a TTY) outside Hyprland, it last offers to start Hyprland. `--yes` answers yes to every question, and `--minimal` installs only what's required. Running it again is safe. From a clone, run `./install.sh`: that clone is used wherever it is, and if it isn't at `~/.config/quickshell/axiom` (where `qs -c axiom` looks), the installer offers to link it there, or to move it.
+It first prints its plan: the distribution, the compositor and each step. Then:
+
+1. **The compositor.** It uses the one you're running; else the one an earlier run set up; else, with several installed, it asks which one you use. It also offers to start axiom from every other one installed (each asked, default no). With none installed, it asks: Hyprland (the default, with every feature, and what the login screen runs), niri, or sway. It doesn't install SwayFX, which replaces sway in place (the AUR's `swayfx` on Arch, COPR `swayfx/swayfx` on Fedora). `--compositor hyprland|sway|niri|none` picks without asking.
+2. **Packages.** It lists the optional features and offers them all at once (recommended), or one at a time, skipping any already installed. A feature with no package on your distribution is listed as not available there (wallpaper transitions on Fedora). It then shows the one `sudo pacman` or `sudo dnf` command it will run, and why, before running it.
+   - On Arch, every package comes from the official repositories.
+   - On Fedora, quickshell comes from the COPR `errornointernet/quickshell` and Hyprland and its tools (hypridle, hyprsunset, satty) from `nett00n/hyprland`: Fedora's own quickshell is too old, and Hyprland left its repositories. A COPR is a third-party repository on Fedora's build service, so each one is shown and asked separately, and only enabled when something you picked needs it. The icon font isn't packaged there either: it's downloaded into `~/.local/share/fonts`, as you.
+3. **The clone.** It clones the latest release into `~/.config/quickshell/axiom`.
+4. **Autostart.** It asks before adding the line that starts axiom to the end of the compositor's config (`hyprland.lua`, sway's `config`, niri's `config.kdl`), backing up the file first. A config that doesn't exist yet starts as the compositor's own default one, so its starter keybinds are there too.
+
+Run from a text console (a TTY) outside a graphical session, it last offers to start the compositor. `--yes` answers yes to every question, `--minimal` installs only what's required, and `--dry-run` prints every command it would run and changes nothing. Running it again is safe. From a clone, run `./install.sh`: that clone is used wherever it is, and if it isn't at `~/.config/quickshell/axiom` (where `qs -c axiom` looks), the installer offers to link it there, or to move it.
 
 <details>
 <summary><b>By hand</b>, or on another distribution</summary>
@@ -64,6 +73,8 @@ Start it from your Hyprland config (`hyprland.lua`):
 ```lua
 hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)
 ```
+
+On sway, add `exec qs -n -c axiom` to its `config`; on niri, `spawn-sh-at-startup "qs -n -c axiom"` to its `config.kdl`.
 
 </details>
 
@@ -132,6 +143,7 @@ Axiom can be your login screen, as a [greetd](https://sr.ht/~kennylevinsen/greet
   - **Local**: your clone as it is, whatever branch is checked out, uncommitted changes included. Use it to work on axiom. Any program running as you could change that code before your next **Update**, and then your password prompt is the only check, so the settings page warns you while it's on.
 
   Switching between them, or changing which channel axiom updates follow, needs an **Update** to take effect.
+
 - makes `/var/lib/axiom-greeter`. Its `config/` folder is yours: axiom exports the login screen's layout, look, theme, wallpapers and monitor layouts there whenever they change, so changing them needs no password. Only the parts of your config the login screen shows go there, and greetd's user can read them.
 - installs a polkit action, so Update and Remove ask for your password by name ("update or remove axiom's login screen") and run root's copy of the setup script rather than the one in your home folder.
 - backs up `/etc/greetd/config.toml` (`.axiom-original`, plus `.axiom-bak-<date>` for each change), then points only its `default_session` command at axiom's greeter, which runs in a Hyprland of its own.

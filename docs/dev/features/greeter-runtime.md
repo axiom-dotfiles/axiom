@@ -29,6 +29,8 @@ This doc covers what runs at the login screen and the data it reads: the bundle 
 ### Running it (session script)
 - `greeter-session.sh`, greetd's command, starts `start-hyprland` on `scripts/greeter/hyprland.lua` (logo off, numlock on, no animations).
 - That Lua's start hook runs `greeter-session.sh shell`, which runs `AXIOM_GREETER=1 qs -p <copy>/greeter.qml`.
+  - `<copy>` is the install folder, or for a packaged axiom the folder its `.greeter-source` names (`package /usr/share/axiom`).
+  - It exports `AXIOM_GREETER_FALLBACK`, the install folder's `fallback/`, which `ConfigManager` and `Paths.greeterFallbackUrl` read (without it, `fallback/` beside the code).
   - If that fails, it runs once more with `AXIOM_GREETER_SAFE=1`; qs exits non-zero on a broken load.
   - Then `hyprctl dispatch 'hl.dsp.exit()'`.
 - **Fallback:** if qs failed twice, or there is no Hyprland, the session runs `agreety --cmd '${SHELL:-/bin/sh}'`, so a login is always possible.

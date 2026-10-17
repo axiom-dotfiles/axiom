@@ -50,9 +50,13 @@ QtObject {
   // Hyprland and its tools left Fedora's own repositories; this COPR builds
   // them (and quickshell) for every current release
   readonly property string _hyprCopr: "nett00n/hyprland"
+  // Quickshell's own docs point at this one (Fedora's quickshell is too old)
+  readonly property string _quickshellCopr: "errornointernet/quickshell"
 
-  // { key: { distro: package } }, a key being a command, a Python module
-  // as "py:<module>", or "iconFont".
+  // { key: { distro: package } }, a key being a command (a compositor by
+  // its lowercase name), a Python module as "py:<module>", a package
+  // without a command ("xdg-desktop-portal-gtk"), or "iconFont". install.sh
+  // keeps a table of the same keys (scripts/check_packages.py compares them).
   // A package is a name, { name, repo } (from a repository enabled first),
   // { file, to } (a download), or null: nothing to install there (the
   // feature doesn't apply). Every key names every distribution.
@@ -63,6 +67,48 @@ QtObject {
           "file": root.iconFontUrl,
           "to": "~/.local/share/fonts/MaterialSymbolsRounded.ttf"
         }
+      },
+      "git": {
+        "arch": "git",
+        "fedora": "git"
+      },
+      "quickshell": {
+        "arch": "quickshell",
+        "fedora": {
+          "name": "quickshell",
+          "repo": root._quickshellCopr
+        }
+      },
+      "hyprland": {
+        "arch": "hyprland",
+        "fedora": {
+          "name": "hyprland",
+          "repo": root._hyprCopr
+        }
+      },
+      "sway": {
+        "arch": "sway",
+        "fedora": "sway"
+      },
+      "niri": {
+        "arch": "niri",
+        "fedora": "niri"
+      },
+      "awww": {
+        "arch": "awww",
+        "fedora": null
+      },
+      "nmcli": {
+        "arch": "networkmanager",
+        "fedora": "NetworkManager"
+      },
+      "xdg-desktop-portal-gtk": {
+        "arch": "xdg-desktop-portal-gtk",
+        "fedora": "xdg-desktop-portal-gtk"
+      },
+      "py:gi": {
+        "arch": "python-gobject",
+        "fedora": "python3-gobject"
       },
       "qalc": {
         "arch": "libqalculate",

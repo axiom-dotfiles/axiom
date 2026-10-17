@@ -25,6 +25,9 @@ Dependencies point one way, methods → data owners → readers → services →
 ### Known issues
 - [issues.md](issues.md): problems found but not fixed yet. Add one when you find something out of scope; remove it with the fix.
 
+### Installing
+- [packaging.md](packaging.md): install.sh (distributions, compositors, `--dry-run`), what a packaged shell does differently, and `check_packages.py`.
+
 ### Testing
 - [testing.md](testing.md): how to look at, exercise and debug the running shell safely; the testing sections of every doc.
 

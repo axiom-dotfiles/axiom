@@ -28,6 +28,7 @@ step "structure" python3 scripts/check_structure.py
 # hook commits them); CI runs `gen_docs.py --check` to catch a skipped hook
 [[ $docs -eq 1 ]] && step "generated docs" python3 scripts/gen_docs.py
 step "docs" python3 scripts/check_docs.py
+step "package lists" python3 scripts/check_packages.py
 step "qmlformat" scripts/check_qmlformat.sh
 step "qmllint" python3 scripts/check_qmllint.py
 step "unit tests" scripts/run_tests.sh

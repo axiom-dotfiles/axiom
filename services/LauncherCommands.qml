@@ -408,6 +408,8 @@ QtObject {
       name: "update",
       aliases: ["upgrade"],
       glyph: "update",
+      // A package updates with the system
+      available: () => !Paths.packaged,
       description: () => SelfUpdateManager.available ? I18n.tr("Update axiom to {0}", SelfUpdateManager.latest) : I18n.tr("Check for axiom updates"),
       status: () => SelfUpdateManager.busy ? I18n.tr("Checking…") : SelfUpdateManager.available ? I18n.tr("{0} available", SelfUpdateManager.latest) : (SelfUpdateManager.current || SelfUpdateManager.commit),
       run: () => {

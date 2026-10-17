@@ -103,6 +103,14 @@ TestCase {
     compare(Packages.installCommand("fedora", "py:dateutil"), "sudo dnf install python3-dateutil");
   }
 
+  // What install.sh installs: the compositors, and quickshell from its own
+  // COPR on Fedora (beside the Hyprland one, when both are needed)
+  function test_installerKeys() {
+    compare(Packages.installCommand("arch", ["quickshell", "niri", "nmcli", "py:gi"]), "sudo pacman -S --needed quickshell niri networkmanager python-gobject");
+    compare(Packages.installLines("fedora", ["quickshell", "hyprland", "sway"]), ["sudo dnf copr enable -y errornointernet/quickshell", "sudo dnf copr enable -y nett00n/hyprland", "sudo dnf install quickshell hyprland sway"]);
+    compare(Packages.packageFor("fedora", "awww"), null, "not packaged for Fedora");
+  }
+
   function test_unknownDistro() {
     compare(Packages.installLines("", ["qalc"]), []);
     compare(Packages.installCommand("", "qalc"), "");

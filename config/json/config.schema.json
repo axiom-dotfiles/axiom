@@ -102,6 +102,7 @@
         "source": {
           "type": "string",
           "title": "Code from",
+          "x-showIf": { "/$packaged": false },
           "enum": ["git", "local"],
           "x-enumLabels": { "git": "Git (axiom's repository)", "local": "Local (your clone)" },
           "default": "git",
@@ -2108,6 +2109,7 @@
       "type": "object",
       "x-category": "Maintenance",
       "x-card": "SelfUpdateStatus",
+      "x-showIf": { "/$packaged": false },
       "title": "axiom updates",
       "description": "Updates come from the repository axiom was cloned from: its release tags, or its main branch. An update only fast-forwards: a clone with changed files or commits of its own is never touched.",
       "additionalProperties": false,

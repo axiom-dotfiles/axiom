@@ -12,7 +12,7 @@ The owner of the runtime config: how it is loaded, written, drafted and previewe
 - Both are loaded eagerly at creation. The active theme's data belongs to ThemeManager, not here.
 
 ### Where files live
-The repo (`Paths.axiomPath`) is read-only to the shell: a package installs it where it can't write. Everything axiom writes is in the XDG folders, resolved once by `DataDirs.xdg` (each `$XDG_*_HOME` when absolute, else its default) and handed out by `ConfigManager.dataDirs` and `Paths`:
+The repo (`Paths.axiomPath`) is read-only to the shell: a package installs it where it can't write (`/usr/share/axiom`, [packaging.md](../packaging.md)). Everything axiom writes is in the XDG folders, resolved once by `DataDirs.xdg` (each `$XDG_*_HOME` when absolute, else its default) and handed out by `ConfigManager.dataDirs` and `Paths`:
 
 | What | Where | `Paths` |
 |---|---|---|

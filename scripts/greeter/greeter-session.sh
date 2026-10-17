@@ -18,7 +18,17 @@
 #                                           try failed too)
 
 here=$(dirname "$(readlink -f "$0")")
-copy=$(cd "$here/../.." && pwd)
+install=$(cd "$here/../.." && pwd)
+copy=$install
+# A packaged axiom (greeter_install.sh's package source): the code is the
+# package's own, root's like this folder, which holds only these scripts
+# and the fallback snapshot
+if [ -f "$install/.greeter-source" ]; then
+  read -r kind dir <"$install/.greeter-source"
+  [ "$kind" = package ] && [ -f "$dir/greeter.qml" ] && copy=$dir
+fi
+# Where ConfigManager and ThemeManager find that snapshot
+export AXIOM_GREETER_FALLBACK="$install/fallback/"
 # Left by `shell` when the greeter failed twice: in greetd's user's own
 # folders (its runtime dir, else the greeter's state folder), never a
 # shared one another user could plant it in

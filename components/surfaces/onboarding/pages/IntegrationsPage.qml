@@ -40,12 +40,15 @@ OnboardingPage {
     GreeterManager.check();
   }
 
+  // A package updates with the system
   StyledText {
+    visible: !Paths.packaged
     text: I18n.tr("Keeping axiom up to date")
     font.bold: true
   }
 
   SettingRows {
+    visible: !Paths.packaged
     Layout.fillWidth: true
     paths: ["SelfUpdate.mode", "SelfUpdate.channel"]
   }

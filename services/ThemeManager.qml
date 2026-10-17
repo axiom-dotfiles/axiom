@@ -384,7 +384,7 @@ QtObject {
     // The greeter's theme comes from where its config did: the bundle,
     // else the install's snapshot (whose code is this copy's)
     if (Paths.greeter)
-      return ConfigManager.greeterSource === "bundle" ? "file://" + Paths.greeterBundlePath + "theme.json" : Qt.resolvedUrl("../fallback/theme.json");
+      return ConfigManager.greeterSource === "bundle" ? "file://" + Paths.greeterBundlePath + "theme.json" : Paths.greeterFallbackUrl + "theme.json";
     return "file://" + Paths.themeFile(name);
   }
 

@@ -17,6 +17,9 @@ import qs.config
  * checks. Checks run once per qs launch (not per hot reload), daily, and
  * when the channel changes. Each release (or main's commit) is notified once.
  *
+ * A packaged axiom (Paths.packaged) is updated by its
+ * package manager: this never checks, and its settings are hidden.
+ *
  *   qs -c axiom ipc call selfUpdate check
  *   qs -c axiom ipc call selfUpdate update
  *   qs -c axiom ipc call selfUpdate open
@@ -48,10 +51,10 @@ Singleton {
   // ms since the epoch, 0 before the first check
   readonly property real lastChecked: _saved.lastChecked ?? 0
 
-  readonly property bool available: state === "available" && blocked === ""
+  readonly property bool available: state === "available" && blocked === "" && !Paths.packaged
 
   function check() {
-    if (root.busy)
+    if (root.busy || Paths.packaged)
       return;
     _check.command = [Paths.scriptsPath + "self_update.sh", "--channel", SelfUpdate.channel, "check"];
     _check.running = true;
@@ -194,7 +197,7 @@ Singleton {
   Timer {
     interval: 24 * 60 * 60 * 1000
     repeat: true
-    running: SelfUpdate.mode !== "off"
+    running: SelfUpdate.mode !== "off" && !Paths.packaged
     onTriggered: root.check()
   }
 
@@ -241,7 +244,7 @@ Singleton {
   Connections {
     target: SelfUpdate
     function onModeChanged() {
-      if (SelfUpdate.mode !== "off" && !_run.checked)
+      if (SelfUpdate.mode !== "off" && !_run.checked && !Paths.packaged)
         _startup.restart();
     }
     // The last result was for the other channel
@@ -255,7 +258,7 @@ Singleton {
     root._saved = root._state.load({});
     root._result = root._saved.result ?? {};
     NotificationManager.registerHandler(root._desktopEntry, () => root.openSettings());
-    if (SelfUpdate.mode !== "off" && !_run.checked)
+    if (SelfUpdate.mode !== "off" && !_run.checked && !Paths.packaged)
       _startup.start();
   }
 }

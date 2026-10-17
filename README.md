@@ -10,7 +10,7 @@ Bars, menus, a launcher, notifications, settings, theming, desktop widgets, the 
 <a href="https://github.com/axiom-dotfiles/axiom/tags"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=b15c00&labelColor=e1e2e7"><img alt="Version" src="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=ff9e64&labelColor=1a1b26"></picture></a>
 <a href="https://github.com/axiom-dotfiles/axiom/commits/main"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/last-commit/axiom-dotfiles/axiom?style=for-the-badge&color=587539&labelColor=e1e2e7"><img alt="Latest Commit" src="https://img.shields.io/github/last-commit/axiom-dotfiles/axiom?style=for-the-badge&color=9ece6a&labelColor=1a1b26"></picture></a>
 <a href="https://hypr.land"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/Hyprland-0.55%2B-2e7de9?style=for-the-badge&labelColor=e1e2e7"><img alt="Hyprland" src="https://img.shields.io/badge/Hyprland-0.55%2B-7aa2f7?style=for-the-badge&labelColor=1a1b26"></picture></a>
-<a href="https://quickshell.org"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/Quickshell-0.3.1%2B-9854f1?style=for-the-badge&labelColor=e1e2e7"><img alt="Quickshell" src="https://img.shields.io/badge/Quickshell-0.3.1%2B-bb9af7?style=for-the-badge&labelColor=1a1b26"></picture></a>
+<a href="https://quickshell.org"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/Quickshell-0.3.2%2B-9854f1?style=for-the-badge&labelColor=e1e2e7"><img alt="Quickshell" src="https://img.shields.io/badge/Quickshell-0.3.2%2B-bb9af7?style=for-the-badge&labelColor=1a1b26"></picture></a>
 <a href="LICENSE"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/License-MIT-118c74?style=for-the-badge&labelColor=e1e2e7"><img alt="License" src="https://img.shields.io/badge/License-MIT-73daca?style=for-the-badge&labelColor=1a1b26"></picture></a>
 
 [Why axiom](#why-axiom) · [Highlights](#highlights) · [Example setups](#example-setups) · [What's included](#whats-included) · [Install](#installation) · [Docs](#documentation)
@@ -143,18 +143,18 @@ One repository and one config for the whole desktop:
 
 ## Installation
 
-On Arch Linux, or a distribution based on it (CachyOS, EndeavourOS, Manjaro, …), run the installer:
+On Arch Linux, Fedora, or a distribution based on either (CachyOS, EndeavourOS, Manjaro, Nobara, …), run the installer:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash
 ```
 
-Every package comes from the official repositories. Before running anything, the installer shows the one `sudo pacman` command it will run and why. It asks before adding the line that starts axiom to your `hyprland.lua`, and backs that file up first. On first start, a short setup walks you through the look, monitors, workspaces, apps and integrations.
+It uses the compositor you run or have installed (Hyprland, sway or niri), or asks which one to install, with Hyprland as the default. Before running anything as root, it shows each command and why: one `sudo pacman` or `sudo dnf`, and on Fedora each COPR it needs (quickshell and Hyprland aren't in Fedora's own repositories). It asks before adding the line that starts axiom to your compositor's config, and backs that file up first. `--dry-run` prints what it would do and changes nothing. On first start, a short setup walks you through the look, monitors, workspaces, apps and integrations.
 
 <details>
 <summary><b>By hand</b>: on another distribution, or if you'd rather not pipe to bash</summary>
 
-Install the requirements: [Hyprland](https://hypr.land) 0.55+ with its Lua config, [Quickshell](https://quickshell.org) 0.3.1+, the [Material Symbols](https://fonts.google.com/icons) font, `git`, `jq` and `python3`. Optional features have their own dependencies, listed in [the installation guide](docs/installation.md#requirements).
+Install the requirements: [Hyprland](https://hypr.land) 0.55+ with its Lua config, [Quickshell](https://quickshell.org) 0.3.2+, the [Material Symbols](https://fonts.google.com/icons) font, `git`, `jq` and `python3`. Optional features have their own dependencies, listed in [the installation guide](docs/installation.md#requirements).
 
 Then clone into Quickshell's config directory:
 
@@ -219,7 +219,11 @@ And thanks to the Hyprland desktops that inspired it: [illogical-impulse](https:
 
 ## Use of AI
 
-axiom is developed with AI assistance. I design the architecture and every system, and AI-written code is reviewed before it lands, held to the same rules as every other contribution, and checked in CI by the same lint, structure and unit tests as everything else. Those rules are kept in the open in [AGENTS.md](AGENTS.md).
+Axiom is developed with AI assistance. I design the architecture and systems, and AI-written code is reviewed before it lands, held to the same standards as every other contribution, and checked by CI using the same linting, structural checks, and unit tests.
+
+The repository contains extensive shared engineering instructions, subsystem documentation, development safeguards, and automated checks and tests. These rules are documented openly in AGENTS.md.
+
+AI assistance is part of my development workflow, not a substitute for architectural decisions, verification, or responsibility for the project.
 
 ## License
 

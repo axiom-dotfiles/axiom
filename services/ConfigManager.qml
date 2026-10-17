@@ -441,8 +441,9 @@ QtObject {
 
   // The greeter's config: the bundle (unless AXIOM_GREETER_SAFE, the
   // session script's second try after the greeter failed), else the
-  // snapshot its install took (fallback/ in the installed copy, written
-  // by this same code, so it always loads), else the schema's defaults.
+  // snapshot its install took (fallback/ in the install folder, written
+  // by this same code, or for a packaged axiom by the version before an
+  // update, whose unknown keys are dropped), else the schema's defaults.
   // A bundle from a newer axiom than this copy is still tried: unknown
   // keys are dropped, and only what breaks validation falls through.
   function _greeterConfig(schema) {
@@ -453,9 +454,12 @@ QtObject {
         "source": "bundle",
         "text": FileManager.read("file://" + bundleDir + "greeter.json")
       });
+    // The session script says where (a packaged axiom's install folder
+    // isn't its code's), else beside this code
+    const fallbackDir = Quickshell.env("AXIOM_GREETER_FALLBACK");
     candidates.push({
       "source": "fallback",
-      "text": _getFileContent("../fallback/greeter.json")
+      "text": fallbackDir ? FileManager.read("file://" + fallbackDir + "greeter.json") : _getFileContent("../fallback/greeter.json")
     });
     const picked = GreeterBundle.pick(candidates, raw => {
       const prepared = _prepareConfig(raw, schema);

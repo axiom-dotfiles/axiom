@@ -17,6 +17,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `GreeterConfig.enabled` · in: `services/GreeterManager.qml`, `services/OverlayManager.qml`
 - **`Greeter.source`** · string = "git" · enum git|local
   - Code from: Where Install and Update take the login screen's code. Git fetches it as root from the repository axiom was installed from, following releases or main as axiom's updates do: nothing that can write to your clone can change it. Local copies your clone as it is (the checked-out branch, uncommitted changes included), for working on axiom: any program running as you could change what the login screen runs before you next update it.
+  - x-showIf={"/$packaged":false}
   - read: `GreeterConfig.source` · in: `components/forms/GreeterSetup.qml`, `services/GreeterManager.qml`
 - **`Greeter.monitor`** · string = ""
   - Login monitor: The monitor the login box shows on. The others show the layout without it, or only the background.

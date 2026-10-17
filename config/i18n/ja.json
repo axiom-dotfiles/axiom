@@ -3083,6 +3083,8 @@
     "Calendars need the Python package {0}. Install it with: {1}": "カレンダーには Python パッケージ {0} が必要です。次のコマンドでインストールしてください: {1}",
     "Calendars need the Python package {0}.": "カレンダーには Python パッケージ {0} が必要です。",
     "Theme generation from the wallpaper": "壁紙からのテーマ生成",
-    "Calendar accounts and feeds": "カレンダーのアカウントとフィード"
+    "Calendar accounts and feeds": "カレンダーのアカウントとフィード",
+    "axiom's package was updated since its login screen was set up. It runs the new code already; Update refreshes its start-up files and fallback look, asking for your password.": "ログイン画面を設定した後に axiom のパッケージが更新されました。新しいコードはすでに動いています。「更新」で起動用ファイルと予備の見た目を新しくします（パスワードを求めます）。",
+    "The login screen runs the copy of axiom your package manager installed, so it updates with the system. Only root can change it.": "ログイン画面はパッケージマネージャーがインストールした axiom を実行するため、システムと一緒に更新されます。変更できるのは root だけです。"
   }
 }

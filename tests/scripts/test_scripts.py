@@ -1783,6 +1783,45 @@ class GreeterInstall(unittest.TestCase):
         self.git("remote", "set-url", "origin", "ssh://git@example.org/me/axiom.git")
         self.assertEqual(self.run_script("check")["url"], "https://example.org/me/axiom.git")
 
+    def package(self, version="1.2.0-1"):
+        """A packaged axiom at /usr/share/axiom, with the marker a package writes."""
+        package = self.root / "usr/share/axiom"
+        for name in ["greeter.qml", "shell.qml", "scripts/greeter/greeter-session.sh", "scripts/greeter/hyprland.lua"]:
+            (package / name).parent.mkdir(parents=True, exist_ok=True)
+            (package / name).write_text(name)
+        for name in ["greeter_install.sh", "org.axiom.greeter.policy"]:
+            shutil.copy(self.repo / "scripts/greeter" / name, package / "scripts/greeter" / name)
+        (package / ".packaged").write_text(version + "\n")
+        return package
+
+    def test_package_source(self):
+        """A packaged axiom: the greeter runs the package's code, so the
+        install folder gets only scripts/greeter/ and the snapshot, and the
+        package's version is its hash; the clone isn't read."""
+        report = self.run_script("install", ok=False, source="package")
+        self.assertIn(".packaged is missing", report["error"])
+        package = self.package()
+        bundle = self.root / "var/lib/axiom-greeter/config"
+        bundle.mkdir(parents=True)
+        (bundle / "greeter.json").write_text("{}")
+        self.assertTrue(self.run_script("install", source="package")["ok"])
+        copy = self.root / "usr/share/axiom-greeter"
+        self.assertEqual(sorted(p.name for p in copy.iterdir()),
+                         [".greeter-hash", ".greeter-source", "fallback", "scripts"])
+        self.assertTrue((copy / "scripts/greeter/greeter_install.sh").is_file())
+        self.assertEqual(self.copied(".greeter-source"), "package /usr/share/axiom\n")
+        self.assertEqual(self.copied("fallback/greeter.json"), "{}")
+        self.assertTrue(self.policy.is_file())
+        self.assertEqual(self.command(), self.SESSION)
+        report = self.run_script("check", source="package")
+        self.assertEqual((report["installedSource"], report["installedHash"], report["currentHash"], report["url"]),
+                         ("package", "1.2.0-1", "1.2.0-1", ""))
+        # The package manager updated it: behind until Update
+        (package / ".packaged").write_text("1.3.0-1\n")
+        self.assertEqual(self.run_script("check", source="package")["currentHash"], "1.3.0-1")
+        self.assertTrue(self.run_script("update", source="package")["ok"])
+        self.assertEqual(self.copied(".greeter-hash"), "1.3.0-1\n")
+
     def test_install_copies_points_greetd_and_backs_up(self):
         bundle = self.root / "var/lib/axiom-greeter/config"
         bundle.mkdir(parents=True)
