@@ -19,18 +19,19 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`relativeNumbers`** · boolean = false
   - Relative numbers: Number each monitor's workspaces from 1 (11 to 20 on the second monitor show as 1 to 10) instead of by their workspace id, on the bar and in the grid popout.
-  - x-showIf={"/Workspaces.layout":["perMonitor","grid"],"labels":"numbers"}
+  - x-showIf={"labels":"numbers","anyOf":[{"/Workspaces.layout":["perMonitor","gri…
   - in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`
 - **`showAppIcons`** · boolean = false
   - App icons: Show the largest window's icon on occupied workspaces (in a grid, on the bar and in the popout).
+  - x-showIf={"/$supports.dynamicWorkspaces":false}
   - in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`wideActive`** · boolean = true
   - Wide active: Make the active workspace twice as long.
-  - x-showIf={"/Workspaces.layout":["standard","grid"]}
+  - x-showIf={"anyOf":[{"/Workspaces.layout":["standard","grid"]},{"/$supports.dyn…
   - in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`
 - **`showActiveIcon`** · boolean = true
   - Active icon: Show an arrow on the active workspace, pointing to where the shown row (or column) is in the grid.
-  - x-showIf={"/Workspaces.layout":"grid"}
+  - x-showIf={"/Workspaces.layout":"grid","/$supports.dynamicWorkspaces":false}
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`
 - **`showPopout`** · boolean = true
   - Popout: In a grid, open the whole grid when hovered. Otherwise, on a strip monitor, open every workspace with its windows in strip order.

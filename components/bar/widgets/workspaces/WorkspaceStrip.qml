@@ -31,7 +31,7 @@ Item {
   readonly property real cell: barConfig.widgetSize - inset * 2
   readonly property real cellRadius: Math.max(0, barConfig.radius - inset)
   // Along the bar: square, or narrower for dots straight on the bar
-  readonly property real cellLength: barConfig.widgetBoxed || properties.labels !== "dots" || properties.showAppIcons ? cell : Math.round(cell * 0.6)
+  readonly property real cellLength: barConfig.widgetBoxed || properties.labels !== "dots" || properties.showAppIcons || CompositorManager.dynamicWorkspaces ? cell : Math.round(cell * 0.6)
 
   readonly property color activeColor: Theme.resolveColor(properties.activeColor)
   readonly property color occupiedColor: Theme.resolveColor(properties.occupiedColor)

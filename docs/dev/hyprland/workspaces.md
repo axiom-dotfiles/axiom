@@ -17,7 +17,7 @@ One workspace layout serves everything that shows workspaces or moves between th
 - `grid`: each monitor gets a block of `columns × rows` ids.
 - Blocks are numbered in a stable monitor order (`WorkspaceGeometry.orderMonitors`: the primary first, then by output identity). `WorkspaceGeometry.blockBases` gives each output's first id.
 - Where the compositor's workspaces belong to an output (`supports.outputWorkspaces`, niri), every layout gets blocks, `standard` too (`CompositorManager.perMonitorBlocks`), and nothing is remapped.
-- **Dynamic workspaces** (`supports.dynamicWorkspaces`, niri): the compositor makes and removes them itself, one column per output, so no layout applies. The section's fields are greyed out under its `x-intro` (`WorkspacesStatus`), except `wrap`. Blocks are the backend's `blockSize` long (`CompositorManager.blockSize`), `workspaceIds` are the ones it has, `workspaceGrid` is false whatever the layout says, and the overview is one column.
+- **Dynamic workspaces** (`supports.dynamicWorkspaces`, niri): the compositor makes and removes them itself, one column per output, so no layout applies. The section's fields are greyed out under its `x-intro` (`WorkspacesStatus`), except `wrap`. Blocks are the backend's `blockSize` long (`CompositorManager.blockSize`), `workspaceIds` are the ones it has, `workspaceGrid` is false whatever the layout says (so the Workspaces widget's `showActiveIcon` is hidden), the widget always shows app icons (`showAppIcons` is hidden; `WorkspaceCellRow.appIcons`), `wideActive` and `relativeNumbers` show whatever the layout, and the overview is one column.
 - Nothing else holds a workspace count or grid size.
 
 ### Ids

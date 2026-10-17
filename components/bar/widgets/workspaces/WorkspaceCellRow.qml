@@ -37,6 +37,10 @@ Item {
 
   readonly property bool isVertical: barConfig.vertical
   readonly property real spacing: barConfig.widgetSpacing
+  // App icons on occupied cells: always where the compositor makes the
+  // workspaces (niri's show only the occupied ones, so a bare number says
+  // little)
+  readonly property bool appIcons: properties.showAppIcons || CompositorManager.dynamicWorkspaces
   // The workspace whose cell is hovered, which its box (drawn apart from
   // it) shows
   property int hoveredId: -1
@@ -123,7 +127,7 @@ Item {
         required property int index
         readonly property int wsId: root.ids[index] ?? 0
         readonly property string _glyph: root.glyphOf(wsId, isActive)
-        readonly property var biggestWindow: root.properties.showAppIcons && _glyph === "" && root._occupied(wsId) ? CompositorManager.biggestWindowForWorkspace(wsId) : null
+        readonly property var biggestWindow: root.appIcons && _glyph === "" && root._occupied(wsId) ? CompositorManager.biggestWindowForWorkspace(wsId) : null
 
         part: "content"
         hitArea: root.hitArea
