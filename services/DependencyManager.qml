@@ -59,8 +59,8 @@ Singleton {
     return Packages.installCommand(root.distro, key);
   }
 
-  // The programs features use, for the onboarder's checks. `hyprland`
-  // limits one to Hyprland (true) or to anywhere else (false); one with
+  // The programs features use, for the onboarder's checks. `compositors`
+  // limits one to those compositors (CompositorManager.kind); one with
   // nothing to install on this distribution (Packages) is left out.
   // I18n.tr("Calculator in the launcher") I18n.tr("Brightness of a laptop screen")
   // I18n.tr("Brightness of external monitors") I18n.tr("Copying to the clipboard")
@@ -69,6 +69,7 @@ Singleton {
   // I18n.tr("Theme generation, theme integrations and keybinds")
   // I18n.tr("Notifications from axiom itself, with their buttons")
   // I18n.tr("Idle locking and screen blanking") I18n.tr("Night light")
+  // I18n.tr("X11 apps (Steam, games, older apps)")
   // I18n.tr("Clipboard history shared with other apps")
   // I18n.tr("Typing emoji from the launcher") I18n.tr("Screen recording")
   // I18n.tr("The system's sound in screen recordings")
@@ -135,12 +136,22 @@ Singleton {
     {
       "command": "hyprsunset",
       "purpose": "Night light",
-      "hyprland": true
+      "compositors": ["hyprland"]
     },
     {
       "command": "wlsunset",
       "purpose": "Night light",
-      "hyprland": false
+      "compositors": ["sway", "niri"]
+    },
+    {
+      "command": "xwayland-satellite",
+      "purpose": "X11 apps (Steam, games, older apps)",
+      "compositors": ["niri"]
+    },
+    {
+      "command": "Xwayland",
+      "purpose": "X11 apps (Steam, games, older apps)",
+      "compositors": ["sway"]
     },
     {
       "command": "cliphist",
@@ -166,7 +177,7 @@ Singleton {
       "command": "powerprofilesctl",
       "purpose": "Power profiles in the quick actions"
     }
-  ].filter(tool => Packages.applies(root.distro, tool.command) && (tool.hyprland === undefined || tool.hyprland === (CompositorManager.kind === "hyprland")))
+  ].filter(tool => Packages.applies(root.distro, tool.command) && (tool.compositors === undefined || tool.compositors.includes(CompositorManager.kind)))
 
   // { command: bool } for every command checked so far
   property var found: ({})

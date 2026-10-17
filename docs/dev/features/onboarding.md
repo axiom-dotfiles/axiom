@@ -62,7 +62,7 @@ The first-run onboarder: a paged window that sets up the look, the compositor's 
 
 ### Package hints
 - `DependencyManager.distro` is `Packages.distroFamily` of `/etc/os-release`: `arch`, `fedora`, or `""` (unknown).
-- `Packages.packages` names each command's package per distribution: a name, `{ name, repo }` (Fedora's Hyprland tools come from the `nett00n/hyprland` COPR), `{ file, to }` (the icon font on Fedora, downloaded), or `null` (nothing to install there; that `DependencyManager.tools` row is hidden, e.g. `checkupdates` off Arch).
+- `Packages.packages` names each command's package per distribution: a name, `{ name, repo }` (Fedora's Hyprland tools come from the `nett00n/hyprland` COPR), `{ file, to }` (the icon font on Fedora, downloaded), or `null` (nothing to install there; that `DependencyManager.tools` row is hidden, e.g. `checkupdates` off Arch). A row with `compositors` shows only under those (`CompositorManager.kind`): night light's tool, and the X11 helper niri and sway need (`xwayland-satellite`, `Xwayland`).
 - `DependencyManager.installLines(keys)` / `installCommand(key)` give the shell lines: COPRs to enable, one install, then downloads. On an unknown distribution they're empty and the Checks page lists names only.
 - The same commands serve Settings' hints (Idle, Night light, Login screen) and the missing icon font notification. A distribution without names gets the text only, no command.
 - `Packages.distros.<family>.updates` is how the Updates widget checks and upgrades there (`UpdatesManager.backend`); `"/$distro": "arch"` in an `x-showIf` hides the AUR options elsewhere.

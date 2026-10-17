@@ -17,6 +17,9 @@
 - IPC: `qs ipc --pid <pid> call …`.
 - Closing the window, or killing that `sway`, ends both.
 
+### X11 apps
+- They need Xwayland, which Arch's sway only lists as optional (`xorg-xwayland`): it's a dependency of its own (`DependencyManager.tools`, install.sh's sway feature). `Sway.xwayland` says when sway starts it.
+
 ### SwayFX
 - `SwayManager.fx`: SwayFX's `get_version` reply adds `sway_original_version` (its `variant` still says "sway"). Read at start, kept in the `PersistentProperties` across reloads of the shell; `ready` until then false; a sway that doesn't answer is asked again after 2 s, doubling up to a minute. `displayName` is "SwayFX", and greyed-out settings on plain sway say "SwayFX can." (`unsupportedHint`).
 

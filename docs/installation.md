@@ -34,6 +34,7 @@ The whole shell runs on five things. Everything else is optional and only needed
 | Browse buttons for folders, importing a shared config | xdg-desktop-portal with a file chooser backend (`xdg-desktop-portal-gtk` or KDE's) and `python-gobject`; or `zenity` or `kdialog`. Without them, type the path |
 | Polkit prompt | Nothing: axiom is the agent itself, and stops another one (hyprpolkitagent, KDE's, GNOME's) while it's on |
 | Night light | `wlsunset`, or `hyprsunset` on Hyprland |
+| X11 apps (Steam, games, older apps) | On niri, `xwayland-satellite` (niri runs X11 apps only through it); on sway, Xwayland (`xorg-xwayland` on Arch, `xorg-x11-server-Xwayland` on Fedora). Hyprland's package brings Xwayland itself |
 | Clipboard history | `wl-clipboard`; `cliphist` to share the history with other apps |
 | Notes | `gio` (glib2) to move deleted notes to the trash |
 | Theme integrations | The app itself (`kitty`, `alacritty`, `foot`, `wezterm`, `ghostty`, `nvim`, `helix`/`hx`, VS Code or VSCodium, Zed (`zed`/`zeditor`), Firefox or a fork (LibreWolf, Zen, Floorp, Waterfox), Vesktop or Vencord, `zathura`, `ncspot`, `k9s`, `cava`, `btop`, `fzf` 0.49+, `lazygit`, `bat`, `yazi` 25.5+); `qt5ct`/`qt6ct` for Qt; `adw-gtk-theme` for GTK3 apps |

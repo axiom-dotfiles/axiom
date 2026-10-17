@@ -184,6 +184,14 @@ QtObject {
         "arch": "wlsunset",
         "fedora": "wlsunset"
       },
+      "xwayland-satellite": {
+        "arch": "xwayland-satellite",
+        "fedora": "xwayland-satellite"
+      },
+      "Xwayland": {
+        "arch": "xorg-xwayland",
+        "fedora": "xorg-x11-server-Xwayland"
+      },
       "cliphist": {
         "arch": "cliphist",
         "fedora": "cliphist"

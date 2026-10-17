@@ -3085,6 +3085,7 @@
     "Spread evenly round the bar, or its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.": "バー（またはそのピル）の周りに均等に広がります。透明なバーには影を落とすものがありません。画面の枠に接するソリッドなバーは枠に任せ、枠はバースタイルの影を落とします。",
     "{0} can't bind a modifier on its own": "{0} は修飾キー単体をバインドできません",
     "Fires when tapped on its own": "単独でタップしたときに実行されます",
-    "Modifiers and key, joined by +: \"SUPER + SHIFT + space\". A modifier key alone (\"Super_L\") fires when tapped, on compositors that can bind one.": "修飾キーとキーを + でつなぎます: \"SUPER + SHIFT + space\"。修飾キー単体（\"Super_L\"）は、対応するコンポジターではタップしたときに実行されます。"
+    "Modifiers and key, joined by +: \"SUPER + SHIFT + space\". A modifier key alone (\"Super_L\") fires when tapped, on compositors that can bind one.": "修飾キーとキーを + でつなぎます: \"SUPER + SHIFT + space\"。修飾キー単体（\"Super_L\"）は、対応するコンポジターではタップしたときに実行されます。",
+    "X11 apps (Steam, games, older apps)": "X11アプリ (Steam、ゲーム、古いアプリ)"
   }
 }

@@ -96,6 +96,12 @@ TestCase {
     compare(Packages.installLines("fedora", ["checkupdates"]), [], "nothing to install");
   }
 
+  // niri and sway run X11 apps only with these (Hyprland's package pulls Xwayland in)
+  function test_x11Helpers() {
+    compare(Packages.installLines("arch", ["xwayland-satellite", "Xwayland"]), ["sudo pacman -S --needed xwayland-satellite xorg-xwayland"]);
+    compare(Packages.installLines("fedora", ["xwayland-satellite", "Xwayland"]), ["sudo dnf install xwayland-satellite xorg-x11-server-Xwayland"]);
+  }
+
   // Python modules ("py:<module>") from each distribution's own repositories
   function test_pythonModules() {
     compare(Packages.installCommand("arch", ["py:numpy", "py:PIL", "py:icalendar"]), "sudo pacman -S --needed python-numpy python-pillow python-icalendar");
