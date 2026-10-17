@@ -59,7 +59,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `focusGrab` | the native grab in `FocusGrab` |
 | `layerOrder` | the compositor stacks and arranges axiom's layers by `LayerStack.layers` itself (layer rules). Without it `LayerManager` maps them in that order and maps again any that land out of place ([layer arrangement](layer-arrangement.md)) |
 | `blur` | the compositor blurs axiom's translucent surfaces |
-| `blurThreshold` | the blur leaves pixels under `Appearance.blurThreshold` out (Hyprland's `ignore_alpha`), so shadows under it aren't blurred. Without it (SwayFX), the chrome casts no shadow while its surfaces blur (`Appearance.shadowAlphaMax` 0) |
+| `blurThreshold` | the blur leaves pixels under `Appearance.blurThreshold` out (Hyprland's `ignore_alpha`), so the blur window casts the chrome's shadows itself, under it (`Appearance.shadowAlphaMax`). Without it (SwayFX, whose `blur_ignore_transparent` leaves out only clear pixels) windows of their own that aren't blurred cast them (`axiom-shadows`, `axiom-shadows-overlay`; `shell/BlurBacking.qml`) |
 | `cursorPos`, `cursorWarp` | `withCursorPos`, `warpCursorToLayer` |
 | `windowGeometry` | window positions and sizes are real: without it the screenshot's window mode is left out (`ScreenshotManager.kinds`; a `window` request takes a region) and no window obscures a dock (`DockManager.obscured`). The overview still draws windows where they say they are |
 | `workspaceSlide` | `travel` legs slide |

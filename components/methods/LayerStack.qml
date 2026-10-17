@@ -33,6 +33,11 @@ QtObject {
       "why": "The blur window (BlurManager, shell/BlurBacking), drawing the chrome's fills under it. Held (a pixel while nothing blurs) where layers stack by map order."
     },
     {
+      "namespace": "shadows",
+      "order": 8,
+      "why": "The chrome's shadows, apart from the blur window where its blur has no alpha threshold (SwayFX, no supports.blurThreshold), so they aren't blurred: over the fills (they never meet) and under the chrome. Held as the blur window is."
+    },
+    {
       "namespace": "edge-menu",
       "order": 7,
       "why": "An integrated edge menu: arranged before the bars and border, so it sits at the screen edge and pushes them and the windows inwards."
@@ -110,6 +115,12 @@ QtObject {
       "order": -9,
       "noAnim": true,
       "why": "The blur window over the overlay (shell/BlurBacking, while the overlay is open on its screen), drawing the fills of the Overlay-layer surfaces above it: after the overlay, before them. Mapped at once, so the fills it draws under content already showing don't fade in."
+    },
+    {
+      "namespace": "shadows-overlay",
+      "order": -9,
+      "noAnim": true,
+      "why": "The shadows of the Overlay-layer surfaces over the overlay, apart from their blur window as `shadows` is: beside it (they never meet), before those surfaces."
     },
     {
       "namespace": "osd",

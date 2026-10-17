@@ -653,5 +653,24 @@ bindsym $mod+space exec $ipc appLauncher toggle`;
         "offset": 0
       }
     }, null).some(line => line.startsWith("shadow_color")));
+    // Matching axiom's (soft): fitted to its glow, the strength on top
+    const soft = (size, baseAlpha, strength) => SwayConf.fxLines({
+        "shadow": {
+          "size": size,
+          "power": 3,
+          "color": "ffffff00",
+          "rgb": "ffffff",
+          "baseAlpha": baseAlpha,
+          "strength": strength,
+          "offset": 0,
+          "soft": true
+        }
+      }, null);
+    const glow = soft(64, 1, 1);
+    verify(glow.includes("shadow_blur_radius 45"), "the radius 0.7 × axiom's size");
+    verify(glow.includes("shadow_color #ffffffd4") && glow.includes("shadow_inactive_color #ffffffd4"), "the alpha 0.2 ln(64) × axiom's");
+    verify(soft(20, 1, 1).includes("shadow_color #ffffff99"), "softer at a smaller size");
+    verify(soft(64, 1, 0.5).includes("shadow_color #ffffff6a"), "the strength scales it");
+    verify(soft(64, 1, 4).includes("shadow_color #ffffffff"), "capped at opaque");
   }
 }

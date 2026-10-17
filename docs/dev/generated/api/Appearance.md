@@ -42,7 +42,6 @@ Reader for the Appearance section. Values are always present: schema defaults ar
 - `blurPauseFullscreen` (readonly bool): Nothing blurs while a fullscreen window is open (BlurManager.active)
 - `blurThreshold` (readonly real)
 - `shadowAlphaMax` (readonly real): A shadow's darkest alpha while blurring: under the threshold, so its halo isn't blurred (the blur window casts the chrome's, and Hyprland blurs the chrome's popups).
-- `compositorBlurThreshold` (bool): Whether the compositor leaves pixels under blurThreshold unblurred (CompositorManager.supports.blurThreshold), handed over as compositorBlurs is
 - `animations` (readonly bool): --- Motion --- Every animation in the shell uses one of these durations, so the single speed setting (and the on/off switch) applies uniformly.
 - `animFast` (readonly int)
 - `animNormal` (readonly int)

@@ -34,6 +34,19 @@ TestCase {
     verify(LayerStack.layers.find(l => l.namespace === "blur-backing-overlay").noAnim);
   }
 
+  // The shadows apart from the blur (no blurThreshold): where each blur
+  // window sits, under the chrome it shades, and never blurred
+  function test_shadows_apart_order() {
+    verify(order("blur-backing") > order("shadows"));
+    for (const ns of ["edge-menu", "popout-under", "bar", "border", "dock"])
+      verify(order("shadows") > order(ns), "under " + ns);
+    verify(order("overlay") > order("shadows-overlay"));
+    for (const ns of ["osd", "dock-preview", "edge-popout", "popout"])
+      verify(order("shadows-overlay") > order(ns), "under " + ns);
+    for (const ns of ["shadows", "shadows-overlay"])
+      verify(![].concat(LayerStack.blurSurfaces, LayerStack.blurBackdrops, LayerStack.blurOverOverlay).includes(ns), ns + " not blurred");
+  }
+
   function test_orderOf() {
     compare(LayerStack.orderOf("axiom-bar"), 5);
     compare(LayerStack.orderOf("dock"), -7);

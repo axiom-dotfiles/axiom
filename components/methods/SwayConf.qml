@@ -332,12 +332,30 @@ QtObject {
    *   blur     blur_radius (≤ 10), blur_passes, blur_xray, blur_noise,
    *            blur_contrast
    *   shadow   shadow_blur_radius, shadow_offset, shadow_color (and
-   *            inactive)
+   *            inactive); one matching axiom's as softShadow fits it
    *   dim      default_dim_inactive
    * and per axiom layer (LayerStack.blurSurfaces, blurBackdrops,
    * blurOverOverlay) its layer_effects, on or off, its transparent pixels
    * left out.
    */
+  /**
+   * SwayFX's shadow standing in for axiom's own (a soft one: MultiEffect's
+   * blur; CompositorLayer.look's shadow, its baseAlpha axiom's and its
+   * strength the user's) as { radius, alpha }. SwayFX's is a gaussian of
+   * sigma radius / 2, reaching about twice as far as axiom's at the same
+   * size. Fitted against axiom's glow (MultiEffect, sizes 8–64, scenefx
+   * 0.5's box_shadow.frag; within ~0.02 rms): the radius 0.7 × axiom's
+   * size, the alpha axiom's × 0.2 ln(size), more as it grows.
+   */
+  function softShadow(shadow) {
+    const size = Math.max(2, shadow.size);
+    return {
+      "radius": Math.round(size * 0.7),
+      // Strength scales what's fitted, which then has room to grow
+      "alpha": Math.min(1, shadow.baseAlpha * Math.min(1, 0.2 * Math.log(size)) * (shadow.strength ?? 1))
+    };
+  }
+
   function fxLines(look, surfaces) {
     const lines = [];
     const clamp = (value, low, high) => Math.max(low, Math.min(high, Math.round(Number(value) || 0)));
@@ -349,9 +367,11 @@ QtObject {
       lines.push(`blur_radius ${clamp(b.size, 0, 10)}`, `blur_passes ${clamp(b.passes, 0, 10)}`, `blur_xray ${toggle(b.xray)}`, `blur_noise ${Math.round(b.noise) / 1000}`, `blur_contrast ${Math.round(b.contrast) / 100}`);
     }
     if (look?.shadow) {
-      lines.push(`shadow_blur_radius ${clamp(look.shadow.size, 0, 100)}`, `shadow_offset 0 ${clamp(look.shadow.offset, -99, 99)}`);
-      if (look.shadow.color !== "")
-        lines.push(`shadow_color #${look.shadow.color}`, `shadow_inactive_color #${look.shadow.color}`);
+      const soft = look.shadow.soft && look.shadow.rgb ? softShadow(look.shadow) : null;
+      const color = soft ? look.shadow.rgb + CompositorLayer.alphaHex(soft.alpha) : look.shadow.color;
+      lines.push(`shadow_blur_radius ${clamp(soft ? soft.radius : look.shadow.size, 0, 100)}`, `shadow_offset 0 ${clamp(look.shadow.offset, -99, 99)}`);
+      if (color !== "")
+        lines.push(`shadow_color #${color}`, `shadow_inactive_color #${color}`);
     }
     if (look?.dim)
       lines.push(`default_dim_inactive ${clamp(look.dim.strength, 0, 100) / 100}`);

@@ -18,6 +18,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### SwayFX blurs a floating popout's shadow halo
+- **Where:** `components/hosts/popout/FloatingPopout.qml` (its `SurfaceShadow`), `components/methods/LayerStack.qml` (`blurSurfaces`: `floating-popout`)
+- **What:** The floating popout blurs its own window and casts its shadow inside it. SwayFX's `blur_ignore_transparent` blurs every pixel that isn't fully clear, so its glow or shadow shows as a frosted band (Hyprland's `ignore_alpha` leaves it out). The chrome's shadows are cast from a window apart on SwayFX (`axiom-shadows`); this one would need the same, or its shadow off there.
+- **Size:** small
+- **Found:** 2026-10-17, while fixing the chrome's shadows on SwayFX
+
 ### A greeter installed before v63 drops the monitor and keyboard layout
 - **Where:** `components/methods/GreeterBundle.qml` (`exportConfig`), `services/GreeterManager.qml`
 - **What:** An installed greeter on older code reads a v63 bundle without migrating it and prunes `Compositor`, `Monitors` and `Input` as unknown, so until the greeter is updated the login screen loses the monitor layout and, in managed mode, `kbLayout`/`kbOptions` (a password typed on the wrong layout). The outdated notice says to update, but not that it's required. Exporting the legacy `Hyprland.monitors`/`managed` keys for a while, or a firmer notice, would cover it.
@@ -176,7 +182,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### Blur behind axiom on niri
 - **Where:** `services/CompositorManager.qml` (`supports`), `components/methods/LayerStack.qml` (`blurSurfaces`)
-- **What:** Axiom's surfaces blur where the compositor blurs its layers (`supports.blur`: Hyprland's layer rules, SwayFX's `layer_effects`); elsewhere they're solid (`Appearance.compositorBlurs`) and the translucency setting is greyed out. niri can blur layers by namespace too (layer rules); a niri backend would need the same per-namespace rules from `LayerStack`'s lists. Unchecked on SwayFX: whether its `blur_ignore_transparent` really blurs halos (axiom then drops the chrome's shadows, no `blurThreshold`), and how unblurred layer popups (tooltips) look.
+- **What:** Axiom's surfaces blur where the compositor blurs its layers (`supports.blur`: Hyprland's layer rules, SwayFX's `layer_effects`); elsewhere they're solid (`Appearance.compositorBlurs`) and the translucency setting is greyed out. niri can blur layers by namespace too (layer rules); a niri backend would need the same per-namespace rules from `LayerStack`'s lists. Unchecked on SwayFX: how unblurred layer popups (tooltips) look.
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while placing layers without Hyprland
 ### The greeter runs its own Hyprland session

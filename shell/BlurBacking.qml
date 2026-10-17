@@ -16,7 +16,10 @@ import qs.services
 // outside every shape, so a shadow runs unbroken round joined surfaces as
 // round one (surfaces each casting their own, cut where the others sit,
 // never met at a join). They stay under Hyprland's blur threshold
-// (Appearance.shadowAlphaMax), so they aren't blurred.
+// (Appearance.shadowAlphaMax), so they aren't blurred. A compositor whose
+// blur has no such threshold (SwayFX's blur_ignore_transparent leaves out
+// only clear pixels; no supports.blurThreshold) would blur every pixel of
+// them: a window beside each one, not blurred, casts them instead.
 // While the overlay is open on a screen it covers that window, so a second
 // one, over the overlay and under the surfaces on the Overlay layer (bar
 // and edge popouts, submenus, the OSD), draws those surfaces' shapes
@@ -42,6 +45,8 @@ Scope {
       readonly property bool aboveOverlay: BlurManager.aboveOverlay(perScreen.screenName)
       readonly property var overlayShapes: perScreen.aboveOverlay ? perScreen.onScreen.filter(shape => shape.overlayLayer) : []
       readonly property var otherShapes: perScreen.aboveOverlay ? perScreen.onScreen.filter(shape => !shape.overlayLayer) : perScreen.onScreen
+      // Whether the shadows go to windows of their own
+      readonly property bool shadowsApart: CompositorManager.supports.blurThreshold !== true
 
       // On Top, under the chrome; on Overlay (under every surface there,
       // by its order) while a fullscreen window hides the Top layer, for
@@ -53,6 +58,21 @@ Scope {
         wanted: BlurManager.backing
         stackLayer: BlurManager.overFullscreen(perScreen.screenName) ? WlrLayer.Overlay : WlrLayer.Top
         layerNamespace: "axiom-blur-backing"
+        part: perScreen.shadowsApart ? "fills" : "all"
+      }
+
+      LazyLoader {
+        active: perScreen.shadowsApart
+
+        BlurBackingWindow {
+          screen: perScreen.modelData
+          shapes: BlurManager.backing ? perScreen.otherShapes : []
+          cutBy: perScreen.overlayShapes
+          wanted: BlurManager.backing
+          stackLayer: BlurManager.overFullscreen(perScreen.screenName) ? WlrLayer.Overlay : WlrLayer.Top
+          layerNamespace: "axiom-shadows"
+          part: "shadows"
+        }
       }
 
       // Over the overlay and under the surfaces on the Overlay layer (by
@@ -68,6 +88,21 @@ Scope {
           held: false
           stackLayer: WlrLayer.Overlay
           layerNamespace: "axiom-blur-backing-overlay"
+          part: perScreen.shadowsApart ? "fills" : "all"
+        }
+      }
+
+      LazyLoader {
+        active: perScreen.aboveOverlay && perScreen.shadowsApart
+
+        BlurBackingWindow {
+          screen: perScreen.modelData
+          shapes: perScreen.overlayShapes
+          cutBy: perScreen.otherShapes
+          held: false
+          stackLayer: WlrLayer.Overlay
+          layerNamespace: "axiom-shadows-overlay"
+          part: "shadows"
         }
       }
     }

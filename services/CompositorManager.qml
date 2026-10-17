@@ -82,11 +82,6 @@ Singleton {
     property: "compositorBlurs"
     value: root.supports.blur === true
   }
-  property Binding _appearanceBlurThreshold: Binding {
-    target: Appearance
-    property: "compositorBlurThreshold"
-    value: root.supports.blurThreshold === true
-  }
 
   // --- State (contract.md › Shapes) ---
 
