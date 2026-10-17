@@ -15,6 +15,7 @@ Shell manager manages global options and signals
 - `captureFrozen` (readonly bool): Every picker's frame is frozen: popup windows (bar popouts, tooltips, menus, toasts) hide until it closes, since Hyprland draws popups over every layer.
 - `requiredFields` (readonly var): Which screen layout surfaces (the lock screen's, the greeter's, by the key their host gives their modules) show their required field: the Password module, the Login module.
 - `modalWindows` (readonly var): Windows every focus grab lets input through to: the screenshot pickers and modal prompts (the polkit prompt, registerModal), so one opening over the overlay or a popout closes nothing
+- `modalShown` (readonly bool): One of them is up: a focus grab's surface stops asking for the keyboard exclusively (FocusGrab.exclusive), which would keep it from the prompt
 - `steppedAside` (readonly bool): Set while a prompt axiom doesn't draw needs the screen (another polkit agent's window, the file picker: windows open under axiom's Overlay-layer surfaces): the overlay and the onboarder hide without …
 - `barPanels` (var): The bar windows (BarPanel), for surfaces that attach to a bar without being its popouts (floating edge menus)
 - `destructiveActions` (readonly var): Session actions, shared by the power menu and the QuickActions module.

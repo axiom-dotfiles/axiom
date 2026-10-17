@@ -9,7 +9,7 @@ A focus grab, for surfaces that close (or drop keyboard focus) on a click outsid
 
 - `windows` (var)
 - `active` (bool)
-- `exclusive` (readonly bool): Active without a native grab: the surface's own window should take the keyboard exclusively (WlrKeyboardFocus.Exclusive) while this is on
+- `exclusive` (readonly bool): Active without a native grab: the surface's own window should take the keyboard exclusively (WlrKeyboardFocus.Exclusive) while this is on.
 
 ### Signals
 

@@ -185,6 +185,9 @@ QtObject {
   // pickers and modal prompts (the polkit prompt, registerModal), so one
   // opening over the overlay or a popout closes nothing
   readonly property var modalWindows: captureWindows.concat(_modals)
+  // One of them is up: a focus grab's surface stops asking for the keyboard
+  // exclusively (FocusGrab.exclusive), which would keep it from the prompt
+  readonly property bool modalShown: modalWindows.length > 0
   property var _modals: []
 
   function registerModal(window) {
