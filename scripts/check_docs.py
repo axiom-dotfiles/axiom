@@ -16,6 +16,8 @@ Docs drift silently; this catches the drift a reader would trip on:
 - every recipe in docs/recipes has a skill in .claude/skills of its name,
   and each such skill only points at its recipe (a rule restated in a skill
   drifts from the recipe, which is the one copy)
+- every `x-*` annotation the config schema uses is named in
+  docs/dev/core/schema-annotations.md, so that list stays complete
 
 Covers docs/**/*.md (not the generated docs/dev/config and docs/dev/generated),
 every AGENTS.md, README.md and CONTRIBUTING.md, and .claude/skills. Fenced
@@ -168,6 +170,29 @@ def check_skills():
     return errors
 
 
+SCHEMA = "config/json/config.schema.json"
+ANNOTATIONS_DOC = "docs/dev/core/schema-annotations.md"
+
+
+def schema_annotations(node, found):
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key.startswith("x-"):
+                found.add(key)
+            schema_annotations(value, found)
+    elif isinstance(node, list):
+        for value in node:
+            schema_annotations(value, found)
+    return found
+
+
+def check_annotations():
+    text = (ROOT / ANNOTATIONS_DOC).read_text()
+    used = schema_annotations(json.loads((ROOT / SCHEMA).read_text()), set())
+    return [f"{SCHEMA}: `{name}` isn't in {ANNOTATIONS_DOC} (add a line for it)"
+            for name in sorted(used) if not re.search(rf"`{re.escape(name)}(?![\w-])", text)]
+
+
 def main():
     errors = []
     members = singletons()
@@ -202,6 +227,7 @@ def main():
     errors += check_issues()
     errors += check_skills()
     errors += check_piece_index()
+    errors += check_annotations()
     for e in errors:
         print(f"error    {e}")
     print("docs ok" if not errors else f"{len(errors)} doc errors")

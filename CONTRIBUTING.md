@@ -54,7 +54,7 @@ examples/       # the example setups
 docs/           # user docs; docs/dev/ for contributors
 ```
 
-Dependencies point one way: `methods/` helpers → config readers → services → UI. The UI never runs processes or writes files itself; it asks a service. Your settings live in `~/.config/axiom/`, never in the repository.
+Dependencies point one way: `methods/` helpers → config readers → services → UI. The UI never runs processes or writes files itself; it asks a service.
 
 ## Where to look
 
