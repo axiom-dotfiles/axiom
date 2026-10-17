@@ -27,7 +27,7 @@ Most shells hand you a finished desktop and a page of options to tweak. axiom ha
 
 - **You design every surface** - One set of modules builds overlay pages, sidebars, desktop widgets, the lock screen and the login screen, all laid out by dragging. Bars are widgets you pick and style one by one. Changes show live until you save.
 - **The whole session, one app** - Login, lock, notifications, polkit, idle, OSDs, the launcher, and settings for Wi-Fi, Bluetooth, audio, monitors, keybinds and input, from one config.
-- **Bring your own apps** - No bundled file manager, terminal or browser. Use the ones you like, and axiom themes 23 of them to match (and many more to come!).
+- **Bring your own apps** - No bundled file manager, terminal or browser. Use the ones you like, and axiom themes 22 of them to match (and many more to come!).
 - **Any compositor, same desktop** - One config runs on Hyprland, niri and sway, so switching brings your bars, pages, theme and keybinds along.
 - **Updates don't fight you** - Your config is validated and migrated between versions, never merged by hand.
 - **Easy to share** - An export holds only the look and layout. Monitors, paths and accounts stay behind, and commands come along only if you ask.
@@ -90,7 +90,7 @@ Apps, math, emoji, the clipboard, AI chat, and commands for the whole shell.
 
 ### One theme, every app
 
-42 themes, or one from your wallpaper, carried across 23 of your apps.
+42 themes, or one from your wallpaper, carried across 22 of your apps.
 
 <img src="assets/screenshots/demo-themes.webp" alt="The overlay's Home page switching between six themes, every card recoloring at once">
 
@@ -135,7 +135,7 @@ One repository and one config for the whole desktop:
 - **Workspaces** as a line, a grid per monitor or scrolling strips, plus an overview and **Alt+Tab switcher**.
 - **Your compositor, set from the UI:** keybinds, monitors, input, the window look (borders, gaps, rounding, blur, shadows), and optionally the whole config file.
 - **Calendar** from CalDAV accounts and `.ics` feeds, with an editor, reminders and quick add (`/event fri 3pm Dentist`).
-- **Theming:** 42 base16 themes or ones generated from your wallpaper, applied to 23 other apps, with a light/dark schedule.
+- **Theming:** 42 base16 themes or ones generated from your wallpaper, applied to 22 other apps, with a light/dark schedule.
 - **Launcher** for apps, windows, math, the clipboard, emoji and `/` commands for the whole shell.
 - **Docks** on any edge with pinning and magnification, **OSDs**, notifications, a **polkit** prompt and a power menu.
 - **AI chat** (Claude, OpenAI, Gemini or Ollama) in a page, a menu or the launcher.

@@ -112,4 +112,3 @@ if command -v gh >/dev/null; then
     gh release create "$tag" --notes-from-tag --verify-tag
   fi
 fi
-

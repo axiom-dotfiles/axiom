@@ -285,7 +285,7 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
   - Nothing else ever edits your config files.
 
 <details>
-<summary><b>Supported apps (23)</b></summary>
+<summary><b>Supported apps (22)</b></summary>
 
 | Kind | Apps |
 | --- | --- |

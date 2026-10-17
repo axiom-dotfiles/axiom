@@ -33,7 +33,7 @@ How the chrome's translucent surfaces share one blurred backing window, how thei
 ### Shadows in the blur window
 - Backed surfaces' shadows are cast there too, from the same copies.
 - Each `BlurShape` names its `shadow` (a look: BarStyle's, or its bar's). An `AttachedSurface`'s follows `castShadow` and `shadowLook`.
-- The copies are grouped by look and by the way it falls (`BlurBacking.shadowKey`).
+- The copies are grouped by look (`BlurBackingWindow.shadowKey`): its color and size.
 - Each group casts one `SurfaceShadow` cut by every shape on the screen:
   - a shadow runs unbroken round joined surfaces;
   - none falls on a surface joined to the one casting it (no holes needed).
