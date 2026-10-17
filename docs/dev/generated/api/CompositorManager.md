@@ -8,7 +8,7 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 ### Properties
 
 - `displayName` (readonly string): The compositor's name as people know it ("Hyprland"; the backend's own when it tells a variant apart, "SwayFX"), or "the compositor" for an unknown one.
-- `kind` (readonly string): Which compositor axiom runs under: "hyprland", "sway", "niri" or "" (unknown, or none).
+- `kind` (readonly string): Which compositor axiom runs under: "hyprland", "sway", "niri" or "" (unknown, or none), from HYPRLAND_INSTANCE_SIGNATURE / SWAYSOCK / NIRI_SOCKET; with more than one set (one left over from an earlie…
 - `backend` (readonly var): The backend for `kind`, or null (docs/dev/compositor/contract.md).
 - `ready` (readonly bool): Whether `supports` is final: a backend that finds out what it can do by asking (sway: SwayFX or not) isn't until it knows
 - `supports` (readonly var): What the compositor can do, by capability (contract.md › Capabilities): false for anything the backend doesn't say, and for what AXIOM_COMPOSITOR_OFF ("focusGrab,blur") turns off, so the fallbacks ca…

@@ -32,6 +32,11 @@ def started_with():
     if not pid:
         return None
     try:
+        # A SWAYSOCK left over from an earlier session can name a pid some
+        # other process has since
+        with open(f"/proc/{pid}/comm") as f:
+            if f.read().strip() != "sway":
+                return None
         with open(f"/proc/{pid}/cmdline", "rb") as f:
             args = f.read().decode(errors="replace").split("\0")
     except OSError:

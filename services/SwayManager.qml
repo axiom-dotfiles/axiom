@@ -437,14 +437,19 @@ Singleton {
       if (reply)
         _recent.variant = reply.sway_original_version !== undefined ? "swayfx" : "sway";
       else
-        _versionRetry.start();
+        _versionRetry.restart();
     });
   }
 
-  // Until it's known, `ready` holds back axiom's layer
+  // Until it's known, `ready` holds back axiom's layer. A sway that doesn't
+  // answer is asked again less and less often (2 s, doubling up to a
+  // minute), so it doesn't fill the log
   property Timer _versionRetry: Timer {
     interval: 2000
-    onTriggered: root._readVersion()
+    onTriggered: {
+      interval = Math.min(interval * 2, 60000);
+      root._readVersion();
+    }
   }
 
   // SwayFX's blur and dim in the config are read only once it's known

@@ -255,6 +255,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ChatProtocol.qml`: The chat providers' wire formats, as pure functions: ChatManager builds a request with request(), ChatRequest sends it with curl and feeds every streamed event to parse().
 - `ColorTemperature.qml`: The color of light at a temperature in Kelvin (Tanner Helland's fit to blackbody colors), for showing what a night light setting looks like.
 - `ColumnSplit.qml`: Splits an ordered list of cards into two newspaper columns (the first k on the left, the rest on the right) so both end as close together as they can, from the cards' heights.
+- `CompositorKind.qml`: Which compositor axiom runs under, from the environment (CompositorManager.kind).
 - `CompositorLayer.qml`: What axiom asks of the compositor, decided once in a neutral shape that every backend's config writer turns into its own text (Hyprland's Lua, sway's commands).
 - `ConfigExamples.qml`: Sharing a config.
 - `ConfigMigration.qml`: Upgrades older config.json layouts to the current one (see config/json/config.schema.json).

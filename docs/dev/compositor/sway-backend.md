@@ -18,7 +18,7 @@
 - Closing the window, or killing that `sway`, ends both.
 
 ### SwayFX
-- `SwayManager.fx`: SwayFX's `get_version` reply adds `sway_original_version` (its `variant` still says "sway"). Read at start, kept in the `PersistentProperties` across reloads of the shell; `ready` until then false. `displayName` is "SwayFX", and greyed-out settings on plain sway say "SwayFX can." (`unsupportedHint`).
+- `SwayManager.fx`: SwayFX's `get_version` reply adds `sway_original_version` (its `variant` still says "sway"). Read at start, kept in the `PersistentProperties` across reloads of the shell; `ready` until then false; a sway that doesn't answer is asked again after 2 s, doubling up to a minute. `displayName` is "SwayFX", and greyed-out settings on plain sway say "SwayFX can." (`unsupportedHint`).
 
 ### State
 Outputs and workspaces come live from Quickshell's `I3` module (as Hyprland's do from `Quickshell.Hyprland`); everything else from sway's replies, read through `swaymsg` (`SwayIpcManager`: `I3.dispatch` runs a command with no reply, and `I3` has no window tree, inputs or outputs in full). The replies become the [shapes](contract.md#shapes) in `SwayState` (`tst_SwayState`, on replies captured in nested sway under `tests/fixtures/sway/`).
