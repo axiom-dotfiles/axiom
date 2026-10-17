@@ -44,6 +44,8 @@ Sets the compositor up for axiom (the Compositor section's mode, CompositorConfi
 - `mergeUserBinds(only)`: `only`: one of the user's files (the adopted one), else all of them
 - `previewMerge()`: Counts what a Merge would move, changing nothing (`mergeable`)
 - `copyIncludeLines()`
+- `copyAutostartLines()`
+- `addAutostartLines()`: Adds the autostart line to the user's config (the autostart hookup, with a backup); it takes effect with the next session, so no reload
 - `openConfigDir()`
 - `apply()`
 - `allowTakeover()`: The status card's (and the notification's) Allow

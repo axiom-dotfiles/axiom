@@ -40,6 +40,7 @@ Optional writer members, absent on Hyprland and sway:
 
 ### Include and autostart lines
 - `includeLines` (included) and `autostartLines` (included and detached) are the writer's, as hookup targets `includeTarget` / `autostartTarget`. `IntegrationHookupManager` runs them under the keys `compositorInclude` (both lines) and `compositorAutostart`, so the onboarding offers Apply with a backup, as a theme integration does ([Theme integrations](../theming/theme-integrations.md)).
+- The Compositor card checks `compositorAutostart` when it's shown and when the mode changes. In detached and included modes, while the line is missing, it shows the line with Copy and **Add it for me** (`addAutostartLines`: the hookup with a backup, no reload, since it only matters at the next login). There's no notification: a user may start axiom some other way (a systemd unit, uwsm).
 
 ### Status card and saving
 - The settings page's Compositor section starts with `CompositorStatusCard`, built from:

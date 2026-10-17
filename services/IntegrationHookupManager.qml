@@ -18,8 +18,9 @@ import qs.config
  * Three keys aren't theme integrations: "compositorInclude" (the lines that
  * load axiom's module, and the autostart line), "compositorAutostart" (only the
  * latter), in the user's compositor config, for the onboarding's Compositor
- * page, and "compositorModule" (only the former), for CompositorConfigManager's
- * notification that the module isn't loaded.
+ * page and the settings' Compositor card, and "compositorModule" (only the
+ * former), for CompositorConfigManager's notification that the module isn't
+ * loaded.
  * Their targets come from CompositorConfigManager (its writer), passed to the script.
  */
 Singleton {

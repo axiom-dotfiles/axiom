@@ -333,6 +333,16 @@ Singleton {
     ClipboardManager.copyText(includeLines);
   }
 
+  function copyAutostartLines() {
+    ClipboardManager.copyText(autostartLines);
+  }
+
+  // Adds the autostart line to the user's config (the autostart hookup,
+  // with a backup); it takes effect with the next session, so no reload
+  function addAutostartLines() {
+    IntegrationHookupManager.apply("compositorAutostart");
+  }
+
   function openConfigDir() {
     if (root.configDir !== "")
       Quickshell.execDetached(["xdg-open", root.configDir]);
