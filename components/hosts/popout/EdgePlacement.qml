@@ -248,7 +248,7 @@ QtObject {
   // --- Its shadow (SurfaceContext.shadow) ---
   // What it grows out of: its bar (pills, islands, a merged box's outer
   // edge, a solid bar's own stroke with the border off), the border, or a
-  // bare edge. AttachedSurface's shadowLook/shadowEdge/shadowFalls.
+  // bare edge. AttachedSurface's shadowLook.
   readonly property var shadow: root._layout.shadow
   // (BarStyle's while the bar is gone: bars changing, the decision may
   // lag a moment)

@@ -17,6 +17,5 @@ Reader for the WindowLook section: settings that make windows match axiom ({ bor
 - `shadowColor` (readonly color)
 - `shadowAlpha` (readonly real): (a picked color nearly opaque, as the compositors' own are)
 - `shadowStrength` (readonly real): How strong windows cast it (1 = as above), on top of its alpha
-- `shadowOffset` (readonly int): How far it falls downward: as axiom's shadow does (SurfaceShadow); a glow spreads evenly
 - `borderWidth` (readonly int): The shape: axiom's (Look & Feel → Shape) while it matches it, else its own
 - `radius` (readonly int)

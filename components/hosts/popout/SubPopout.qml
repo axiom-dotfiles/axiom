@@ -261,7 +261,7 @@ Item {
       onSurfaceFromChanged: root._notePeak()
       onSurfaceToChanged: root._notePeak()
 
-      // Room for the shadow or glow the surface casts (SurfaceShadow) on
+      // Room for the shadow the surface casts (SurfaceShadow) on
       // its free sides: away from the parent, above and below
       readonly property real shadowRoom: surface.shadowReach
       // None past the bar side we may join, so it doesn't fall over the
@@ -325,11 +325,9 @@ Item {
         backed: BlurManager.backsOn(outer.screen, surface.onOverlayLayer) && surface.parentOrigin !== null
         opaque: BlurManager.opaqueOn(outer.screen)
         // Cast as its parent casts its own (SurfaceContext.shadow): one
-        // shadow round the two, falling away from the parent's edge
+        // shadow round the two
         readonly property var _parentSurface: outer.slot?.popupSurface ?? null
         shadowLook: surface._parentSurface?.shadowLook ?? BarStyle.values
-        shadowEdge: surface._parentSurface?.shadowEdge ?? surface.edge
-        shadowFalls: surface._parentSurface?.shadowFalls ?? !Appearance.screenBorder
 
         BlurShape {
           source: surface

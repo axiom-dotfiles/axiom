@@ -60,12 +60,11 @@ How widget backgrounds are drawn: their shapes, merged and powerline runs, hit t
 ### Separator marks (accents)
 - `WidgetGroup` draws a `SeparatorMark` in each gap between shown widgets (`separatorStyle`).
 - No mark is drawn beside a widget that `divides` (the Separator), nor in a powerline.
+- With marks on, the gap between a section's widgets is the mark's room along the bar plus `separatorGap` either side (`BarLayout.dividerGap`, as `groupSpacing` in `Bar.enrichBarConfig`) instead of the bar's `spacing`.
 
 ### Bar shadow
 - `BarContainer` paints the bar in one `surface` layer: its background, inner stroke and pills.
-- A `shadow` therefore follows their outline without redrawing for the widgets. It is either:
-  - a `MultiEffect` shadow falling toward the windows, cast evenly by pills on the border (which join its stroke); on a bare screen edge they fall too (`BarContainer.shadowFalls`); or
-  - a glow.
+- A `shadow` (on or off) therefore follows their outline without redrawing for the widgets: a `MultiEffect` shadow spread evenly round it, in `shadowColor` (Auto: the accent).
 - `shadowReach` widens the bar window on its inner side. The input mask stays the bar.
 - `Bar.shadowColor` resolves a shadow's color, both for the bar and for the border's inward shadow (see [Layering and corners](layering-and-corners.md#border-shadow-window)): `Bar.shadowBaseColor`, capped at `Appearance.shadowAlphaMax` and premultiplied, as `MultiEffect` blends `shadowColor` (a color cleared by its alpha alone still adds its light). Windows matching axiom's shadow take `shadowBaseColor` ([window look](../compositor/window-look.md)).
 

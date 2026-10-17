@@ -52,9 +52,9 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
 | **Shape** | rounded, capsule, slant, arrow |
 | **Grouping** | separate, merged (neighbours share one background), powerline (each shape runs into the next) |
 | **Ends** | shaped, pointed, rounded |
-| **Separators** | none, line, dot, slash, chevron |
+| **Separators** | none, line, dot, slash, chevron, with their thickness and margin to the widgets |
 | **Accent line** | none, inner or outer edge, with an optional fade to a second color |
-| **Shadow** | none, shadow, glow |
+| **Shadow** | on or off, in the accent or any theme color |
 
 - **Widget colors** default to **Auto**: the bar gives neighbouring widgets different accents and keeps the contrast readable. Pick a theme color for any of them instead.
 - A bar can override the shared widget style, accents, shadow, font size and corner radius.

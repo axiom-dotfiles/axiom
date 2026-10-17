@@ -168,7 +168,7 @@ Item {
       style: root.barConfig.separatorStyle
       color: Theme.resolveColor(root.barConfig.separatorColor)
       thickness: root.barConfig.separatorThickness
-      length: root.barConfig.widgetSize * (mark.style === "chevron" ? 0.6 : 0.5)
+      length: BarLayout.dividerLength(mark.style, root.barConfig.widgetSize)
       vertical: root.isVertical
       x: root.isVertical ? Math.round((root.width - width) / 2) : mark.center - width / 2
       y: root.isVertical ? mark.center - height / 2 : Math.round((root.height - height) / 2)

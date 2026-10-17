@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 65,
+      "default": 66,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -917,7 +917,7 @@
         "blurPopups": { "type": "boolean", "title": "Blur menus and popups", "x-group": "Blur", "default": false, "x-showIf": { "blur": true, "windowBlur": true }, "x-enabledIf": { "/$supports.windowBlur": true, "/$compositor": "hyprland" }, "x-hypr": "decoration.blur.popups", "x-hyprIf": "blur" },
         "blurSpecial": { "type": "boolean", "title": "Blur behind special workspaces", "x-group": "Blur", "default": false, "description": "Expensive: redraws the blur on every frame.", "x-showIf": { "blur": true }, "x-enabledIf": { "/$supports.windowBlur": true, "/$compositor": "hyprland" }, "x-hypr": "decoration.blur.special", "x-hyprIf": "blur" },
         "shadow": { "type": "boolean", "title": "Window shadows", "x-group": "Shadows", "default": false, "x-enabledIf": { "/$supports.windowShadow": true } },
-        "shadowMatchShell": { "type": "boolean", "title": "Match axiom's shadow", "x-group": "Shadows", "default": true, "description": "Follow Look & Feel → Bar style: its shadow or glow, color and size. With none there, windows cast none.", "x-showIf": { "shadow": true }, "x-enabledIf": { "/$supports.windowShadow": true } },
+        "shadowMatchShell": { "type": "boolean", "title": "Match axiom's shadow", "x-group": "Shadows", "default": true, "description": "Follow Look & Feel → Bar style: its shadow color and size. With it off there, windows cast none.", "x-showIf": { "shadow": true }, "x-enabledIf": { "/$supports.windowShadow": true } },
         "shadowSize": { "type": "integer", "x-control": "stepper", "title": "Shadow size", "x-unit": "px", "x-group": "Shadows", "default": 10, "minimum": 0, "maximum": 100, "x-showIf": { "shadow": true, "shadowMatchShell": false }, "x-enabledIf": { "/$supports.windowShadow": true } },
         "shadowPower": { "type": "integer", "title": "Shadow falloff", "x-group": "Shadows", "default": 3, "minimum": 1, "maximum": 4, "description": "1 fades slowly, 4 ends sharply.", "x-showIf": { "shadow": true, "shadowMatchShell": false }, "x-enabledIf": { "/$supports.windowShadow": true, "/$compositor": "hyprland" } },
         "shadowColor": { "type": "string", "title": "Shadow color", "x-group": "Shadows", "x-options": "colors", "x-emptyLabel": "Compositor's", "default": "", "description": "Unfocused windows cast it too.", "x-showIf": { "shadow": true, "shadowMatchShell": false }, "x-enabledIf": { "/$supports.windowShadow": true } },
@@ -1211,7 +1211,7 @@
       "x-category": "Look & Feel",
       "title": "Bar style",
       "description": "How every bar draws its widgets, accents and shadow. A bar can take its own of any of these in the bar editor.",
-      "x-order": ["widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "widgetEnds", "groupColor", "widgetTextColor", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "shadow", "shadowColor", "shadowSize"],
+      "x-order": ["widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "widgetEnds", "groupColor", "widgetTextColor", "separatorStyle", "separatorColor", "separatorThickness", "separatorGap", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "shadow", "shadowColor", "shadowSize"],
       "additionalProperties": false,
       "properties": {
         "widgetStyle": {
@@ -1395,7 +1395,22 @@
           "minimum": 1,
           "maximum": 6,
           "x-unit": "px",
-          "x-beside": true,
+          "x-showIf": {
+            "separatorStyle": {
+              "not": "none"
+            }
+          }
+        },
+        "separatorGap": {
+          "x-group": "Bar accents",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Separator margin",
+          "default": 2,
+          "minimum": 0,
+          "maximum": 24,
+          "x-unit": "px",
+          "description": "Room between a separator and the widgets on either side of it.",
           "x-showIf": {
             "separatorStyle": {
               "not": "none"
@@ -1458,34 +1473,26 @@
           }
         },
         "shadow": {
-          "x-group": "Bar shadow",
-          "type": "string",
+          "x-group": "Shadow",
+          "type": "boolean",
           "title": "Shadow",
-          "default": "none",
-          "enum": ["none", "shadow", "glow"],
-          "x-enumLabels": {
-            "none": "None",
-            "shadow": "Shadow",
-            "glow": "Glow"
-          },
-          "description": "Cast by every bar (or its pills) and by the screen border, inward all the way round. A transparent bar has nothing to cast one; a solid bar on the border leaves it to the border."
+          "default": false,
+          "description": "Spread evenly round every bar (or its pills), the screen border, popouts, menus and docks. A transparent bar has nothing to cast one; a solid bar on the border leaves it to the border."
         },
         "shadowColor": {
-          "x-group": "Bar shadow",
+          "x-group": "Shadow",
           "type": "string",
           "title": "Shadow color",
           "x-options": "colors",
           "x-emptyLabel": "Auto",
           "default": "",
           "x-showIf": {
-            "shadow": {
-              "not": "none"
-            }
+            "shadow": true
           },
-          "description": "Auto: black for a shadow, the accent for a glow."
+          "description": "Auto: the theme's accent."
         },
         "shadowSize": {
-          "x-group": "Bar shadow",
+          "x-group": "Shadow",
           "type": "integer",
           "x-control": "stepper",
           "title": "Shadow size",
@@ -1495,9 +1502,7 @@
           "x-unit": "px",
           "x-beside": true,
           "x-showIf": {
-            "shadow": {
-              "not": "none"
-            }
+            "shadow": true
           }
         }
       }
@@ -2744,7 +2749,7 @@
 
     "Bar": {
       "type": "object",
-      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "floatGap", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "overrideWidgetStyle", "widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "widgetEnds", "groupColor", "widgetTextColor", "overrideAccents", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "overrideShadow", "shadow", "shadowColor", "shadowSize", "lockCenter", "reserveSpace"],
+      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "floatGap", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "overrideWidgetStyle", "widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "widgetEnds", "groupColor", "widgetTextColor", "overrideAccents", "separatorStyle", "separatorColor", "separatorThickness", "separatorGap", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "overrideShadow", "shadow", "shadowColor", "shadowSize", "lockCenter", "reserveSpace"],
       "required": ["id"],
       "additionalProperties": false,
       "properties": {
@@ -3136,7 +3141,23 @@
           "minimum": 1,
           "maximum": 6,
           "x-unit": "px",
-          "x-beside": true,
+          "x-showIf": {
+            "overrideAccents": true,
+            "separatorStyle": {
+              "not": "none"
+            }
+          }
+        },
+        "separatorGap": {
+          "x-group": "Accents",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Separator margin",
+          "default": 2,
+          "minimum": 0,
+          "maximum": 24,
+          "x-unit": "px",
+          "description": "Room between a separator and the widgets on either side of it.",
           "x-showIf": {
             "overrideAccents": true,
             "separatorStyle": {
@@ -3214,16 +3235,10 @@
         },
         "shadow": {
           "x-group": "Shadow",
-          "type": "string",
+          "type": "boolean",
           "title": "Shadow",
-          "default": "none",
-          "enum": ["none", "shadow", "glow"],
-          "x-enumLabels": {
-            "none": "None",
-            "shadow": "Shadow",
-            "glow": "Glow"
-          },
-          "description": "Cast by the bar, or by its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.",
+          "default": false,
+          "description": "Spread evenly round the bar, or its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.",
           "x-showIf": {
             "overrideShadow": true
           }
@@ -3235,12 +3250,10 @@
           "x-options": "colors",
           "x-emptyLabel": "Auto",
           "default": "",
-          "description": "Auto: black for a shadow, the accent for a glow.",
+          "description": "Auto: the theme's accent.",
           "x-showIf": {
             "overrideShadow": true,
-            "shadow": {
-              "not": "none"
-            }
+            "shadow": true
           }
         },
         "shadowSize": {
@@ -3255,9 +3268,7 @@
           "x-beside": true,
           "x-showIf": {
             "overrideShadow": true,
-            "shadow": {
-              "not": "none"
-            }
+            "shadow": true
           }
         },
         "widgets": {

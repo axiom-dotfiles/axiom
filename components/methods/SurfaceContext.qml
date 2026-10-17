@@ -126,44 +126,22 @@ QtObject {
     return bar.background === "transparent" || (!!bar.island && mode === "plain");
   }
 
-  // Whether a bar's shadow falls away from its edge rather than spreading
-  // evenly: pills joined to the border spread as the border's does (one
-  // shifted along that stroke would cover it), anything else falls
-  function barShadowFalls(bar, border) {
-    return !bar.pills || !border;
-  }
-
   // How a surface casts its shadow: { look ("style": BarStyle's, "bar":
-  // its bar's), edge (a Bar.Location it falls away from), falls }. It
-  // takes it from what it grows out of, so joined shapes cast one shadow
-  // (BlurBacking groups them by look and fall) running unbroken round them:
+  // its bar's) }. It takes it from what it grows out of, so joined shapes
+  // cast one shadow (BlurBacking groups them by look) running unbroken
+  // round them:
   //   a submenu, its parent's (`parent`, as returned here)
-  //   a detached box falls away from its edge, in BarStyle's look
+  //   a detached box, BarStyle's
   //   out of a bar (its pills, islands, outer edge, or a solid bar's own
-  //   stroke with the border off), the bar's look and fall
-  //   out of the border's stroke, BarStyle's, spreading evenly; off a bare
-  //   edge, falling
-  // `s`: { edge, detached, border, bar (enriched, or null), onBar (it grows
-  //   out of the bar: onPill, merged, or bar.innerStroke), parent }
+  //   stroke with the border off), the bar's
+  //   out of the border's stroke or off a bare edge, BarStyle's
+  // `s`: { detached, bar (enriched, or null), onBar (it grows out of the
+  //   bar: onPill, merged, or bar.innerStroke), parent }
   function shadow(s) {
     if (s.parent)
       return s.parent;
-    if (s.detached)
-      return {
-        "look": "style",
-        "edge": s.edge,
-        "falls": true
-      };
-    if (s.bar && s.onBar)
-      return {
-        "look": "bar",
-        "edge": s.edge,
-        "falls": root.barShadowFalls(s.bar, s.border)
-      };
     return {
-      "look": "style",
-      "edge": s.edge,
-      "falls": !s.border
+      "look": !s.detached && s.bar && s.onBar ? "bar" : "style"
     };
   }
 
@@ -377,9 +355,7 @@ QtObject {
       "barOuter": barOuter,
       "ownSink": ownSink,
       "shadow": root.shadow({
-        "edge": p.edge,
         "detached": detached,
-        "border": p.border,
         "bar": ownBar,
         "onBar": !p.held && (onPill || merged || (ownBar?.innerStroke ?? false))
       }),

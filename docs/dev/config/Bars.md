@@ -151,8 +151,12 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `Bar.savedBars` (whole), `barConfig.separatorColor` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
 - **`Bars[].separatorThickness`** · integer = 2 · 1–6 · px
   - Separator thickness
-  - x-group="Accents", x-control="stepper", x-beside=true, x-showIf={"overrideAccents":true,"separatorStyle":{"not":"none"}}
+  - x-group="Accents", x-control="stepper", x-showIf={"overrideAccents":true,"separatorStyle":{"not":"none"}}
   - read: `Bar.savedBars` (whole), `barConfig.separatorThickness` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
+- **`Bars[].separatorGap`** · integer = 2 · 0–24 · px
+  - Separator margin: Room between a separator and the widgets on either side of it.
+  - x-group="Accents", x-control="stepper", x-showIf={"overrideAccents":true,"separatorStyle":{"not":"none"}}
+  - read: `barConfig.separatorGap`, entry field, name match · in: `config/Bar.qml`
 - **`Bars[].accentLine`** · string = "none" · enum none|inner|outer
   - Accent line: A line along the bar's edge toward the windows (inner) or the screen edge (outer); on pills, along each pill.
   - x-group="Accents", x-showIf={"overrideAccents":true}
@@ -173,17 +177,17 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Own shadow: Off: the bar follows the Bar style settings in Look & Feel.
   - x-group="Shadow"
   - read: `barConfig.overrideShadow`, entry field, name match, `// reads:` marker · in: `config/Bar.qml`
-- **`Bars[].shadow`** · string = "none" · enum none|shadow|glow
-  - Shadow: Cast by the bar, or by its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.
+- **`Bars[].shadow`** · boolean = false
+  - Shadow: Spread evenly round the bar, or its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.
   - x-group="Shadow", x-showIf={"overrideShadow":true}
   - read: `barConfig.shadow`, entry field, name match · in: `config/Bar.qml`
 - **`Bars[].shadowColor`** · string = ""
-  - Shadow color: Auto: black for a shadow, the accent for a glow.
-  - x-group="Shadow", x-options="colors", x-emptyLabel="Auto", x-showIf={"overrideShadow":true,"shadow":{"not":"none"}}
+  - Shadow color: Auto: the theme's accent.
+  - x-group="Shadow", x-options="colors", x-emptyLabel="Auto", x-showIf={"overrideShadow":true,"shadow":true}
   - read: `barConfig.shadowColor`, entry field, name match · in: `config/Bar.qml`
 - **`Bars[].shadowSize`** · integer = 12 · 2–64 · px
   - Shadow size
-  - x-group="Shadow", x-control="stepper", x-beside=true, x-showIf={"overrideShadow":true,"shadow":{"not":"none"}}
+  - x-group="Shadow", x-control="stepper", x-beside=true, x-showIf={"overrideShadow":true,"shadow":true}
   - read: `Bar.savedBars` (whole), `barConfig.shadowSize` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
 
 ### Reader members
@@ -210,7 +214,7 @@ Every public member of `Bar`, with the files that use it.
   - in: only inside the reader
 - `Bar.autoColorFields` (var): Each widget type's Auto color fields: { type: { key: role } }
   - in: only inside the reader
-- `Bar.shadowBaseColor(look)`: The color of a shadow: `shadow`/`shadowColor` as a bar's look or the BarStyle section has them.
+- `Bar.shadowBaseColor(look)`: The color of a shadow: `shadowColor` as a bar's look or the BarStyle section has it.
   - in: `config/WindowLookConfig.qml`
 - `Bar.shadowColor(look)`: What a shadow is drawn in (shadowBaseColor).
   - in: `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`

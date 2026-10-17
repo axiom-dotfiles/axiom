@@ -24,7 +24,7 @@ How the chrome's translucent surfaces share one blurred backing window, how thei
   - Its order (see `docs/dev/generated/layers.md`) puts it after the overlay and before every surface it draws for, and it maps without Hyprland's animation.
   - Its blur rule never uses xray (`HyprLua.blurOverOverlay`): what it blurs is the overlay.
 - Only the Overlay-layer shapes move up. Drawn over the Top layer, a bar's fill would cover the bar's content.
-- Each window casts only its own shapes' shadows, but cuts them by every shape on the screen (`BlurBackingWindow.cutBy`, the other window's), as the one window does. So a popout's glow never falls on the bar it's joined to.
+- Each window casts only its own shapes' shadows, but cuts them by every shape on the screen (`BlurBackingWindow.cutBy`, the other window's), as the one window does. So a popout's shadow never falls on the bar it's joined to.
 
 ### Copies
 - The copies are a keyed `ListModel` (`KeyedModel`, by `BlurShape.uid` through `BlurManager.shapeOf`), so a shape coming or going adds or removes only its own.
@@ -32,7 +32,7 @@ How the chrome's translucent surfaces share one blurred backing window, how thei
 
 ### Shadows in the blur window
 - Backed surfaces' shadows are cast there too, from the same copies.
-- Each `BlurShape` names its `shadow` (a look: BarStyle's, or its bar's). An `AttachedSurface`'s follows `castShadow`, `shadowLook`, `shadowEdge` and `shadowFalls`.
+- Each `BlurShape` names its `shadow` (a look: BarStyle's, or its bar's). An `AttachedSurface`'s follows `castShadow` and `shadowLook`.
 - The copies are grouped by look and by the way it falls (`BlurBacking.shadowKey`).
 - Each group casts one `SurfaceShadow` cut by every shape on the screen:
   - a shadow runs unbroken round joined surfaces;

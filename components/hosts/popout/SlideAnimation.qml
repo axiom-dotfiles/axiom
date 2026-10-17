@@ -26,8 +26,8 @@ Item {
 
   default property alias content: contentArea.children
 
-  // Room past its bounds where its content may still draw (a shadow or
-  // glow), on every side but the one it slides in from: only that side
+  // Room past its bounds where its content may still draw (a shadow), on
+  // every side but the one it slides in from: only that side
   // is cut, hiding the content until it has slid out
   property real overflow: 0
   // Where the content is, from its place, as it slides (the blur window

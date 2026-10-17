@@ -412,7 +412,7 @@ PopoutWrapperBase {
       const content = root.vertical ? (root.contentItem?.implicitWidth ?? 0) : (root.contentItem?.implicitHeight ?? 0);
       // (a submenu's stretch as it will be, not as it animates there)
       const surfaceDepth = (root.vertical ? surface.implicitWidth : surface.implicitHeight) - slot.shownStretchAcross + slot.stretchAcross;
-      // and room for the shadow or glow it casts (SurfaceShadow)
+      // and room for the shadow it casts (SurfaceShadow)
       const own = surfaceDepth + Math.max(0, root.maxContentDepth - content) + surface.shadowReach;
       if (!root.roomForSubmenus || root.vertical)
         return own;

@@ -301,7 +301,7 @@ PopoutWrapperBase {
   }
   // The room past the drawn box, on the side away from the bar: the
   // window's depth stays put while the box animates within it
-  // (and room for the shadow or glow the surface casts, see SurfaceShadow)
+  // (and room for the shadow the surface casts, see SurfaceShadow)
   readonly property real spareAcross: Math.max(0, Math.max(root._peakAcross, root._declaredAcross, root._boxAcross) - root._shownBoxAcross) + surface.shadowReach
   // On a bottom or right bar the room lies before the surface
   readonly property bool spareBefore: root.barConfig.vertical ? root.barConfig.right : root.barConfig.bottom

@@ -59,7 +59,7 @@ Dependencies point one way, methods → data owners → readers → services →
 - [registry](popouts/registry.md): `PopoutManager` claims, footprints, ranks, residents.
 - [hosts-and-switching](popouts/hosts-and-switching.md): host pieces, bar popout window sizing, switching in place, screen-edge popouts.
 - [submenus](popouts/submenus.md): one-level submenus and how they join their parent.
-- [shadows](popouts/shadows.md): shadow and glow for every surface.
+- [shadows](popouts/shadows.md): the shadow every surface casts.
 - [pill-and-floating-bars](popouts/pill-and-floating-bars.md): popouts on floating, pill and transparent bars.
 - [held-off-edge](popouts/held-off-edge.md): detached islands (edge menus, docks, OSDs) and fullscreen hold.
 

@@ -38,7 +38,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### SwayFX blurs a floating popout's shadow halo
 - **Where:** `components/hosts/popout/FloatingPopout.qml` (its `SurfaceShadow`), `components/methods/LayerStack.qml` (`blurSurfaces`: `floating-popout`)
-- **What:** The floating popout blurs its own window and casts its shadow inside it. SwayFX's `blur_ignore_transparent` blurs every pixel that isn't fully clear, so its glow or shadow shows as a frosted band (Hyprland's `ignore_alpha` leaves it out). The chrome's shadows are cast from a window apart on SwayFX (`axiom-shadows`); this one would need the same, or its shadow off there.
+- **What:** The floating popout blurs its own window and casts its shadow inside it. SwayFX's `blur_ignore_transparent` blurs every pixel that isn't fully clear, so its shadow shows as a frosted band (Hyprland's `ignore_alpha` leaves it out). The chrome's shadows are cast from a window apart on SwayFX (`axiom-shadows`); this one would need the same, or its shadow off there.
 - **Size:** small
 - **Found:** 2026-10-17, while fixing the chrome's shadows on SwayFX
 

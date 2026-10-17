@@ -22,7 +22,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `Appearance.borderWidth` · in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/bar/WidgetBackground.qml`, `components/content/AudioMixer.qml`, `components/content/ColorSwatch.qml`, `components/content/Greeting.qml`, `components/content/Login.qml`, `components/content/Network.qml`, `components/content/NightLightControls.qml`, `components/content/NowPlaying.qml`, `components/content/Palette.qml`, `components/content/Password.qml`, `components/content/Session.qml` (+64 more)
 - **`Appearance.shape.screenBorder`** · boolean = true
   - Screen border: Draw a frame around the screen edges.
-  - read: `Appearance.screenBorder` · in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/SubPopout.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`, `shell/ScreenBorder.qml`
+  - read: `Appearance.screenBorder` · in: `components/bar/BarContainer.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`, `shell/ScreenBorder.qml`
 - **`Appearance.shape.screenMargin`** · integer = 8 · 0–100 · px
   - Screen margin: Width of the screen frame, and the gap kept from the screen edges (px).
   - x-control="stepper"

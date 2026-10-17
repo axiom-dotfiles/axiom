@@ -82,7 +82,6 @@ Item {
     shown: root.backed
     // Cast evenly, inward, by the blur window in place of shadowWindow's
     shadow: BarStyle.values
-    shadowFalls: false
   }
 
   // An edge strip per side
@@ -102,7 +101,7 @@ Item {
     }
   }
 
-  // The border's shadow or glow (the BarStyle section's, as the bars
+  // The border's shadow (the BarStyle section's, as the bars
   // cast): the frame's shape blurred and kept only inside it, so it falls
   // on the windows all the way round. One window over the whole screen,
   // so it runs unbroken past the strips and corners. Its layer rule
@@ -134,7 +133,7 @@ Item {
       id: shadowSlot
       window: shadowWindow
       namespace: "axiom-border-shadow"
-      wanted: shadowWindow.look.shadow !== "none"
+      wanted: shadowWindow.look.shadow
       held: true
     }
     screen: root.screen
