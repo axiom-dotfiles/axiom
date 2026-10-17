@@ -13,51 +13,51 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Niri.centerFocusedColumn`** · string = "never" · enum never|always|on-overflow
   - Center the focused column
-  - x-group="Layout", x-niri="layout.center-focused-column"
+  - x-niri="layout.center-focused-column"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.alwaysCenterSingleColumn`** · boolean = false
   - Center a lone column: A column alone on its workspace sits in the middle.
-  - x-group="Layout", x-niri="layout.always-center-single-column", x-niriValue="flag"
+  - x-niri="layout.always-center-single-column", x-niriValue="flag"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.emptyWorkspaceAboveFirst`** · boolean = false
   - Empty workspace above the first: Keeps an empty workspace above the first one, as well as below the last.
-  - x-group="Layout", x-niri="layout.empty-workspace-above-first", x-niriValue="flag"
+  - x-niri="layout.empty-workspace-above-first", x-niriValue="flag"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.defaultColumnDisplay`** · string = "normal" · enum normal|tabbed
   - New columns show
-  - x-group="Layout", x-niri="layout.default-column-display"
+  - x-niri="layout.default-column-display"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.hotCorner`** · boolean = false
   - Top-left corner opens niri's overview: Pushing the cursor into the top-left corner opens niri's own overview.
-  - x-group="Overview", x-niri="gestures.hot-corners.off", x-niriValue="offFlag"
+  - x-niri="gestures.hot-corners.off", x-niriValue="offFlag"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.overviewZoom`** · integer = 50 · 10–75 · %
   - Overview zoom: How large workspaces show in niri's overview.
-  - x-group="Overview", x-niri="overview.zoom", x-niriScale=0.01, x-niriValue="float"
+  - x-niri="overview.zoom", x-niriScale=0.01, x-niriValue="float"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.animations`** · boolean = true
   - Animations
-  - x-group="Animations", x-niri="animations.off", x-niriValue="offFlag"
+  - x-niri="animations.off", x-niriValue="offFlag"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.animationSlowdown`** · integer = 100 · 10–1000 · %
   - Animation length: 100 is niri's own speed; more is slower.
-  - x-group="Animations", x-showIf={"animations":true}, x-niri="animations.slowdown", x-niriScale=0.01, x-niriValue="float", x-niriSkip=100
+  - x-showIf={"animations":true}, x-niri="animations.slowdown", x-niriScale=0.01, x-niriValue="float", x-niriSkip=100
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.preferNoCsd`** · boolean = false
-  - Ask apps not to draw their own title bars: Apps that agree draw no title bar or window shadow of their own.
-  - x-group="Behaviour", x-niri="prefer-no-csd", x-niriValue="flag"
+  - No title bars on windows: Asks apps to leave out their own title bar (with its close and maximize buttons) and window shadow. Apps that don't agree keep theirs; open ones change once restarted.
+  - x-niri="prefer-no-csd", x-niriValue="flag"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.skipHotkeyOverlay`** · boolean = true
   - Skip the hotkey help at start: niri's list of important keys shows when it starts; axiom's binds aren't niri's.
-  - x-group="Behaviour", x-niri="hotkey-overlay.skip-at-startup", x-niriValue="flag"
+  - x-niri="hotkey-overlay.skip-at-startup", x-niriValue="flag"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.primaryClipboard`** · boolean = true
   - Middle-click paste: Selected text pastes with the middle mouse button.
-  - x-group="Behaviour", x-niri="clipboard.disable-primary", x-niriValue="offFlag"
+  - x-niri="clipboard.disable-primary", x-niriValue="offFlag"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.xwayland`** · boolean = true
   - X11 apps (xwayland-satellite): Runs X11 apps through xwayland-satellite, when it's installed.
-  - x-group="Behaviour", x-niri="xwayland-satellite.off", x-niriValue="offFlag"
+  - x-niri="xwayland-satellite.off", x-niriValue="offFlag"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 
 ### Reader members

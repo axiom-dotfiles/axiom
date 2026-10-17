@@ -41,19 +41,19 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.mouse`** · boolean = false
   - Set the mouse: Acceleration, speed and buttons. Off, your compositor's own config applies.
-  - x-greeter=true, x-group="Mouse"
+  - x-greeter=true, x-group="Mouse & cursor"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.accelProfile`** · string = "default" · enum default|flat|adaptive
   - Pointer acceleration
-  - x-greeter=true, x-group="Mouse", x-hypr="input.accel_profile", x-hyprValue="emptyIsDefault", x-sway="input type:pointer accel_profile {}", x-niri="input.mouse.accel-profile", x-niriSkip="default", x-swaySkip="default", x-showIf={"mouse":true}, x-hyprIf="mouse"
+  - x-greeter=true, x-group="Mouse & cursor", x-hypr="input.accel_profile", x-hyprValue="emptyIsDefault", x-sway="input type:pointer accel_profile {}", x-niri="input.mouse.accel-profile", x-niriSkip="default", x-swaySkip="default", x-showIf={"mouse":true}, x-hyprIf="mouse"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.sensitivity`** · integer = 0 · -100–100
   - Pointer speed: -100 to 100; 0 leaves it as the device reports.
-  - x-greeter=true, x-group="Mouse", x-hypr="input.sensitivity", x-hyprScale=0.01, x-sway="input type:pointer pointer_accel {}", x-niri="input.mouse.accel-speed", x-niriScale=0.01, x-niriValue="float", x-swayScale=0.01, x-showIf={"mouse":true}, x-hyprIf="mouse"
+  - x-greeter=true, x-group="Mouse & cursor", x-hypr="input.sensitivity", x-hyprScale=0.01, x-sway="input type:pointer pointer_accel {}", x-niri="input.mouse.accel-speed", x-niriScale=0.01, x-niriValue="float", x-swayScale=0.01, x-showIf={"mouse":true}, x-hyprIf="mouse"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.leftHanded`** · boolean = false
   - Left-handed buttons
-  - x-greeter=true, x-group="Mouse", x-hypr="input.left_handed", x-sway="input type:pointer left_handed {}", x-niri="input.mouse.left-handed", x-niriValue="flag", x-swayValue="enabled", x-showIf={"mouse":true}, x-hyprIf="mouse"
+  - x-greeter=true, x-group="Mouse & cursor", x-hypr="input.left_handed", x-sway="input type:pointer left_handed {}", x-niri="input.mouse.left-handed", x-niriValue="flag", x-swayValue="enabled", x-showIf={"mouse":true}, x-hyprIf="mouse"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.touchpad`** · boolean = false
   - Set the touchpad: Off, your compositor's own config applies.
@@ -77,15 +77,15 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.cursor`** · boolean = false
   - Set the cursor: An installed cursor theme and its size. Off, the cursor is left alone.
-  - x-greeter=true, x-group="Cursor"
+  - x-greeter=true, x-group="Mouse & cursor"
   - read: `InputConfig.input` (whole) · in: `services/CompositorConfigManager.qml`
 - **`Input.cursorTheme`** · string = ""
   - Cursor theme: An installed cursor theme.
-  - x-greeter=true, x-group="Cursor", x-options="cursorThemes", x-showIf={"cursor":true}
+  - x-greeter=true, x-group="Mouse & cursor", x-options="cursorThemes", x-showIf={"cursor":true}
   - read: `InputConfig.cursorTheme` · in: `services/SettingsManager.qml`
 - **`Input.cursorSize`** · integer = 24 · 8–128
   - Cursor size
-  - x-greeter=true, x-control="stepper", x-group="Cursor", x-showIf={"cursor":true}
+  - x-greeter=true, x-control="stepper", x-group="Mouse & cursor", x-showIf={"cursor":true}
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 
 ### Reader members

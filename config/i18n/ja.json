@@ -2876,8 +2876,6 @@
     "Acceleration, speed and buttons. Off, your compositor's own config applies.": "加速、速度、ボタン。オフではコンポジター自身の設定が適用されます。",
     "Off, your compositor's own config applies.": "オフではコンポジター自身の設定が適用されます。",
     "An installed cursor theme and its size. Off, the cursor is left alone.": "インストール済みのカーソルテーマとサイズ。オフではカーソルを変更しません。",
-    "Cursor": "カーソル",
-    "Mouse": "マウス",
     "Set the mouse": "マウスを設定",
     "Variables recommended on Wayland: GTK, Qt, Clutter and Electron apps run on Wayland (falling back to X11 where they can), Qt scales by pixel density and leaves window decorations to the compositor. Your own below win over them.": "Wayland で推奨される変数：GTK、Qt、Clutter、Electron アプリを Wayland で動かし（可能なら X11 にフォールバック）、Qt はピクセル密度で拡大し、ウィンドウ装飾はコンポジターに任せます。下の自分の変数が優先されます。",
     "Commands run once when the compositor starts, after axiom.": "コンポジターの起動時に、axiom の後で一度実行するコマンド。",
@@ -3041,7 +3039,6 @@
     "niri's own options, written while axiom manages its config. Anything else goes in ~/.config/niri/user/.": "axiom が設定を管理している間に書き込まれる niri 独自のオプション。その他の設定は ~/.config/niri/user/ に置きます。",
     "Runs X11 apps through xwayland-satellite, when it's installed.": "xwayland-satellite がインストールされていれば、それを通して X11 アプリを実行します。",
     "on-overflow": "はみ出すとき",
-    "Overview": "オーバービュー",
     "Windows stacked": "ウィンドウを積み重ね",
     "Top-left corner opens niri's overview": "左上の角で niri のオーバービューを開く",
     "niri's list of important keys shows when it starts; axiom's binds aren't niri's.": "niri は起動時に主要なキーの一覧を表示します。axiom のキー割り当ては niri のものとは異なります。",
@@ -3051,7 +3048,6 @@
     "never": "しない",
     "New columns show": "新しい列の表示",
     "Selected text pastes with the middle mouse button.": "選択したテキストをマウスの中ボタンで貼り付けます。",
-    "Ask apps not to draw their own title bars": "アプリに独自のタイトルバーを描かないよう求める",
     "normal": "通常",
     "Empty workspace above the first": "最初のワークスペースの上に空のワークスペース",
     "Overview zoom": "オーバービューの拡大率",
@@ -3060,7 +3056,6 @@
     "Middle-click paste": "中クリックで貼り付け",
     "X11 apps (xwayland-satellite)": "X11 アプリ (xwayland-satellite)",
     "A column alone on its workspace sits in the middle.": "ワークスペースに一つだけの列は中央に置かれます。",
-    "Apps that agree draw no title bar or window shadow of their own.": "応じたアプリは独自のタイトルバーやウィンドウの影を描きません。",
     "Pushing the cursor into the top-left corner opens niri's own overview.": "カーソルを左上の角に押し込むと niri 独自のオーバービューが開きます。",
     "Windows as tabs": "ウィンドウをタブで",
     "Animation length": "アニメーションの長さ",
@@ -3071,6 +3066,8 @@
     "{0} doesn't start axiom with the session. Add near the top of {1}:": "{0} はセッション開始時に axiom を起動しません。{1} の先頭付近に追加してください:",
     "{0} doesn't start axiom with the session. Add at the end of {1}:": "{0} はセッション開始時に axiom を起動しません。{1} の末尾に追加してください:",
     "Hover": "ホバー",
-    "A cell's box under the pointer. Auto: the theme's highlight.": "ポインター下のセルの背景。自動：テーマのハイライト。"
+    "A cell's box under the pointer. Auto: the theme's highlight.": "ポインター下のセルの背景。自動：テーマのハイライト。",
+    "No title bars on windows": "ウィンドウのタイトルバーなし",
+    "Asks apps to leave out their own title bar (with its close and maximize buttons) and window shadow. Apps that don't agree keep theirs; open ones change once restarted.": "アプリに独自のタイトルバー（閉じる・最大化ボタン付き）とウィンドウの影を省くよう求めます。応じないアプリはそのままです。開いているアプリは再起動後に変わります。"
   }
 }
