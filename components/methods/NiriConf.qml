@@ -94,11 +94,16 @@ QtObject {
   }
 
   // `nodes` with sections of the same name joined, in place of the first
-  // (nodes that may repeat, like window-rule or output, stay apart)
+  // (nodes that may repeat, like window-rule or output, and raw text, stay
+  // apart)
   function merged(nodes) {
     const repeating = ["window-rule", "layer-rule", "output", "spawn-at-startup", "spawn-sh-at-startup", "workspace", "include"];
     const out = [];
     for (const n of nodes ?? []) {
+      if (n.raw !== undefined) {
+        out.push(n);
+        continue;
+      }
       const same = n.children !== null && !repeating.includes(n.name) ? out.find(o => o.name === n.name && o.children !== null) : null;
       if (!same) {
         out.push(n.children !== null ? node(n.name, n.args, n.props, n.children.slice()) : n);
@@ -419,10 +424,6 @@ QtObject {
   function _niriArgs(fieldSchema, value) {
     if (fieldSchema["x-niriSkip"] !== undefined && value === fieldSchema["x-niriSkip"])
       return null;
-    if (fieldSchema["x-niriMap"] !== undefined) {
-      const mapped = fieldSchema["x-niriMap"][String(value)];
-      return mapped === undefined || mapped === null ? null : [mapped];
-    }
     if (fieldSchema["x-niriValue"] === "flag")
       return value ? [] : null;
     if (fieldSchema["x-niriValue"] === "offFlag")

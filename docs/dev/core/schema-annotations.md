@@ -106,14 +106,14 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-swayScale`: a factor, as `x-hyprScale`.
 - `x-swaySkip`: a value written as nothing (sway's own default stays), e.g. `"default"`.
 - `x-swayConfigOnly: true`: sway takes the command only from a config file (`xkb_numlock`): left out of what's sent at runtime.
+- Details: [Sway backend](../compositor/sway-backend.md).
 
 ### niri config nodes (`x-niri*`, `methods/NiriConf`)
 - `x-niri`: the dotted path of the node in niri's config (`"input.keyboard.repeat-rate"`, `"layout.default-column-width.proportion"`), its value the node's argument. Written under the same rules as `x-hypr` (`CompositorLayer.annotatedFields`): when its `x-hyprIf` sibling is on, else once changed from the default; a managed config's options every one.
 - `x-niriValue`: `"flag"` (a boolean as the node alone when on, left out when off: niri has no `false` for a flag), `"offFlag"` (the node alone when off, for a setting niri turns off with a flag: `animations.off`, `gestures.hot-corners.off`) or `"float"` (written with a point, where niri wants a float).
 - `x-niriScale`: a factor, as `x-hyprScale`.
 - `x-niriSkip`: a value written as nothing (niri's own default stays), e.g. `"default"` or `0`.
-- `x-niriMap`: `{ value: niri's argument }` for an enum whose names differ; a value missing from it is left out.
-- Details: [Sway backend](../compositor/sway-backend.md).
+- Details: [niri backend](../compositor/niri-backend.md).
 
 - `x-greeter: true` on an `Input` option: the greeter's Hyprland takes it (`methods/GreeterBundle`). See [Greeter install](../features/greeter-install.md).
 - Details: [Hyprland config modes](../hyprland/config-modes.md), [Window look](../compositor/window-look.md).
