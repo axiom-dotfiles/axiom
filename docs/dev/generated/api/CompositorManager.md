@@ -22,6 +22,7 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 - `splitWidthMultiplier` (readonly real): A tiled box wider than tall times this splits side by side
 - `surfacesReady` (readonly bool): Whether surfaces with a fixed stacking order (bars, border, docks, edge menus, the desktop) may map yet: the backend's stacking is in
 - `focused` (readonly var): The focused output, or null
+- `perMonitorBlocks` (readonly bool): Whether each output has a block of ids of its own: the grid and perMonitor layouts, and every layout where the compositor's workspaces belong to an output (supports.outputWorkspaces: niri's), as the …
 
 ### Signals
 
@@ -64,7 +65,7 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 - `goToWorkspace(id, mode, output, focusId)`: Goes to workspace `id`. mode: "go" (default), "move" (taking the focused window along) or "moveSilent" (sending it there, staying put).
 - `stepWorkspace(direction, mode)`: One step left/right/up/down from the current workspace: within the output's grid, or through 1..count in the standard layout (where up is previous and down next).
 - `nthWorkspace(n, mode)`: The n-th workspace (1-based) of the current row in a grid or perMonitor layout, or workspace n in the standard layout (number keybinds)
-- `stripDirection(screenName)`: "horizontal" | "vertical" on a strip monitor (its name), else "", always "" where the compositor has no strips (a config from Hyprland may still list them)
+- `stripDirection(screenName)`: "horizontal" | "vertical" on a strip monitor (its name), else "", always "" where the compositor has no strips (a config from Hyprland may still list them), always "horizontal" where it has nothing e…
 - `stepStrip(direction, output)`: Scrolls the strip of an output's active workspace a column on (1) or back (-1).
 - `workspaceBase(output)`: First workspace id an output (its name) shows: 1 in the standard layout, else its block's (grid/perMonitor, one block per output in a stable order — the primary first, then the rest by a description-…
 - `workspaceIds(output)`: The workspace ids an output (its name) shows, in order

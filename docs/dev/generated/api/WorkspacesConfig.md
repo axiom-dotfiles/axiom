@@ -25,4 +25,3 @@ Reader for the Workspaces section: the workspace layout the bar widget, the over
 ### Functions
 
 - `stripDirection(screenName)`: The strip direction of the monitor named `screenName`, "" when it tiles
-- `baseFor(monitorIndex)`: First id of the monitor at `monitorIndex` (a stable order, see CompositorManager.workspaceBase)

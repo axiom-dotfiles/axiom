@@ -15,7 +15,8 @@ One workspace layout serves everything that shows workspaces or moves between th
 - `standard`: ids 1..`count`, shared by every monitor.
 - `perMonitor`: each monitor gets its own block of `count` ids.
 - `grid`: each monitor gets a block of `columns × rows` ids.
-- Blocks are numbered in a stable monitor order (`WorkspaceGeometry.orderMonitors`: the primary first, then by output identity). `WorkspacesConfig.baseFor(index)` gives a block's first id.
+- Blocks are numbered in a stable monitor order (`WorkspaceGeometry.orderMonitors`: the primary first, then by output identity). `WorkspaceGeometry.blockBases` gives each output's first id.
+- Where the compositor's workspaces belong to an output (`supports.outputWorkspaces`, niri), every layout gets blocks, `standard` too (`CompositorManager.perMonitorBlocks`), and nothing is remapped.
 - Nothing else holds a workspace count or grid size.
 
 ### Ids

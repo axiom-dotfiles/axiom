@@ -196,6 +196,54 @@ TestCase {
     compare([middle.left, middle.right, middle.top, middle.bottom], [false, false, true, false]);
   }
 
+  function test_stripOrderByColumn() {
+    // niri says the column and the place in it; positions are unknown (0)
+    const wins = [
+      {
+        "id": "b",
+        "column": 2,
+        "tile": 1
+      },
+      {
+        "id": "a2",
+        "column": 1,
+        "tile": 2
+      },
+      {
+        "id": "float",
+        "floating": true
+      },
+      {
+        "id": "a1",
+        "column": 1,
+        "tile": 1
+      }
+    ];
+    compare(WorkspaceGeometry.stripOrder(wins, false).map(w => w.id), ["a1", "a2", "b", "float"]);
+  }
+
+  function test_blockBases() {
+    const outputs = [
+      {
+        "name": "HDMI-A-1",
+        "description": "c"
+      },
+      {
+        "name": "DP-1",
+        "description": "a"
+      }
+    ];
+    compare(WorkspaceGeometry.blockBases(outputs, "", 10), {
+      "DP-1": 1,
+      "HDMI-A-1": 11
+    });
+    compare(WorkspaceGeometry.blockBases(outputs, "HDMI-A-1", 5), {
+      "HDMI-A-1": 1,
+      "DP-1": 6
+    });
+    compare(WorkspaceGeometry.blockBases([], "", 5), {});
+  }
+
   function test_orderMonitors_primary_first_then_by_key() {
     const monitors = [
       {

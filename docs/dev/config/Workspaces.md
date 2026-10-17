@@ -13,7 +13,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Workspaces.layout`** · string = "perMonitor" · enum standard|perMonitor|grid
   - Layout: Standard: workspaces 1 to N, shared by every monitor. Per monitor: each monitor has its own 1 to N workspaces. Grid: each monitor has its own columns × rows workspaces. Per monitor and grid assign monitors a stable order (the primary monitor first, then the rest by their monitor identity), so a hotplug or Hyprland restart can't reshuffle which monitor owns which ids.
-  - read: `WorkspacesConfig.layout`, `WorkspacesConfig.grid` (computed), `WorkspacesConfig.perMonitorBlocks` (computed) · in: `components/bar/widgets/Workspaces.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `components/surfaces/workspaces/OverviewGrid.qml`, `services/CompositorManager.qml`, `services/KeybindManager.qml`
+  - read: `WorkspacesConfig.layout`, `WorkspacesConfig.grid` (computed), `WorkspacesConfig.perMonitorBlocks` (computed) · in: `components/bar/widgets/Workspaces.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorManager.qml`, `services/KeybindManager.qml`
 - **`Workspaces.count`** · integer = 10 · 1–30
   - Workspaces
   - x-control="stepper", x-showIf={"layout":["standard","perMonitor"]}
@@ -68,7 +68,7 @@ Every public member of `WorkspacesConfig`, with the files that use it.
 - `WorkspacesConfig.grid` (bool)
   - in: `components/bar/widgets/Workspaces.qml`, `services/CompositorManager.qml`, `services/KeybindManager.qml`
 - `WorkspacesConfig.perMonitorBlocks` (bool): True when each monitor gets its own block of ids (grid or perMonitor) instead of sharing 1..count (standard).
-  - in: `components/surfaces/workspaces/OverviewGrid.qml`, `services/CompositorManager.qml`
+  - in: `services/CompositorManager.qml`
 - `WorkspacesConfig.count` (int)
   - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`
 - `WorkspacesConfig.columns` (int)
@@ -92,6 +92,4 @@ Every public member of `WorkspacesConfig`, with the files that use it.
 - `WorkspacesConfig.stripOptions` (var): The strip settings Hyprland takes (HyprLua.stripsLua)
   - in: `services/HyprlandConfigWriter.qml`
 - `WorkspacesConfig.stripDirection(screenName)`: The strip direction of the monitor named `screenName`, "" when it tiles
-  - in: `services/CompositorManager.qml`
-- `WorkspacesConfig.baseFor(monitorIndex)`: First id of the monitor at `monitorIndex` (a stable order, see CompositorManager.workspaceBase)
   - in: `services/CompositorManager.qml`

@@ -367,7 +367,7 @@ Singleton {
     output = output || root.focusedOutput;
     const base = workspaceBase(output);
     const size = WorkspacesConfig.size;
-    if (WorkspacesConfig.perMonitorBlocks && (id < base || id >= base + size)) {
+    if (root.perMonitorBlocks && (id < base || id >= base + size)) {
       if (focusId)
         root.backend.activateWindow(focusId);
       else
@@ -455,7 +455,7 @@ Singleton {
   // The n-th workspace (1-based) of the current row in a grid or perMonitor
   // layout, or workspace n in the standard layout (number keybinds)
   function nthWorkspace(n, mode) {
-    if (!WorkspacesConfig.perMonitorBlocks) {
+    if (!root.perMonitorBlocks) {
       goToWorkspace(n, mode);
       return;
     }
@@ -469,8 +469,11 @@ Singleton {
 
   // "horizontal" | "vertical" on a strip monitor (its name), else "",
   // always "" where the compositor has no strips (a config from Hyprland
-  // may still list them)
+  // may still list them), always "horizontal" where it has nothing else
   function stripDirection(screenName) {
+    // Every output is a strip where the compositor only scrolls (niri)
+    if (root.supports.stripsAlways === true)
+      return "horizontal";
     return root.supports.strips ? WorkspacesConfig.stripDirection(screenName) : "";
   }
 
@@ -504,11 +507,15 @@ Singleton {
   // identity that survives a port change — not the compositor's discovery
   // order, which can reshuffle on a hotplug/reconnect/restart)
   function workspaceBase(output) {
-    if (!WorkspacesConfig.perMonitorBlocks)
-      return WorkspacesConfig.baseFor(0);
-    const index = _orderedOutputs().findIndex(o => o.name === output);
-    return WorkspacesConfig.baseFor(index >= 0 ? index : 0);
+    return root.perMonitorBlocks ? (root._bases[output] ?? 1) : 1;
   }
+
+  // Whether each output has a block of ids of its own: the grid and
+  // perMonitor layouts, and every layout where the compositor's workspaces
+  // belong to an output (supports.outputWorkspaces: niri's), as the
+  // standard layout's shared ids can't
+  readonly property bool perMonitorBlocks: WorkspacesConfig.perMonitorBlocks || root.supports.outputWorkspaces === true
+  readonly property var _bases: WorkspaceGeometry.blockBases(root.outputs, General.primaryMonitor, WorkspacesConfig.size)
 
   // The workspace ids an output (its name) shows, in order
   function workspaceIds(output) {
@@ -573,7 +580,8 @@ Singleton {
   // remapWorkspaces), and switches each output to the workspace matching
   // the one it showed (the backend's applyRemap)
   function _remapWorkspaces(from, to) {
-    if (!root.backend)
+    // Workspaces that belong to their output keep their place in it
+    if (!root.backend || root.supports.outputWorkspaces === true)
       return;
     const windows = root.windows.map(w => ({
           "id": w.id,

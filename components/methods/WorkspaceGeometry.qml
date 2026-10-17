@@ -93,7 +93,10 @@ QtObject {
     const along = vertical ? "y" : "x";
     const across = vertical ? "x" : "y";
     const place = (win, axis) => win[axis] ?? 0;
-    const tiled = wins.filter(win => !win.floating).sort((a, b) => place(a, along) - place(b, along) || place(a, across) - place(b, across));
+    // Where the compositor says which column a window is in, and its place
+    // there (niri), that's the order; else it comes from where they are
+    const placed = (a, b) => a.column !== undefined && b.column !== undefined;
+    const tiled = wins.filter(win => !win.floating).sort((a, b) => placed(a, b) ? a.column - b.column || (a.tile ?? 0) - (b.tile ?? 0) : place(a, along) - place(b, along) || place(a, across) - place(b, across));
     return tiled.concat(wins.filter(win => win.floating));
   }
 
@@ -231,6 +234,21 @@ QtObject {
     const rest = list.filter(m => !isPrimary(m));
     rest.sort((a, b) => String(a.key ?? a.name).localeCompare(String(b.key ?? b.name)));
     return primary.concat(rest);
+  }
+
+  // Each output's first workspace id ({ [name]: id }) when every output
+  // owns a block of `size` ids, blocks in monitor order (orderMonitors,
+  // keyed by MonitorLayout.outputId). outputs: [{ name, description }]
+  function blockBases(outputs, primaryName, size) {
+    const list = outputs ?? [];
+    const keyed = list.map(o => ({
+          "name": o.name,
+          "key": MonitorLayout.outputId(o, list)
+        }));
+    return root.orderMonitors(keyed, primaryName).reduce((bases, o, i) => {
+      bases[o.name] = i * size + 1;
+      return bases;
+    }, {});
   }
 
   // Where windows go when the workspace layout changes (CompositorManager's
