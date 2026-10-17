@@ -162,6 +162,15 @@ TestCase {
     compare(state.workspaces["2"].is_active, true);
     compare(state.workspaces["2"].is_focused, true);
     compare(state.workspaces["1"].is_focused, false);
+    // A workspace the switch doesn't change stays the same object
+    const before = state;
+    state = NiriState.reduce(state, {
+      "WorkspaceActivated": {
+        "id": 2,
+        "focused": false
+      }
+    });
+    verify(state.workspaces["1"] === before.workspaces["1"]);
     state = NiriState.reduce(state, {
       "WindowFocusChanged": {
         "id": null

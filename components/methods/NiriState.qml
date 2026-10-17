@@ -19,7 +19,6 @@ QtObject {
       "workspaces": ({}),
       "windows": ({}),
       "keyboard": null,
-      "overview": false,
       "configFailed": false
     };
   }
@@ -35,15 +34,15 @@ QtObject {
       next.workspaces = root._byId(e.workspaces);
       return next;
     case "WorkspaceActivated":
+      // Only what changes: a workspace left as it was stays the same object
       next.workspaces = root._mapValues(state.workspaces, ws => {
         const changes = {};
-        if (ws.id === e.id)
-          changes.is_active = true;
-        else if (ws.output === state.workspaces[String(e.id)]?.output)
-          changes.is_active = false;
-        if (e.focused)
+        const active = ws.id === e.id ? true : ws.output === state.workspaces[String(e.id)]?.output ? false : ws.is_active;
+        if (active !== ws.is_active)
+          changes.is_active = active;
+        if (e.focused && ws.is_focused !== (ws.id === e.id))
           changes.is_focused = ws.id === e.id;
-        return changes;
+        return Object.keys(changes).length > 0 ? changes : null;
       });
       return next;
     case "WorkspaceActiveWindowChanged":
@@ -105,9 +104,6 @@ QtObject {
       next.keyboard = state.keyboard ? Object.assign({}, state.keyboard, {
         "current_idx": e.idx
       }) : null;
-      return next;
-    case "OverviewOpenedOrClosed":
-      next.overview = e.is_open === true;
       return next;
     case "ConfigLoaded":
       next.configFailed = e.failed === true;
