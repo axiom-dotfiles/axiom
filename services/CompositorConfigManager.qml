@@ -25,7 +25,9 @@ import qs.components.methods
  * still works, and `problem` says why.
  * The window look, the input and the blur behind axiom's surfaces are also
  * evaluated after every config reload in each mode, so they win over the
- * user's own config while they're on (_applyLive).
+ * user's own config while they're on (_applyLive). A compositor taking
+ * nothing at runtime (niri: the writer's `liveByFile`) gets them in its
+ * files instead, rewritten as they change, which it reloads by itself.
  */
 Singleton {
   id: root
@@ -129,7 +131,9 @@ Singleton {
   // --- Files (included, managed) ---
 
   // Writes `text` to `path` unless it's already there; then reloads the
-  // compositor, which doesn't watch files a config loads
+  // compositor, which doesn't watch files a config loads. A writer that
+  // can check its text first (`validate`) leaves the file as it was when
+  // the compositor would refuse it, and says why (`problem`).
   function _writeIfChanged(path, text) {
     if (FileManager.read(path) === text) {
       _checkLoaded();
@@ -139,6 +143,25 @@ Singleton {
       _applyLive();
       return;
     }
+    if (!root.writer.validate) {
+      _write(path, text);
+      return;
+    }
+    // Checks finish in any order: only the last asked for is written
+    const asked = ++_writes;
+    root.writer.validate(text, error => {
+      if (asked !== root._writes)
+        return;
+      if (error)
+        root._warnOnce(root.writer.invalidProblem(error));
+      else
+        root._write(path, text);
+    });
+  }
+
+  property int _writes: 0
+
+  function _write(path, text) {
     CommandManager.run(["mkdir", "-p", path.replace(/\/[^/]*$/, "")], code => {
       if (code !== 0) {
         console.warn("[CompositorConfigManager] Could not create the folder for", path);
@@ -158,16 +181,24 @@ Singleton {
       root._checking = false;
       if (root.mode === "detached")
         return;
+      // The compositor couldn't load its config at all: the runtime layer
+      // wouldn't load either
+      if (loaded === "failed") {
+        root._warnOnce(root.writer.failedProblem);
+        return;
+      }
       if (loaded) {
         root._problem = "";
         root._loaded = true;
         root.writer.runtimeClear();
         return;
       }
-      if (root.mode === "included")
+      if (root.mode === "included") {
         root._warnOnce(root.writer.notIncludedProblem);
-      else if (root._problem === "")
+        root._notifyNotIncluded();
+      } else if (root._problem === "") {
         root._warnOnce(root.writer.notManagedProblem);
+      }
       root.writer.runtimeApply();
     });
   }
@@ -408,16 +439,55 @@ Singleton {
 
   // Once per session (it outlives a reload of the shell), with Allow on it
   function _notifyApproval() {
-    if (_session.approvalAsked)
+    _notifyOnce("approvalAsked", I18n.tr("{0} config needs your approval", CompositorManager.displayName), I18n.tr("axiom's Managed mode would take over {0}, moving your config to {1}. Until you allow it, axiom applies its settings at runtime.", Paths.shortenHome(root.managedPath), Paths.shortenHome(root.userDir)), [["allow", I18n.tr("Allow takeover"), () => root.allowTakeover()]]);
+  }
+
+  // Included mode with the module not loaded: once per session, offering
+  // to add the line (as the onboarding's Apply does, with a backup), not
+  // while the onboarding is open, which offers it itself
+  function _notifyNotIncluded() {
+    if (OnboardingManager.shown)
       return;
-    _session.approvalAsked = true;
-    // I18n.tr("Allow takeover") I18n.tr("Open settings")
-    CommandManager.run(["notify-send", "-a", "axiom", "-u", "critical", "-A", "allow=" + I18n.tr("Allow takeover"), "-A", "settings=" + I18n.tr("Open settings"), "--", I18n.tr("{0} config needs your approval", CompositorManager.displayName), I18n.tr("axiom's Managed mode would take over {0}, moving your config to {1}. Until you allow it, axiom applies its settings at runtime.", Paths.shortenHome(root.managedPath), Paths.shortenHome(root.userDir))], (code, out) => {
-      const action = out.trim();
-      if (action === "allow")
-        root.allowTakeover();
-      else if (action === "settings")
-        SettingsManager.openSection("Compositor");
+    const add = root.includeTarget ? [["add", I18n.tr("Add it for me"), () => root.addIncludeLines()]] : [];
+    _notifyOnce("includeAsked", I18n.tr("{0} doesn't load axiom's module", CompositorManager.displayName), I18n.tr("axiom's Included mode needs this in your config:\n{0}\nUntil it's there, axiom applies its settings at runtime.", root.includeLines), add);
+  }
+
+  // Adds the include lines to the user's config (the include hookup, with a
+  // backup), then reloads it so they take effect
+  function addIncludeLines() {
+    _includeAdded = true;
+    IntegrationHookupManager.apply("compositorModule");
+  }
+
+  property bool _includeAdded: false
+
+  property Connections _hookups: Connections {
+    target: root._includeAdded ? IntegrationHookupManager : null
+
+    function onResultsChanged() {
+      const results = IntegrationHookupManager.results.compositorModule;
+      if (!results)
+        return;
+      root._includeAdded = false;
+      if (results.some(result => result.changed))
+        root._reload();
+    }
+  }
+
+  // A notification sent once per session (`flag`, a property of the
+  // session's, outliving a reload of the shell), with `actions` ([[id,
+  // label, run]]) and Open settings
+  function _notifyOnce(flag, title, body, actions) {
+    if (_session[flag])
+      return;
+    _session[flag] = true;
+    const all = actions.concat([["settings", I18n.tr("Open settings"), () => SettingsManager.openSection("Compositor")]]);
+    const command = ["notify-send", "-a", "axiom", "-u", "critical"].concat(...all.map(action => ["-A", `${action[0]}=${action[1]}`]), ["--", title, body]);
+    CommandManager.run(command, (code, out) => {
+      // (not `picked?.[2]()`: Qt 6.12's compiler crashes on it)
+      const picked = all.find(action => action[0] === out.trim());
+      if (picked)
+        picked[2]();
     });
   }
 
@@ -425,6 +495,7 @@ Singleton {
     id: _session
     reloadableId: "axiomCompositorSession"
     property bool approvalAsked: false
+    property bool includeAsked: false
   }
 
   // --- The window look and the input, over the user's config in every mode ---
@@ -444,7 +515,7 @@ Singleton {
   // the user's own lines, so it's evaluated again to win over them. And in
   // every mode as the look, the input or the blur changes (_liveDebounce).
   function _applyLive() {
-    if (!root.live)
+    if (!root.live || root.writer.liveByFile)
       return;
     root.writer.runLive(_liveLines());
   }
@@ -465,8 +536,12 @@ Singleton {
 
   // The writer's runtime layer evaluates the live lines through this
   function _hookWriter() {
-    if (root.writer)
-      root.writer.liveLinesHook = () => root._liveLines();
+    if (!root.writer)
+      return;
+    root.writer.liveLinesHook = () => root._liveLines();
+    // A writer applying its runtime layer as a file (niri's) asks for the spec
+    if ("specHook" in root.writer)
+      root.writer.specHook = forFile => root.spec(forFile);
   }
   onWriterChanged: _hookWriter()
 
@@ -554,7 +629,8 @@ Singleton {
     onTriggered: {
       if (!root.live)
         return;
-      if (root._appliedMode !== root.mode || root._droppedParts().length > 0) {
+      // A compositor taking them from its files only: rewritten (apply)
+      if (root.writer.liveByFile || root._appliedMode !== root.mode || root._droppedParts().length > 0) {
         root.apply();
       } else {
         root._applyLive();
@@ -578,7 +654,7 @@ Singleton {
     // A change to the rest waiting to apply writes the file itself, and
     // reloads: written first, it would find the file as it wants it and
     // reload nothing (a new bind unloaded)
-    if (!root.live || root._appliedMode !== root.mode || root.status !== "loaded" || root._debounce.running)
+    if (!root.live || root.writer.liveByFile || root._appliedMode !== root.mode || root.status !== "loaded" || root._debounce.running)
       return;
     if (root._reloading) {
       root._fileSync.restart();
