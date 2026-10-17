@@ -277,9 +277,6 @@ def gtk_css_problems(path):
 def integration_args(key, theme, target):
     """(output path to check, the script's arguments) for rendering `theme`
     into the directory `target`"""
-    if key == "hyprlock":
-        target = target / "hyprlock.conf"
-        return target, [theme, target, "Sans", "file:///tmp/wall.png", "1", "Hey you", "Password..."]
     if key in ("gtk", "vscode"):
         return target, [theme, target]
     if key in ("vesktop", "firefox"):
@@ -369,15 +366,6 @@ class ThemeIntegrations(unittest.TestCase):
         self.assertEqual(mapped - shipped, set(), "map entries without a theme")
         self.assertEqual(shipped - mapped - {"submarine-sonar", "submarine-sonar-light", "nord-light", "alucard"},
                          set(), "themes without a map entry")
-
-    def test_hyprlock_keeps_its_own_variables(self):
-        target = self.out / "hyprlock.conf"
-        self.run_script(SCRIPTS / "theme_hyprlock.sh",
-                        [THEMES / "tokyo-night.json", target, "Sans", "file:///w.png", "0", "Hi", "Pass"])
-        text = target.read_text()
-        self.assertIn("$TIME", text)
-        self.assertIn("/w.png", text)
-        self.assertNotIn("file://", text)
 
 
 class HookupScript(unittest.TestCase):

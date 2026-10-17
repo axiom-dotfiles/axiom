@@ -27,7 +27,6 @@ The whole shell runs on five things. Everything else is optional and only needed
 | Launcher emoji picker | `wl-copy` to copy; `wtype` to type an emoji into the focused window (Shift+Enter) |
 | Brightness (keys, OSD bar) | `brightnessctl` for a laptop panel; `ddcutil` for external monitors over DDC/CI (monitors that support it, with i2c access: the package's udev rule gives it to the logged-in user) |
 | NVIDIA GPU stats | `nvidia-smi` (AMD is read from sysfs) |
-| hyprlock mode | `hyprlock`, and `hypridle` to lock on idle |
 | Idle (dim, lock, screen off, suspend) | `hypridle` |
 | Login screen | `greetd` and its text login `agreety` (`greetd-agreety` on Arch), the fallback; `pkexec` (polkit) to install it |
 | Calendar | `secret-tool` (libsecret) to keep account passwords in your keyring; the Python packages `icalendar` and `recurring-ical-events`, which the installer's venv holds (`scripts/requirements.txt`) |
@@ -112,7 +111,7 @@ An update only fast-forwards your clone. It won't touch a clone that has changed
 
 ## Locking with hypridle
 
-For the `quickshell` and `hyprlock` lockscreen modes:
+For the built-in (`quickshell`) lockscreen mode:
 
 ```ini
 general {

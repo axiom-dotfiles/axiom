@@ -11,7 +11,7 @@ How the wallpaper is drawn, and everything that changes the look on its own: wal
 - The setup itself (mode, rotation, light/dark wallpapers, schedule, folder, fixed wallpapers) is config, and saved snapshots carry it (`x-snapshot`), so changing it marks the active snapshot modified and restoring one brings it back.
 - What changes on its own never writes the config, so a snapshot's unsaved dot and `config.json` move only on explicit changes. ThemeManager shows it at runtime through `methods/ShownLook` (tests: `tst_ShownLook`):
   - `ThemeManager.activeTheme`: the theme showing (the schedule's variant, else `Appearance.theme`);
-  - `ThemeManager.shownWallpapers` / `wallpaperFor(monitor)` / `wallpaper` (the primary's): what every surface draws (wallpaper window, desktop, lock screen, overview, picker, hyprlock, the greeter bundle).
+  - `ThemeManager.shownWallpapers` / `wallpaperFor(monitor)` / `wallpaper` (the primary's): what every surface draws (wallpaper window, desktop, lock screen, overview, picker, the greeter bundle).
 - The runtime part is in `~/.local/state/axiom/ui/look.json`: the schedule's variant (`theme: { for, name }`, dropped when a theme is picked by hand), the rotation's wallpapers (`rotated`), `lastRotated`, and `applied` (what the backend was last told).
 
 ### Wallpaper backend (ThemeManager `_applyShown`)

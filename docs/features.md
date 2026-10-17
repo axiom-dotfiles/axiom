@@ -239,7 +239,6 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
 
 - **Lock screen modes:**
   - **Built-in** (`ext-session-lock`, PAM): the lock screen is laid out on the Layouts page, like an overlay page. Put a greeting, the password field, a clock, media, weather, power buttons (suspend, restart, shut down) and other display-only modules anywhere on a screen-sized grid. It shows over your wallpaper (blurred and dimmed) or a color, and **Show on screen** previews it.
-  - **hyprlock:** a themed config that axiom generates.
   - **None:** use your own locker.
 - **Login screen:** optional, through greetd.
   - Laid out the same way, with a login box (pick or type the user, with their picture), a session picker, the keyboard layout, power buttons and the same display-only modules.
@@ -283,7 +282,6 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
 | Editors | Neovim, Helix, VS Code, Zed |
 | Apps | Firefox (and its forks), Vesktop/Vencord, zathura |
 | CLI tools | k9s, cava, btop, fzf, lazygit, bat/delta, Yazi, ncspot |
-| Lockscreen | hyprlock |
 
 </details>
 

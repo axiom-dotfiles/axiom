@@ -30,7 +30,7 @@ QtObject {
   // greeter, whose code is a root-owned copy, its own state folder instead
   readonly property string statePath: root.greeter ? root.greeterStatePath : ConfigManager.dataDirs.ui
   // Per-user state ($XDG_STATE_HOME/axiom/): secrets, chats, notification
-  // history, the generated hyprlock/hypridle/Hyprland configs
+  // history, the generated hypridle/Hyprland configs
   readonly property string userStatePath: root.greeter ? root.greeterStatePath : ConfigManager.dataDirs.state
   // $XDG_DATA_HOME/axiom/: what the user made (the default notes folder)
   readonly property string userDataPath: ConfigManager.dataDirs.data

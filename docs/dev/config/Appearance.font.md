@@ -14,7 +14,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-scope="look"
 - **`Appearance.font.family`** · string = "monospace"
   - Family: Font used throughout the shell.
-  - read: `Appearance.fontFamily` · in: `components/bar/widgets/Time.qml`, `components/content/Clock.qml`, `components/content/CommandOutput.qml`, `components/content/QuickActions.qml`, `components/content/TopProcesses.qml`, `components/content/parts/AudioRow.qml`, `components/content/parts/CompactFigure.qml`, `components/content/parts/DeviceList.qml`, `components/content/parts/ItemRow.qml`, `components/content/parts/chat/ChatMarkdownText.qml`, `components/content/parts/notes/NoteBlock.qml`, `components/forms/SchemaNumberField.qml`, `components/reusable/ActionTile.qml`, `components/reusable/IconTextWidget.qml` (+8 more)
+  - read: `Appearance.fontFamily` · in: `components/bar/widgets/Time.qml`, `components/content/Clock.qml`, `components/content/CommandOutput.qml`, `components/content/QuickActions.qml`, `components/content/TopProcesses.qml`, `components/content/parts/AudioRow.qml`, `components/content/parts/CompactFigure.qml`, `components/content/parts/DeviceList.qml`, `components/content/parts/ItemRow.qml`, `components/content/parts/chat/ChatMarkdownText.qml`, `components/content/parts/notes/NoteBlock.qml`, `components/forms/SchemaNumberField.qml`, `components/reusable/ActionTile.qml`, `components/reusable/IconTextWidget.qml` (+7 more)
 - **`Appearance.font.size`** · integer = 14 · 8–32 · px
   - Size: Base font size (px). Larger text is derived from it.
   - x-control="stepper"

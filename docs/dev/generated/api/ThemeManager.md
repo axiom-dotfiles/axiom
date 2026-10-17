@@ -14,7 +14,7 @@ ThemeManager owns the active theme's data (loaded from its file, watched, with d
 - `currentTheme` (readonly var): The active theme's JSON ({ name, variant, paired, colors, semantic }), read through config/Theme
 - `activeTheme` (readonly string): The theme showing: Appearance.theme, or the variant the light/dark schedule last switched it to.
 - `shownWallpapers` (readonly var): The wallpapers showing ({ wallpaper, wallpapers }): the fixed ones, the rotation's or the light/dark ones, by Appearance.wallpaperMode
-- `wallpaper` (readonly string): The primary monitor's (the lockscreen's and hyprlock's)
+- `wallpaper` (readonly string): The primary monitor's (the lockscreen's)
 - `defaults` (readonly var): config/json/theme-defaults.json: fallback palette and semantic maps, shared with scripts/generate_theme.py
 - `lastRotated` (readonly real): When the rotation last moved on (ms since the epoch; 0 for never)
 - `integrations` (readonly var): The ThemeIntegrations switches, in schema order: one per scripts/theme_<key>.sh
@@ -40,6 +40,5 @@ ThemeManager owns the active theme's data (loaded from its file, watched, with d
 - `setLightMode(light)`: Switches to the current theme's light (or dark) variant, if it has one
 - `toggleDarkMode()`
 - `themeIntegrations(themeName = root.activeTheme, keys = [])`: Runs the enabled integrations (scripts/theme_<key>.sh, one per ThemeIntegrations switch) for a theme; `keys` limits it to those (none: all of them)
-- `generateHyprlockConfig(then)`: The themed hyprlock config (Lockscreen.mode "hyprlock"): the theme's colors plus the font, wallpaper and a translated greeting.
 - `integrationTitle(key)`: An integration's name (its schema title, untranslated)
 - `integrationCommands(key)`

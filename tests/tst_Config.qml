@@ -2066,4 +2066,24 @@ TestCase {
     compare(migrated.removed, []);
     compare(errors(migrated.config), []);
   }
+
+  function test_v65_hyprlock_mode_is_builtin() {
+    const migrated = load({
+      "version": 64,
+      "Lockscreen": {
+        "mode": "hyprlock",
+        "blurWallpaper": false
+      }
+    });
+    compare(migrated.config.Lockscreen.mode, "quickshell");
+    compare(migrated.config.Lockscreen.blurWallpaper, false);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    compare(load({
+      "version": 64,
+      "Lockscreen": {
+        "mode": "none"
+      }
+    }).config.Lockscreen.mode, "none", "other modes stay");
+  }
 }

@@ -41,7 +41,7 @@ OPTIONAL=(
   "Typing emoji from the launcher (copying needs only wl-clipboard)|wtype wl-clipboard"
   "Clipboard history with images, shared with other apps|cliphist wl-clipboard"
   "Brightness keys and OSD bar (laptop panels, external monitors over DDC/CI)|brightnessctl ddcutil"
-  "hyprlock lock mode and locking on idle|hyprlock hypridle"
+  "Locking on idle|hypridle"
   "Browse buttons for folders and importing configs (the desktop's file picker)|xdg-desktop-portal-gtk python-gobject"
   "Axiom as the login screen (set up later from Settings → Login screen)|greetd greetd-agreety"
 )

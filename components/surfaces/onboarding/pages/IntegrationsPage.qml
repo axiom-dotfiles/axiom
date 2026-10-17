@@ -8,8 +8,8 @@ import qs.components.reusable
 import qs.components.forms
 
 // How axiom fits into the system: self-updates, the launcher's clipboard
-// history, whether axiom runs hypridle (Idle.enabled), which locker locks
-// (Lockscreen.mode: hyprlock only once installed), and whether it's the
+// history, whether axiom runs hypridle (Idle.enabled), whether axiom's
+// lock screen locks (Lockscreen.mode), and whether it's the
 // polkit agent (Polkit.enabled): idle and polkit off by default,
 // recommended on. Then the login screen (GreeterManager): off by default,
 // and set up only from its Install button (a password prompt), never by
@@ -36,7 +36,7 @@ OnboardingPage {
   }
 
   Component.onCompleted: {
-    DependencyManager.check([].concat(...ThemeManager.integrations.map(key => ThemeManager.integrationCommands(key))).concat(["hypridle", "hyprlock"]));
+    DependencyManager.check([].concat(...ThemeManager.integrations.map(key => ThemeManager.integrationCommands(key))).concat(["hypridle"]));
     GreeterManager.check();
   }
 
@@ -150,7 +150,7 @@ OnboardingPage {
     spacing: Widget.spacing
 
     OptionCard {
-      // Equal thirds, as tall as the tallest one
+      // Equal halves, as tall as the taller one
       Layout.preferredWidth: 1
       Layout.fillHeight: true
       icon: "lock"
@@ -164,22 +164,7 @@ OnboardingPage {
     }
 
     OptionCard {
-      // Equal thirds, as tall as the tallest one
-      Layout.preferredWidth: 1
-      Layout.fillHeight: true
-      icon: "lock_person"
-      title: I18n.tr("Use hyprlock")
-      description: I18n.tr("Runs hyprlock with a config made from axiom's theme.")
-      selected: LockscreenConfig.mode === "hyprlock"
-      available: DependencyManager.found.hyprlock === true || LockscreenConfig.mode === "hyprlock"
-      unavailableReason: DependencyManager.installCommand("hyprlock") !== "" ? I18n.tr("hyprlock isn't installed: {0}", DependencyManager.installCommand("hyprlock")) : I18n.tr("hyprlock isn't installed.")
-      onClicked: SettingsManager.commitValues({
-        "Lockscreen.mode": "hyprlock"
-      })
-    }
-
-    OptionCard {
-      // Equal thirds, as tall as the tallest one
+      // Equal halves, as tall as the taller one
       Layout.preferredWidth: 1
       Layout.fillHeight: true
       icon: "tune"

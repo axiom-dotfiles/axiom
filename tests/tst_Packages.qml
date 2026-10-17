@@ -103,7 +103,7 @@ TestCase {
 
   function test_installCommand() {
     compare(Packages.installCommand("arch", "hypridle"), "sudo pacman -S --needed hypridle");
-    compare(Packages.installCommand("fedora", "hyprlock"), "sudo dnf copr enable -y nett00n/hyprland && sudo dnf install hyprlock");
+    compare(Packages.installCommand("fedora", "hyprsunset"), "sudo dnf copr enable -y nett00n/hyprland && sudo dnf install hyprsunset");
     compare(Packages.installCommand("arch", ["greetd", "agreety"]), "sudo pacman -S --needed greetd greetd-agreety");
     compare(Packages.installCommand("fedora", ["greetd", "agreety"]), "sudo dnf install greetd", "agreety ships in greetd");
   }

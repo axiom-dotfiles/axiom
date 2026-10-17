@@ -110,13 +110,6 @@ QtObject {
           "repo": root._hyprCopr
         }
       },
-      "hyprlock": {
-        "arch": "hyprlock",
-        "fedora": {
-          "name": "hyprlock",
-          "repo": root._hyprCopr
-        }
-      },
       "hyprsunset": {
         "arch": "hyprsunset",
         "fedora": {

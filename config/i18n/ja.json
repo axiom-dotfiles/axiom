@@ -485,14 +485,11 @@
     "Authenticating...": "認証中…",
     "Locker": "ロック方式",
     "quickshell": "quickshell",
-    "hyprlock": "hyprlock",
     "Lock command": "ロックコマンド",
     "What axiom's lock buttons run when the locker is your own.": "独自のロック方式を使うとき、axiomのロックボタンが実行するコマンド。",
     "None (bring your own)": "なし（独自のロック方式）",
-    "hyprlock, themed by axiom": "hyprlock（axiomのテーマ）",
     "Lockscreen": "ロック画面",
     "Blur wallpaper": "壁紙をぼかす",
-    "Built-in uses the Wayland session-lock protocol with PAM, like hyprlock. hyprlock mode runs hyprlock with a config generated from the axiom theme. None leaves locking to your own locker.": "内蔵はhyprlockと同じくWaylandのセッションロックプロトコルとPAMを使います。hyprlockはaxiomのテーマから生成した設定でhyprlockを起動します。なしの場合はロックを独自のロック方式に任せます。",
     "Built-in (Quickshell)": "内蔵（Quickshell）",
     "App icons": "アプリのアイコン",
     "Scroll to switch": "スクロールで切り替え",
@@ -1911,7 +1908,6 @@
     "variant": "ライト/ダーク別",
     "floating": "フローティング",
     "How long after the pointer leaves the dock it slides away.": "ポインターが離れてからドックが隠れるまでの時間。",
-    "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in or hyprlock modes.": "セッションをロックするロック方式。アイドルの設定で一定時間後にロックできます。自分のアイドルデーモンを使う場合、内蔵または hyprlock モードでは `qs -c axiom ipc call lockscreen lock` でロックしてください。",
     "Relative numbers": "相対番号",
     "How many clips axiom keeps.": "axiom が保持するクリップの数。",
     "Widget corner radius": "ウィジェットの角の丸み",
@@ -3065,10 +3061,6 @@
     "hypridle isn't installed. Install it to dim, lock and turn the screens off when you're away, then turn it on in Settings → Idle.": "hypridle がインストールされていません。離席中に画面を暗くし、ロックし、消灯するにはインストールしてから、設定 → アイドルでオンにしてください。",
     "Use axiom's lock screen": "axiom のロック画面を使う",
     "Locks through the session-lock protocol and unlocks with your password (PAM), in your theme and laid out on the Layouts page.": "セッションロックプロトコルでロックし、パスワード（PAM）で解除します。テーマに合わせ、レイアウトページで配置できます。",
-    "Use hyprlock": "hyprlock を使う",
-    "Runs hyprlock with a config made from axiom's theme.": "axiom のテーマから作った設定で hyprlock を実行します。",
-    "hyprlock isn't installed: {0}": "hyprlock がインストールされていません: {0}",
-    "hyprlock isn't installed.": "hyprlock がインストールされていません。",
     "Leaves locking to a locker you set up yourself.": "ロックは自分で設定したロッカーに任せます。",
     "Other apps in axiom's colors": "axiom の配色に合わせる他のアプリ",
     "Theme generation, theme integrations and keybinds": "テーマ生成、テーマ連携、キーバインド",
@@ -3082,6 +3074,8 @@
     "hypridle isn't installed. Install it to dim, lock and turn the screens off when you're away.": "hypridle がインストールされていません。離席中に画面を暗くし、ロックし、消灯するにはインストールしてください。",
     "Install {0}, then restart the shell.": "{0} をインストールしてから、シェルを再起動してください。",
     "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu.": "クリックで実行します。空の場合はディストリビューションのアップグレード（`sudo pacman -Syu`、`sudo dnf upgrade`）、または AUR ヘルパーの -Syu を使います。",
-    "Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (adw-gtk-theme on Arch, adw-gtk3-theme on Fedora).": "GTK 3 と GTK 4 の gtk.css の隣に axiom.css を書き出し、ライト/ダークに追従します。GTK3 アプリには adw-gtk3 テーマが必要です（Arch では adw-gtk-theme、Fedora では adw-gtk3-theme）。"
+    "Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (adw-gtk-theme on Arch, adw-gtk3-theme on Fedora).": "GTK 3 と GTK 4 の gtk.css の隣に axiom.css を書き出し、ライト/ダークに追従します。GTK3 アプリには adw-gtk3 テーマが必要です（Arch では adw-gtk-theme、Fedora では adw-gtk3-theme）。",
+    "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in one.": "セッションをロックするロッカー。アイドル設定で一定時間後にロックできます。自分のアイドルデーモンを使う場合、ビルトインでは `qs -c axiom ipc call lockscreen lock` でロックしてください。",
+    "Built-in uses the Wayland session-lock protocol with PAM. None leaves locking to your own locker.": "ビルトインは Wayland のセッションロックプロトコルと PAM を使います。なしの場合、ロックは自分のロッカーに任せます。"
   }
 }

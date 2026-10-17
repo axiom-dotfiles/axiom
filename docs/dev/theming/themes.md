@@ -8,7 +8,7 @@ How the active theme is loaded, how themes are grouped into dark/light families,
 
 ### ThemeManager: the active theme
 - Owns `currentTheme`: loaded eagerly, watched, and reloaded when `activeTheme` or the file changes.
-- `activeTheme` is the theme showing: `Appearance.theme`, or the variant the light/dark schedule switched to, which never writes the config ([Wallpaper and schedules](wallpaper-and-schedules.md)). Integrations, hyprlock and generation follow `activeTheme`.
+- `activeTheme` is the theme showing: `Appearance.theme`, or the variant the light/dark schedule switched to, which never writes the config ([Wallpaper and schedules](wallpaper-and-schedules.md)). Integrations and generation follow `activeTheme`.
 - Owns `defaults` (`theme-defaults.json`, see below).
 - `Appearance.darkMode` is derived from the theme's `variant`.
 - The choice of theme is persisted through `ConfigManager.setTheme`.

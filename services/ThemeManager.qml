@@ -63,7 +63,7 @@ QtObject {
     "dark": Appearance.darkWallpaper,
     "light": Appearance.lightWallpaper
   }, Appearance.darkMode, root._look.rotated ?? null)
-  // The primary monitor's (the lockscreen's and hyprlock's)
+  // The primary monitor's (the lockscreen's)
   readonly property string wallpaper: root.wallpaperFor(General.primaryMonitor)
   function wallpaperFor(monitor) {
     return ShownLook.wallpaperFor(root.shownWallpapers, monitor);
@@ -253,8 +253,6 @@ QtObject {
       return;
     const themePath = Paths.themeFile(themeName);
     const all = keys.length === 0;
-    if (all && LockscreenConfig.mode === "hyprlock")
-      root.generateHyprlockConfig();
     for (let i = 0; i < root.integrations.length; i++) {
       const key = root.integrations[i];
       const process = root._integrationRunner.objectAt(i);
@@ -287,22 +285,6 @@ QtObject {
     root._themed = root._enabledIntegrations;
     if (added.length > 0)
       root.themeIntegrations(root.activeTheme, added);
-  }
-
-  // The themed hyprlock config (Lockscreen.mode "hyprlock"): the theme's
-  // colors plus the font, wallpaper and a translated greeting. `then` runs
-  // once it's written (LockManager locks with it).
-  function generateHyprlockConfig(then) {
-    if (Paths.greeter)
-      return;
-    if (then)
-      root._hyprlockThen.push(then);
-    if (root._hyprlockProcess.running) {
-      root._hyprlockAgain = true;
-      return;
-    }
-    root._hyprlockProcess.command = [Paths.scriptsPath + "theme_hyprlock.sh", Paths.themeFile(root.activeTheme), LockManager.hyprlockConfigPath, Appearance.fontFamily, root.wallpaper, LockscreenConfig.blurWallpaper ? "1" : "0", I18n.tr("Hey {0}", General.displayName), I18n.tr("Enter password...")];
-    root._hyprlockProcess.running = true;
   }
 
   //=========================================================================
@@ -562,32 +544,6 @@ QtObject {
           integration._report();
         }
       }
-    }
-  }
-
-  // Everything besides the theme that goes into the hyprlock config
-  readonly property string _hyprlockInputs: [Appearance.fontFamily, root.wallpaper, LockscreenConfig.blurWallpaper, I18n.language, General.displayName].join("|")
-  on_HyprlockInputsChanged: if (LockscreenConfig.mode === "hyprlock")
-    root.generateHyprlockConfig()
-
-  property var _hyprlockThen: []
-  property bool _hyprlockAgain: false
-  property Process _hyprlockProcess: Process {
-    stdout: StdioCollector {}
-    stderr: StdioCollector {
-      onStreamFinished: if (text.trim())
-        console.warn("[ThemeManager] theme_hyprlock.sh:", text.trim())
-    }
-    onExited: exitCode => {
-      if (root._hyprlockAgain) {
-        root._hyprlockAgain = false;
-        root.generateHyprlockConfig();
-        return;
-      }
-      const callbacks = root._hyprlockThen;
-      root._hyprlockThen = [];
-      if (exitCode === 0)
-        callbacks.forEach(then => then());
     }
   }
 

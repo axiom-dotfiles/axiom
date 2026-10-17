@@ -18,7 +18,7 @@ The repo (`Paths.axiomPath`) is read-only to the shell: a package installs it wh
 |---|---|---|
 | config.json, `saved/` | `$XDG_CONFIG_HOME/axiom/` | `userConfigPath` |
 | `StateManager` files (launcher, look, editors, onboarding, settings, clipboard pins, …) | `$XDG_STATE_HOME/axiom/ui/` (0700) | `statePath` |
-| Secrets, chats, notification history, calendar cache, generated hyprlock/hypridle/Hyprland configs, integration outputs | `$XDG_STATE_HOME/axiom/` | `userStatePath` |
+| Secrets, chats, notification history, calendar cache, generated hypridle/Hyprland configs, integration outputs | `$XDG_STATE_HOME/axiom/` | `userStatePath` |
 | Themes generated from the wallpaper (`generated/<name>`) | `$XDG_STATE_HOME/axiom/themes/` | `generatedThemesPath`, `themeFile(name)` |
 | The default notes folder | `$XDG_DATA_HOME/axiom/notes/` | `defaultNotesPath` |
 

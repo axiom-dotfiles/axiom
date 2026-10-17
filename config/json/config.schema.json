@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 64,
+      "default": 65,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -43,17 +43,17 @@
       "x-category": "Screen & Power",
       "title": "Lockscreen",
       "x-links": ["Layouts"],
-      "description": "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in or hyprlock modes.",
+      "description": "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in one.",
       "additionalProperties": false,
       "properties": {
         "mode": {
           "x-takeover": true,
           "type": "string",
           "title": "Locker",
-          "enum": ["quickshell", "hyprlock", "none"],
-          "x-enumLabels": { "quickshell": "Built-in (Quickshell)", "hyprlock": "hyprlock, themed by axiom", "none": "None (bring your own)" },
+          "enum": ["quickshell", "none"],
+          "x-enumLabels": { "quickshell": "Built-in (Quickshell)", "none": "None (bring your own)" },
           "default": "quickshell",
-          "description": "Built-in uses the Wayland session-lock protocol with PAM, like hyprlock. hyprlock mode runs hyprlock with a config generated from the axiom theme. None leaves locking to your own locker."
+          "description": "Built-in uses the Wayland session-lock protocol with PAM. None leaves locking to your own locker."
         },
         "lockCommand": {
           "type": "string",

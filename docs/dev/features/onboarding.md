@@ -56,7 +56,7 @@ The first-run onboarder: a paged window that sets up the look, the compositor's 
 - `DependencyManager.check(commands)` / `found` / `tools` say what's installed.
 - The Apps page shows the main modifier and the keys to know only where axiom binds keys (`CompositorManager.supports.keybinds`); elsewhere it's just the apps.
 - The Integrations page, top to bottom: updates, clipboard history, [Idle](idle.md), the lock screen, [Polkit](polkit.md), the login screen, then theme integrations.
-  - Idle, the lock screen, polkit and the login screen are `OptionCard` choices. The lock screen has three (`Lockscreen.mode`); hyprlock's is unavailable until `hyprlock` is installed.
+  - Idle, the lock screen, polkit and the login screen are `OptionCard` choices. The lock screen has two (`Lockscreen.mode`): axiom's, or your own.
   - The login screen (`forms/GreeterSetup`, see [Greeter install](greeter-install.md)) is set up only from its Install button.
   - Theme integrations come last: they're optional and need no decision.
 
