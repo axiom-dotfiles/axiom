@@ -12,7 +12,7 @@
   - on its own D-Bus session
   - with idle and polkit off.
 - `--copy-config` starts from your own config.
-- `scripts/dev/nested.sh niri` does the same for niri. With no niri backend, axiom runs there on no backend at all (the bar, the launcher and notifications; empty workspaces). That's the "unknown compositor" case to keep working.
+- `scripts/dev/nested.sh niri` does the same for niri ([niri backend](niri-backend.md)). `AXIOM_COMPOSITOR=none` in the nested launch runs axiom on no backend at all (the bar, the launcher and notifications; empty workspaces): the "unknown compositor" case to keep working.
 - Logs: the newest `/run/user/$UID/quickshell/by-pid/<pid>/log.log` (`pgrep -af "qs -p"`: the one without `-d`).
 - IPC: `qs ipc --pid <pid> call …`.
 - Closing the window, or killing that `sway`, ends both.

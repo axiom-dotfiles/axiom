@@ -114,12 +114,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-16, while fixing SwayFX's blur on unfocused windows
 
-### No niri backend
-- **Where:** `services/CompositorManager.qml` (`backend`), `docs/dev/compositor/README.md`
-- **What:** Under niri axiom runs with no backend: the bar, launcher and notifications work, but workspaces, windows, the dock's running apps and the keyboard layout are empty. Sway's backend (`docs/dev/compositor/sway-backend.md`) is the one to copy.
-- **Size:** needs a plan
-- **Found:** 2026-10-16, while decoupling the shell from Hyprland
-
 ### Changing a setting under sway can flash the screen
 - **Where:** `services/LayerManager.qml` (`_sequence`), `components/hosts/popout/LayerSlot.qml`, `services/MonitorManager.qml`
 - **What:** Reported on sway: changing a setting flashes the whole settings page. Two causes fixed: the border's shadow window wasn't held, so turning the shadow on remapped every surface ordered under it (`LayerManager: mapping … again, in its place` for the backdrop, bars, border and dock, the backdrop dimming the overlay flashing with them), and a sway reload (any save rewriting axiom's file) reset the outputs to the config's, dropping the monitor profile. Not reproduced with an ordinary setting since (a save then logs no remap and no overlay resize). Without `layerOrder`, a bar remade by a change of kind still remaps everything after it, by design. If it still happens, note which setting and look for those log lines.
@@ -170,15 +164,39 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### Floating bars sit flush on the border without a backend
 - **Where:** `config/Bar.qml` (`enrichBarConfig`: `floatGap`), `services/CompositorManager.qml` (`gapsOut`)
-- **What:** A floating bar's automatic gap (`floatGap` -1) is the compositor's outer gaps (`CompositorManager.gapsOut`). With no backend (niri today) `gapsOut` is all 0, so a floating bar sits flush against the border. Sway's backend reads its gaps from the config (`SwayState.configInfo`); decide what the gap is with no backend at all (a fixed default, or `Appearance.screenMargin`).
+- **What:** A floating bar's automatic gap (`floatGap` -1) is the compositor's outer gaps (`CompositorManager.gapsOut`). With no backend (an unknown compositor) `gapsOut` is all 0, so a floating bar sits flush against the border. Sway's and niri's backends read their gaps from the config (`SwayState.configInfo`, `scripts/niri_config.py info`); decide what the gap is with no backend at all (a fixed default, or `Appearance.screenMargin`).
 - **Size:** small
 - **Found:** 2026-10-16, while testing layer order in nested sway
 
 ### Blur behind axiom on niri
-- **Where:** `services/CompositorManager.qml` (`supports`), `components/methods/LayerStack.qml` (`blurSurfaces`)
-- **What:** Axiom's surfaces blur where the compositor blurs its layers (`supports.blur`: Hyprland's layer rules, SwayFX's `layer_effects`); elsewhere they're solid (`Appearance.compositorBlurs`) and the translucency setting is greyed out. niri can blur layers by namespace too (layer rules); a niri backend would need the same per-namespace rules from `LayerStack`'s lists. Unchecked on SwayFX: how unblurred layer popups (tooltips) look.
+- **Where:** `services/NiriManager.qml` (`supports`), `shell/BlurBackingWindow.qml`, `components/methods/SurfaceOutline.qml`
+- **What:** niri has no `blur` capability yet, so axiom's surfaces are solid there and the translucency setting is greyed out. niri blurs a layer surface's whole rect (a layer rule), not by its pixels' alpha as Hyprland and SwayFX do, so the full-screen blur window can't be blurred that way. It does take a region per surface (`ext-background-effect-v1`, Quickshell's `BackgroundEffect.blurRegion`): checked in nested niri 26.04, a rounded `Region` blurs exactly. What's missing is each `BlurShape` as a region: rects with their radius, the border frame as the screen less its inner rect, an attached surface as its box (`SurfaceOutline` metrics) with its fillets. Then `supports.blur`, with that region on the blur window.
 - **Size:** needs a plan
-- **Found:** 2026-10-16, while placing layers without Hyprland
+- **Found:** 2026-10-17, while adding the niri backend
+
+### niri reports no space reserved by bars, nor where tiled windows are
+- **Where:** `components/methods/NiriState.qml` (`outputs`, `windows`)
+- **What:** niri's IPC gives no layer surface geometry and, in 26.04, no position for a tiled window (`tile_pos_in_workspace_view` is null; only floating windows have one). So an output's `reserved` is 0 (the dock centres on the whole screen, not its work area), and tiled windows are laid out from their column and place in it from the output's edge, without niri's scroll (`windowGeometry` stays off: no screenshot window mode, the dock never hides behind windows).
+- **Size:** small
+- **Found:** 2026-10-17, while adding the niri backend
+
+### niri's flags can't be turned off from axiom
+- **Where:** `components/methods/NiriConf.qml` (`_niriArgs`), `config/json/config.schema.json` (`x-niriValue: "flag"`)
+- **What:** A niri flag (`tap`, `natural-scroll`, `numlock`, `focus-follows-mouse`) is on by being there and has no `false`; axiom writes one on and leaves it out off. Off in axiom while the user's own config has it on, it stays on.
+- **Size:** small
+- **Found:** 2026-10-17, while adding the niri backend
+
+### Nested niri freezes while its window is hidden
+- **Where:** `scripts/dev/nested.sh` (niri)
+- **What:** niri's nested (winit) backend stops its event loop while its window isn't shown on the host (another workspace): its IPC times out and the axiom inside it hangs waiting on it, so a `qs ipc` call never returns. Keep the nested window visible while testing; it carries on once shown again.
+- **Size:** trivial
+- **Found:** 2026-10-17, while testing the niri backend
+
+### The workspace grid warns when Workspaces.count shrinks
+- **Where:** `components/bar/widgets/workspaces/WorkspaceCellRow.qml` (its `Grid`)
+- **What:** Changing `Workspaces.count` logs `Grid contains more visible items (10) than rows*columns (1)` for a moment: the Grid's rows/columns follow the new count before its Repeater's model does.
+- **Size:** trivial
+- **Found:** 2026-10-17, while adding the niri backend
 
 ### The greeter runs its own Hyprland session
 - **Where:** `scripts/greeter/greeter-session.sh`, `services/GreetdManager.qml` (`_applyHyprland`)

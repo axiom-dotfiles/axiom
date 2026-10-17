@@ -1,8 +1,8 @@
 # Backend contract
 
-> **Files:** `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `services/SwayManager.qml`, `components/methods/HyprState.qml`, `components/methods/SwayState.qml`, `components/methods/CompositorLayer.qml`, `tests/tst_HyprState.qml`, `tests/tst_CompositorLayer.qml`
+> **Files:** `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `services/SwayManager.qml`, `services/NiriManager.qml`, `components/methods/HyprState.qml`, `components/methods/SwayState.qml`, `components/methods/NiriState.qml`, `components/methods/CompositorLayer.qml`, `tests/tst_HyprState.qml`, `tests/tst_CompositorLayer.qml`
 > **Config:** none
-> **Related:** [The compositor](README.md), [Sway backend](sway-backend.md)
+> **Related:** [The compositor](README.md), [Sway backend](sway-backend.md), [niri backend](niri-backend.md)
 
 What a compositor backend (`HyprlandManager`, `SwayManager`) gives `CompositorManager`. `CompositorManager`'s own defaults (empty lists, `""`, no-ops, `null` callbacks) are what a member the backend can't fill looks like.
 
@@ -16,6 +16,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
   - `focusRank` 0 is the focused window, higher means used less recently. Undefined when unknown.
   - The geometry is global, in logical pixels.
   - Only mapped windows are listed.
+  - Optional `column` and `tile` (1-based): its place in a strip where the compositor says (niri); `WorkspaceGeometry.stripOrder` orders by them over the geometry.
 - **Output**: `{ name, description, x, y, width, height, scale, focused, activeWorkspaceId, specialWorkspaceId, reserved: { top, right, bottom, left } }`.
   - `width`/`height` are logical.
   - `activeWorkspaceId` is -1 while unknown.
@@ -56,6 +57,8 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `switcher` | Alt+Tab driven by compositor keys (`WindowSwitcherManager`) |
 | `switcherRelease` | the compositor reports letting go of the switcher's modifier itself (Hyprland's submap). Without it `SwitcherKeys` takes the keyboard while the switcher is open, to see the release |
 | `strips` | the strip settings, scrolling a strip |
+| `stripsAlways` | every output is a strip (niri): `stripDirection` is `horizontal` everywhere, the strip list is hidden |
+| `outputWorkspaces` | the compositor's workspaces belong to an output: every layout gets a block of ids per output (`CompositorManager.perMonitorBlocks`), and nothing is remapped |
 | `focusGrab` | the native grab in `FocusGrab` |
 | `layerOrder` | the compositor stacks and arranges axiom's layers by `LayerStack.layers` itself (layer rules). Without it `LayerManager` maps them in that order and maps again any that land out of place ([layer arrangement](layer-arrangement.md)) |
 | `blur` | the compositor blurs axiom's translucent surfaces |

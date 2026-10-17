@@ -1,6 +1,6 @@
 # Config modes (detached / included / managed)
 
-> **Files:** `services/CompositorConfigManager.qml`, `services/ConfigTakeover.qml`, `services/UserBindMerge.qml`, `services/RuntimeLayer.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`, `config/WindowBehaviourConfig.qml`
+> **Files:** `services/CompositorConfigManager.qml`, `services/ConfigTakeover.qml`, `services/UserBindMerge.qml`, `services/RuntimeLayer.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`, `services/NiriConfigWriter.qml`, `config/WindowBehaviourConfig.qml`
 > **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `WindowBehaviour.*`, `Keybinds.binds`, `Monitors.profiles`, `WindowLook`, `Input`, `Session`, `Workspaces.strips`
 > **Related:** [Contract](contract.md), [Window look](window-look.md), [Hyprland's writer](../hyprland/config-modes.md), [Managed takeover](../hyprland/managed-takeover.md), [Sway backend](sway-backend.md)
 
@@ -13,7 +13,8 @@ How axiom sets the compositor up, the same on every compositor with `supports.co
   - **detached**: evaluated at runtime (`writer.runtimeApply()`), again after every config reload, which drops it
   - **included**: written to a module (`writer.moduleText(spec)` → `includePath`) the user's config loads (`includeLines`)
   - **managed**: written as the compositor's config itself (`writer.managedText(spec)` → `managedPath`), after a takeover (`writer.claim()`), loading the user's own files (`userFiles`) after it.
-- Whenever a file isn't loaded (included but the lines are missing, or a takeover refused), the runtime layer stands in and `problem` says why (`writer.notIncludedProblem` / `notManagedProblem` / `blockedProblem`). The writer's `checkLoaded(cb)` tells.
+- Whenever a file isn't loaded (included but the lines are missing, or a takeover refused), the runtime layer stands in and `problem` says why (`writer.notIncludedProblem` / `notManagedProblem` / `blockedProblem`). The writer's `checkLoaded(cb)` tells; it may answer `"failed"` when the compositor couldn't load its config at all (`writer.failedProblem`, no runtime layer then).
+- **Included but not loaded**: a notification, once per session and not while the onboarding is open (`_notifyNotIncluded`), offers **Add it for me** (`addIncludeLines`: the `compositorModule` hookup, the include lines added with a backup, then a reload) and Open settings. The Compositor card has the same button next to Copy while the module isn't loaded. Every compositor.
 
 ### The runtime layer
 - Each writer owns one: a `RuntimeLayer` (`HyprlandRuntimeLayer`, `SwayRuntimeLayer`), started by `writer.runtimeApply()`, taken out by `runtimeClear()`, told of each reload by `noteReload()`.
@@ -24,6 +25,11 @@ How axiom sets the compositor up, the same on every compositor with `supports.co
 - Both file modes write only on change (`_writeIfChanged`), then reload the compositor (`writer.reload`), which doesn't watch files its config loads.
 - `_writeFile` re-reads the file before each write (`blockLoading`). A FileView skips a `setText` of the text it last wrote, and the file may no longer hold that text after a release.
 - `_reload()` reloads once more when asked while a reload runs, so a file written meanwhile isn't missed.
+
+### A compositor taking nothing at runtime (niri)
+Optional writer members, absent on Hyprland and sway:
+- `liveByFile`: the look and input reach the compositor in its files only: a change goes through `apply()` (rewriting the file, which the compositor reloads), and nothing is evaluated at runtime (`_applyLive`, `_syncFile`). The runtime layer is a file too (niri's detached wrapper); `specHook` hands the writer `spec(forFile)` for it.
+- `validate(text, cb)`: checked before each write; on an error the file stays as it was and `problem` is `writer.invalidProblem(error)`. When writes overlap, only the last asked for is written.
 
 ### Live parts: the look and the input
 - They are evaluated at runtime as they change (`_liveInputs`, debounced), in every mode: a reload on every step of a setting stalls the desktop, and detached, re-applying the whole layer redoes every bind. The file holds them as of its last write.
