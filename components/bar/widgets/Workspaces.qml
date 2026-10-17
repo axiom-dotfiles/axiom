@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
+import qs.services
 import qs.components.bar.widgets.workspaces
 
 // The workspace switcher, laid out as the Workspaces section says: a row of
@@ -32,7 +33,7 @@ BarWidget {
   Loader {
     id: loader
     anchors.centerIn: parent
-    sourceComponent: WorkspacesConfig.grid ? gridStrip : strip
+    sourceComponent: CompositorManager.workspaceGrid ? gridStrip : strip
   }
 
   Component {

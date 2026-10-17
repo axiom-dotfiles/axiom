@@ -85,6 +85,11 @@ Singleton {
     }, {});
   }
 
+  // The binds the compositor carries out itself, so it can't be told to
+  // (niri's Mod + drag): { action: key, as axiom writes it }. The Keybinds
+  // page says so of a bind with that action instead of flagging it
+  readonly property var builtInBinds: root.backend?.builtInBinds ?? ({})
+
   // Appearance's surfaces are translucent only where the compositor blurs
   // behind them (Appearance.compositorBlurs: readers don't read services)
   property Binding _appearanceBlur: Binding {
@@ -376,7 +381,7 @@ Singleton {
     mode = mode || "go";
     output = output || root.focusedOutput;
     const base = workspaceBase(output);
-    const size = WorkspacesConfig.size;
+    const size = root.blockSize;
     if (root.perMonitorBlocks && (id < base || id >= base + size)) {
       if (focusId)
         root.backend.activateWindow(focusId);
@@ -439,6 +444,10 @@ Singleton {
   // output's grid, or through 1..count in the standard layout (where up is
   // previous and down next). Stops at the edges unless WorkspacesConfig.wrap.
   function stepWorkspace(direction, mode) {
+    if (root.dynamicWorkspaces) {
+      root._stepDynamic(direction, mode);
+      return;
+    }
     const base = workspaceBase(root.focusedOutput);
     const size = WorkspacesConfig.size;
     const index = _currentWorkspaceId() - base;
@@ -462,9 +471,44 @@ Singleton {
     goToWorkspace(base + row * cols + col, mode);
   }
 
+  // A step where the compositor keeps one list of workspaces per output
+  // (dynamicWorkspaces): up and down through the focused output's list
+  // (wrapping round with WorkspacesConfig.wrap), left and right to the
+  // output that way, taking the focused window along unless `mode` is "go"
+  function _stepDynamic(direction, mode) {
+    if (direction === "left" || direction === "right") {
+      const to = WorkspaceGeometry.outputToward(root.outputs, root.focusedOutput, direction);
+      if (to === "")
+        return;
+      if (mode === "move" || mode === "moveSilent")
+        root.backend.moveWindowToOutput(to, mode === "move");
+      else
+        root.backend.focusOutput(to);
+      return;
+    }
+    const ids = workspaceIds(root.focusedOutput);
+    if (ids.length === 0)
+      return;
+    const at = ids.indexOf(_currentWorkspaceId());
+    let next = at < 0 ? 0 : at + (direction === "up" ? -1 : 1);
+    if (next < 0 || next >= ids.length) {
+      if (!WorkspacesConfig.wrap)
+        return;
+      root.workspaceWrapped(root.focusedOutput, true, direction === "down");
+      next = (next + ids.length) % ids.length;
+    }
+    goToWorkspace(ids[next], mode);
+  }
+
   // The n-th workspace (1-based) of the current row in a grid or perMonitor
   // layout, or workspace n in the standard layout (number keybinds)
   function nthWorkspace(n, mode) {
+    // The n-th of the output's list (one past its end is its last)
+    if (root.dynamicWorkspaces) {
+      if (n >= 1 && n <= root.blockSize)
+        goToWorkspace(workspaceBase(root.focusedOutput) + n - 1, mode);
+      return;
+    }
     if (!root.perMonitorBlocks) {
       goToWorkspace(n, mode);
       return;
@@ -525,10 +569,24 @@ Singleton {
   // belong to an output (supports.outputWorkspaces: niri's), as the
   // standard layout's shared ids can't
   readonly property bool perMonitorBlocks: WorkspacesConfig.perMonitorBlocks || root.supports.outputWorkspaces === true
-  readonly property var _bases: WorkspaceGeometry.blockBases(root.outputs, General.primaryMonitor, WorkspacesConfig.size)
+  readonly property var _bases: WorkspaceGeometry.blockBases(root.outputs, General.primaryMonitor, root.blockSize)
 
-  // The workspace ids an output (its name) shows, in order
+  // Whether the compositor makes and removes workspaces itself, one list
+  // per output (supports.dynamicWorkspaces: niri's). The Workspaces
+  // section's layout doesn't apply: its workspaces are the ones it has
+  readonly property bool dynamicWorkspaces: root.supports.dynamicWorkspaces === true
+  // Whether the workspaces are laid out in a grid: the grid layout, where
+  // the compositor leaves the workspaces to axiom
+  readonly property bool workspaceGrid: WorkspacesConfig.grid && !root.dynamicWorkspaces
+  // How many ids each output's block holds: the layout's size, or the
+  // backend's own where its workspaces are dynamic
+  readonly property int blockSize: root.dynamicWorkspaces ? root.backend.blockSize : WorkspacesConfig.size
+
+  // The workspace ids an output (its name) shows, in order: the layout's,
+  // or the ones the compositor has where they're dynamic
   function workspaceIds(output) {
+    if (root.dynamicWorkspaces)
+      return root.workspaces.filter(ws => ws.output === output).map(ws => ws.id);
     const base = workspaceBase(output);
     const ids = [];
     for (let i = 0; i < WorkspacesConfig.size; i++)

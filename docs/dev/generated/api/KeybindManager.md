@@ -35,7 +35,7 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `editModOptions` (readonly var)
 - `visibleKey` (readonly string): The shown binds' indices, filtered by editQuery and the chips and sorted by editSort, joined: a string only notifies when it changes, so the rows survive edits that leave the order alone
 - `visibleIndices` (readonly var)
-- `issues` (readonly var): Per bind: [{ level: "error" | "warning", text }]
+- `issues` (readonly var): Per bind: [{ level: "error" | "warning" | "info", text }]; only errors and warnings are issues (issueCount, the issues filter, a row's border)
 - `issueCount` (readonly int)
 - `userConflicts` (readonly var): The binds on keys the user's compositor config binds too
 - `canMerge` (readonly bool): Managed mode moves the user's binds into axiom instead of dropping axiom's (CompositorConfigManager.mergeUserBinds)
@@ -62,6 +62,7 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `removeBind(index)`
 - `moveBind(from, to)`
 - `setField(index, field, value)`
+- `hasIssue(found)`: Whether a bind's `issues` hold an error or warning, not only notes
 - `removeUserConflicts()`: Removes every bind on a key the user's compositor config binds too (until Save, like any edit).
 - `mergeUserBinds()`
 - `applyPreset(id)`: Adds a preset's binds, skipping keys the list already has.
@@ -70,4 +71,5 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `stopRecording()`
 - `refresh()`
 - `refreshSoon()`: After binds were applied at runtime, which no compositor announces
+- `displayCombo(combo)`: A combo as shown on the page ("SUPER + mouse:272" -> "SUPER + LMB")
 - `displayKey(key)`: A key name as shown on a keycap ("space" -> "Space", "left" -> "←")

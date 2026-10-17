@@ -12,7 +12,9 @@ import qs.components.hosts.popout
 // switcher, the active cell is twice as long with `wideActive`, and on a
 // strip monitor the active workspace's windows follow in strip order
 // (ActiveStrip), where scrolling scrolls the strip. Moving to another row
-// (column) cross-fades the bar's to it.
+// (column) cross-fades the bar's to it. Without `showEmpty` a row shows
+// only its workspaces with windows and the active one; down to that one on
+// a strip monitor, its windows show alone.
 Item {
   id: root
   property var screen
@@ -39,9 +41,9 @@ Item {
   readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
   // "horizontal" | "vertical" on a strip monitor, else ""
   readonly property string stripDirection: CompositorManager.stripDirection(root.screen?.name ?? "")
-  // A 1 × 1 grid on a strip monitor: its windows show alone while it has
-  // any (WorkspaceStrip.stripOnly)
-  readonly property bool stripOnly: WorkspacesConfig.size === 1 && root.stripDirection !== "" && ((activeStrip.item as ActiveStrip)?.hasWindows ?? false)
+  // One workspace shown on a strip monitor: its windows show alone while it
+  // has any (WorkspaceStrip.stripOnly)
+  readonly property bool stripOnly: root.lineIds(root.activeLine, root.activeId).length <= 1 && root.stripDirection !== "" && ((activeStrip.item as ActiveStrip)?.hasWindows ?? false)
   // The active workspace's place in the grid (the first cell when the
   // monitor is on a workspace outside it)
   readonly property int activeIndex: {
@@ -65,6 +67,19 @@ Item {
 
   implicitWidth: layout.implicitWidth
   implicitHeight: layout.implicitHeight
+
+  // The workspaces row (column on a vertical bar) `line` shows, with
+  // `activeId` active: every one, or without `showEmpty` those with
+  // windows and the active one
+  function lineIds(line, activeId) {
+    const all = Array.from({
+      "length": root.shown
+    }, (_, i) => root.base + (root.isVertical ? i * root.columns + line : line * root.columns + i));
+    if (root.properties.showEmpty)
+      return all;
+    const occupied = CompositorManager.workspaces.filter(ws => ws.windowCount > 0).map(ws => ws.id);
+    return all.filter(id => id === activeId || occupied.includes(id));
+  }
 
   // A workspace's place in the grid, or -1 outside it
   function placeOf(id) {
@@ -151,14 +166,14 @@ Item {
       readonly property int _activeHere: _holds ? root.activeId : _kept
       on_ActiveHereChanged: _kept = _activeHere
       Component.onCompleted: _kept = _activeHere
+      // A string, so the cells are only rebuilt when the set shown changes
+      readonly property string _idsKey: root.lineIds(line.value, line._activeHere).join(",")
 
       barConfig: root.barConfig
       properties: root.properties
       monitor: root.monitor
       base: root.base
-      ids: Array.from({
-        "length": root.shown
-      }, (_, i) => root.base + (root.isVertical ? i * root.columns + line.value : line.value * root.columns + i))
+      ids: line._idsKey === "" ? [] : line._idsKey.split(",").map(Number)
       activeId: _activeHere
       cell: root.cell
       cellLength: root.cellLength

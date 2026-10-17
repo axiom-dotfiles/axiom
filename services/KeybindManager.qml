@@ -203,6 +203,10 @@ QtObject {
     return BindActions.needsArgument(action);
   }
 
+  // How many workspaces a number can name: the layout's, or ten where the
+  // compositor makes them itself (CompositorManager.dynamicWorkspaces)
+  readonly property int _workspaceKeys: CompositorManager.dynamicWorkspaces ? 10 : WorkspacesConfig.size
+
   // The choices for an action's argument, or null for free text
   function argumentOptions(action) {
     switch (BindActions.argumentKind(action)) {
@@ -210,7 +214,7 @@ QtObject {
       return ["left", "right", "up", "down"];
     case "workspace":
       return Array.from({
-        "length": WorkspacesConfig.size
+        "length": root._workspaceKeys
       }, (_, i) => String(i + 1));
     case "screenshot":
       return ["region", "window", "screen"];
@@ -294,13 +298,13 @@ QtObject {
       const section = root._bindSection(bind);
       return {
         "index": index,
-        "key": key.split("+").map(part => root.displayKey(part.trim())).join(" + "),
+        "key": root.displayCombo(key),
         "label": label,
         "section": section,
         "mods": root._bindMods(bind),
         "text": [key, label, section, bind.argument ?? "", bind.description ?? "", BindActions.defaultLabel(bind)].join("\n").toLowerCase()
       };
-    }).filter(row => (query === "" || row.text.includes(query)) && (sections.length === 0 || sections.includes(row.section)) && mods.every(mod => row.mods.includes(mod)) && (!issuesOnly || (root.issues[row.index] ?? []).length > 0));
+    }).filter(row => (query === "" || row.text.includes(query)) && (sections.length === 0 || sections.includes(row.section)) && mods.every(mod => row.mods.includes(mod)) && (!issuesOnly || root.hasIssue(root.issues[row.index])));
     const compare = (a, b) => a.toLowerCase().localeCompare(b.toLowerCase());
     // Binds with no key yet go next to the Add button last used
     const keyless = row => Number(row.key === "") * (root.keylessFirst ? -1 : 1);
@@ -429,7 +433,8 @@ QtObject {
     return ids;
   }, {})
 
-  // Per bind: [{ level: "error" | "warning", text }]
+  // Per bind: [{ level: "error" | "warning" | "info", text }]; only errors
+  // and warnings are issues (issueCount, the issues filter, a row's border)
   readonly property var issues: {
     const ids = root.binds.map(bind => BindKeys.keyId(bind.key));
     const counts = {};
@@ -461,7 +466,18 @@ QtObject {
           "level": "warning",
           "text": I18n.tr("Needs a modifier to hold, like ALT + Tab")
         });
-      if (!BindActions.appliesUnder(bind, CompositorManager.kind, CompositorManager.supports))
+      // A bind the compositor carries out itself (niri's Mod + drag) isn't
+      // bound by axiom, but works on the compositor's own combo
+      const builtIn = CompositorManager.builtInBinds[bind.action];
+      if (builtIn !== undefined && key !== "")
+        found.push(BindKeys.keyId(builtIn) === ids[i] ? {
+          "level": "info",
+          "text": I18n.tr("{0} does this itself, on this combo", CompositorManager.displayName)
+        } : {
+          "level": "warning",
+          "text": I18n.tr("{0} only does this on {1}", CompositorManager.displayName, root.displayCombo(builtIn))
+        });
+      else if (!BindActions.appliesUnder(bind, CompositorManager.kind, CompositorManager.supports))
         found.push({
           "level": "warning",
           "text": bind.action === "raw" ? I18n.tr("Written for another compositor, so it does nothing here") : I18n.tr("This compositor can't do this, so it isn't bound")
@@ -480,7 +496,12 @@ QtObject {
     });
   }
 
-  readonly property int issueCount: issues.filter(found => found.length > 0).length
+  readonly property int issueCount: issues.filter(found => root.hasIssue(found)).length
+
+  // Whether a bind's `issues` hold an error or warning, not only notes
+  function hasIssue(found) {
+    return (found ?? []).some(issue => issue.level !== "info");
+  }
 
   // The binds on keys the user's compositor config binds too
   readonly property var userConflicts: root.binds.map((bind, index) => {
@@ -550,7 +571,7 @@ QtObject {
 
   // [{ id, title, description, binds }], for the current workspace layout.
   readonly property var presets: {
-    const count = Math.min(10, WorkspacesConfig.size);
+    const count = Math.min(10, root._workspaceKeys);
     const numbers = Array.from({
       "length": count
     }, (_, i) => i + 1);
@@ -569,19 +590,23 @@ QtObject {
         "binds": [].concat(...numbers.map(n => [root._workspaceBind("SUPER + " + digit(n), "workspaceNth", String(n)), root._workspaceBind("SUPER + SHIFT + " + digit(n), "moveWindowNth", String(n))]))
       }
     ];
-    const directions = WorkspacesConfig.grid ? [["Up", "W", "up"], ["Left", "A", "left"], ["Down", "S", "down"], ["Right", "D", "right"]] : [["Left", "A", "left"], ["Right", "D", "right"]];
+    // A grid goes four ways; so do dynamic workspaces, up and down the
+    // output's list and left and right to the next output
+    const grid = CompositorManager.workspaceGrid;
+    const dynamic = CompositorManager.dynamicWorkspaces;
+    const directions = grid || dynamic ? [["Up", "W", "up"], ["Left", "A", "left"], ["Down", "S", "down"], ["Right", "D", "right"]] : [["Left", "A", "left"], ["Right", "D", "right"]];
     const stepBinds = (mods, keyIndex) => [].concat(...directions.map(d => [root._workspaceBind(mods + d[keyIndex], "workspaceStep", d[2]), root._workspaceBind(mods + "SHIFT + " + d[keyIndex], "moveWindowStep", d[2])]));
-    if (WorkspacesConfig.grid)
+    if (grid || dynamic)
       list.push({
         "id": "wasd",
-        "title": I18n.tr("Grid with WASD"),
-        "description": I18n.tr("SUPER + W A S D moves around the grid, with SHIFT it takes the window along"),
+        "title": grid ? I18n.tr("Grid with WASD") : I18n.tr("Workspaces with WASD"),
+        "description": grid ? I18n.tr("SUPER + W A S D moves around the grid, with SHIFT it takes the window along") : I18n.tr("SUPER + W or S goes up or down the workspaces, A or D to the next monitor, with SHIFT it takes the window along"),
         "binds": stepBinds("SUPER + ", 1)
       });
     list.push({
       "id": "arrows",
-      "title": WorkspacesConfig.grid ? I18n.tr("Grid with arrows") : I18n.tr("Previous and next"),
-      "description": WorkspacesConfig.grid ? I18n.tr("SUPER + CTRL + arrows moves around the grid, with SHIFT it takes the window along") : I18n.tr("SUPER + CTRL + left or right steps through workspaces, with SHIFT it takes the window along"),
+      "title": grid ? I18n.tr("Grid with arrows") : dynamic ? I18n.tr("Workspaces with arrows") : I18n.tr("Previous and next"),
+      "description": grid ? I18n.tr("SUPER + CTRL + arrows moves around the grid, with SHIFT it takes the window along") : dynamic ? I18n.tr("SUPER + CTRL + up or down goes through the workspaces, left or right to the next monitor, with SHIFT it takes the window along") : I18n.tr("SUPER + CTRL + left or right steps through workspaces, with SHIFT it takes the window along"),
       "binds": stepBinds("SUPER + CTRL + ", 0)
     });
     const vim = [["h", "left"], ["j", "down"], ["k", "up"], ["l", "right"]];
@@ -904,6 +929,12 @@ QtObject {
 
   function _decodeMods(modmask) {
     return root._modifiers.filter(m => (modmask & m.mask) !== 0).map(m => m.name);
+  }
+
+  // A combo as shown on the page ("SUPER + mouse:272" -> "SUPER + LMB")
+  function displayCombo(combo) {
+    const key = String(combo ?? "").trim();
+    return key === "" ? "" : key.split("+").map(part => root.displayKey(part.trim())).join(" + ");
   }
 
   // A key name as shown on a keycap ("space" -> "Space", "left" -> "←")

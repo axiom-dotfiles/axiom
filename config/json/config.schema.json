@@ -899,7 +899,7 @@
         "shadowStrength": { "type": "integer", "x-control": "stepper", "title": "Shadow strength", "x-unit": "%", "x-group": "Shadows", "default": 100, "minimum": 10, "maximum": 400, "description": "How strong windows cast it, matching axiom's or not. The compositor's own color keeps its strength.", "x-showIf": { "shadow": true }, "x-enabledIf": { "/$supports.windowShadow": true } },
         "dim": { "type": "boolean", "title": "Dim unfocused windows", "x-group": "Dim", "default": false, "x-enabledIf": { "/$supports.windowDim": true } },
         "dimStrength": { "type": "integer", "title": "Dim strength", "x-unit": "%", "x-group": "Dim", "default": 8, "minimum": 0, "maximum": 100, "x-showIf": { "dim": true }, "x-enabledIf": { "/$supports.windowDim": true } },
-        "opacity": { "type": "boolean", "title": "Set window opacity", "x-group": "Window opacity", "default": false, "description": "Off, your own config's applies.", "x-enabledIf": { "/$supports.windowOpacity": true } },
+        "opacity": { "type": "boolean", "title": "Set window opacity", "x-group": "Window opacity", "default": false, "description": "Your apps' windows; the shell's own surfaces are Look & Feel → Translucency. Off, your own config's applies.", "x-enabledIf": { "/$supports.windowOpacity": true } },
         "activeOpacity": { "type": "integer", "title": "Focused window opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-enabledIf": { "/$supports.windowOpacity": true }, "x-hypr": "decoration.active_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" },
         "inactiveOpacity": { "type": "integer", "title": "Unfocused window opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-enabledIf": { "/$supports.windowOpacity": true }, "x-hypr": "decoration.inactive_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" },
         "fullscreenOpacity": { "type": "integer", "title": "Fullscreen opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-enabledIf": { "/$supports.windowOpacity": true }, "x-hypr": "decoration.fullscreen_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" }
@@ -1089,7 +1089,7 @@
               "default": 100,
               "minimum": 60,
               "maximum": 100,
-              "description": "How solid the shell's surfaces are: bars, the screen border, popouts, menus and panels. 100 is fully solid. A translucent surface needs the compositor to blur behind it (Compositor → Window look → Blur).",
+              "description": "How solid the shell's surfaces are: bars, the screen border, popouts, menus and panels (not your apps' windows: Compositor → Window look → Window opacity). 100 is fully solid. A translucent surface needs the compositor to blur behind it (Compositor → Window look → Blur).",
               "x-enabledIf": { "/$supports.blur": true }
             }
           }
@@ -1881,6 +1881,7 @@
       "x-scope": "look",
       "type": "object",
       "x-category": "Workspaces",
+      "x-intro": "WorkspacesStatus",
       "x-order": ["layout", "count", "columns", "rows", "wrap", "animate", "strips", "stripColumnWidth", "stripFollowFocus"],
       "title": "Workspaces",
       "description": "How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `qs -c axiom ipc call workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.",
@@ -1889,6 +1890,7 @@
         "layout": {
           "type": "string",
           "title": "Layout",
+          "x-enabledIf": { "/$supports.dynamicWorkspaces": false }, "x-disabledNote": false,
           "enum": ["standard", "perMonitor", "grid"],
           "x-enumLabels": { "standard": "Standard (1 to N)", "perMonitor": "Per monitor (1 to N)", "grid": "Grid per monitor" },
           "default": "perMonitor",
@@ -1898,6 +1900,7 @@
           "type": "integer",
           "x-control": "stepper",
           "title": "Workspaces",
+          "x-enabledIf": { "/$supports.dynamicWorkspaces": false }, "x-disabledNote": false,
           "default": 10,
           "minimum": 1,
           "maximum": 30,
@@ -1907,6 +1910,7 @@
           "type": "integer",
           "x-control": "stepper",
           "title": "Columns",
+          "x-enabledIf": { "/$supports.dynamicWorkspaces": false }, "x-disabledNote": false,
           "default": 5,
           "minimum": 1,
           "maximum": 10,
@@ -1917,6 +1921,7 @@
           "x-control": "stepper",
           "x-beside": true,
           "title": "Rows",
+          "x-enabledIf": { "/$supports.dynamicWorkspaces": false }, "x-disabledNote": false,
           "default": 5,
           "minimum": 1,
           "maximum": 10,
@@ -1931,6 +1936,7 @@
         "animate": {
           "type": "boolean",
           "title": "Directional slides",
+          "x-enabledIf": { "/$supports.dynamicWorkspaces": false }, "x-disabledNote": false,
           "default": true,
           "description": "Slide between workspaces whatever the compositor's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column."
         },
@@ -4418,8 +4424,8 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": true, "x-showIf": { "/Workspaces.layout": "standard" }, "description": "Off: only workspaces with windows, plus the active one." },
-            "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "x-showIf": { "/Workspaces.layout": "standard" }, "description": "Hide workspaces that are open on another monitor." },
+            "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": false, "x-showIf": { "/$supports.dynamicWorkspaces": false }, "description": "Off: only workspaces with windows, plus the active one (in a grid, of the row shown). Down to one on a strip monitor, its windows show alone." },
+            "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "x-showIf": { "/Workspaces.layout": "standard", "/$supports.dynamicWorkspaces": false }, "description": "Hide workspaces that are open on another monitor." },
             "labels": { "type": "string", "title": "Labels", "enum": ["numbers", "dots"], "x-enumLabels": { "numbers": "Numbers", "dots": "Dots" }, "default": "numbers", "description": "The workspace's number, on the bar and in the grid popout." },
             "relativeNumbers": { "type": "boolean", "title": "Relative numbers", "default": false, "x-showIf": { "/Workspaces.layout": ["perMonitor", "grid"], "labels": "numbers" }, "description": "Number each monitor's workspaces from 1 (11 to 20 on the second monitor show as 1 to 10) instead of by their workspace id, on the bar and in the grid popout." },
             "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "description": "Show the largest window's icon on occupied workspaces (in a grid, on the bar and in the popout)." },

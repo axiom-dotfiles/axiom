@@ -22,10 +22,11 @@ Rectangle {
   signal closeRequested
 
   readonly property var monitor: CompositorManager.outputFor(root.screen)
-  // The workspaces shown, one per cell, and the board's shape
+  // The workspaces shown, one per cell, and the board's shape: one column
+  // of them where the compositor keeps a list per monitor (niri's)
   readonly property var ids: CompositorManager.workspaceIds(root.monitor?.name ?? "")
-  readonly property int columns: WorkspacesConfig.boardColumns
-  readonly property int rows: WorkspacesConfig.boardRows
+  readonly property int columns: CompositorManager.dynamicWorkspaces ? 1 : WorkspacesConfig.boardColumns
+  readonly property int rows: CompositorManager.dynamicWorkspaces ? Math.max(1, root.ids.length) : WorkspacesConfig.boardRows
   readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
   // Global layout origin and logical size
   readonly property real monitorX: root.monitor?.x ?? 0

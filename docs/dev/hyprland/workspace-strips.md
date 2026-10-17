@@ -41,7 +41,7 @@ Monitors on Hyprland's `scrolling` layout: how they're configured, how the Lua r
   - It needs windows on the workspace; Hyprland refuses it on an empty one.
   - Hyprland focuses the column it moves to and warps the cursor there.
 - **Popout.** `WorkspaceStrip`'s popout on a strip monitor is `WorkspaceStrips`: each occupied workspace (plus the active one) as its number cell, then its `StripWindows`.
-- **One workspace.** With `Workspaces` size 1 (a count of 1, or a 1 × 1 grid) on a strip monitor, the switchers show the windows alone (`stripOnly`: no number cell, no divider) while the workspace has any, and offer no popout. Every compositor.
+- **One workspace.** With one workspace shown on a strip monitor (a size of 1, or down to the active one without `showEmpty` or with dynamic workspaces), the switchers show the windows alone (`stripOnly`: no number cell, no divider) while the workspace has any. With size 1, or one dynamic workspace, there's no popout. Every compositor.
 
 ### Overview
 - The overview squeezes a strip workspace's tiled windows into its cell along the strip (`WorkspaceGeometry.stripRects`), so off-screen columns show.

@@ -244,6 +244,39 @@ TestCase {
     compare(WorkspaceGeometry.blockBases([], "", 5), {});
   }
 
+  function test_outputToward() {
+    const outputs = [
+      {
+        "name": "A",
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "name": "B",
+        "x": 1920,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "name": "C",
+        "x": 1920,
+        "y": 1440,
+        "width": 1920,
+        "height": 1080
+      }
+    ];
+    compare(WorkspaceGeometry.outputToward(outputs, "A", "right"), "B", "the one beside beats the one diagonally");
+    compare(WorkspaceGeometry.outputToward(outputs, "B", "left"), "A");
+    compare(WorkspaceGeometry.outputToward(outputs, "B", "down"), "C");
+    compare(WorkspaceGeometry.outputToward(outputs, "A", "left"), "", "none that way");
+    compare(WorkspaceGeometry.outputToward(outputs, "A", "up"), "");
+    compare(WorkspaceGeometry.outputToward(outputs.slice(0, 1), "A", "right"), "", "one monitor");
+    compare(WorkspaceGeometry.outputToward(outputs, "X", "right"), "", "unknown output");
+  }
+
   function test_orderMonitors_primary_first_then_by_key() {
     const monitors = [
       {

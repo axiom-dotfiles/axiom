@@ -6,10 +6,14 @@ import qs.config
 import qs.components.hosts.popout
 
 // The standard layout's switcher: workspaces 1..count in a row (horizontal
-// bar) or column (vertical bar); click one to go there, scroll to step
-// through them. On a strip monitor the active workspace's windows follow
-// the workspaces in strip order (ActiveStrip), scrolling scrolls the strip,
-// and the popout shows every workspace's strip.
+// bar) or column (vertical bar), or the ones the compositor has where it
+// makes them itself (CompositorManager.dynamicWorkspaces); click one to go
+// there, scroll to step through them. Without `showEmpty`, and always with
+// dynamic workspaces, only those with windows and the active one show. On
+// a strip monitor the active workspace's windows follow the workspaces in
+// strip order (ActiveStrip), scrolling scrolls the strip, and the popout
+// shows every workspace's strip; down to one workspace, its windows show
+// alone.
 Item {
   id: root
   property var screen
@@ -40,9 +44,12 @@ Item {
   readonly property int base: CompositorManager.workspaceBase(root.output)
   // "horizontal" | "vertical" on a strip monitor, else ""
   readonly property string stripDirection: CompositorManager.stripDirection(root.screen?.name ?? "")
-  // One workspace on a strip monitor: the strip is all there is, so its
-  // windows show alone while it has any (the cell stands in while empty)
-  readonly property bool stripOnly: WorkspacesConfig.size === 1 && root.stripDirection !== "" && ((activeStrip.item as ActiveStrip)?.hasWindows ?? false)
+  // One workspace shown on a strip monitor: the strip is all there is, so
+  // its windows show alone while it has any (the cell stands in while empty)
+  readonly property bool stripOnly: root.ids.length <= 1 && root.stripDirection !== "" && ((activeStrip.item as ActiveStrip)?.hasWindows ?? false)
+  // Only workspaces with windows and the active one: without `showEmpty`,
+  // and where the compositor's empty one at the end is only for opening
+  readonly property bool _hideEmpty: !root.properties.showEmpty || CompositorManager.dynamicWorkspaces
 
   // A string, so the cells are only rebuilt when the set of workspaces
   // shown changes, not on every compositor event
@@ -52,7 +59,7 @@ Item {
       const ws = root.wsById(id);
       if (root.properties.monitorOnly && ws?.output && root.output && ws.output !== root.output)
         continue;
-      if (!root.properties.showEmpty && id !== root.activeId && !root.hasWindows(ws))
+      if (root._hideEmpty && id !== root.activeId && !root.hasWindows(ws))
         continue;
       ids.push(id);
     }
@@ -159,7 +166,7 @@ Item {
   PopoutAnchor {
     hitArea: root.hitArea
     popoutName: "WorkspaceStrips"
-    active: root.stripDirection !== "" && WorkspacesConfig.size > 1 && EdgeMenusConfig.opensOwnPopout(root.properties)
+    active: root.stripDirection !== "" && (CompositorManager.dynamicWorkspaces ? root.ids.length > 1 : WorkspacesConfig.size > 1) && EdgeMenusConfig.opensOwnPopout(root.properties)
     extraData: ({
         output: root.output,
         vertical: root.isVertical,

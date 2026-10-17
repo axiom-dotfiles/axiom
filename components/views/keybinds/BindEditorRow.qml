@@ -26,7 +26,7 @@ StyledContainer {
 
   Layout.fillWidth: true
   implicitHeight: column.implicitHeight + Widget.padding
-  borderColor: root.hasError ? Theme.error : (root.issues.length > 0 ? Theme.warning : "transparent")
+  borderColor: root.hasError ? Theme.error : (KeybindManager.hasIssue(root.issues) ? Theme.warning : "transparent")
 
   // Text fields keep what's being typed; otherwise they follow the bind,
   // focused or not (a row shows another bind once one above it goes). They

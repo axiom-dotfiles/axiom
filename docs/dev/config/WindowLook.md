@@ -151,7 +151,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-group="Dim", x-showIf={"dim":true}, x-enabledIf={"/$supports.windowDim":true}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.opacity`** · boolean = false
-  - Set window opacity: Off, your own config's applies.
+  - Set window opacity: Your apps' windows; the shell's own surfaces are Look & Feel → Translucency. Off, your own config's applies.
   - x-group="Window opacity", x-enabledIf={"/$supports.windowOpacity":true}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.activeOpacity`** · integer = 100 · 10–100 · %

@@ -13,24 +13,26 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Workspaces.layout`** · string = "perMonitor" · enum standard|perMonitor|grid
   - Layout: Standard: workspaces 1 to N, shared by every monitor. Per monitor: each monitor has its own 1 to N workspaces. Grid: each monitor has its own columns × rows workspaces. Per monitor and grid assign monitors a stable order (the primary monitor first, then the rest by their monitor identity), so a hotplug or Hyprland restart can't reshuffle which monitor owns which ids.
-  - read: `WorkspacesConfig.layout`, `WorkspacesConfig.grid` (computed), `WorkspacesConfig.perMonitorBlocks` (computed) · in: `components/bar/widgets/Workspaces.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorManager.qml`, `services/KeybindManager.qml`
+  - x-enabledIf={"/$supports.dynamicWorkspaces":false}, x-disabledNote=false
+  - read: `WorkspacesConfig.layout`, `WorkspacesConfig.grid` (computed), `WorkspacesConfig.perMonitorBlocks` (computed) · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorManager.qml`
 - **`Workspaces.count`** · integer = 10 · 1–30
   - Workspaces
-  - x-control="stepper", x-showIf={"layout":["standard","perMonitor"]}
+  - x-control="stepper", x-enabledIf={"/$supports.dynamicWorkspaces":false}, x-disabledNote=false, x-showIf={"layout":["standard","perMonitor"]}
   - read: `WorkspacesConfig.count` · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`
 - **`Workspaces.columns`** · integer = 5 · 1–10
   - Columns
-  - x-control="stepper", x-showIf={"layout":"grid"}
+  - x-control="stepper", x-enabledIf={"/$supports.dynamicWorkspaces":false}, x-disabledNote=false, x-showIf={"layout":"grid"}
   - read: `WorkspacesConfig.columns` (computed) · in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/content/WorkspaceGrid.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorManager.qml`
 - **`Workspaces.rows`** · integer = 5 · 1–10
   - Rows
-  - x-control="stepper", x-beside=true, x-showIf={"layout":"grid"}
+  - x-control="stepper", x-beside=true, x-enabledIf={"/$supports.dynamicWorkspaces":false}, x-disabledNote=false, x-showIf={"layout":"grid"}
   - read: `WorkspacesConfig.rows` (computed) · in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/content/WorkspaceGrid.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorManager.qml`
 - **`Workspaces.wrap`** · boolean = false
   - Wrap around: Stepping past the last workspace (of a row or column in a grid) goes back to the first.
   - read: `WorkspacesConfig.wrap` · in: `services/CompositorManager.qml`
 - **`Workspaces.animate`** · boolean = true
   - Directional slides: Slide between workspaces whatever the compositor's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column.
+  - x-enabledIf={"/$supports.dynamicWorkspaces":false}, x-disabledNote=false
   - read: `WorkspacesConfig.animate` · in: `services/CompositorManager.qml`
 - **`Workspaces.strips`** · array<object> = []
   - Strips: Monitors whose windows sit side by side on a strip that scrolls (Hyprland's scrolling layout) instead of tiling. New windows open as a new column after the focused one.
@@ -66,7 +68,7 @@ Every public member of `WorkspacesConfig`, with the files that use it.
 - `WorkspacesConfig.layout` (string): Grid: each monitor owns columns × rows ids.
   - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`
 - `WorkspacesConfig.grid` (bool)
-  - in: `components/bar/widgets/Workspaces.qml`, `services/CompositorManager.qml`, `services/KeybindManager.qml`
+  - in: `services/CompositorManager.qml`
 - `WorkspacesConfig.perMonitorBlocks` (bool): True when each monitor gets its own block of ids (grid or perMonitor) instead of sharing 1..count (standard).
   - in: `services/CompositorManager.qml`
 - `WorkspacesConfig.count` (int)
@@ -76,7 +78,7 @@ Every public member of `WorkspacesConfig`, with the files that use it.
 - `WorkspacesConfig.rows` (int)
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/content/WorkspaceGrid.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorManager.qml`
 - `WorkspacesConfig.size` (int): Workspaces a monitor shows
-  - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `services/CompositorManager.qml`, `services/KeybindManager.qml`, `services/NiriManager.qml`
+  - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `services/CompositorManager.qml`, `services/KeybindManager.qml`
 - `WorkspacesConfig.wrap` (bool)
   - in: `services/CompositorManager.qml`
 - `WorkspacesConfig.animate` (bool)

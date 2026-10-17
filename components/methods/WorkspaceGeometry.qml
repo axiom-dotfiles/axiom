@@ -251,6 +251,44 @@ QtObject {
     }, {});
   }
 
+  // The output next to output `name` toward `direction` (left, right, up,
+  // down): of those whose centre lies that way, the nearest, a step across
+  // the direction counting double. "" with none. outputs: [{ name, x, y,
+  // width, height }]
+  function outputToward(outputs, name, direction) {
+    const centre = o => ({
+          "x": o.x + o.width / 2,
+          "y": o.y + o.height / 2
+        });
+    const from = (outputs ?? []).find(o => o.name === name);
+    if (!from)
+      return "";
+    const at = centre(from);
+    const axis = {
+      "left": [-1, 0],
+      "right": [1, 0],
+      "up": [0, -1],
+      "down": [0, 1]
+    }[direction];
+    if (!axis)
+      return "";
+    let best = "";
+    let bestScore = Infinity;
+    for (const o of outputs) {
+      const c = centre(o);
+      const along = (c.x - at.x) * axis[0] + (c.y - at.y) * axis[1];
+      const across = Math.abs((c.x - at.x) * axis[1] + (c.y - at.y) * axis[0]);
+      if (o.name === name || along <= 0)
+        continue;
+      const score = along + 2 * across;
+      if (score < bestScore) {
+        best = o.name;
+        bestScore = score;
+      }
+    }
+    return best;
+  }
+
   // Where windows go when the workspace layout changes (CompositorManager's
   // remap): every workspace with windows moves into its own monitor's ids
   // under `to`, at the same place in the block where it can, so its windows

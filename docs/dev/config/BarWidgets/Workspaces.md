@@ -6,13 +6,13 @@
 
 Settings are read as `properties.<key>`.
 
-- **`showEmpty`** · boolean = true
-  - Show empty workspaces: Off: only workspaces with windows, plus the active one.
-  - x-showIf={"/Workspaces.layout":"standard"}
-  - in: `components/bar/widgets/workspaces/WorkspaceStrip.qml`
+- **`showEmpty`** · boolean = false
+  - Show empty workspaces: Off: only workspaces with windows, plus the active one (in a grid, of the row shown). Down to one on a strip monitor, its windows show alone.
+  - x-showIf={"/$supports.dynamicWorkspaces":false}
+  - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`monitorOnly`** · boolean = false
   - Only this monitor: Hide workspaces that are open on another monitor.
-  - x-showIf={"/Workspaces.layout":"standard"}
+  - x-showIf={"/Workspaces.layout":"standard","/$supports.dynamicWorkspaces":false}
   - in: `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`labels`** · string = "numbers" · enum numbers|dots
   - Labels: The workspace's number, on the bar and in the grid popout.

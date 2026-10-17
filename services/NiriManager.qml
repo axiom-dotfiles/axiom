@@ -19,12 +19,12 @@ Singleton {
   // --- Backend state (docs/dev/compositor/contract.md) ---
 
   // The windows (NiriState.windows)
-  readonly property var windows: NiriState.windows(_state, outputs, _bases, WorkspacesConfig.size, _gap)
+  readonly property var windows: NiriState.windows(_state, outputs, _bases, root.blockSize, _gap)
   // The enabled outputs (NiriState.outputs)
-  readonly property var outputs: NiriState.outputs(_outputsReply, _state, _bases, WorkspacesConfig.size)
+  readonly property var outputs: NiriState.outputs(_outputsReply, _state, _bases, root.blockSize)
   // The workspaces with an id of axiom's (NiriState.workspaces): each
-  // output's first `size`
-  readonly property var workspaces: NiriState.workspaces(_state, _bases, WorkspacesConfig.size)
+  // output's first `blockSize`
+  readonly property var workspaces: NiriState.workspaces(_state, _bases, root.blockSize)
   // The focused output's name, or ""
   readonly property string focusedOutput: NiriState.focusedOutput(_state)
   // The focused window's id, or ""
@@ -52,6 +52,9 @@ Singleton {
   readonly property bool surfacesReady: true
   // niri slides between workspaces itself
   readonly property int travelingTo: -1
+  // Ids in each output's block (CompositorManager.blockSize): niri makes
+  // workspaces as they fill, so more than anyone has
+  readonly property int blockSize: 100
   // Whether niri's last config load failed (it keeps the config before)
   readonly property bool lastLoadFailed: _state.configFailed
   // Writes axiom's layer into niri's config (CompositorConfigManager)
@@ -70,6 +73,7 @@ Singleton {
       "strips": true,
       "stripsAlways": true,
       "outputWorkspaces": true,
+      "dynamicWorkspaces": true,
       "windowBorders": true,
       "windowShape": true,
       "windowRounding": true,
@@ -96,6 +100,20 @@ Singleton {
   signal windowFocused(string appId)
   // Never: niri's switcher binds call axiom's IPC (WindowSwitcherManager)
   signal switcherKey(string verb, string argument)
+
+  // The binds niri carries out itself, by action, as axiom writes the key:
+  // Mod + drag moves a window, Mod + right drag resizes it (the Keybinds
+  // page's mouseDrag and mouseResize, which niri can't be told to bind)
+  readonly property var builtInBinds: ({
+      "mouseDrag": root._configModKey + " + mouse:272",
+      "mouseResize": root._configModKey + " + mouse:273"
+    })
+
+  // What niri does instead (CompositorManager.unsupportedNote).
+  // I18n.tr("niri blurs windows, but not behind the shell's surfaces yet.")
+  function unsupportedHint(capability) {
+    return capability === "blur" ? I18n.tr("niri blurs windows, but not behind the shell's surfaces yet.") : "";
+  }
 
   // Reads the outputs again (the rest comes as events)
   function refresh() {
@@ -268,6 +286,28 @@ Singleton {
       });
   }
 
+  // Focuses output `name` (its active workspace)
+  function focusOutput(name) {
+    NiriIpcManager.action({
+      "FocusMonitor": {
+        "output": name
+      }
+    });
+  }
+
+  // Moves the focused window to output `name`; focus goes along with
+  // `follow`, else stays on the output it's on
+  function moveWindowToOutput(name, follow) {
+    const from = root.focusedOutput;
+    NiriIpcManager.action({
+      "MoveWindowToMonitor": {
+        "id": null,
+        "output": name
+      }
+    });
+    root.focusOutput(follow ? name : from);
+  }
+
   // niri's workspaces belong to their output and keep their place there
   // (supports.outputWorkspaces): there's nothing to remap
   function applyRemap(plan, outputs) {
@@ -291,7 +331,7 @@ Singleton {
   function _niriWorkspace(id) {
     for (const key in root._state.workspaces) {
       const ws = root._state.workspaces[key];
-      if (NiriState.workspaceId(ws, root._bases, WorkspacesConfig.size) === id)
+      if (NiriState.workspaceId(ws, root._bases, root.blockSize) === id)
         return ws;
     }
     return null;
@@ -299,7 +339,7 @@ Singleton {
 
   // The output whose block holds workspace `id`, else the focused one
   function _outputOf(id) {
-    const size = WorkspacesConfig.size;
+    const size = root.blockSize;
     for (const name in root._bases) {
       if (id >= root._bases[name] && id < root._bases[name] + size)
         return name;
@@ -399,7 +439,7 @@ Singleton {
           "description": NiriState.description(root._outputsReply[name])
         });
     }
-    return WorkspaceGeometry.blockBases(raw, General.primaryMonitor, WorkspacesConfig.size);
+    return WorkspaceGeometry.blockBases(raw, General.primaryMonitor, root.blockSize);
   }
   // The gap between windows, where niri lays a strip out from
   readonly property real _gap: root._configGaps.inner
@@ -416,8 +456,10 @@ Singleton {
     })
   // The layouts niri's own config sets ("us,de"), for their short names
   property string _configLayouts: ""
+  // What niri's Mod stands for, as axiom names it ("SUPER")
+  property string _configModKey: "SUPER"
 
-  // The gaps, struts and layouts the config niri runs sets
+  // The gaps, struts, layouts and mod key the config niri runs sets
   // (niri_config.py info)
   function _readConfig() {
     CommandManager.run([Paths.scriptsPath + "niri_config.py", "info", "--config", NiriConfigWriter.runningConfig], (code, out) => {
@@ -430,6 +472,7 @@ Singleton {
           "struts": info.struts
         };
         root._configLayouts = info.layouts;
+        root._configModKey = info.modKey || "SUPER";
       } catch (e) {}
     });
   }

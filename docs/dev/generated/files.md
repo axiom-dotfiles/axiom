@@ -58,7 +58,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `WorkspaceCell.qml`: One workspace on the bar, in the bar's widget style (Bar.cellColors): a filled, tinted or outlined box inside the widget's own; on a bar whose widgets have no boxes, its number (or a dot) straight on the bar, under a li…
 - `WorkspaceCellRow.qml`: A bar switcher's row (a column on a vertical bar) of WorkspaceCells for workspaces `ids`: the cells' boxes at rest, the active one's sliding over them (ActiveCellIndicator), then their labels and icons over both.
 - `WorkspaceGridStrip.qml`: The grid layout's switcher: this monitor's columns × rows workspaces, of which the bar shows the active row (horizontal bar) or column (vertical bar), and the popout the whole grid.
-- `WorkspaceStrip.qml`: The standard layout's switcher: workspaces 1..count in a row (horizontal bar) or column (vertical bar); click one to go there, scroll to step through them.
+- `WorkspaceStrip.qml`: The standard layout's switcher: workspaces 1..count in a row (horizontal bar) or column (vertical bar), or the ones the compositor has where it makes them itself (CompositorManager.dynamicWorkspaces); click one to go th…
 
 ## components/content/
 
@@ -558,6 +558,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SettingsGroupCard.qml`: i18n: keys from the schema (titles, descriptions) One group of settings (a section's own fields, or one nested object) as a card: title, help text, then its rows.
 - `SettingsSidebar.qml`: i18n: keys from the schema (category names, card titles) Settings page, left: search and the category list; the selected category also lists its cards, and clicking one scrolls the page to it.
 - `TranslucencyStatus.qml`: The top of the Translucency card (its `x-intro`): a warning that it's experimental, and while the surfaces blur, the blur they get: the compositor's one (CompositorManager.blur, as in effect), set by the window look's b…
+- `WorkspacesStatus.qml`: The top of the Workspaces card (the section's `x-intro`): where the compositor makes its workspaces itself (CompositorManager. dynamicWorkspaces), why the layout below is greyed out and what the workspace keys do instead
 
 ## shell/
 

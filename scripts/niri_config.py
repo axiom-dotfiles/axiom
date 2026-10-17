@@ -10,7 +10,8 @@ Usage: niri_config.py <command> [--config PATH] [--skip PATH]... [--skip-header 
   binds      the binds in effect, as BindKeys' entries ({ modmask, key,
              keycode, submap, description }), a later one on a key winning
   info       what NiriManager follows: { gaps, struts: { top, right,
-             bottom, left }, layouts ("us,de", or "") }
+             bottom, left }, layouts ("us,de", or ""), modKey (what Mod
+             stands for, as axiom names it: "SUPER") }
 
 The config is --config, else the one the niri $NIRI_SOCKET names started
 with (niri_kdl.main_config). --skip leaves files out (axiom's own
@@ -42,7 +43,9 @@ def info(files):
                 layout = xkb.child("layout") if xkb else None
                 if layout and layout.args:
                     layouts = str(layout.args[0])
-    return {"gaps": gaps, "struts": struts, "layouts": layouts}
+    mod = niri_kdl.mod_key(files, niri_kdl.running_nested())
+    return {"gaps": gaps, "struts": struts, "layouts": layouts,
+            "modKey": niri_kdl.MOD_NAMES.get(mod.lower(), mod.upper())}
 
 
 def main(argv):

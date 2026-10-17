@@ -106,8 +106,10 @@ Item {
 
   Grid {
     id: cells
-    rows: root.isVertical ? Math.max(1, root.ids.length) : 1
-    columns: root.isVertical ? 1 : Math.max(1, root.ids.length)
+    // -1: as many as there are cells, so a cell added before a count
+    // would follow can't overflow the grid
+    rows: root.isVertical ? -1 : 1
+    columns: root.isVertical ? 1 : -1
     spacing: root.spacing
 
     Repeater {

@@ -9,7 +9,7 @@ CompositorManager's backend on niri (docs/dev/compositor/contract.md, docs/dev/c
 
 - `windows` (readonly var): The windows (NiriState.windows)
 - `outputs` (readonly var): The enabled outputs (NiriState.outputs)
-- `workspaces` (readonly var): The workspaces with an id of axiom's (NiriState.workspaces): each output's first `size`
+- `workspaces` (readonly var): The workspaces with an id of axiom's (NiriState.workspaces): each output's first `blockSize`
 - `focusedOutput` (readonly string): The focused output's name, or ""
 - `activeWindowId` (readonly string): The focused window's id, or ""
 - `gapsOut` (readonly var): niri's gap at the screen edges: its gaps plus its struts, as the config it runs sets them (axiom's module in it)
@@ -17,10 +17,12 @@ CompositorManager's backend on niri (docs/dev/compositor/contract.md, docs/dev/c
 - `blur` (readonly var)
 - `surfacesReady` (readonly bool): niri doesn't stack layers by axiom's order: LayerManager maps them in order itself, from the start
 - `travelingTo` (readonly int): niri slides between workspaces itself
+- `blockSize` (readonly int): Ids in each output's block (CompositorManager.blockSize): niri makes workspaces as they fill, so more than anyone has
 - `lastLoadFailed` (readonly bool): Whether niri's last config load failed (it keeps the config before)
 - `configWriter` (readonly var): Writes axiom's layer into niri's config (CompositorConfigManager)
 - `ready` (readonly bool): Whether `supports` is final: once the user's binds are read, so axiom's layer never binds a key their config does (NiriConfigWriter)
 - `supports` (readonly var): What niri does (CompositorManager.supports).
+- `builtInBinds` (readonly var): The binds niri carries out itself, by action, as axiom writes the key: Mod + drag moves a window, Mod + right drag resizes it (the Keybinds page's mouseDrag and mouseResize, which niri can't be told …
 
 ### Signals
 
@@ -33,6 +35,7 @@ CompositorManager's backend on niri (docs/dev/compositor/contract.md, docs/dev/c
 
 ### Functions
 
+- `unsupportedHint(capability)`: What niri does instead (CompositorManager.unsupportedNote).
 - `refresh()`: Reads the outputs again (the rest comes as events)
 - `activateWindow(id)`
 - `closeWindow(id)`
@@ -43,6 +46,8 @@ CompositorManager's backend on niri (docs/dev/compositor/contract.md, docs/dev/c
 - `sendWindowToWorkspace(id)`: Sends the focused window to workspace `id`, staying put
 - `scrollStrip(direction)`: Scrolls the focused output's strip a column on (1) or back (-1)
 - `travel(output, legs, mode, focusId)`: A workspace switch (CompositorManager.goToWorkspace). niri slides by itself, so only the last leg counts.
+- `focusOutput(name)`: Focuses output `name` (its active workspace)
+- `moveWindowToOutput(name, follow)`: Moves the focused window to output `name`; focus goes along with `follow`, else stays on the output it's on
 - `applyRemap(plan, outputs)`: niri's workspaces belong to their output and keep their place there (supports.outputWorkspaces): there's nothing to remap
 - `leaveSwitcher()`: Nothing to let go: niri's switcher binds enter no mode (SwitcherKeys reads the keys while it's open)
 - `withMainBinds(callback)`: Calls back with the binds in effect outside axiom's own (the user's, read from their config, and axiom's), or null
