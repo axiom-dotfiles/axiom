@@ -190,6 +190,16 @@ def check_argv(env, argv, cwd):
         if live_config_path(merge[2], cwd, env):
             deny("Never, while testing", f"{Path(merge[0]).name} remove only on a scratch dir, never the live compositor config.")
 
+    # Ending, reconfiguring or swapping the config of the niri session
+    # itself: only a nested niri (NIRI_SOCKET aimed at another one than the
+    # session's own) may be told to
+    if name == "niri" and args[:1] == ["msg"]:
+        rest = [a for a in args[1:] if a not in {"-j", "--json"}]
+        changes = rest[:1] == ["output"] or (rest[:1] == ["action"] and rest[1:2] in (["quit"], ["load-config-file"]))
+        socket = env.get("NIRI_SOCKET", os.environ.get("NIRI_SOCKET", ""))
+        if changes and (not socket or socket == os.environ.get("NIRI_SOCKET", "")):
+            deny("Never, while testing", "niri msg output / action quit / load-config-file only on a nested niri (NIRI_SOCKET=<its socket>), never the live session.")
+
     # A theme integration's hookup on the real configs
     if name == "integration_hookup.py" or (name.startswith("python") and any(Path(a).name == "integration_hookup.py" for a in args)):
         rest = args[[Path(a).name for a in args].index("integration_hookup.py") + 1:] if name.startswith("python") else args

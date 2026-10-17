@@ -34,6 +34,8 @@ if [[ -z "$monitor" ]]; then
     monitor="$(hyprctl monitors -j | jq -r '.[] | select(.focused) | .name')"
   elif [[ -n "${SWAYSOCK:-}" ]]; then
     monitor="$(swaymsg -t get_outputs -r | jq -r '.[] | select(.focused) | .name')"
+  elif [[ -n "${NIRI_SOCKET:-}" ]]; then
+    monitor="$(niri msg -j focused-output | jq -r '.name')"
   fi
 fi
 [[ -n "$out" ]] || out="$(mktemp --suffix=.png "${TMPDIR:-/tmp}/axiom-shot-XXXXXX")"
