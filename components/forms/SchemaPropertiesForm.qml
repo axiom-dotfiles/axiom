@@ -74,7 +74,10 @@ ColumnLayout {
         // false forever once this Loader hides)
         readonly property bool shown: item?.shown ?? false
         readonly property bool _beside: modelData.schema?.["x-beside"] === true
-        readonly property var _partner: _beside ? fields.itemAt(index - 1) : root.rows[index + 1]?.schema?.["x-beside"] === true ? fields.itemAt(index + 1) : null
+        // Read again once every field exists (`count` changes after the
+        // Repeater made them): itemAt doesn't notify, and the field after
+        // this one doesn't exist yet when it's made
+        readonly property var _partner: fields.count < 0 ? null : _beside ? fields.itemAt(index - 1) : root.rows[index + 1]?.schema?.["x-beside"] === true ? fields.itemAt(index + 1) : null
         readonly property bool half: root.pairs && (_partner?.shown ?? false)
         Layout.fillWidth: true
         Layout.columnSpan: half ? 1 : 2
