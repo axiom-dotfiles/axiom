@@ -324,6 +324,10 @@ def main_config():
     -c, else its NIRI_CONFIG, else where niri looks. A config loaded later
     (load-config-file --path: axiom's detached wrapper) doesn't change it."""
     pid = _niri_pid()
+    # A NIRI_SOCKET left over from an earlier session can name a pid some
+    # other process has since
+    if pid and "".join(_proc(pid, "comm")).strip() != "niri":
+        pid = None
     if pid:
         args = _proc(pid, "cmdline")
         for i, arg in enumerate(args):
@@ -393,6 +397,8 @@ MOUSE = {"mouseleft": "mouse:272", "mouseright": "mouse:273", "mousemiddle": "mo
          "mouseforward": "mouse:276", "wheelscrollup": "mouse_up", "wheelscrolldown": "mouse_down",
          "wheelscrollleft": "mouse_left", "wheelscrollright": "mouse_right"}
 AXIOM_MOD_ORDER = ["SUPER", "CTRL", "ALT", "SHIFT", "MOD5"]
+# niri's other names for a modifier (lower case), as the one it's compared by
+MOD_ALIASES = {"control": "ctrl", "win": "super", "mod5": "iso_level3_shift", "mod3": "iso_level5_shift"}
 
 
 def running_nested():
@@ -498,7 +504,8 @@ def action_text(bind):
 
 def bind_nodes(files, nested=False):
     """The binds in effect: [(path, node)], a later one on the same key
-    (niri compares keys without case) winning."""
+    (niri compares keys without case, a modifier by any of its names)
+    winning."""
     mod = mod_key(files, nested)
     found = {}
     for path, nodes in files:
@@ -508,7 +515,8 @@ def bind_nodes(files, nested=False):
             for bind in node.children or []:
                 split = split_combo(bind.name, mod)
                 if split:
-                    found[("+".join(sorted(split[0])), split[1].lower())] = (path, bind)
+                    mods = sorted({MOD_ALIASES.get(m, m) for m in split[0]})
+                    found[("+".join(mods), split[1].lower())] = (path, bind)
     return list(found.values()), mod
 
 

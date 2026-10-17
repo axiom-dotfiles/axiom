@@ -2120,10 +2120,10 @@ class NiriConfig(unittest.TestCase):
             niri_kdl.parse("a {")
 
     def test_includes_and_binds(self):
-        (self.tmp / "extra.kdl").write_text('binds {\n    Mod+T { spawn "b"; }\n}\n')
+        (self.tmp / "extra.kdl").write_text('binds {\n    Mod+T { spawn "b"; }\n    Control+Win+Q { spawn "q2"; }\n}\n')
         (self.tmp / "axiom.kdl").write_text('binds {\n    Mod+X { spawn "axiom"; }\n}\n')
         (self.tmp / "config.kdl").write_text(
-            'binds {\n    Mod+T { spawn "a"; }\n    Mod+Y { spawn "a"; }\n}\ninclude "extra.kdl"\n'
+            'binds {\n    Mod+T { spawn "a"; }\n    Mod+Y { spawn "a"; }\n    Super+Ctrl+Q { spawn "q1"; }\n}\ninclude "extra.kdl"\n'
             'include optional=true "missing.kdl"\ninclude "axiom.kdl"\ninclude "config.kdl"\n')
         main = str(self.tmp / "config.kdl")
         code, found = self.run_script("includes", "--config", main)
@@ -2131,9 +2131,10 @@ class NiriConfig(unittest.TestCase):
         self.assertEqual(found["files"], [main, str(self.tmp / "extra.kdl"), str(self.tmp / "axiom.kdl")])
         code, binds = self.run_script("binds", "--config", main, "--skip", str(self.tmp / "axiom.kdl"))
         self.assertEqual(code, 0)
-        # The later bind on a key wins; axiom's file left out
+        # The later bind on a key wins, a modifier by any of its names;
+        # axiom's file left out
         self.assertEqual([(b["modmask"], b["key"], b["description"]) for b in binds],
-                         [(64, "T", 'spawn "b"'), (64, "Y", 'spawn "a"')])
+                         [(64, "T", 'spawn "b"'), (64, "Y", 'spawn "a"'), (68, "Q", 'spawn "q2"')])
 
     def test_skip_header_and_info(self):
         (self.tmp / "user").mkdir()
