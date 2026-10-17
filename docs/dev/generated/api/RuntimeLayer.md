@@ -3,16 +3,16 @@
 
 > **File:** `services/RuntimeLayer.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Axiom's layer applied at runtime, for a compositor's config writer: the detached mode, and the fallback of the file modes while their file isn't loaded (docs/dev/compositor/config-modes.md). The compositor's binds are read first, so a bind on a key the user's config already takes is skipped (skippedKeys). Not a singleton: each backend's runtime layer (HyprlandRuntimeLayer, SwayRuntimeLayer) is one, setting the hooks below, and its config writer owns it. readBinds(callback) reads the binds in effect that aren't this layer's (BindKeys' entries, or null) and calls back with them and anything `send` needs too canBind(bind) whether the compositor can bind a configured bind send(binds, context) applies the binds that are free, and the rest of the layer (the look, the input, …) takeOut() takes out what the layer bound
+Axiom's layer applied at runtime, for a compositor's config writer: the detached mode, and the fallback of the file modes while their file isn't loaded (docs/dev/compositor/config-modes.md). The compositor's binds are read first, so a bind on a key the user's config already takes is skipped (skippedKeys). Not a singleton: each backend's runtime layer (HyprlandRuntimeLayer, SwayRuntimeLayer) is one, setting the hooks below, and its config writer owns it.
 
 ### Properties
 
-- `logTag` (string): The config writer's name, to start log lines with, and the compositor's, as the user's config is named ("Hyprland", "sway")
-- `configName` (string)
-- `readBinds` (var)
-- `canBind` (var)
-- `send` (var)
-- `takeOut` (var)
+- `logTag` (string): The config writer's name, to start log lines with
+- `configName` (string): The compositor's, as the user's config is named ("Hyprland", "sway")
+- `readBinds` (var): Reads the binds in effect that aren't this layer's (BindKeys' entries, or null) and calls back with them and anything `send` needs too
+- `canBind` (var): Whether the compositor can bind a configured bind
+- `send` (var): Applies the binds that are free, and the rest of the layer (the look, the input, …)
+- `takeOut` (var): Takes out what the layer bound
 - `skippedKeys` (readonly var): Configured keys skipped because the user's config already binds them
 - `applied` (readonly var): axiom's binds this layer bound, for the Keybinds page
 

@@ -210,7 +210,8 @@ Singleton {
     id: runtime
     bindCtx: root._bindCtx
     lookLines: () => root.liveLinesHook()
-    readUserBinds: callback => root.readUserBinds(callback)
+    // The user's binds, no context: sway's send needs none
+    readBinds: callback => root.readUserBinds(callback)
   }
 
   // The runtime layer (detached, and the fallback of the file modes)

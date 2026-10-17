@@ -12,26 +12,24 @@ import qs.components.methods
  * skipped (skippedKeys). Not a singleton: each backend's runtime layer
  * (HyprlandRuntimeLayer, SwayRuntimeLayer) is one, setting the hooks below,
  * and its config writer owns it.
- *
- *   readBinds(callback)    reads the binds in effect that aren't this
- *                          layer's (BindKeys' entries, or null) and calls
- *                          back with them and anything `send` needs too
- *   canBind(bind)          whether the compositor can bind a configured bind
- *   send(binds, context)   applies the binds that are free, and the rest of
- *                          the layer (the look, the input, …)
- *   takeOut()              takes out what the layer bound
  */
 QtObject {
   id: root
 
-  // The config writer's name, to start log lines with, and the
-  // compositor's, as the user's config is named ("Hyprland", "sway")
+  // The config writer's name, to start log lines with
   property string logTag: ""
+  // The compositor's, as the user's config is named ("Hyprland", "sway")
   property string configName: ""
 
+  // Reads the binds in effect that aren't this layer's (BindKeys' entries,
+  // or null) and calls back with them and anything `send` needs too
   property var readBinds: callback => callback([], null)
+  // Whether the compositor can bind a configured bind
   property var canBind: bind => false
+  // Applies the binds that are free, and the rest of the layer (the look,
+  // the input, …)
   property var send: (binds, context) => {}
+  // Takes out what the layer bound
   property var takeOut: () => {}
 
   // A config reload dropped the layer: a backend forgets what it applied

@@ -60,6 +60,6 @@ RuntimeLayer {
     root._monitorsApplied = null;
     HyprlandManager.runLua(root._unbindLua);
   }
-  // (and its monitors)
+  // A reload dropped its monitors too
   onReloaded: root._monitorsApplied = null
 }

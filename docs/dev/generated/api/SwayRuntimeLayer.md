@@ -3,10 +3,9 @@
 
 > **File:** `services/SwayRuntimeLayer.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Axiom's sway layer sent at runtime (RuntimeLayer), for SwayConfigWriter, which owns it. Sway can't list its binds, so the user's are read from their config files (SwayConfigWriter.readUserBinds). The keys this layer bound are kept (as the commands unbinding them) in a PersistentProperties, so a reload of the shell takes them out before binding again; a sway reload drops them itself.
+Axiom's sway layer sent at runtime (RuntimeLayer), for SwayConfigWriter, which owns it and sets readBinds: sway can't list its binds, so the user's are read from their config files (SwayConfigWriter.readUserBinds). The keys this layer bound are kept (as the commands unbinding them) in a PersistentProperties, so a reload of the shell takes them out before binding again; a sway reload drops them itself.
 
 ### Properties
 
 - `bindCtx` (var): What the bind commands need from outside the bind (SwayConf.command)
 - `lookLines` (var): A function returning the live lines (the look and the input)
-- `readUserBinds` (var): A function calling back with the user's binds (SwayConf.configBinds entries), or null when they couldn't be read

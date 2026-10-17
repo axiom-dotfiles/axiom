@@ -6,8 +6,8 @@ import qs.components.methods
 
 /*
  * Axiom's sway layer sent at runtime (RuntimeLayer), for SwayConfigWriter,
- * which owns it. Sway can't list its binds, so the user's are read from
- * their config files (SwayConfigWriter.readUserBinds).
+ * which owns it and sets readBinds: sway can't list its binds, so the
+ * user's are read from their config files (SwayConfigWriter.readUserBinds).
  *
  * The keys this layer bound are kept (as the commands unbinding them) in a
  * PersistentProperties, so a reload of the shell takes them out before
@@ -20,9 +20,6 @@ RuntimeLayer {
   property var bindCtx: ({})
   // A function returning the live lines (the look and the input)
   property var lookLines: () => []
-  // A function calling back with the user's binds (SwayConf.configBinds
-  // entries), or null when they couldn't be read
-  property var readUserBinds: callback => callback([])
 
   property PersistentProperties _state: PersistentProperties {
     id: persisted
@@ -34,7 +31,6 @@ RuntimeLayer {
   logTag: "SwayConfigWriter"
   configName: "sway"
   canBind: bind => SwayConf.isComplete(bind, root.bindCtx)
-  readBinds: callback => root.readUserBinds(entries => callback(entries, null))
   send: binds => {
     const unbind = JSON.parse(persisted.unbindJson);
     persisted.unbindJson = JSON.stringify(SwayConf.unbindLines(binds, root.bindCtx));

@@ -111,11 +111,12 @@ QtObject {
    * strength the user's) as { range, power, alpha }. Hyprland's falls off
    * differently, and its alpha isn't the strength it shows: a dark color
    * darkens about in proportion, but a light one over a dark background
-   * shows several times stronger than its alpha says. Fitted on screen against axiom's glow and shadow (size 20,
-   * alpha 0.45 and 1, a dark theme, Hyprland 0.56; within ~0.01 of
-   * axiom's from 3px out): the reach 1.2 × axiom's size, power 4, and the
-   * alpha axiom's × 0.3 for black down to × 0.018 for a light color
-   * (relative luminance 0.45, c4a7e7), geometric in between.
+   * shows several times stronger than its alpha says. Fitted on screen
+   * against axiom's glow and shadow (size 20, alpha 0.45 and 1, a dark
+   * theme, Hyprland 0.56; within ~0.01 of axiom's from 3px out): the reach
+   * 1.2 × axiom's size, power 4, and the alpha axiom's × 0.3 for black down
+   * to × 0.018 for a light color (relative luminance 0.45, c4a7e7),
+   * geometric in between.
    */
   function softShadow(shadow) {
     const luminance = CompositorLayer.luminance(shadow.rgb);
@@ -132,9 +133,9 @@ QtObject {
    * The look's parts that are on (`look`: CompositorLayer.look()), as the
    * lines of one hl.config(), or []: the borders, the shape, gaps, shadows,
    * dimming, and the blur and window opacity (`lookSchema`'s fields with
-   * `x-hyprIf` on those parts). Hyprland's blur stays on while axiom's surfaces blur (which
-   * they can't with it off); with windows not blurring a rule then keeps
-   * them unblurred.
+   * `x-hyprIf` on those parts). Hyprland's blur stays on while axiom's
+   * surfaces blur (which they can't with it off); with windows not blurring
+   * a rule then keeps them unblurred.
    */
   function lookLua(look, lookSchema) {
     const overrides = {};

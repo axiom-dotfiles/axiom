@@ -247,10 +247,10 @@ return setmetatable({}, { __index = function() return function() end end })
   }
 
   // What the managed file runs once Hyprland has started: the cursor
-  // (`cursor`: CompositorLayer.input()'s), axiom (`start.command`), then the Session
-  // `session`'s autostart commands. A plain `hypridle` is left out while
-  // axiom runs its own (`start.idle`), and a polkit agent while axiom is
-  // the agent (`start.polkit`).
+  // (`cursor`: CompositorLayer.input()'s), axiom (`start.command`), then
+  // the Session `session`'s autostart commands. A plain `hypridle` is left
+  // out while axiom runs its own (`start.idle`), and a polkit agent while
+  // axiom is the agent (`start.polkit`).
   function startLua(session, cursor, start) {
     const lines = [];
     if (cursor)
@@ -389,8 +389,8 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end`;
   // The managed hyprland.lua: `module` (moduleLua()'s text, its comments
   // dropped) wrapped, the managed settings `m`, setup(), the animations,
   // the start commands and user/*.lua. `opts`: configLua's, plus { header,
-  // userDir, session (Session's values), env (envLua's), cursor and start
-  // (startLua's) }
+  // userDir, session (Session's values), env (CompositorLayer.sessionEnv's),
+  // cursor and start (startLua's) }
   function managedLua(module, m, opts) {
     const body = module.split("\n").filter(line => !line.startsWith("--")).join("\n").trim();
     return `${opts.header} (Hyprland mode: managed) from its Hyprland settings,

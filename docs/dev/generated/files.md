@@ -655,7 +655,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SwayConfigWriter.qml`: ~/.config/sway/user/* after it (ConfigTakeover) The file modes write the monitor profile for what's connected (a sway reload resets the outputs to what the config says); MonitorManager applies it at runtime too, at star…
 - `SwayIpcManager.qml`: Requests to sway that want a reply, through swaymsg: what Quickshell.I3 doesn't cover (its I3.dispatch runs a command with no reply, and it has no window tree, inputs or outputs in full).
 - `SwayManager.qml`: CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/compositor/sway-backend.md): sway's state as the compositor-neutral shapes (SwayState), and the primitives CompositorManager builds on.
-- `SwayRuntimeLayer.qml`: Axiom's sway layer sent at runtime (RuntimeLayer), for SwayConfigWriter, which owns it.
+- `SwayRuntimeLayer.qml`: Axiom's sway layer sent at runtime (RuntimeLayer), for SwayConfigWriter, which owns it and sets readBinds: sway can't list its binds, so the user's are read from their config files (SwayConfigWriter.readUserBinds).
 - `SystemManager.qml`: CPU / memory / temperature / GPU / disk usage, polled only while something is showing it.
 - `TailscaleManager.qml`: Tailscale's state for every widget that shows it: one `tailscale status --json` at the shortest interval asked for, only while something has acquire()d it.
 - `ThemeManager.qml`: ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallpaper, the wallpaper itself, and re-theming integrated tools.
