@@ -104,5 +104,64 @@ TestCase {
   function test_installCommand() {
     compare(Packages.installCommand("arch", "hypridle"), "sudo pacman -S --needed hypridle");
     compare(Packages.installCommand("fedora", "hyprlock"), "sudo dnf copr enable -y nett00n/hyprland && sudo dnf install hyprlock");
+    compare(Packages.installCommand("arch", ["greetd", "agreety"]), "sudo pacman -S --needed greetd greetd-agreety");
+    compare(Packages.installCommand("fedora", ["greetd", "agreety"]), "sudo dnf install greetd", "agreety ships in greetd");
+  }
+
+  // Every distribution checks for updates, each with its own format
+  function test_updates() {
+    for (const distro of Object.keys(Packages.distros)) {
+      const updates = Packages.updates(distro);
+      verify(updates !== null, distro);
+      verify(updates.check.length > 0 && updates.upgrade !== "" && updates.found.length > 0, distro);
+      compare(Packages.parseUpdates(updates.format, ""), [], distro + ": no output, no updates");
+    }
+    compare(Packages.updates(""), null, "unknown distribution");
+    verify(Packages.updates("arch").aur);
+    verify(!Packages.updates("fedora").aur);
+  }
+
+  function test_parseUpdates_pacman() {
+    compare(Packages.parseUpdates("pacman", "linux 6.9.1.arch1-1 -> 6.9.2.arch1-1\nnot an update line\n  mesa 1:24.1-1 -> 1:24.2-1  \n"), [
+      {
+        "name": "linux",
+        "from": "6.9.1.arch1-1",
+        "to": "6.9.2.arch1-1"
+      },
+      {
+        "name": "mesa",
+        "from": "1:24.1-1",
+        "to": "1:24.2-1"
+      }
+    ]);
+  }
+
+  // dnf5's `check-update --quiet`, as Fedora 44 prints it (plus dnf4's
+  // obsoletes block, whose installed rows are skipped)
+  function test_parseUpdates_dnf() {
+    const text = "Upgrades\n" + "ca-certificates.noarch             2026.2.90_v9.0.317-1.fc44 updates\n" + "elfutils-default-yama-scope.noarch 0.196-1.fc44              updates\n" + "glib2.x86_64                       2.88.4-1.fc44             updates\n" + "Obsoleting packages\n" + "grub2-tools.x86_64                 1:2.12-30.fc44            updates\n" + "    grub2-tools-efi.x86_64         1:2.12-28.fc44            @updates\n";
+    compare(Packages.parseUpdates("dnf", text), [
+      {
+        "name": "ca-certificates",
+        "from": "",
+        "to": "2026.2.90_v9.0.317-1.fc44"
+      },
+      {
+        "name": "elfutils-default-yama-scope",
+        "from": "",
+        "to": "0.196-1.fc44"
+      },
+      {
+        "name": "glib2",
+        "from": "",
+        "to": "2.88.4-1.fc44"
+      },
+      {
+        "name": "grub2-tools",
+        "from": "",
+        "to": "1:2.12-30.fc44"
+      }
+    ]);
+    compare(Packages.parseUpdates("unknown", "a 1 -> 2"), []);
   }
 }

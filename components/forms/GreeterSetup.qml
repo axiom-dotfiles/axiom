@@ -17,6 +17,9 @@ ColumnLayout {
   readonly property bool busy: GreeterManager.elevating
   // Remove waits for a second click
   property bool confirmingRemove: false
+  // What installs greetd and agreety here ("" on a distribution axiom has
+  // no package names for)
+  readonly property string installGreetd: DependencyManager.installCommand(["greetd", "agreety"])
 
   spacing: Widget.spacing
 
@@ -31,13 +34,14 @@ ColumnLayout {
     spacing: Widget.spacing
 
     StyledText {
-      text: I18n.tr("The login screen runs under greetd, with its text login (agreety) as the fallback. Install them:")
+      text: root.installGreetd !== "" ? I18n.tr("The login screen runs under greetd, with its text login (agreety) as the fallback. Install them:") : I18n.tr("The login screen runs under greetd, with its text login (agreety) as the fallback. Install them with your package manager.")
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
 
     CodeLine {
-      text: "sudo pacman -S greetd greetd-agreety"
+      visible: text !== ""
+      text: root.installGreetd
     }
   }
 

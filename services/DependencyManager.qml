@@ -217,7 +217,8 @@ Singleton {
     interval: 3000
     onTriggered: {
       _run.notified = true;
-      NotificationManager.sendNotification("axiom", I18n.tr("Icon font missing"), I18n.tr("Install {0} ({1}), then restart the shell.", Appearance.iconFamily, "ttf-material-symbols-variable"));
+      const command = root.installCommand("iconFont");
+      NotificationManager.sendNotification("axiom", I18n.tr("Icon font missing"), command !== "" ? I18n.tr("Install {0} ({1}), then restart the shell.", Appearance.iconFamily, command) : I18n.tr("Install {0}, then restart the shell.", Appearance.iconFamily));
     }
   }
 
@@ -244,7 +245,7 @@ Singleton {
     _checkTextFont.start();
     if (root.iconFontInstalled)
       return;
-    console.warn(`[DependencyManager] ${Appearance.iconFamily} is not installed (ttf-material-symbols-variable): icons will show as words`);
+    console.warn(`[DependencyManager] ${Appearance.iconFamily} is not installed: icons will show as words`);
     if (!_run.notified)
       _notify.start();
   }

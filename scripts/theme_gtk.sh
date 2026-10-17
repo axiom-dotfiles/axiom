@@ -5,7 +5,7 @@
 # Usage: theme_gtk.sh <theme.json> [config_dir]
 #   output: axiom.css in ~/.config/gtk-3.0 and ~/.config/gtk-4.0
 #   hookup: `@import url("axiom.css");` in each gtk.css (created with it when missing);
-#           GTK3 apps follow it with the adw-gtk3 theme (pacman -S adw-gtk-theme)
+#           GTK3 apps follow it with the adw-gtk3 theme (adw-gtk-theme on Arch, adw-gtk3-theme on Fedora)
 #   reload: dark/light live (gsettings color-scheme, and gtk-theme between
 #           adw-gtk3 and adw-gtk3-dark when it's one of them); colors on each
 #           app's next start

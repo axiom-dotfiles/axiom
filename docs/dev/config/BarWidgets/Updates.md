@@ -8,11 +8,11 @@ Settings are read as `properties.<key>`.
 
 - **`includeAur`** · boolean = false
   - Include AUR: Also count outdated AUR packages.
-  - x-scope="machine"
+  - x-scope="machine", x-showIf={"/$distro":"arch"}
   - in: `components/bar/widgets/Updates.qml`
 - **`aurHelper`** · string = "paru" · enum paru|yay
   - AUR helper
-  - x-scope="machine", x-showIf={"includeAur":true}
+  - x-scope="machine", x-showIf={"includeAur":true,"/$distro":"arch"}
   - in: `components/bar/widgets/Updates.qml`
 - **`intervalMinutes`** · integer = 30 · 5–1440 · min
   - Check interval
@@ -32,7 +32,7 @@ Settings are read as `properties.<key>`.
   - x-scope="personal"
   - in: `components/bar/widgets/Updates.qml`
 - **`upgradeCommand`** · string = ""
-  - Upgrade command: Run on click. Empty uses `sudo pacman -Syu`, or the AUR helper with -Syu.
+  - Upgrade command: Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu.
   - x-scope="personal"
   - in: `components/bar/widgets/Updates.qml`
 - **`manyThreshold`** · integer = 50 · 1–1000

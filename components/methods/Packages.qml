@@ -2,22 +2,44 @@ pragma Singleton
 import QtQuick
 
 // Which distribution this is (from its os-release) and what installs a
-// command there: each command's package per distribution, and the shell
-// lines that install a set of them, for the onboarder's hints. Adding a
-// distribution is one column in `packages`, one entry in `distros`, and its
-// test rows. No file access, processes or services.
+// command there: each command's package per distribution, the shell lines
+// that install a set of them (install hints), and how it checks for and
+// installs updates (the Updates widget). Adding a distribution is one
+// column in `packages`, one entry in `distros`, and its test rows; until
+// then, hints and updates stay hidden on it. No file access, processes or
+// services.
 QtObject {
   id: root
 
   // How each distribution installs: `install` is followed by the package
-  // names, `repo` by a third-party repository to enable first
+  // names, `repo` by a third-party repository to enable first. `updates`
+  // checks for pending updates without root: `check` (the command),
+  // `found` / `none` (its exit codes with updates, and with none), `format`
+  // (its output, for parseUpdates), `upgrade` (run in a terminal), and
+  // `aur` (an AUR helper's updates count too)
   readonly property var distros: ({
       "arch": {
-        "install": "sudo pacman -S --needed"
+        "install": "sudo pacman -S --needed",
+        "updates": {
+          "check": ["checkupdates", "--nocolor"],
+          "found": [0],
+          "none": [2],
+          "format": "pacman",
+          "upgrade": "sudo pacman -Syu",
+          "aur": true
+        }
       },
       "fedora": {
         "install": "sudo dnf install",
-        "repo": "sudo dnf copr enable -y"
+        "repo": "sudo dnf copr enable -y",
+        "updates": {
+          "check": ["dnf", "check-update", "--quiet"],
+          "found": [100],
+          "none": [0],
+          "format": "dnf",
+          "upgrade": "sudo dnf upgrade",
+          "aur": false
+        }
       }
     })
 
@@ -132,6 +154,14 @@ QtObject {
       "powerprofilesctl": {
         "arch": "power-profiles-daemon",
         "fedora": "power-profiles-daemon"
+      },
+      "greetd": {
+        "arch": "greetd",
+        "fedora": "greetd"
+      },
+      "agreety": {
+        "arch": "greetd-agreety",
+        "fedora": "greetd"
       }
     })
 
@@ -191,8 +221,34 @@ QtObject {
     return lines;
   }
 
-  // One line that installs `key` ("" when nothing does)
-  function installCommand(distro, key) {
-    return root.installLines(distro, [key]).join(" && ");
+  // One line that installs `keys` (a key or a list; "" when nothing does)
+  function installCommand(distro, keys) {
+    return root.installLines(distro, [].concat(keys)).join(" && ");
+  }
+
+  // How `distro` checks for updates (see `distros`), or null
+  function updates(distro) {
+    return root.distros[distro]?.updates ?? null;
+  }
+
+  // An update check's output as [{ name, from, to }] (`from` "" when the
+  // output doesn't say). "pacman": `name from -> to` (checkupdates, and
+  // an AUR helper's -Qua). "dnf": `name.arch version repo` under a heading,
+  // skipping installed packages an update obsoletes (repo `@…`)
+  function parseUpdates(format, text) {
+    const rows = String(text ?? "").split("\n").map(line => line.trim().split(/\s+/));
+    if (format === "pacman")
+      return rows.filter(f => f.length >= 4 && f[2] === "->").map(f => ({
+            "name": f[0],
+            "from": f[1],
+            "to": f[3]
+          }));
+    if (format === "dnf")
+      return rows.filter(f => f.length === 3 && /^.+\.[A-Za-z0-9_]+$/.test(f[0]) && !f[2].startsWith("@")).map(f => ({
+            "name": f[0].slice(0, f[0].lastIndexOf(".")),
+            "from": "",
+            "to": f[1]
+          }));
+    return [];
   }
 }

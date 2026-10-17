@@ -64,7 +64,9 @@ The first-run onboarder: a paged window that sets up the look, the compositor's 
 - `DependencyManager.distro` is `Packages.distroFamily` of `/etc/os-release`: `arch`, `fedora`, or `""` (unknown).
 - `Packages.packages` names each command's package per distribution: a name, `{ name, repo }` (Fedora's Hyprland tools come from the `nett00n/hyprland` COPR), `{ file, to }` (the icon font on Fedora, downloaded), or `null` (nothing to install there; that `DependencyManager.tools` row is hidden, e.g. `checkupdates` off Arch).
 - `DependencyManager.installLines(keys)` / `installCommand(key)` give the shell lines: COPRs to enable, one install, then downloads. On an unknown distribution they're empty and the Checks page lists names only.
-- **Adding a distribution:** one column in every `Packages.packages` entry (`tst_Packages` fails on a missing one), one `Packages.distros` entry, and test rows.
+- The same commands serve Settings' hints (Idle, Night light, Login screen) and the missing icon font notification. A distribution without names gets the text only, no command.
+- `Packages.distros.<family>.updates` is how the Updates widget checks and upgrades there (`UpdatesManager.backend`); `"/$distro": "arch"` in an `x-showIf` hides the AUR options elsewhere.
+- **Adding a distribution:** one column in every `Packages.packages` entry (`tst_Packages` fails on a missing one), one `Packages.distros` entry (with `updates`, and a `Packages.parseUpdates` format if its output is new), and test rows.
 
 ### Entry points
 - IPC `onboarding`:

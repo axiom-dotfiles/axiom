@@ -1795,7 +1795,7 @@
       "description": "Re-theme external apps whenever the shell theme changes. Each writes its own axiom file; turned on, it shows the line that loads that file from the app's config, to copy or to apply (which backs your config up first).",
       "additionalProperties": false,
       "properties": {
-        "gtk": { "type": "boolean", "title": "GTK", "default": false, "description": "Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (pacman -S adw-gtk-theme).", "x-hookup": [{"file": "{config}/gtk-3.0/gtk.css", "place": "start", "text": "@import url(\"axiom.css\");", "accept": "^@import url\\([\"']?axiom\\.css"}, {"file": "{config}/gtk-4.0/gtk.css", "place": "start", "text": "@import url(\"axiom.css\");"}] },
+        "gtk": { "type": "boolean", "title": "GTK", "default": false, "description": "Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (adw-gtk-theme on Arch, adw-gtk3-theme on Fedora).", "x-hookup": [{"file": "{config}/gtk-3.0/gtk.css", "place": "start", "text": "@import url(\"axiom.css\");", "accept": "^@import url\\([\"']?axiom\\.css"}, {"file": "{config}/gtk-4.0/gtk.css", "place": "start", "text": "@import url(\"axiom.css\");"}] },
         "qt": { "type": "boolean", "title": "Qt (qt5ct / qt6ct)", "default": false, "description": "Writes an \"axiom\" color scheme for qt5ct and qt6ct (Qt apps need QT_QPA_PLATFORMTHEME=qt5ct / qt6ct).", "x-hookup": [{"file": "{config}/qt5ct/qt5ct.conf", "place": "section", "section": "Appearance", "comment": ";", "requires": "qt5ct", "text": "custom_palette=true\ncolor_scheme_path={config}/qt5ct/colors/axiom.conf"}, {"file": "{config}/qt6ct/qt6ct.conf", "place": "section", "section": "Appearance", "comment": ";", "requires": "qt6ct", "text": "custom_palette=true\ncolor_scheme_path={config}/qt6ct/colors/axiom.conf"}] },
         "kitty": { "type": "boolean", "title": "Kitty", "default": false, "description": "Writes kitty/axiom.conf. Reloads kitty when allow_remote_control is on.", "x-hookup": [{"file": "{config}/kitty/kitty.conf", "place": "end", "text": "include axiom.conf", "accept": "^include\\s+\\S*axiom\\.conf"}] },
         "alacritty": { "type": "boolean", "title": "Alacritty", "default": false, "description": "Writes alacritty/axiom.toml. Alacritty reloads it by itself.", "x-hookupNote": "Alacritty loads imported files before its own, so colors set in alacritty.toml still win: remove them to use axiom's.", "x-hookup": [{"file": "{config}/alacritty/alacritty.toml", "place": "section", "section": "general", "replace": "conflict", "text": "import = [\"{config}/alacritty/axiom.toml\"]", "accept": "^(general\\.)?import\\s*=.*axiom\\.toml"}] },
@@ -3641,8 +3641,8 @@
           "additionalProperties": false,
           "properties": {
             "intervalMinutes": {"type": "integer", "title": "Check interval", "x-unit": "min", "default": 60, "minimum": 5, "maximum": 1440},
-            "includeAur": { "x-scope": "machine", "type": "boolean", "title": "Include AUR", "default": false},
-            "aurHelper": { "x-scope": "machine", "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": {"includeAur": true}}
+            "includeAur": { "x-scope": "machine", "type": "boolean", "title": "Include AUR", "default": false, "x-showIf": { "/$distro": "arch" }},
+            "aurHelper": { "x-scope": "machine", "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": {"includeAur": true, "/$distro": "arch"}}
           }
         }
       }
@@ -4801,14 +4801,14 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "includeAur": { "x-scope": "machine", "type": "boolean", "title": "Include AUR", "default": false, "description": "Also count outdated AUR packages." },
-            "aurHelper": { "x-scope": "machine", "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": { "includeAur": true } },
+            "includeAur": { "x-scope": "machine", "type": "boolean", "title": "Include AUR", "default": false, "description": "Also count outdated AUR packages.", "x-showIf": { "/$distro": "arch" } },
+            "aurHelper": { "x-scope": "machine", "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": { "includeAur": true, "/$distro": "arch" } },
             "intervalMinutes": { "type": "integer", "title": "Check interval", "x-unit": "min", "default": 30, "minimum": 5, "maximum": 1440 },
             "hideWhenEmpty": { "type": "boolean", "title": "Hide when up to date", "default": true },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List pending packages when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "terminal": { "x-scope": "personal", "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
-            "upgradeCommand": { "x-scope": "personal", "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses `sudo pacman -Syu`, or the AUR helper with -Syu." },
+            "upgradeCommand": { "x-scope": "personal", "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu." },
             "manyThreshold": { "type": "integer", "title": "Many updates", "default": 50, "minimum": 1, "maximum": 1000, "description": "At or above this count, the widget uses the many-updates background." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "manyColor": { "type": "string", "title": "Many-updates background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },

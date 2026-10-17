@@ -3,10 +3,13 @@
 
 > **File:** `services/UpdatesManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Pending package updates, shared by every Updates widget. Only one check may run at a time: concurrent `checkupdates` runs share its temporary sync db and fail with "Cannot fetch updates". Widgets register with acquire(owner, {intervalMinutes, aurHelper}) (aurHelper "" for no AUR) and drop it with release(owner); checks run at the shortest requested interval, and the AUR is checked if any widget asks for it.
+Pending package updates, shared by every Updates widget, checked the way this distribution does (Packages.updates: checkupdates on Arch, dnf on Fedora; nothing on one it doesn't know, `supported` false). Only one check may run at a time: concurrent `checkupdates` runs share its temporary sync db and fail with "Cannot fetch updates". Widgets register with acquire(owner, {intervalMinutes, aurHelper}) (aurHelper "" for no AUR) and drop it with release(owner); checks run at the shortest requested interval, and the AUR is checked if any widget asks for it and the distribution has one.
 
 ### Properties
 
+- `backend` (readonly var): { check, found, none, format, upgrade, aur }, or null where updates can't be checked
+- `supported` (readonly bool)
+- `hasAur` (readonly bool): An AUR helper's updates count here
 - `repoPackages` (var): [{ name, from, to }]
 - `aurPackages` (var)
 - `checking` (readonly bool)
@@ -16,5 +19,5 @@ Pending package updates, shared by every Updates widget. Only one check may run 
 - `acquire(owner, request)`
 - `release(owner)`
 - `refresh()`
+- `upgradeCommand(aurHelper)`: What upgrades by default: the AUR helper's -Syu (with `aurHelper` set and an AUR here), else the distribution's own upgrade
 - `upgrade(command, terminal)`: Runs `command` in a terminal (`terminal`, else Apps.inTerminal's) and checks again once the terminal closes.
-- `parse(text)`

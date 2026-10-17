@@ -10,7 +10,8 @@ import qs.components.content.parts
 
 // Pending updates, repo and AUR listed separately (from UpdatesManager). As
 // the Updates widget's popout (the widget acquires the manager), or an
-// overlay card, which acquires it with its own settings.
+// overlay card, which acquires it with its own settings and says so where
+// this distribution's updates can't be checked (UpdatesManager.supported).
 // properties (card): { intervalMinutes, includeAur, aurHelper }
 Panel {
   id: root
@@ -58,7 +59,7 @@ Panel {
   compactContent: CompactFigure {
     icon: "update"
     iconColor: root.total > 0 ? Theme.accent : Theme.foregroundAlt
-    value: UpdatesManager.checking && root.total === 0 ? "…" : String(root.total)
+    value: !UpdatesManager.supported ? "–" : UpdatesManager.checking && root.total === 0 ? "…" : String(root.total)
     label: I18n.tr("updates")
   }
 
@@ -105,7 +106,8 @@ Panel {
           visible: !section.namesOnly
           Layout.maximumWidth: root.embedded ? root.sectionWidth * 0.45 : Number.POSITIVE_INFINITY
           elide: Text.ElideLeft
-          text: section.narrow ? row.modelData.to : `${row.modelData.from} → ${row.modelData.to}`
+          // dnf doesn't say the installed version
+          text: section.narrow || row.modelData.from === "" ? row.modelData.to : `${row.modelData.from} → ${row.modelData.to}`
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize - 2
         }
@@ -123,7 +125,7 @@ Panel {
   ModuleHeader {
     visible: root.embedded
     icon: "update"
-    title: root.total > 0 ? I18n.tr("{0} updates", root.total) : I18n.tr("Up to date")
+    title: !UpdatesManager.supported ? I18n.tr("Updates") : root.total > 0 ? I18n.tr("{0} updates", root.total) : I18n.tr("Up to date")
     StyledText {
       visible: UpdatesManager.checking
       text: I18n.tr("checking…")
@@ -165,8 +167,8 @@ Panel {
       anchors.centerIn: parent
       maxWidth: parent.width
       availableHeight: parent.height
-      icon: "check"
-      text: UpdatesManager.checking ? I18n.tr("checking…") : I18n.tr("System is up to date")
+      icon: UpdatesManager.supported ? "check" : "block"
+      text: !UpdatesManager.supported ? I18n.tr("axiom can't check for updates on this distribution.") : UpdatesManager.checking ? I18n.tr("checking…") : I18n.tr("System is up to date")
     }
   }
 }

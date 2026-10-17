@@ -19,8 +19,9 @@ How `services/` is built: one singleton per domain, owning state and side effect
   - Polls only the union of requested metrics: sysfs/procfs `FileView` reads, no processes on the hot path.
   - Stops entirely with no consumers.
   - With `history: true` it keeps 60-sample ring buffers (see [Writing modules](../overlay/writing-modules.md)).
-- **UpdatesManager**: pending pacman/AUR updates shared by every Updates widget (same acquire/release pattern).
-  - Only one `checkupdates` may run at a time: concurrent runs share its temp db and fail.
+- **UpdatesManager**: pending package (and, on Arch, AUR) updates shared by every Updates widget (same acquire/release pattern).
+  - How it checks is the distribution's `Packages.updates` entry (`checkupdates` on Arch, `dnf check-update` on Fedora); on one with none, `supported` is false and nothing runs (the widget hides, the card says so).
+  - Only one check may run at a time: concurrent `checkupdates` runs share its temp db and fail.
   - `upgrade(command, terminal)` runs the upgrade in a terminal (one at a time, `upgrading`) and checks again when it closes.
 - **Other polled services:**
   - `CalendarManager`: `acquire(owner)` with no request; its interval is the Calendar section's. See [Calendar](../features/calendar.md).

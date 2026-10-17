@@ -43,7 +43,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SystemTray.qml`: The status notifier items, one icon each, in a row (or column, on a vertical bar).
 - `Tailscale.qml`: The Tailscale bar widget: connected or not, and the tailnet's name, from TailscaleManager (acquired at the widget's interval); a click notifies it.
 - `Time.qml`: Clock with a date, formatted for the shell's language (General.language: Japanese uses 午前/午後 and 時分秒 / 年月日); a custom `timeFormat` / `dateFormat` (Qt format strings) overrides that.
-- `Updates.qml`: Pending package updates from UpdatesManager: repo packages via `checkupdates` (pacman-contrib, which uses a temporary sync db, so it never touches the real one), plus AUR packages via paru/yay when enabled.
+- `Updates.qml`: Pending package updates from UpdatesManager: repo packages the way this distribution checks them (`checkupdates` on Arch, `dnf check-update` on Fedora; hidden on one UpdatesManager can't check), plus AUR packages via pa…
 - `Volume.qml`: Default output volume.
 - `Weather.qml`: Current conditions (from WeatherManager, for the Weather settings).
 - `Window.qml`: The Window bar widget: the focused window's title, elastic in width.
@@ -282,7 +282,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `NiriConf.qml`: niri's config text (KDL) and IPC requests from axiom's settings (NiriManager, NiriConfigWriter), as SwayConf is for sway: each bind's node, the window look, input and options, outputs, and the files axiom writes (docs/d…
 - `NiriState.qml`: niri's IPC replies and events (NiriManager) as the shapes the rest of the shell reads, which don't depend on the compositor (docs/dev/compositor/contract.md), as SwayState is for sway. niri's state is kept as its own ob…
 - `NoteMarkdown.qml`: A note's Markdown as blocks for the notes editor (content/parts/notes/ NoteEditor): paragraphs of plain lines (split at blank lines, which stay with the paragraph above; a code fence is never split, and holds no tasks),…
-- `Packages.qml`: Which distribution this is (from its os-release) and what installs a command there: each command's package per distribution, and the shell lines that install a set of them, for the onboarder's hints.
+- `Packages.qml`: Which distribution this is (from its os-release) and what installs a command there: each command's package per distribution, the shell lines that install a set of them (install hints), and how it checks for and installs…
 - `PolkitAgents.qml`: The polkit agents axiom knows about (PolkitManager): a session has one agent, so while axiom is its agent these are stopped and left out of the generated autostart.
 - `PopoutGeometry.qml`: Which popouts give way to which (PopoutManager): every popout reports its footprint (rects in screen px, from SurfaceOutline.footprint, fillets included), and one opening closes only what it actually covers, by rank.
 - `Schedules.qml`: Pure helpers for what changes on its own: daily time windows ("HH:MM", 24-hour; the light/dark schedule, night light) and picking the next wallpaper of a rotation.
@@ -670,7 +670,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `TailscaleManager.qml`: Tailscale's state for every widget that shows it: one `tailscale status --json` at the shortest interval asked for, only while something has acquire()d it.
 - `ThemeManager.qml`: ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallpaper, the wallpaper itself, and re-theming integrated tools.
 - `TimeZoneManager.qml`: Other time zones' UTC offsets, for clocks set to one (a Clock module's or a bar Time widget's `timezone`): the JS engine can't convert times between zones (TimeZones).
-- `UpdatesManager.qml`: Pending package updates, shared by every Updates widget.
+- `UpdatesManager.qml`: Pending package updates, shared by every Updates widget, checked the way this distribution does (Packages.updates: checkupdates on Arch, dnf on Fedora; nothing on one it doesn't know, `supported` false).
 - `UserBindMerge.qml`: Moves the user's binds into axiom (managed mode), through the compositor's merge script (scripts/merge_<compositor>_binds.py, every one with the same verbs and JSON), for that compositor's config writer.
 - `WallpaperManager.qml`: What changes the look on its own.
 - `WeatherManager.qml`: Weather shared by every widget that shows it: one WeatherSource for the Weather settings' location and units, fetching while some widget wants it.

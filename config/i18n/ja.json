@@ -254,7 +254,6 @@
     "Right": "右",
     "Right Center": "右中央",
     "Right-click command": "右クリック時のコマンド",
-    "Run on click. Empty uses `sudo pacman -Syu`, or the AUR helper with -Syu.": "クリック時に実行。空欄の場合は `sudo pacman -Syu`、または AUR ヘルパーの -Syu を使います。",
     "Save": "保存",
     "Screen": "画面全体",
     "Screen border": "画面の枠",
@@ -1576,7 +1575,6 @@
     "New menu": "新しいメニュー",
     "Hide from screen": "画面から隠す",
     "Show on screen": "画面に表示",
-    "Neither hyprsunset nor wlsunset is installed. Install hyprsunset (pacman -S hyprsunset) to use the night light.": "hyprsunset も wlsunset もインストールされていません。夜間モードを使うには hyprsunset をインストールしてください（pacman -S hyprsunset）。",
     "Runs {0}, on from {1} until {2}.": "{0} を実行し、{1} から {2} までオンにします。",
     "Runs {0} when you turn it on.": "オンにすると {0} を実行します。",
     "Not installed": "未インストール",
@@ -1584,7 +1582,6 @@
     "Turn on": "オンにする",
     "Running": "実行中",
     "Not running": "停止中",
-    "hypridle isn't installed. Install it (pacman -S hypridle) to dim, lock and turn the screens off when you're away.": "hypridle がインストールされていません。離席時に画面を暗くしたり、ロックしたり、オフにしたりするにはインストールしてください（pacman -S hypridle）。",
     "axiom leaves hypridle to you: your own ~/.config/hypr/hypridle.conf is used, if you run it.": "hypridle は axiom では管理しません。実行している場合は ~/.config/hypr/hypridle.conf が使われます。",
     "axiom's hypridle isn't running. Restart it, or check that hypridle starts from a terminal.": "axiom の hypridle が実行されていません。再起動するか、ターミナルから hypridle を起動できるか確認してください。",
     "hypridle runs with the config axiom writes from these settings.": "hypridle はこれらの設定から axiom が書き込んだ設定で動作しています。",
@@ -2183,7 +2180,6 @@
     "axiom can color other apps to match its theme. Each one writes only its own axiom file; once it's on, below shows the line that loads it from the app's config, to copy or to apply for you. A tick marks the apps you have installed.": "axiom は他のアプリもテーマに合わせて配色できます。各連携は axiom 専用のファイルだけを書き込みます。有効にすると、そのファイルをアプリの設定から読み込む行が下に表示され、コピーするか自動で適用できます。チェックはインストール済みのアプリを示します。",
     "Finish setting up": "設定を完了する",
     "Writes the \"axiom\" theme. Helix 23.10+ reloads it.": "\"axiom\" テーマを書き込みます。Helix 23.10 以降は自動で再読み込みします。",
-    "Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (pacman -S adw-gtk-theme).": "GTK 3 と GTK 4 の gtk.css の隣に axiom.css を書き込み、ライト/ダークに追従します。GTK3 アプリには adw-gtk3 テーマが必要です（pacman -S adw-gtk-theme）。",
     "In ~/.config/k9s/config.yaml, merged into its k9s: section.": "~/.config/k9s/config.yaml の k9s: セクションに統合してください。",
     "Writes an \"axiom\" color scheme for qt5ct and qt6ct (Qt apps need QT_QPA_PLATFORMTHEME=qt5ct / qt6ct).": "qt5ct と qt6ct 用の \"axiom\" 配色を書き込みます（Qt アプリには QT_QPA_PLATFORMTHEME=qt5ct / qt6ct が必要です）。",
     "Neovim has no single line to add. Its colors come from colorscheme plugins your config loads, often lazily through a plugin manager and after init.lua has run, so a file read at startup would be overridden. axiom writes the theme to $XDG_STATE_HOME/axiom/nvim-theme.json; the axiom_theme module reads it, picks a colorscheme you map to it (or builds one from the palette) and reloads when the theme changes. Copy the module into your config, then call its setup() once your plugins are loaded.": "Neovim には追加するだけの一行がありません。配色は設定が読み込むカラースキームのプラグインから来ており、多くはプラグインマネージャーによって init.lua の実行後に遅延読み込みされるため、起動時に読むファイルは上書きされてしまいます。axiom はテーマを $XDG_STATE_HOME/axiom/nvim-theme.json に書き込み、axiom_theme モジュールがそれを読んで対応付けたカラースキームを選び（またはパレットから作成し）、テーマが変わると再読み込みします。モジュールを設定にコピーし、プラグインの読み込み後に setup() を呼んでください。",
@@ -3079,6 +3075,13 @@
     "Notifications from axiom itself, with their buttons": "axiom 自身の通知とそのボタン",
     "Annotating screenshots (swappy works too)": "スクリーンショットへの注釈（swappy でも可）",
     "Power profiles in the quick actions": "クイックアクションの電源プロファイル",
-    "Keeping axiom up to date": "axiom を最新に保つ"
+    "Keeping axiom up to date": "axiom を最新に保つ",
+    "The login screen runs under greetd, with its text login (agreety) as the fallback. Install them with your package manager.": "ログイン画面は greetd 上で動き、テキストログイン（agreety）がフォールバックになります。パッケージマネージャーでインストールしてください。",
+    "axiom can't check for updates on this distribution.": "このディストリビューションでは axiom はアップデートを確認できません。",
+    "Neither hyprsunset nor wlsunset is installed. Install {0} to use the night light.": "hyprsunset も wlsunset もインストールされていません。ナイトライトを使うには {0} をインストールしてください。",
+    "hypridle isn't installed. Install it to dim, lock and turn the screens off when you're away.": "hypridle がインストールされていません。離席中に画面を暗くし、ロックし、消灯するにはインストールしてください。",
+    "Install {0}, then restart the shell.": "{0} をインストールしてから、シェルを再起動してください。",
+    "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu.": "クリックで実行します。空の場合はディストリビューションのアップグレード（`sudo pacman -Syu`、`sudo dnf upgrade`）、または AUR ヘルパーの -Syu を使います。",
+    "Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (adw-gtk-theme on Arch, adw-gtk3-theme on Fedora).": "GTK 3 と GTK 4 の gtk.css の隣に axiom.css を書き出し、ライト/ダークに追従します。GTK3 アプリには adw-gtk3 テーマが必要です（Arch では adw-gtk-theme、Fedora では adw-gtk3-theme）。"
   }
 }

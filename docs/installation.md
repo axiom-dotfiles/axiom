@@ -19,7 +19,7 @@ The whole shell runs on five things. Everything else is optional and only needed
 | --- | --- |
 | Wallpaper transitions (optional backend) | `awww` |
 | Network widget / module, Wi-Fi menu | NetworkManager, Quickshell built with its Networking module, and `ip` (iproute2) |
-| Updates | `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates |
+| Updates | Arch: `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates. Fedora: `dnf` (nothing extra). Hidden on other distributions |
 | Tailscale | `tailscale` |
 | Screenshots | `wl-copy`; `satty` or `swappy` to annotate; `wf-recorder` to record, and `pactl` (libpulse; works with pipewire-pulse) to record the system's sound |
 | AI chat | `curl`; `secret-tool` (libsecret) to keep keys in your keyring; `wl-clipboard` to paste images |

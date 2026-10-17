@@ -18,18 +18,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
-### Package hints outside the onboarder are Arch-only
-- **Where:** `components/views/settings/IdleStatusCard.qml`, `components/views/settings/NightLightStatus.qml`, `components/forms/GreeterSetup.qml`, `services/DependencyManager.qml` (the icon font notification and warning)
-- **What:** They name `pacman -S …` and Arch package names (`ttf-material-symbols-variable`, `greetd-agreety`) on every distribution. The onboarder's pages use `DependencyManager.installCommand(key)` (from `Packages`), which gives Fedora's command too; these could do the same (greetd needs its own `Packages` key).
-- **Size:** small
-- **Found:** 2026-10-17, while adding Fedora package hints to the onboarder
-
-### The Updates widget only works on Arch
-- **Where:** `services/UpdatesManager.qml`, `components/bar/widgets/Updates.qml` (`upgradeCommand`)
-- **What:** It counts updates with `checkupdates` (pacman-contrib) and upgrades with `sudo pacman -Syu`: neither exists on Fedora, where it would need `dnf check-update` / `sudo dnf upgrade`. The onboarder's checks hide `checkupdates` off Arch (`Packages`: `null` for Fedora).
-- **Size:** needs a plan
-- **Found:** 2026-10-17, while adding Fedora package hints to the onboarder
-
 ### niri's overview drop moves a window's whole column
 - **Where:** `services/NiriManager.qml` (`placeWindow`)
 - **What:** Dropped beside or into another column on its own workspace (`reinsert`), a window is moved with `MoveColumnToIndex`, which moves the focused column: a window sharing its column with others takes them along. A drop onto another workspace moves only the window (`MoveWindowToWorkspace` by id). Expelling it from its column first (`ExpelWindowFromColumn`, which shifts the column indexes) would fix it; needs trying in `scripts/dev/nested.sh niri`.
