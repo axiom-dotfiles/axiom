@@ -191,11 +191,10 @@ Singleton {
   }
 
   // The config leaving managed gives back when the takeover set nothing
-  // aside: it starts axiom (and includes its module in included mode) and
-  // the user's files
+  // aside: it starts axiom and includes the user's files, then in
+  // included mode its module, at the end as includeTarget places it
   function releasedText(mode) {
-    const start = [NiriConf.node("spawn-sh-at-startup", [startCommand])].concat(mode === "included" ? [NiriConf.node("include", [includePath])] : []);
-    return NiriConf.releasedText(userDir, _userFiles, start);
+    return NiriConf.releasedText(userDir, _userFiles, [NiriConf.node("spawn-sh-at-startup", [startCommand])], mode === "included" ? [NiriConf.node("include", [includePath])] : []);
   }
 
   // The included file once axiom isn't in that mode

@@ -53,7 +53,7 @@ niri's config writer (docs/dev/compositor/config-modes.md), reached as NiriManag
 - `isComplete(bind)`: Whether a configured bind has everything it needs to be bound
 - `moduleText(spec)`: The included file, from `spec` (CompositorConfigManager.spec(true))
 - `managedText(spec)`: The managed niri config, from `spec` as for moduleText: the WindowBehaviour options and the session too, and the user's files
-- `releasedText(mode)`: The config leaving managed gives back when the takeover set nothing aside: it starts axiom (and includes its module in included mode) and the user's files
+- `releasedText(mode)`: The config leaving managed gives back when the takeover set nothing aside: it starts axiom and includes the user's files, then in included mode its module, at the end as includeTarget places it
 - `validate(text, callback)`: Checks `text` (a whole file of axiom's) with niri itself before it's written, its includes left out (they name the user's files, checked when niri loads them), then calls back with "" or niri's error
 - `liveLines(spec)`: niri takes nothing at runtime: its files carry the look and the input
 - `runLive(lines)`

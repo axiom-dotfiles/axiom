@@ -648,15 +648,16 @@ ${serialize([node("include", [main]), node("include", [module])])}
 
   // What a niri config left behind on leaving managed holds when the
   // takeover set nothing aside: it starts axiom (`startNodes`) and
-  // includes the user's files, as the managed one did
-  function releasedText(userDir, userFiles, startNodes) {
+  // includes the user's files, as the managed one did, then `endNodes`
+  // (the included mode's module, last so its look wins)
+  function releasedText(userDir, userFiles, startNodes, endNodes) {
     const includes = (userFiles ?? []).map(name => node("include", [`${userDir}/${name}`], {
         "optional": true
       }));
     return `// Given back by axiom when it stopped managing niri: this file is yours now,
 // and axiom won't write it again. It starts axiom and includes the files in
 // ${userDir}/, as axiom's managed one did.
-${serialize(startNodes.concat(includes))}
+${serialize(startNodes.concat(includes, endNodes ?? []))}
 `;
   }
 
