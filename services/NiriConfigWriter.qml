@@ -206,20 +206,28 @@ Singleton {
   readonly property string inputsKey: [WindowBehaviourConfig._behaviourJson, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled, JSON.stringify(_outputNodes), JSON.stringify(_plan), _userFiles.join(",")].join("|")
 
   // The user's files in user/, in name order, as the managed config
-  // includes them (niri takes no globs): a new one rewrites it
-  readonly property var _userFiles: {
-    const names = [];
-    for (let i = 0; i < userFolder.count; i++)
-      names.push(userFolder.get(i, "fileName"));
-    return names.filter(name => !name.includes(".axiom-backup-")).sort();
+  // includes them (niri takes no globs): a new one rewrites it. Listed at
+  // start, after a takeover (which makes the folder) and whenever the
+  // folder changes
+  property var _userFiles: []
+
+  function _readUserFiles(callback) {
+    CommandManager.run(["find", root.userDir, "-maxdepth", "1", "-type", "f", "-name", "*.kdl", "-not", "-name", ".*", "-printf", "%f\\n"], (code, out) => {
+      const names = String(out).split("\n").filter(name => name !== "").sort();
+      if (JSON.stringify(names) !== JSON.stringify(root._userFiles))
+        root._userFiles = names;
+      callback?.();
+    });
   }
 
+  // Tells of a change in user/ (a FolderListModel watches a folder only
+  // once it exists: it's pointed at it again after a takeover makes it)
   FolderListModel {
     id: userFolder
     folder: "file://" + root.userDir
     nameFilters: ["*.kdl"]
     showDirs: false
-    showHidden: false
+    onCountChanged: root._readUserFiles()
   }
 
   // Checks `text` (a whole file of axiom's) with niri itself before it's
@@ -420,6 +428,7 @@ Singleton {
     const state = _wrapperState.load(null);
     _wrapperLoaded = state?.socket === NiriIpcManager.socketPath && state?.loaded === true;
     _readUserConfig();
+    _readUserFiles();
   }
 
   // --- The binds in effect (NiriManager.withMainBinds) ---
@@ -457,7 +466,12 @@ Singleton {
     monitorPattern: "^[[:space:]]*output[[:space:]]"
     monitorGlob: "*.kdl"
     logTag: "NiriConfigWriter"
-    onClaimed: (result, adopted) => root.claimed(adopted)
+    // The managed config includes what's in user/ now (the adopted file)
+    onClaimed: (result, adopted) => root._readUserFiles(() => {
+        userFolder.folder = "";
+        userFolder.folder = "file://" + root.userDir;
+        root.claimed(adopted);
+      })
     onBlocked: root.blocked()
     onReleased: result => root.released(result)
   }
