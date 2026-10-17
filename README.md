@@ -2,18 +2,18 @@
 
 # axiom
 
-**A lightweight desktop environment for [Hyprland](https://hypr.land): bring your own apps, build the rest on screen.**
+**A desktop environment for Wayland compositors. Bring your own apps, build the rest on screen.**
 
-Bars, menus, a launcher, notifications, settings, theming, desktop widgets, the lock screen and the login screen: one application, laid out with drag and drop and set from the UI.
+Runs on [Hyprland](https://hypr.land), [niri](https://github.com/YaLTeR/niri) and [sway](https://swaywm.org). Bars, menus, a launcher, notifications, settings, theming, desktop widgets, the lock screen and the login screen are all one application, laid out by dragging and set from the UI.
 
 <a href="https://github.com/axiom-dotfiles/axiom/stargazers"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=8c6c3e&labelColor=e1e2e7"><img alt="Stars" src="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=e0af68&labelColor=1a1b26"></picture></a>
 <a href="https://github.com/axiom-dotfiles/axiom/tags"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=b15c00&labelColor=e1e2e7"><img alt="Version" src="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=ff9e64&labelColor=1a1b26"></picture></a>
 <a href="https://github.com/axiom-dotfiles/axiom/commits/main"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/last-commit/axiom-dotfiles/axiom?style=for-the-badge&color=587539&labelColor=e1e2e7"><img alt="Latest Commit" src="https://img.shields.io/github/last-commit/axiom-dotfiles/axiom?style=for-the-badge&color=9ece6a&labelColor=1a1b26"></picture></a>
-<a href="https://hypr.land"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/Hyprland-0.55%2B-2e7de9?style=for-the-badge&labelColor=e1e2e7"><img alt="Hyprland" src="https://img.shields.io/badge/Hyprland-0.55%2B-7aa2f7?style=for-the-badge&labelColor=1a1b26"></picture></a>
+<a href="#compositors"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/Wayland-Hyprland%20%C2%B7%20niri%20%C2%B7%20sway-2e7de9?style=for-the-badge&labelColor=e1e2e7"><img alt="Hyprland, niri and sway" src="https://img.shields.io/badge/Wayland-Hyprland%20%C2%B7%20niri%20%C2%B7%20sway-7aa2f7?style=for-the-badge&labelColor=1a1b26"></picture></a>
 <a href="https://quickshell.org"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/Quickshell-0.3.2%2B-9854f1?style=for-the-badge&labelColor=e1e2e7"><img alt="Quickshell" src="https://img.shields.io/badge/Quickshell-0.3.2%2B-bb9af7?style=for-the-badge&labelColor=1a1b26"></picture></a>
 <a href="LICENSE"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/License-MIT-118c74?style=for-the-badge&labelColor=e1e2e7"><img alt="License" src="https://img.shields.io/badge/License-MIT-73daca?style=for-the-badge&labelColor=1a1b26"></picture></a>
 
-[Why axiom](#why-axiom) · [Highlights](#highlights) · [Example setups](#example-setups) · [What's included](#whats-included) · [Install](#installation) · [Docs](#documentation)
+[Why axiom](#why-axiom) · [Highlights](#highlights) · [Example setups](#example-setups) · [What's included](#whats-included) · [Compositors](#compositors) · [Install](#installation) · [Docs](#documentation)
 
 <img src="assets/screenshots/hero-setups.webp" alt="Nine desktops sliding past one after another, all axiom with different themes, bars and docks: a solid Rosé Pine bar, large floating pills, a Dracula powerline bar on the bottom edge, an Everforest sidebar pinned open, a transparent Catppuccin bar, pills down the right edge, outlined arrows in Ayu, two plain bars in a light theme, and bars down both sides">
 
@@ -23,16 +23,15 @@ Bars, menus, a launcher, notifications, settings, theming, desktop widgets, the 
 
 ## Why axiom
 
-Most desktops come finished, with options to adjust. axiom comes in pieces, with the editors to make it yours.
+Most shells hand you a finished desktop and a page of options to tweak. axiom hands you the pieces and the editors: every bar, page, menu, widget and lock screen is something you design yourself, on screen.
 
-- **Built, not configured.** One set of modules builds pages, sidebars, desktop widgets, the lock screen and the login screen. Bars are widgets you line up and style one by one. Every surface is laid out by dragging, with changes live until you save.
-- **The whole desktop, one application.** Login, lock, notifications, polkit, idle, OSDs, a launcher, and settings for Wi-Fi, Bluetooth, audio and monitors, from one config. No stack of separate tools to glue together.
-- **Bring your own apps.** axiom is the part of a desktop you live in. It ships no file manager, terminal or browser: use the ones you like, and axiom themes 23 of them to match (and many more to come).
-- **Updates don't fight you.** Your config is validated and migrated from version to version, so a new release never means merging your changes into someone else's dotfiles.
-- **Share your setup.** An export is only data: monitors, paths and accounts stay behind, and commands come along only if you ask.
-- **Trying it costs nothing.** axiom never touches your Hyprland config unless you ask it to. It applies its keybinds at runtime, skips any key you already use, and goes away when you remove its one start-up line.
-
-**Who it's for:** anyone who wants a desktop that's stable, complete and one application rather than a pile of tools and scripts, and that you can still rice as far as you like.
+- **You design every surface** - One set of modules builds overlay pages, sidebars, desktop widgets, the lock screen and the login screen, all laid out by dragging. Bars are widgets you pick and style one by one. Changes show live until you save.
+- **The whole session, one app** - Login, lock, notifications, polkit, idle, OSDs, the launcher, and settings for Wi-Fi, Bluetooth, audio, monitors, keybinds and input, from one config.
+- **Bring your own apps** - No bundled file manager, terminal or browser. Use the ones you like, and axiom themes 23 of them to match.
+- **Any compositor, same desktop** - One config runs on Hyprland, niri and sway, so switching brings your bars, pages, theme and keybinds along.
+- **Updates don't fight you** - Your config is validated and migrated between versions, never merged by hand.
+- **Easy to share** - An export holds only the look and layout. Monitors, paths and accounts stay behind, and commands come along only if you ask.
+- **Safe to try** - By default axiom never edits your compositor's config. It skips any key you already use, and goes away when you remove its one start-up line.
 
 ## Highlights
 
@@ -42,7 +41,7 @@ Most desktops come finished, with options to adjust. axiom comes in pieces, with
 
 ### Build every surface
 
-One grid editor lays out overlay pages, edge menus, the desktop, the lock screen and the login screen. Changes show live: **Save** keeps them, **Reset** throws them away.
+Pages, menus, the desktop, even the lock and login screens: drag modules onto a grid and watch it change live.
 
 <img src="assets/screenshots/overlay-editor.webp" alt="The Layouts editor: the Home page's modules on a grid, with the module library below">
 
@@ -51,7 +50,7 @@ One grid editor lays out overlay pages, edge menus, the desktop, the lock screen
 
 ### Bars in any style
 
-Solid, transparent, pills or floating, on any edge of any monitor. Filled, tinted, outlined or underlined widgets, in slants, arrows or powerline. Colors pick themselves.
+Solid, floating, pills or powerline, on any edge. Mix and match until it's yours.
 
 <img src="assets/screenshots/bar-styles.webp" alt="Seven bars in seven styles, from solid filled pills to transparent underlined text, each in its own theme">
 
@@ -62,7 +61,7 @@ Solid, transparent, pills or floating, on any edge of any monitor. Filled, tinte
 
 ### Menus that make room
 
-Edge menus slide out of any edge. A floating one opens over your windows; an *integrated* one pushes them aside like a sidebar, or pins open for good.
+Menus slide out of any edge, over your windows or pushing them aside like a sidebar.
 
 <img src="assets/screenshots/menu-sidebar.webp" alt="An Everforest desktop with a sidebar pinned open on the left and two terminals retiled beside it">
 
@@ -71,7 +70,7 @@ Edge menus slide out of any edge. A floating one opens over your windows; an *in
 
 ### Workspaces in two dimensions
 
-A grid of workspaces per monitor, or scrolling strips. The bar, the overview and your keybinds follow the layout, and **Alt+Tab** shows live previews.
+A grid per monitor or scrolling strips, and everything follows along.
 
 <img src="assets/screenshots/workspace-overlay.webp" alt="The workspace overview: a 5×5 grid of workspaces with live window previews">
 
@@ -82,7 +81,7 @@ A grid of workspaces per monitor, or scrolling strips. The bar, the overview and
 
 ### A launcher that does everything
 
-Apps, windows, math with units and currencies, emoji, the clipboard, AI chat, and `/` commands that drive the whole shell.
+Apps, math, emoji, the clipboard, AI chat, and commands for the whole shell.
 
 <img src="assets/screenshots/launcher.webp" alt="The launcher finding Firefox, listing /theme commands, converting 12 USD to euros and searching emoji">
 
@@ -91,7 +90,7 @@ Apps, windows, math with units and currencies, emoji, the clipboard, AI chat, an
 
 ### One theme, every app
 
-42 base16 themes in dark and light pairs, or one generated from your wallpaper. It recolors the shell and 23 apps: GTK, Qt, kitty, Neovim, VS Code, Firefox and more.
+42 themes, or one from your wallpaper, carried across 23 of your apps.
 
 <img src="assets/screenshots/demo-themes.webp" alt="The overlay's Home page switching between six themes, every card recoloring at once">
 
@@ -128,18 +127,36 @@ See **[all the features](docs/features.md)**, with screenshots of every surface.
 
 One repository and one config for the whole desktop:
 
-- **Bars** with 23 widget types, in any style. Their popouts grow out of the bar or the screen border.
-- **Overlay** pages built from 36 modules: media, mixer, system graphs, weather, world clocks, calendar and agenda, notes, AI chat, a calculator, clipboard history, emoji, quick actions and more.
+- **Edge menus** built from 36 modules (media, mixer, system graphs, weather, calendar, notes, AI chat, clipboard, quick actions and more), sliding out of any edge, over your windows or beside them. Build anything with them: a sidebar, a control center, a dynamic island.
+- **Overlay** pages from the same modules, full screen.
 - **Desktop widgets** from the same modules, under your windows, per monitor.
-- **Edge menus**, floating over your windows or integrated beside them.
-- **Workspaces** as a line, a grid per monitor or scrolling strips, plus a live overview and **Alt+Tab**.
+- **Lock screen** and **login screen** (greetd), laid out from the same modules too.
+- **Bars** with 23 widget types, in any style. Their popouts grow out of the bar or the screen border.
+- **Workspaces** as a line, a grid per monitor or scrolling strips, plus an overview and **Alt+Tab switcher**.
+- **Your compositor, set from the UI:** keybinds, monitors, input, the window look (borders, gaps, rounding, blur, shadows), and optionally the whole config file.
 - **Calendar** from CalDAV accounts and `.ics` feeds, with an editor, reminders and quick add (`/event fri 3pm Dentist`).
 - **Theming:** 42 base16 themes or ones generated from your wallpaper, applied to 23 other apps, with a light/dark schedule.
 - **Launcher** for apps, windows, math, the clipboard, emoji and `/` commands for the whole shell.
-- **Lock screen** and **login screen** (greetd), laid out from the same modules, plus a **polkit** prompt.
-- **Docks** on any edge with pinning and magnification, **OSDs**, notifications and a power menu.
+- **Docks** on any edge with pinning and magnification, **OSDs**, notifications, a **polkit** prompt and a power menu.
 - **AI chat** (Claude, OpenAI, Gemini or Ollama) in a page, a menu or the launcher.
 - A **monitor** layout editor, notes, screenshots and recording, night light, idle, translations, a first-run setup, and **saved configs** you can export, share and import.
+
+## Compositors
+
+axiom talks to the compositor through one layer, so the bar, the overlay, the launcher, theming and the rest are the same everywhere. What differs is what each compositor can do:
+
+| | Hyprland 0.55+ | niri 26.04+ | sway 1.12+ |
+| --- | :---: | :---: | :---: |
+| Keybinds, monitors, input, window look | ✓ | ✓ | ✓ |
+| Workspace grid per monitor | ✓ | (niri's own workspaces) | ✓ |
+| Scrolling strips | any monitor | every monitor | |
+| Blur behind the shell | ✓ | | with SwayFX |
+| Live window previews | ✓ | | |
+| The login screen | ✓ | ✓¹ | ✓¹ |
+
+<sub>¹ The login screen always runs in a Hyprland of its own, so it needs Hyprland installed.</sub>
+
+Your config moves between them as it is. Log in to another compositor and your bars, pages, menus, theme and keybinds are already there; whatever only one compositor understands waits quietly in the config until you're back on it. Settings a compositor can't use are left out of the settings page rather than shown and ignored. Running something else? The bar, launcher, notifications and most of the shell still work on any Wayland compositor with layer-shell; only the compositor-specific parts go missing.
 
 ## Installation
 
@@ -149,43 +166,35 @@ On Arch Linux, Fedora, or a distribution based on either (CachyOS, EndeavourOS, 
 curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash
 ```
 
-It uses the compositor you run or have installed (Hyprland, sway or niri), or asks which one to install, with Hyprland as the default. Before running anything as root, it shows each command and why: one `sudo pacman` or `sudo dnf`, and on Fedora each COPR it needs (quickshell and Hyprland aren't in Fedora's own repositories). It asks before adding the line that starts axiom to your compositor's config, and backs that file up first. `--dry-run` prints what it would do and changes nothing. On first start, a short setup walks you through the look, monitors, workspaces, apps and integrations.
+It uses the compositor you're running or have installed, or asks which one to install (Hyprland, niri or sway). Before anything runs as root it shows each command and why: one `sudo pacman` or `sudo dnf`, plus on Fedora each COPR it needs. It asks before adding axiom's start-up line to your compositor's config, and backs that file up first. `--dry-run` prints what it would do and changes nothing. On first start, a short setup walks you through the look, monitors, workspaces, apps and integrations.
 
 <details>
 <summary><b>By hand</b>: on another distribution, or if you'd rather not pipe to bash</summary>
 
-Install the requirements: [Hyprland](https://hypr.land) 0.55+ with its Lua config, [Quickshell](https://quickshell.org) 0.3.2+, the [Material Symbols](https://fonts.google.com/icons) font, `git`, `jq` and `python3`. Optional features have their own dependencies, listed in [the installation guide](docs/installation.md#requirements).
+Install the requirements: a compositor (above), [Quickshell](https://quickshell.org) 0.3.2+, the [Material Symbols](https://fonts.google.com/icons) font, `git`, `jq` and `python3`. Optional features have their own dependencies, listed in [the installation guide](docs/installation.md#requirements).
 
-Then clone into Quickshell's config directory:
+Clone into Quickshell's config directory, and try it with `qs -c axiom`:
 
 ```bash
 git clone https://github.com/axiom-dotfiles/axiom.git ~/.config/quickshell/axiom
 ```
 
-Start it with Quickshell:
+To start it with your session, add one line to your compositor's config (`-n` keeps a second copy from starting):
 
-```bash
-qs -c axiom
-```
-
-To start it with Hyprland, add this line to your `hyprland.lua` (`-n` keeps a second copy from starting):
-
-```lua
-hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)
-```
-
-On sway (1.12+), add `exec qs -n -c axiom` to your sway config instead. Its workspaces, windows, keybinds, window look, input and monitors work as on Hyprland; what sway can't do (strips, blur behind the shell, window previews) is left out of the settings.
-
-On niri (26.04+), add `spawn-sh-at-startup "qs -n -c axiom"` to your `config.kdl`. Every niri output is a scrolling strip, and the bar shows each workspace's windows in column order (with one workspace configured, just the strip). Keybinds, the window look, input and monitors work in every mode; niri takes them from files only, so in detached mode axiom has niri load a wrapper around your config while it runs, and never edits your files. Blur behind the shell isn't there yet.
+| Compositor | File | Line |
+| --- | --- | --- |
+| Hyprland | `~/.config/hypr/hyprland.lua` | `hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)` |
+| niri | `~/.config/niri/config.kdl` | `spawn-sh-at-startup "qs -n -c axiom"` |
+| sway | `~/.config/sway/config` | `exec qs -n -c axiom` |
 
 </details>
 
-By default axiom runs in *detached* mode: it applies what it needs at runtime and never writes your Hyprland config. If you'd rather it did, it can also write a file you include, or manage `hyprland.lua` for you (see [Hyprland modes](docs/installation.md#installation)).
+By default axiom runs *detached*: it applies its keybinds and settings at runtime and never writes your compositor's config. If you'd rather keep them in a file, it can write one you include, or manage the whole config for you (see [Compositor modes](docs/installation.md#compositor-modes)).
 
 ## Documentation
 
 - **[Features](docs/features.md):** every surface in detail, with screenshots
-- **[Installation and setup](docs/installation.md):** requirements, Hyprland modes, updates, locking, the login screen
+- **[Installation and setup](docs/installation.md):** requirements, compositor modes, updates, idle and locking, the login screen
 - **[Keybinds, IPC and launcher](docs/usage.md):** keybind presets, IPC targets and every launcher command
 - **[Configuration](docs/configuration.md):** the config file, backups, themes, translations, troubleshooting
 - **[Developer docs](docs/dev/README.md):** how every service and surface works, for contributors
@@ -194,7 +203,7 @@ By default axiom runs in *detached* mode: it applies what it needs at runtime an
 
 Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) for a bug or an idea, or fork the repository and open a pull request against `main`. CI runs the same checks as `scripts/check_all.sh`.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the layout and conventions, and [docs/dev/](docs/dev/README.md) for how it all fits together. There's no build step: `qs` interprets the QML and hot-reloads on save.
+[CONTRIBUTING.md](CONTRIBUTING.md) covers setting up, the workflow, and where in the docs to start. There's no build step: `qs` interprets the QML and hot-reloads on save.
 
 ## Roadmap
 
@@ -204,12 +213,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the layout and conventions, and [docs
 - **More styles** for bars, widgets and menus
 - **More translations**
 - **Performance Improvements**
-- **An AUR package**, if there is interest
+- **An AUR package**
 
 ## Acknowledgments
 
 axiom is built on:
-- [Hyprland](https://hypr.land), the compositor it's made for
+- [Hyprland](https://hypr.land), [niri](https://github.com/YaLTeR/niri) and [sway](https://swaywm.org), the compositors it runs on
 - [Quickshell](https://quickshell.org), the QML toolkit every surface is written in, and without which axiom couldn't exist
 - [Material Symbols](https://fonts.google.com/icons), the icons
 

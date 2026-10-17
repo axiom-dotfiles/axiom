@@ -9,7 +9,7 @@ Keybinds are edited on the overlay's **Keybinds** page. Filter by section or mod
 A bind can run:
 - any IPC action below
 - a window action (focus, move, resize, close, fullscreen, floating, special workspaces, mouse drag)
-- a Hyprland dispatcher written as Lua (`hl.dsp.layout("swapsplit")`)
+- a raw command in the compositor's own language: a Hyprland dispatcher as Lua (`hl.dsp.layout("swapsplit")`), a sway command or a niri action. It's kept for the compositor it was written for, and skipped (with a warning) on the others
 - a command
 
 It can repeat while held, work while locked, or fire on release. A description like `Workspace: Switch left` puts the bind in its own section on the page.
@@ -27,7 +27,7 @@ It can repeat while held, work while locked, or fire on release. A description l
 | Strips (with a strip monitor) | <kbd>Super</kbd> + <kbd>[</kbd> / <kbd>]</kbd> swaps columns, <kbd>Super</kbd> + <kbd>=</kbd> / <kbd>-</kbd> steps the width, <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>F</kbd> fits the visible columns, <kbd>Super</kbd> + scroll moves focus along the strip |
 | Media keys | Volume, mute, brightness and playback keys, through axiom so the OSD shows |
 
-In the managed Hyprland mode, **Merge** moves the binds from your own `user/*.lua` onto this page.
+The page only offers actions your compositor can do. In managed mode, **Merge** moves the binds from your own files in the compositor's `user/` folder onto this page.
 
 ## IPC
 
@@ -70,11 +70,21 @@ qs -c axiom ipc call <target> <function>
 
 </details>
 
-If you bind them in your own `hyprland.lua` instead of on the Keybinds page, it looks like this. A `"Section: Label"` description sets where the bind appears on the Keybinds page:
+To bind them in your compositor's own config instead, run the same command. On Hyprland, a `"Section: Label"` description also sets where the bind appears on the Keybinds page:
 
 ```lua
+-- hyprland.lua
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs -c axiom ipc call appLauncher toggle"), { description = "Axiom: App launcher" })
-hl.bind("SUPER + T", hl.dsp.exec_cmd("qs -c axiom ipc call appLauncher search '/theme '"), { description = "Axiom: Themes" })
+```
+
+```kdl
+// niri config.kdl, inside binds { }
+Mod+Space hotkey-overlay-title="Axiom: App launcher" { spawn-sh "qs -c axiom ipc call appLauncher toggle"; }
+```
+
+```
+# sway config
+bindsym $mod+space exec qs -c axiom ipc call appLauncher toggle
 ```
 
 ## Launcher

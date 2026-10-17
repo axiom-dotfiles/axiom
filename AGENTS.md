@@ -4,7 +4,7 @@ The rules for working on axiom, for contributors and coding agents alike. `CLAUD
 
 ## What this is
 
-A [Quickshell](https://quickshell.org) desktop shell config (QML) for Hyprland (0.55+, Lua config), named "axiom": bar, notifications, lockscreen, launcher, overlay pages, edge menus, docks, OSD, power menu, workspace overview, screen border. No build step: `qs` interprets the QML at runtime.
+A [Quickshell](https://quickshell.org) desktop environment (QML) for Wayland compositors (Hyprland 0.55+ with its Lua config, niri 26.04+, sway 1.12+), named "axiom": bar, notifications, lockscreen, launcher, overlay pages, edge menus, docks, OSD, power menu, workspace overview, screen border. No build step: `qs` interprets the QML at runtime.
 
 This file holds only the rules. **The mechanics of every service and surface are in `docs/dev/`**, one short doc per topic (index: `docs/dev/README.md`). Each doc opens with its files, config and related docs. Read the relevant doc before changing a feature, and update it when you change how one works. Some directories have their own `AGENTS.md` with local rules.
 
@@ -98,7 +98,7 @@ components/
   surfaces/     standalone windows (launcher, lockscreen, toasts, dock, onboarding, screenshot, …)
 services/       pragma Singleton managers: state and side effects
 config/         config reader singletons; json/ (schema, theme defaults, emoji), themes/, i18n/ (user data and state live in the XDG folders: docs/dev/core/config-manager.md)
-scripts/        external scripts (theming, wallpaper, self-update, Hyprland claim) and the dev checks
+scripts/        external scripts (theming, wallpaper, self-update, compositor claims and bind merges) and the dev checks
 tests/          qmltestrunner tests, fixtures, tests/scripts/
 docs/dev/       developer docs, one per topic
 ```
@@ -124,8 +124,8 @@ Dependencies point one way:
 - **Config writes** go only through `ConfigManager.setTheme` / `setWallpaper(s)` / `saveConfig` / `commit(object)` (validates first; returns false and changes nothing if rejected), or `SettingsManager.setValue` / `commitValue(s)` from UI. Never mutate `ConfigManager.config` and expect it to persist.
 - **Editors** (settings, bar, overlay, edge menus, keybinds, monitors, screen layouts) edit a `ConfigDraft`; unsaved edits show live through `ConfigManager.setPreview(section, value)` and readers read `previews.X ?? config.X`. Selection lives in the manager and changes through its `select*()` (`selectBar`, `selectView`, `selectMenu`, `selectProfile`); views don't assign it. See `docs/dev/core/editors-pattern.md`.
 - Secrets (chat API keys, calendar passwords) never go in config.json or argv: `SecretsManager`, written through stdin. Clipboard history is never written to disk; only clips the user pins are (`~/.local/state/axiom/ui/clipboardPins.json`).
-- **The compositor is reached only through `CompositorManager`** (`docs/dev/compositor/README.md`): its windows, outputs and workspaces (neutral shapes, never a compositor's own objects), its signals, and every workspace switch and window focus (`goToWorkspace` / `stepWorkspace` / `nthWorkspace` / `focusWindow`, never a direct dispatch). Its backend (`HyprlandManager`) is the only one talking to the compositor; only the `Hyprland*` services import `Quickshell.Hyprland` or send Lua (`hl.*`), and only the Hyprland-only features (config modes, Keybinds, Monitors, the switcher) use `HyprlandManager` directly (`check_structure` enforces both).
-- **Gate on a capability, not a compositor**: `CompositorManager.supports.<key>` in code, `"/$supports.<key>": true` in a schema `x-showIf`, `x-needs` on a page type. Nothing writes Hyprland's config unless `supports.configModes`. Surfaces closing on an outside click use `FocusGrab`.
+- **The compositor is reached only through `CompositorManager`** (`docs/dev/compositor/README.md`): its windows, outputs and workspaces (neutral shapes, never a compositor's own objects), its signals, and every workspace switch and window focus (`goToWorkspace` / `stepWorkspace` / `nthWorkspace` / `focusWindow`, never a direct dispatch). Its backend (`HyprlandManager`, `SwayManager`, `NiriManager`) is the only one talking to the compositor; only the `Hyprland*` services import `Quickshell.Hyprland` or send Lua (`hl.*`), only the `Sway*` / `Niri*` services talk to sway / niri, and only the Hyprland-only features (`GreetdManager`, `OnboardingManager`) use `HyprlandManager` directly (`check_structure` enforces all of it).
+- **Gate on a capability, not a compositor**: `CompositorManager.supports.<key>` in code, `"/$supports.<key>": true` in a schema `x-showIf`, `x-needs` on a page type. Nothing writes a compositor's config unless `supports.configModes`. Surfaces closing on an outside click use `FocusGrab`.
 - State that must survive a QML reload lives in a `PersistentProperties` (JSON for arrays); small persisted state goes in `StateManager` (`~/.local/state/axiom/ui/*.json`) or `Paths.userStatePath`.
 - **Nothing is written under `Paths.axiomPath`** (a package installs it read-only): what axiom writes goes in the XDG folders through `Paths.userConfigPath` / `statePath` / `userStatePath` / `userDataPath` / `generatedThemesPath` (`docs/dev/core/config-manager.md` › Where files live).
 
