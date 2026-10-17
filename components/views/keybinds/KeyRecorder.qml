@@ -13,7 +13,9 @@ import qs.components.content.parts
 // records, combos the compositor binds reach it instead of firing: its
 // window inhibits the compositor's shortcuts (niri's only way), and
 // KeybindManager holds Hyprland or sway in an empty submap or mode. A wheel
-// turn over it records a scroll (SUPER + mouse_down). Esc cancels.
+// turn over it records a scroll (SUPER + mouse_down), and a modifier let go
+// with no other key between records a tap (Super_L) where the compositor
+// binds one. Esc cancels.
 StyledContainer {
   id: root
 
@@ -24,6 +26,9 @@ StyledContainer {
   readonly property bool recording: KeybindManager.recordingIndex === root.bindIndex
   // Modifiers held so far while recording
   property var held: []
+  // The modifier key pressed alone, as a tap ("Super_L"), until another
+  // key comes
+  property string tap: ""
   readonly property var parts: KeyNames.split(root.combo)
 
   implicitHeight: Widget.height
@@ -32,6 +37,7 @@ StyledContainer {
 
   onRecordingChanged: {
     root.held = [];
+    root.tap = "";
     if (root.recording)
       catcher.forceActiveFocus();
   }
@@ -142,12 +148,17 @@ StyledContainer {
       }
       const mods = KeyNames.modifiersOf(event.modifiers);
       const own = KeyNames.modifierFor(event.key);
+      root.tap = root.held.length === 0 && CompositorManager.supports.modifierTap ? KeyNames.tapName(event.key, event.nativeScanCode) : "";
       root.held = KeyNames.modifiers.filter(mod => mods.includes(mod) || mod === own);
     }
     Keys.onReleased: event => {
       event.accepted = true;
-      if (!root.recording)
+      if (!root.recording || event.isAutoRepeat)
         return;
+      if (root.tap !== "" && KeyNames.tapName(event.key, event.nativeScanCode) === root.tap) {
+        KeybindManager.finishRecording(root.tap);
+        return;
+      }
       const mods = KeyNames.modifiersOf(event.modifiers);
       const own = KeyNames.modifierFor(event.key);
       root.held = KeyNames.modifiers.filter(mod => mods.includes(mod) && mod !== own);

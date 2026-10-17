@@ -549,7 +549,7 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "key": { "type": "string", "title": "Key", "default": "", "description": "Modifiers and key, joined by +: \"SUPER + SHIFT + space\"." },
+              "key": { "type": "string", "title": "Key", "default": "", "description": "Modifiers and key, joined by +: \"SUPER + SHIFT + space\". A modifier key alone (\"Super_L\") fires when tapped, on compositors that can bind one." },
               "action": {
                 "type": "string",
                 "title": "Action",

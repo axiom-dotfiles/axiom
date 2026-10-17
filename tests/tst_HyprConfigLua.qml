@@ -90,6 +90,21 @@ TestCase {
     verify(line.endsWith(`{ description = "Media: Volume up", repeating = true, locked = true })`), line);
   }
 
+  function test_tapIsWrittenWithItsModifierOnRelease() {
+    const bind = {
+      "key": "Super_L",
+      "action": "launcher"
+    };
+    compare(HyprConfigLua.bindKey(bind.key), "SUPER + Super_L");
+    compare(HyprConfigLua.bindKey(" SUPER + Q "), "SUPER + Q");
+    verify(HyprConfigLua.bindLua(bind, ctx).startsWith(`hl.bind("SUPER + Super_L", `));
+    verify(HyprConfigLua.bindLua(bind, ctx).endsWith(`release = true })`));
+    const flagged = HyprConfigLua.bindLua(Object.assign({
+      "release": true
+    }, bind), ctx);
+    compare(flagged.split("release = true").length, 2, "release once");
+  }
+
   function test_incompleteBinds() {
     compare(HyprConfigLua.bindLua({
       "key": "",

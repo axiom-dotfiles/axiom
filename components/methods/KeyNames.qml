@@ -157,6 +157,54 @@ QtObject {
     return scanCode > 0 ? "code:" + scanCode : "";
   }
 
+  // Modifier keys a bind can be on by themselves (a tap: pressed and let
+  // go with no other key between), by keysym, as the modifier each is
+  readonly property var _tapKeys: ({
+      "super_l": "SUPER",
+      "super_r": "SUPER",
+      "control_l": "CTRL",
+      "control_r": "CTRL",
+      "alt_l": "ALT",
+      "alt_r": "ALT",
+      "shift_l": "SHIFT",
+      "shift_r": "SHIFT"
+    })
+
+  // The modifier keys by xkb keycode, which tells left from right
+  readonly property var _tapCodes: ({
+      "133": "Super_L",
+      "134": "Super_R",
+      "37": "Control_L",
+      "105": "Control_R",
+      "64": "Alt_L",
+      "108": "Alt_R",
+      "50": "Shift_L",
+      "62": "Shift_R"
+    })
+
+  // The modifier a combo taps ("Super_L" -> "SUPER"), or "" when it isn't
+  // a tap. Its own modifier may be written too ("SUPER + Super_L"), as the
+  // compositor holds it when the key is let go.
+  function tapModifier(combo) {
+    const parts = split(combo);
+    const mod = _tapKeys[parts.key.toLowerCase()] ?? "";
+    return parts.mods.every(held => held === mod) ? mod : "";
+  }
+
+  // A modifier key from a key event as a tap combo ("Super_L"), or ""
+  function tapName(key, scanCode) {
+    const own = modifierFor(key);
+    const named = _tapCodes[String(scanCode)];
+    if (named !== undefined && _tapKeys[named.toLowerCase()] === own)
+      return named;
+    return {
+      "SUPER": "Super_L",
+      "CTRL": "Control_L",
+      "ALT": "Alt_L",
+      "SHIFT": "Shift_L"
+    }[own] ?? "";
+  }
+
   // A full combo from a key event, or "" while only modifiers are down
   function fromEvent(key, qtModifiers, scanCode) {
     const name = keyName(key, scanCode);

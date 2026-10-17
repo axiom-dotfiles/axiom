@@ -52,7 +52,7 @@ RuntimeLayer {
       root._monitorsApplied = MonitorsConfig._profilesJson;
     }
     lines.push(...root.stripsLines());
-    lines.push(`AXIOM_RUNTIME_KEYS = { ${binds.map(bind => HyprLua.string(bind.key.trim())).join(", ")} }`);
+    lines.push(`AXIOM_RUNTIME_KEYS = { ${binds.map(bind => HyprLua.string(HyprConfigLua.bindKey(bind.key))).join(", ")} }`);
     HyprlandManager.runLua(lines.join("\n"));
     HyprlandManager.refreshOptions();
   }

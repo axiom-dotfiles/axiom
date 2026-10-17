@@ -477,10 +477,22 @@ QtObject {
           "level": "warning",
           "text": I18n.tr("{0} only does this on {1}", CompositorManager.displayName, root.displayCombo(builtIn))
         });
+      else if (!BindActions.keySupported(key, CompositorManager.supports))
+        found.push({
+          "level": "warning",
+          "text": I18n.tr("{0} can't bind a modifier on its own", CompositorManager.displayName)
+        });
       else if (!BindActions.appliesUnder(bind, CompositorManager.kind, CompositorManager.supports))
         found.push({
           "level": "warning",
           "text": bind.action === "raw" ? I18n.tr("Written for another compositor, so it does nothing here") : I18n.tr("This compositor can't do this, so it isn't bound")
+        });
+      // A modifier on its own fires when it's let go with no other key
+      // between, whatever the bind's release flag says
+      if (KeyNames.tapModifier(key) !== "" && BindActions.keySupported(key, CompositorManager.supports))
+        found.push({
+          "level": "info",
+          "text": I18n.tr("Fires when tapped on its own")
         });
       if (ids[i] !== "" && counts[ids[i]] > 1)
         found.push({
@@ -688,8 +700,11 @@ QtObject {
   }
 
   function finishRecording(combo) {
-    if (root.recordingIndex >= 0)
+    if (root.recordingIndex >= 0) {
       setField(root.recordingIndex, "key", combo);
+      if (KeyNames.tapModifier(combo) !== "")
+        setField(root.recordingIndex, "release", true);
+    }
     stopRecording();
   }
 
@@ -749,6 +764,14 @@ QtObject {
       "mouse_down": "Scroll ↓",
       "mouse_left": "Scroll ←",
       "mouse_right": "Scroll →",
+      "super_l": "Super L",
+      "super_r": "Super R",
+      "control_l": "Ctrl L",
+      "control_r": "Ctrl R",
+      "alt_l": "Alt L",
+      "alt_r": "Alt R",
+      "shift_l": "Shift L",
+      "shift_r": "Shift R",
       "left": "←",
       "right": "→",
       "up": "↑",

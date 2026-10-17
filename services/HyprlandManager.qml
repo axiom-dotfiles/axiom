@@ -57,6 +57,7 @@ Singleton {
       "windowOpacity": true,
       "inputConfig": true,
       "keyCapture": true,
+      "modifierTap": true,
       "bindMerge": true,
       "monitorColor": true,
       "monitorMirror": true,

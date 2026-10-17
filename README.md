@@ -27,11 +27,11 @@ Most shells hand you a finished desktop and a page of options to tweak. axiom ha
 
 - **You design every surface** - One set of modules builds overlay pages, sidebars, desktop widgets, the lock screen and the login screen, all laid out by dragging. Bars are widgets you pick and style one by one. Changes show live until you save.
 - **The whole session, one app** - Login, lock, notifications, polkit, idle, OSDs, the launcher, and settings for Wi-Fi, Bluetooth, audio, monitors, keybinds and input, from one config.
-- **Bring your own apps** - No bundled file manager, terminal or browser. Use the ones you like, and axiom themes 23 of them to match.
+- **Bring your own apps** - No bundled file manager, terminal or browser. Use the ones you like, and axiom themes 23 of them to match (and many more to come!).
 - **Any compositor, same desktop** - One config runs on Hyprland, niri and sway, so switching brings your bars, pages, theme and keybinds along.
 - **Updates don't fight you** - Your config is validated and migrated between versions, never merged by hand.
 - **Easy to share** - An export holds only the look and layout. Monitors, paths and accounts stay behind, and commands come along only if you ask.
-- **Safe to try** - By default axiom never edits your compositor's config. It skips any key you already use, and goes away when you remove its one start-up line.
+- **Simple to try** - By default axiom never edits your compositor's config. It skips any key you already use, and goes away when you remove its one start-up line.
 
 ## Highlights
 

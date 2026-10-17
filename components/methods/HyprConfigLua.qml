@@ -125,10 +125,19 @@ QtObject {
     if (!dispatcher)
       return "";
     const options = [`description = ${_lua(BindActions.descriptionFor(bind))}`];
+    const tap = KeyNames.tapModifier(bind.key) !== "";
     for (const flag of BindActions.flagNames)
-      if (bind[flag])
+      if (bind[flag] || (tap && flag === "release"))
         options.push(`${flag} = true`);
-    return `hl.bind(${_lua(bind.key.trim())}, ${dispatcher}, { ${options.join(", ")} })`;
+    return `hl.bind(${_lua(bindKey(bind.key))}, ${dispatcher}, { ${options.join(", ")} })`;
+  }
+
+  // A bind's key as Hyprland binds it: a modifier tapped on its own
+  // (KeyNames.tapModifier) is held when it's let go, so it's written with
+  // its modifier ("Super_L" -> "SUPER + Super_L"), and always on release
+  function bindKey(key) {
+    const tap = KeyNames.tapModifier(key);
+    return tap !== "" ? KeyNames.join([tap], KeyNames.split(key).key) : String(key ?? "").trim();
   }
 
   // The window switcher's submap for the switcher binds among `binds`

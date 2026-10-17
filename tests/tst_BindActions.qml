@@ -126,4 +126,16 @@ TestCase {
       "action": "pseudo"
     }, "sway", {}));
   }
+
+  function test_tapsNeedModifierTap() {
+    const tap = {
+      "key": "Super_L",
+      "action": "launcher"
+    };
+    verify(BindActions.appliesUnder(tap, "sway", {
+      "modifierTap": true
+    }));
+    verify(!BindActions.appliesUnder(tap, "niri", {}));
+    verify(BindActions.keySupported("SUPER + Q", {}));
+  }
 }

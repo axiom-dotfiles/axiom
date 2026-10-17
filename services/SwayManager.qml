@@ -71,6 +71,7 @@ Singleton {
     "windowGaps": true,
     "inputConfig": true,
     "keyCapture": true,
+    "modifierTap": true,
     "bindMerge": true,
     "scratchpad": true,
     "namedSpecial": true,

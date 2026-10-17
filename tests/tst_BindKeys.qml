@@ -32,6 +32,15 @@ TestCase {
     })), BindKeys.keyId("SUPER + code:10"));
   }
 
+  function test_tapIds() {
+    // Hyprland lists a tap with its modifier held, sway without
+    compare(BindKeys.keyId("Super_L"), "0:super_l");
+    compare(BindKeys.keyId("SUPER + Super_L"), "0:super_l");
+    compare(BindKeys.entryId(entry(64, "SUPER_L")), "0:super_l");
+    compare(BindKeys.entryId(entry(0, "Super_L")), "0:super_l");
+    compare(BindKeys.keyId("CTRL + Super_L"), "4:super_l", "not a tap");
+  }
+
   function test_runtime_skips_keys_the_user_binds() {
     const binds = [
       {

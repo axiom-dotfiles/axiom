@@ -88,6 +88,7 @@ Super+Shift+Q repeat=false {
     compare(NiriConf.key("SUPER + code:10"), null);
     compare(NiriConf.key("CAPS + A"), null);
     compare(NiriConf.key("SUPER + mouse:280"), null);
+    compare(NiriConf.key("Super_L"), null, "niri has no release binds");
     compare(NiriConf.key(""), null);
   }
 

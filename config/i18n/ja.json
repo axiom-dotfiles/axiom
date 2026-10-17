@@ -901,7 +901,6 @@
     "Lock restore after a shell restart, ignoring apps' requests to maximize themselves, and a workspace slide animation.": "シェル再起動後のロック復元、アプリ自身による最大化要求の無視、ワークスペースのスライドアニメーション。",
     "Start awww-daemon for the wallpaper picker.": "壁紙ピッカー用に awww-daemon を起動します。",
     "Send window in a direction": "ウィンドウを方向へ送る",
-    "Modifiers and key, joined by +: \"SUPER + SHIFT + space\".": "修飾キーとキーを + でつなぎます: \"SUPER + SHIFT + space\"。",
     "Move window to number": "ウィンドウを番号へ移動",
     "Edited on the Keybinds page.": "キーバインドページで編集します。",
     "Move window in a direction": "ウィンドウを方向へ移動",
@@ -3083,6 +3082,9 @@
     "Room between a separator and the widgets on either side of it.": "区切りとその両側のウィジェットとの間隔。",
     "Follow Look & Feel → Bar style: its shadow color and size. With it off there, windows cast none.": "外観と操作感 → バースタイルの影の色とサイズに従います。そこでオフの場合、ウィンドウは影を落としません。",
     "Spread evenly round every bar (or its pills), the screen border, popouts, menus and docks. A transparent bar has nothing to cast one; a solid bar on the border leaves it to the border.": "すべてのバー（またはそのピル）、画面の枠、ポップアウト、メニュー、ドックの周りに均等に広がります。透明なバーには影を落とすものがありません。枠に接するソリッドなバーは枠に任せます。",
-    "Spread evenly round the bar, or its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.": "バー（またはそのピル）の周りに均等に広がります。透明なバーには影を落とすものがありません。画面の枠に接するソリッドなバーは枠に任せ、枠はバースタイルの影を落とします。"
+    "Spread evenly round the bar, or its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.": "バー（またはそのピル）の周りに均等に広がります。透明なバーには影を落とすものがありません。画面の枠に接するソリッドなバーは枠に任せ、枠はバースタイルの影を落とします。",
+    "{0} can't bind a modifier on its own": "{0} は修飾キー単体をバインドできません",
+    "Fires when tapped on its own": "単独でタップしたときに実行されます",
+    "Modifiers and key, joined by +: \"SUPER + SHIFT + space\". A modifier key alone (\"Super_L\") fires when tapped, on compositors that can bind one.": "修飾キーとキーを + でつなぎます: \"SUPER + SHIFT + space\"。修飾キー単体（\"Super_L\"）は、対応するコンポジターではタップしたときに実行されます。"
   }
 }
