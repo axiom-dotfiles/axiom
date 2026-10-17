@@ -194,29 +194,13 @@ QtObject {
     };
   }
 
-  // The main keyboard's layouts from a get_inputs reply, or null with no
-  // keyboard. Sway names layouts in full ("English (US)"); `codes` (the
-  // configured xkb_layout, "us,de") give their short names when there are
-  // as many, else the short name comes from the full one.
+  // The main keyboard's layouts from a get_inputs reply
+  // (KeyboardLayouts.shape), or null with no keyboard. `codes`: the
+  // configured xkb_layout ("us,de").
   function keyboard(inputs, codes) {
     const keyboards = (inputs ?? []).filter(input => input.type === "keyboard" && (input.xkb_layout_names ?? []).length > 0);
     const main = keyboards.find(k => /keyboard/i.test(k.name ?? "")) ?? keyboards[0];
-    if (!main)
-      return null;
-    const names = main.xkb_layout_names;
-    const configured = String(codes ?? "").split(",").map(code => code.trim()).filter(code => code !== "");
-    return {
-      "layouts": configured.length === names.length ? configured : names.map(name => root.layoutCode(name)),
-      "index": main.xkb_active_layout_index ?? 0,
-      "keymap": main.xkb_active_layout_name ?? names[main.xkb_active_layout_index ?? 0] ?? ""
-    };
-  }
-
-  // A short name for an xkb layout's full one: what its parentheses hold
-  // when short ("English (US)" → "us"), else its first two letters
-  function layoutCode(name) {
-    const inner = /\(([^)]{1,4})\)/.exec(name ?? "");
-    return (inner ? inner[1] : String(name ?? "").slice(0, 2)).toLowerCase();
+    return main ? KeyboardLayouts.shape(main.xkb_layout_names, main.xkb_active_layout_index ?? 0, codes) : null;
   }
 
   // What a sway config's text (get_config) sets that axiom follows: { gaps:

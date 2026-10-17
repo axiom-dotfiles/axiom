@@ -273,6 +273,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `IconResolver.qml`: Resolves icon names for window classes: desktop entries first, then known substitutions, then name variants that exist in the icon theme.
 - `KeyNames.qml`: Keys as Hyprland writes them ("SUPER + SHIFT + space"): turning a Qt key event into one (for recording a bind), and splitting one for display.
 - `KeybindFilter.qml`: The Keybinds page's filter over KeybindManager.keybindings: a search plus toggle chips in three groups (sections, modifiers, source).
+- `KeyboardLayouts.qml`: A keyboard's layouts as the shell shows them ({ layouts, index, keymap }, CompositorManager.withKeyboard), from the full names a compositor reports ("English (US)"): the same for every backend that only has those.
 - `LayerArrange.qml`: Where a compositor puts layer-shell surfaces on an output (pure): the wlr-layer-shell arrangement that sway, niri and Hyprland share (docs/dev/compositor/layer-arrangement.md).
 - `LayerStack.qml`: The order axiom's layer surfaces stack and reserve their space in, on every compositor (pure).
 - `LibraryOrder.qml`: How the editors' libraries (bar widgets, overlay modules) order their types: by label, or by group (the schema's `x-libraryGroups`, in order) and by label within each.
