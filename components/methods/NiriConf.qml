@@ -414,7 +414,8 @@ QtObject {
   // --- Input and options ---
 
   // A field's value as its x-niri node takes it ([args]), or null to leave
-  // it out (a flag that's off: niri can only turn a flag on)
+  // it out (a flag that's off: niri can only turn a flag on; an offFlag
+  // is a flag written when the setting is off, like `animations { off }`)
   function _niriArgs(fieldSchema, value) {
     if (fieldSchema["x-niriSkip"] !== undefined && value === fieldSchema["x-niriSkip"])
       return null;
@@ -424,6 +425,8 @@ QtObject {
     }
     if (fieldSchema["x-niriValue"] === "flag")
       return value ? [] : null;
+    if (fieldSchema["x-niriValue"] === "offFlag")
+      return value ? null : [];
     const scaled = fieldSchema["x-niriScale"] !== undefined ? Math.round(value * fieldSchema["x-niriScale"] * 1000) / 1000 : value;
     return [fieldSchema["x-niriValue"] === "float" ? real(scaled) : scaled];
   }

@@ -26,8 +26,8 @@ import qs.components.methods
  *             user's config includes at its end (includeLines)
  *   managed   ~/.config/niri/config.kdl itself: axiom's binds, the user's
  *             files in ~/.config/niri/user/ (so their binds win), then the
- *             rest of axiom's layer (so its look and settings win), and
- *             the session (ConfigTakeover)
+ *             rest of axiom's layer (so its look and settings win, with
+ *             the Niri section's options), and the session (ConfigTakeover)
  * The modules leave out binds on keys the user's own config binds
  * (skippedKeys), read from their files (scripts/niri_config.py), so theirs
  * win. Every mode writes the monitor profile for what's connected (as
@@ -172,13 +172,13 @@ Singleton {
   // The managed niri config, from `spec` as for moduleText: the
   // WindowBehaviour options and the session too, and the user's files
   function managedText(spec) {
-    // reads: WindowBehaviour.*, Session.*
+    // reads: WindowBehaviour.*, Niri.*, Session.*
     const parts = _parts(spec, managedPath);
     const schema = ConfigManager.configSchema?.properties;
     return NiriConf.managedText(Object.assign(parts, {
       "userDir": userDir,
       "userFiles": _userFiles,
-      "options": NiriConf.optionNodes(schema?.WindowBehaviour, WindowBehaviourConfig.behaviour, false).concat(parts.options),
+      "options": NiriConf.optionNodes(schema?.WindowBehaviour, WindowBehaviourConfig.behaviour, false).concat(NiriConf.optionNodes(schema?.Niri, NiriConfig.options, false), parts.options),
       "env": CompositorLayer.sessionEnv(SessionConfig.session, spec.input.cursor),
       "start": {
         "command": startCommand,
@@ -203,7 +203,7 @@ Singleton {
 
   // Everything else the layer is made of (CompositorConfigManager re-applies
   // the layer when it changes)
-  readonly property string inputsKey: [WindowBehaviourConfig._behaviourJson, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled, JSON.stringify(_outputNodes), JSON.stringify(_plan), _userFiles.join(",")].join("|")
+  readonly property string inputsKey: [WindowBehaviourConfig._behaviourJson, NiriConfig._optionsJson, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled, JSON.stringify(_outputNodes), JSON.stringify(_plan), _userFiles.join(",")].join("|")
 
   // The user's files in user/, in name order, as the managed config
   // includes them (niri takes no globs): a new one rewrites it. Listed at

@@ -700,6 +700,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `LockscreenConfig.qml`: Reader for the Lockscreen section: which locker locks the session, and what the built-in one shows (`layout`, as saved: the lock never shows the layouts editor's unsaved draft, LockManager.editor.localLayout).
 - `MonitorsConfig.qml`: Reader for the Monitors section: the monitor profiles ({ name, outputs: [MonitorRule] }), edited on the Monitors page (MonitorManager) and applied by the compositor's config writer
 - `NightLight.qml`: Reader for the NightLight section: warmer colors through hyprsunset or wlsunset, run by NightLightManager.
+- `NiriConfig.qml`: Reader for the Niri section: niri's own options in the managed config (NiriConfigWriter; each field by its x-niri annotation).
 - `NotesConfig.qml`: Reader for the Notes section (see NotesManager).
 - `NotificationsConfig.qml`: Reader for the Notifications section (toasts and the history).
 - `OSDConfig.qml`: Reader for the OSD section (the volume, microphone and brightness on-screen displays).

@@ -402,6 +402,45 @@ cursor {
         proportion 0.5
     }
 }`);
+    compare(NiriConf.serialize(NiriConf.optionNodes(schema.Niri, {
+      "centerFocusedColumn": "on-overflow",
+      "alwaysCenterSingleColumn": true,
+      "emptyWorkspaceAboveFirst": false,
+      "defaultColumnDisplay": "normal",
+      "hotCorner": false,
+      "overviewZoom": 50,
+      "animations": true,
+      "animationSlowdown": 100,
+      "preferNoCsd": false,
+      "skipHotkeyOverlay": true,
+      "primaryClipboard": false,
+      "xwayland": true
+    }, false)), `layout {
+    center-focused-column "on-overflow"
+    always-center-single-column
+    default-column-display "normal"
+}
+gestures {
+    hot-corners {
+        off
+    }
+}
+overview {
+    zoom 0.5
+}
+hotkey-overlay {
+    skip-at-startup
+}
+clipboard {
+    disable-primary
+}`);
+    compare(NiriConf.serialize(NiriConf.optionNodes(schema.Niri, {
+      "animations": false,
+      "animationSlowdown": 200
+    }, false)), `animations {
+    off
+    slowdown 2.0
+}`);
   }
 
   // --- Outputs ---

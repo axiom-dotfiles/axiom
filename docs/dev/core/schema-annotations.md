@@ -109,7 +109,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
 
 ### niri config nodes (`x-niri*`, `methods/NiriConf`)
 - `x-niri`: the dotted path of the node in niri's config (`"input.keyboard.repeat-rate"`, `"layout.default-column-width.proportion"`), its value the node's argument. Written under the same rules as `x-hypr` (`CompositorLayer.annotatedFields`): when its `x-hyprIf` sibling is on, else once changed from the default; a managed config's options every one.
-- `x-niriValue`: `"flag"` (a boolean as the node alone when on, left out when off: niri has no `false` for a flag) or `"float"` (written with a point, where niri wants a float).
+- `x-niriValue`: `"flag"` (a boolean as the node alone when on, left out when off: niri has no `false` for a flag), `"offFlag"` (the node alone when off, for a setting niri turns off with a flag: `animations.off`, `gestures.hot-corners.off`) or `"float"` (written with a point, where niri wants a float).
 - `x-niriScale`: a factor, as `x-hyprScale`.
 - `x-niriSkip`: a value written as nothing (niri's own default stays), e.g. `"default"` or `0`.
 - `x-niriMap`: `{ value: niri's argument }` for an enum whose names differ; a value missing from it is left out.

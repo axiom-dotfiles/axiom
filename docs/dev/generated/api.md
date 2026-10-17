@@ -116,6 +116,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [LockscreenConfig](api/LockscreenConfig.md): Reader for the Lockscreen section: which locker locks the session, and what the built-in one shows (`layout`, as saved: the lock never shows the layouts editor…
 - [MonitorsConfig](api/MonitorsConfig.md): Reader for the Monitors section: the monitor profiles ({ name, outputs: [MonitorRule] }), edited on the Monitors page (MonitorManager) and applied by the compo…
 - [NightLight](api/NightLight.md): Reader for the NightLight section: warmer colors through hyprsunset or wlsunset, run by NightLightManager.
+- [NiriConfig](api/NiriConfig.md): Reader for the Niri section: niri's own options in the managed config (NiriConfigWriter; each field by its x-niri annotation).
 - [NotesConfig](api/NotesConfig.md): Reader for the Notes section (see NotesManager).
 - [NotificationsConfig](api/NotificationsConfig.md): Reader for the Notifications section (toasts and the history).
 - [OSDConfig](api/OSDConfig.md): Reader for the OSD section (the volume, microphone and brightness on-screen displays).
