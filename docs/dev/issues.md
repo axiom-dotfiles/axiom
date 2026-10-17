@@ -18,6 +18,18 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### niri's overview drop moves a window's whole column
+- **Where:** `services/NiriManager.qml` (`placeWindow`)
+- **What:** Dropped beside or into another column on its own workspace (`reinsert`), a window is moved with `MoveColumnToIndex`, which moves the focused column: a window sharing its column with others takes them along. A drop onto another workspace moves only the window (`MoveWindowToWorkspace` by id). Expelling it from its column first (`ExpelWindowFromColumn`, which shifts the column indexes) would fix it; needs trying in `scripts/dev/nested.sh niri`.
+- **Size:** small
+- **Found:** 2026-10-17, while auditing the niri branch for merge
+
+### A niri module refused in detached mode is only logged
+- **Where:** `services/NiriConfigWriter.qml` (`runtimeApply`), `services/CompositorConfigManager.qml` (`problem`)
+- **What:** In the file modes a module `niri validate` refuses sets `CompositorConfigManager.problem` (the Compositor card shows it). The detached mode's module (also the file modes' fallback) is checked the same way, but a refusal is only a `[NiriConfigWriter] niri refuses the config axiom made` warning in the log: the card says nothing, and niri keeps the module before. A raw bind niri refuses is the likely cause.
+- **Size:** small
+- **Found:** 2026-10-17, while auditing the niri branch for merge
+
 ### Hyprland's own options are several cards that don't say they're Hyprland's
 - **Where:** `config/json/config.schema.json` (`Hyprland.managed`: its `x-group`s), `components/methods/SchemaLayout.qml` (`groups`)
 - **What:** Sway's and niri's own options are one card each, titled by the compositor. Hyprland's managed options are split by `x-group` into Layout, Decoration, Animations, Windows and Behaviour cards beside the compositor-neutral ones (Windows and focus, Mouse & cursor), and nothing on them says they're Hyprland's. Either one Hyprland card (about 30 rows), or group titles naming it.
@@ -162,9 +174,9 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** trivial
 - **Found:** 2026-10-16, while writing the sway backend
 
-### Qt text-input warnings under sway
+### Qt text-input warnings under sway and niri
 - **Where:** `components/reusable/StyledTextEntry.qml` (the text fields; Qt's own wayland text-input)
-- **What:** Under sway the log fills with `Trying to disable` / `Trying to enable` warnings from `qt.qpa.wayland.textinput` (`QWaylandTextInputv3::disableSurface`) as keyboard focus moves between axiom's surfaces. Seen live on sway, never under Hyprland; typing still works. Likely Qt's text-input-v3 handling with several layer surfaces taking focus.
+- **What:** Under sway and niri the log fills with `Trying to disable` / `Trying to enable` warnings from `qt.qpa.wayland.textinput` (`QWaylandTextInputv3::disableSurface`) as keyboard focus moves between axiom's surfaces. Seen live on sway and niri (2026-10-17), never under Hyprland; typing still works. Likely Qt's text-input-v3 handling with several layer surfaces taking focus.
 - **Size:** small
 - **Found:** 2026-10-16, while consolidating compositor settings
 
