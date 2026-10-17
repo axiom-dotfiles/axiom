@@ -40,6 +40,9 @@ Item {
   readonly property int base: CompositorManager.workspaceBase(root.output)
   // "horizontal" | "vertical" on a strip monitor, else ""
   readonly property string stripDirection: CompositorManager.stripDirection(root.screen?.name ?? "")
+  // One workspace on a strip monitor: the strip is all there is, so its
+  // windows show alone while it has any (the cell stands in while empty)
+  readonly property bool stripOnly: WorkspacesConfig.size === 1 && root.stripDirection !== "" && ((activeStrip.item as ActiveStrip)?.hasWindows ?? false)
 
   // A string, so the cells are only rebuilt when the set of workspaces
   // shown changes, not on every compositor event
@@ -117,6 +120,7 @@ Item {
 
     WorkspaceCellRow {
       id: cellRow
+      visible: !root.stripOnly
       barConfig: root.barConfig
       properties: root.properties
       monitor: root.monitor
@@ -133,11 +137,13 @@ Item {
     }
 
     Loader {
+      id: activeStrip
       active: root.stripDirection !== ""
       visible: (item as ActiveStrip)?.hasWindows ?? false
 
       sourceComponent: ActiveStrip {
         barConfig: root.barConfig
+        divider: !root.stripOnly
         workspaceId: root.activeId
         stripVertical: root.stripDirection === "vertical"
         cell: root.cell
@@ -153,7 +159,7 @@ Item {
   PopoutAnchor {
     hitArea: root.hitArea
     popoutName: "WorkspaceStrips"
-    active: root.stripDirection !== "" && EdgeMenusConfig.opensOwnPopout(root.properties)
+    active: root.stripDirection !== "" && WorkspacesConfig.size > 1 && EdgeMenusConfig.opensOwnPopout(root.properties)
     extraData: ({
         output: root.output,
         vertical: root.isVertical,

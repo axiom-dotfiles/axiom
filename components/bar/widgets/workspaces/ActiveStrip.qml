@@ -10,7 +10,8 @@ import qs.components.reusable
 // in the bar's separator style (a line when that's none), then the active
 // workspace's windows in strip order (StripWindows), cross-fading to the
 // next workspace's when it changes. Nothing, divider included, while the
-// workspace has none (`hasWindows`).
+// workspace has none (`hasWindows`). Without `divider` (the windows shown
+// alone) only the windows.
 Grid {
   id: root
 
@@ -23,6 +24,7 @@ Grid {
   required property color occupiedColor
   required property color textColor
   property bool clickable: true
+  property bool divider: true
 
   readonly property bool isVertical: barConfig.vertical
   readonly property bool hasWindows: CompositorManager.stripWindows(root.workspaceId, root.stripVertical).length > 0
@@ -32,6 +34,7 @@ Grid {
   spacing: barConfig.widgetSpacing
 
   SeparatorMark {
+    visible: root.divider
     style: root.barConfig.separatorStyle === "none" ? "line" : root.barConfig.separatorStyle
     color: Theme.resolveColor(root.barConfig.separatorColor)
     thickness: root.barConfig.separatorThickness

@@ -39,6 +39,9 @@ Item {
   readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
   // "horizontal" | "vertical" on a strip monitor, else ""
   readonly property string stripDirection: CompositorManager.stripDirection(root.screen?.name ?? "")
+  // A 1 × 1 grid on a strip monitor: its windows show alone while it has
+  // any (WorkspaceStrip.stripOnly)
+  readonly property bool stripOnly: WorkspacesConfig.size === 1 && root.stripDirection !== "" && ((activeStrip.item as ActiveStrip)?.hasWindows ?? false)
   // The active workspace's place in the grid (the first cell when the
   // monitor is on a workspace outside it)
   readonly property int activeIndex: {
@@ -105,16 +108,19 @@ Item {
 
     // The active row (or column) of the grid
     CrossFade {
+      visible: !root.stripOnly
       value: root.activeLine
       delegate: shownLine
     }
 
     Loader {
+      id: activeStrip
       active: root.stripDirection !== ""
       visible: (item as ActiveStrip)?.hasWindows ?? false
 
       sourceComponent: ActiveStrip {
         barConfig: root.barConfig
+        divider: !root.stripOnly
         workspaceId: root.activeId
         stripVertical: root.stripDirection === "vertical"
         cell: root.cell
@@ -177,7 +183,7 @@ Item {
   PopoutAnchor {
     hitArea: root.hitArea
     popoutName: "WorkspaceGrid"
-    active: EdgeMenusConfig.opensOwnPopout(root.properties)
+    active: WorkspacesConfig.size > 1 && EdgeMenusConfig.opensOwnPopout(root.properties)
     extraData: ({
         output: root.output,
         vertical: root.isVertical,

@@ -76,7 +76,7 @@ Every public member of `WorkspacesConfig`, with the files that use it.
 - `WorkspacesConfig.rows` (int)
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/content/WorkspaceGrid.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorManager.qml`
 - `WorkspacesConfig.size` (int): Workspaces a monitor shows
-  - in: `services/CompositorManager.qml`, `services/KeybindManager.qml`
+  - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `services/CompositorManager.qml`, `services/KeybindManager.qml`
 - `WorkspacesConfig.wrap` (bool)
   - in: `services/CompositorManager.qml`
 - `WorkspacesConfig.animate` (bool)
