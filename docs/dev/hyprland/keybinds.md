@@ -35,7 +35,8 @@ What a bind can do, and how the Keybinds page lists the compositor's binds and e
 - `presets` are built from the workspace layout: four-way steps in a grid and with dynamic workspaces (up and down the output's list, left and right to the next output), and number keys 1–10 there, as the compositor's list has no set size. `applyPreset` skips keys already in use.
 
 ### Recording a key
-- `startRecording(index)` calls `CompositorManager.captureKeys(true)` (needs `keyCapture`), so bound combos reach `keybinds/KeyRecorder`.
+- `startRecording(index)` calls `CompositorManager.captureKeys(true)` (needs `keyCapture`), so bound combos reach `keybinds/KeyRecorder` instead of firing.
+  - The recorder's window also inhibits the compositor's shortcuts while it records (a `ShortcutInhibitor`): niri's only way, as it has no empty mode to enter.
   - On Hyprland (`HyprlandManager.captureKeys`) that is an empty `axiom_record` submap. Hyprland only registers a submap that has a bind, so the submap has one unreachable bind.
   - A Lua timer leaves the submap after 30 s, even if qs dies.
   - This is the key recorder. It is unrelated to screen recording.

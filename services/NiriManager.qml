@@ -84,6 +84,7 @@ Singleton {
       "windowGroups": true,
       "windowCover": true,
       "inputConfig": true,
+      "keyCapture": true,
       "bindMerge": true
     })
 
@@ -363,7 +364,8 @@ Singleton {
     NiriConfigWriter.withEntries(callback);
   }
 
-  // niri can't hand every key to axiom (supports.keyCapture is off)
+  // Nothing to do: the key recorder's window inhibits niri's shortcuts
+  // itself (KeyRecorder's ShortcutInhibitor), niri having no empty mode
   function captureKeys(on) {
   }
 

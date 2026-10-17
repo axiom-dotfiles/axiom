@@ -74,7 +74,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `windowRounding` | the shape part's rounding (plain sway's shape is the border width alone) |
 | `windowShadow`, `windowDim` | the window look's shadow and dim parts |
 | `inputConfig` | axiom sets the keyboard, mouse and touchpad |
-| `keyCapture` | the Keybinds page's recorder can take keys from the compositor's binds |
+| `keyCapture` | the Keybinds page's recorder can take keys from the compositor's binds: `captureKeys`, or the recorder window's shortcut inhibitor alone (niri) |
 | `bindMerge` | the user's own binds can be read (the Keybinds page's List, conflicts, Merge) |
 | `monitorColor` | a monitor rule's bit depth, color management and SDR fields |
 | `monitorMirror` | a monitor rule can mirror another output |

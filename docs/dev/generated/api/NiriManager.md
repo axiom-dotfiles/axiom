@@ -51,7 +51,7 @@ CompositorManager's backend on niri (docs/dev/compositor/contract.md, docs/dev/c
 - `applyRemap(plan, outputs)`: niri's workspaces belong to their output and keep their place there (supports.outputWorkspaces): there's nothing to remap
 - `leaveSwitcher()`: Nothing to let go: niri's switcher binds enter no mode (SwitcherKeys reads the keys while it's open)
 - `withMainBinds(callback)`: Calls back with the binds in effect outside axiom's own (the user's, read from their config, and axiom's), or null
-- `captureKeys(on)`: niri can't hand every key to axiom (supports.keyCapture is off)
+- `captureKeys(on)`: Nothing to do: the key recorder's window inhibits niri's shortcuts itself (KeyRecorder's ShortcutInhibitor), niri having no empty mode
 - `withKeyboard(callback)`: Calls back with the keyboard's layouts ({ layouts, index, keymap }, NiriState.keyboard), or null
 - `cycleKeyboardLayout(direction, callback)`: Switches to the "next" or "prev" layout, then calls back
 - `withCursorPos(callback)`: niri can't say where the cursor is, nor where layer surfaces are
