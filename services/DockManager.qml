@@ -194,10 +194,11 @@ QtObject {
   }
 
   // Whether a window on the screen's active workspace covers `rect`
-  // (screen-local). Never where the compositor doesn't say where windows
-  // are: the dock then stays shown rather than hiding behind nothing
+  // (screen-local), where it is or (supports.windowCover) where it surely
+  // is. Never where the compositor doesn't say where windows are: the dock
+  // then stays shown rather than hiding behind nothing
   function obscured(screen, rect) {
-    if (CompositorManager.supports.windowGeometry !== true)
+    if (CompositorManager.supports.windowGeometry !== true && CompositorManager.supports.windowCover !== true)
       return false;
     const output = CompositorManager.outputFor(screen);
     const workspaceId = output?.activeWorkspaceId ?? -1;

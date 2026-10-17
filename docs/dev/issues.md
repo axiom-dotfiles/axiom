@@ -176,7 +176,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### niri reports no space reserved by bars, nor where tiled windows are
 - **Where:** `components/methods/NiriState.qml` (`outputs`, `windows`)
-- **What:** niri's IPC gives no layer surface geometry and, in 26.04, no position for a tiled window (`tile_pos_in_workspace_view` is null; only floating windows have one). So an output's `reserved` is 0 (the dock centres on the whole screen, not its work area), and tiled windows are laid out from their column and place in it from the output's edge, without niri's scroll (`windowGeometry` stays off: no screenshot window mode, the dock never hides behind windows).
+- **What:** niri's IPC gives no layer surface geometry and, in 26.04, no position for a tiled window (`tile_pos_in_workspace_view` is null; only floating windows have one). So an output's `reserved` is 0 (the dock centres on the whole screen, not its work area), and tiled windows are laid out from their column and place in it from the output's edge, without niri's scroll (`windowGeometry` stays off: no screenshot window mode; the dock hides behind a window's `cover`, its column or the whole output, which ignores struts, reserved space and `center-focused-column`).
 - **Size:** small
 - **Found:** 2026-10-17, while adding the niri backend
 

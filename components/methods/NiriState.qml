@@ -242,7 +242,11 @@ QtObject {
   // output's edge, `gap` apart (the overview squeezes a strip into its cell
   // anyway). A floating window's place is niri's own. A tiled window as
   // big as its output is fullscreen. focusRank follows niri's focus
-  // timestamps, the focused window first.
+  // timestamps, the focused window first. A tiled window's `cover` is
+  // where it surely is while its workspace shows (supports.windowCover):
+  // its column, the output's height, while the strip fits on the output
+  // (niri doesn't scroll it then), else the whole output (the strip fills
+  // the view).
   function windows(state, outputs, bases, size, gap) {
     const outputOf = name => outputs.find(o => o.name === name) ?? null;
     const raw = [];
@@ -290,6 +294,14 @@ QtObject {
       if (place) {
         win.column = place[0];
         win.tile = place[1];
+        const left = lefts[`${w.workspace_id}:${place[0]}`] ?? gap;
+        const fits = (lefts[`${w.workspace_id}:end`] ?? 0) <= (output?.width ?? 0);
+        win.cover = {
+          "x": fits ? ox + left : ox,
+          "y": oy,
+          "w": fits ? root._columnWidth(raw, w) : output?.width ?? 0,
+          "h": output?.height ?? 0
+        };
       }
       return win;
     });
@@ -297,7 +309,7 @@ QtObject {
 
   // Each column's left edge from its output's ({ "<workspace>:<column>":
   // x }): the columns before it, each as wide as its widest window, `gap`
-  // apart
+  // apart. "<workspace>:end" is where the strip ends, past its last gap.
   function _columnLefts(raw, gap) {
     const widths = {};
     for (const w of raw) {
@@ -316,8 +328,15 @@ QtObject {
         lefts[`${ws}:${column}`] = x;
         x += widths[ws][column] + gap;
       }
+      lefts[`${ws}:end`] = x;
     }
     return lefts;
+  }
+
+  // A tiled window's column's width: its widest window's
+  function _columnWidth(raw, win) {
+    const column = win.layout.pos_in_scrolling_layout[0];
+    return raw.filter(w => w.workspace_id === win.workspace_id && w.layout?.pos_in_scrolling_layout?.[0] === column).reduce((width, w) => Math.max(width, w.layout.tile_size?.[0] ?? 0), 0);
   }
 
   // A tiled window's top edge from its output's: the windows above it in

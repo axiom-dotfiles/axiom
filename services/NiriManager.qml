@@ -82,6 +82,7 @@ Singleton {
       "windowShadow": true,
       "windowOpacity": true,
       "windowGroups": true,
+      "windowCover": true,
       "inputConfig": true,
       "bindMerge": true
     })
@@ -493,6 +494,13 @@ Singleton {
       if (changed)
         root.outputsHotplugged();
     });
+  }
+
+  // The stream may have started before this was created (NiriIpcManager
+  // connects as soon as it exists), its streamStarted missed
+  Component.onCompleted: {
+    root._readOutputs();
+    root._readConfig();
   }
 
   property Connections _ipc: Connections {

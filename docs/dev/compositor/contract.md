@@ -17,6 +17,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
   - The geometry is global, in logical pixels.
   - Only mapped windows are listed.
   - Optional `column` and `tile` (1-based): its place in a strip where the compositor says (niri); `WorkspaceGeometry.stripOrder` orders by them over the geometry.
+  - Optional `cover` (`{ x, y, w, h }`, with `windowCover`): where a window whose geometry isn't exact surely is while its workspace shows; `DockLayout.covered` uses it over the geometry.
 - **Output**: `{ name, description, x, y, width, height, scale, focused, activeWorkspaceId, specialWorkspaceId, reserved: { top, right, bottom, left } }`.
   - `width`/`height` are logical.
   - `activeWorkspaceId` is -1 while unknown.
@@ -66,7 +67,8 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `blur` | the compositor blurs axiom's translucent surfaces |
 | `blurThreshold` | the blur leaves pixels under `Appearance.blurThreshold` out (Hyprland's `ignore_alpha`), so the blur window casts the chrome's shadows itself, under it (`Appearance.shadowAlphaMax`). Without it (SwayFX, whose `blur_ignore_transparent` leaves out only clear pixels) windows of their own that aren't blurred cast them (`axiom-shadows`, `axiom-shadows-overlay`; `shell/BlurBacking.qml`) |
 | `cursorPos`, `cursorWarp` | `withCursorPos`, `warpCursorToLayer` |
-| `windowGeometry` | window positions and sizes are real: without it the screenshot's window mode is left out (`ScreenshotManager.kinds`; a `window` request takes a region) and no window obscures a dock (`DockManager.obscured`). The overview still draws windows where they say they are |
+| `windowGeometry` | window positions and sizes are real: without it the screenshot's window mode is left out (`ScreenshotManager.kinds`; a `window` request takes a region) and no window obscures a dock (`DockManager.obscured`) unless `windowCover`. The overview still draws windows where they say they are |
+| `windowCover` | without `windowGeometry`, windows carry a `cover` (niri's tiled ones), which obscures a dock (`DockManager.obscured`) |
 | `workspaceSlide` | `travel` legs slide |
 | `windowBorders`, `windowShape`, `windowGaps`, `windowBlur`, `windowOpacity` | the `WindowLook` parts shown and applied |
 | `windowRounding` | the shape part's rounding (plain sway's shape is the border width alone) |

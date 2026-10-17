@@ -84,9 +84,37 @@ TestCase {
     compare(byId("3").y, 16 + 602 + 16);
     compare(byId("4").workspaceId, 2);
     compare(byId("2").fullscreen, false);
+    // The strip fits on its output: a tiled window covers its column, the
+    // output's height; a floating one has no cover (its place is niri's)
+    compare(byId("3").cover, {
+      "x": 16,
+      "y": 0,
+      "w": 810,
+      "h": outputs[0].height
+    });
+    compare(byId("5").cover, undefined);
     // Ranked by niri's focus timestamps
     compare(windows.slice().sort((a, b) => a.focusRank - b.focusRank).map(w => w.id), ["5", "3", "4", "2"]);
     compare(NiriState.focusedWindowId(loaded()), "5");
+  }
+
+  // A strip wider than its output fills the view wherever niri scrolled it
+  function test_wideStripCoversTheOutput() {
+    let state = loaded();
+    const win = Object.assign({}, state.windows["2"]);
+    win.layout = Object.assign({}, win.layout, {
+      "pos_in_scrolling_layout": [2, 1],
+      "tile_size": [1200, 1295]
+    });
+    state = NiriState.reduce(state, {
+      "WindowOpenedOrChanged": {
+        "window": win
+      }
+    });
+    const outputs = NiriState.outputs(fixture("outputs"), state, bases, 10);
+    const cover = NiriState.windows(state, outputs, bases, 10, 16).find(w => w.id === "3").cover;
+    compare(cover.x, outputs[0].x);
+    compare(cover.w, outputs[0].width);
   }
 
   function test_fullscreenIsATileAsBigAsItsOutput() {
