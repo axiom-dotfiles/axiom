@@ -117,8 +117,10 @@ Item {
 
   Grid {
     id: layout
-    rows: root.isVertical ? 2 : 1
-    columns: root.isVertical ? 1 : 2
+    // Only what's shown: a Grid keeps spacing for an empty column or row
+    readonly property int shown: Math.max(1, (root.stripOnly ? 0 : 1) + (activeStrip.visible ? 1 : 0))
+    rows: root.isVertical ? shown : 1
+    columns: root.isVertical ? 1 : shown
     spacing: root.spacing
 
     // The active row (or column) of the grid

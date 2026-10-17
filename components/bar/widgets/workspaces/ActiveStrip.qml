@@ -29,8 +29,9 @@ Grid {
   readonly property bool isVertical: barConfig.vertical
   readonly property bool hasWindows: CompositorManager.stripWindows(root.workspaceId, root.stripVertical).length > 0
 
-  rows: isVertical ? 2 : 1
-  columns: isVertical ? 1 : 2
+  // Only what's shown: a Grid keeps spacing for an empty column or row
+  rows: isVertical && divider ? 2 : 1
+  columns: !isVertical && divider ? 2 : 1
   spacing: barConfig.widgetSpacing
 
   SeparatorMark {
