@@ -28,8 +28,9 @@ PanelWindow {
   property var cutBy: []
   // What it draws: "all", the "fills" alone or the "shadows" alone
   property string part: "all"
-  // Whether shadows are cut by `union` rather than their own group
-  readonly property bool cutByUnion: groups.count > 1 || backing.cutBy.length > 0
+  // Whether shadows are cut by `union` rather than their own group (never
+  // captured while it draws no shadows)
+  readonly property bool cutByUnion: backing.part !== "fills" && (groups.count > 1 || backing.cutBy.length > 0)
 
   // Which shadow a shape casts with: shapes of one look, falling the same
   // way, cast theirs together; "none" for no shadow

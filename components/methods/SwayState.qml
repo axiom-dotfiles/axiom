@@ -281,9 +281,6 @@ QtObject {
     };
   }
 
-  // Sway's transforms as Wayland's 0-7 (quarter turns, +4 flipped)
-  readonly property var transforms: ["normal", "90", "180", "270", "flipped", "flipped-90", "flipped-180", "flipped-270"]
-
   // A get_outputs reply as output details (contract.md › Outputs): every
   // output, disabled ones too
   function outputDetails(outputs) {
@@ -300,7 +297,7 @@ QtObject {
         "x": o.rect?.x ?? 0,
         "y": o.rect?.y ?? 0,
         "scale": disabled ? 1 : (o.scale > 0 ? o.scale : 1),
-        "transform": Math.max(0, root.transforms.indexOf(o.transform ?? "normal")),
+        "transform": Math.max(0, SwayConf.transforms.indexOf(o.transform ?? "normal")),
         "disabled": disabled,
         "mirrorOf": "none",
         "vrr": o.adaptive_sync_status === "enabled",

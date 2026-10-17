@@ -161,6 +161,7 @@ Singleton {
       "header": _header,
       "userDir": userDir,
       "session": SessionConfig.session,
+      "env": CompositorLayer.sessionEnv(SessionConfig.session, spec.input.cursor),
       "cursor": spec.input.cursor,
       // Hyprland's own options and the shared ones, as one
       "schema": {

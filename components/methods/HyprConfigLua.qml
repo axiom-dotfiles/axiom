@@ -246,15 +246,8 @@ return setmetatable({}, { __index = function() return function() end end })
 `;
   }
 
-  // The cursor's environment (`cursor`: CompositorLayer.input()'s), or ""
-  function cursorLua(cursor) {
-    if (!cursor)
-      return "";
-    return `hl.env("XCURSOR_THEME", ${_lua(cursor.theme)})\nhl.env("XCURSOR_SIZE", ${_lua(String(cursor.size))})\n`;
-  }
-
   // What the managed file runs once Hyprland has started: the cursor
-  // (`cursor` as for cursorLua), axiom (`start.command`), then the Session
+  // (`cursor`: CompositorLayer.input()'s), axiom (`start.command`), then the Session
   // `session`'s autostart commands. A plain `hypridle` is left out while
   // axiom runs its own (`start.idle`), and a polkit agent while axiom is
   // the agent (`start.polkit`).
@@ -269,14 +262,10 @@ return setmetatable({}, { __index = function() return function() end end })
     return lines;
   }
 
-  // The recommended environment (HyprLua.recommendedEnv), then the
-  // Session `session`'s, which wins over it
-  function envLua(session) {
-    const recommended = session.recommendedEnv ? HyprLua.recommendedEnv.map(([name, value]) => ({
-          "name": name,
-          "value": value
-        })) : [];
-    return recommended.concat(session.env).filter(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name.trim())).map(entry => `hl.env(${_lua(entry.name.trim())}, ${_lua(entry.value)})\n`).join("");
+  // The session's environment (`env`: CompositorLayer.sessionEnv's) as
+  // hl.env calls
+  function envLua(env) {
+    return (env ?? []).map(entry => `hl.env(${_lua(entry.name)}, ${_lua(entry.value)})\n`).join("");
   }
 
   // Animation presets: curves { name: [x1, y1, x2, y2] } and leaves
@@ -400,7 +389,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end`;
   // The managed hyprland.lua: `module` (moduleLua()'s text, its comments
   // dropped) wrapped, the managed settings `m`, setup(), the animations,
   // the start commands and user/*.lua. `opts`: configLua's, plus { header,
-  // userDir, session (Session's values), cursor (cursorLua's), start
+  // userDir, session (Session's values), env (envLua's), cursor and start
   // (startLua's) }
   function managedLua(module, m, opts) {
     const body = module.split("\n").filter(line => !line.startsWith("--")).join("\n").trim();
@@ -414,9 +403,8 @@ ${indent(body.split("\n"), "  ")}
 end)()
 
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
-${envLua(opts.session)}
+${envLua(opts.env)}
 ${configLua(m, opts)}
-${cursorLua(opts.cursor)}
 axiom.setup()
 ${animationsLua(m, opts.motion)}
 hl.on("hyprland.start", function()

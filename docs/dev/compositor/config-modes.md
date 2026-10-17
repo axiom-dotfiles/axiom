@@ -1,6 +1,6 @@
 # Config modes (detached / included / managed)
 
-> **Files:** `services/CompositorConfigManager.qml`, `services/ConfigTakeover.qml`, `services/UserBindMerge.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`, `config/WindowBehaviourConfig.qml`
+> **Files:** `services/CompositorConfigManager.qml`, `services/ConfigTakeover.qml`, `services/UserBindMerge.qml`, `services/RuntimeLayer.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`, `config/WindowBehaviourConfig.qml`
 > **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `WindowBehaviour.*`, `Keybinds.binds`, `Monitors.profiles`, `WindowLook`, `Input`, `Session`, `Workspaces.strips`
 > **Related:** [Contract](contract.md), [Window look](window-look.md), [Hyprland's writer](../hyprland/config-modes.md), [Managed takeover](../hyprland/managed-takeover.md), [Sway backend](sway-backend.md)
 
@@ -14,6 +14,11 @@ How axiom sets the compositor up, the same on every compositor with `supports.co
   - **included**: written to a module (`writer.moduleText(spec)` → `includePath`) the user's config loads (`includeLines`)
   - **managed**: written as the compositor's config itself (`writer.managedText(spec)` → `managedPath`), after a takeover (`writer.claim()`), loading the user's own files (`userFiles`) after it.
 - Whenever a file isn't loaded (included but the lines are missing, or a takeover refused), the runtime layer stands in and `problem` says why (`writer.notIncludedProblem` / `notManagedProblem` / `blockedProblem`). The writer's `checkLoaded(cb)` tells.
+
+### The runtime layer
+- Each writer owns one: a `RuntimeLayer` (`HyprlandRuntimeLayer`, `SwayRuntimeLayer`), started by `writer.runtimeApply()`, taken out by `runtimeClear()`, told of each reload by `noteReload()`.
+- `RuntimeLayer` holds what every compositor shares: reading the binds in effect, then binding only the keys the user's config leaves free (`BindKeys.runtimeBinds`; `skippedKeys`, `applied`), logging each taken key once, and starting over when a config reload came while it read (what it read is stale then). A backend sets four hooks: `readBinds` (the user's binds, plus anything `send` needs), `canBind`, `send` (the free binds and the rest of its layer) and `takeOut`; `reloaded` is its cue to forget what it applied.
+- What a backend's layer bound has to be found again after a reload of the shell, so it can be taken out: Hyprland keeps the keys in its Lua state (`AXIOM_RUNTIME_KEYS`), sway's layer the unbind commands in a `PersistentProperties`.
 
 ### Writing files
 - Both file modes write only on change (`_writeIfChanged`), then reload the compositor (`writer.reload`), which doesn't watch files its config loads.

@@ -319,6 +319,24 @@ QtObject {
   }
 
   /**
+   * SwayFX's shadow standing in for axiom's own (a soft one: MultiEffect's
+   * blur; CompositorLayer.look's shadow, its baseAlpha axiom's and its
+   * strength the user's) as { radius, alpha }. SwayFX's is a gaussian of
+   * sigma radius / 2, reaching about twice as far as axiom's at the same
+   * size. Fitted against axiom's glow (MultiEffect, sizes 8–64, scenefx
+   * 0.5's box_shadow.frag; within ~0.02 rms): the radius 0.7 × axiom's
+   * size, the alpha axiom's × 0.2 ln(size), more as it grows.
+   */
+  function softShadow(shadow) {
+    const size = Math.max(2, shadow.size);
+    return {
+      "radius": Math.round(size * 0.7),
+      // Strength scales what's fitted, which then has room to grow
+      "alpha": Math.min(1, shadow.baseAlpha * Math.min(1, 0.2 * Math.log(size)) * (shadow.strength ?? 1))
+    };
+  }
+
+  /**
    * SwayFX's part of the look (CompositorLayer.look) and the blur behind
    * axiom's surfaces (`surfaces`: { blur, throughWindows, backdrops }), as
    * commands to send now: never written into a file, which plain sway would
@@ -338,24 +356,6 @@ QtObject {
    * blurOverOverlay) its layer_effects, on or off, its transparent pixels
    * left out.
    */
-  /**
-   * SwayFX's shadow standing in for axiom's own (a soft one: MultiEffect's
-   * blur; CompositorLayer.look's shadow, its baseAlpha axiom's and its
-   * strength the user's) as { radius, alpha }. SwayFX's is a gaussian of
-   * sigma radius / 2, reaching about twice as far as axiom's at the same
-   * size. Fitted against axiom's glow (MultiEffect, sizes 8–64, scenefx
-   * 0.5's box_shadow.frag; within ~0.02 rms): the radius 0.7 × axiom's
-   * size, the alpha axiom's × 0.2 ln(size), more as it grows.
-   */
-  function softShadow(shadow) {
-    const size = Math.max(2, shadow.size);
-    return {
-      "radius": Math.round(size * 0.7),
-      // Strength scales what's fitted, which then has room to grow
-      "alpha": Math.min(1, shadow.baseAlpha * Math.min(1, 0.2 * Math.log(size)) * (shadow.strength ?? 1))
-    };
-  }
-
   function fxLines(look, surfaces) {
     const lines = [];
     const clamp = (value, low, high) => Math.max(low, Math.min(high, Math.round(Number(value) || 0)));
@@ -486,7 +486,7 @@ ${section("Binds", parts.binds)}${section("Window borders and gaps", parts.look)
    */
   function managedText(module, opts) {
     const body = module.split("\n").filter(line => !line.startsWith("#")).join("\n").trim();
-    const env = (opts.env ?? []).filter(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name.trim())).map(entry => `${entry.name.trim()}=${shellWord(entry.value)}`);
+    const env = (opts.env ?? []).map(entry => `${entry.name}=${shellWord(entry.value)}`);
     // Sway unescapes a config line's arguments, exec's too: escaped as a
     // bind's command is, a shell word's '\'' and a backslash arrive whole
     const exec = text => _exec(bindCommand(text, false));

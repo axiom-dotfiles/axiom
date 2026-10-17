@@ -82,6 +82,51 @@ TestCase {
     compare(CompositorLayer.look(values, strong).shadow.color, "101010ff", "up to opaque");
   }
 
+  function test_recommendedEnv() {
+    const names = CompositorLayer.recommendedEnv.map(entry => entry[0]);
+    verify(names.includes("QT_QPA_PLATFORM") && names.includes("GDK_BACKEND"));
+    verify(!names.includes("SDL_VIDEODRIVER"), "breaks games with an older SDL");
+    verify(CompositorLayer.recommendedEnv.every(entry => entry.length === 2 && /^[A-Z_]+$/.test(entry[0])));
+  }
+
+  function test_sessionEnv() {
+    const session = {
+      "recommendedEnv": true,
+      "env": [
+        {
+          "name": " QT_QPA_PLATFORM ",
+          "value": "wayland"
+        },
+        {
+          "name": "XCURSOR_SIZE",
+          "value": "32"
+        },
+        {
+          "name": "1BAD",
+          "value": "x"
+        },
+        {
+          "name": "bad name",
+          "value": "x"
+        }
+      ]
+    };
+    const env = CompositorLayer.sessionEnv(session, {
+      "theme": "Bibata",
+      "size": 24
+    });
+    const value = name => env.filter(entry => entry.name === name).map(entry => entry.value);
+    compare(value("QT_QPA_PLATFORM"), ["wayland"], "the session's own wins over the recommended one, named once");
+    compare(value("XCURSOR_SIZE"), ["32"], "and over the cursor's");
+    compare(value("XCURSOR_THEME"), ["Bibata"]);
+    verify(env.every(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name)), "invalid names are left out");
+    compare(env[env.length - 1].name, "XCURSOR_SIZE", "a name overridden goes where its winner is");
+    compare(CompositorLayer.sessionEnv({
+      "recommendedEnv": false,
+      "env": []
+    }, null), []);
+  }
+
   function test_luminance() {
     compare(CompositorLayer.luminance("000000"), 0);
     compare(CompositorLayer.luminance("ffffff"), 1);

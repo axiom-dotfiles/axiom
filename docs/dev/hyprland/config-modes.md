@@ -4,7 +4,7 @@
 > **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `Input.*`, `Session.*`, `Keybinds.binds`, `Hyprland.managed`, `WindowLook`, `Monitors.profiles`, `Workspaces.strips`
 > **Related:** [Config modes](../compositor/config-modes.md), [Managed takeover](managed-takeover.md), [Window look](../compositor/window-look.md), [Bind merge](bind-merge.md), [Keybinds](keybinds.md), [Monitors](monitors.md), [Workspace strips](workspace-strips.md)
 
-Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`, which owns `HyprlandRuntimeLayer`, and a `ConfigTakeover` and `UserBindMerge` on its scripts): what axiom's layer is in Hyprland's Lua, for each mode. The modes themselves, leaving one and the live parts are neutral: [Config modes](../compositor/config-modes.md). Read both before touching anything axiom writes into Hyprland.
+Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`, which owns `HyprlandRuntimeLayer` (a [`RuntimeLayer`](../compositor/config-modes.md#the-runtime-layer)), and a `ConfigTakeover` and `UserBindMerge` on its scripts): what axiom's layer is in Hyprland's Lua, for each mode. The modes themselves, leaving one and the live parts are neutral: [Config modes](../compositor/config-modes.md). Read both before touching anything axiom writes into Hyprland.
 
 ### One Lua layer
 - It needs Hyprland's Lua config (0.55+). Axiom's own evals and dispatches are all Lua (`hl.*`), sent as [IPC](ipc.md) describes. The stubs are in `/usr/share/hypr/stubs/hl.meta.lua`.
@@ -59,9 +59,9 @@ Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`
     - `axiom` follows `Appearance.animFast/Normal/Slow` and turns animations off with motion
     - `snappy` / `bouncy` / `lightning`
     - `custom` comes from `curves`/`customAnimations`
-  - `Session.env`: written after `HyprLua.recommendedEnv` while `Session.recommendedEnv` is on, so the user's values win
+  - `Session.env`: `CompositorLayer.sessionEnv` (as on sway): the recommended variables while `Session.recommendedEnv` is on, then the cursor's `XCURSOR_*`, then the user's, which win over both
   - `Session.autostart`: written after axiom's in the start hook
-  - the cursor (`Input.cursor`): `XCURSOR_*` and `hyprctl setcursor` at start.
+  - the cursor (`Input.cursor`): `hyprctl setcursor` at start (its `XCURSOR_*` are in the environment above).
 
 ### Input
 - `Input` (reader `InputConfig`) is in the layer in every mode, as `M.input()` after `M.look()`: one `hl.config` of the parts that are on (`CompositorLayer.input`, `HyprLua.inputLua`). Its fields carry `x-hypr` paths gated by `x-hyprIf` on their part, so a part on writes all its fields, defaults too.

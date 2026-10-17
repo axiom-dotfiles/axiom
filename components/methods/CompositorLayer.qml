@@ -64,7 +64,7 @@ QtObject {
       "color": cast.color !== "" ? cast.color + alphaHex(alpha) : "",
       "rgb": cast.color,
       "alpha": alpha,
-      "baseAlpha": cast ? clamp(cast.alpha) : 0,
+      "baseAlpha": clamp(cast.alpha),
       "strength": strength,
       "offset": cast.offset,
       "soft": cast.soft === true
@@ -133,14 +133,19 @@ QtObject {
   // breaks games bundling an older SDL.
   readonly property var recommendedEnv: [["GDK_BACKEND", "wayland,x11,*"], ["QT_QPA_PLATFORM", "wayland;xcb"], ["CLUTTER_BACKEND", "wayland"], ["ELECTRON_OZONE_PLATFORM_HINT", "auto"], ["QT_AUTO_SCREEN_SCALE_FACTOR", "1"], ["QT_WAYLAND_DISABLE_WINDOWDECORATION", "1"]]
 
-  // The session's environment ([{ name, value }]): the recommended one
-  // when `session.recommendedEnv`, the cursor's (`cursor`: { theme, size }
-  // or null), then the session's own, which win over both
+  // The session's environment ([{ name, value }], each name once, every
+  // backend's): the recommended one when `session.recommendedEnv`, the
+  // cursor's (`cursor`: { theme, size } or null), then the session's own,
+  // which win over both. A name that isn't a variable's is left out.
   function sessionEnv(session, cursor) {
     const pairs = (session?.recommendedEnv ? root.recommendedEnv : []).concat(cursor ? [["XCURSOR_THEME", cursor.theme], ["XCURSOR_SIZE", String(cursor.size)]] : []);
-    return pairs.map(([name, value]) => ({
+    const all = pairs.map(([name, value]) => ({
           "name": name,
           "value": value
-        })).concat(session?.env ?? []);
+        })).concat((session?.env ?? []).map(entry => ({
+          "name": String(entry.name ?? "").trim(),
+          "value": String(entry.value ?? "")
+        }))).filter(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name));
+    return all.filter((entry, i) => !all.slice(i + 1).some(later => later.name === entry.name));
   }
 }

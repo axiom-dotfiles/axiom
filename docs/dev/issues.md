@@ -44,7 +44,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### SwayFX remaps the chrome on a fresh qs start
 - **Where:** `services/SwayManager.qml` (`surfacesReady`), `shell/BlurBacking.qml`
-- **What:** `surfacesReady` is always true, so bars, border and docks map at once, while the held blur window (order 9) waits for `supports.blur`, known only from the `get_version` reply. Mapped after them, it makes LayerManager map each lower-ordered window again. Hot reloads keep the variant, so only a fresh start does it. Waiting for `ready` would fix it, but hides the chrome until sway answers.
+- **What:** `surfacesReady` is always true, so bars, border and docks map at once, while the held blur window (order 9) and the shadow window beside it (`axiom-shadows`, order 8) wait for `supports.blur`, known only from the `get_version` reply. Mapped after them, they make LayerManager map each lower-ordered window again. Hot reloads keep the variant, so only a fresh start does it. Waiting for `ready` would fix it, but hides the chrome until sway answers.
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
@@ -85,7 +85,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
 ### Unreadable sway config means axiom binds over the user's keys
-- **Where:** `services/SwayRuntimeLayer.qml` (`_start`)
+- **Where:** `services/RuntimeLayer.qml` (`_start`)
 - **What:** When `sway_config_text.py` fails (it logs `Can't read your sway config`) the layer treats the user as binding nothing, and binds with `--no-warn` over their keys after every reload. Hyprland's layer does the same. Binding nothing (look and input only) with a problem shown would be safer, at the cost of axiom's binds.
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch for merge
@@ -100,12 +100,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Where:** `services/CompositorConfigManager.qml` (`_appliedParts`)
 - **What:** Opacity counts as an applied part, so turning it off reloads the config (see "Changing a setting under sway can flash the screen"), though SwayManager already sets every window back to 1 itself. A part the backend takes back itself shouldn't count.
 - **Size:** trivial
-- **Found:** 2026-10-16, while auditing the sway branch for merge
-
-### The config writers repeat their runtime machinery
-- **Where:** `services/SwayRuntimeLayer.qml`, `services/HyprlandRuntimeLayer.qml`, `components/methods/HyprConfigLua.qml` (`envLua`), `components/methods/CompositorLayer.qml` (`sessionEnv`)
-- **What:** The two runtime layers repeat wanted/busy, the reload counter and the "bound by your config" logging; `envLua` and `sessionEnv` build the same environment but disagree on precedence (Hyprland's cursor beats the user's environment, sway's the other way round).
-- **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
 ### The onboarding's Compositor page names Hyprland
@@ -185,6 +179,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** Axiom's surfaces blur where the compositor blurs its layers (`supports.blur`: Hyprland's layer rules, SwayFX's `layer_effects`); elsewhere they're solid (`Appearance.compositorBlurs`) and the translucency setting is greyed out. niri can blur layers by namespace too (layer rules); a niri backend would need the same per-namespace rules from `LayerStack`'s lists. Unchecked on SwayFX: how unblurred layer popups (tooltips) look.
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while placing layers without Hyprland
+
 ### The greeter runs its own Hyprland session
 - **Where:** `scripts/greeter/greeter-session.sh`, `services/GreetdManager.qml` (`_applyHyprland`)
 - **What:** The greeter runs its own Hyprland session (`start-hyprland`, `hyprctl dispatch exit`), whatever compositor the user's session uses. Decide whether it keeps Hyprland or moves to cage/sway. (The onboarding's binds table and Welcome copy no longer assume Hyprland.)

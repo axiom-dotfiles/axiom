@@ -590,13 +590,6 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
     tryVerify(() => ran.done, 2000);
   }
 
-  function test_recommendedEnv() {
-    const names = HyprLua.recommendedEnv.map(entry => entry[0]);
-    verify(names.includes("QT_QPA_PLATFORM") && names.includes("GDK_BACKEND"));
-    verify(!names.includes("SDL_VIDEODRIVER"), "breaks games with an older SDL");
-    verify(HyprLua.recommendedEnv.every(entry => entry.length === 2 && /^[A-Z_]+$/.test(entry[0])));
-  }
-
   function test_blurLua() {
     const lines = opts => HyprLua.blurLua(Object.assign({
         "threshold": 0.5

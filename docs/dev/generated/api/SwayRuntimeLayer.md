@@ -3,18 +3,10 @@
 
 > **File:** `services/SwayRuntimeLayer.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Axiom's sway layer sent at runtime, for SwayConfigWriter: the detached mode, and the fallback of the file modes while their file isn't loaded. The user's own binds are read from their config files first (sway can't list its binds), so a bind on a key their config already takes is skipped (skippedKeys). Not a singleton: SwayConfigWriter owns one. The keys this layer bound are kept (as the commands unbinding them) in a PersistentProperties, so a reload of the shell takes them out before binding again; a sway reload drops them itself (noteReload).
+Axiom's sway layer sent at runtime (RuntimeLayer), for SwayConfigWriter, which owns it. Sway can't list its binds, so the user's are read from their config files (SwayConfigWriter.readUserBinds). The keys this layer bound are kept (as the commands unbinding them) in a PersistentProperties, so a reload of the shell takes them out before binding again; a sway reload drops them itself.
 
 ### Properties
 
 - `bindCtx` (var): What the bind commands need from outside the bind (SwayConf.command)
 - `lookLines` (var): A function returning the live lines (the look and the input)
 - `readUserBinds` (var): A function calling back with the user's binds (SwayConf.configBinds entries), or null when they couldn't be read
-- `skippedKeys` (readonly var): Configured keys skipped because the user's sway config binds them
-- `applied` (readonly var): axiom's binds this layer has bound, for the Keybinds page
-
-### Functions
-
-- `noteReload()`: A sway config reload dropped the layer's binds
-- `apply()`: Applies the layer: reads the user's binds, then binds the keys that are free (unbinding what it bound last) and sends the live lines
-- `clear()`: Takes the layer's binds out (the file is loaded now)
