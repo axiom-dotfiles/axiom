@@ -54,6 +54,8 @@ import sys
 import time
 from pathlib import Path
 
+from bind_merge_common import in_git, media_action
+
 SCRIPTS = Path(__file__).resolve().parent
 EXTRACTOR = SCRIPTS / "hypr_binds.lua"
 
@@ -101,38 +103,10 @@ def _exec_action(command):
     command = command.strip()
     if command == EXIT_COMMAND:
         return "exitSession", ""
-    words = command.split()
-    if not words:
+    if not command:
         return None
-    tool, rest = words[0], " ".join(words[1:])
-    if tool == "wpctl":
-        if re.fullmatch(r"set-volume( -l [0-9.]+)? @DEFAULT_AUDIO_SINK@ [0-9.]+%?\+", rest):
-            return "volumeUp", ""
-        if re.fullmatch(r"set-volume( -l [0-9.]+)? @DEFAULT_AUDIO_SINK@ [0-9.]+%?-", rest):
-            return "volumeDown", ""
-        if rest == "set-mute @DEFAULT_AUDIO_SINK@ toggle":
-            return "toggleMute", ""
-        if rest == "set-mute @DEFAULT_AUDIO_SOURCE@ toggle":
-            return "toggleMicMute", ""
-    if tool == "pactl":
-        if re.fullmatch(r"set-sink-volume @DEFAULT_SINK@ \+[0-9]+%", rest):
-            return "volumeUp", ""
-        if re.fullmatch(r"set-sink-volume @DEFAULT_SINK@ -[0-9]+%", rest):
-            return "volumeDown", ""
-        if rest == "set-sink-mute @DEFAULT_SINK@ toggle":
-            return "toggleMute", ""
-        if rest == "set-source-mute @DEFAULT_SOURCE@ toggle":
-            return "toggleMicMute", ""
-    if tool == "brightnessctl":
-        if re.fullmatch(r"(-\S+ )*set [0-9]+%\+", rest):
-            return "brightnessUp", ""
-        if re.fullmatch(r"(-\S+ )*set [0-9]+%-", rest):
-            return "brightnessDown", ""
-    if tool == "playerctl":
-        media = {"play-pause": "mediaPlayPause", "next": "mediaNext", "previous": "mediaPrevious", "stop": "mediaStop"}
-        if rest in media:
-            return media[rest], ""
-    return "exec", command
+    media = media_action(command)
+    return (media, "") if media else ("exec", command)
 
 
 def map_dispatcher(name, args):
@@ -305,11 +279,6 @@ def _modules(hypr, only=None):
     return [p for p in files if p.name == only] if only else files
 
 
-def _in_git(file):
-    return subprocess.run(["git", "-C", str(Path(file).parent), "rev-parse", "--git-dir"],
-                          capture_output=True).returncode == 0
-
-
 def extract(hypr, only=None):
     files = _modules(hypr, only)
     if not files:
@@ -370,7 +339,7 @@ def extract(hypr, only=None):
 
     read = sorted({s["file"] for s in moved_sites} | {k["file"] for k in kept if k["file"] in allowed})
     return {"binds": binds, "sites": moved_sites, "kept": kept, "remapped": remapped,
-            "tracked": [f for f in read if _in_git(f)], "errors": found["errors"]}
+            "tracked": [f for f in read if in_git(f)], "errors": found["errors"]}
 
 
 def remove(hypr, sites):
