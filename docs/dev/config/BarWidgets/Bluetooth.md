@@ -28,18 +28,18 @@ Settings are read as `properties.<key>`.
   - x-scope="personal"
   - in: `components/bar/widgets/Bluetooth.qml`, `components/bar/widgets/AudioLevelWidget.qml`
 - **`backgroundColor`** · string = ""
-  - Background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"
+  - Color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Bluetooth.qml`, `components/bar/widgets/BarIconWidget.qml`
 - **`connectedColor`** · string = ""
-  - Connected background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="alt"
+  - Connected color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="alt", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Bluetooth.qml`
 - **`disabledColor`** · string = ""
-  - Off background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="off"
+  - Off color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="off", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Bluetooth.qml`
 - **`foregroundColor`** · string = "base00"
   - Text color
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":"filled","$bar.widgetGrouping":{"not":"merged"},"…
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`

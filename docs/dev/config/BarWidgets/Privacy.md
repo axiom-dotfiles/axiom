@@ -27,10 +27,10 @@ Settings are read as `properties.<key>`.
   - x-options="edgeMenus", x-emptyLabel="None", x-showIf={"showPopout":true}
   - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`activeColor`** · string = ""
-  - Background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="critical"
+  - Color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="critical", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Privacy.qml`
 - **`foregroundColor`** · string = "base00"
   - Text color
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":"filled","$bar.widgetGrouping":{"not":"merged"},"…
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`

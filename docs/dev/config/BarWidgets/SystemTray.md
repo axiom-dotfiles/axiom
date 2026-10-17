@@ -18,5 +18,5 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/SystemTray.qml`
 - **`backgroundColor`** · string = ""
   - Background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="neutral"
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="neutral", x-showIf={"anyOf":[{"$bar.widgetStyle":["filled","tinted","outline"],"$bar.wid…
   - in: `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/BarIconWidget.qml`

@@ -49,26 +49,27 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`showBackground`** · boolean = true
   - Background: A box around the workspaces, in the bar's widget style. Off: the workspaces sit on the bar at the size of the widgets around them.
+  - x-showIf={"$bar.widgetStyle":["filled","tinted","outline"]}
   - in: `components/bar/widgets/Workspaces.qml`
 - **`backgroundColor`** · string = ""
   - Background color: Behind the workspaces, in the bar's widget style.
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="neutral", x-showIf={"showBackground":true}
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="neutral", x-showIf={"showBackground":true,"$bar.widgetStyle":["filled","tinted","outline…
   - in: `components/bar/widgets/Workspaces.qml`, `components/bar/widgets/BarIconWidget.qml`
 - **`activeColor`** · string = ""
   - Active
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`occupiedColor`** · string = "base04"
   - Occupied
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`emptyColor`** · string = "base01"
   - Empty
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":["filled","tinted","outline","underline"]}
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`textColor`** · string = "base00"
   - Text color: Numbers, and the grid's active arrow. The colors also apply to the grid popout.
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":"filled","$bar.widgetTextColor":""}
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`hoverColor`** · string = ""
   - Hover: A cell's box under the pointer. Auto: the theme's highlight.

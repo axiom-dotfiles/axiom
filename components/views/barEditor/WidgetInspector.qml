@@ -150,6 +150,7 @@ Item {
               numberMode: "stepper"
               pairs: true
               values: editorRoot.widget.properties ?? ({})
+              context: Bar.lookContext(BarManager.selectedBar())
               emptyText: I18n.tr("This widget has no options")
               onEdited: (path, value) => BarManager.updateWidgetProperty(editorRoot.zone, editorRoot.index, path[0], value)
             }

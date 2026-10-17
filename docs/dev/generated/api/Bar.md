@@ -22,6 +22,7 @@ Reader for the Bars section and the bar look helpers: derived layout values (enr
 - `endsOptions(gapsOut)`: BarEnds' options, from Appearance and Hyprland's gaps_out
 - `widgetColors(barConfig, accent, foregroundName)`: What a bar widget draws in on its bar ({ fill, stroke, indicator, text, icon }, see BarWidgetStyle): `accent` is its color for its state, `foregroundName` the text color it's configured with
 - `cellColors(barConfig, color, own, state)`: What a cell inside a widget (a workspace) draws in on its bar ({ fill, stroke, indicator, content }, see BarWidgetStyle.cell): `color` is its state color, `own` what reads on it filled, `state` activ…
+- `cellRadius(barConfig, cell, inset)`: The corners of a Workspaces cell `cell` thick, inset by `inset` in its widget: a pill for capsule widgets, else the widgets' radius less the inset
 - `cellHoverColor(properties)`: A Workspaces cell's box while hovered: its `hoverColor`, or for Auto (empty) the theme's highlight
 - `groupColors(barConfig)`: What a merged run of widgets draws its shared background in
 - `withAutoColors(widgets, widgetStyle, grouping, groupColor)`: A bar's widgets (by section) with each Auto color field (`x-autoColor`, left empty) set to the color BarAutoColors picks for it among its shown neighbours, seen against the bar or, filled and merged,…
@@ -31,6 +32,7 @@ Reader for the Bars section and the bar look helpers: derived layout values (enr
 - `detachedPush(barConfig, gapsOut, connectorGap)`: How much further than half a connector gap past a transparent bar's inner edge a box detached from it (a bar popout, a floating edge menu) sits, so it starts in line with the windows: at the bar's in…
 - `reservedZone(barConfig, gapsOut)`: The exclusive zone a bar sets (BarPanel), given Hyprland's gaps_out on its edge.
 - `lookOf(barConfig)`: A bar entry with its look filled from BarStyle where it doesn't override it
+- `lookContext(barConfig)`: The look a bar's widgets draw in, as `$bar.<key>` for their options' `x-showIf`: lookOf's BarStyle keys, with grouping only for boxed styles (as enrichBarConfig)
 - `expandBars(bars)`: A bar on every monitor (`monitor: "*"`) becomes one entry per screen, each with its own id (keying its BarPanel) and that screen as its monitor.
 - `edgeName(location)`: A Bar.Location as the edge names zones and Hyprland use: "top" | "bottom" | "left" | "right"
 - `locationOf(name)`: The Bar.Location an edge name stands for (edgeName's inverse)

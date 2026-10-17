@@ -27,14 +27,14 @@ Settings are read as `properties.<key>`.
   - x-scope="personal"
   - in: `components/bar/widgets/AudioLevelWidget.qml`
 - **`backgroundColor`** · string = ""
-  - Background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"
+  - Color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Volume.qml`, `components/bar/widgets/BarIconWidget.qml`
 - **`mutedColor`** · string = ""
-  - Muted background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="off"
+  - Muted color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="off", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Volume.qml`
 - **`foregroundColor`** · string = "base00"
   - Text color
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":"filled","$bar.widgetGrouping":{"not":"merged"},"…
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`

@@ -24,14 +24,14 @@ Settings are read as `properties.<key>`.
   - x-options="edgeMenus", x-emptyLabel="Its own popout", x-showIf={"showPopout":true}
   - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`playingColor`** · string = ""
-  - Playing background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"
+  - Playing color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Media.qml`
 - **`pausedColor`** · string = ""
-  - Paused background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="off"
+  - Paused color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="off", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Media.qml`
 - **`foregroundColor`** · string = "base00"
   - Text color
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":"filled","$bar.widgetGrouping":{"not":"merged"},"…
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`

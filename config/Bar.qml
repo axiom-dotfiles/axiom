@@ -216,6 +216,13 @@ QtObject {
     return BarWidgetStyle.cell(Bar._widgetStyle(barConfig, false), color, own, state);
   }
 
+  // The corners of a Workspaces cell `cell` thick, inset by `inset` in its
+  // widget: a pill for capsule widgets, else the widgets' radius less the
+  // inset
+  function cellRadius(barConfig, cell, inset) {
+    return barConfig.widgetShape === "capsule" ? cell / 2 : Math.max(0, barConfig.radius - inset);
+  }
+
   // A Workspaces cell's box while hovered: its `hoverColor`, or for Auto
   // (empty) the theme's highlight
   function cellHoverColor(properties) {
@@ -371,6 +378,19 @@ QtObject {
         group.keys.forEach(key => look[key] = BarStyle.values[key]);
     });
     return look;
+  }
+
+  // The look a bar's widgets draw in, as `$bar.<key>` for their options'
+  // `x-showIf`: lookOf's BarStyle keys, with grouping only for boxed styles
+  // (as enrichBarConfig)
+  function lookContext(barConfig) {
+    const look = Bar.lookOf(barConfig ?? {});
+    if (!["filled", "tinted", "outline"].includes(look.widgetStyle))
+      look.widgetGrouping = "separate";
+    return Object.keys(BarStyle.values).reduce((context, key) => {
+      context["$bar." + key] = look[key];
+      return context;
+    }, {});
   }
 
   // The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings

@@ -59,9 +59,9 @@ Schema entry (in `definitions`):
         "showLabel": { "type": "boolean", "title": "Show label", "default": false },
         "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Show the details when hovered." },
         "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-        "activeColor": { "type": "string", "title": "Active background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-        "inactiveColor": { "type": "string", "title": "Inactive background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
-        "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+        "activeColor": { "type": "string", "title": "Active color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+        "inactiveColor": { "type": "string", "title": "Inactive color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+        "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
       }
     }
   }
@@ -81,6 +81,7 @@ Without a popout of its own, `showPopout` is `"title": "Menu popout", "default":
 - Every widget but Button, Separator and the tray has `showPopout` / `popoutMenu`, even without a popout of its own (they open an edge menu).
 - Sizes come from the bar (`barConfig.widgetSize`, `barConfig` padding/spacing/font/radius), never `Widget.*`. `BarIconWidget` already does this; a widget drawing more must too.
 - A color field the bar should pick when empty has `"default": ""`, `"x-emptyLabel": "Auto"` and an `x-autoColor` role (`accent`, `alt`, `warning`, `critical`, `off`, `neutral`). `tst_Config` checks these.
+- Color fields show only in the bar looks they do something in (`$bar.<key>` conditions; the rules are in [bar/widget-style](../dev/bar/widget-style.md#which-color-fields-show)): the state colors that feed `accentColor` hide under Plain text, and `foregroundColor` shows only when filled, not merged, with the bar's text color Auto. A widget without an icon shows its color only boxed and not merged, or underlined (`TimeWidget`).
 - The type const must not match a `components/content/` file another file sees alongside it (e.g. a `Battery` widget and `Battery` content): `check_structure.py` errors.
 - `hidden: true` hides the widget and disables its clicks; use it for "hide when empty" settings.
 - `onClicked` gets the button when `acceptedButtons` lists more than one (`Updates.qml`).

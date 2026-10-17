@@ -132,8 +132,9 @@ Item {
           propertiesSchema: group.modelData.schema
           order: group.modelData.keys
           numberMode: "stepper"
-          // The whole bar, so x-showIf sees keys from other groups
-          values: root.bar ?? ({})
+          // The whole bar, so x-showIf sees keys from other groups, with
+          // the look it takes from BarStyle where it doesn't override it
+          values: Bar.lookOf(root.bar ?? ({}))
           onEdited: (path, value) => BarManager.updateBarField(path[0], value)
         }
 

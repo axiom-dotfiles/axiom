@@ -46,6 +46,22 @@ The base classes bar widgets extend, where their sizes come from, and how their 
   - Text, strokes and icons have to read (contrast 3).
 - Text colors are not Auto. Workspaces' cells are not Auto either, except the active one.
 
+### Which color fields show
+- A widget's color fields show in the bar editor's inspector only in the bar looks where they draw something.
+  - Their `x-showIf` reads the look of the selected bar through `$bar.<key>` keys. The values come from `Bar.lookContext`: `lookOf`, with grouping counted only for boxed styles.
+  - `tst_Config` checks that each such key names a `BarStyle` field.
+- **The widget's own color** (`backgroundColor` titled "Color", and its state colors). It is the fill when filled, the tint or outline when tinted or outlined, the line when underlined, and the icon when merged or under colored icons.
+  - Hidden under Plain text.
+  - A widget with no icon (Time, the tray's box) shows it only when boxed and not merged, or when underlined.
+  - Notifications' DND and badge colors are content, so they always show.
+- **`foregroundColor`.** It is read only by a filled widget that isn't merged, and only while the bar's `widgetTextColor` is Auto. Elsewhere the text is the bar's.
+- **Workspaces** (its popouts draw cells in the same style):
+  - `showBackground` shows only for boxed styles. `backgroundColor` also needs the background on and the grouping not merged.
+  - `activeColor` and `occupiedColor` hide under Plain. `emptyColor` shows only when filled, tinted, outlined or underlined.
+  - `textColor` shows only when filled and the bar's text color is Auto.
+  - Cells follow the widget shape: pills under capsule (`Bar.cellRadius`), otherwise the radius less the inset.
+- The bar's own look fields read the look it uses too (`BarsPanel` hands its form `Bar.lookOf(bar)`). The separator fields hide in a boxed powerline, where `enrichBarConfig` drops separators.
+
 ### Look groups (`BarStyle`)
 - A bar's widget style, accents and shadow come from the `BarStyle` section (Look & Feel, reader `BarStyle`).
 - A bar can override each group separately: `overrideWidgetStyle` / `overrideAccents` / `overrideShadow`. The bar's own copies of the fields show only when its override is on.

@@ -27,21 +27,21 @@ Settings are read as `properties.<key>`.
   - x-scope="personal"
   - in: `components/bar/widgets/AudioLevelWidget.qml`
 - **`activeColor`** · string = ""
-  - In-use background: Used while an app is recording from the microphone.
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="alt"
+  - In-use color: Used while an app is recording from the microphone.
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="alt", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Microphone.qml`
 - **`hideWhenIdle`** · boolean = false
   - Hide when idle: Only show the widget while the microphone is in use or muted.
   - in: `components/bar/widgets/Microphone.qml`
 - **`backgroundColor`** · string = ""
-  - Background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"
+  - Color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Microphone.qml`, `components/bar/widgets/BarIconWidget.qml`
 - **`mutedColor`** · string = ""
-  - Muted background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="off"
+  - Muted color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="off", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Microphone.qml`
 - **`foregroundColor`** · string = "base00"
   - Text color
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":"filled","$bar.widgetGrouping":{"not":"merged"},"…
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`

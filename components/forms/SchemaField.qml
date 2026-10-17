@@ -91,10 +91,15 @@ Loader {
     }, {});
   }
 
-  // A sibling key of this row's path (or a `/`-rooted config path), for
-  // `x-showIf` and `x-enumShowIf`, in any form
+  // A sibling key of this row's path (or a `/`-rooted config path, or a
+  // `$` key from the form's `context`), for `x-showIf` and `x-enumShowIf`,
+  // in any form
   function _valueOf(key) {
-    return key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : root.form?.valueAt(root.row.path.slice(0, -1).concat(key));
+    if (key.startsWith("/"))
+      return SettingsManager.configValueAt(key.slice(1));
+    if (key.startsWith("$"))
+      return root.form?.context?.[key];
+    return root.form?.valueAt(root.row.path.slice(0, -1).concat(key));
   }
 
   // `x-showIf`, checked against _valueOf

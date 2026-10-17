@@ -39,14 +39,14 @@ Settings are read as `properties.<key>`.
   - Many updates: At or above this count, the widget uses the many-updates background.
   - in: `components/bar/widgets/Updates.qml`
 - **`backgroundColor`** · string = ""
-  - Background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"
+  - Color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Updates.qml`, `components/bar/widgets/BarIconWidget.qml`
 - **`manyColor`** · string = ""
-  - Many-updates background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="warning"
+  - Many-updates color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="warning", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Updates.qml`
 - **`foregroundColor`** · string = "base00"
   - Text color
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":"filled","$bar.widgetGrouping":{"not":"merged"},"…
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`
