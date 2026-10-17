@@ -38,7 +38,7 @@ FieldGroup {
 
   readonly property string detail: {
     if (HypridleManager.installed === false)
-      return I18n.tr("hypridle isn't installed. Install it (pacman -S hypridle) to dim, lock and turn the screens off when you're away.");
+      return I18n.tr("hypridle isn't installed. Install it to dim, lock and turn the screens off when you're away.");
     switch (root.status) {
     case "off":
       return I18n.tr("axiom leaves hypridle to you: your own ~/.config/hypr/hypridle.conf is used, if you run it.");
@@ -61,6 +61,13 @@ FieldGroup {
     textColor: HypridleManager.installed === false ? Theme.error : Theme.foreground
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
+  }
+
+  // How to install it here (nothing on a distribution axiom has no
+  // package names for)
+  CodeLine {
+    visible: HypridleManager.installed === false && text !== ""
+    text: DependencyManager.installCommand("hypridle")
   }
 
   GridLayout {

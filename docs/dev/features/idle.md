@@ -30,7 +30,7 @@ Axiom can run hypridle with its own generated config, and it keeps a caffeine (i
 - Created from `shell.qml`'s `_services`.
 
 ### A user's own hypridle
-For the lock screen's `quickshell` and `hyprlock` modes, a user's own hypridle should use:
+For the lock screen's `quickshell` mode, a user's own hypridle should use:
 - `lock_cmd = qs -c axiom ipc call lockscreen lock`
 - `before_sleep_cmd = loginctl lock-session`
 

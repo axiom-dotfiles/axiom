@@ -73,7 +73,7 @@ Item {
   readonly property real _back: detached ? 0 : backfill
   // Fill drawn this far past a joined end, over what it joins, with no
   // stroke or shadow of its own: a submenu joined beside a popout on
-  // a pill covers the popout's backfill row there, where the popout's glow
+  // a pill covers the popout's backfill row there, where the popout's shadow
   // would show as a dash
   property real joinBackfill: 0
   // The attach edge / the perpendicular edges a join meets are bare screen
@@ -94,24 +94,19 @@ Item {
 
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
-  // Casts the shell's shadow or glow (SurfaceShadow), for a surface whose
+  // Casts the shell's shadow (SurfaceShadow), for a surface whose
   // border shows: off for a bar's own pills, which their bar's casts
   property bool castShadow: false
-  // How it casts it: the look (BarStyle's, or the bar it grows out of),
-  // the edge it falls away from and whether it falls rather than spreading
-  // evenly. Hosts take all three from what the surface grows out of
-  // (SurfaceContext.shadow), so joined shapes cast one shadow; by default
-  // it falls when detached or with the border off, as the bars' do, and
-  // joined to the border spreads evenly, as the border's
+  // The look it casts it in: BarStyle's, or the bar it grows out of.
+  // Hosts take it from what the surface grows out of
+  // (SurfaceContext.shadow), so joined shapes cast one shadow
   property var shadowLook: BarStyle.values
-  property int shadowEdge: root.edge
-  property bool shadowFalls: root.detached || !Appearance.screenBorder
   // Rects (in this item's coordinates) its own shadow isn't cast on
   // either: a submenu's box beside it, whose translucent fill it would
   // show through (the blur window's shadow, cut by every shape, needs none)
   property var shadowHoles: []
   // How far past it the shadow reaches, which its window keeps room for
-  readonly property int shadowReach: root.castShadow && root.shadowLook.shadow !== "none" ? Math.ceil(root.shadowLook.shadowSize * 1.25) : 0
+  readonly property int shadowReach: root.castShadow && root.shadowLook.shadow ? Math.ceil(root.shadowLook.shadowSize * 1.25) : 0
   // The blur window (BlurManager) draws this surface's fill and casts its
   // shadow (BlurShape.shadow): it draws its stroke and content only
   property bool backed: false
@@ -345,7 +340,7 @@ Item {
     enableFade: false
     overflow: root.shadowReach
 
-    // The shadow or glow the outline casts, only outside it (none shows
+    // The shadow the outline casts, only outside it (none shows
     // through a translucent fill), from a copy of it filled (its own fill
     // may be the blur window's): the content doesn't need its own
     OutsideShadow {
@@ -353,8 +348,6 @@ Item {
       target: shadowShape
       hideTarget: true
       active: root._ownShadow
-      edge: root.shadowEdge
-      falls: root.shadowFalls
       look: root.shadowLook
       // Nothing past a joined end: what it joins (the border's frame, a
       // pill) runs on there, under this window, as the blur window's cut

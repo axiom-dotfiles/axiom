@@ -53,4 +53,22 @@ TestCase {
     compare(KeyNames.fromWheel(120, 0, Qt.ShiftModifier | Qt.MetaModifier, []), "SUPER + SHIFT + mouse_left");
     compare(KeyNames.fromWheel(0, 0, Qt.MetaModifier, []), "");
   }
+
+  function test_tapModifier() {
+    compare(KeyNames.tapModifier("Super_L"), "SUPER");
+    compare(KeyNames.tapModifier("SUPER + SUPER_R"), "SUPER", "written with its own modifier");
+    compare(KeyNames.tapModifier("control_r"), "CTRL");
+    compare(KeyNames.tapModifier("CTRL + Super_L"), "", "held with another modifier");
+    compare(KeyNames.tapModifier("SUPER + Q"), "");
+    compare(KeyNames.tapModifier(""), "");
+  }
+
+  function test_tapName() {
+    compare(KeyNames.tapName(Qt.Key_Super_L, 133), "Super_L");
+    compare(KeyNames.tapName(Qt.Key_Super_R, 134), "Super_R");
+    compare(KeyNames.tapName(Qt.Key_Control, 105), "Control_R", "the keycode tells the side");
+    compare(KeyNames.tapName(Qt.Key_Alt, 0), "Alt_L", "no keycode: the left one");
+    compare(KeyNames.tapName(Qt.Key_Shift, 133), "Shift_L", "a keycode of another modifier is ignored");
+    compare(KeyNames.tapName(Qt.Key_A, 38), "");
+  }
 }

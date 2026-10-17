@@ -25,7 +25,7 @@ Reader for the Bars section and the bar look helpers: derived layout values (enr
 - `cellHoverColor(properties)`: A Workspaces cell's box while hovered: its `hoverColor`, or for Auto (empty) the theme's highlight
 - `groupColors(barConfig)`: What a merged run of widgets draws its shared background in
 - `withAutoColors(widgets, widgetStyle, grouping, groupColor)`: A bar's widgets (by section) with each Auto color field (`x-autoColor`, left empty) set to the color BarAutoColors picks for it among its shown neighbours, seen against the bar or, filled and merged,…
-- `shadowBaseColor(look)`: The color of a shadow: `shadow`/`shadowColor` as a bar's look or the BarStyle section has them.
+- `shadowBaseColor(look)`: The color of a shadow: `shadowColor` as a bar's look or the BarStyle section has it.
 - `shadowColor(look)`: What a shadow is drawn in (shadowBaseColor).
 - `reserveTrim(barConfig, gapsOut)`: How much less than its extent a bar reserves, given Hyprland's gaps_out on its edge.
 - `detachedPush(barConfig, gapsOut, connectorGap)`: How much further than half a connector gap past a transparent bar's inner edge a box detached from it (a bar popout, a floating edge menu) sits, so it starts in line with the windows: at the bar's in…

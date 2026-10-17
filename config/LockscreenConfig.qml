@@ -12,7 +12,7 @@ QtObject {
 
   readonly property var _c: ConfigManager.config.Lockscreen
 
-  // "quickshell" (built-in) | "hyprlock" (themed by axiom) | "none"
+  // "quickshell" (built-in) | "none"
   readonly property string mode: _c.mode
   // What lock buttons run in "none" mode
   readonly property string lockCommand: _c.lockCommand

@@ -6,6 +6,8 @@
 
 Axiom updating its own git clone. This is not package updates, which are UpdatesManager's job.
 
+A packaged axiom (`Paths.packaged`, [packaging.md](../packaging.md)) is updated by its package manager: `check()` returns at once, nothing is scheduled, `available` stays false, and the `SelfUpdate` section (`"/$packaged": false`), the onboarder's rows and launcher `/update` are hidden.
+
 ### Channels
 `SelfUpdate.channel` picks what to follow on the clone's remote:
 - **`tags`:** releases (`v*` tags).

@@ -8,4 +8,4 @@ Reader for the BarStyle section: how every bar draws its widgets, accents and sh
 ### Properties
 
 - `values` (readonly var): The section's values by key, as a bar's own would be
-- `shadowed` (readonly bool): Whether surfaces cast the shadow or glow
+- `shadowed` (readonly bool): Whether surfaces cast the shadow

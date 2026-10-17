@@ -11,9 +11,9 @@ Settings are read as `properties.<key>`.
   - in: `components/content/Updates.qml`
 - **`includeAur`** · boolean = false
   - Include AUR
-  - x-scope="machine"
+  - x-scope="machine", x-showIf={"/$distro":"arch"}
   - in: `components/content/Updates.qml`
 - **`aurHelper`** · string = "paru" · enum paru|yay
   - AUR helper
-  - x-scope="machine", x-showIf={"includeAur":true}
+  - x-scope="machine", x-showIf={"includeAur":true,"/$distro":"arch"}
   - in: `components/content/Updates.qml`

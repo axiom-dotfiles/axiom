@@ -220,99 +220,78 @@ TestCase {
       {
         "tag": "border",
         "s": {
-          "border": true,
           "bar": null,
           "onBar": false
         },
-        "look": "style",
-        "falls": false
+        "look": "style"
       },
       {
         "tag": "bare edge",
         "s": {
-          "border": false,
           "bar": null,
           "onBar": false
         },
-        "look": "style",
-        "falls": true
+        "look": "style"
       },
       {
         "tag": "solid bar under the border",
         "s": {
-          "border": true,
           "bar": bar("solid"),
           "onBar": false
         },
-        "look": "style",
-        "falls": false
+        "look": "style"
       },
       {
         "tag": "pills, border on",
         "s": {
-          "border": true,
           "bar": bar("pills"),
           "onBar": true
         },
-        "look": "bar",
-        "falls": false
+        "look": "bar"
       },
       {
         "tag": "pills, border off",
         "s": {
-          "border": false,
           "bar": bar("pills"),
           "onBar": true
         },
-        "look": "bar",
-        "falls": true
+        "look": "bar"
       },
       {
         "tag": "island, border on",
         "s": {
-          "border": true,
           "bar": bar("floating"),
           "onBar": true
         },
-        "look": "bar",
-        "falls": true
+        "look": "bar"
       },
       {
         "tag": "detached",
         "s": {
-          "border": true,
           "bar": bar("transparent"),
           "onBar": false,
           "detached": true
         },
-        "look": "style",
-        "falls": true
+        "look": "style"
       }
     ];
   }
   function test_shadow(data) {
     const s = SurfaceContext.shadow(Object.assign({
-      "edge": 0,
       "detached": false
     }, data.s));
-    compare(s.look, data.look);
-    compare(s.falls, data.falls);
-    compare(s.edge, 0);
-    // The bar's own pieces fall the same way
-    if (data.look === "bar")
-      compare(SurfaceContext.barShadowFalls(data.s.bar, data.s.border), data.falls);
+    compare(s, {
+      "look": data.look
+    });
   }
 
   function test_submenuTakesItsParentsShadow() {
     const parent = SurfaceContext.shadow({
-      "edge": 0,
       "detached": false,
-      "border": false,
       "bar": null,
       "onBar": false
     });
     compare(SurfaceContext.shadow({
-      "edge": 2,
       "parent": parent
     }), parent);
   }

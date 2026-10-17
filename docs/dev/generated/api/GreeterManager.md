@@ -9,7 +9,7 @@ Axiom as greetd's login screen, from the user's side (the greeter itself is gree
 
 - `editor` (ScreenLayoutEditor)
 - `report` (readonly var): The last `check`: { greetd, agreety, displayManager, installed, configured, helper, installedSource, url, installedHash, currentHash, greeterUser, bundleWritable, error }, or null before the first
-- `wantedSource` (readonly string): Where the copy's code should come from, as check reports it: "git:tags" | "git:main" (Greeter.source git, on axiom's own update channel) | "local"
+- `wantedSource` (readonly string): Where the copy's code should come from, as check reports it: "git:tags" | "git:main" (Greeter.source git, on axiom's own update channel) | "local" | "package" (a packaged axiom, whatever Greeter.sour…
 - `status` (readonly string): "checking" | "checkFailed" (lastError says why) | "noGreetd" (greetd or its text login, agreety, isn't installed) | "off" | "notInstalled" (Greeter.enabled, but no copy: set up by hand, or removed ou…
 - `elevating` (readonly bool): pkexec is running (install, update or uninstall)
 - `lastError` (readonly string): What the last install, update or uninstall said went wrong ("" when it worked)

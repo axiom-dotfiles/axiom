@@ -13,9 +13,11 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 - `themePath` (readonly string)
 - `scriptsPath` (readonly string)
 - `resourcePath` (readonly string): What ships with axiom in config/: json/ (schema, theme defaults, emoji), themes/, i18n/
+- `packagedVersion` (readonly string): Installed as a distribution package: its version, from the marker the package writes ("" for a clone: docs/dev/packaging.md).
+- `packaged` (readonly bool)
 - `userConfigPath` (readonly string): $XDG_CONFIG_HOME/axiom/: config.json and saved/
 - `statePath` (readonly string): Small persisted state (StateManager), $XDG_STATE_HOME/axiom/ui/.
-- `userStatePath` (readonly string): Per-user state ($XDG_STATE_HOME/axiom/): secrets, chats, notification history, the generated hyprlock/hypridle/Hyprland configs
+- `userStatePath` (readonly string): Per-user state ($XDG_STATE_HOME/axiom/): secrets, chats, notification history, the generated hypridle/Hyprland configs
 - `userDataPath` (readonly string): $XDG_DATA_HOME/axiom/: what the user made (the default notes folder)
 - `defaultNotesPath` (readonly string)
 - `generatedThemesPath` (readonly string): Themes generated from the wallpaper ("generated/<name>")
@@ -29,6 +31,7 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 - `greeterDir` (readonly string): The greeter's folder: config/ (the bundle the user's axiom exports, theirs) and state/ (the greeter's: last user and sessions)
 - `greeterBundlePath` (readonly string)
 - `greeterStatePath` (readonly string)
+- `greeterFallbackUrl` (readonly string): The snapshot of the bundle its install took (greeter_install.sh): in the install folder the session script names, else beside the code (a packaged axiom's install folder isn't its code's)
 
 ### Functions
 

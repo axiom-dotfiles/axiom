@@ -36,6 +36,10 @@ jobs:
       - name: Docs match the code (links, paths, members)
         run: python3 scripts/check_docs.py
 
+      # install.sh and Packages.qml (the onboarder's hints)
+      - name: Package lists agree
+        run: python3 scripts/check_packages.py
+
       - name: JSON is valid
         run: git ls-files -z '*.json' | xargs -0 -n1 python3 -m json.tool --no-ensure-ascii > /dev/null
 
@@ -101,7 +105,10 @@ jobs:
     container: archlinux:latest
     steps:
       - name: Install tools
-        run: pacman -Syu --noconfirm --needed git diffutils shellcheck lua jq gettext python
+        # numpy, Pillow and icalendar for theme generation and calendars, as
+        # users install them: never python-recurring-ical-events, which
+        # Fedora doesn't package (the calendar tests make importing it fail)
+        run: pacman -Syu --noconfirm --needed git diffutils shellcheck lua jq gettext python python-numpy python-pillow python-icalendar
 
       - name: Checkout
         env:

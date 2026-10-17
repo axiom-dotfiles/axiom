@@ -57,6 +57,12 @@ Walks a value along the schema.
 - Contents: `_example` + `version` + the sparse pick. It applies as the whole pick would (`tst_ConfigExamples`' round trips).
 - Exports and examples are one format.
 
+### Adding an example setup
+- Build the setup in the shell, then Settings → Maintenance → Share → Export, with keybinds, apps and commands off unless the example needs a command. It writes `~/axiom-<name>-<date>-<time>.json`, holding only the look (`x-scope`) minus defaults.
+- Move it to `examples/<name>.json` and fill in its `_example` header: `{ "title": "…", "description": "…" }`.
+- Monitors, wallpapers, accounts and paths are `machine` scope, so they're never in an export: don't add them by hand.
+- `scripts/run_tests.sh ConfigExamples` loads every example the way the shell does.
+
 ### Snapshot rows
 - `active` is the one last saved or restored, kept in `state/savedconfigs.json`. Only its row offers Overwrite.
 - `modified` dots it: the running config's `snapshot()` differs from the saved file's (loaded through `ConfigManager.normalizeConfig`). A machine-only change leaves it off, and so does anything that changes on its own (rotation, light/dark wallpapers and schedule), which never writes the config.

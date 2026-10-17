@@ -20,6 +20,12 @@ QtObject {
   // What ships with axiom in config/: json/ (schema, theme defaults,
   // emoji), themes/, i18n/
   readonly property string resourcePath: root.axiomPath + "config/"
+  // Installed as a distribution package: its version, from the marker the
+  // package writes ("" for a clone: docs/dev/packaging.md).
+  // The package manager updates it (SelfUpdateManager stays off) and the
+  // login screen runs it (GreeterManager)
+  readonly property string packagedVersion: (FileManager.read(root.axiomPath + ".packaged") ?? "").trim()
+  readonly property bool packaged: packagedVersion !== ""
 
   // --- What axiom writes (ConfigManager.dataDirs: the XDG folders, or the
   // repo's own until an old install's data is moved over) ---
@@ -30,7 +36,7 @@ QtObject {
   // greeter, whose code is a root-owned copy, its own state folder instead
   readonly property string statePath: root.greeter ? root.greeterStatePath : ConfigManager.dataDirs.ui
   // Per-user state ($XDG_STATE_HOME/axiom/): secrets, chats, notification
-  // history, the generated hyprlock/hypridle/Hyprland configs
+  // history, the generated hypridle/Hyprland configs
   readonly property string userStatePath: root.greeter ? root.greeterStatePath : ConfigManager.dataDirs.state
   // $XDG_DATA_HOME/axiom/: what the user made (the default notes folder)
   readonly property string userDataPath: ConfigManager.dataDirs.data
@@ -69,6 +75,10 @@ QtObject {
   readonly property string greeterDir: (Quickshell.env("AXIOM_GREETER_DIR") || "/var/lib/axiom-greeter") + "/"
   readonly property string greeterBundlePath: root.greeterDir + "config/"
   readonly property string greeterStatePath: root.greeterDir + "state/"
+  // The snapshot of the bundle its install took (greeter_install.sh): in
+  // the install folder the session script names, else beside the code (a
+  // packaged axiom's install folder isn't its code's)
+  readonly property string greeterFallbackUrl: Quickshell.env("AXIOM_GREETER_FALLBACK") ? "file://" + Quickshell.env("AXIOM_GREETER_FALLBACK") : Qt.resolvedUrl("../fallback/")
 
   // A theme's JSON file, by its Appearance.theme name: "generated/<name>"
   // from generatedThemesPath, the rest from the bundled themes

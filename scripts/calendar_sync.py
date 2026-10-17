@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """Axiom's calendars: CalDAV accounts and read-only .ics subscriptions.
 
-CalendarManager runs it through scripts/venv_python.sh (icalendar and
-recurring-ical-events, from requirements.txt):
+CalendarManager runs it with the system python3; it needs icalendar (and
+python-dateutil, which icalendar depends on). Recurrences are expanded here,
+not by recurring-ical-events, which Fedora doesn't package:
 
   calendar_sync.py discover|sync|save|delete
 
 Each reads one JSON object on stdin (passwords included: never argv, never
 printed) and prints one JSON object. Failures are `{"ok": false, "code",
 "message"}`, `code` one of auth, network, notFound, notCalendar, conflict,
-server, parse, noPassword, readOnly.
+server, parse, noPassword, readOnly, missingModule (`message` the module's
+name: icalendar or dateutil isn't installed).
 
 discover  {kind, url, username, password}
           -> {ok, calendars: [{href, name, color, components, readOnly}]}
@@ -421,27 +423,140 @@ def end_of(component, start):
     return start + dt.timedelta(days=1) if not isinstance(start, dt.datetime) else start
 
 
+def _frame(value, like):
+    """`value` (a date or datetime from RRULE's UNTIL, an RDATE, an EXDATE or
+    a RECURRENCE-ID) in the form of the series' DTSTART `like`: a date for an
+    all-day series, else a datetime in DTSTART's zone (naive when floating)."""
+    if not isinstance(like, dt.datetime):
+        if isinstance(value, dt.datetime):
+            return (value.astimezone() if value.tzinfo else value).date()
+        return value
+    if not isinstance(value, dt.datetime):
+        value = dt.datetime.combine(value, dt.time())
+    if like.tzinfo is None:
+        return value.astimezone().replace(tzinfo=None) if value.tzinfo else value
+    return value.astimezone(like.tzinfo) if value.tzinfo else value.replace(tzinfo=like.tzinfo)
+
+
+def _values(component, name):
+    """Every date, datetime or (start, end | duration) period of a property
+    that may repeat (RDATE, EXDATE)."""
+    prop = component.get(name)
+    if prop is None:
+        return []
+    return [d.dt for group in (prop if isinstance(prop, list) else [prop]) for d in group.dts]
+
+
+def _rules(master, start):
+    """The master's RRULEs as dateutil rules starting at `start`, an all-day
+    series' at midnight. UNTIL is put in DTSTART's form first: dateutil
+    refuses a UTC UNTIL on a floating DTSTART and the reverse. A UTC UNTIL
+    on a floating DTSTART (invalid, but sent) is read as wall time."""
+    import icalendar
+    from dateutil import rrule as du
+    prop = master.get("RRULE")
+    rules = []
+    for recur in prop if isinstance(prop, list) else [prop] if prop is not None else []:
+        text = icalendar.vRecur({k: v for k, v in recur.items() if k != "UNTIL"}).to_ical().decode()
+        rule = du.rrulestr(text, dtstart=start)
+        until = recur.get("UNTIL")
+        if until:
+            until = until[0]
+            if isinstance(until, dt.datetime) and start.tzinfo is None:
+                until = until.replace(tzinfo=None)
+            until = _frame(until, start)
+            if not isinstance(until, dt.datetime):
+                until = dt.datetime.combine(until, dt.time.max, start.tzinfo)
+            rule = rule.replace(until=until)
+        rules.append(rule)
+    return rules
+
+
+def occurrences(cal, start_ms, end_ms):
+    """The VEVENTs of `cal` overlapping [start_ms, end_ms), as (component,
+    start, end, rid): a series expanded from its RRULEs, RDATEs and DTSTART,
+    less its EXDATEs, with its RECURRENCE-ID overrides in place of the
+    occurrences they replace. `rid` is the original start (None outside a
+    series). In order of start. THISANDFUTURE overrides apply only to their
+    own occurrence."""
+    def overlaps(s, e):
+        a, b = to_ms(s), to_ms(e)
+        return a < end_ms and (b > start_ms or (a == b and a >= start_ms))
+
+    masters, overrides = {}, {}
+    for ev in cal.walk("VEVENT"):
+        if ev.get("DTSTART") is None:
+            continue
+        uid = str(ev.get("UID", ""))
+        if ev.get("RECURRENCE-ID") is None:
+            masters.setdefault(uid, ev)
+        else:
+            overrides.setdefault(uid, []).append(ev)
+    out = []
+    for uid, master in masters.items():
+        first = master.get("DTSTART").dt
+        length = end_of(master, first) - first
+        if not (master.get("RRULE") or master.get("RDATE") or uid in overrides):
+            if overlaps(first, first + length):
+                out.append((master, first, first + length, None))
+            continue
+        all_day = not isinstance(first, dt.datetime)
+        # Expanded at midnight for an all-day series; back to dates after
+        base = dt.datetime.combine(first, dt.time()) if all_day else first
+        tz = base.tzinfo
+        lo = dt.datetime.fromtimestamp(start_ms / 1000, tz) - length
+        hi = dt.datetime.fromtimestamp(end_ms / 1000, tz)
+        if tz is None:
+            lo, hi = lo.replace(tzinfo=None), hi.replace(tzinfo=None)
+        starts = {to_ms(first): (first, length)}
+        for rule in _rules(master, base):
+            for s in rule.between(lo, hi, inc=True):
+                s = s.date() if all_day else s
+                starts.setdefault(to_ms(s), (s, length))
+        for value in _values(master, "RDATE"):
+            if isinstance(value, tuple):
+                s, until = _frame(value[0], first), value[1]
+                starts[to_ms(s)] = (s, until if isinstance(until, dt.timedelta) else _frame(until, first) - s)
+            else:
+                s = _frame(value, first)
+                starts.setdefault(to_ms(s), (s, length))
+        excluded = {to_ms(_frame(value, first)) for value in _values(master, "EXDATE")}
+        for key in excluded:
+            starts.pop(key, None)
+        for ev in overrides.pop(uid, []):
+            rid = _frame(ev.get("RECURRENCE-ID").dt, first)
+            starts.pop(to_ms(rid), None)
+            s = ev.get("DTSTART").dt
+            e = end_of(ev, s)
+            if to_ms(rid) not in excluded and overlaps(s, e):
+                out.append((ev, s, e, rid))
+        for s, span in starts.values():
+            if overlaps(s, s + span):
+                out.append((master, s, s + span, s))
+    # Overrides of a series this object doesn't hold
+    for evs in overrides.values():
+        for ev in evs:
+            s = ev.get("DTSTART").dt
+            e = end_of(ev, s)
+            if overlaps(s, e):
+                out.append((ev, s, e, ev.get("RECURRENCE-ID").dt))
+    out.sort(key=lambda o: to_ms(o[1]))
+    return out
+
+
 def expand_object(cid, href, obj, start, end):
     import icalendar
-    import recurring_ical_events
     cal = icalendar.Calendar.from_ical(obj["ics"])
-    masters, recurring = {}, set()
+    masters = {}
     for ev in cal.walk("VEVENT"):
-        uid = str(ev.get("UID", ""))
-        if ev.get("RECURRENCE-ID") is not None:
-            recurring.add(uid)
-        else:
-            masters[uid] = ev
-            if ev.get("RRULE") or ev.get("RDATE"):
-                recurring.add(uid)
+        if ev.get("RECURRENCE-ID") is None:
+            masters.setdefault(str(ev.get("UID", "")), ev)
     out = []
-    for ev in recurring_ical_events.of(cal, components=["VEVENT"]).between(start, end):
+    for ev, s, e, original in occurrences(cal, to_ms(start), to_ms(end)):
         uid = str(ev.get("UID", ""))
-        s = ev.get("DTSTART").dt
-        e = end_of(ev, s)
         all_day = not isinstance(s, dt.datetime)
-        is_rec = uid in recurring
-        rid = rid_of(ev.get("RECURRENCE-ID").dt) if is_rec and ev.get("RECURRENCE-ID") is not None else ""
+        is_rec = original is not None
+        rid = rid_of(original) if is_rec else ""
         start_ms, end_ms = to_ms(s), to_ms(e)
         occ = {
             "key": f"{cid}|{uid}|{rid}",
@@ -475,6 +590,8 @@ def expand_all(calendars, from_ms, to_ms_):
         for href, obj in cal.get("objects", {}).items():
             try:
                 events.extend(expand_object(cid, href, obj, start, end))
+            except ModuleNotFoundError:
+                raise
             except Exception as err:  # one broken object never hides the rest
                 print(f"calendar_sync: skipping {href}: {err}", file=sys.stderr)
     events.sort(key=lambda e: (e["start"], not e["allDay"], e["title"].lower()))
@@ -814,6 +931,8 @@ def main(argv):
         result = COMMANDS[argv[1]](req)
     except Failure as err:
         result = {"ok": False, "code": err.code, "message": err.message}
+    except ModuleNotFoundError as err:
+        result = {"ok": False, "code": "missingModule", "message": err.name}
     except (ValueError, KeyError) as err:
         result = {"ok": False, "code": "parse", "message": f"{type(err).__name__}: {err}"}
     print(json.dumps(result))

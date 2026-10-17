@@ -43,8 +43,6 @@ AttachedSurface {
   backed: root.geometry.backed
   opaque: root.geometry.opaque
   shadowLook: root.geometry.shadowLook
-  shadowEdge: root.geometry.shadow.edge
-  shadowFalls: root.geometry.shadow.falls
 
   // Under a submenu: its opening in the box's side, the fillet where it
   // joins the bar side, and its box out of this one's shadow

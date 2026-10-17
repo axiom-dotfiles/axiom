@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.config
+import qs.components.methods
 
 /*
  * Startup checks for what the whole shell needs to look right: the icon font
@@ -13,8 +14,10 @@ import qs.config
  * name, checked again whenever it changes). Created from shell.qml's
  * `_services`.
  *
- * Also which commands are installed (`found`, filled by `check(commands)`),
- * for the onboarder: the optional `tools` below, the apps it offers.
+ * Also which commands (and Python modules, as "py:<module>") are installed
+ * (`found`, filled by `check(commands)`),
+ * for the onboarder: the optional `tools` below, the apps it offers; and
+ * what installs them on this distribution (`distro`, `installLines`).
  */
 Singleton {
   id: root
@@ -33,90 +36,156 @@ Singleton {
     return Qt.fontFamilies().some(family => family.toLowerCase() === wanted);
   }
 
-  // The programs features use, with the (Arch) package that has them.
+  // The distribution family (Packages.distroFamily: "arch", "fedora", or
+  // "" for one axiom has no package names for), from os-release
+  readonly property string distro: Packages.distroFamily(FileManager.read("/etc/os-release") ?? FileManager.read("/usr/lib/os-release"))
+
+  // The shell lines that install these commands (or "iconFont") here: []
+  // on an unknown distribution
+  function installLines(keys) {
+    return Packages.installLines(root.distro, keys);
+  }
+
+  // A key as people read it: "python: numpy" for "py:numpy", the font's
+  // family for "iconFont"
+  function label(key) {
+    if (key === "iconFont")
+      return Appearance.iconFamily;
+    return String(key).startsWith("py:") ? "python: " + key.slice(3) : key;
+  }
+
+  // One line that installs a command here ("" on an unknown distribution)
+  function installCommand(key) {
+    return Packages.installCommand(root.distro, key);
+  }
+
+  // The programs features use, for the onboarder's checks. `compositors`
+  // limits one to those compositors (CompositorManager.kind); one with
+  // nothing to install on this distribution (Packages) is left out.
   // I18n.tr("Calculator in the launcher") I18n.tr("Brightness of a laptop screen")
-  // I18n.tr("Brightness of external monitors") I18n.tr("Chat screenshots")
-  // I18n.tr("Copying to the clipboard") I18n.tr("Reading JSON (theme integrations)")
-  // I18n.tr("Pending package updates") I18n.tr("Chat API keys in the keyring")
-  // I18n.tr("Moving notes to the trash") I18n.tr("Media keys for players axiom doesn't see")
-  // I18n.tr("Generating themes from a wallpaper") I18n.tr("Idle locking and screen blanking")
+  // I18n.tr("Brightness of external monitors") I18n.tr("Copying to the clipboard")
+  // I18n.tr("Reading JSON (theme integrations)") I18n.tr("Pending package updates")
+  // I18n.tr("Chat API keys in the keyring") I18n.tr("Moving notes to the trash")
+  // I18n.tr("Theme generation, theme integrations and keybinds")
+  // I18n.tr("Notifications from axiom itself, with their buttons")
+  // I18n.tr("Idle locking and screen blanking") I18n.tr("Night light")
+  // I18n.tr("X11 apps (Steam, games, older apps)")
   // I18n.tr("Clipboard history shared with other apps")
-  // I18n.tr("Typing emoji from the launcher")
+  // I18n.tr("Typing emoji from the launcher") I18n.tr("Screen recording")
   // I18n.tr("The system's sound in screen recordings")
+  // I18n.tr("Annotating screenshots (swappy works too)")
+  // I18n.tr("Power profiles in the quick actions")
+  // I18n.tr("Theme generation from the wallpaper") I18n.tr("Calendar accounts and feeds")
   readonly property var tools: [
     {
       "command": "qalc",
-      "package": "libqalculate",
       "purpose": "Calculator in the launcher"
     },
     {
       "command": "brightnessctl",
-      "package": "brightnessctl",
       "purpose": "Brightness of a laptop screen"
     },
     {
       "command": "ddcutil",
-      "package": "ddcutil",
       "purpose": "Brightness of external monitors"
     },
     {
       "command": "wl-copy",
-      "package": "wl-clipboard",
       "purpose": "Copying to the clipboard"
     },
     {
       "command": "jq",
-      "package": "jq",
       "purpose": "Reading JSON (theme integrations)"
     },
     {
       "command": "checkupdates",
-      "package": "pacman-contrib",
       "purpose": "Pending package updates"
     },
     {
       "command": "secret-tool",
-      "package": "libsecret",
       "purpose": "Chat API keys in the keyring"
     },
     {
       "command": "gio",
-      "package": "glib2",
       "purpose": "Moving notes to the trash"
     },
     {
       "command": "python3",
-      "package": "python",
-      "purpose": "Generating themes from a wallpaper"
+      "purpose": "Theme generation, theme integrations and keybinds"
+    },
+    {
+      "command": "py:numpy",
+      "purpose": "Theme generation from the wallpaper"
+    },
+    {
+      "command": "py:PIL",
+      "purpose": "Theme generation from the wallpaper"
+    },
+    {
+      "command": "py:icalendar",
+      "purpose": "Calendar accounts and feeds"
+    },
+    {
+      "command": "notify-send",
+      "purpose": "Notifications from axiom itself, with their buttons"
     },
     {
       "command": "hypridle",
-      "package": "hypridle",
       "purpose": "Idle locking and screen blanking"
     },
     {
+      "command": "hyprsunset",
+      "purpose": "Night light",
+      "compositors": ["hyprland"]
+    },
+    {
+      "command": "wlsunset",
+      "purpose": "Night light",
+      "compositors": ["sway", "niri"]
+    },
+    {
+      "command": "xwayland-satellite",
+      "purpose": "X11 apps (Steam, games, older apps)",
+      "compositors": ["niri"]
+    },
+    {
+      "command": "Xwayland",
+      "purpose": "X11 apps (Steam, games, older apps)",
+      "compositors": ["sway"]
+    },
+    {
       "command": "cliphist",
-      "package": "cliphist",
       "purpose": "Clipboard history shared with other apps"
     },
     {
       "command": "wtype",
-      "package": "wtype",
       "purpose": "Typing emoji from the launcher"
     },
     {
+      "command": "wf-recorder",
+      "purpose": "Screen recording"
+    },
+    {
       "command": "pactl",
-      "package": "libpulse",
       "purpose": "The system's sound in screen recordings"
+    },
+    {
+      "command": "satty",
+      "purpose": "Annotating screenshots (swappy works too)"
+    },
+    {
+      "command": "powerprofilesctl",
+      "purpose": "Power profiles in the quick actions"
     }
-  ]
+  ].filter(tool => Packages.applies(root.distro, tool.command) && (tool.compositors === undefined || tool.compositors.includes(CompositorManager.kind)))
 
   // { command: bool } for every command checked so far
   property var found: ({})
 
-  // Looks the commands up (command -v) and adds them to `found`
+  // Looks the commands up (command -v; a "py:<module>" with python3's
+  // importlib) and adds them to `found`
   function check(commands) {
-    const wanted = (commands ?? []).map(c => String(c).trim().split(/\s+/)[0]).filter(c => /^[\w.+-]+$/.test(c));
+    const wanted = (commands ?? []).map(c => String(c).trim().split(/\s+/)[0]).filter(c => /^(py:)?[\w.+-]+$/.test(c));
     if (wanted.length === 0)
       return;
     _pendingChecks = _pendingChecks.concat(wanted);
@@ -143,7 +212,7 @@ Singleton {
     const commands = Array.from(new Set(_pendingChecks));
     _pendingChecks = [];
     _lookup.commands = commands;
-    _lookup.command = ["sh", "-c", 'for c in "$@"; do command -v "$c" >/dev/null 2>&1 && echo "$c"; done; true', "sh"].concat(commands);
+    _lookup.command = ["sh", "-c", 'for c in "$@"; do case "$c" in py:*) python3 -c "import importlib.util, sys; sys.exit(importlib.util.find_spec(sys.argv[1]) is None)" "${c#py:}" >/dev/null 2>&1 ;; *) command -v "$c" >/dev/null 2>&1 ;; esac && echo "$c"; done; true', "sh"].concat(commands);
     _lookup.running = true;
   }
 
@@ -182,7 +251,8 @@ Singleton {
     interval: 3000
     onTriggered: {
       _run.notified = true;
-      NotificationManager.sendNotification("axiom", I18n.tr("Icon font missing"), I18n.tr("Install {0} ({1}), then restart the shell.", Appearance.iconFamily, "ttf-material-symbols-variable"));
+      const command = root.installCommand("iconFont");
+      NotificationManager.sendNotification("axiom", I18n.tr("Icon font missing"), command !== "" ? I18n.tr("Install {0} ({1}), then restart the shell.", Appearance.iconFamily, command) : I18n.tr("Install {0}, then restart the shell.", Appearance.iconFamily));
     }
   }
 
@@ -209,7 +279,7 @@ Singleton {
     _checkTextFont.start();
     if (root.iconFontInstalled)
       return;
-    console.warn(`[DependencyManager] ${Appearance.iconFamily} is not installed (ttf-material-symbols-variable): icons will show as words`);
+    console.warn(`[DependencyManager] ${Appearance.iconFamily} is not installed: icons will show as words`);
     if (!_run.notified)
       _notify.start();
   }

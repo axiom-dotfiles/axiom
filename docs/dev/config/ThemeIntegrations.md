@@ -12,7 +12,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 ### `ThemeIntegrations`
 
 - **`ThemeIntegrations.gtk`** · boolean = false
-  - GTK: Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (pacman -S adw-gtk-theme).
+  - GTK: Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (adw-gtk-theme on Arch, adw-gtk3-theme on Fedora).
   - x-hookup=[{"file":"{config}/gtk-3.0/gtk.css","place":"start","text":"@import u…
   - read: `ThemeIntegrations.gtk`, `// reads:` marker · in: `services/ThemeManager.qml`
 - **`ThemeIntegrations.qt`** · boolean = false

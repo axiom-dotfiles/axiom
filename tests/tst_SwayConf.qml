@@ -79,6 +79,12 @@ TestCase {
       "mouse": true
     });
     compare(SwayConf.key("SUPER + mouse:272").spec, "Mod4+BTN_LEFT");
+    compare(SwayConf.key("SUPER + Super_L"), {
+      "command": "bindsym",
+      "spec": "Super_L",
+      "mouse": false,
+      "tap": true
+    });
     compare(SwayConf.key("HYPER + Q"), null);
     compare(SwayConf.key("SUPER + mouse:999"), null);
     compare(SwayConf.key(""), null);
@@ -111,6 +117,21 @@ TestCase {
       "action": "restartShell",
       "release": true
     }, ctx), "bindsym --no-warn --release --no-repeat Mod4+Shift+r exec \"qs kill -p '/opt/axiom'; qs -p '/opt/axiom' -d\"");
+  }
+
+  // Checked in a headless sway 1.12: a tap fires bound alone, on release,
+  // and not after another key
+  function test_tapBindsOnRelease() {
+    compare(SwayConf.bindLine({
+      "key": "Super_L",
+      "action": "launcher"
+    }, ctx), "bindsym --no-warn --release --no-repeat Super_L exec \"qs -p '/opt/axiom' ipc call appLauncher toggle\"");
+    compare(SwayConf.unbindLines([
+      {
+        "key": "Super_L",
+        "action": "launcher"
+      }
+    ], ctx), ["unbindsym --release Super_L"]);
   }
 
   function test_switcherAndSpecialAreAxiomsOwn() {

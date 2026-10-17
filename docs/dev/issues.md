@@ -18,6 +18,24 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### install.sh still installs the rest of a feature whose COPR was declined
+- **Where:** `install.sh` (the declined-COPR loop after the COPR prompts)
+- **What:** Declining a COPR on Fedora marks each feature with a package from it as skipped, but drops only that COPR's packages: the feature's other packages stay in the one `dnf install`. Declining `nett00n/hyprland` while setting up niri skips the login screen's feature yet still installs `greetd`. Rebuilding `packages` from the features left (and the required keys) after the prompts would fix it; test with `--dry-run` in a `fedora:latest` container.
+- **Size:** small
+- **Found:** 2026-10-17, while reviewing the distro-support branch for merge
+
+### The window shadow's offset is always 0 but still passed through every writer
+- **Where:** `services/CompositorConfigManager.qml` (`spec`: `"offset": 0`), `components/methods/CompositorLayer.qml` (`look`), `components/methods/HyprLua.qml`, `components/methods/SwayConf.qml`, `components/methods/NiriConf.qml`
+- **What:** Since config v66 axiom's shadow only spreads evenly, so the spec's shadow `offset` is a constant 0 that `look()` hands on and each writer writes (`decoration.shadow.offset`, `shadow_offset`, niri's `offset`). Writing 0 still matters (it resets a user's own offset), so each writer could write 0 itself and the field go from the spec and its tests.
+- **Size:** small
+- **Found:** 2026-10-17, while reviewing the shadow-on-or-off change
+
+### Night light's tool is chosen in two places
+- **Where:** `components/views/settings/NightLightStatus.qml` (`wanted`), `services/DependencyManager.qml` (`tools`: `compositors`), `services/NightLightManager.qml` (`tool`)
+- **What:** "hyprsunset on Hyprland, wlsunset elsewhere" is worked out by `NightLightManager.tool`, again by `NightLightStatus.wanted` for its install hint, and a third time as `DependencyManager.tools`' rows. `NightLightManager` could expose the tool it wants, for both to read.
+- **Size:** trivial
+- **Found:** 2026-10-17, while reviewing the distro-support branch for merge
+
 ### niri's overview drop moves a window's whole column
 - **Where:** `services/NiriManager.qml` (`placeWindow`)
 - **What:** Dropped beside or into another column on its own workspace (`reinsert`), a window is moved with `MoveColumnToIndex`, which moves the focused column: a window sharing its column with others takes them along. A drop onto another workspace moves only the window (`MoveWindowToWorkspace` by id). Expelling it from its column first (`ExpelWindowFromColumn`, which shifts the column indexes) would fix it; needs trying in `scripts/dev/nested.sh niri`.
@@ -38,7 +56,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### SwayFX blurs a floating popout's shadow halo
 - **Where:** `components/hosts/popout/FloatingPopout.qml` (its `SurfaceShadow`), `components/methods/LayerStack.qml` (`blurSurfaces`: `floating-popout`)
-- **What:** The floating popout blurs its own window and casts its shadow inside it. SwayFX's `blur_ignore_transparent` blurs every pixel that isn't fully clear, so its glow or shadow shows as a frosted band (Hyprland's `ignore_alpha` leaves it out). The chrome's shadows are cast from a window apart on SwayFX (`axiom-shadows`); this one would need the same, or its shadow off there.
+- **What:** The floating popout blurs its own window and casts its shadow inside it. SwayFX's `blur_ignore_transparent` blurs every pixel that isn't fully clear, so its shadow shows as a frosted band (Hyprland's `ignore_alpha` leaves it out). The chrome's shadows are cast from a window apart on SwayFX (`axiom-shadows`); this one would need the same, or its shadow off there.
 - **Size:** small
 - **Found:** 2026-10-17, while fixing the chrome's shadows on SwayFX
 
@@ -228,9 +246,9 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** trivial
 - **Found:** 2026-10-16, while auditing the layer-placement branch
 
-### The python venv and bytecode are written into the repo
-- **Where:** `scripts/setup_venv.sh`, `scripts/venv_python.sh`
-- **What:** The venv for `generate_theme.py`/`calendar_sync.py` is made at `<repo>/.venv`, and python leaves `__pycache__/` in `scripts/`. A packaged (read-only) install can't do either. Put the venv in `$XDG_DATA_HOME/axiom/venv` (or use the system python when the requirements already import), and set `PYTHONDONTWRITEBYTECODE=1`. Blocks packaging, not the XDG move.
+### Python bytecode is written into the repo
+- **Where:** `scripts/bind_merge_common.py`, `scripts/niri_kdl.py`
+- **What:** Scripts that import a sibling module (the bind mergers, the niri config scripts) leave `__pycache__/` in `scripts/`, which a packaged (read-only) install can't write. Set `PYTHONDONTWRITEBYTECODE=1` where the shell runs python. Blocks packaging, not the XDG move.
 - **Size:** small
 - **Found:** 2026-10-15, while moving config and state to the XDG folders
 

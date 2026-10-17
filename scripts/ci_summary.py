@@ -102,6 +102,7 @@ CHECKS = [
     ("Structure (`check_structure.py`)", lambda: leveled("scripts/check_structure.py")),
     ("Generated docs (`gen_docs.py --check`)", generated),
     ("Docs match the code (`check_docs.py`)", lambda: leveled("scripts/check_docs.py")),
+    ("Package lists agree (`check_packages.py`)", lambda: leveled("scripts/check_packages.py")),
     ("Translations (`check_i18n.py`)", translations),
 ]
 

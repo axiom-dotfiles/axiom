@@ -18,11 +18,12 @@
   - claim_hyprland.sh (the "managed" Hyprland mode's takeover) adopts a
     plain config dir and never touches a symlinked or git-tracked one, and
     its release gives back what the takeover set aside
-  - generate_theme.py turns an image into a valid dark/light pair (skipped
-    when the venv can't be set up)
-  - calendar_sync.py reads a locally served .ics feed into occurrences, and
-    edits events (new, one occurrence, excluded, the series moved) so they
-    read back right (skipped when the venv can't be set up)
+  - generate_theme.py turns an image into a valid dark/light pair, and exits
+    3 naming a missing module (skipped without numpy and Pillow)
+  - calendar_sync.py reads a locally served .ics feed into occurrences,
+    expands recurrences (DST, UNTIL, RDATE, EXDATE, overrides) without
+    recurring-ical-events, and edits events (new, one occurrence, excluded,
+    the series moved) so they read back right (skipped without icalendar)
   - migrate_xdg.sh copies the repo's config and state into the XDG
     folders once, never overwriting, and marks them moved
   - cursor_theme.py makes the companion theme filling in a cursor theme's
@@ -277,9 +278,6 @@ def gtk_css_problems(path):
 def integration_args(key, theme, target):
     """(output path to check, the script's arguments) for rendering `theme`
     into the directory `target`"""
-    if key == "hyprlock":
-        target = target / "hyprlock.conf"
-        return target, [theme, target, "Sans", "file:///tmp/wall.png", "1", "Hey you", "Password..."]
     if key in ("gtk", "vscode"):
         return target, [theme, target]
     if key in ("vesktop", "firefox"):
@@ -369,15 +367,6 @@ class ThemeIntegrations(unittest.TestCase):
         self.assertEqual(mapped - shipped, set(), "map entries without a theme")
         self.assertEqual(shipped - mapped - {"submarine-sonar", "submarine-sonar-light", "nord-light", "alucard"},
                          set(), "themes without a map entry")
-
-    def test_hyprlock_keeps_its_own_variables(self):
-        target = self.out / "hyprlock.conf"
-        self.run_script(SCRIPTS / "theme_hyprlock.sh",
-                        [THEMES / "tokyo-night.json", target, "Sans", "file:///w.png", "0", "Hi", "Pass"])
-        text = target.read_text()
-        self.assertIn("$TIME", text)
-        self.assertIn("/w.png", text)
-        self.assertNotIn("file://", text)
 
 
 class HookupScript(unittest.TestCase):
@@ -1363,20 +1352,38 @@ class MigrateXdg(unittest.TestCase):
         self.assertFalse(self.marker.exists())
 
 
+def skip_without_modules(*modules):
+    """Skips (fails in CI, which installs them) when python3 lacks one of
+    the system packages a script uses."""
+    import importlib.util
+    missing = [m for m in modules if importlib.util.find_spec(m) is None]
+    if missing:
+        message = f"python modules not installed: {', '.join(missing)}"
+        if os.environ.get("CI"):
+            raise AssertionError(message)
+        raise unittest.SkipTest(message)
+
+
 class GenerateTheme(unittest.TestCase):
+    def test_missing_module_exits_3(self):
+        tmp = Path(tempfile.mkdtemp())
+        try:
+            # A numpy that can't be imported, ahead of the real one
+            (tmp / "numpy.py").write_text("raise ModuleNotFoundError('no numpy', name='numpy')\n")
+            env = dict(scratch_env(tmp), PYTHONPATH=str(tmp))
+            result = subprocess.run([sys.executable, str(SCRIPTS / "generate_theme.py"), str(tmp / "x.png"),
+                                     "--output_dir", str(tmp)], env=env, capture_output=True, text=True, timeout=60)
+            self.assertEqual(result.returncode, 3, result.stderr)
+            self.assertEqual(result.stderr.strip(), "missing python module: numpy")
+        finally:
+            shutil.rmtree(tmp)
+
     def test_wallpaper_makes_a_valid_pair(self):
+        skip_without_modules("numpy", "PIL")
         tmp = Path(tempfile.mkdtemp())
         try:
             env = scratch_env(tmp)
-            setup = subprocess.run([str(SCRIPTS / "setup_venv.sh")], env=env, capture_output=True, text=True,
-                                   timeout=600)
-            if setup.returncode != 0:
-                message = f"venv setup failed:\n{setup.stderr[-500:]}"
-                # Offline or without pip locally is fine; CI must run it
-                if os.environ.get("CI"):
-                    self.fail(message)
-                self.skipTest(message)
-            python = str(ROOT / ".venv" / "bin" / "python3")
+            python = sys.executable
             image = tmp / "wall.png"
             # Bands of colour, so every accent slot has something to pick from
             subprocess.run([python, "-c", (
@@ -1449,21 +1456,20 @@ class CalendarSync(unittest.TestCase):
     """calendar_sync.py: an .ics feed served locally (discover, sync and the
     occurrences it writes), and the edits it makes to events, without a
     server. Times in UTC (TZ), so the expected values don't depend on the
-    machine. Skipped when the venv can't be set up."""
+    machine. recurring-ical-events is made unimportable: Fedora doesn't
+    package it, so the helper must never use it, even where it's installed.
+    Skipped without icalendar."""
 
     @classmethod
     def setUpClass(cls):
+        skip_without_modules("icalendar", "dateutil")
         cls.tmp = Path(tempfile.mkdtemp())
-        cls.env = dict(scratch_env(cls.tmp), TZ="UTC")
-        setup = subprocess.run([str(SCRIPTS / "setup_venv.sh")], env=cls.env, capture_output=True, text=True,
-                               timeout=600)
-        if setup.returncode != 0:
-            shutil.rmtree(cls.tmp)
-            message = f"venv setup failed:\n{setup.stderr[-500:]}"
-            if os.environ.get("CI"):
-                raise AssertionError(message)
-            raise unittest.SkipTest(message)
-        cls.python = str(ROOT / ".venv" / "bin" / "python3")
+        blocked = cls.tmp / "blocked"
+        blocked.mkdir()
+        (blocked / "recurring_ical_events.py").write_text(
+            "raise ImportError('calendar_sync.py must not use recurring_ical_events (not packaged on Fedora)')\n")
+        cls.env = dict(scratch_env(cls.tmp), TZ="UTC", PYTHONPATH=str(blocked))
+        cls.python = sys.executable
 
     @classmethod
     def tearDownClass(cls):
@@ -1600,6 +1606,58 @@ print(json.dumps(out))
         self.assertEqual([tuple(o) for o in out["single"]], [("Gym once", ms(2026, 7, 6, 17), "", "none", -1)])
         self.assertEqual([tuple(o) for o in out["allDay"]], [("Holiday", "2026-07-20", "2026-07-22")])
 
+    def test_recurrences(self):
+        """The expansion's hard cases, in October 2026 (TZ UTC): checked
+        against recurring-ical-events, which it replaces."""
+        script = r'''
+import datetime as dt, json, sys
+sys.path.insert(0, sys.argv[1])
+import calendar_sync as c
+def ev(body): return "BEGIN:VEVENT\r\n" + body.strip().replace("\n", "\r\n") + "\r\nEND:VEVENT\r\n"
+def cal(*evs): return "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//t//EN\r\n" + "".join(evs) + "END:VCALENDAR\r\n"
+cases = {
+    # Wall-clock time kept across Berlin's change to winter time (Oct 25)
+    "dst": cal(ev("UID:a\nDTSTART;TZID=Europe/Berlin:20261020T090000\nDTEND;TZID=Europe/Berlin:20261020T100000\nRRULE:FREQ=WEEKLY")),
+    # A UTC UNTIL on a zoned start, and on a floating one (read as wall time)
+    "until": cal(ev("UID:a\nDTSTART;TZID=America/New_York:20261001T090000\nDURATION:PT1H\nRRULE:FREQ=DAILY;UNTIL=20261005T130000Z")),
+    "floating": cal(ev("UID:a\nDTSTART:20261001T090000\nDTEND:20261001T093000\nRRULE:FREQ=DAILY;UNTIL=20261003T090000Z")),
+    # A DATE UNTIL counts its whole day; all-day stays all-day
+    "allDay": cal(ev("UID:a\nDTSTART;VALUE=DATE:20261001\nRRULE:FREQ=WEEKLY;UNTIL=20261015;BYDAY=TH,FR")),
+    # RDATEs (one a period with its own length), the start excluded
+    "rdate": cal(ev("UID:a\nDTSTART:20261002T100000Z\nDTEND:20261002T110000Z\nEXDATE:20261002T100000Z\n"
+                    "RDATE:20261015T100000Z\nRDATE;VALUE=PERIOD:20261020T100000Z/20261020T140000Z")),
+    # An occurrence moved out of the window, and one moved into it
+    "movedOut": cal(ev("UID:a\nDTSTART:20261001T100000Z\nDTEND:20261001T110000Z\nRRULE:FREQ=DAILY;COUNT=3"),
+                    ev("UID:a\nRECURRENCE-ID:20261002T100000Z\nDTSTART:20261210T100000Z\nDTEND:20261210T110000Z")),
+    "movedIn": cal(ev("UID:a\nDTSTART:20260901T100000Z\nDTEND:20260901T110000Z\nRRULE:FREQ=DAILY;COUNT=10"),
+                   ev("UID:a\nRECURRENCE-ID:20260905T100000Z\nDTSTART:20261012T100000Z\nDTEND:20261012T110000Z")),
+    # Started before the window, still running in it
+    "spanning": cal(ev("UID:a\nDTSTART:20260928T100000Z\nDTEND:20261003T100000Z\nRRULE:FREQ=WEEKLY;COUNT=2")),
+}
+utc = dt.timezone.utc
+out = {name: sorted([o["start"], o["end"], o["rid"], o["dayStart"]] for o in c.expand_object(
+    "a|cal", "h", {"ics": ics}, dt.datetime(2026, 10, 1, tzinfo=utc), dt.datetime(2026, 11, 1, tzinfo=utc)))
+    for name, ics in cases.items()}
+print(json.dumps(out))
+'''
+        result = subprocess.run([self.python, "-c", script, str(SCRIPTS)], env=self.env, capture_output=True,
+                                text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        out = json.loads(result.stdout)
+        utc = __import__("datetime").timezone.utc
+        ms = lambda *args: int(__import__("datetime").datetime(*args, tzinfo=utc).timestamp() * 1000)
+        hour = 3600 * 1000
+        timed = lambda *args, length=hour: [ms(*args), ms(*args) + length, f"T:{ms(*args) // 1000}", ""]
+        self.assertEqual(out["dst"], [timed(2026, 10, 20, 7), timed(2026, 10, 27, 8)])
+        self.assertEqual(out["until"], [timed(2026, 10, d, 13) for d in range(1, 6)])
+        self.assertEqual(out["floating"], [timed(2026, 10, d, 9, length=hour // 2) for d in range(1, 4)])
+        self.assertEqual([o[3] for o in out["allDay"]],
+                         ["2026-10-01", "2026-10-02", "2026-10-08", "2026-10-09", "2026-10-15"])
+        self.assertEqual(out["rdate"], [timed(2026, 10, 15, 10), timed(2026, 10, 20, 10, length=4 * hour)])
+        self.assertEqual(out["movedOut"], [timed(2026, 10, 1, 10), timed(2026, 10, 3, 10)])
+        self.assertEqual(out["movedIn"], [[ms(2026, 10, 12, 10), ms(2026, 10, 12, 11), f"T:{ms(2026, 9, 5, 10) // 1000}", ""]])
+        self.assertEqual(out["spanning"], [timed(2026, 9, 28, 10, length=120 * hour), timed(2026, 10, 5, 10, length=120 * hour)])
+
     def test_failures_are_json(self):
         self.assertEqual(self.run_helper("discover", {"kind": "caldav", "url": "https://example.invalid"})["code"],
                          "noPassword")
@@ -1724,6 +1782,45 @@ class GreeterInstall(unittest.TestCase):
         self.assertEqual(self.run_script("check")["url"], "https://github.com/axiom-dotfiles/axiom.git")
         self.git("remote", "set-url", "origin", "ssh://git@example.org/me/axiom.git")
         self.assertEqual(self.run_script("check")["url"], "https://example.org/me/axiom.git")
+
+    def package(self, version="1.2.0-1"):
+        """A packaged axiom at /usr/share/axiom, with the marker a package writes."""
+        package = self.root / "usr/share/axiom"
+        for name in ["greeter.qml", "shell.qml", "scripts/greeter/greeter-session.sh", "scripts/greeter/hyprland.lua"]:
+            (package / name).parent.mkdir(parents=True, exist_ok=True)
+            (package / name).write_text(name)
+        for name in ["greeter_install.sh", "org.axiom.greeter.policy"]:
+            shutil.copy(self.repo / "scripts/greeter" / name, package / "scripts/greeter" / name)
+        (package / ".packaged").write_text(version + "\n")
+        return package
+
+    def test_package_source(self):
+        """A packaged axiom: the greeter runs the package's code, so the
+        install folder gets only scripts/greeter/ and the snapshot, and the
+        package's version is its hash; the clone isn't read."""
+        report = self.run_script("install", ok=False, source="package")
+        self.assertIn(".packaged is missing", report["error"])
+        package = self.package()
+        bundle = self.root / "var/lib/axiom-greeter/config"
+        bundle.mkdir(parents=True)
+        (bundle / "greeter.json").write_text("{}")
+        self.assertTrue(self.run_script("install", source="package")["ok"])
+        copy = self.root / "usr/share/axiom-greeter"
+        self.assertEqual(sorted(p.name for p in copy.iterdir()),
+                         [".greeter-hash", ".greeter-source", "fallback", "scripts"])
+        self.assertTrue((copy / "scripts/greeter/greeter_install.sh").is_file())
+        self.assertEqual(self.copied(".greeter-source"), "package /usr/share/axiom\n")
+        self.assertEqual(self.copied("fallback/greeter.json"), "{}")
+        self.assertTrue(self.policy.is_file())
+        self.assertEqual(self.command(), self.SESSION)
+        report = self.run_script("check", source="package")
+        self.assertEqual((report["installedSource"], report["installedHash"], report["currentHash"], report["url"]),
+                         ("package", "1.2.0-1", "1.2.0-1", ""))
+        # The package manager updated it: behind until Update
+        (package / ".packaged").write_text("1.3.0-1\n")
+        self.assertEqual(self.run_script("check", source="package")["currentHash"], "1.3.0-1")
+        self.assertTrue(self.run_script("update", source="package")["ok"])
+        self.assertEqual(self.copied(".greeter-hash"), "1.3.0-1\n")
 
     def test_install_copies_points_greetd_and_backs_up(self):
         bundle = self.root / "var/lib/axiom-greeter/config"

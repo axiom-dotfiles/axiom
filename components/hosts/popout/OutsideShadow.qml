@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Shapes
 
-// The shadow or glow (SurfaceShadow) a sibling `target` casts, kept only
+// The shadow (SurfaceShadow) a sibling `target` casts, kept only
 // outside its shape, so none shows through a translucent fill. Declared
 // before the target, so it's drawn under it. It captures the target with
 // room for the shadow on every side, and the effect draws exactly that
@@ -16,8 +16,6 @@ Item {
 
   required property Item target
   property bool active: true
-  property alias edge: shadow.edge
-  property alias falls: shadow.falls
   property alias look: shadow.look
   // Rects (in the target's coordinates) it isn't cast on either: where
   // surfaces joined to the target sit over it, whose translucent fill the

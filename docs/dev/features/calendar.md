@@ -10,8 +10,10 @@ CalDAV accounts and read-only .ics feeds: syncing through a Python helper, editi
 - **CalDAV accounts.**
 - **Read-only .ics subscriptions:** `https://` / `webcal://`, or a local `file://` feed.
 - Both go through `scripts/calendar_sync.py`:
-  - run with `venv_python.sh`;
-  - uses `icalendar` and `recurring-ical-events` from requirements.txt;
+  - run with the system `python3`;
+  - uses `icalendar` (and `python-dateutil`, its dependency), system packages on every distribution;
+  - expands recurrences itself (`occurrences`, on `dateutil.rrule`): never `recurring-ical-events`, which Fedora doesn't package. `CalendarSync` makes importing it fail, so Arch and Fedora run the same code;
+  - a `RANGE=THISANDFUTURE` override changes only its own occurrence, not the ones after it;
   - uses stdlib HTTP and XML for the WebDAV side.
 
 ### Reader (CalendarConfig)
@@ -27,7 +29,8 @@ CalDAV accounts and read-only .ics feeds: syncing through a Python helper, editi
   - Passwords come from `SecretsManager.withSecret("calendar", id)` and are included in the request.
 - It prints one JSON result: `ok`, or a `code`:
   - `auth`, `network`, `notFound`, `notCalendar`, `conflict`, `readOnly`, `noPassword`, `parse`;
-  - `helper` when it couldn't run at all, which also clears `available`.
+  - `helper` when it couldn't run at all, which also clears `available`;
+  - `missingModule` (`message` the module) when icalendar or dateutil isn't installed: `missingModule` is set, `available` cleared, and `missingText` names the package to install (the Accounts card's description).
 - `errorText(result)` turns these into words.
 - One call runs at a time. Later jobs are queued, and a sync isn't queued twice.
 

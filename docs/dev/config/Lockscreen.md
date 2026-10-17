@@ -4,17 +4,17 @@
 > **Reader:** `LockscreenConfig` (`config/LockscreenConfig.qml`)
 > **Schema:** `config/json/config.schema.json` → `properties.Lockscreen` · category Screen & Power
 
-Lockscreen: Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in or hyprlock modes.
+Lockscreen: Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in one.
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
 
 ### `Lockscreen`
 
-- **`Lockscreen.mode`** · string = "quickshell" · enum quickshell|hyprlock|none
-  - Locker: Built-in uses the Wayland session-lock protocol with PAM, like hyprlock. hyprlock mode runs hyprlock with a config generated from the axiom theme. None leaves locking to your own locker.
+- **`Lockscreen.mode`** · string = "quickshell" · enum quickshell|none
+  - Locker: Built-in uses the Wayland session-lock protocol with PAM. None leaves locking to your own locker.
   - x-takeover=true
-  - read: `LockscreenConfig.mode` · in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/layouts/LockscreenTarget.qml`, `services/HypridleManager.qml`, `services/LockManager.qml`, `services/OverlayManager.qml`, `services/ThemeManager.qml`
+  - read: `LockscreenConfig.mode` · in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/layouts/LockscreenTarget.qml`, `services/HypridleManager.qml`, `services/LockManager.qml`, `services/OverlayManager.qml`
 - **`Lockscreen.lockCommand`** · string = "loginctl lock-session"
   - Lock command: What axiom's lock buttons run when the locker is your own.
   - x-showIf={"mode":"none"}
@@ -22,7 +22,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Lockscreen.blurWallpaper`** · boolean = true
   - Blur wallpaper: Blur the wallpaper behind the lock screen.
   - x-scope="look", x-showIf={"mode":{"not":"none"}}
-  - read: `LockscreenConfig.blurWallpaper` · in: `components/surfaces/greeter/GreeterSurface.qml`, `components/surfaces/lockscreen/LockSurface.qml`, `services/ThemeManager.qml`
+  - read: `LockscreenConfig.blurWallpaper` · in: `components/surfaces/greeter/GreeterSurface.qml`, `components/surfaces/lockscreen/LockSurface.qml`
 
 ### `Lockscreen.layout`
 
@@ -77,12 +77,12 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 Every public member of `LockscreenConfig`, with the files that use it.
 
-- `LockscreenConfig.mode` (string): "quickshell" (built-in) | "hyprlock" (themed by axiom) | "none"
-  - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/layouts/LockscreenTarget.qml`, `services/HypridleManager.qml`, `services/LockManager.qml`, `services/OverlayManager.qml`, `services/ThemeManager.qml`
+- `LockscreenConfig.mode` (string): "quickshell" (built-in) | "none"
+  - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/layouts/LockscreenTarget.qml`, `services/HypridleManager.qml`, `services/LockManager.qml`, `services/OverlayManager.qml`
 - `LockscreenConfig.lockCommand` (string): What lock buttons run in "none" mode
   - in: `services/HypridleManager.qml`, `services/LockManager.qml`
 - `LockscreenConfig.blurWallpaper` (bool)
-  - in: `components/surfaces/greeter/GreeterSurface.qml`, `components/surfaces/lockscreen/LockSurface.qml`, `services/ThemeManager.qml`
+  - in: `components/surfaces/greeter/GreeterSurface.qml`, `components/surfaces/lockscreen/LockSurface.qml`
 - `LockscreenConfig.layout` (var): The built-in lock screen: { columns, rows (its grid, fitted to each monitor; fineGrid splits its units in two), otherScreens ("layout": the modules without the…
   - in: `components/surfaces/lockscreen/LockSurface.qml`
 - `LockscreenConfig.fieldGroups` (var): The layout's own fields in groups (`x-group`), for the layouts editor

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Every check CI runs (.github/workflows/checks.yml), in the same order
 # (the generated docs are rebuilt here, only checked in CI).
-# Needs Qt 6's tools, shellcheck, luac and jq; the script smoke tests set up
-# the python venv on their first run.
+# Needs Qt 6's tools, shellcheck, luac and jq; the theme and calendar script
+# tests also want python's numpy, Pillow and icalendar (skipped without).
 #
 #   scripts/check_all.sh             everything
 #   scripts/check_all.sh --no-docs   skip rebuilding the generated docs (the
@@ -28,6 +28,7 @@ step "structure" python3 scripts/check_structure.py
 # hook commits them); CI runs `gen_docs.py --check` to catch a skipped hook
 [[ $docs -eq 1 ]] && step "generated docs" python3 scripts/gen_docs.py
 step "docs" python3 scripts/check_docs.py
+step "package lists" python3 scripts/check_packages.py
 step "qmlformat" scripts/check_qmlformat.sh
 step "qmllint" python3 scripts/check_qmllint.py
 step "unit tests" scripts/run_tests.sh

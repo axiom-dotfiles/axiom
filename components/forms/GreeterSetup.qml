@@ -17,6 +17,9 @@ ColumnLayout {
   readonly property bool busy: GreeterManager.elevating
   // Remove waits for a second click
   property bool confirmingRemove: false
+  // What installs greetd and agreety here ("" on a distribution axiom has
+  // no package names for)
+  readonly property string installGreetd: DependencyManager.installCommand(["greetd", "agreety"])
 
   spacing: Widget.spacing
 
@@ -31,13 +34,14 @@ ColumnLayout {
     spacing: Widget.spacing
 
     StyledText {
-      text: I18n.tr("The login screen runs under greetd, with its text login (agreety) as the fallback. Install them:")
+      text: root.installGreetd !== "" ? I18n.tr("The login screen runs under greetd, with its text login (agreety) as the fallback. Install them:") : I18n.tr("The login screen runs under greetd, with its text login (agreety) as the fallback. Install them with your package manager.")
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
 
     CodeLine {
-      text: "sudo pacman -S greetd greetd-agreety"
+      visible: text !== ""
+      text: root.installGreetd
     }
   }
 
@@ -76,18 +80,19 @@ ColumnLayout {
   // Behind axiom: why
   StyledText {
     visible: root.status === "outdated"
-    text: root.report?.configured === false ? I18n.tr("greetd's config no longer starts axiom's login screen. Update points it back (after a backup).") : root.report?.installedSource !== GreeterManager.wantedSource ? I18n.tr("The login screen's code came from elsewhere than Code from now says. Update takes it from there, asking for your password.") : I18n.tr("Axiom changed since its login screen was set up. Its layout and look follow your settings already; Update brings its code up to date, asking for your password.")
+    text: root.report?.configured === false ? I18n.tr("greetd's config no longer starts axiom's login screen. Update points it back (after a backup).") : root.report?.installedSource !== GreeterManager.wantedSource ? I18n.tr("The login screen's code came from elsewhere than Code from now says. Update takes it from there, asking for your password.") : Paths.packaged ? I18n.tr("axiom's package was updated since its login screen was set up. It runs the new code already; Update refreshes its start-up files and fallback look, asking for your password.") : I18n.tr("Axiom changed since its login screen was set up. Its layout and look follow your settings already; Update brings its code up to date, asking for your password.")
     textColor: Theme.warning
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }
 
-  // Where the code comes from (Greeter.source), and what that trusts
+  // Where the code comes from (Greeter.source, or the package), and what
+  // that trusts
   StyledText {
-    readonly property bool local: GreeterConfig.source === "local"
+    readonly property bool local: GreeterConfig.source === "local" && !Paths.packaged
     visible: root.report !== null && root.status !== "noGreetd"
     // i18n: I18n.tr("the newest release") I18n.tr("the main branch")
-    text: local ? I18n.tr("Code from Local: Update copies your clone as it is, uncommitted changes included. Any program running as you can change that code before you next update, and the password prompt is then the only check. Choose Git unless you're working on axiom.") : I18n.tr("Code from Git: root fetches {0} from {1}, as axiom's own updates follow it. Nothing that can write to your clone can change what the login screen runs.", I18n.tr(SelfUpdate.channel === "main" ? "the main branch" : "the newest release"), root.report?.url || I18n.tr("your clone's remote"))
+    text: Paths.packaged ? I18n.tr("The login screen runs the copy of axiom your package manager installed, so it updates with the system. Only root can change it.") : local ? I18n.tr("Code from Local: Update copies your clone as it is, uncommitted changes included. Any program running as you can change that code before you next update, and the password prompt is then the only check. Choose Git unless you're working on axiom.") : I18n.tr("Code from Git: root fetches {0} from {1}, as axiom's own updates follow it. Nothing that can write to your clone can change what the login screen runs.", I18n.tr(SelfUpdate.channel === "main" ? "the main branch" : "the newest release"), root.report?.url || I18n.tr("your clone's remote"))
     textColor: local ? Theme.warning : Theme.foreground
     opacity: local ? 1 : 0.7
     wrapMode: Text.WordWrap

@@ -200,14 +200,14 @@ TestCase {
     const current = defaults();
     current.Compositor.mode = "managed";
     current.Idle.enabled = true;
-    current.Lockscreen.mode = "hyprlock";
+    current.Lockscreen.mode = "none";
     const loaded = defaults();
     loaded.Polkit.enabled = true;
     loaded.Workspaces.count = 4;
     const result = ConfigExamples.keepTakeovers(loaded, current, ConfigExamples.takeoverPaths(schema));
     compare(result.Compositor.mode, "managed");
     compare(result.Idle.enabled, true);
-    compare(result.Lockscreen.mode, "hyprlock");
+    compare(result.Lockscreen.mode, "none");
     compare(result.Polkit.enabled, false);
     // Everything else is the loaded config's, and the input is left as it was
     compare(result.Workspaces.count, 4);

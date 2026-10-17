@@ -62,15 +62,24 @@ QtObject {
 
   /**
    * A combo ("SUPER + SHIFT + Q") as sway binds it: { command: "bindsym" |
-   * "bindcode", spec: "Mod4+Shift+q", mouse }, or null when a modifier or
+   * "bindcode", spec: "Mod4+Shift+q", mouse, tap }, or null when a modifier or
    * the key can't be written. A letter is lower case (sway matches keysyms
    * so); `code:N` is a bindcode, mouse buttons and the wheel bind over the
-   * whole window.
+   * whole window. A modifier tapped on its own (KeyNames.tapModifier) is
+   * its keysym alone, `tap`: sway fires it on release when no other key
+   * came between, and not when it's written with its modifier.
    */
   function key(combo) {
     const parts = KeyNames.split(combo);
     if (parts.key === "")
       return null;
+    if (KeyNames.tapModifier(combo) !== "")
+      return {
+        "command": "bindsym",
+        "spec": parts.key,
+        "mouse": false,
+        "tap": true
+      };
     const mods = parts.mods.map(mod => root._modNames[mod]);
     if (mods.some(mod => mod === undefined))
       return null;
@@ -205,7 +214,7 @@ QtObject {
       flags.push("--whole-window");
     if (bind.locked)
       flags.push("--locked");
-    if (bind.release)
+    if (bind.release || k.tap)
       flags.push("--release");
     return flags;
   }

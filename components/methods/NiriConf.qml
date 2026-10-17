@@ -150,12 +150,14 @@ QtObject {
   /**
    * A combo ("SUPER + SHIFT + Q") as niri binds it ("Super+Shift+Q"), or
    * null when niri can't bind it: a modifier niri doesn't have, a keycode
-   * (`code:N`) or a mouse button it doesn't name. Always Super, never Mod,
-   * which is Alt while niri runs nested.
+   * (`code:N`), a mouse button it doesn't name, or a modifier tapped on
+   * its own (KeyNames.tapModifier: niri would fire it on press, in every
+   * combo it starts). Always Super, never Mod, which is Alt while niri runs
+   * nested.
    */
   function key(combo) {
     const parts = KeyNames.split(combo);
-    if (parts.key === "" || /^code:/.test(parts.key))
+    if (parts.key === "" || /^code:/.test(parts.key) || KeyNames.tapModifier(combo) !== "")
       return null;
     const mods = parts.mods.map(mod => root._modNames[mod]);
     if (mods.some(mod => mod === undefined))

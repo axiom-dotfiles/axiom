@@ -4,7 +4,7 @@
 
 ## The config file
 
-Everything is configured from inside the shell (see [Built in the shell](../README.md#built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Layouts**, **Keybinds**, **Monitors** and **Themes** pages. Any single setting can also be set from the launcher: `/config Appearance.font.size 14`.
+Everything is configured from inside the shell (see [Features](features.md)). Open the overlay, and use the **Settings**, **Bar editor**, **Layouts**, **Keybinds**, **Monitors** and **Themes** pages. Any single setting can also be set from the launcher: `/config Appearance.font.size 14`.
 
 - Settings are saved to `~/.config/axiom/config.json`. You never need to open it, but the shell watches that file and reloads when it changes, so editing it by hand also works.
 - Configs from older versions are migrated automatically.
@@ -24,7 +24,7 @@ axiom never writes inside its own folder (`~/.config/quickshell/axiom`). What it
 | Small UI state (launcher history, pinned clips, editor and page choices, first-run progress) | `~/.local/state/axiom/ui/` |
 | Notes, when no notes folder is set | `~/.local/share/axiom/notes/` |
 | Themes generated from the wallpaper | `~/.local/state/axiom/themes/` |
-| Chats, notification history, secrets without a keyring, and the files axiom generates for Hyprland, hyprlock, hypridle and themed apps | `~/.local/state/axiom/` |
+| Chats, notification history, secrets without a keyring, and the files axiom generates for your compositor, hypridle and themed apps | `~/.local/state/axiom/` |
 
 To back up your setup or keep it in a dotfiles repo, `~/.config/axiom/` is the folder to keep (`~/.local/share/axiom/notes/` too, if your notes live there).
 
@@ -44,7 +44,7 @@ Your whole setup (bars, overlay pages, edge menus, docks, the lock and login scr
 axiom ships the setups from the README in `examples/`. Apply one from **Settings → Maintenance → Example setups**, or with `/config example <name>` in the launcher.
 
 - An example holds only the look and the layout: the theme, font and shape, the bars and their style, overlay pages, edge menus, docks, OSDs, popouts, the lock screen layout, workspaces, notifications' placement, the power menu and the window switcher.
-- Everything else stays as it is: wallpapers, monitors, apps, keybinds, calendars, chat providers, Hyprland, idle and the login screen.
+- Everything else stays as it is: wallpapers, monitors, apps, keybinds, calendars, chat providers, compositor settings, idle and the login screen.
 - Your current config is saved first, as `before-<name>`, so going back is one **Restore** away.
 - An example is a partial `config.json` with a `_example` header (`title`, `description`). What it may hold is each setting's `x-scope` in `config/json/config.schema.json`. If it uses a font you don't have, the text falls back to another; a theme you don't have falls back to the default palette.
 

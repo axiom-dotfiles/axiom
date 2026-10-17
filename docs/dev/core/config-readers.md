@@ -42,7 +42,7 @@ Typed, read-only views of config sections. (Rule: AGENTS.md › Config, reader n
   - `shownCalendars` / `writableCalendars`, `newEventCalendar`
   - `colors` by calendar id
   - `timeFormat` from `use24Hour`.
-- **`Paths`**: derived filesystem paths, not configurable.
+- **`Paths`**: derived filesystem paths, not configurable. Also `packaged` / `packagedVersion`: the marker a distribution package writes beside the code ([packaging.md](../packaging.md)).
   - What ships in the repo (`Quickshell.shellDir`): `axiomPath`, `resourcePath`, `themePath`, `scriptsPath`. Read-only.
   - What axiom writes, the XDG folders from `ConfigManager.dataDirs`: `userConfigPath`, `statePath`, `userStatePath`, `userDataPath`, `defaultNotesPath`, `generatedThemesPath`, plus `themeFile(name)` for a theme's file by name. See [Where files live](config-manager.md#where-files-live).
   - Also `greeter` and the greeter's folders ([Greeter runtime](../features/greeter-runtime.md)).

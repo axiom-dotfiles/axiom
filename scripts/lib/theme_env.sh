@@ -214,8 +214,8 @@ export_theme_colors() {
 }
 
 # The semantic colors terminal apps draw text in, made readable against the
-# background like the ANSI palette (after export_theme_colors; not for GTK,
-# Qt or hyprlock, where they're accents)
+# background like the ANSI palette (after export_theme_colors; not for GTK
+# or Qt, where they're accents)
 readable_text_colors() {
     floor_colors "${BACKGROUND:-${BASE00:-}}" "$TERM_MIN_CONTRAST" \
         RED GREEN YELLOW BLUE MAGENTA CYAN ORANGE ERROR WARNING SUCCESS INFO

@@ -456,23 +456,16 @@ Rectangle {
     onAllocationUpdated: section.bar.layoutMoved()
   }
 
-  // The shadow or glow the bar's surface casts, only outside it, so none
-  // shows through a translucent one. Pills on the border join its stroke:
-  // their shadow is cast evenly, as the border's, so it can't slide onto
-  // it; otherwise (on a bare screen edge too) it falls toward the windows.
-  // Cast from a black copy of the surface (its pieces each put one here),
+  // The shadow the bar's surface casts, evenly and only outside it, so
+  // none shows through a translucent one. Cast from a black copy of the surface (its pieces each put one here),
   // as its own fill may be the blur window's.
   // Backed, the blur window casts it instead, from the same shapes
   // (BlurShape.shadow), with everything joined to them
-  readonly property int shadowEdge: root.barConfig.left ? Bar.Left : root.barConfig.right ? Bar.Right : root.barConfig.bottom ? Bar.Bottom : Bar.Top
-  readonly property bool shadowFalls: SurfaceContext.barShadowFalls(root.barConfig, Appearance.screenBorder)
   OutsideShadow {
     target: shadowShape
     hideTarget: true
     active: !root.backed
     look: root.barConfig
-    edge: root.shadowEdge
-    falls: root.shadowFalls
     // Not under the surfaces open on its pills or islands (where they
     // cover the far stroke, whether or not the pill stretches for them),
     // from the outer edge they stand on out, nor on the solid bars its
@@ -549,7 +542,7 @@ Rectangle {
   readonly property bool backed: BlurManager.backsOn(root.blurScreen, false) && root.blurOrigin !== null
 
   // What the bar paints under its widgets: its background, inner stroke
-  // and pills, which the shadow or glow follows
+  // and pills, which the shadow follows
   Item {
     id: surface
     anchors.fill: parent
@@ -575,8 +568,6 @@ Rectangle {
         y: root.blurOrigin?.y ?? 0
         shown: root.backed && solidFill.visible
         shadow: root.barConfig
-        shadowEdge: root.shadowEdge
-        shadowFalls: root.shadowFalls
       }
     }
 
@@ -679,8 +670,6 @@ Rectangle {
           y: (root.blurOrigin?.y ?? 0) + island.y
           shown: root.backed
           shadow: root.barConfig
-          shadowEdge: root.shadowEdge
-          shadowFalls: root.shadowFalls
         }
         // Inner side: bottom on a top bar, right on a left one, and so on
         topLeftRadius: root.barConfig.bottom || root.barConfig.right ? startInner : corner
@@ -837,8 +826,6 @@ Rectangle {
           y: (root.blurOrigin?.y ?? 0) + pill.y
           shown: root.backed
           shadow: root.barConfig
-          shadowEdge: root.shadowEdge
-          shadowFalls: root.shadowFalls
         }
       }
     }

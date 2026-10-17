@@ -32,14 +32,13 @@ PanelWindow {
   // captured while it draws no shadows)
   readonly property bool cutByUnion: backing.part !== "fills" && (groups.count > 1 || backing.cutBy.length > 0)
 
-  // Which shadow a shape casts with: shapes of one look, falling the same
-  // way, cast theirs together; "none" for no shadow
+  // Which shadow a shape casts with: shapes of one look cast theirs
+  // together; "none" for no shadow
   function shadowKey(shape) {
     const look = shape?.shadow ?? null;
-    if (!look || look.shadow === "none")
+    if (!look || !look.shadow)
       return "none";
-    const even = look.shadow === "glow" || !shape.shadowFalls;
-    return [look.shadow, look.shadowColor, look.shadowSize, even ? "even" : shape.shadowEdge].join("|");
+    return [look.shadowColor, look.shadowSize].join("|");
   }
 
   // Its namespace and layer, set here so its LayerSlot can read them
@@ -188,8 +187,6 @@ PanelWindow {
         cutSource: backing.cutByUnion ? union : copied
         autoPaddingEnabled: false
         look: group.lead?.shadow ?? BarStyle.values
-        edge: group.lead?.shadowEdge ?? -1
-        falls: group.lead?.shadowFalls ?? true
       }
     }
   }

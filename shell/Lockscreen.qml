@@ -7,7 +7,7 @@ import qs.services
 import qs.components.surfaces.lockscreen
 
 // The built-in locker (Lockscreen.mode "quickshell"): a Wayland session
-// lock (ext-session-lock-v1, like hyprlock). While it holds, the compositor
+// lock (ext-session-lock-v1). While it holds, the compositor
 // shows only the lock surfaces, one per screen, and routes all input to
 // them; if qs dies, the session stays locked. Locking comes from
 // LockManager.lock(); the only way out is AuthManager's PAM success.

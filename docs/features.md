@@ -4,7 +4,7 @@
 
 Everything below is one shell and one config, and everything is set from inside the shell. The screenshots come from the [example setups](configuration.md#example-setups), each built entirely with axiom's editors, so the look changes from one to the next.
 
-**On this page:** [Bar](#bar) · [Bar styles](#bar-styles) · [Overlay](#overlay) · [Layouts editor](#the-layouts-editor) · [Edge menus](#edge-menus) · [Workspaces](#workspaces) · [Window switcher](#window-switcher-alttab) · [Calendar](#calendar) · [Launcher](#launcher) · [Dock and OSD](#dock-and-osd) · [Lock screen, login screen and polkit](#lock-screen-login-screen-and-polkit) · [Theming](#theming) · [The rest](#the-rest)
+**On this page:** [Bar](#bar) · [Bar styles](#bar-styles) · [Overlay](#overlay) · [Layouts editor](#the-layouts-editor) · [Edge menus](#edge-menus) · [Workspaces](#workspaces) · [Window switcher](#window-switcher-alttab) · [Your compositor](#your-compositor) · [Calendar](#calendar) · [Launcher](#launcher) · [Dock and OSD](#dock-and-osd) · [Lock screen, login screen and polkit](#lock-screen-login-screen-and-polkit) · [Theming](#theming) · [The rest](#the-rest)
 
 ## Bar
 
@@ -52,14 +52,14 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
 | **Shape** | rounded, capsule, slant, arrow |
 | **Grouping** | separate, merged (neighbours share one background), powerline (each shape runs into the next) |
 | **Ends** | shaped, pointed, rounded |
-| **Separators** | none, line, dot, slash, chevron |
+| **Separators** | none, line, dot, slash, chevron, with their thickness and margin to the widgets |
 | **Accent line** | none, inner or outer edge, with an optional fade to a second color |
-| **Shadow** | none, shadow, glow |
+| **Shadow** | on or off, in the accent or any theme color |
 
 - **Widget colors** default to **Auto**: the bar gives neighbouring widgets different accents and keeps the contrast readable. Pick a theme color for any of them instead.
 - A bar can override the shared widget style, accents, shadow, font size and corner radius.
 - Floating bars and pills have their own gap, and nearby pills can merge into one.
-- **Translucency** (**Settings → Look & Feel → Translucency**): one opacity for every surface (bars, the screen border, popouts, menus, panels), down to 60%, with Hyprland blurring behind it. The blur is Hyprland's own: set it from axiom under **Hyprland → Window look → Blur** (size, passes, noise, …, and whether windows blur too), where window opacity lives as well, and both travel with exported and imported configs. The backdrops behind the overlay, launcher and power menu can frost the whole screen.
+- **Translucency** (**Settings → Look & Feel → Translucency**): one opacity for every surface (bars, the screen border, popouts, menus, panels), down to 60%, with the compositor blurring behind it (Hyprland, SwayFX). The blur is the compositor's own: set it from axiom under **Settings → Compositor → Window look → Blur** (size, passes, noise, …, and whether windows blur too), where window opacity lives as well, and both travel with exported and imported configs. The backdrops behind the overlay, launcher and power menu can frost the whole screen.
 
 ## Overlay
 
@@ -150,17 +150,18 @@ Edge menus are the overlay's other half. Every overlay module fits in them, plac
 Set **Settings → Workspaces → Layout**:
 - **Standard:** 1 to N, shared by every monitor.
 - **Per monitor:** each monitor gets its own block of N.
-- **Grid per monitor:** each monitor gets a grid (5×5 by default, up to 10×10) that you move around by row and column. Moving left or right slides sideways, and up or down slides vertically, whatever Hyprland's own workspace animation is set to.
+- **Grid per monitor:** each monitor gets a grid (5×5 by default, up to 10×10) that you move around by row and column. On Hyprland, moving left or right slides sideways, and up or down slides vertically, whatever its own workspace animation is set to.
 
 Then:
 - **One setting, everywhere.** The bar widget, its popout, the workspace overview, the Workspaces module, the launcher's `/ws` and the `workspaces` IPC target all follow the layout.
-- **A stable order.** The primary monitor comes first, so plugging one in or restarting Hyprland never reshuffles which workspaces belong to which monitor. Changing the layout moves your windows to the matching place in the new one.
-- **Scrolling strips.** Make any monitor (or every one) a strip, Hyprland's scrolling layout, horizontal or vertical:
+- **A stable order.** The primary monitor comes first, so plugging one in or restarting the compositor never reshuffles which workspaces belong to which monitor. Changing the layout moves your windows to the matching place in the new one.
+- **On niri**, workspaces are niri's own: a column per monitor that grows and shrinks as you use it. The bar and the overview follow it.
+- **Scrolling strips.** On Hyprland, make any monitor (or every one) a strip, Hyprland's scrolling layout, horizontal or vertical. On niri, every monitor is one:
   - The bar shows the active workspace's windows in strip order, and its popout lists every workspace with its windows.
   - The mouse wheel scrolls the strip.
   - The overview shows the whole strip, off-screen columns included.
   - The **Strips** keybind preset adds swapping columns, resizing them and fitting the visible ones.
-- **The overview** shows live window previews. Drag a window onto another workspace or onto a side of another window, right-drag to resize it, and middle-click to close it.
+- **The overview** shows live window previews on Hyprland, and app icons elsewhere. Drag a window onto another workspace or onto a side of another window, right-drag to resize it, and middle-click to close it.
 - **Keybinds included.** Presets for the grid with WASD or the arrows (add <kbd>Shift</kbd> to take the window along), or previous and next.
 
 <p align="center"><img src="../assets/screenshots/workspace-overlay.webp" alt="The workspace overview: a 5×5 grid of workspaces with live window previews" width="900"></p>
@@ -173,6 +174,17 @@ Then:
 - It only appears once you've held the keys for a moment, so a quick tap just swaps to your last window without anything drawn.
 - Show windows from everywhere, from this monitor only, or from this workspace only, as live previews or app icons, at the tile size you like (**Settings → Workspaces → Window switcher**).
 - The compositor holds the keys (on sway and niri, the switcher takes the keyboard while it's open), so it never misses a fast release. It's on the Keybinds page as a preset, and on any other combination you like.
+
+## Your compositor
+
+axiom runs on Hyprland, niri and sway, and sets up the compositor from the same settings on each (**Settings → Compositor**):
+- **Keybinds** on their own page, with presets, a key recorder, and warnings for keys your own config already uses.
+- **Monitors** arranged by dragging (see [the rest](#the-rest)).
+- **Window look:** theme-colored borders, rounding, gaps, shadows, dimming, opacity and blur, as far as the compositor supports them. **Match axiom's shape** keeps windows in step with axiom's own shape.
+- **Input:** keyboard layouts and repeat, mouse and touchpad, and the cursor theme.
+- **Three modes:** applied at runtime without touching your config (the default), written to a file you include, or the whole config managed by axiom with your own files loaded after it. See [Compositor modes](installation.md#compositor-modes).
+
+One config works on all three. Switch compositors and your bars, pages, theme and keybinds come along; settings only one compositor understands stay in the config for when you go back. What each compositor supports is in the [README](../README.md#compositors).
 
 ## Calendar
 
@@ -239,7 +251,6 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
 
 - **Lock screen modes:**
   - **Built-in** (`ext-session-lock`, PAM): the lock screen is laid out on the Layouts page, like an overlay page. Put a greeting, the password field, a clock, media, weather, power buttons (suspend, restart, shut down) and other display-only modules anywhere on a screen-sized grid. It shows over your wallpaper (blurred and dimmed) or a color, and **Show on screen** previews it.
-  - **hyprlock:** a themed config that axiom generates.
   - **None:** use your own locker.
 - **Login screen:** optional, through greetd.
   - Laid out the same way, with a login box (pick or type the user, with their picture), a session picker, the keyboard layout, power buttons and the same display-only modules.
@@ -274,7 +285,7 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
   - Nothing else ever edits your config files.
 
 <details>
-<summary><b>Supported apps (23)</b></summary>
+<summary><b>Supported apps (22)</b></summary>
 
 | Kind | Apps |
 | --- | --- |
@@ -283,7 +294,6 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
 | Editors | Neovim, Helix, VS Code, Zed |
 | Apps | Firefox (and its forks), Vesktop/Vencord, zathura |
 | CLI tools | k9s, cava, btop, fzf, lazygit, bat/delta, Yazi, ncspot |
-| Lockscreen | hyprlock |
 
 </details>
 
@@ -307,7 +317,7 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
 - **Notes:** Markdown files in a folder you choose, edited in place with task checkboxes. A note open in two places stays in sync, and `/notes` in the launcher searches them all.
 - **Power menu:** your choice of session actions, in your order, driven by mouse or keyboard. Log out, reboot and power off ask you to confirm.
 - **Monitors:** a page to arrange monitors by dragging (they snap edge to edge).
-  - Set each one's mode, scale, rotation, mirroring, VRR, bit depth and color management.
+  - Set each one's mode, scale, rotation and VRR, and on Hyprland mirroring, bit depth and color management.
   - One layout is kept per set of connected monitors, and switches on its own when you plug one in.
   - **Apply** asks you to keep the change, and puts the old layout back after 15 seconds if you don't.
 - **Multi-monitor:** interactive surfaces open on the primary monitor, on whichever monitor has focus, or on all of them at once.
@@ -319,8 +329,8 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
   `/welcome` runs it again.
 - **Screenshots:** a region, a window or a whole screen, picked on a frozen frame. Saved and copied, or opened in satty or swappy to annotate. Also screen recording with `wf-recorder`, with the microphone or (with `pactl`) the system's sound.
 - **Brightness:** keys and an OSD bar for a laptop screen and for external monitors over DDC/CI.
-- **Night light:** warmer colors on a schedule, through `hyprsunset` or `wlsunset`.
-- **Idle:** axiom can run hypridle from its own settings: dim, lock, screen off and suspend timeouts.
+- **Night light:** warmer colors on a schedule, through `wlsunset` (or `hyprsunset` on Hyprland).
+- **Idle:** axiom can run hypridle from its own settings, on any compositor: dim, lock, screen off and suspend timeouts.
 - **Updates:** axiom updates itself from git, following releases or `main`, with a notification or automatically.
 - **Translations:** English and Japanese, with more added as a single JSON file each.
 

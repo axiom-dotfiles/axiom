@@ -7,7 +7,9 @@ import qs.services
 import qs.components.reusable
 
 // What's missing: the icon font, and the programs features use
-// (DependencyManager.tools), with one command that installs them
+// (DependencyManager.tools), with the commands that install them on this
+// distribution (DependencyManager.installLines), or just their names on one
+// axiom has no package names for
 OnboardingPage {
   id: root
 
@@ -16,18 +18,20 @@ OnboardingPage {
 
   readonly property var missing: DependencyManager.tools.filter(tool => DependencyManager.found[tool.command] === false)
   readonly property bool checked: DependencyManager.tools.every(tool => DependencyManager.found[tool.command] !== undefined)
-  readonly property var packages: Array.from(new Set((DependencyManager.iconFontInstalled ? [] : ["ttf-material-symbols-variable"]).concat(root.missing.map(tool => tool.package))))
+  // What to install: commands, and "iconFont" for the icon font
+  readonly property var wanted: (DependencyManager.iconFontInstalled ? [] : ["iconFont"]).concat(root.missing.map(tool => tool.command))
+  readonly property var installLines: DependencyManager.installLines(root.wanted)
 
   Component.onCompleted: DependencyManager.check(DependencyManager.tools.map(tool => tool.command))
 
   Notice {
     visible: !DependencyManager.iconFontInstalled
     tone: "error"
-    text: I18n.tr("The icon font ({0}) isn't installed, so icons show as words. Install {1}, then restart the shell.", Appearance.iconFamily, "ttf-material-symbols-variable")
+    text: I18n.tr("The icon font ({0}) isn't installed, so icons show as words. Install it with the command below, then restart the shell.", Appearance.iconFamily)
   }
 
   Notice {
-    visible: root.checked && root.packages.length === 0
+    visible: root.checked && root.wanted.length === 0
     tone: "success"
     text: I18n.tr("Everything axiom uses is installed.")
   }
@@ -48,7 +52,7 @@ OnboardingPage {
       }
 
       StyledText {
-        text: tool.modelData.command
+        text: DependencyManager.label(tool.modelData.command)
         textFamily: "monospace"
       }
 
@@ -64,18 +68,19 @@ OnboardingPage {
 
   ColumnLayout {
     Layout.fillWidth: true
-    visible: root.packages.length > 0
+    visible: root.wanted.length > 0
     spacing: Widget.spacing
 
     StyledText {
       Layout.topMargin: Widget.spacing
       Layout.fillWidth: true
-      text: I18n.tr("To install what's missing:")
+      text: root.installLines.length > 0 ? I18n.tr("To install what's missing:") : I18n.tr("Install these with your package manager: {0}", root.wanted.map(key => DependencyManager.label(key)).join(", "))
       wrapMode: Text.WordWrap
     }
 
     CodeLine {
-      text: "sudo pacman -S --needed " + root.packages.join(" ")
+      visible: root.installLines.length > 0
+      text: root.installLines.join("\n")
     }
   }
 

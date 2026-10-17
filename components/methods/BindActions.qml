@@ -145,9 +145,16 @@ QtObject {
   }
 
   // Whether `bind` does anything under compositor `kind` with `supports`:
-  // its action is supported, and a raw command is written for `kind`
+  // its action is supported, a raw command is written for `kind`, and a
+  // modifier tapped on its own is a key the compositor can bind
   function appliesUnder(bind, kind, supports) {
-    return root.supported(bind.action, supports) && (bind.action !== "raw" || (bind.compositor ?? "hyprland") === kind);
+    return root.supported(bind.action, supports) && (bind.action !== "raw" || (bind.compositor ?? "hyprland") === kind) && root.keySupported(bind.key, supports);
+  }
+
+  // Whether the compositor (its `supports`) can bind `key`: a tap
+  // (KeyNames.tapModifier) needs modifierTap
+  function keySupported(key, supports) {
+    return KeyNames.tapModifier(key) === "" || supports?.modifierTap === true;
   }
 
   // Flags an action starts with when it's picked (the bind can change them)

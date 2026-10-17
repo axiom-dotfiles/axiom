@@ -16,6 +16,27 @@ QtObject {
     return shown.reduce((sum, s) => sum + s, 0) + Math.max(0, shown.length - 1) * spacing;
   }
 
+  // How far a divider drawn between a section's widgets (WidgetGroup's
+  // SeparatorMark) reaches across the bar
+  function dividerLength(style, widgetSize) {
+    return widgetSize * (style === "chevron" ? 0.6 : 0.5);
+  }
+
+  // The gap between a section's widgets with such a divider in each: the
+  // room it takes along the bar (a slash leans 20°; a chevron's glyph is
+  // about 0.3 of its size), with `margin` to the widget either side
+  function dividerGap(style, thickness, widgetSize, margin) {
+    const length = root.dividerLength(style, widgetSize);
+    const lean = 20 * Math.PI / 180;
+    const along = {
+      "line": thickness,
+      "dot": thickness * 2,
+      "slash": length * Math.sin(lean) + thickness * Math.cos(lean),
+      "chevron": length * 0.3
+    }[style] ?? 0;
+    return Math.ceil(along) + 2 * margin;
+  }
+
   // How far a section's dividers at its ends (`edge` flags: Separator
   // widgets) reach in from them, as { lead, trail }: their sizes and the
   // spacing on their inner side. Such a divider stands in the gap between

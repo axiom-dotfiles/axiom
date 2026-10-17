@@ -28,7 +28,7 @@ Axiom as greetd's login screen, laid out like the lock screen. This doc covers t
 - The code, minus tests, docs and `*.md`.
 - **From:** `Greeter.source` (`GreeterConfig.source`), passed as the script's `<source> <channel>` arguments. The channel is `SelfUpdate.channel`.
 - **To:** `/usr/share/axiom-greeter`, owned by root.
-  - `.greeter-source` says where the copy came from: `"git <channel> <url>"` or `"local"`.
+  - `.greeter-source` says where the copy came from: `"git <channel> <url>"`, `"local"` or `"package <dir>"`.
   - `.greeter-hash` names the version.
 - **Source `git`** (default):
   - It fetches as root into its own bare mirror, `/var/lib/axiom-greeter/upstream.git`.
@@ -40,6 +40,11 @@ Axiom as greetd's login screen, laid out like the lock screen. This doc covers t
   - It archives the clone's tracked files as they are in the working tree: whatever branch, uncommitted changes included.
   - It uses `git ls-files` + `tar`, run as the user through `runuser`, so the clone's config and filters never run as root.
   - The hash is the files' content, so docs-only edits are not an update.
+- **Source `package`** (always, for a packaged axiom: `GreeterManager.wantedSource` ignores `Greeter.source`, which is hidden; [packaging.md](../packaging.md)):
+  - The greeter runs `/usr/share/axiom` itself (always that path, never `<repo>`), and the package manager updates it.
+  - The install folder gets only `scripts/greeter/` (what greetd and polkit name by path), `.greeter-source` and the snapshot. The session script reads `.greeter-source` to find the code.
+  - It refuses without `.packaged`, or when the package's folder or its `scripts/greeter/` isn't root's: its `greeter_install.sh` becomes the helper polkit runs as root.
+  - The hash is the package's version (the marker's text), so a package update shows as `outdated` until **Update** refreshes the scripts and the snapshot.
 - **Refusals and safety:**
   - A copy without `greeter.qml`, the session script or the policy (a release from before the login screen) is refused.
   - `ext::` transports are off, and git never prompts.

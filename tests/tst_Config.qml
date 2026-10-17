@@ -785,7 +785,7 @@ TestCase {
     const config = loaded.config;
     compare(config.BarStyle.widgetStyle, "outline");
     compare(config.BarStyle.lineWidth, 3);
-    compare(config.BarStyle.shadow, "glow");
+    compare(config.BarStyle.shadow, true);
     compare(config.Bars.map(bar => bar.overrideWidgetStyle), [false, false, true]);
     compare(config.Bars.map(bar => bar.overrideShadow), [false, false, false]);
     compare(config.Bars[2].widgetStyle, "tinted");
@@ -2065,5 +2065,55 @@ TestCase {
     compare(widget.properties.appIconSize, undefined);
     compare(migrated.removed, []);
     compare(errors(migrated.config), []);
+  }
+
+  function test_v65_hyprlock_mode_is_builtin() {
+    const migrated = load({
+      "version": 64,
+      "Lockscreen": {
+        "mode": "hyprlock",
+        "blurWallpaper": false
+      }
+    });
+    compare(migrated.config.Lockscreen.mode, "quickshell");
+    compare(migrated.config.Lockscreen.blurWallpaper, false);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    compare(load({
+      "version": 64,
+      "Lockscreen": {
+        "mode": "none"
+      }
+    }).config.Lockscreen.mode, "none", "other modes stay");
+  }
+
+  function test_v66_shadow_is_on_or_off() {
+    const migrated = load({
+      "version": 65,
+      "BarStyle": {
+        "shadow": "shadow",
+        "shadowSize": 20
+      },
+      "Bars": [
+        {
+          "id": "glow",
+          "overrideShadow": true,
+          "shadow": "glow"
+        },
+        {
+          "id": "none",
+          "overrideShadow": true,
+          "shadow": "none"
+        },
+        {
+          "id": "unset"
+        }
+      ]
+    });
+    const config = migrated.config;
+    compare([config.BarStyle.shadow, config.BarStyle.shadowSize], [true, 20]);
+    compare(config.Bars.map(bar => bar.shadow), [true, false, false]);
+    compare(migrated.removed, []);
+    compare(errors(config), []);
   }
 }

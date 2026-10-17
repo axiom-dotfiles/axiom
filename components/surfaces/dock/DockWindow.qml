@@ -75,7 +75,7 @@ Scope {
   // From the window's edge to the box of icons
   readonly property real boxOffset: root.backfill + surface.boxStart + (root.attached ? placement.attachClearance : 0)
   // The window: the gap to the edge, the box, and room for icons to grow
-  // (and for an attached surface's far side, and the shadow or glow it
+  // (and for an attached surface's far side, and the shadow it
   // casts, SurfaceShadow)
   readonly property real depth: root.boxOffset + root.thickness + Math.max(root.peak - root.base, (root.attached ? root.connectorGap / 2 : 0) + surface.shadowReach) + 2
 

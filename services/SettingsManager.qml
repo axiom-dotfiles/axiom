@@ -348,10 +348,17 @@ QtObject {
   // ("Workspaces.layout"): what an `x-showIf` key starting with `/` reads.
   // Two paths read the running compositor instead (schema-annotations.md ›
   // Compositor): `$compositor` (CompositorManager.kind) and
-  // `$supports.<capability>` (true or false).
+  // `$supports.<capability>` (true or false); `$distro` reads the
+  // distribution family (DependencyManager.distro: "arch", "fedora", ""),
+  // `$packaged` whether axiom is installed as a package
+  // (Paths.packaged).
   function configValueAt(dottedPath) {
     if (dottedPath === "$compositor")
       return CompositorManager.kind;
+    if (dottedPath === "$distro")
+      return DependencyManager.distro;
+    if (dottedPath === "$packaged")
+      return Paths.packaged;
     if (dottedPath.startsWith("$supports."))
       return CompositorManager.supports[dottedPath.slice(10)] === true;
     return _valueAt(ConfigManager.config, dottedPath.split("."));

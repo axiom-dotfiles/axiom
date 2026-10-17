@@ -36,6 +36,17 @@ TestCase {
     compare(BarLayout.span([10, 0, 30, 0], 4), 44);
   }
 
+  function test_dividerGap() {
+    compare(BarLayout.dividerLength("line", 20), 10);
+    compare(BarLayout.dividerLength("chevron", 20), 12);
+    // The divider's room along the bar, the margin either side
+    compare(BarLayout.dividerGap("line", 2, 20, 2), 6);
+    compare(BarLayout.dividerGap("dot", 2, 20, 3), 10);
+    compare(BarLayout.dividerGap("slash", 2, 20, 0), 6);
+    compare(BarLayout.dividerGap("chevron", 2, 20, 1), 6);
+    compare(BarLayout.dividerGap("none", 2, 20, 2), 4);
+  }
+
   function test_layoutSections_fits() {
     // 1000 long, margin 10, gap 5: ends hug the margins, center centered
     const s = BarLayout.layoutSections([100, 50, 200, 0, 100], [100, 50, 200, 0, 100], 1000, 10, 5, false);

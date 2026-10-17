@@ -21,6 +21,7 @@ What a bind can do, and how the Keybinds page lists the compositor's binds and e
     - `mediaStop` etc. on `media`.
   - **`screenshot`** (argument `region`/`window`/`screen`) and **`screenRecord`**, which go to ScreenshotManager ([Screenshots and recording](../features/screenshots-recording.md)).
 - Binds carry `repeating`/`locked`/`release` flags, preset from `BindActions.actionFlags` when the action is picked.
+- **A modifier on its own** (a tap): the key is the modifier's keysym alone, `Super_L` (`KeyNames.tapModifier`; `SUPER + Super_L` reads the same). It fires when the key is let go with no other key between, `release` or not, and needs `modifierTap` (`BindActions.keySupported`; niri can't, so it gets a warning and isn't written). Hyprland binds it as `SUPER + Super_L` on release (`HyprConfigLua.bindKey`), sway as `bindsym --release Super_L`. `BindKeys.keyId` leaves a tap's own modifier out of its id, as Hyprland lists the modifier held and sway doesn't.
 - **What a compositor can do**: `BindActions.needs` lists the capabilities an action needs (any one of them), e.g. `strip*` → `strips`, `toggleSpecial` → `namedSpecial` or `scratchpad`. The picker (`KeybindManager.actionInfo`) offers only the actions the running compositor supports; a saved bind with another keeps it and gets a warning in `issues` (`BindActions.appliesUnder`), as does a `raw` bind written for another compositor. An action the compositor does itself and can't be bound to (`CompositorManager.builtInBinds`: niri's Mod + left/right drag) gets an `info` note instead when the bind is on that combo, or a warning naming the combo when it isn't; `info` notes don't count as issues (`hasIssue`, `issueCount`).
 
 ### What the page lists
@@ -40,6 +41,7 @@ What a bind can do, and how the Keybinds page lists the compositor's binds and e
   - On Hyprland (`HyprlandManager.captureKeys`) that is an empty `axiom_record` submap. Hyprland only registers a submap that has a bind, so the submap has one unreachable bind.
   - A Lua timer leaves the submap after 30 s, even if qs dies.
   - This is the key recorder. It is unrelated to screen recording.
+- A modifier pressed alone and let go records a tap (`KeyNames.tapName`, left or right from the keycode) and sets `release`, where the compositor has `modifierTap`.
 - `components/methods/KeyNames` turns the Qt key event into a Hyprland key name.
 - A wheel turn over the recorder becomes `mouse_up`/`mouse_down`/`mouse_left`/`mouse_right` with the modifiers held (`fromWheel`).
 - Known gap: the recorder doesn't tell keypad keys apart, and doesn't map AltGr.

@@ -43,8 +43,9 @@ QtObject {
 
   // Where the copy's code should come from, as check reports it:
   // "git:tags" | "git:main" (Greeter.source git, on axiom's own update
-  // channel) | "local"
-  readonly property string wantedSource: GreeterConfig.source === "git" ? "git:" + SelfUpdate.channel : "local"
+  // channel) | "local" | "package" (a packaged axiom, whatever
+  // Greeter.source says: the greeter runs the package's own copy)
+  readonly property string wantedSource: _source === "git" ? "git:" + SelfUpdate.channel : _source
   onWantedSourceChanged: root.check()
 
   // "checking" | "checkFailed" (lastError says why) | "noGreetd"
@@ -136,8 +137,9 @@ QtObject {
   // --- Private ---
 
   readonly property string _script: Paths.scriptsPath + "greeter/greeter_install.sh"
+  readonly property string _source: Paths.packaged ? "package" : GreeterConfig.source
   // The script's <source> <channel>
-  readonly property var _sourceArgs: [GreeterConfig.source, SelfUpdate.channel]
+  readonly property var _sourceArgs: [_source, SelfUpdate.channel]
   // The installed copy's, which org.axiom.greeter.policy names
   readonly property string _helper: "/usr/share/axiom-greeter/scripts/greeter/greeter_install.sh"
   readonly property string _desktopEntry: "axiom-greeter-update"

@@ -61,6 +61,7 @@ fi
 
 info "Running checks"
 python3 scripts/check_structure.py
+python3 scripts/check_packages.py
 git ls-files -z '*.json' | xargs -0 -n1 python3 -m json.tool --no-ensure-ascii >/dev/null
 for f in install.sh scripts/*.sh scripts/lib/*.sh; do bash -n "$f"; done
 python3 -m py_compile scripts/*.py

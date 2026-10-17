@@ -4,7 +4,7 @@
 > **Config:** every section
 > **Related:** [Settings page](settings-page.md), [Saved configs and sharing](saved-configs-sharing.md), [Config manager](config-manager.md), [Config readers](config-readers.md), [Hyprland config modes](../hyprland/config-modes.md)
 
-The schema is the single source of truth for config: shape, `default`s (there is no separate defaults file) and the generated settings page (`views/Settings.qml`). This doc is the complete list of `x-*` annotations. (Rule: AGENTS.md › Config.)
+The schema is the single source of truth for config: shape, `default`s (there is no separate defaults file) and the generated settings page (`views/Settings.qml`). This doc is the complete list of `x-*` annotations: `scripts/check_docs.py` fails on one the schema uses that isn't named here. (Rule: AGENTS.md › Config.)
 
 ### Basics
 - Adding a setting = a schema entry with a `default` + a reader property.
@@ -43,6 +43,8 @@ The schema is the single source of truth for config: shape, `default`s (there is
   - `anyOf: [conditions]` holds when one of them does. Example: the OSD's `alongEdge`, shown only while its bars run along its edge.
   - A key starting with `/` is a dotted path from the config root (e.g. `"/Workspaces.layout"`), read through `SettingsManager.configValueAt`.
   - **Compositor.** Two `/` keys read the running compositor instead: `"/$supports.<capability>": true` (`CompositorManager.supports`) and `"/$compositor": "<kind>"`. See [The compositor](../compositor/README.md) › Hiding what a compositor can't do.
+  - **Distribution.** `"/$distro": "<family>"` reads `DependencyManager.distro` (`Packages.distroFamily`: `arch`, `fedora`, or `""`), for a setting only one distribution has (the Updates options' AUR).
+  - **Package.** `"/$packaged": false` reads `Paths.packaged`, for what a packaged axiom doesn't have (the `SelfUpdate` section, `Greeter.source`; [packaging.md](../packaging.md)).
   - On a whole section, `x-showIf` (with `/` keys only) takes the section out of its settings category when it fails (`SchemaLayout.categories`). The `Hyprland` section needs `configModes`.
 - `x-enumShowIf` (`{ optionValue: condition }`): hides enum options whose condition doesn't hold. The current value stays listed.
 - `x-enabledIf`: as `x-showIf`, but a field whose condition fails stays shown, greyed out, its value kept and not editable (`SchemaField.allowed`), with why above its description. Use it for what the compositor can't do (`"/$supports.windowBlur": true`), so the setting is still found and says what would: the note is `CompositorManager.unsupportedNote(capability)` (the backend's `unsupportedHint` adds what can, e.g. "SwayFX can."), or "<Compositor> only." for `/$compositor`. Only a row shown on its own says it: a row that a sibling shows (a part's fields, `x-showIf: { part: true }`) is greyed without repeating the note under its switch. `SchemaLayout.compositorAllows` counts it too, so the launcher's `/config` doesn't offer such a setting.

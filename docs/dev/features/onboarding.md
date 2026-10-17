@@ -1,6 +1,6 @@
 # Onboarding
 
-> **Files:** `services/OnboardingManager.qml`, `shell/Onboarding.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/surfaces/onboarding/pages/CompositorPage.qml`, `services/DependencyManager.qml`, `components/views/settings/OnboardingCard.qml`
+> **Files:** `services/OnboardingManager.qml`, `shell/Onboarding.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/surfaces/onboarding/pages/CompositorPage.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/surfaces/onboarding/pages/ChecksPage.qml`, `services/DependencyManager.qml`, `components/methods/Packages.qml`, `components/views/settings/OnboardingCard.qml`
 > **Config:** none of its own (pages write other sections); state in `~/.local/state/axiom/ui/onboarding.json`
 > **Related:** [Config modes](../compositor/config-modes.md), [Hyprland's writer](../hyprland/config-modes.md), [Monitors](../hyprland/monitors.md), [Greeter install](greeter-install.md), [Pages and grid](../overlay/pages-and-grid.md)
 
@@ -53,10 +53,20 @@ The first-run onboarder: a paged window that sets up the look, the compositor's 
 ### Other pages
 - It reuses the Monitors view, `WallpaperPicker` and `ThemePicker` as they are.
 - The Look page's folder check, create and open are `WallpaperManager.checkFolder()` / `folderImages` / `createFolder()` / `openFolder()`.
-- `DependencyManager.check(commands)` / `found` / `tools` say what's installed.
+- `DependencyManager.check(commands)` / `found` / `tools` say what's installed. A `py:<module>` key (`py:numpy`, `py:icalendar`) is a Python module, looked up with python3's `importlib` rather than `command -v`; `DependencyManager.label` shows it as `python: <module>`. Python modules come from the distribution's own packages (no venv, no pip).
 - The Apps page shows the main modifier and the keys to know only where axiom binds keys (`CompositorManager.supports.keybinds`); elsewhere it's just the apps.
-- The Integrations page ends with the login screen (`forms/GreeterSetup`, see [Greeter install](greeter-install.md)), set up only from its Install button.
-  - The same page recommends [Idle](idle.md) and [Polkit](polkit.md).
+- The Integrations page, top to bottom: updates, clipboard history, [Idle](idle.md), the lock screen, [Polkit](polkit.md), the login screen, then theme integrations.
+  - Idle, the lock screen, polkit and the login screen are `OptionCard` choices. The lock screen has two (`Lockscreen.mode`): axiom's, or your own.
+  - The login screen (`forms/GreeterSetup`, see [Greeter install](greeter-install.md)) is set up only from its Install button.
+  - Theme integrations come last: they're optional and need no decision.
+
+### Package hints
+- `DependencyManager.distro` is `Packages.distroFamily` of `/etc/os-release`: `arch`, `fedora`, or `""` (unknown).
+- `Packages.packages` names each command's package per distribution: a name, `{ name, repo }` (Fedora's Hyprland tools come from the `nett00n/hyprland` COPR), `{ file, to }` (the icon font on Fedora, downloaded), or `null` (nothing to install there; that `DependencyManager.tools` row is hidden, e.g. `checkupdates` off Arch). A row with `compositors` shows only under those (`CompositorManager.kind`): night light's tool, and the X11 helper niri and sway need (`xwayland-satellite`, `Xwayland`).
+- `DependencyManager.installLines(keys)` / `installCommand(key)` give the shell lines: COPRs to enable, one install, then downloads. On an unknown distribution they're empty and the Checks page lists names only.
+- The same commands serve Settings' hints (Idle, Night light, Login screen) and the missing icon font notification. A distribution without names gets the text only, no command.
+- `Packages.distros.<family>.updates` is how the Updates widget checks and upgrades there (`UpdatesManager.backend`); `"/$distro": "arch"` in an `x-showIf` hides the AUR options elsewhere.
+- **Adding a distribution:** one column in every `Packages.packages` entry (`tst_Packages` fails on a missing one), one `Packages.distros` entry (with `updates`, and a `Packages.parseUpdates` format if its output is new), and test rows; then install.sh's column for it ([packaging.md](../packaging.md): `check_packages.py` compares the two).
 
 ### Entry points
 - IPC `onboarding`:

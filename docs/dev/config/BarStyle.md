@@ -61,8 +61,12 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `BarStyle.values` (whole), `barConfig.separatorColor` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
 - **`BarStyle.separatorThickness`** · integer = 2 · 1–6 · px
   - Separator thickness
-  - x-group="Bar accents", x-control="stepper", x-beside=true, x-showIf={"separatorStyle":{"not":"none"}}
+  - x-group="Bar accents", x-control="stepper", x-showIf={"separatorStyle":{"not":"none"}}
   - read: `BarStyle.values` (whole), `barConfig.separatorThickness` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
+- **`BarStyle.separatorGap`** · integer = 2 · 0–24 · px
+  - Separator margin: Room between a separator and the widgets on either side of it.
+  - x-group="Bar accents", x-control="stepper", x-showIf={"separatorStyle":{"not":"none"}}
+  - read: `BarStyle.values` (whole), `barConfig.separatorGap` · in: `config/Bar.qml`
 - **`BarStyle.accentLine`** · string = "none" · enum none|inner|outer
   - Accent line: A line along the bar's edge toward the windows (inner) or the screen edge (outer); on pills, along each pill.
   - x-group="Bar accents"
@@ -79,17 +83,17 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Line width
   - x-group="Bar accents", x-control="stepper", x-showIf={"accentLine":{"not":"none"}}
   - read: `BarStyle.values` (whole), `barConfig.accentLineWidth` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
-- **`BarStyle.shadow`** · string = "none" · enum none|shadow|glow
-  - Shadow: Cast by every bar (or its pills) and by the screen border, inward all the way round. A transparent bar has nothing to cast one; a solid bar on the border leaves it to the border.
-  - x-group="Bar shadow"
-  - read: `BarStyle.shadowed` (computed), `barConfig.shadow` · in: `components/hosts/popout/FloatingPopout.qml`
+- **`BarStyle.shadow`** · boolean = false
+  - Shadow: Spread evenly round every bar (or its pills), the screen border, popouts, menus and docks. A transparent bar has nothing to cast one; a solid bar on the border leaves it to the border.
+  - x-group="Shadow"
+  - read: `BarStyle.shadowed`, `barConfig.shadow` · in: `components/hosts/popout/FloatingPopout.qml`
 - **`BarStyle.shadowColor`** · string = ""
-  - Shadow color: Auto: black for a shadow, the accent for a glow.
-  - x-group="Bar shadow", x-options="colors", x-emptyLabel="Auto", x-showIf={"shadow":{"not":"none"}}
+  - Shadow color: Auto: the theme's accent.
+  - x-group="Shadow", x-options="colors", x-emptyLabel="Auto", x-showIf={"shadow":true}
   - read: `BarStyle.values` (whole), `barConfig.shadowColor` · in: `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `config/WindowLookConfig.qml`, `shell/BlurBackingWindow.qml`
 - **`BarStyle.shadowSize`** · integer = 12 · 2–64 · px
   - Shadow size
-  - x-group="Bar shadow", x-control="stepper", x-beside=true, x-showIf={"shadow":{"not":"none"}}
+  - x-group="Shadow", x-control="stepper", x-beside=true, x-showIf={"shadow":true}
   - read: `BarStyle.values` (whole), `barConfig.shadowSize` · in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `config/WindowLookConfig.qml`, `shell/BlurBackingWindow.qml`
 
 ### Reader members
@@ -98,5 +102,5 @@ Every public member of `BarStyle`, with the files that use it.
 
 - `BarStyle.values` (var): The section's values by key, as a bar's own would be
   - in: `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/SubPopout.qml`, `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `config/WindowLookConfig.qml`, `shell/BlurBackingWindow.qml`
-- `BarStyle.shadowed` (bool): Whether surfaces cast the shadow or glow
+- `BarStyle.shadowed` (bool): Whether surfaces cast the shadow
   - in: `components/hosts/popout/FloatingPopout.qml`

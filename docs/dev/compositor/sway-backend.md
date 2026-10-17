@@ -17,6 +17,9 @@
 - IPC: `qs ipc --pid <pid> call …`.
 - Closing the window, or killing that `sway`, ends both.
 
+### X11 apps
+- They need Xwayland, which Arch's sway only lists as optional (`xorg-xwayland`): it's a dependency of its own (`DependencyManager.tools`, install.sh's sway feature). `Sway.xwayland` says when sway starts it.
+
 ### SwayFX
 - `SwayManager.fx`: SwayFX's `get_version` reply adds `sway_original_version` (its `variant` still says "sway"). Read at start, kept in the `PersistentProperties` across reloads of the shell; `ready` until then false; a sway that doesn't answer is asked again after 2 s, doubling up to a minute. `displayName` is "SwayFX", and greyed-out settings on plain sway say "SwayFX can." (`unsupportedHint`).
 
@@ -70,6 +73,7 @@ The [config modes](config-modes.md) on sway; the text comes from the pure `SwayC
 - **Binds** (`SwayConf.bindLine`): `bindsym --no-warn [--whole-window] [--locked] [--release] [--no-repeat] Mod4+Shift+q <command>`. A letter is lower case; `code:N` is a `bindcode`; the wheel is `button4`-`7` and mouse buttons `BTN_*`, over the whole window. Sway repeats a held bind unless told, Hyprland doesn't: every bind without `repeating` gets `--no-repeat`.
   - Actions: `focus`/`move <dir>`, `resize grow|shrink width|height N px`, `kill`, `fullscreen toggle`, `floating toggle`, `sticky toggle` (pin), `move position center`, `layout toggle split`, `exit`; IPC actions and apps as `exec`, quoted when sway would split or unquote them. Raw binds written for sway pass through.
   - **Quoting** (`SwayConf.quote`, `bindCommand`; checked against sway 1.12's parser). Sway takes unescaped quotes out and keeps a backslash before one, so a `"` can't be escaped: `quote` puts each run without a `"` in double quotes and each `"` in single ones. A config file keeps a bind's command as written but unescapes it (backslashes doubled). At runtime sway splits the command list at `;`/`,` before `bindsym` sees it (an unquoted `a, b` runs `b` at once) and strips the quotes, so the runtime layer sends any command holding those quoted whole (`bindLine(…, runtime)`). `merge_sway_binds.py` reads a user's command the way sway does (`stored_command`, `exec_text`).
+  - A modifier tapped on its own (`modifierTap`) is its keysym alone with `--release` (`bindsym --release Super_L`): sway fires it only when no other key came between, and not at all with `Mod4+` before it (checked in a headless sway 1.12).
   - `mouseDrag`/`mouseResize` are sway's `floating_modifier <mod> normal|inverse`: one modifier with the left or right button, from the drag bind (else the resize bind). A mouse bind on several modifiers or another button isn't complete on sway (`isComplete`); a resize bind on a different modifier from the drag's can't be had too.
   - Strips, pseudotiling and groups aren't sway's: those binds are left out.
   - axiom's own: the switcher (`nop axiom switcher step ±1`) and special groups (`nop axiom special toggle|move <name>`), which `SwayManager` reads from `binding` events.
@@ -82,7 +86,7 @@ The [config modes](config-modes.md) on sway; the text comes from the pure `SwayC
 - **The switcher**: sway fires a `--release` bind only when no other key came between, so it can't tell the modifier's release after Tab. Without `switcherRelease`, `SwitcherKeys` (an invisible pixel taking the keyboard while the switcher is open) picks on the release, cancels on Escape. A very quick tap may release before it has the keyboard (fine at 20 ms in nested sway).
 
 ### `supports` for sway
-`configModes`, `keybinds`, `monitors`, `switcher`, `windowGeometry`, `windowBorders`, `windowShape` (the border width; the radius too on SwayFX), `windowGaps`, `windowOpacity` (emulated), `inputConfig`, `keyCapture`, `bindMerge` (the list and conflicts; merging the user's binds in comes with managed), `scratchpad`, `namedSpecial`, `mouseBinds`. SwayFX adds `windowRounding`, `windowBlur`, `blur`, `windowShadow`, `windowDim`. Not: `switcherRelease`, `outputProfiles`, `pseudoTile`, `windowGroups`, `monitorColor`, `monitorMirror`, `strips`, `focusGrab`, `layerOrder`, `cursorPos`, `cursorWarp`, `workspaceSlide`.
+`configModes`, `keybinds`, `monitors`, `switcher`, `windowGeometry`, `windowBorders`, `windowShape` (the border width; the radius too on SwayFX), `windowGaps`, `windowOpacity` (emulated), `inputConfig`, `keyCapture`, `modifierTap`, `bindMerge` (the list and conflicts; merging the user's binds in comes with managed), `scratchpad`, `namedSpecial`, `mouseBinds`. SwayFX adds `windowRounding`, `windowBlur`, `blur`, `windowShadow`, `windowDim`. Not: `switcherRelease`, `outputProfiles`, `pseudoTile`, `windowGroups`, `monitorColor`, `monitorMirror`, `strips`, `focusGrab`, `layerOrder`, `cursorPos`, `cursorWarp`, `workspaceSlide`.
 
 ### Open questions (check in the nested session)
 - **Click outside.** Without `focusGrab`, a grabbing surface takes the keyboard exclusively and each screen's backdrop window catches the click outside it ([README](README.md) › Focus grab). Typing into the launcher opened by IPC works in nested sway; check by hand that bar popouts with text fields, the launcher, the overlay and the power menu close on an outside click.

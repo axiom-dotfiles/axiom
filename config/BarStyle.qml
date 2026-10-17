@@ -8,6 +8,6 @@ import qs.services
 QtObject {
   // The section's values by key, as a bar's own would be
   readonly property var values: ConfigManager.config.BarStyle
-  // Whether surfaces cast the shadow or glow
-  readonly property bool shadowed: values.shadow !== "none"
+  // Whether surfaces cast the shadow
+  readonly property bool shadowed: values.shadow
 }

@@ -43,7 +43,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SystemTray.qml`: The status notifier items, one icon each, in a row (or column, on a vertical bar).
 - `Tailscale.qml`: The Tailscale bar widget: connected or not, and the tailnet's name, from TailscaleManager (acquired at the widget's interval); a click notifies it.
 - `Time.qml`: Clock with a date, formatted for the shell's language (General.language: Japanese uses 午前/午後 and 時分秒 / 年月日); a custom `timeFormat` / `dateFormat` (Qt format strings) overrides that.
-- `Updates.qml`: Pending package updates from UpdatesManager: repo packages via `checkupdates` (pacman-contrib, which uses a temporary sync db, so it never touches the real one), plus AUR packages via paru/yay when enabled.
+- `Updates.qml`: Pending package updates from UpdatesManager: repo packages the way this distribution checks them (`checkupdates` on Arch, `dnf check-update` on Fedora; hidden on one UpdatesManager can't check), plus AUR packages via pa…
 - `Volume.qml`: Default output volume.
 - `Weather.qml`: Current conditions (from WeatherManager, for the Weather settings).
 - `Window.qml`: The Window bar widget: the focused window's title, elastic in width.
@@ -227,7 +227,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `FloatingPopout.qml`: A popout that floats on the screen instead of growing out of an edge (EdgePopout): a plain rounded box in an Overlay-layer window covering the area the bars and border leave free, fading and scaling in.
 - `LayerOrigin.qml`: Where a layer-shell `window` is on its screen, as LayerManager works it out from how every window there asks to be laid out (and reports this one's): for surfaces whose fill the blur window draws, the joins in the borde…
 - `LayerSlot.qml`: A layer-shell `window` with a fixed place in the stack (a bar, the border, a dock, an integrated edge menu): bind its `visible` to `shown`, and what used to decide it to `wanted`.
-- `OutsideShadow.qml`: The shadow or glow (SurfaceShadow) a sibling `target` casts, kept only outside its shape, so none shows through a translucent fill.
+- `OutsideShadow.qml`: The shadow (SurfaceShadow) a sibling `target` casts, kept only outside its shape, so none shows through a translucent fill.
 - `PillBarJoin.qml`: A surface's end joining a pill bar on a perpendicular screen edge: its end sits on that bar's far stroke, and the bar's pill at this edge's end runs out along the surface (BarContainer.setEndReach: the end pill stretche…
 - `PillStretch.qml`: Puts a surface's pill (or island) stretch (EdgeAttach.place's `stretch`) on the bar it stands on (`container`, a BarContainer) under its own owner key, and takes it off again when it clears, the bar changes or this goes.
 - `PopoutAnchor.qml`: Drop this into any bar widget that wants to open a bar popout on hover (or, given a `menu`, an edge menu).
@@ -238,7 +238,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SubPopout.qml`: A popout's submenu, one level deep: each popout host has one (BarPopouts.submenu, EdgePopout.submenu), which a PopoutAnchor in its content opens by itself (its window's `popoutHost`), loading content/<name>.qml as a bar…
 - `SubmenuHost.qml`: A popout host's submenu (SubPopout, one level deep) and everything the two share, the same for a bar popout and an edge popout: what the submenu meets on the box's side (SubmenuSide), how far it stretches the box past i…
 - `SubmenuSide.qml`: What a submenu (SubPopout) meets on the side of its parent's box, the same for a bar popout's and an edge popout's: which side it opens to, whether its ends may run flush to a free end of the side or join the stroke the…
-- `SurfaceShadow.qml`: The shell's shadow or glow (the BarStyle section's, as the bars and the border cast it), as a layer effect for a surface with an exposed border: popouts, edge popouts (OSDs, edge menus, the launcher), docks, floating po…
+- `SurfaceShadow.qml`: The shell's shadow (the BarStyle section's, as the bars and the border cast it), as a layer effect for a surface with an exposed border: popouts, edge popouts (OSDs, edge menus, the launcher), docks, floating popouts.
 - `SwitchStill.qml`: A popout switching to another payload in place (PopoutWrapperBase's canSwitchTo/prepareSwitch: BarPopouts, SubPopout): the content switched away from, as a still the host places where that content was (from `held`), fad…
 
 ## components/methods/
@@ -282,6 +282,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `NiriConf.qml`: niri's config text (KDL) and IPC requests from axiom's settings (NiriManager, NiriConfigWriter), as SwayConf is for sway: each bind's node, the window look, input and options, outputs, and the files axiom writes (docs/d…
 - `NiriState.qml`: niri's IPC replies and events (NiriManager) as the shapes the rest of the shell reads, which don't depend on the compositor (docs/dev/compositor/contract.md), as SwayState is for sway. niri's state is kept as its own ob…
 - `NoteMarkdown.qml`: A note's Markdown as blocks for the notes editor (content/parts/notes/ NoteEditor): paragraphs of plain lines (split at blank lines, which stay with the paragraph above; a code fence is never split, and holds no tasks),…
+- `Packages.qml`: Which distribution this is (from its os-release) and what installs a command there: each command's package per distribution, the shell lines that install a set of them (install hints), and how it checks for and installs…
 - `PolkitAgents.qml`: The polkit agents axiom knows about (PolkitManager): a session has one agent, so while axiom is its agent these are stopped and left out of the generated autostart.
 - `PopoutGeometry.qml`: Which popouts give way to which (PopoutManager): every popout reports its footprint (rects in screen px, from SurfaceOutline.footprint, fillets included), and one opening closes only what it actually covers, by rank.
 - `Schedules.qml`: Pure helpers for what changes on its own: daily time windows ("HH:MM", 24-hour; the light/dark schedule, night light) and picking the next wallpaper of a rotation.
@@ -423,10 +424,10 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 - `AppsPage.qml`: The apps the keybinds open (terminal, file manager, browser), with the installed ones offered to pick from, the main modifier, and the keys that matter most on day one.
 - `BindsTable.qml`: The keys axiom binds for some actions (from Keybinds.binds): one row per action, with its first key, its label, and a warning when the running layer skipped that key because the user's own config holds it
-- `ChecksPage.qml`: What's missing: the icon font, and the programs features use (DependencyManager.tools), with one command that installs them
+- `ChecksPage.qml`: What's missing: the icon font, and the programs features use (DependencyManager.tools), with the commands that install them on this distribution (DependencyManager.installLines), or just their names on one axiom has no …
 - `CompositorPage.qml`: How axiom and the compositor's config fit together, on any compositor axiom can set up (configModes): what its config folder holds (OnboardingManager.configState), the three modes (always all three: managed recommended,…
 - `FinishPage.qml`: The last page: what Finish does to the compositor's config, whether axiom starts with the session, and where to go from here
-- `IntegrationsPage.qml`: Theme integrations (other apps in axiom's colors), marked by whether the app is installed, and the switched-on ones' hookups (IntegrationHookup), then the lock screen, self-updates, the launcher's clipboard history, whe…
+- `IntegrationsPage.qml`: How axiom fits into the system: self-updates, the launcher's clipboard history, whether axiom runs hypridle (Idle.enabled), whether axiom's lock screen locks (Lockscreen.mode), and whether it's the polkit agent (Polkit.…
 - `LookPage.qml`: The look: the wallpaper folder, bar style and screen border here, with the Themes page's wallpaper picker and theme list beside it
 - `MonitorsPage.qml`: The monitor layout: the overlay's Monitors page as it is, beside a card saying what to do with it
 - `Notice.qml`: A highlighted note: an icon and wrapped text, tinted by `tone` ("info" | "warning" | "error" | "success")
@@ -573,7 +574,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `Greeter.qml`: The greeter (greeter.qml, greetd's login screen): a GreeterWindow per screen, and GreetdManager behind the login box.
 - `GreeterPreview.qml`: The layouts editor's preview of the login screen (GreeterManager.editor's Show on screen), on the screen it started on.
 - `IdleInhibit.qml`: Keeps the session awake while IdleInhibitManager.enabled (caffeine).
-- `Lockscreen.qml`: The built-in locker (Lockscreen.mode "quickshell"): a Wayland session lock (ext-session-lock-v1, like hyprlock).
+- `Lockscreen.qml`: The built-in locker (Lockscreen.mode "quickshell"): a Wayland session lock (ext-session-lock-v1).
 - `MonitorPrompt.qml`: The Monitors page's prompts, on every screen: "keep this layout?" after Apply (not in the overlay, whose screen may be the one that changed), and each screen's name while identifying
 - `Notifications.qml`: Stacks incoming notifications as toasts from a corner of the work area (NotificationsConfig), driven by NotificationManager.showPopup: one stack per screen NotificationsConfig.monitors builds it on, each showing a toast…
 - `OSD.qml`: Every enabled OSD (OSD.osds), each on the screens its `monitors` puts it on: an EdgePopout, held off its edge when `detached` (as a dock or edge menu can be).
@@ -598,7 +599,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BlurManager.qml`: The blur behind the shell's chrome: the border's frame, bars and their popouts, edge popouts, integrated edge menus and docks.
 - `BrightnessManager.qml`: Screen brightness per monitor: a laptop panel through its sysfs backlight (written with brightnessctl, which goes through logind), an external monitor over DDC/CI (ddcutil, VCP 0x10).
 - `CalculatorManager.qml`: Math, units and currencies through qalc (libqalculate, which fetches and caches its own exchange rates), for the launcher's calculator rows and the Calculator module.
-- `CalendarManager.qml`: Calendars (the Calendar section): CalDAV accounts and .ics subscriptions, through scripts/calendar_sync.py (run in the venv; passwords from SecretsManager on its stdin).
+- `CalendarManager.qml`: Calendars (the Calendar section): CalDAV accounts and .ics subscriptions, through scripts/calendar_sync.py (run with the system python3; passwords from SecretsManager on its stdin).
 - `ChatManager.qml`: The chat: conversations, sending and streaming replies (ChatRequest, ChatProtocol), attachments, and their history on disk.
 - `ChatRequest.qml`: One streaming chat request, sent with curl.
 - `ClaudeUsageManager.qml`: Claude plan usage (the numbers Claude Code's /usage shows) for one or more Claude Code accounts, each a CLAUDE_CONFIG_DIR.
@@ -638,7 +639,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `LauncherCommands.qml`: The launcher's slash commands, one per shell feature.
 - `LauncherManager.qml`: LauncherManager turns the launcher's search text into result rows and runs them.
 - `LayerManager.qml`: Where axiom's layer-shell windows are on their outputs, worked out by axiom itself on every compositor (methods/LayerArrange; docs/dev/ compositor/layer-arrangement.md).
-- `LockManager.qml`: The one way to lock the session, whatever locks it (Lockscreen.mode): "quickshell" the built-in locker (shell/Lockscreen.qml: Wayland session lock + PAM through AuthManager) "hyprlock" hyprlock, with a config ThemeManag…
+- `LockManager.qml`: The one way to lock the session, whatever locks it (Lockscreen.mode): "quickshell" the built-in locker (shell/Lockscreen.qml: Wayland session lock + PAM through AuthManager) "none" the user's own locker: runs Lockscreen…
 - `MediaManager.qml`: The active MPRIS player (Spotify first, else one playing, else one that can play; or the one picked with selectPlayer) for the media widgets, the lockscreen and the media keys: its track, position and controls, and its …
 - `MonitorManager.qml`: The Monitors page: the connected outputs (CompositorManager. withOutputDetails, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Monitors.profiles, a draft of profiles (…
 - `NetworkingManager.qml`: Wi-Fi state and actions over NetworkManager (Quickshell.Networking, D-Bus, so nothing polls).
@@ -669,7 +670,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `TailscaleManager.qml`: Tailscale's state for every widget that shows it: one `tailscale status --json` at the shortest interval asked for, only while something has acquire()d it.
 - `ThemeManager.qml`: ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallpaper, the wallpaper itself, and re-theming integrated tools.
 - `TimeZoneManager.qml`: Other time zones' UTC offsets, for clocks set to one (a Clock module's or a bar Time widget's `timezone`): the JS engine can't convert times between zones (TimeZones).
-- `UpdatesManager.qml`: Pending package updates, shared by every Updates widget.
+- `UpdatesManager.qml`: Pending package updates, shared by every Updates widget, checked the way this distribution does (Packages.updates: checkupdates on Arch, dnf on Fedora; nothing on one it doesn't know, `supported` false).
 - `UserBindMerge.qml`: Moves the user's binds into axiom (managed mode), through the compositor's merge script (scripts/merge_<compositor>_binds.py, every one with the same verbs and JSON), for that compositor's config writer.
 - `WallpaperManager.qml`: What changes the look on its own.
 - `WeatherManager.qml`: Weather shared by every widget that shows it: one WeatherSource for the Weather settings' location and units, fetching while some widget wants it.

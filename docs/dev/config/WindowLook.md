@@ -123,9 +123,9 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-group="Shadows", x-enabledIf={"/$supports.windowShadow":true}
   - read: `WindowLookConfig.shadowOn` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shadowMatchShell`** · boolean = true
-  - Match axiom's shadow: Follow Look & Feel → Bar style: its shadow or glow, color and size. With none there, windows cast none.
+  - Match axiom's shadow: Follow Look & Feel → Bar style: its shadow color and size. With it off there, windows cast none.
   - x-group="Shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
-  - read: `WindowLookConfig.shadowAlpha` (computed), `WindowLookConfig.shadowColor` (computed), `WindowLookConfig.shadowOffset` (computed), `WindowLookConfig.shadowOn` (computed), `WindowLookConfig.shadowSize` (computed), `WindowLookConfig.shadowSoft` (computed), `WindowLookConfig.shadowThemed` (computed) · in: `services/CompositorConfigManager.qml`
+  - read: `WindowLookConfig.shadowAlpha` (computed), `WindowLookConfig.shadowColor` (computed), `WindowLookConfig.shadowOn` (computed), `WindowLookConfig.shadowSize` (computed), `WindowLookConfig.shadowSoft` (computed), `WindowLookConfig.shadowThemed` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shadowSize`** · integer = 10 · 0–100 · px
   - Shadow size
   - x-control="stepper", x-group="Shadows", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true}
@@ -206,7 +206,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.darkAt` (string)
   - in: `services/WallpaperManager.qml`
 - `Appearance.fontFamily` (string): --- Font ---
-  - in: `components/bar/widgets/Time.qml`, `components/content/Clock.qml`, `components/content/CommandOutput.qml`, `components/content/QuickActions.qml`, `components/content/TopProcesses.qml`, `components/content/parts/AudioRow.qml`, `components/content/parts/CompactFigure.qml`, `components/content/parts/DeviceList.qml`, `components/content/parts/ItemRow.qml`, `components/content/parts/chat/ChatMarkdownText.qml` (+12 more)
+  - in: `components/bar/widgets/Time.qml`, `components/content/Clock.qml`, `components/content/CommandOutput.qml`, `components/content/QuickActions.qml`, `components/content/TopProcesses.qml`, `components/content/parts/AudioRow.qml`, `components/content/parts/CompactFigure.qml`, `components/content/parts/DeviceList.qml`, `components/content/parts/ItemRow.qml`, `components/content/parts/chat/ChatMarkdownText.qml` (+11 more)
 - `Appearance.fontSize` (int)
   - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/BluetoothDevices.qml`, `components/content/Brightness.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClaudeUsage.qml` (+146 more)
 - `Appearance.fontSizeLarge` (int)
@@ -220,7 +220,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.borderWidth` (int)
   - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/bar/WidgetBackground.qml`, `components/content/AudioMixer.qml`, `components/content/ColorSwatch.qml`, `components/content/Greeting.qml`, `components/content/Login.qml`, `components/content/Network.qml`, `components/content/NightLightControls.qml` (+68 more)
 - `Appearance.screenBorder` (bool)
-  - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/SubPopout.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`, `shell/ScreenBorder.qml`
+  - in: `components/bar/BarContainer.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`, `shell/ScreenBorder.qml`
 - `Appearance.screenMargin` (int): The frame can't be thinner than its own outline (a narrower one would draw the stroke over the screen edge); without a frame it's just a gap
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/FloatingPopout.qml`, `components/surfaces/border/RoundedBorders.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`
 - `Appearance.surfaceAlpha` (real): --- Translucency --- How solid the shell's surfaces are (0.6–1).

@@ -40,13 +40,20 @@ QtObject {
         return "";
       mask |= bit;
     }
-    return mask + ":" + parts[parts.length - 1].toLowerCase();
+    return _id(mask, parts[parts.length - 1]);
   }
 
   // A binds entry's id, in keyId's form (a keycode bind as code:N)
   function entryId(entry) {
     const key = entry.key || (entry.keycode ? "code:" + entry.keycode : "");
-    return entry.modmask + ":" + String(key).toLowerCase();
+    return _id(entry.modmask, String(key));
+  }
+
+  // A modifier key on its own (a tap) leaves its own modifier out: Hyprland
+  // lists SUPER + Super_L, sway Super_L
+  function _id(mask, key) {
+    const tap = KeyNames.tapModifier(key);
+    return (tap !== "" ? mask & ~_modBits[tap] : mask) + ":" + key.toLowerCase();
   }
 
   /**

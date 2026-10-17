@@ -3,15 +3,26 @@ import QtQuick
 import Quickshell.Io
 
 import qs.config
+import qs.components.methods
 
-// Pending package updates, shared by every Updates widget. Only one check
-// may run at a time: concurrent `checkupdates` runs share its temporary sync
-// db and fail with "Cannot fetch updates". Widgets register with
-// acquire(owner, {intervalMinutes, aurHelper}) (aurHelper "" for no AUR)
-// and drop it with release(owner); checks run at the shortest requested
-// interval, and the AUR is checked if any widget asks for it.
+// Pending package updates, shared by every Updates widget, checked the way
+// this distribution does (Packages.updates: checkupdates on Arch, dnf on
+// Fedora; nothing on one it doesn't know, `supported` false). Only one
+// check may run at a time: concurrent `checkupdates` runs share its
+// temporary sync db and fail with "Cannot fetch updates". Widgets register
+// with acquire(owner, {intervalMinutes, aurHelper}) (aurHelper "" for no
+// AUR) and drop it with release(owner); checks run at the shortest
+// requested interval, and the AUR is checked if any widget asks for it and
+// the distribution has one.
 QtObject {
   id: root
+
+  // { check, found, none, format, upgrade, aur }, or null where updates
+  // can't be checked
+  readonly property var backend: Packages.updates(DependencyManager.distro)
+  readonly property bool supported: root.backend !== null
+  // An AUR helper's updates count here
+  readonly property bool hasAur: root.backend?.aur === true
 
   // [{ name, from, to }]
   property var repoPackages: []
@@ -30,12 +41,14 @@ QtObject {
   }
 
   function refresh() {
+    if (!root.supported)
+      return;
     if (_repo.running) {
       _repoPending = true;
     } else {
       _repo.running = true;
     }
-    if (_aurHelper === "") {
+    if (_aurHelper === "" || !root.hasAur) {
       aurPackages = [];
     } else if (_aur.running) {
       _aurPending = true;
@@ -46,22 +59,22 @@ QtObject {
     }
   }
 
+  // What upgrades by default: the AUR helper's -Syu (with `aurHelper` set
+  // and an AUR here), else the distribution's own upgrade
+  function upgradeCommand(aurHelper) {
+    if (aurHelper && root.hasAur)
+      return `${aurHelper} -Syu`;
+    return root.backend?.upgrade ?? "";
+  }
+
   // Runs `command` in a terminal (`terminal`, else Apps.inTerminal's) and
   // checks again once the terminal closes. Ignored while an upgrade is
   // already running.
   function upgrade(command, terminal) {
-    if (_upgrader.running)
+    if (_upgrader.running || command === "")
       return;
     _upgrader.command = Apps.inTerminal(["bash", "-c", `${command}; echo; read -n 1 -s -r -p "Press any key to close"`], terminal);
     _upgrader.running = true;
-  }
-
-  function parse(text) {
-    return text.split("\n").map(line => line.trim().split(/\s+/)).filter(f => f.length >= 4 && f[2] === "->").map(f => ({
-          "name": f[0],
-          "from": f[1],
-          "to": f[3]
-        }));
   }
 
   // -- Private --
@@ -89,7 +102,7 @@ QtObject {
   property Timer _poll: Timer {
     interval: root._interval
     repeat: true
-    running: root._active
+    running: root._active && root.supported
     onTriggered: root.refresh()
   }
 
@@ -98,19 +111,23 @@ QtObject {
   }
 
   property Process _repo: Process {
-    command: ["checkupdates", "--nocolor"]
+    command: root.backend?.check ?? []
     stdout: StdioCollector {
       id: repoOut
     }
     stderr: StdioCollector {
       id: repoErr
     }
-    // 0: updates listed, 2: none, anything else: failed (offline, db locked)
+    // The backend's `found` (updates listed) or `none` exit codes, anything
+    // else: failed (offline, db locked)
     onExited: exitCode => {
-      if (exitCode === 0 || exitCode === 2)
-        root.repoPackages = root.parse(repoOut.text);
+      const backend = root.backend;
+      if (!backend)
+        return;
+      if (backend.found.includes(exitCode) || backend.none.includes(exitCode))
+        root.repoPackages = Packages.parseUpdates(backend.format, repoOut.text);
       else
-        console.warn(`[UpdatesManager] checkupdates failed (${exitCode}): ${repoErr.text.trim()}`);
+        console.warn(`[UpdatesManager] ${backend.check[0]} failed (${exitCode}): ${repoErr.text.trim()}`);
       if (root._repoPending) {
         root._repoPending = false;
         running = true;
@@ -128,7 +145,7 @@ QtObject {
         console.warn(`[UpdatesManager] AUR helper '${root._aurHelper}' is not installed`);
         root.aurPackages = [];
       } else {
-        root.aurPackages = root.parse(aurOut.text);
+        root.aurPackages = Packages.parseUpdates("pacman", aurOut.text);
       }
       if (root._aurPending) {
         root._aurPending = false;

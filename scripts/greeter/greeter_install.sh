@@ -24,14 +24,19 @@
 #                       main (or master) branch
 #                local  <repo> as it is: the checked-out branch, uncommitted
 #                       changes included (read as <user>)
+#                package a packaged axiom (/usr/share/axiom, root's, with
+#                       the .packaged marker its package writes), whatever
+#                       <repo> is: the greeter runs that copy itself, so
+#                       the package manager updates it; the install folder
+#                       holds only scripts/greeter/ and the snapshot
 #                check      (no root) what's set up: prints { greetd,
 #                           agreety, displayManager, installed, configured,
 #                           helper, installedSource ("git:tags" | "git:main"
-#                           | "local" | ""), url (git's), installedHash,
+#                           | "local" | "package" | ""), url (git's), installedHash,
 #                           currentHash (for <source>: "" when the remote
 #                           can't be reached), greeterUser, bundleWritable,
 #                           error }. A git hash is the commit, a local one
-#                           the files' content
+#                           the files' content, a package's its version
 #                hash       (no root) currentHash alone
 #                install    (root, through pkexec) copies <source>'s code
 #                           (less tests and docs) to the install folder,
@@ -82,6 +87,9 @@ session_script="/usr/share/axiom-greeter/scripts/greeter/greeter-session.sh"
 helper="$install_dir/scripts/greeter/greeter_install.sh"
 policy="$root/usr/share/polkit-1/actions/org.axiom.greeter.policy"
 mirror="$var_dir/upstream.git"
+# The package source's code, and where the greeter finds it
+package_path=/usr/share/axiom
+package_dir="$root$package_path"
 # Never wait on a password or host-key prompt; never run a transport's
 # commands
 export GIT_TERMINAL_PROMPT=0
@@ -152,7 +160,8 @@ https_url() {
   esac
 }
 
-# What the copy was made from: "git <channel> <url>" | "local" | ""
+# What the copy was made from: "git <channel> <url>" | "local" |
+# "package <dir>" | ""
 installed_source() {
   [[ -f "$install_dir/.greeter-source" ]] && head -n 1 "$install_dir/.greeter-source"
 }
@@ -206,7 +215,9 @@ git_mirror() {
 }
 
 current_hash() {
-  if [[ "$source" == local ]]; then
+  if [[ "$source" == package ]]; then
+    [[ -f "$package_dir/.packaged" ]] && head -n 1 "$package_dir/.packaged"
+  elif [[ "$source" == local ]]; then
     local_hash
   else
     git_hash
@@ -279,6 +290,7 @@ check)
   installed_from=""
   case "$recorded" in
   local) installed_from=local ;;
+  package\ *) installed_from=package ;;
   git\ *)
     rest=${recorded#git }
     installed_from="git:${rest%% *}"
@@ -312,9 +324,20 @@ install | update)
   [[ -f "$greetd_config" ]] || fail "greetd isn't installed ($greetd_config is missing)"
   # The login screen's fallback: without it a broken greeter locks everyone out
   [[ -x "$root/usr/bin/agreety" ]] || fail "agreety (greetd's text login, the login screen's fallback) isn't installed"
-  [[ "$source" == git || "$source" == local ]] || fail "unknown source: $source"
+  [[ "$source" == git || "$source" == local || "$source" == package ]] || fail "unknown source: $source"
   [[ "$channel" == tags || "$channel" == main ]] || fail "unknown channel: $channel"
-  git_repo rev-parse --git-dir >/dev/null 2>&1 || fail "not a git clone: $repo"
+  if [[ "$source" == package ]]; then
+    # Only a copy root owns: the greeter runs it, and its greeter_install.sh
+    # becomes the helper polkit runs as root
+    [[ -f "$package_dir/.packaged" ]] || fail "axiom isn't installed as a package ($package_dir/.packaged is missing)"
+    # (on a test root, the user running the tests)
+    owner=0
+    [[ -n "$root" ]] && owner=$(id -u)
+    [[ "$(stat -c %u "$package_dir")" == "$owner" && "$(stat -c %u "$package_dir/scripts/greeter")" == "$owner" ]] ||
+      fail "$package_dir isn't root's"
+  else
+    git_repo rev-parse --git-dir >/dev/null 2>&1 || fail "not a git clone: $repo"
+  fi
   greeter_user=$(greetd_value user)
   greeter_user=${greeter_user:-greeter}
   id "$greeter_user" >/dev/null 2>&1 || fail "greetd's user $greeter_user doesn't exist"
@@ -331,7 +354,16 @@ install | update)
   # The code, as a tar, and what names it (.greeter-hash, .greeter-source)
   tarball=$(mktemp) || fail "can't make a temporary file"
   trap 'rm -f "$tarball"' EXIT
-  if [[ "$source" == local ]]; then
+  code="$install_dir.new"
+  if [[ "$source" == package ]]; then
+    # Only what greetd and polkit name by path; the greeter-session script
+    # runs the package's code (.greeter-source)
+    tar -C "$package_dir" -cf "$tarball" scripts/greeter || fail "copying $package_dir/scripts/greeter failed"
+    hash=$(head -n 1 "$package_dir/.packaged")
+    origin="package $package_path"
+    label="the package in $package_dir"
+    code=$package_dir
+  elif [[ "$source" == local ]]; then
     local_archive >"$tarball" && [[ -s "$tarball" ]] || fail "copying $repo failed"
     hash=$(local_hash)
     origin=local
@@ -357,7 +389,7 @@ install | update)
   tar -xf "$tarball" -C "$stage" --no-same-owner || fail "unpacking the copy failed"
   # A release from before the login screen existed has nothing to run
   for file in greeter.qml scripts/greeter/greeter-session.sh scripts/greeter/org.axiom.greeter.policy; do
-    if [[ ! -f "$stage/$file" ]]; then
+    if [[ ! -f "$code/$file" ]]; then
       rm -rf "$stage"
       fail "$label has no login screen (no $file): follow main, or use local"
     fi

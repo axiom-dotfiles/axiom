@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 64
+  readonly property int currentVersion: 66
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -155,6 +155,10 @@ QtObject {
       result = _v62ToV63(result, changes);
     if (version < 64)
       result = _v63ToV64(result, changes);
+    if (version < 65)
+      result = _v64ToV65(result, changes);
+    if (version < 66)
+      result = _v65ToV66(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2160,6 +2164,34 @@ QtObject {
       delete widget.properties.appIconSize;
       changes.push(`${where}: removed Workspaces.appIconSize`);
     });
+    return config;
+  }
+
+  // v65 dropped the hyprlock lock mode: axiom's own lock screen covers it
+  // (themed, laid out on the Layouts page), so a config that had axiom
+  // run hyprlock now gets the built-in locker
+  function _v64ToV65(config, changes) {
+    const lockscreen = config.Lockscreen;
+    if (!lockscreen || typeof lockscreen !== "object" || lockscreen.mode !== "hyprlock")
+      return config;
+    lockscreen.mode = "quickshell";
+    changes.push("Lockscreen.mode: hyprlock -> quickshell (the hyprlock mode was removed)");
+    return config;
+  }
+
+  // v66 made the shell's shadow on or off: the glow (spread evenly, the
+  // accent unless a color is picked) is the only one left, so a shadow or
+  // a glow is on, none is off
+  function _v65ToV66(config, changes) {
+    const convert = (look, where) => {
+      if (!look || typeof look !== "object" || typeof look.shadow !== "string")
+        return;
+      const was = look.shadow;
+      look.shadow = was !== "none";
+      changes.push(`${where}.shadow: ${was} -> ${look.shadow ? "on" : "off"}`);
+    };
+    convert(config.BarStyle, "BarStyle");
+    (Array.isArray(config.Bars) ? config.Bars : []).forEach((bar, i) => convert(bar, `Bars[${i}]`));
     return config;
   }
 }

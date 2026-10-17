@@ -118,8 +118,9 @@ QtObject {
       "pillMerge": barConfig.pillMerge ?? 0,
       "pillDepth": pillDepth,
       "spacing": barConfig.spacing,
-      // Between the widgets within a section: a powerline's touch
-      "groupSpacing": grouping === "powerline" ? 0 : barConfig.spacing,
+      // Between the widgets within a section: a powerline's touch, and
+      // dividers drawn between them take their own room and margins
+      "groupSpacing": grouping === "powerline" ? 0 : look.separatorStyle !== "none" ? BarLayout.dividerGap(look.separatorStyle, look.separatorThickness, widgetSize, look.separatorGap) : barConfig.spacing,
       // What's drawn inside the bar follows the bar, never the Widget
       // section (that's for panels, popouts and controls)
       "widgetPadding": barConfig.widgetPadding,
@@ -146,6 +147,7 @@ QtObject {
       "separatorStyle": grouping === "powerline" ? "none" : look.separatorStyle,
       "separatorColor": look.separatorColor,
       "separatorThickness": look.separatorThickness,
+      "separatorGap": look.separatorGap,
       "accentLine": look.accentLine,
       "accentLineColor": look.accentLineColor,
       "accentLineFade": look.accentLineFade,
@@ -153,12 +155,12 @@ QtObject {
       // Cast by what the bar paints: a transparent one paints nothing. A
       // solid bar reserving its edge under the border leaves it to the
       // border, whose stroke is its inner edge (RoundedBorders)
-      "shadow": background === "transparent" || borderShadowed ? "none" : look.shadow,
+      "shadow": background !== "transparent" && !borderShadowed && look.shadow,
       "shadowColor": look.shadowColor,
       "shadowSize": look.shadowSize,
       // How far past the bar a shadow reaches (its blur and offset), which
       // the bar window takes on its inner side
-      "shadowReach": background !== "transparent" && !borderShadowed && look.shadow !== "none" ? Math.ceil(look.shadowSize * 1.25) : 0,
+      "shadowReach": background !== "transparent" && !borderShadowed && look.shadow ? Math.ceil(look.shadowSize * 1.25) : 0,
       "lockCenter": barConfig.lockCenter,
       "location": loc,
       "reserveSpace": barConfig.reserveSpace,
@@ -297,11 +299,10 @@ QtObject {
     };
   }
 
-  // The color of a shadow: `shadow`/`shadowColor` as a bar's look or the
-  // BarStyle section has them. Automatic is black for a shadow, the
-  // accent for a glow.
+  // The color of a shadow: `shadowColor` as a bar's look or the BarStyle
+  // section has it. Automatic is the accent.
   function shadowBaseColor(look) {
-    return Qt.color(look.shadowColor ? Theme.resolveColor(look.shadowColor) : look.shadow === "glow" ? Theme.accent : Qt.alpha("black", 0.6));
+    return Qt.color(look.shadowColor ? Theme.resolveColor(look.shadowColor) : Theme.accent);
   }
 
   // What a shadow is drawn in (shadowBaseColor). While surfaces blur, it

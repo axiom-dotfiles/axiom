@@ -12,13 +12,13 @@ The owner of the runtime config: how it is loaded, written, drafted and previewe
 - Both are loaded eagerly at creation. The active theme's data belongs to ThemeManager, not here.
 
 ### Where files live
-The repo (`Paths.axiomPath`) is read-only to the shell: a package installs it where it can't write. Everything axiom writes is in the XDG folders, resolved once by `DataDirs.xdg` (each `$XDG_*_HOME` when absolute, else its default) and handed out by `ConfigManager.dataDirs` and `Paths`:
+The repo (`Paths.axiomPath`) is read-only to the shell: a package installs it where it can't write (`/usr/share/axiom`, [packaging.md](../packaging.md)). Everything axiom writes is in the XDG folders, resolved once by `DataDirs.xdg` (each `$XDG_*_HOME` when absolute, else its default) and handed out by `ConfigManager.dataDirs` and `Paths`:
 
 | What | Where | `Paths` |
 |---|---|---|
 | config.json, `saved/` | `$XDG_CONFIG_HOME/axiom/` | `userConfigPath` |
 | `StateManager` files (launcher, look, editors, onboarding, settings, clipboard pins, …) | `$XDG_STATE_HOME/axiom/ui/` (0700) | `statePath` |
-| Secrets, chats, notification history, calendar cache, generated hyprlock/hypridle/Hyprland configs, integration outputs | `$XDG_STATE_HOME/axiom/` | `userStatePath` |
+| Secrets, chats, notification history, calendar cache, generated hypridle/Hyprland configs, integration outputs | `$XDG_STATE_HOME/axiom/` | `userStatePath` |
 | Themes generated from the wallpaper (`generated/<name>`) | `$XDG_STATE_HOME/axiom/themes/` | `generatedThemesPath`, `themeFile(name)` |
 | The default notes folder | `$XDG_DATA_HOME/axiom/notes/` | `defaultNotesPath` |
 

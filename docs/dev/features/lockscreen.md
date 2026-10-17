@@ -16,7 +16,7 @@ This doc covers the three lock modes, how the built-in lock screen's layout of m
 
 #### `quickshell` (default)
 - The built-in locker, `shell/Lockscreen.qml`.
-  - A `WlSessionLock` (Wayland `ext-session-lock-v1`, the protocol hyprlock uses).
+  - A `WlSessionLock` (Wayland `ext-session-lock-v1`).
   - One `WlSessionLockSurface` per screen, showing `surfaces/lockscreen/LockSurface.qml`.
 - While locked, the compositor shows only the lock surfaces and sends them all input.
 - If qs dies, the session stays locked (Hyprland's fallback). `misc:allow_session_lock_restore` lets a restarted qs take the lock back.
@@ -24,12 +24,6 @@ This doc covers the three lock modes, how the built-in lock screen's layout of m
 - **Only `AuthManager.authenticationSucceeded` (PAM, `login` stack) unlocks.**
   - There is no IPC unlock.
   - Nothing on the surface may run commands.
-
-#### `hyprlock`
-- `ThemeManager.generateHyprlockConfig()` writes `$XDG_STATE_HOME/axiom/hyprlock.conf` from `scripts/templates/hyprlock_template.conf`. It fills in theme colors, font, wallpaper, blur and the translated greeting.
-- It regenerates on theme, wallpaper, font or language changes, and on switching to this mode.
-- Locking runs `hyprlock -c` with that file.
-- The user's own `hyprlock.conf` is never touched.
 
 #### `none`
 - Axiom provides no locker and no IPC target, so an idle daemon pointed at axiom can't loop through `loginctl lock-session`.
@@ -94,7 +88,7 @@ This doc covers the three lock modes, how the built-in lock screen's layout of m
 
 #### Background
 - `background` is one of:
-  - `wallpaper`: `ThemeManager.wallpaperFor(screen)`, blurred by a `MultiEffect` when `Lockscreen.blurWallpaper` is on. hyprlock's config follows the same setting.
+  - `wallpaper`: `ThemeManager.wallpaperFor(screen)`, blurred by a `MultiEffect` when `Lockscreen.blurWallpaper` is on.
   - `color`: `backgroundColor`.
 - Either way it sits under a black layer at `dim`%.
 

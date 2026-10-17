@@ -5,7 +5,7 @@
 #   1. formats changed QML with Qt 6's qmlformat, writing in place so the
 #      file keeps its inode and the running shell still reloads it
 #   2. check_structure, gen_docs (rewrites docs/dev/config + generated),
-#      check_docs, qmllint, the unit tests the change touches (QML, and
+#      check_docs, check_packages, qmllint, the unit tests the change touches (QML, and
 #      the test_scripts.py classes of a changed script), shellcheck, i18n
 #   3. the shell's log since its last reload, lines issues.md already
 #      covers marked (known: …)
@@ -93,7 +93,7 @@ for f in "${changed[@]}"; do
   scripts/niri_kdl.py | scripts/niri_config.py) script_tests+=(NiriConfig MergeNiriBinds) ;;
   scripts/merge_hypr_binds.py | scripts/hypr_binds.lua) script_tests+=(MergeHyprBinds ClaimHyprland) ;;
   scripts/generate_theme.py) script_tests+=(GenerateTheme) ;;
-  scripts/calendar_sync.py | scripts/setup_venv.sh | scripts/requirements.txt) script_tests+=(CalendarSync GenerateTheme) ;;
+  scripts/calendar_sync.py) script_tests+=(CalendarSync) ;;
   scripts/greeter/*) script_tests+=(GreeterInstall) ;;
   scripts/pick_path.py) script_tests+=(PickPath) ;;
   scripts/sway_config_text.py) script_tests+=(SwayConfigText) ;;
@@ -129,6 +129,9 @@ step "structure" python3 scripts/check_structure.py
 [[ $docs -eq 1 ]] && step "generated docs" python3 scripts/gen_docs.py
 if printf '%s\n' "${changed[@]}" | grep -qE '\.(md|qml)$'; then
   step "doc citations" python3 scripts/check_docs.py
+fi
+if printf '%s\n' "${changed[@]}" | grep -qE '^(install\.sh|components/methods/Packages\.qml|scripts/check_packages\.py)'; then
+  step "package lists" python3 scripts/check_packages.py
 fi
 if [[ ${#qml[@]} -gt 0 ]]; then
   step "qmllint" python3 scripts/check_qmllint.py

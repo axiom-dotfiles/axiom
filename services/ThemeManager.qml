@@ -63,7 +63,7 @@ QtObject {
     "dark": Appearance.darkWallpaper,
     "light": Appearance.lightWallpaper
   }, Appearance.darkMode, root._look.rotated ?? null)
-  // The primary monitor's (the lockscreen's and hyprlock's)
+  // The primary monitor's (the lockscreen's)
   readonly property string wallpaper: root.wallpaperFor(General.primaryMonitor)
   function wallpaperFor(monitor) {
     return ShownLook.wallpaperFor(root.shownWallpapers, monitor);
@@ -71,6 +71,10 @@ QtObject {
   // config/json/theme-defaults.json: fallback palette and semantic maps,
   // shared with scripts/generate_theme.py
   readonly property var defaults: _defaults
+
+  // Theme generation's Python packages (numpy, Pillow) aren't installed:
+  // set by the last run, which said so once (generate_theme.py exits 3)
+  property bool generationUnavailable: false
 
   signal generationFailed(string errorText)
   onGenerationFailed: errorText => NotificationManager.sendNotification("axiom", I18n.tr("Failed to generate themes"), I18n.tr("There was an error while processing the wallpaper. Details: {0}", errorText))
@@ -253,8 +257,6 @@ QtObject {
       return;
     const themePath = Paths.themeFile(themeName);
     const all = keys.length === 0;
-    if (all && LockscreenConfig.mode === "hyprlock")
-      root.generateHyprlockConfig();
     for (let i = 0; i < root.integrations.length; i++) {
       const key = root.integrations[i];
       const process = root._integrationRunner.objectAt(i);
@@ -287,22 +289,6 @@ QtObject {
     root._themed = root._enabledIntegrations;
     if (added.length > 0)
       root.themeIntegrations(root.activeTheme, added);
-  }
-
-  // The themed hyprlock config (Lockscreen.mode "hyprlock"): the theme's
-  // colors plus the font, wallpaper and a translated greeting. `then` runs
-  // once it's written (LockManager locks with it).
-  function generateHyprlockConfig(then) {
-    if (Paths.greeter)
-      return;
-    if (then)
-      root._hyprlockThen.push(then);
-    if (root._hyprlockProcess.running) {
-      root._hyprlockAgain = true;
-      return;
-    }
-    root._hyprlockProcess.command = [Paths.scriptsPath + "theme_hyprlock.sh", Paths.themeFile(root.activeTheme), LockManager.hyprlockConfigPath, Appearance.fontFamily, root.wallpaper, LockscreenConfig.blurWallpaper ? "1" : "0", I18n.tr("Hey {0}", General.displayName), I18n.tr("Enter password...")];
-    root._hyprlockProcess.running = true;
   }
 
   //=========================================================================
@@ -398,7 +384,7 @@ QtObject {
     // The greeter's theme comes from where its config did: the bundle,
     // else the install's snapshot (whose code is this copy's)
     if (Paths.greeter)
-      return ConfigManager.greeterSource === "bundle" ? "file://" + Paths.greeterBundlePath + "theme.json" : Qt.resolvedUrl("../fallback/theme.json");
+      return ConfigManager.greeterSource === "bundle" ? "file://" + Paths.greeterBundlePath + "theme.json" : Paths.greeterFallbackUrl + "theme.json";
     return "file://" + Paths.themeFile(name);
   }
 
@@ -565,35 +551,9 @@ QtObject {
     }
   }
 
-  // Everything besides the theme that goes into the hyprlock config
-  readonly property string _hyprlockInputs: [Appearance.fontFamily, root.wallpaper, LockscreenConfig.blurWallpaper, I18n.language, General.displayName].join("|")
-  on_HyprlockInputsChanged: if (LockscreenConfig.mode === "hyprlock")
-    root.generateHyprlockConfig()
-
-  property var _hyprlockThen: []
-  property bool _hyprlockAgain: false
-  property Process _hyprlockProcess: Process {
-    stdout: StdioCollector {}
-    stderr: StdioCollector {
-      onStreamFinished: if (text.trim())
-        console.warn("[ThemeManager] theme_hyprlock.sh:", text.trim())
-    }
-    onExited: exitCode => {
-      if (root._hyprlockAgain) {
-        root._hyprlockAgain = false;
-        root.generateHyprlockConfig();
-        return;
-      }
-      const callbacks = root._hyprlockThen;
-      root._hyprlockThen = [];
-      if (exitCode === 0)
-        callbacks.forEach(then => then());
-    }
-  }
-
   // --- Generation Logic ---
-  // One run generates every style's pair (generate_theme.py STYLES).
-  // venv_python.sh sets up (or updates) the venv first.
+  // One run generates every style's pair (generate_theme.py STYLES), with
+  // the system's python3 and its numpy and Pillow packages.
 
   property Process _generationProcess: Process {
     id: generationProcess
@@ -604,7 +564,7 @@ QtObject {
     function start(wallpaperUrl) {
       wallpaper = wallpaperUrl.toString();
       const wallpaperPath = wallpaperUrl.toString().replace("file://", "");
-      command = [Paths.scriptsPath + "venv_python.sh", root._pythonScriptPath, wallpaperPath, "--output_dir", Paths.generatedThemesPath];
+      command = ["python3", root._pythonScriptPath, wallpaperPath, "--output_dir", Paths.generatedThemesPath];
       console.log("[ThemeManager] Executing:", command.join(" "));
       running = true;
     }
@@ -618,11 +578,18 @@ QtObject {
     }
     onExited: (exitCode, exitStatus) => {
       const errors = stderrCollector.text.trim();
-      if (exitStatus !== 0 || exitCode !== 0) {
+      if (exitStatus === 0 && exitCode === 3) {
+        console.warn("[ThemeManager] Theme generation needs python packages:", errors);
+        if (!root.generationUnavailable) {
+          const install = DependencyManager.installCommand(["py:numpy", "py:PIL"]);
+          NotificationManager.sendNotification("axiom", I18n.tr("Themes can't be generated"), install ? I18n.tr("Generating themes from the wallpaper needs the Python packages numpy and Pillow. Install them with: {0}", install) : I18n.tr("Generating themes from the wallpaper needs the Python packages numpy and Pillow."));
+        }
+        root.generationUnavailable = true;
+      } else if (exitStatus !== 0 || exitCode !== 0) {
         console.error("[ThemeManager] Theme generation failed.", errors);
         root.generationFailed(errors);
       } else {
-        // The venv was set up
+        root.generationUnavailable = false;
         if (errors)
           console.warn("[ThemeManager] generate_theme.py:", errors);
         console.log("[ThemeManager] Theme generation finished successfully.");
