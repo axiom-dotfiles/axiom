@@ -78,21 +78,21 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Input.cursor`** · boolean = false
   - Set the cursor: An installed cursor theme and its size. Off, the cursor is left alone.
   - x-greeter=true, x-group="Mouse & cursor"
-  - read: `InputConfig.input` (whole) · in: `services/CompositorConfigManager.qml`
+  - read: `InputConfig.input` (whole) · in: `services/CompositorConfigManager.qml`, `services/CursorThemeManager.qml`
 - **`Input.cursorTheme`** · string = ""
   - Cursor theme: An installed cursor theme.
   - x-greeter=true, x-group="Mouse & cursor", x-options="cursorThemes", x-showIf={"cursor":true}
-  - read: `InputConfig.cursorTheme` · in: `services/SettingsManager.qml`
+  - read: `InputConfig.cursorTheme` · in: `services/CursorThemeManager.qml`, `services/SettingsManager.qml`
 - **`Input.cursorSize`** · integer = 24 · 8–128
   - Cursor size
   - x-greeter=true, x-control="stepper", x-group="Mouse & cursor", x-showIf={"cursor":true}
-  - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
+  - read: `InputConfig.input` (whole) · in: `services/CursorThemeManager.qml`
 
 ### Reader members
 
 Every public member of `InputConfig`, with the files that use it.
 
 - `InputConfig.input` (var)
-  - in: `services/CompositorConfigManager.qml`, `services/NiriManager.qml`, `services/SwayManager.qml`
+  - in: `services/CompositorConfigManager.qml`, `services/CursorThemeManager.qml`, `services/NiriManager.qml`, `services/SwayManager.qml`
 - `InputConfig.cursorTheme` (string): The cursor theme picked, set or not ("" for none)
-  - in: `services/SettingsManager.qml`
+  - in: `services/CursorThemeManager.qml`, `services/SettingsManager.qml`

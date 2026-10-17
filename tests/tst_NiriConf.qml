@@ -377,6 +377,8 @@ cursor {
     xcursor-theme "Bibata"
     xcursor-size 24
 }`);
+    // The companion theme filling in the names the theme lacks
+    verify(NiriConf.serialize(NiriConf.inputNodes(CompositorLayer.input(values, "axiom-cursor"), schema.Input)).includes(`xcursor-theme "axiom-cursor"`));
   }
 
   function test_options() {

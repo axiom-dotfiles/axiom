@@ -88,6 +88,7 @@ for f in "${changed[@]}"; do
   scripts/merge_sway_binds.py | components/methods/BindActions.qml) script_tests+=(MergeSwayBinds MergeNiriBinds) ;;
   scripts/bind_merge_common.py) script_tests+=(MergeSwayBinds MergeHyprBinds MergeNiriBinds) ;;
   scripts/claim_niri.sh) script_tests+=(ClaimNiri) ;;
+  scripts/cursor_theme.py) script_tests+=(CursorTheme) ;;
   scripts/merge_niri_binds.py) script_tests+=(MergeNiriBinds) ;;
   scripts/niri_kdl.py | scripts/niri_config.py) script_tests+=(NiriConfig MergeNiriBinds) ;;
   scripts/merge_hypr_binds.py | scripts/hypr_binds.lua) script_tests+=(MergeHyprBinds ClaimHyprland) ;;

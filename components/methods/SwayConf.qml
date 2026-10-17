@@ -402,7 +402,7 @@ QtObject {
         lines.push(field.schema["x-sway"].replace("{}", value));
     }
     if (input?.cursor)
-      lines.push(cursorLine(input.cursor.theme, input.cursor.size));
+      lines.push(cursorLine(input.cursor.xcursor ?? input.cursor.theme, input.cursor.size));
     return lines;
   }
 

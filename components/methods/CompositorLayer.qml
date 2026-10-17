@@ -131,16 +131,20 @@ QtObject {
    *   parts    the names of the parts on, in inputPartNames' order
    *   values   Input's values, for a backend mapping fields by their schema
    *            annotations (x-hypr, gated by x-hyprIf on their part)
-   *   cursor   { theme, size } while the cursor part is on with a theme, or
-   *            null
+   *   cursor   { theme, size, xcursor } while the cursor part is on with a
+   *            theme, or null. `xcursor` is the name XCursor readers get
+   *            (`xcursorTheme`: CursorThemeManager's companion theme
+   *            filling in the standard names the theme lacks), else the
+   *            theme's
    */
-  function input(values) {
+  function input(values, xcursorTheme) {
     return {
       "parts": inputPartNames.filter(part => values[part]),
       "values": values,
       "cursor": values.cursor && values.cursorTheme ? {
         "theme": values.cursorTheme,
-        "size": values.cursorSize
+        "size": values.cursorSize,
+        "xcursor": xcursorTheme || values.cursorTheme
       } : null
     };
   }
@@ -181,10 +185,10 @@ QtObject {
 
   // The session's environment ([{ name, value }], each name once, every
   // backend's): the recommended one when `session.recommendedEnv`, the
-  // cursor's (`cursor`: { theme, size } or null), then the session's own,
+  // cursor's (`cursor`: input()'s, or null), then the session's own,
   // which win over both. A name that isn't a variable's is left out.
   function sessionEnv(session, cursor) {
-    const pairs = (session?.recommendedEnv ? root.recommendedEnv : []).concat(cursor ? [["XCURSOR_THEME", cursor.theme], ["XCURSOR_SIZE", String(cursor.size)]] : []);
+    const pairs = (session?.recommendedEnv ? root.recommendedEnv : []).concat(cursor ? [["XCURSOR_THEME", cursor.xcursor ?? cursor.theme], ["XCURSOR_SIZE", String(cursor.size)]] : []);
     const all = pairs.map(([name, value]) => ({
           "name": name,
           "value": value

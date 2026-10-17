@@ -37,8 +37,9 @@ Singleton {
   readonly property var writer: CompositorManager.supports.configModes ? CompositorManager.backend.configWriter : null
   // Only once the compositor's capabilities are final: the parts applied
   // depend on them (_appliedParts), and one seen missing for a moment would
-  // count as turned off and reload the compositor
-  readonly property bool live: writer !== null && CompositorManager.ready
+  // count as turned off and reload the compositor. And once the cursor
+  // theme's XCursor name is known, so a start writes it once.
+  readonly property bool live: writer !== null && CompositorManager.ready && CursorThemeManager.ready
   onLiveChanged: {
     if (live)
       _debounce.restart();
@@ -123,7 +124,7 @@ Singleton {
         "throughWindows": Appearance.blurThroughWindows,
         "backdrops": Appearance.blurBackdrops
       },
-      "input": CompositorLayer.input(InputConfig.input),
+      "input": CompositorLayer.input(InputConfig.input, CursorThemeManager.xcursorTheme),
       "surfacesBlur": surfacesBlur
     };
   }
@@ -537,9 +538,9 @@ Singleton {
   function _liveLines() {
     const now = root.spec(false);
     _liveState.applied = _appliedParts(now).join(",");
-    const cursor = now.input.cursor ? `${now.input.cursor.theme}|${now.input.cursor.size}` : "";
+    const cursor = now.input.cursor ? `${now.input.cursor.theme}|${now.input.cursor.xcursor}|${now.input.cursor.size}` : "";
     if (cursor !== "" && cursor !== _liveState.cursor)
-      root.writer.setCursor(now.input.cursor.theme, now.input.cursor.size);
+      root.writer.setCursor(now.input.cursor);
     _liveState.cursor = cursor;
     return root.writer.liveLines(now);
   }
@@ -631,7 +632,7 @@ Singleton {
   // them as of its last write, and _applyLive evaluates the current ones
   // over it after every reload. Turning a part off goes through apply(),
   // since an eval can't take a setting back.
-  readonly property string _liveInputs: [WindowLookConfig._lookJson, InputConfig._inputJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, WindowLookConfig.activeBorder, WindowLookConfig.inactiveBorder, WindowLookConfig.radius, WindowLookConfig.borderWidth, WindowLookConfig.shadowOn, WindowLookConfig.shadowSize, WindowLookConfig.shadowColor, WindowLookConfig.shadowAlpha, WindowLookConfig.shadowStrength, WindowLookConfig.shadowOffset].join("|")
+  readonly property string _liveInputs: [WindowLookConfig._lookJson, InputConfig._inputJson, CursorThemeManager.xcursorTheme, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, WindowLookConfig.activeBorder, WindowLookConfig.inactiveBorder, WindowLookConfig.radius, WindowLookConfig.borderWidth, WindowLookConfig.shadowOn, WindowLookConfig.shadowSize, WindowLookConfig.shadowColor, WindowLookConfig.shadowAlpha, WindowLookConfig.shadowStrength, WindowLookConfig.shadowOffset].join("|")
   on_LiveInputsChanged: _liveDebounce.restart()
 
   property Timer _liveDebounce: Timer {

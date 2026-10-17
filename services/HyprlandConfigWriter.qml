@@ -209,8 +209,10 @@ Singleton {
     HyprlandManager.refreshOptions();
   }
 
-  function setCursor(theme, size) {
-    HyprlandManager.setCursor(theme, size);
+  // `cursor`: CompositorLayer.input()'s. Hyprland takes the theme by its
+  // own name (a hyprcursor theme too) and fills in missing names itself
+  function setCursor(cursor) {
+    HyprlandManager.setCursor(cursor.theme, cursor.size);
   }
 
   HyprlandRuntimeLayer {

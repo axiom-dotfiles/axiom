@@ -453,7 +453,7 @@ QtObject {
   function inputNodes(input, inputSchema) {
     const nodes = optionNodes(inputSchema, input?.values ?? {}, true);
     if (input?.cursor) {
-      setPath(nodes, "cursor.xcursor-theme", [input.cursor.theme]);
+      setPath(nodes, "cursor.xcursor-theme", [input.cursor.xcursor ?? input.cursor.theme]);
       setPath(nodes, "cursor.xcursor-size", [Math.round(input.cursor.size)]);
     }
     return nodes;

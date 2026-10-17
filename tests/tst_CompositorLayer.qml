@@ -119,6 +119,11 @@ TestCase {
     compare(value("QT_QPA_PLATFORM"), ["wayland"], "the session's own wins over the recommended one, named once");
     compare(value("XCURSOR_SIZE"), ["32"], "and over the cursor's");
     compare(value("XCURSOR_THEME"), ["Bibata"]);
+    compare(CompositorLayer.sessionEnv({}, {
+      "theme": "Bibata",
+      "size": 24,
+      "xcursor": "axiom-cursor"
+    }).find(entry => entry.name === "XCURSOR_THEME").value, "axiom-cursor", "XCursor readers' name, where it differs");
     verify(env.every(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name)), "invalid names are left out");
     compare(env[env.length - 1].name, "XCURSOR_SIZE", "a name overridden goes where its winner is");
     compare(CompositorLayer.sessionEnv({
@@ -196,7 +201,10 @@ TestCase {
     values.cursorTheme = "Bibata";
     compare(CompositorLayer.input(values).cursor, {
       "theme": "Bibata",
-      "size": 24
-    });
+      "size": 24,
+      "xcursor": "Bibata"
+    }, "XCursor readers get the theme's own name");
+    compare(CompositorLayer.input(values, "axiom-cursor").cursor.xcursor, "axiom-cursor", "or the companion theme filling in its names");
+    compare(CompositorLayer.input(values, "axiom-cursor").cursor.theme, "Bibata");
   }
 }

@@ -57,7 +57,7 @@ niri's config writer (docs/dev/compositor/config-modes.md), reached as NiriManag
 - `validate(text, callback)`: Checks `text` (a whole file of axiom's) with niri itself before it's written, its includes left out (they name the user's files, checked when niri loads them), then calls back with "" or niri's error
 - `liveLines(spec)`: niri takes nothing at runtime: its files carry the look and the input
 - `runLive(lines)`
-- `setCursor(theme, size)`
+- `setCursor(cursor)`
 - `runtimeApply()`: The runtime layer (detached, and the fallback of the file modes): the module and the wrapper written (each if changed), and the wrapper loaded unless it is
 - `runtimeClear()`: Takes the runtime layer out: niri loads the user's config again
 - `noteReload()`: niri reloaded its config: a reload keeps the wrapper loaded

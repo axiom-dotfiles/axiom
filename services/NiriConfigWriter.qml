@@ -254,7 +254,7 @@ Singleton {
   function runLive(lines) {
   }
 
-  function setCursor(theme, size) {
+  function setCursor(cursor) {
   }
 
   // --- The detached mode: a wrapper niri loads in place of the user's config ---

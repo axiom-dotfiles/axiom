@@ -24,12 +24,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-17, while making niri's options one card
 
-### A cursor theme missing CSS names shows another theme's cursors
-- **Where:** `components/methods/CompositorLayer.qml` (`input`: `cursor`), `components/methods/NiriConf.qml` (`inputNodes`), `services/CompositorConfigManager.qml` (`_liveLines`)
-- **What:** axiom hands the theme's name to the compositor and `XCURSOR_THEME` as it is. A theme with only X11 names and no `Inherits` (Oxygen_White: `left_ptr` but no `default`, `grab`, `ew-resize`, …) falls back to the `default` theme for a missing name, which inherits Adwaita here (`/usr/share/icons/default`); niri's xcursor lookup, and toolkits drawing by cursor-shape name, take Adwaita's arrow before trying the theme's own `left_ptr` (checked against xcursor-rs: own dirs, then `Inherits`, else `default`). So under niri the arrow and resize cursors are Adwaita's while the I-beam is the theme's. axiom also never sets `org.gnome.desktop.interface cursor-theme`/`cursor-size`, so GTK apps follow whatever set them last. A fix: a generated theme in `~/.local/share/icons` that inherits the chosen one and links its missing CSS names to their X11 equivalents, used everywhere the name goes, plus the gsettings keys.
-- **Size:** needs a plan
-- **Found:** 2026-10-17, while auditing the niri branch
-
 ### SwayFX blurs a floating popout's shadow halo
 - **Where:** `components/hosts/popout/FloatingPopout.qml` (its `SurfaceShadow`), `components/methods/LayerStack.qml` (`blurSurfaces`: `floating-popout`)
 - **What:** The floating popout blurs its own window and casts its shadow inside it. SwayFX's `blur_ignore_transparent` blurs every pixel that isn't fully clear, so its glow or shadow shows as a frosted band (Hyprland's `ignore_alpha` leaves it out). The chrome's shadows are cast from a window apart on SwayFX (`axiom-shadows`); this one would need the same, or its shadow off there.
