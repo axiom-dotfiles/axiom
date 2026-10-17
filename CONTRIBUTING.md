@@ -26,15 +26,39 @@ axiom has no build step: Quickshell runs the QML as it is and reloads a file the
 1. **Branch** off `main`.
 2. **Find your way in.** Use the table below to find the doc for what you're touching, and read it first. Check [`docs/dev/issues.md`](docs/dev/issues.md) for known problems in that area.
 3. **Edit and save.** The running shell reloads, so you see the change straight away.
-4. **Check it** with `scripts/dev/verify.sh`. It formats the QML you changed, runs the checks and tests your change touches, regenerates the docs, and shows the shell's log. Run it until it prints `verify ok`. A clean log is just `Reloading configuration...` and `Configuration Loaded`.
+4. **Check it** with `scripts/dev/verify.sh` until it prints `verify ok`. It formats your QML, runs the checks your change touches and shows the shell's log.
 5. **Update the docs** that describe what you changed (verify.sh lists them).
-6. **Open a pull request** against `main` and fill in the template. CI runs `scripts/check_all.sh` (the same as `scripts/dev/verify.sh --all`), and its summary shows what each check found.
+6. **Open a pull request** against `main` and fill in the template. CI runs every check (`scripts/dev/verify.sh --all` locally).
 
-Found an unrelated bug along the way? Add it to `docs/dev/issues.md` (the format is at the top) rather than fixing it in the same pull request.
+Found an unrelated bug along the way? Add it to `docs/dev/issues.md` instead of fixing it in the same pull request.
+
+## How it's laid out
+
+```bash
+shell.qml       # entrypoint: one top-level item per surface, plus services only reached by IPC
+shell/          # top-level pieces, one per surface
+components/
+  methods/      # pure helpers with unit tests: no files, processes or side effects
+  reusable/     # generic Styled* widgets, no feature logic
+  forms/        # schema-driven form widgets for the settings page
+  content/      # loadable panels by name: overlay modules and bar popouts
+  hosts/        # where content appears: popouts, overlay pages and slots
+  views/        # overlay pages by type, with their pieces in subfolders
+  bar/          # the bar; bar/widgets/ holds the bar widget types
+  surfaces/     # standalone windows (launcher, lock screen, toasts, dock, power menu, …)
+services/       # *Manager singletons: state and every side effect (processes, files, the compositor)
+config/         # config readers; json/ (the config schema), themes/, i18n/
+scripts/        # scripts the shell runs (theming, wallpaper, updates, compositor configs) and the dev checks
+tests/          # qmltestrunner tests and script tests
+examples/       # the example setups
+docs/           # user docs; docs/dev/ for contributors
+```
+
+Dependencies point one way: `methods/` helpers → config readers → services → UI. The UI never runs processes or writes files itself; it asks a service. Your settings live in `~/.config/axiom/`, never in the repository.
 
 ## Where to look
 
-The rules are in [AGENTS.md](AGENTS.md). It's short, and it's written for people and coding agents alike. Read it before your first change. How each part works is in [docs/dev/](docs/dev/README.md), one short doc per topic.
+Read [AGENTS.md](AGENTS.md) before your first change: it holds the project's rules, for people and agents alike. How each part works is in [docs/dev/](docs/dev/README.md), one doc per topic.
 
 | I want to… | Start at |
 | --- | --- |
@@ -52,13 +76,13 @@ The rules are in [AGENTS.md](AGENTS.md). It's short, and it's written for people
 
 ## Testing your change
 
-- **Use it.** Your change is live as soon as you save, so open the page, menu or popout and try it. A screenshot in the pull request helps for anything visual: `scripts/dev/shot.sh page <ViewType>` (or `launcher`, or `ipc <target> <open> [close]` for any other surface) opens it, takes the shot and closes it again.
+- **Use it.** Your change is live as soon as you save. For anything visual, add a screenshot to the pull request: `scripts/dev/shot.sh page <ViewType>` (or `launcher`, or `ipc <target> <open>`) takes one for you.
 - **Read the log.** `scripts/log.sh` shows warnings and errors since the last reload (`--debug` adds `console.log`, `-f` follows).
-- **Unit tests.** Pure helpers in `components/methods/` and config migrations have tests in `tests/`. Changing one? Add a case, and run `scripts/run_tests.sh <Name>`.
+- **Unit tests.** Changing a helper in `components/methods/` or a config migration? Add a case in `tests/` and run `scripts/run_tests.sh <Name>`.
 - **Another compositor, or a fresh config.** `scripts/dev/nested.sh <sway|niri>` runs that compositor in a window with a second axiom inside it, on its own config, so you can try managed mode or a first start without touching your desktop.
 
 More tricks for debugging the running shell are in [docs/dev/testing.md](docs/dev/testing.md).
 
 ## Using AI
 
-Using a coding agent is fine. The repository is set up for it: `CLAUDE.md` imports AGENTS.md, and the recipes double as skills. You're responsible for what you submit, the same as for code you wrote by hand. Read it, run it, and check the log.
+Coding agents are welcome, and the repository is set up for them (`CLAUDE.md` imports AGENTS.md, and the recipes double as skills). You're still responsible for what you submit: read it, run it, and check the log.
