@@ -362,9 +362,15 @@ Singleton {
     });
   }
 
-  // niri watches its config files: there's nothing to reload
+  // niri reloads the files it loads as they change, but not a module it
+  // doesn't load yet: reloading now (the config it runs, the wrapper
+  // too) has its ConfigLoaded tell CompositorConfigManager to check again
   function reload(callback) {
-    callback?.();
+    NiriIpcManager.action({
+      "LoadConfigFile": {
+        "path": null
+      }
+    }, () => callback?.());
   }
 
   // --- The user's config ---

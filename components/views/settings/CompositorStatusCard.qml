@@ -220,7 +220,12 @@ FieldGroup {
     spacing: Widget.spacing
 
     StyledText {
-      text: I18n.tr("Add near the top of {0} (anything after overrides axiom):", Paths.shortenHome(CompositorConfigManager.managedPath))
+      // Where the writer puts it (its include target): at the top, where
+      // the user's own lines after it win, or at the end (niri), where
+      // axiom's look wins
+      readonly property var target: CompositorConfigManager.includeTarget
+      readonly property string file: Paths.shortenHome(target?.file ?? CompositorConfigManager.managedPath)
+      text: target?.place === "end" ? I18n.tr("Add at the end of {0} (axiom's look wins; binds on keys you bind stay yours):", file) : I18n.tr("Add near the top of {0} (anything after overrides axiom):", file)
       opacity: 0.7
       textSize: Appearance.fontSize - 2
       wrapMode: Text.WordWrap
@@ -243,10 +248,24 @@ FieldGroup {
       }
     }
 
-    StyledTextButton {
-      implicitHeight: Widget.height - 4
-      text: I18n.tr("Copy")
-      onClicked: CompositorConfigManager.copyIncludeLines()
+    RowLayout {
+      spacing: Widget.spacing
+
+      StyledTextButton {
+        implicitHeight: Widget.height - 4
+        text: I18n.tr("Copy")
+        onClicked: CompositorConfigManager.copyIncludeLines()
+      }
+
+      // While it isn't loaded: adds the lines (with a backup), as the
+      // notification's Add it for me does
+      StyledTextButton {
+        visible: root.status !== "loaded" && CompositorConfigManager.includeTarget !== null
+        enabled: !IntegrationHookupManager.busy.compositorModule
+        implicitHeight: Widget.height - 4
+        text: IntegrationHookupManager.busy.compositorModule ? I18n.tr("Adding…") : I18n.tr("Add it for me")
+        onClicked: CompositorConfigManager.addIncludeLines()
+      }
     }
   }
 

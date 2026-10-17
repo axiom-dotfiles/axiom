@@ -62,7 +62,7 @@ niri's config writer (docs/dev/compositor/config-modes.md), reached as NiriManag
 - `runtimeClear()`: Takes the runtime layer out: niri loads the user's config again
 - `noteReload()`: niri reloaded its config: a reload keeps the wrapper loaded
 - `checkLoaded(callback)`: Calls back with whether the mode's file is in effect: the included module reached from the user's config, or the managed config being niri's (it starts with the header); "failed" when niri couldn't l…
-- `reload(callback)`: niri watches its config files: there's nothing to reload
+- `reload(callback)`: niri reloads the files it loads as they change, but not a module it doesn't load yet: reloading now (the config it runs, the wrapper too) has its ConfigLoaded tell CompositorConfigManager to check ag…
 - `withEntries(callback)`: Calls back with the user's binds and axiom's in effect (BindKeys' entries), or null before they're read
 - `checkManaged(callback)`: `callback` (optional) gets managedCheck once known
 - `claim()`
