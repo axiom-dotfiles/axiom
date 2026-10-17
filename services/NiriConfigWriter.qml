@@ -179,7 +179,9 @@ Singleton {
       "userDir": userDir,
       "userFiles": _userFiles,
       "options": NiriConf.optionNodes(schema?.WindowBehaviour, WindowBehaviourConfig.behaviour, false).concat(NiriConf.optionNodes(schema?.Niri, NiriConfig.options, false), parts.options),
-      "env": CompositorLayer.sessionEnv(SessionConfig.session, spec.input.cursor),
+      "env": CompositorLayer.sessionEnv(SessionConfig.session, spec.input.cursor, {
+        "qt": ThemeIntegrations.qt
+      }),
       "start": {
         "command": startCommand,
         "idle": Idle.enabled,

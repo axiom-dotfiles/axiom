@@ -623,7 +623,7 @@ Singleton {
   // Everything the layer is made of but the look, the input and the blur;
   // a change re-applies it (in the file modes, rewriting the file, which
   // reloads the compositor)
-  readonly property string _inputs: [mode, KeybindsConfig._bindsJson, MonitorsConfig._profilesJson, SessionConfig._sessionJson, WorkspacesConfig._stripsJson, CompositorConfig.requiredSettings, writer?.inputsKey ?? ""].join("|")
+  readonly property string _inputs: [mode, KeybindsConfig._bindsJson, MonitorsConfig._profilesJson, SessionConfig._sessionJson, ThemeIntegrations.qt, WorkspacesConfig._stripsJson, CompositorConfig.requiredSettings, writer?.inputsKey ?? ""].join("|")
   on_InputsChanged: _debounce.restart()
 
   // The window look, the input and the blur behind axiom (paused over a

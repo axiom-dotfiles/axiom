@@ -744,7 +744,6 @@
     "Ghostty": "Ghostty",
     "fzf": "fzf",
     "Alacritty": "Alacritty",
-    "Qt (qt5ct / qt6ct)": "Qt（qt5ct / qt6ct）",
     "Yazi": "Yazi",
     "zathura": "zathura",
     "GTK": "GTK",
@@ -2176,7 +2175,6 @@
     "Finish setting up": "設定を完了する",
     "Writes the \"axiom\" theme. Helix 23.10+ reloads it.": "\"axiom\" テーマを書き込みます。Helix 23.10 以降は自動で再読み込みします。",
     "In ~/.config/k9s/config.yaml, merged into its k9s: section.": "~/.config/k9s/config.yaml の k9s: セクションに統合してください。",
-    "Writes an \"axiom\" color scheme for qt5ct and qt6ct (Qt apps need QT_QPA_PLATFORMTHEME=qt5ct / qt6ct).": "qt5ct と qt6ct 用の \"axiom\" 配色を書き込みます（Qt アプリには QT_QPA_PLATFORMTHEME=qt5ct / qt6ct が必要です）。",
     "Neovim has no single line to add. Its colors come from colorscheme plugins your config loads, often lazily through a plugin manager and after init.lua has run, so a file read at startup would be overridden. axiom writes the theme to $XDG_STATE_HOME/axiom/nvim-theme.json; the axiom_theme module reads it, picks a colorscheme you map to it (or builds one from the palette) and reloads when the theme changes. Copy the module into your config, then call its setup() once your plugins are loaded.": "Neovim には追加するだけの一行がありません。配色は設定が読み込むカラースキームのプラグインから来ており、多くはプラグインマネージャーによって init.lua の実行後に遅延読み込みされるため、起動時に読むファイルは上書きされてしまいます。axiom はテーマを $XDG_STATE_HOME/axiom/nvim-theme.json に書き込み、axiom_theme モジュールがそれを読んで対応付けたカラースキームを選び（またはパレットから作成し）、テーマが変わると再読み込みします。モジュールを設定にコピーし、プラグインの読み込み後に setup() を呼んでください。",
     "Writes kitty/axiom.conf. Reloads kitty when allow_remote_control is on.": "kitty/axiom.conf を書き込みます。allow_remote_control が有効なら kitty を再読み込みします。",
     "Writes cava/colors/axiom.conf (and a Cava config including it, when there is none). Reloads running Cava.": "cava/colors/axiom.conf を書き込みます（Cava の設定がなければ、それを読み込む設定も作成します）。起動中の Cava を再読み込みします。",
@@ -3090,6 +3088,10 @@
     "Skipped: {0} is a link to {1}, which you can't change. Add the text to a file of your own.": "スキップ: {0} は {1} へのリンクですが、そのファイルは変更できません。自分のファイルにテキストを追加してください。",
     "Skipped: you can't change {0}. Add the text yourself.": "スキップ: {0} は変更できません。テキストを自分で追加してください。",
     "The link is kept as {0}.": "リンクは {0} として残ります。",
-    "{0} is a link to {1}, which you can't change: Apply replaces the link with a file that loads {1}, then axiom's file after it.": "{0} は変更できない {1} へのリンクです。適用すると、リンクを {1} を読み込み、その後に axiom のファイルを読み込むファイルに置き換えます。"
+    "{0} is a link to {1}, which you can't change: Apply replaces the link with a file that loads {1}, then axiom's file after it.": "{0} は変更できない {1} へのリンクです。適用すると、リンクを {1} を読み込み、その後に axiom のファイルを読み込むファイルに置き換えます。",
+    "Qt and KDE apps": "Qt と KDE アプリ",
+    "KDE apps": "KDE アプリ",
+    "Writes an \"axiom\" color scheme for qt5ct and qt6ct, and an \"Axiom\" KDE color scheme (Dolphin, Gwenview, Okular, Kate…).": "qt5ct と qt6ct 用の「axiom」カラースキームと、KDE 用の「Axiom」カラースキーム（Dolphin、Gwenview、Okular、Kate など）を書き出します。",
+    "Qt apps take the palette from qt5ct / qt6ct only with QT_QPA_PLATFORMTHEME=qt5ct, which a managed compositor config sets while this is on (apps started from your next login get it); otherwise set it in your compositor's environment. KDE apps read most of their colors from kdeglobals instead: once its ColorScheme is Axiom, axiom keeps its color groups a copy of the scheme on every theme change, as Plasma does.": "Qt アプリが qt5ct / qt6ct のパレットを使うのは QT_QPA_PLATFORMTHEME=qt5ct のときだけです。これがオンの間は管理モードのコンポジター設定がこれを設定します（次回のログイン以降に起動したアプリに反映されます）。それ以外の場合はコンポジターの環境で設定してください。KDE アプリは色の大半を kdeglobals から読みます。その ColorScheme が Axiom になると、axiom はテーマが変わるたびに、Plasma と同じようにその色グループをスキームの写しに保ちます。"
   }
 }

@@ -142,7 +142,9 @@ Singleton {
       "header": _header,
       "userDir": userDir,
       "options": SwayConf.optionLines(schema?.WindowBehaviour, WindowBehaviourConfig.behaviour).concat(SwayConf.optionLines(schema?.Sway, SwayConfig.options)),
-      "env": CompositorLayer.sessionEnv(SessionConfig.session, spec.input.cursor),
+      "env": CompositorLayer.sessionEnv(SessionConfig.session, spec.input.cursor, {
+        "qt": ThemeIntegrations.qt
+      }),
       "start": {
         "command": startCommand,
         "idle": Idle.enabled,

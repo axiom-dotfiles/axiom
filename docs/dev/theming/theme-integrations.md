@@ -29,7 +29,12 @@ How axiom themes other apps: one script per app writing its own `axiom.*` file, 
 - A missing main config may be created with the hookup (cava's config, GTK's `gtk.css`). One that exists is never touched by a script.
 - Zathura reloads through D-Bus (`SourceConfig` on each `org.pwmt.zathura.PID-*` name).
 
-### ncspot (the one exception)
+### Qt and KDE apps
+- `theme_qt.sh` writes qt5ct's / qt6ct's `colors/axiom.conf` (a QPalette per state) and the KDE color scheme `$XDG_DATA_HOME/color-schemes/Axiom.colors` (`templates/qt_template.colors`, colors as `r,g,b`).
+- Qt apps load qt*ct only with `QT_QPA_PLATFORMTHEME`: a managed compositor config sets it to `qt5ct` while the switch is on (`CompositorLayer.integrationEnv`; qt6ct's plugin answers to `qt5ct` too). `ThemeIntegrations.qt` is in `CompositorConfigManager._inputs`, so switching it rewrites the file. The session's own `Session.env` wins; apps started before the next login (qs's children included) keep the old environment.
+- KDE apps (KColorScheme) read most of their colors from `kdeglobals`' `[Colors:*]`, `[ColorEffects:*]` and `[WM]` groups, a copy of the chosen scheme that Plasma keeps. The hookup's third target sets `ColorScheme=Axiom` in its `[General]`; from then on `theme_qt.sh` keeps those groups a copy of `Axiom.colors` on every theme change, replacing only the keys the scheme sets (others, like `[WM] activeFont`, stay), and emits `org.kde.KGlobalSettings.notifyChange` (palette) so running KDE apps re-read it. With any other `ColorScheme` it leaves `kdeglobals` alone. This is the second exception to "only Apply edits a user's config": a file KDE's tools write, after the user opted in.
+
+### ncspot (an exception)
 - ncspot can't include a file, so `theme_ncspot.sh` writes `$XDG_STATE_HOME/axiom/ncspot-theme.toml`.
 - It copies that between the two marker lines its Apply put in `config.toml`'s `[theme]` (`x-hookupNote` says so).
 - It leaves out keys the user sets in `[theme]` outside the markers. With no markers it only warns.

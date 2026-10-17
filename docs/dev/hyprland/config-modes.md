@@ -59,7 +59,7 @@ Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`
     - `axiom` follows `Appearance.animFast/Normal/Slow` and turns animations off with motion
     - `snappy` / `bouncy` / `lightning`
     - `custom` comes from `curves`/`customAnimations`
-  - `Session.env`: `CompositorLayer.sessionEnv` (as on sway): the recommended variables while `Session.recommendedEnv` is on, then the cursor's `XCURSOR_*`, then the user's, which win over both
+  - `Session.env`: `CompositorLayer.sessionEnv` (as on sway): the recommended variables while `Session.recommendedEnv` is on, then the theme integrations' (`CompositorLayer.integrationEnv`: `QT_QPA_PLATFORMTHEME=qt5ct` while `ThemeIntegrations.qt` is on), then the cursor's `XCURSOR_*`, then the user's, which win over all of them
   - `Session.autostart`: written after axiom's in the start hook
   - the cursor (`Input.cursor`): `hyprctl setcursor` at start (its `XCURSOR_*` are in the environment above).
 

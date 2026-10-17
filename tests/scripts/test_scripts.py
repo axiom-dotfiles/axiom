@@ -63,7 +63,7 @@ NCSPOT_MARKERS = "# axiom theme: begin (rewritten on every theme change)\n# axio
 # Apps the integrations require or signal; stubs keep them from touching a
 # running session
 STUBS = ["alacritty", "bat", "btop", "foot", "fzf", "ghostty", "hx", "kitty", "lazygit",
-         "nvim", "wezterm", "yazi", "qt5ct", "qt6ct", "pkill", "gsettings"]
+         "nvim", "wezterm", "yazi", "qt5ct", "qt6ct", "pkill", "gsettings", "busctl"]
 
 
 def parallel(fn, items):
@@ -86,6 +86,7 @@ def scratch_env(tmp):
         "HOME": str(tmp / "home"),
         "XDG_CONFIG_HOME": str(tmp / "home" / ".config"),
         "XDG_STATE_HOME": str(tmp / "home" / ".local" / "state"),
+        "XDG_DATA_HOME": str(tmp / "home" / ".local" / "share"),
         "XDG_RUNTIME_DIR": str(tmp / "run"),
         "PATH": f"{stubs}:{env['PATH']}",
         "GIT_CONFIG_GLOBAL": str(tmp / "gitconfig"),
@@ -278,7 +279,7 @@ def gtk_css_problems(path):
 def integration_args(key, theme, target):
     """(output path to check, the script's arguments) for rendering `theme`
     into the directory `target`"""
-    if key in ("gtk", "vscode"):
+    if key in ("gtk", "vscode", "qt"):
         return target, [theme, target]
     if key in ("vesktop", "firefox"):
         target = target / "axiom.css"
@@ -326,6 +327,35 @@ class ThemeIntegrations(unittest.TestCase):
         for (theme, script), problems in zip(jobs, parallel(render, jobs)):
             with self.subTest(script=script.name, theme=theme.name):
                 self.assertEqual(problems, [])
+
+    def test_qt_keeps_kdeglobals_in_step_once_chosen(self):
+        kdeglobals = Path(self.env["XDG_CONFIG_HOME"]) / "kdeglobals"
+        kdeglobals.parent.mkdir(parents=True)
+        mine = "[Colors:View]\nBackgroundNormal=1,2,3\nCustom=x\n\n[General]\nColorScheme=BreezeDark\n\n[WM]\nactiveFont=Sans,10\n"
+        kdeglobals.write_text(mine)
+        theme = THEMES / "ayu-dark.json"
+        self.run_script(SCRIPTS / "theme_qt.sh", [theme])
+        scheme = Path(self.env["XDG_DATA_HOME"]) / "color-schemes" / "Axiom.colors"
+        self.assertTrue(scheme.is_file())
+        self.assertEqual(kdeglobals.read_text(), mine, "untouched until it names the scheme")
+        kdeglobals.write_text(mine.replace("BreezeDark", "Axiom"))
+        self.run_script(SCRIPTS / "theme_qt.sh", [theme])
+        first = kdeglobals.read_text()
+        data = configparser.ConfigParser(interpolation=None, strict=False)
+        data.optionxform = str
+        data.read_string(first)
+        colors = configparser.ConfigParser(interpolation=None, strict=False)
+        colors.optionxform = str
+        colors.read_string(scheme.read_text())
+        self.assertEqual(data["Colors:View"]["BackgroundNormal"], colors["Colors:View"]["BackgroundNormal"])
+        self.assertRegex(data["Colors:View"]["BackgroundNormal"], r"^\d+,\d+,\d+$")
+        self.assertEqual(data["Colors:View"]["Custom"], "x", "keys the scheme doesn't set stay")
+        self.assertEqual(data["WM"]["activeFont"], "Sans,10")
+        self.assertEqual(data["WM"]["activeBackground"], colors["WM"]["activeBackground"])
+        self.assertEqual(dict(data["Colors:Selection"]), dict(colors["Colors:Selection"]), "missing groups are added")
+        self.assertEqual(dict(data["General"]), {"ColorScheme": "Axiom"})
+        self.run_script(SCRIPTS / "theme_qt.sh", [theme])
+        self.assertEqual(kdeglobals.read_text(), first, "a second run changes nothing")
 
     def test_ncspot_leaves_your_keys(self):
         config = self.out / "config.toml"
