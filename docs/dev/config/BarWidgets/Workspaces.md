@@ -6,7 +6,7 @@
 
 Settings are read as `properties.<key>`.
 
-- **`showEmpty`** · boolean = false
+- **`showEmpty`** · boolean = true
   - Show empty workspaces: Off: only workspaces with windows, plus the active one (in a grid, of the row shown). Down to one on a strip monitor, its windows show alone.
   - x-showIf={"/$supports.dynamicWorkspaces":false}
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`

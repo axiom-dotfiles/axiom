@@ -127,7 +127,8 @@ OnboardingPage {
 
   SettingRows {
     Layout.fillWidth: true
-    paths: ["Workspaces.count", "Workspaces.columns", "Workspaces.rows", "Workspaces.wrap"]
+    // The layout's size doesn't apply where the compositor makes them
+    paths: root.dynamic ? ["Workspaces.wrap"] : ["Workspaces.count", "Workspaces.columns", "Workspaces.rows", "Workspaces.wrap"]
   }
 
   StyledText {

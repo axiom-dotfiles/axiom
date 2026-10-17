@@ -18,6 +18,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### Hyprland's own options are several cards that don't say they're Hyprland's
+- **Where:** `config/json/config.schema.json` (`Hyprland.managed`: its `x-group`s), `components/methods/SchemaLayout.qml` (`groups`)
+- **What:** Sway's and niri's own options are one card each, titled by the compositor. Hyprland's managed options are split by `x-group` into Layout, Decoration, Animations, Windows and Behaviour cards beside the compositor-neutral ones (Windows and focus, Mouse & cursor), and nothing on them says they're Hyprland's. Either one Hyprland card (about 30 rows), or group titles naming it.
+- **Size:** small
+- **Found:** 2026-10-17, while making niri's options one card
+
 ### A cursor theme missing CSS names shows another theme's cursors
 - **Where:** `components/methods/CompositorLayer.qml` (`input`: `cursor`), `components/methods/NiriConf.qml` (`inputNodes`), `services/CompositorConfigManager.qml` (`_liveLines`)
 - **What:** axiom hands the theme's name to the compositor and `XCURSOR_THEME` as it is. A theme with only X11 names and no `Inherits` (Oxygen_White: `left_ptr` but no `default`, `grab`, `ew-resize`, …) falls back to the `default` theme for a missing name, which inherits Adwaita here (`/usr/share/icons/default`); niri's xcursor lookup, and toolkits drawing by cursor-shape name, take Adwaita's arrow before trying the theme's own `left_ptr` (checked against xcursor-rs: own dirs, then `Inherits`, else `default`). So under niri the arrow and resize cursors are Adwaita's while the I-beam is the theme's. axiom also never sets `org.gnome.desktop.interface cursor-theme`/`cursor-size`, so GTK apps follow whatever set them last. A fix: a generated theme in `~/.local/share/icons` that inherits the chosen one and links its missing CSS names to their X11 equivalents, used everywhere the name goes, plus the gsettings keys.
