@@ -207,16 +207,23 @@ def main():
         if re.search(r"^import Quickshell\.Hyprland\b", text, re.M) and not re.fullmatch(r"services/Hyprland\w*\.qml", path):
             errors.append(f"{path}: imports Quickshell.Hyprland (only the Hyprland* services may; use CompositorManager)")
 
-    # Likewise only the Sway* services read Quickshell.I3, run swaymsg or use
-    # SwayManager directly (docs/dev/compositor/sway-backend.md)
-    for path, text in sources.items():
-        if re.fullmatch(r"services/Sway\w*\.qml", path) or path == "services/CompositorManager.qml":
-            continue
-        code = "\n".join(line.split("//", 1)[0] for line in text.splitlines())
-        if re.search(r"^import Quickshell\.I3\b", text, re.M):
-            errors.append(f"{path}: imports Quickshell.I3 (only the Sway* services may; use CompositorManager)")
-        if re.search(r"\bSwayManager\.|\bSwayIpcManager\.|\"swaymsg\"", code):
-            errors.append(f"{path}: talks to sway directly (only the Sway* services may; use CompositorManager)")
+    # Likewise only a backend's own services talk to its compositor: read
+    # its Quickshell module, run its CLI, use its socket or its services
+    # directly (docs/dev/compositor/README.md): (prefix, the compositor,
+    # its Quickshell module or None, what talks to it)
+    backends = [
+        ("Sway", "sway", "I3", r"\bSwayManager\.|\bSwayIpcManager\.|\"swaymsg\""),
+        ("Niri", "niri", None, r"\bNiriManager\.|\bNiriIpcManager\.|\bNiriConfigWriter\.|\"NIRI_SOCKET\"|\[\"niri\""),
+    ]
+    for prefix, name, module, talks in backends:
+        for path, text in sources.items():
+            if re.fullmatch(rf"services/{prefix}\w*\.qml", path) or path == "services/CompositorManager.qml":
+                continue
+            code = "\n".join(line.split("//", 1)[0] for line in text.splitlines())
+            if module and re.search(rf"^import Quickshell\.{module}\b", text, re.M):
+                errors.append(f"{path}: imports Quickshell.{module} (only the {prefix}* services may; use CompositorManager)")
+            if re.search(talks, code):
+                errors.append(f"{path}: talks to {name} directly (only the {prefix}* services may; use CompositorManager)")
 
     # The rest of the shell reaches the compositor through CompositorManager
     # (docs/dev/compositor/README.md). HyprlandManager is its Hyprland
@@ -231,7 +238,7 @@ def main():
             errors.append(f"{path}: uses HyprlandManager (only the Hyprland* services and the Hyprland-only features may; use CompositorManager)")
 
     # A backend's text and state helpers are its own (Hyprland's Lua,
-    # sway's commands): outside its services and helpers (and the
+    # sway's commands, niri's KDL): outside its services and helpers (and the
     # Hyprland-only features), the rest of the shell goes through
     # CompositorManager and CompositorConfigManager
     # (docs/dev/compositor/config-modes.md)
@@ -241,8 +248,9 @@ def main():
             continue
         if not re.fullmatch(r"(services|components/methods)/Hypr\w*\.qml", path) and path not in hyprland_features and re.search(r"\b(HyprLua|HyprConfigLua|HyprState)\.", code):
             errors.append(f"{path}: uses a Hyprland Lua helper (only the Hyprland* services and helpers may; go through CompositorManager / CompositorConfigManager)")
-        if not re.fullmatch(r"(services|components/methods)/Sway\w*\.qml", path) and re.search(r"\b(SwayConf|SwayState)\.", code):
-            errors.append(f"{path}: uses a sway helper (only the Sway* services and helpers may; go through CompositorManager / CompositorConfigManager)")
+        for prefix, name, _, _ in backends:
+            if not re.fullmatch(rf"(services|components/methods)/{prefix}\w*\.qml", path) and re.search(rf"\b({prefix}Conf|{prefix}State)\.", code):
+                errors.append(f"{path}: uses a {name} helper (only the {prefix}* services and helpers may; go through CompositorManager / CompositorConfigManager)")
 
     # Singleton references: FooManager. must be a service, and a near-miss
     # of any project singleton (AudioManger.) is a typo

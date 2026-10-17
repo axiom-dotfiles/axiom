@@ -21,7 +21,7 @@ What a bind can do, and how the Keybinds page lists the compositor's binds and e
     - `mediaStop` etc. on `media`.
   - **`screenshot`** (argument `region`/`window`/`screen`) and **`screenRecord`**, which go to ScreenshotManager ([Screenshots and recording](../features/screenshots-recording.md)).
 - Binds carry `repeating`/`locked`/`release` flags, preset from `BindActions.actionFlags` when the action is picked.
-- **What a compositor can do**: `BindActions.needs` lists the capabilities an action needs (any one of them), e.g. `strip*` → `strips`, `toggleSpecial` → `namedSpecial` or `scratchpad`. The picker (`KeybindManager.actionInfo`) offers only the actions the running compositor supports; a saved bind with another keeps it and gets a warning in `issues` (`BindActions.appliesUnder`), as does a `raw` bind written for another compositor.
+- **What a compositor can do**: `BindActions.needs` lists the capabilities an action needs (any one of them), e.g. `strip*` → `strips`, `toggleSpecial` → `namedSpecial` or `scratchpad`. The picker (`KeybindManager.actionInfo`) offers only the actions the running compositor supports; a saved bind with another keeps it and gets a warning in `issues` (`BindActions.appliesUnder`), as does a `raw` bind written for another compositor. An action the compositor does itself and can't be bound to (`CompositorManager.builtInBinds`: niri's Mod + left/right drag) gets an `info` note instead when the bind is on that combo, or a warning naming the combo when it isn't; `info` notes don't count as issues (`hasIssue`, `issueCount`).
 
 ### What the page lists
 - Every bind the compositor reports (`CompositorManager.withBinds`, needs `bindMerge`), grouped by "Section: Label" descriptions.
@@ -32,10 +32,11 @@ What a bind can do, and how the Keybinds page lists the compositor's binds and e
 - Each row carries `axiom`/`user`:
   - `axiom`: any of its binds is one of axiom's applied binds (`_axiomIds`, by `BindKeys.keyId`, never in a submap)
   - `user`: it is the user's own.
-- `presets` are built from the workspace layout. `applyPreset` skips keys already in use.
+- `presets` are built from the workspace layout: four-way steps in a grid and with dynamic workspaces (up and down the output's list, left and right to the next output), and number keys 1–10 there, as the compositor's list has no set size. `applyPreset` skips keys already in use.
 
 ### Recording a key
-- `startRecording(index)` calls `CompositorManager.captureKeys(true)` (needs `keyCapture`), so bound combos reach `keybinds/KeyRecorder`.
+- `startRecording(index)` calls `CompositorManager.captureKeys(true)` (needs `keyCapture`), so bound combos reach `keybinds/KeyRecorder` instead of firing.
+  - The recorder's window also inhibits the compositor's shortcuts while it records (a `ShortcutInhibitor`): niri's only way, as it has no empty mode to enter.
   - On Hyprland (`HyprlandManager.captureKeys`) that is an empty `axiom_record` submap. Hyprland only registers a submap that has a bind, so the submap has one unreachable bind.
   - A Lua timer leaves the submap after 30 s, even if qs dies.
   - This is the key recorder. It is unrelated to screen recording.

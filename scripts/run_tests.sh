@@ -7,7 +7,8 @@
 # checked with `luac -p` afterwards, *.run.lua files are also run with
 # `lua` (they stub what they call and error on a failed check), and
 # *.hypr.lua files (whole Hyprland configs) are read by Hyprland itself
-# (`Hyprland --verify-config`) where it's installed.
+# (`Hyprland --verify-config`) where it's installed, and *.niri.kdl files
+# (niri configs) by niri (`niri validate`) where it is.
 #
 #   scripts/run_tests.sh             every test
 #   scripts/run_tests.sh NAME...     only tests/tst_NAME.qml
@@ -53,6 +54,14 @@ for lua in "$root"/tests/.out/*.lua; do
       echo "error: Hyprland refuses ${lua#"$root"/}"
       status=1
     fi
+  fi
+done
+for kdl in "$root"/tests/.out/*.niri.kdl; do
+  command -v niri >/dev/null || break
+  if ! verified=$(niri validate -c "$kdl" 2>&1); then
+    grep -v DEBUG <<<"$verified" | tail -n 20
+    echo "error: niri refuses ${kdl#"$root"/}"
+    status=1
   fi
 done
 exit "$status"

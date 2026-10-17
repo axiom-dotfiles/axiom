@@ -28,7 +28,7 @@ The BarEditor overlay page: the bar list and field groups, the sections board an
 - Chips are dragged within and between lanes, or dropped in from the library.
 
 ### Inspector
-- Shows the widget's options.
+- Shows the widget's options, in its `x-order`, with `x-beside` fields paired (`OptionsGroup`'s `pairs`).
   - For a Button opening an edge menu or page, `OverlayManager.openedBy`/`editOpenedBy` take it to the [layouts editor](../overlay/layouts-editor.md).
 - Shows the widget's Sizing: the `LayoutOverrideField`s from `Bar.widgetLayoutSchema`. They are explained from, and start at, what the bar uses now.
 - With nothing selected it shows the widget library. A click there adds to `BarManager.lastZone`, the section last selected or added to.

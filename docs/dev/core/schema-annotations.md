@@ -46,8 +46,8 @@ The schema is the single source of truth for config: shape, `default`s (there is
   - On a whole section, `x-showIf` (with `/` keys only) takes the section out of its settings category when it fails (`SchemaLayout.categories`). The `Hyprland` section needs `configModes`.
 - `x-enumShowIf` (`{ optionValue: condition }`): hides enum options whose condition doesn't hold. The current value stays listed.
 - `x-enabledIf`: as `x-showIf`, but a field whose condition fails stays shown, greyed out, its value kept and not editable (`SchemaField.allowed`), with why above its description. Use it for what the compositor can't do (`"/$supports.windowBlur": true`), so the setting is still found and says what would: the note is `CompositorManager.unsupportedNote(capability)` (the backend's `unsupportedHint` adds what can, e.g. "SwayFX can."), or "<Compositor> only." for `/$compositor`. Only a row shown on its own says it: a row that a sibling shows (a part's fields, `x-showIf: { part: true }`) is greyed without repeating the note under its switch. `SchemaLayout.compositorAllows` counts it too, so the launcher's `/config` doesn't offer such a setting.
-  - `x-disabledNote`: the note instead (English, translated).
-- `x-beside: true`: puts a field beside the one before it on its settings card, each half wide (`SettingsGroupCard`'s two-column grid; Workspaces' rows beside columns). Give the pair the same `x-showIf`.
+  - `x-disabledNote`: the note instead (English, translated); `false` for none, where the section's `x-intro` says why (the Workspaces section under niri).
+- `x-beside: true`: puts a field beside the one before it on its settings card, each half wide (`SettingsGroupCard`'s two-column grid; Workspaces' rows beside columns). Give the pair the same `x-showIf`. A bar widget's options pair the same way in the widget inspector (`SchemaPropertiesForm`'s `pairs`), but only while both are shown.
 - `x-applyOnSave`: keeps a setting in the draft until Save instead of applying it live (Hyprland's `mode`, which can take over files).
 - `x-snapshot: true`: a machine setting a saved snapshot carries too (the wallpaper setup: wallpapers, folder, mode, rotation, light/dark wallpapers, theme schedule), since a snapshot restores on the PC it was saved on. Exports and examples still leave it out. See [Saved configs and sharing](saved-configs-sharing.md).
 - `x-takeover: true`: a setting that takes something over on this PC (Hyprland mode, locker, idle, polkit, greeter). Loading or importing a config never changes it; only its own card does. See [Saved configs and sharing](saved-configs-sharing.md).
@@ -107,6 +107,13 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-swaySkip`: a value written as nothing (sway's own default stays), e.g. `"default"`.
 - `x-swayConfigOnly: true`: sway takes the command only from a config file (`xkb_numlock`): left out of what's sent at runtime.
 - Details: [Sway backend](../compositor/sway-backend.md).
+
+### niri config nodes (`x-niri*`, `methods/NiriConf`)
+- `x-niri`: the dotted path of the node in niri's config (`"input.keyboard.repeat-rate"`, `"layout.default-column-width.proportion"`), its value the node's argument. Written under the same rules as `x-hypr` (`CompositorLayer.annotatedFields`): when its `x-hyprIf` sibling is on, else once changed from the default; a managed config's options every one.
+- `x-niriValue`: `"flag"` (a boolean as the node alone when on, left out when off: niri has no `false` for a flag), `"offFlag"` (the node alone when off, for a setting niri turns off with a flag: `animations.off`, `gestures.hot-corners.off`) or `"float"` (written with a point, where niri wants a float).
+- `x-niriScale`: a factor, as `x-hyprScale`.
+- `x-niriSkip`: a value written as nothing (niri's own default stays), e.g. `"default"` or `0`.
+- Details: [niri backend](../compositor/niri-backend.md).
 
 - `x-greeter: true` on an `Input` option: the greeter's Hyprland takes it (`methods/GreeterBundle`). See [Greeter install](../features/greeter-install.md).
 - Details: [Hyprland config modes](../hyprland/config-modes.md), [Window look](../compositor/window-look.md).

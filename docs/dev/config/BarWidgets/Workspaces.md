@@ -7,30 +7,31 @@
 Settings are read as `properties.<key>`.
 
 - **`showEmpty`** · boolean = true
-  - Show empty workspaces: Off: only workspaces with windows, plus the active one.
-  - x-showIf={"/Workspaces.layout":"standard"}
-  - in: `components/bar/widgets/workspaces/WorkspaceStrip.qml`
+  - Show empty workspaces: Off: only workspaces with windows, plus the active one (in a grid, of the row shown). Down to one on a strip monitor, its windows show alone.
+  - x-showIf={"/$supports.dynamicWorkspaces":false}
+  - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`monitorOnly`** · boolean = false
   - Only this monitor: Hide workspaces that are open on another monitor.
-  - x-showIf={"/Workspaces.layout":"standard"}
+  - x-showIf={"/Workspaces.layout":"standard","/$supports.dynamicWorkspaces":false}
   - in: `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`labels`** · string = "numbers" · enum numbers|dots
   - Labels: The workspace's number, on the bar and in the grid popout.
   - in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`relativeNumbers`** · boolean = false
   - Relative numbers: Number each monitor's workspaces from 1 (11 to 20 on the second monitor show as 1 to 10) instead of by their workspace id, on the bar and in the grid popout.
-  - x-showIf={"/Workspaces.layout":["perMonitor","grid"],"labels":"numbers"}
+  - x-showIf={"labels":"numbers","anyOf":[{"/Workspaces.layout":["perMonitor","gri…
   - in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`
 - **`showAppIcons`** · boolean = false
   - App icons: Show the largest window's icon on occupied workspaces (in a grid, on the bar and in the popout).
+  - x-showIf={"/$supports.dynamicWorkspaces":false}
   - in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - **`wideActive`** · boolean = true
   - Wide active: Make the active workspace twice as long.
-  - x-showIf={"/Workspaces.layout":["standard","grid"]}
+  - x-showIf={"anyOf":[{"/Workspaces.layout":["standard","grid"]},{"/$supports.dyn…
   - in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`
 - **`showActiveIcon`** · boolean = true
   - Active icon: Show an arrow on the active workspace, pointing to where the shown row (or column) is in the grid.
-  - x-showIf={"/Workspaces.layout":"grid"}
+  - x-showIf={"/Workspaces.layout":"grid","/$supports.dynamicWorkspaces":false}
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`
 - **`showPopout`** · boolean = true
   - Popout: In a grid, open the whole grid when hovered. Otherwise, on a strip monitor, open every workspace with its windows in strip order.
@@ -46,9 +47,12 @@ Settings are read as `properties.<key>`.
 - **`scrollToSwitch`** · boolean = true
   - Scroll to switch: Scroll over the widget to step through the workspaces (along the shown row or column in a grid).
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
+- **`showBackground`** · boolean = true
+  - Background: A box around the workspaces, in the bar's widget style. Off: the workspaces sit on the bar at the size of the widgets around them.
+  - in: `components/bar/widgets/Workspaces.qml`
 - **`backgroundColor`** · string = ""
-  - Background: Behind the workspaces, in the bar's widget style.
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="neutral"
+  - Background color: Behind the workspaces, in the bar's widget style.
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="neutral", x-showIf={"showBackground":true}
   - in: `components/bar/widgets/Workspaces.qml`, `components/bar/widgets/BarIconWidget.qml`
 - **`activeColor`** · string = ""
   - Active
@@ -66,3 +70,7 @@ Settings are read as `properties.<key>`.
   - Text color: Numbers, and the grid's active arrow. The colors also apply to the grid popout.
   - x-options="colors"
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
+- **`hoverColor`** · string = ""
+  - Hover: A cell's box under the pointer. Auto: the theme's highlight.
+  - x-options="colors", x-emptyLabel="Auto"
+  - in: none found

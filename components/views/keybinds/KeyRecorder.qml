@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
+import Quickshell.Wayland
 import qs.config
 import qs.services
 import qs.components.methods
@@ -8,9 +10,10 @@ import qs.components.reusable
 import qs.components.content.parts
 
 // A bind's key combo as keycaps; click to record a new one. While it
-// records, KeybindManager holds Hyprland in an empty submap, so combos
-// Hyprland binds reach it too; a wheel turn over it records a scroll
-// (SUPER + mouse_down). Esc cancels.
+// records, combos the compositor binds reach it instead of firing: its
+// window inhibits the compositor's shortcuts (niri's only way), and
+// KeybindManager holds Hyprland or sway in an empty submap or mode. A wheel
+// turn over it records a scroll (SUPER + mouse_down). Esc cancels.
 StyledContainer {
   id: root
 
@@ -107,6 +110,13 @@ StyledContainer {
       if (combo !== "")
         KeybindManager.finishRecording(combo);
     }
+  }
+
+  // The compositor's binds don't fire while recording (on niri, all but
+  // its `allow-inhibiting=false` ones), so they reach the catcher
+  ShortcutInhibitor {
+    window: root.QsWindow.window
+    enabled: root.recording
   }
 
   // Takes every key while recording

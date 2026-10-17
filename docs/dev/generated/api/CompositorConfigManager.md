@@ -3,12 +3,12 @@
 
 > **File:** `services/CompositorConfigManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Sets the compositor up for axiom (the Compositor section's mode, CompositorConfig.mode), through its backend's config writer (CompositorManager.backend.configWriter, docs/dev/compositor/ config-modes.md). One layer (binds, required settings, the window look, input, blur, monitor profiles, strips) reaches the compositor in one of three ways: detached evaluated at runtime, again after every config reload, which drops it included written to a module the user's config loads (includeLines) managed written as the compositor's config itself, loading the user's own files after it Whenever the file isn't loaded (included but the lines are missing, or a managed takeover refused), the runtime layer is applied instead, so axiom still works, and `problem` says why. The window look, the input and the blur behind axiom's surfaces are also evaluated after every config reload in each mode, so they win over the user's own config while they're on (_applyLive).
+Sets the compositor up for axiom (the Compositor section's mode, CompositorConfig.mode), through its backend's config writer (CompositorManager.backend.configWriter, docs/dev/compositor/ config-modes.md). One layer (binds, required settings, the window look, input, blur, monitor profiles, strips) reaches the compositor in one of three ways: detached evaluated at runtime, again after every config reload, which drops it included written to a module the user's config loads (includeLines) managed written as the compositor's config itself, loading the user's own files after it Whenever the file isn't loaded (included but the lines are missing, or a managed takeover refused), the runtime layer is applied instead, so axiom still works, and `problem` says why. The window look, the input and the blur behind axiom's surfaces are also evaluated after every config reload in each mode, so they win over the user's own config while they're on (_applyLive). A compositor taking nothing at runtime (niri: the writer's `liveByFile`) gets them in its files instead, rewritten as they change, which it reloads by itself.
 
 ### Properties
 
 - `writer` (readonly var): The running compositor's config writer, or null: only with configModes may anything here touch a compositor's config
-- `live` (readonly bool): Only once the compositor's capabilities are final: the parts applied depend on them (_appliedParts), and one seen missing for a moment would count as turned off and reload the compositor
+- `live` (readonly bool): Only once the compositor's capabilities are final: the parts applied depend on them (_appliedParts), and one seen missing for a moment would count as turned off and reload the compositor.
 - `mode` (readonly string)
 - `problem` (readonly string): Why the chosen mode isn't in effect, or ""
 - `status` (readonly string): "runtime" (detached), "loaded" (the file is in effect), "fallback" (it isn't: see `problem`) or "pending" (still checking)
@@ -44,6 +44,9 @@ Sets the compositor up for axiom (the Compositor section's mode, CompositorConfi
 - `mergeUserBinds(only)`: `only`: one of the user's files (the adopted one), else all of them
 - `previewMerge()`: Counts what a Merge would move, changing nothing (`mergeable`)
 - `copyIncludeLines()`
+- `copyAutostartLines()`
+- `addAutostartLines()`: Adds the autostart line to the user's config (the autostart hookup, with a backup); it takes effect with the next session, so no reload
 - `openConfigDir()`
 - `apply()`
 - `allowTakeover()`: The status card's (and the notification's) Allow
+- `addIncludeLines()`: Adds the include lines to the user's config (the include hookup, with a backup), then reloads it so they take effect

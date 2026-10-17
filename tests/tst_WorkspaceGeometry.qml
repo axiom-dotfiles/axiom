@@ -196,6 +196,87 @@ TestCase {
     compare([middle.left, middle.right, middle.top, middle.bottom], [false, false, true, false]);
   }
 
+  function test_stripOrderByColumn() {
+    // niri says the column and the place in it; positions are unknown (0)
+    const wins = [
+      {
+        "id": "b",
+        "column": 2,
+        "tile": 1
+      },
+      {
+        "id": "a2",
+        "column": 1,
+        "tile": 2
+      },
+      {
+        "id": "float",
+        "floating": true
+      },
+      {
+        "id": "a1",
+        "column": 1,
+        "tile": 1
+      }
+    ];
+    compare(WorkspaceGeometry.stripOrder(wins, false).map(w => w.id), ["a1", "a2", "b", "float"]);
+  }
+
+  function test_blockBases() {
+    const outputs = [
+      {
+        "name": "HDMI-A-1",
+        "description": "c"
+      },
+      {
+        "name": "DP-1",
+        "description": "a"
+      }
+    ];
+    compare(WorkspaceGeometry.blockBases(outputs, "", 10), {
+      "DP-1": 1,
+      "HDMI-A-1": 11
+    });
+    compare(WorkspaceGeometry.blockBases(outputs, "HDMI-A-1", 5), {
+      "HDMI-A-1": 1,
+      "DP-1": 6
+    });
+    compare(WorkspaceGeometry.blockBases([], "", 5), {});
+  }
+
+  function test_outputToward() {
+    const outputs = [
+      {
+        "name": "A",
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "name": "B",
+        "x": 1920,
+        "y": 0,
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "name": "C",
+        "x": 1920,
+        "y": 1440,
+        "width": 1920,
+        "height": 1080
+      }
+    ];
+    compare(WorkspaceGeometry.outputToward(outputs, "A", "right"), "B", "the one beside beats the one diagonally");
+    compare(WorkspaceGeometry.outputToward(outputs, "B", "left"), "A");
+    compare(WorkspaceGeometry.outputToward(outputs, "B", "down"), "C");
+    compare(WorkspaceGeometry.outputToward(outputs, "A", "left"), "", "none that way");
+    compare(WorkspaceGeometry.outputToward(outputs, "A", "up"), "");
+    compare(WorkspaceGeometry.outputToward(outputs.slice(0, 1), "A", "right"), "", "one monitor");
+    compare(WorkspaceGeometry.outputToward(outputs, "X", "right"), "", "unknown output");
+  }
+
   function test_orderMonitors_primary_first_then_by_key() {
     const monitors = [
       {

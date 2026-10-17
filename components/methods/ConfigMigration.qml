@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 63
+  readonly property int currentVersion: 64
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -153,6 +153,8 @@ QtObject {
       result = _v61ToV62(result, changes);
     if (version < 63)
       result = _v62ToV63(result, changes);
+    if (version < 64)
+      result = _v63ToV64(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2145,6 +2147,19 @@ QtObject {
       delete managed.dimInactive;
       delete managed.dimStrength;
     }
+    return config;
+  }
+
+  // v64 dropped the Workspaces widget's appIconSize: a fixed icon size
+  // couldn't follow the cells (off-centre, or spilling out), and the cells
+  // follow the bar since the background can be turned off
+  function _v63ToV64(config, changes) {
+    root._eachWidget(config, (widget, where) => {
+      if (widget.type !== "Workspaces" || !widget.properties || typeof widget.properties !== "object" || widget.properties.appIconSize === undefined)
+        return;
+      delete widget.properties.appIconSize;
+      changes.push(`${where}: removed Workspaces.appIconSize`);
+    });
     return config;
   }
 }

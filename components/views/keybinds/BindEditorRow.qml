@@ -26,7 +26,7 @@ StyledContainer {
 
   Layout.fillWidth: true
   implicitHeight: column.implicitHeight + Widget.padding
-  borderColor: root.hasError ? Theme.error : (root.issues.length > 0 ? Theme.warning : "transparent")
+  borderColor: root.hasError ? Theme.error : (KeybindManager.hasIssue(root.issues) ? Theme.warning : "transparent")
 
   // Text fields keep what's being typed; otherwise they follow the bind,
   // focused or not (a row shows another bind once one above it goes). They
@@ -100,7 +100,10 @@ StyledContainer {
             case "special":
               return I18n.tr("Workspace name");
             case "raw":
-              return root.bind.compositor === "sway" ? I18n.tr("Command, e.g. splitv") : I18n.tr("Dispatcher, e.g. hl.dsp.layout(\"swapsplit\")");
+              return {
+                "sway": I18n.tr("Command, e.g. splitv"),
+                "niri": I18n.tr("Action, e.g. focus-column-first")
+              }[root.bind.compositor] ?? I18n.tr("Dispatcher, e.g. hl.dsp.layout(\"swapsplit\")");
             }
             return root.bind.action === "exec" ? I18n.tr("Command") : I18n.tr("Search text");
           }

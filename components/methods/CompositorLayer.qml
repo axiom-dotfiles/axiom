@@ -105,6 +105,25 @@ QtObject {
     };
   }
 
+  /**
+   * A compositor shadow that's a gaussian of sigma radius / 2 (SwayFX's,
+   * niri's: their softness is a blur radius) standing in for axiom's own
+   * (a soft one: MultiEffect's blur; look()'s shadow, its baseAlpha
+   * axiom's and its strength the user's), as { radius, alpha }. It reaches
+   * about twice as far as axiom's at the same size. Fitted against axiom's
+   * glow (MultiEffect, sizes 8–64, scenefx 0.5's box_shadow.frag; within
+   * ~0.02 rms): the radius 0.7 × axiom's size, the alpha axiom's × 0.2
+   * ln(size), more as it grows.
+   */
+  function gaussianShadow(shadow) {
+    const size = Math.max(2, shadow.size);
+    return {
+      "radius": Math.round(size * 0.7),
+      // Strength scales what's fitted, which then has room to grow
+      "alpha": Math.min(1, shadow.baseAlpha * Math.min(1, 0.2 * Math.log(size)) * (shadow.strength ?? 1))
+    };
+  }
+
   readonly property var inputPartNames: ["keyboard", "mouse", "touchpad", "cursor"]
 
   /**
@@ -112,18 +131,49 @@ QtObject {
    *   parts    the names of the parts on, in inputPartNames' order
    *   values   Input's values, for a backend mapping fields by their schema
    *            annotations (x-hypr, gated by x-hyprIf on their part)
-   *   cursor   { theme, size } while the cursor part is on with a theme, or
-   *            null
+   *   cursor   { theme, size, xcursor } while the cursor part is on with a
+   *            theme, or null. `xcursor` is the name XCursor readers get
+   *            (`xcursorTheme`: CursorThemeManager's companion theme
+   *            filling in the standard names the theme lacks), else the
+   *            theme's
    */
-  function input(values) {
+  function input(values, xcursorTheme) {
     return {
       "parts": inputPartNames.filter(part => values[part]),
       "values": values,
       "cursor": values.cursor && values.cursorTheme ? {
         "theme": values.cursorTheme,
-        "size": values.cursorSize
+        "size": values.cursorSize,
+        "xcursor": xcursorTheme || values.cursorTheme
       } : null
     };
+  }
+
+  /**
+   * The fields of a section (`sectionSchema`, with `values`) that carry
+   * the `annotation` a backend maps fields by (x-sway, x-niri): [{ name,
+   * schema, value }]. With `gated` (the input) each only when its x-hyprIf
+   * part is on, else once changed from its default; without (a managed
+   * config's options) every one with a value.
+   */
+  function annotatedFields(sectionSchema, values, annotation, gated) {
+    const props = sectionSchema?.properties ?? {};
+    const fields = [];
+    for (const name in props) {
+      const fieldSchema = props[name];
+      const value = values?.[name];
+      if (!fieldSchema[annotation] || value === undefined)
+        continue;
+      const condition = fieldSchema["x-hyprIf"];
+      if (gated && (condition ? !values[condition] : value === fieldSchema.default))
+        continue;
+      fields.push({
+        "name": name,
+        "schema": fieldSchema,
+        "value": value
+      });
+    }
+    return fields;
   }
 
   // The variables Hyprland's wiki recommends, good on any Wayland
@@ -135,10 +185,10 @@ QtObject {
 
   // The session's environment ([{ name, value }], each name once, every
   // backend's): the recommended one when `session.recommendedEnv`, the
-  // cursor's (`cursor`: { theme, size } or null), then the session's own,
+  // cursor's (`cursor`: input()'s, or null), then the session's own,
   // which win over both. A name that isn't a variable's is left out.
   function sessionEnv(session, cursor) {
-    const pairs = (session?.recommendedEnv ? root.recommendedEnv : []).concat(cursor ? [["XCURSOR_THEME", cursor.theme], ["XCURSOR_SIZE", String(cursor.size)]] : []);
+    const pairs = (session?.recommendedEnv ? root.recommendedEnv : []).concat(cursor ? [["XCURSOR_THEME", cursor.xcursor ?? cursor.theme], ["XCURSOR_SIZE", String(cursor.size)]] : []);
     const all = pairs.map(([name, value]) => ({
           "name": name,
           "value": value

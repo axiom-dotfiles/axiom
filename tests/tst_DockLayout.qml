@@ -140,5 +140,20 @@ TestCase {
         "h": 200
       }
     ]));
+    // A window's cover stands in for its geometry
+    verify(DockLayout.covered(dock, [
+      {
+        "x": 600,
+        "y": 900,
+        "w": 100,
+        "h": 200,
+        "cover": {
+          "x": 0,
+          "y": 0,
+          "w": 1920,
+          "h": 1080
+        }
+      }
+    ]));
   }
 }

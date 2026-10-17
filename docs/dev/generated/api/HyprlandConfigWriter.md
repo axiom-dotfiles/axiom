@@ -48,7 +48,7 @@ section's options, loading ~/.config/hypr/user/*.lua after it Also the managed t
 - `releasedText(mode)`: The hyprland.lua leaving managed gives back when the takeover set nothing aside (claim_hyprland.sh release), starting axiom (and loading its module in included mode)
 - `liveLines(spec)`: The look, the input and the blur as Lua lines evaluated now, from `spec` (CompositorConfigManager.spec(false))
 - `runLive(lines)`: Evaluates `lines` now, then reads the options back (gapsOut)
-- `setCursor(theme, size)`
+- `setCursor(cursor)`: `cursor`: CompositorLayer.input()'s.
 - `runtimeApply()`: The runtime layer (detached, and the fallback of the file modes)
 - `runtimeClear()`: Takes the runtime layer's binds out (the file is loaded now)
 - `noteReload()`: Hyprland reloaded its config, dropping the runtime layer

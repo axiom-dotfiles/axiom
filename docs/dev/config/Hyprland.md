@@ -114,11 +114,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Hyprland.managed.floatSwitchOverrideFocus`** · string = "1" · enum 0|1|2
   - Crossing tiled/floating: What moving the cursor between tiled and floating windows does.
-  - x-group="Mouse & cursor", x-showIf={"/WindowBehaviour.followMouse":true}, x-hypr="input.float_switch_override_focus", x-hyprValue="number"
+  - x-group="Windows", x-showIf={"/WindowBehaviour.followMouse":true}, x-hypr="input.float_switch_override_focus", x-hyprValue="number"
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.resizeOnBorder`** · boolean = true
   - Resize by dragging borders
-  - x-group="Mouse & cursor", x-hypr="general.resize_on_border", x-hyprAlways=true
+  - x-group="Windows", x-hypr="general.resize_on_border", x-hyprAlways=true
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.hideLogo`** · boolean = true
   - Hide Hyprland's logo and splash

@@ -13,32 +13,32 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`WindowBehaviour.followMouse`** · boolean = true
   - Focus follows mouse
-  - x-group="Mouse & cursor", x-hypr="input.follow_mouse", x-hyprValue="int", x-hyprAlways=true, x-sway="focus_follows_mouse {}", x-swayValue="yesNo"
-  - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - x-hypr="input.follow_mouse", x-hyprValue="int", x-hyprAlways=true, x-sway="focus_follows_mouse {}", x-niri="input.focus-follows-mouse", x-niriValue="flag", x-swayValue="yesNo"
+  - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`WindowBehaviour.focusOnActivate`** · boolean = true
   - Focus windows that ask for it: e.g. a browser window opened from a link.
-  - x-group="Behaviour", x-hypr="misc.focus_on_activate", x-hyprAlways=true, x-sway="focus_on_window_activation {}", x-swayMap={"true":"focus","false":"urgent"}
-  - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - x-hypr="misc.focus_on_activate", x-hyprAlways=true, x-sway="focus_on_window_activation {}", x-swayMap={"true":"focus","false":"urgent"}
+  - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`WindowBehaviour.workspaceBackAndForth`** · boolean = false
   - Workspace back and forth: Going to the current workspace goes back to the previous one.
-  - x-group="Behaviour", x-hypr="binds.workspace_back_and_forth", x-sway="workspace_auto_back_and_forth {}", x-swayValue="yesNo"
-  - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - x-hypr="binds.workspace_back_and_forth", x-sway="workspace_auto_back_and_forth {}", x-niri="input.workspace-auto-back-and-forth", x-niriValue="flag", x-swayValue="yesNo"
+  - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`WindowBehaviour.cursorHideTimeout`** · integer = 0 · 0–600 · s
   - Hide the cursor after: 0 never hides it.
-  - x-group="Mouse & cursor", x-hypr="cursor.inactive_timeout", x-sway="seat * hide_cursor {}", x-swayScale=1000
-  - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - x-hypr="cursor.inactive_timeout", x-sway="seat * hide_cursor {}", x-niri="cursor.hide-after-inactive-ms", x-niriScale=1000, x-niriSkip=0, x-swayScale=1000
+  - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`WindowBehaviour.hideCursorOnKeyPress`** · boolean = false
   - Hide the cursor while typing
-  - x-group="Mouse & cursor", x-hypr="cursor.hide_on_key_press", x-sway="seat * hide_cursor when-typing {}", x-swayValue="enableDisable"
-  - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - x-hypr="cursor.hide_on_key_press", x-sway="seat * hide_cursor when-typing {}", x-niri="cursor.hide-when-typing", x-niriValue="flag", x-swayValue="enableDisable"
+  - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`WindowBehaviour.noWarps`** · boolean = false
   - Never move the cursor: The compositor won't move the cursor to a window it focuses.
-  - x-group="Mouse & cursor", x-hypr="cursor.no_warps", x-sway="mouse_warping {}", x-swayMap={"true":"none","false":"output"}
-  - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - x-hypr="cursor.no_warps", x-sway="mouse_warping {}", x-swayMap={"true":"none","false":"output"}, x-niri="input.warp-mouse-to-focus", x-niriValue="offFlag"
+  - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 
 ### Reader members
 
 Every public member of `WindowBehaviourConfig`, with the files that use it.
 
 - `WindowBehaviourConfig.behaviour` (var)
-  - in: `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`

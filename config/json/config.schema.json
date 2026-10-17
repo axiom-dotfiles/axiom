@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 63,
+      "default": 64,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -621,7 +621,7 @@
                 "type": "string",
                 "title": "Argument",
                 "default": "",
-                "description": "Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen), command, or a compositor command in its own language (Hyprland: a dispatcher as Lua, hl.dsp.layout(\"swapsplit\"); sway: a command, layout tabbed).",
+                "description": "Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen), command, or a compositor command in its own language (Hyprland: a dispatcher as Lua, hl.dsp.layout(\"swapsplit\"); sway: a command, layout tabbed; niri: an action as its config writes it, focus-column-first).",
                 "x-showIf": { "action": ["launcherSearch", "overlayPage", "edgeMenu", "dock", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "toggleSpecial", "moveToSpecial", "screenshot", "exec", "raw"] }
               },
               "call": {
@@ -633,7 +633,7 @@
                 "description": "For actions that open and close something: whether the bind toggles it, only opens it or only closes it.",
                 "x-showIf": { "action": ["launcher", "overlay", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "idleInhibit", "nightLight", "screenRecord"] }
               },
-              "compositor": { "type": "string", "title": "Compositor", "enum": ["hyprland", "sway"], "x-enumLabels": { "hyprland": "Hyprland", "sway": "Sway" }, "default": "hyprland", "description": "The compositor the command is written for: the bind does nothing under another.", "x-showIf": { "action": "raw" } },
+              "compositor": { "type": "string", "title": "Compositor", "enum": ["hyprland", "sway", "niri"], "x-enumLabels": { "hyprland": "Hyprland", "sway": "Sway", "niri": "niri" }, "default": "hyprland", "description": "The compositor the command is written for: the bind does nothing under another.", "x-showIf": { "action": "raw" } },
               "repeating": { "type": "boolean", "title": "Repeat while held", "default": false },
               "locked": { "type": "boolean", "title": "Works while locked", "default": false },
               "release": { "type": "boolean", "title": "On release", "default": false },
@@ -722,8 +722,8 @@
                 }
               }
             },
-            "floatSwitchOverrideFocus": { "type": "string", "title": "Crossing tiled/floating", "x-group": "Mouse & cursor", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Leaves focus alone", "1": "Moves focus", "2": "Moves focus, also floating to floating" }, "default": "1", "description": "What moving the cursor between tiled and floating windows does.", "x-showIf": { "/WindowBehaviour.followMouse": true }, "x-hypr": "input.float_switch_override_focus", "x-hyprValue": "number" },
-            "resizeOnBorder": { "type": "boolean", "title": "Resize by dragging borders", "x-group": "Mouse & cursor", "default": true, "x-hypr": "general.resize_on_border", "x-hyprAlways": true },
+            "floatSwitchOverrideFocus": { "type": "string", "title": "Crossing tiled/floating", "x-group": "Windows", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Leaves focus alone", "1": "Moves focus", "2": "Moves focus, also floating to floating" }, "default": "1", "description": "What moving the cursor between tiled and floating windows does.", "x-showIf": { "/WindowBehaviour.followMouse": true }, "x-hypr": "input.float_switch_override_focus", "x-hyprValue": "number" },
+            "resizeOnBorder": { "type": "boolean", "title": "Resize by dragging borders", "x-group": "Windows", "default": true, "x-hypr": "general.resize_on_border", "x-hyprAlways": true },
             "hideLogo": { "type": "boolean", "title": "Hide Hyprland's logo and splash", "x-group": "Behaviour", "default": true, "x-hypr": ["misc.disable_hyprland_logo", "misc.disable_splash_rendering"], "x-hyprAlways": true },
             "backgroundThemed": { "type": "boolean", "title": "Background in a theme color", "x-group": "Behaviour", "default": false, "description": "What shows where there's no wallpaper." },
             "backgroundColor": { "type": "string", "title": "Background color", "x-group": "Behaviour", "x-options": "colors", "default": "base00", "x-showIf": { "backgroundThemed": true }, "x-hypr": "misc.background_color", "x-hyprValue": "color", "x-hyprIf": "backgroundThemed" },
@@ -750,12 +750,12 @@
       "additionalProperties": false,
       "x-order": ["followMouse", "focusOnActivate", "workspaceBackAndForth", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps"],
       "properties": {
-        "followMouse": { "type": "boolean", "title": "Focus follows mouse", "x-group": "Mouse & cursor", "default": true, "x-hypr": "input.follow_mouse", "x-hyprValue": "int", "x-hyprAlways": true, "x-sway": "focus_follows_mouse {}", "x-swayValue": "yesNo" },
-        "focusOnActivate": { "type": "boolean", "title": "Focus windows that ask for it", "x-group": "Behaviour", "default": true, "description": "e.g. a browser window opened from a link.", "x-hypr": "misc.focus_on_activate", "x-hyprAlways": true, "x-sway": "focus_on_window_activation {}", "x-swayMap": { "true": "focus", "false": "urgent" } },
-        "workspaceBackAndForth": { "type": "boolean", "title": "Workspace back and forth", "x-group": "Behaviour", "default": false, "description": "Going to the current workspace goes back to the previous one.", "x-hypr": "binds.workspace_back_and_forth", "x-sway": "workspace_auto_back_and_forth {}", "x-swayValue": "yesNo" },
-        "cursorHideTimeout": { "type": "integer", "title": "Hide the cursor after", "x-unit": "s", "x-group": "Mouse & cursor", "default": 0, "minimum": 0, "maximum": 600, "description": "0 never hides it.", "x-hypr": "cursor.inactive_timeout", "x-sway": "seat * hide_cursor {}", "x-swayScale": 1000 },
-        "hideCursorOnKeyPress": { "type": "boolean", "title": "Hide the cursor while typing", "x-group": "Mouse & cursor", "default": false, "x-hypr": "cursor.hide_on_key_press", "x-sway": "seat * hide_cursor when-typing {}", "x-swayValue": "enableDisable" },
-        "noWarps": { "type": "boolean", "title": "Never move the cursor", "x-group": "Mouse & cursor", "default": false, "description": "The compositor won't move the cursor to a window it focuses.", "x-hypr": "cursor.no_warps", "x-sway": "mouse_warping {}", "x-swayMap": { "true": "none", "false": "output" } }
+        "followMouse": { "type": "boolean", "title": "Focus follows mouse", "default": true, "x-hypr": "input.follow_mouse", "x-hyprValue": "int", "x-hyprAlways": true, "x-sway": "focus_follows_mouse {}", "x-niri": "input.focus-follows-mouse", "x-niriValue": "flag", "x-swayValue": "yesNo" },
+        "focusOnActivate": { "type": "boolean", "title": "Focus windows that ask for it", "default": true, "description": "e.g. a browser window opened from a link.", "x-hypr": "misc.focus_on_activate", "x-hyprAlways": true, "x-sway": "focus_on_window_activation {}", "x-swayMap": { "true": "focus", "false": "urgent" } },
+        "workspaceBackAndForth": { "type": "boolean", "title": "Workspace back and forth", "default": false, "description": "Going to the current workspace goes back to the previous one.", "x-hypr": "binds.workspace_back_and_forth", "x-sway": "workspace_auto_back_and_forth {}", "x-niri": "input.workspace-auto-back-and-forth", "x-niriValue": "flag", "x-swayValue": "yesNo" },
+        "cursorHideTimeout": { "type": "integer", "title": "Hide the cursor after", "x-unit": "s", "default": 0, "minimum": 0, "maximum": 600, "description": "0 never hides it.", "x-hypr": "cursor.inactive_timeout", "x-sway": "seat * hide_cursor {}", "x-niri": "cursor.hide-after-inactive-ms", "x-niriScale": 1000, "x-niriSkip": 0, "x-swayScale": 1000 },
+        "hideCursorOnKeyPress": { "type": "boolean", "title": "Hide the cursor while typing", "default": false, "x-hypr": "cursor.hide_on_key_press", "x-sway": "seat * hide_cursor when-typing {}", "x-niri": "cursor.hide-when-typing", "x-niriValue": "flag", "x-swayValue": "enableDisable" },
+        "noWarps": { "type": "boolean", "title": "Never move the cursor", "default": false, "description": "The compositor won't move the cursor to a window it focuses.", "x-hypr": "cursor.no_warps", "x-sway": "mouse_warping {}", "x-swayMap": { "true": "none", "false": "output" }, "x-niri": "input.warp-mouse-to-focus", "x-niriValue": "offFlag" }
       }
     },
 
@@ -778,6 +778,30 @@
       }
     },
 
+    "Niri": {
+      "type": "object",
+      "x-category": "Compositor",
+      "x-showIf": { "/$compositor": "niri", "/Compositor.mode": "managed" },
+      "title": "niri",
+      "description": "niri's own options, written while axiom manages its config. Anything else goes in ~/.config/niri/user/.",
+      "additionalProperties": false,
+      "x-order": ["centerFocusedColumn", "alwaysCenterSingleColumn", "emptyWorkspaceAboveFirst", "defaultColumnDisplay", "preferNoCsd", "hotCorner", "overviewZoom", "animations", "animationSlowdown", "skipHotkeyOverlay", "primaryClipboard", "xwayland"],
+      "properties": {
+        "centerFocusedColumn": { "type": "string", "title": "Center the focused column", "enum": ["never", "always", "on-overflow"], "x-enumLabels": { "never": "Never", "always": "Always", "on-overflow": "When it doesn't fit beside the last one" }, "default": "never", "x-niri": "layout.center-focused-column" },
+        "alwaysCenterSingleColumn": { "type": "boolean", "title": "Center a lone column", "default": false, "description": "A column alone on its workspace sits in the middle.", "x-niri": "layout.always-center-single-column", "x-niriValue": "flag" },
+        "emptyWorkspaceAboveFirst": { "type": "boolean", "title": "Empty workspace above the first", "default": false, "description": "Keeps an empty workspace above the first one, as well as below the last.", "x-niri": "layout.empty-workspace-above-first", "x-niriValue": "flag" },
+        "defaultColumnDisplay": { "type": "string", "title": "New columns show", "enum": ["normal", "tabbed"], "x-enumLabels": { "normal": "Windows stacked", "tabbed": "Windows as tabs" }, "default": "normal", "x-niri": "layout.default-column-display" },
+        "hotCorner": { "type": "boolean", "title": "Top-left corner opens niri's overview", "default": false, "description": "Pushing the cursor into the top-left corner opens niri's own overview.", "x-niri": "gestures.hot-corners.off", "x-niriValue": "offFlag" },
+        "overviewZoom": { "type": "integer", "title": "Overview zoom", "x-unit": "%", "default": 50, "minimum": 10, "maximum": 75, "description": "How large workspaces show in niri's overview.", "x-niri": "overview.zoom", "x-niriScale": 0.01, "x-niriValue": "float" },
+        "animations": { "type": "boolean", "title": "Animations", "default": true, "x-niri": "animations.off", "x-niriValue": "offFlag" },
+        "animationSlowdown": { "type": "integer", "title": "Animation length", "x-unit": "%", "default": 100, "minimum": 10, "maximum": 1000, "description": "100 is niri's own speed; more is slower.", "x-showIf": { "animations": true }, "x-niri": "animations.slowdown", "x-niriScale": 0.01, "x-niriValue": "float", "x-niriSkip": 100 },
+        "preferNoCsd": { "type": "boolean", "title": "No title bars on windows", "default": false, "description": "Asks apps to leave out their own title bar (with its close and maximize buttons) and window shadow. Apps that don't agree keep theirs; open ones change once restarted.", "x-niri": "prefer-no-csd", "x-niriValue": "flag" },
+        "skipHotkeyOverlay": { "type": "boolean", "title": "Skip the hotkey help at start", "default": true, "description": "niri's list of important keys shows when it starts; axiom's binds aren't niri's.", "x-niri": "hotkey-overlay.skip-at-startup", "x-niriValue": "flag" },
+        "primaryClipboard": { "type": "boolean", "title": "Middle-click paste", "default": true, "description": "Selected text pastes with the middle mouse button.", "x-niri": "clipboard.disable-primary", "x-niriValue": "offFlag" },
+        "xwayland": { "type": "boolean", "title": "X11 apps (xwayland-satellite)", "default": true, "description": "Runs X11 apps through xwayland-satellite, when it's installed.", "x-niri": "xwayland-satellite.off", "x-niriValue": "offFlag" }
+      }
+    },
+
     "Input": {
       "type": "object",
       "x-category": "Compositor",
@@ -788,24 +812,24 @@
       "x-order": ["keyboard", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "mouse", "accelProfile", "sensitivity", "leftHanded", "touchpad", "naturalScroll", "tapToClick", "disableWhileTyping", "scrollFactor", "cursor", "cursorTheme", "cursorSize"],
       "properties": {
         "keyboard": { "x-greeter": true, "type": "boolean", "title": "Set the keyboard", "x-group": "Keyboard", "default": false, "description": "Layout and key repeat. Off, your compositor's own config applies." },
-        "kbLayout": { "x-greeter": true, "type": "string", "title": "Keyboard layout", "x-group": "Keyboard", "default": "us", "description": "XKB layouts, comma-separated (e.g. us,de).", "x-hypr": "input.kb_layout", "x-sway": "input type:keyboard xkb_layout {}", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
-        "kbVariant": { "x-greeter": true, "type": "string", "title": "Layout variant", "x-group": "Keyboard", "default": "", "description": "XKB variants, one per layout (e.g. colemak).", "x-hypr": "input.kb_variant", "x-sway": "input type:keyboard xkb_variant {}", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
-        "kbOptions": { "x-greeter": true, "type": "string", "title": "XKB options", "x-group": "Keyboard", "default": "", "description": "e.g. caps:escape,grp:alt_shift_toggle.", "x-hypr": "input.kb_options", "x-sway": "input type:keyboard xkb_options {}", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
-        "repeatRate": { "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Key repeat rate", "x-group": "Keyboard", "default": 50, "minimum": 1, "maximum": 100, "x-hypr": "input.repeat_rate", "x-sway": "input type:keyboard repeat_rate {}", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
-        "repeatDelay": { "x-greeter": true, "type": "integer", "title": "Key repeat delay", "x-group": "Keyboard", "default": 300, "minimum": 100, "maximum": 2000, "x-hypr": "input.repeat_delay", "x-sway": "input type:keyboard repeat_delay {}", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
-        "numlockByDefault": { "x-greeter": true, "type": "boolean", "title": "Num Lock on at start", "x-group": "Keyboard", "default": true, "x-hypr": "input.numlock_by_default", "x-sway": "input type:keyboard xkb_numlock {}", "x-swayValue": "enabled", "x-swayConfigOnly": true, "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
-        "mouse": { "x-greeter": true, "type": "boolean", "title": "Set the mouse", "x-group": "Mouse", "default": false, "description": "Acceleration, speed and buttons. Off, your compositor's own config applies." },
-        "accelProfile": { "x-greeter": true, "type": "string", "title": "Pointer acceleration", "x-group": "Mouse", "enum": ["default", "flat", "adaptive"], "x-enumLabels": { "default": "Device default", "flat": "Flat (none)", "adaptive": "Adaptive" }, "default": "default", "x-hypr": "input.accel_profile", "x-hyprValue": "emptyIsDefault", "x-sway": "input type:pointer accel_profile {}", "x-swaySkip": "default", "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
-        "sensitivity": { "x-greeter": true, "type": "integer", "title": "Pointer speed", "x-group": "Mouse", "default": 0, "minimum": -100, "maximum": 100, "description": "-100 to 100; 0 leaves it as the device reports.", "x-hypr": "input.sensitivity", "x-hyprScale": 0.01, "x-sway": "input type:pointer pointer_accel {}", "x-swayScale": 0.01, "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
-        "leftHanded": { "x-greeter": true, "type": "boolean", "title": "Left-handed buttons", "x-group": "Mouse", "default": false, "x-hypr": "input.left_handed", "x-sway": "input type:pointer left_handed {}", "x-swayValue": "enabled", "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
+        "kbLayout": { "x-greeter": true, "type": "string", "title": "Keyboard layout", "x-group": "Keyboard", "default": "us", "description": "XKB layouts, comma-separated (e.g. us,de).", "x-hypr": "input.kb_layout", "x-sway": "input type:keyboard xkb_layout {}", "x-niri": "input.keyboard.xkb.layout", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "kbVariant": { "x-greeter": true, "type": "string", "title": "Layout variant", "x-group": "Keyboard", "default": "", "description": "XKB variants, one per layout (e.g. colemak).", "x-hypr": "input.kb_variant", "x-sway": "input type:keyboard xkb_variant {}", "x-niri": "input.keyboard.xkb.variant", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "kbOptions": { "x-greeter": true, "type": "string", "title": "XKB options", "x-group": "Keyboard", "default": "", "description": "e.g. caps:escape,grp:alt_shift_toggle.", "x-hypr": "input.kb_options", "x-sway": "input type:keyboard xkb_options {}", "x-niri": "input.keyboard.xkb.options", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "repeatRate": { "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Key repeat rate", "x-group": "Keyboard", "default": 50, "minimum": 1, "maximum": 100, "x-hypr": "input.repeat_rate", "x-sway": "input type:keyboard repeat_rate {}", "x-niri": "input.keyboard.repeat-rate", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "repeatDelay": { "x-greeter": true, "type": "integer", "title": "Key repeat delay", "x-group": "Keyboard", "default": 300, "minimum": 100, "maximum": 2000, "x-hypr": "input.repeat_delay", "x-sway": "input type:keyboard repeat_delay {}", "x-niri": "input.keyboard.repeat-delay", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "numlockByDefault": { "x-greeter": true, "type": "boolean", "title": "Num Lock on at start", "x-group": "Keyboard", "default": true, "x-hypr": "input.numlock_by_default", "x-sway": "input type:keyboard xkb_numlock {}", "x-niri": "input.keyboard.numlock", "x-niriValue": "flag", "x-swayValue": "enabled", "x-swayConfigOnly": true, "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "mouse": { "x-greeter": true, "type": "boolean", "title": "Set the mouse", "x-group": "Mouse & cursor", "default": false, "description": "Acceleration, speed and buttons. Off, your compositor's own config applies." },
+        "accelProfile": { "x-greeter": true, "type": "string", "title": "Pointer acceleration", "x-group": "Mouse & cursor", "enum": ["default", "flat", "adaptive"], "x-enumLabels": { "default": "Device default", "flat": "Flat (none)", "adaptive": "Adaptive" }, "default": "default", "x-hypr": "input.accel_profile", "x-hyprValue": "emptyIsDefault", "x-sway": "input type:pointer accel_profile {}", "x-niri": "input.mouse.accel-profile", "x-niriSkip": "default", "x-swaySkip": "default", "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
+        "sensitivity": { "x-greeter": true, "type": "integer", "title": "Pointer speed", "x-group": "Mouse & cursor", "default": 0, "minimum": -100, "maximum": 100, "description": "-100 to 100; 0 leaves it as the device reports.", "x-hypr": "input.sensitivity", "x-hyprScale": 0.01, "x-sway": "input type:pointer pointer_accel {}", "x-niri": "input.mouse.accel-speed", "x-niriScale": 0.01, "x-niriValue": "float", "x-swayScale": 0.01, "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
+        "leftHanded": { "x-greeter": true, "type": "boolean", "title": "Left-handed buttons", "x-group": "Mouse & cursor", "default": false, "x-hypr": "input.left_handed", "x-sway": "input type:pointer left_handed {}", "x-niri": "input.mouse.left-handed", "x-niriValue": "flag", "x-swayValue": "enabled", "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
         "touchpad": { "x-greeter": true, "type": "boolean", "title": "Set the touchpad", "x-group": "Touchpad", "default": false, "description": "Off, your compositor's own config applies." },
-        "naturalScroll": { "x-greeter": true, "type": "boolean", "title": "Natural scrolling", "x-group": "Touchpad", "default": false, "x-hypr": "input.touchpad.natural_scroll", "x-sway": "input type:touchpad natural_scroll {}", "x-swayValue": "enabled", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
-        "tapToClick": { "x-greeter": true, "type": "boolean", "title": "Tap to click", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.tap_to_click", "x-sway": "input type:touchpad tap {}", "x-swayValue": "enabled", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
-        "disableWhileTyping": { "x-greeter": true, "type": "boolean", "title": "Off while typing", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.disable_while_typing", "x-sway": "input type:touchpad dwt {}", "x-swayValue": "enabled", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
-        "scrollFactor": { "x-greeter": true, "type": "integer", "title": "Scroll speed", "x-unit": "%", "x-group": "Touchpad", "default": 100, "minimum": 10, "maximum": 500, "x-hypr": "input.touchpad.scroll_factor", "x-hyprScale": 0.01, "x-sway": "input type:touchpad scroll_factor {}", "x-swayScale": 0.01, "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
-        "cursor": { "x-greeter": true, "type": "boolean", "title": "Set the cursor", "x-group": "Cursor", "default": false, "description": "An installed cursor theme and its size. Off, the cursor is left alone." },
-        "cursorTheme": { "x-greeter": true, "type": "string", "title": "Cursor theme", "x-group": "Cursor", "x-options": "cursorThemes", "x-enumLabels": { "": "None" }, "default": "", "description": "An installed cursor theme.", "x-showIf": { "cursor": true } },
-        "cursorSize": { "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Cursor size", "x-group": "Cursor", "default": 24, "minimum": 8, "maximum": 128, "x-showIf": { "cursor": true } }
+        "naturalScroll": { "x-greeter": true, "type": "boolean", "title": "Natural scrolling", "x-group": "Touchpad", "default": false, "x-hypr": "input.touchpad.natural_scroll", "x-sway": "input type:touchpad natural_scroll {}", "x-niri": "input.touchpad.natural-scroll", "x-niriValue": "flag", "x-swayValue": "enabled", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
+        "tapToClick": { "x-greeter": true, "type": "boolean", "title": "Tap to click", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.tap_to_click", "x-sway": "input type:touchpad tap {}", "x-niri": "input.touchpad.tap", "x-niriValue": "flag", "x-swayValue": "enabled", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
+        "disableWhileTyping": { "x-greeter": true, "type": "boolean", "title": "Off while typing", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.disable_while_typing", "x-sway": "input type:touchpad dwt {}", "x-niri": "input.touchpad.dwt", "x-niriValue": "flag", "x-swayValue": "enabled", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
+        "scrollFactor": { "x-greeter": true, "type": "integer", "title": "Scroll speed", "x-unit": "%", "x-group": "Touchpad", "default": 100, "minimum": 10, "maximum": 500, "x-hypr": "input.touchpad.scroll_factor", "x-hyprScale": 0.01, "x-sway": "input type:touchpad scroll_factor {}", "x-niri": "input.touchpad.scroll-factor", "x-niriScale": 0.01, "x-niriValue": "float", "x-swayScale": 0.01, "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
+        "cursor": { "x-greeter": true, "type": "boolean", "title": "Set the cursor", "x-group": "Mouse & cursor", "default": false, "description": "An installed cursor theme and its size. Off, the cursor is left alone." },
+        "cursorTheme": { "x-greeter": true, "type": "string", "title": "Cursor theme", "x-group": "Mouse & cursor", "x-options": "cursorThemes", "x-enumLabels": { "": "None" }, "default": "", "description": "An installed cursor theme.", "x-showIf": { "cursor": true } },
+        "cursorSize": { "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Cursor size", "x-group": "Mouse & cursor", "default": 24, "minimum": 8, "maximum": 128, "x-showIf": { "cursor": true } }
       }
     },
 
@@ -899,7 +923,7 @@
         "shadowStrength": { "type": "integer", "x-control": "stepper", "title": "Shadow strength", "x-unit": "%", "x-group": "Shadows", "default": 100, "minimum": 10, "maximum": 400, "description": "How strong windows cast it, matching axiom's or not. The compositor's own color keeps its strength.", "x-showIf": { "shadow": true }, "x-enabledIf": { "/$supports.windowShadow": true } },
         "dim": { "type": "boolean", "title": "Dim unfocused windows", "x-group": "Dim", "default": false, "x-enabledIf": { "/$supports.windowDim": true } },
         "dimStrength": { "type": "integer", "title": "Dim strength", "x-unit": "%", "x-group": "Dim", "default": 8, "minimum": 0, "maximum": 100, "x-showIf": { "dim": true }, "x-enabledIf": { "/$supports.windowDim": true } },
-        "opacity": { "type": "boolean", "title": "Set window opacity", "x-group": "Window opacity", "default": false, "description": "Off, your own config's applies.", "x-enabledIf": { "/$supports.windowOpacity": true } },
+        "opacity": { "type": "boolean", "title": "Set window opacity", "x-group": "Window opacity", "default": false, "description": "Your apps' windows; the shell's own surfaces are Look & Feel → Translucency. Off, your own config's applies.", "x-enabledIf": { "/$supports.windowOpacity": true } },
         "activeOpacity": { "type": "integer", "title": "Focused window opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-enabledIf": { "/$supports.windowOpacity": true }, "x-hypr": "decoration.active_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" },
         "inactiveOpacity": { "type": "integer", "title": "Unfocused window opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-enabledIf": { "/$supports.windowOpacity": true }, "x-hypr": "decoration.inactive_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" },
         "fullscreenOpacity": { "type": "integer", "title": "Fullscreen opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-enabledIf": { "/$supports.windowOpacity": true }, "x-hypr": "decoration.fullscreen_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" }
@@ -1089,7 +1113,7 @@
               "default": 100,
               "minimum": 60,
               "maximum": 100,
-              "description": "How solid the shell's surfaces are: bars, the screen border, popouts, menus and panels. 100 is fully solid. A translucent surface needs the compositor to blur behind it (Compositor → Window look → Blur).",
+              "description": "How solid the shell's surfaces are: bars, the screen border, popouts, menus and panels (not your apps' windows: Compositor → Window look → Window opacity). 100 is fully solid. A translucent surface needs the compositor to blur behind it (Compositor → Window look → Blur).",
               "x-enabledIf": { "/$supports.blur": true }
             }
           }
@@ -1881,6 +1905,7 @@
       "x-scope": "look",
       "type": "object",
       "x-category": "Workspaces",
+      "x-intro": "WorkspacesStatus",
       "x-order": ["layout", "count", "columns", "rows", "wrap", "animate", "strips", "stripColumnWidth", "stripFollowFocus"],
       "title": "Workspaces",
       "description": "How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `qs -c axiom ipc call workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.",
@@ -1889,6 +1914,7 @@
         "layout": {
           "type": "string",
           "title": "Layout",
+          "x-enabledIf": { "/$supports.dynamicWorkspaces": false }, "x-disabledNote": false,
           "enum": ["standard", "perMonitor", "grid"],
           "x-enumLabels": { "standard": "Standard (1 to N)", "perMonitor": "Per monitor (1 to N)", "grid": "Grid per monitor" },
           "default": "perMonitor",
@@ -1898,6 +1924,7 @@
           "type": "integer",
           "x-control": "stepper",
           "title": "Workspaces",
+          "x-enabledIf": { "/$supports.dynamicWorkspaces": false }, "x-disabledNote": false,
           "default": 10,
           "minimum": 1,
           "maximum": 30,
@@ -1907,6 +1934,7 @@
           "type": "integer",
           "x-control": "stepper",
           "title": "Columns",
+          "x-enabledIf": { "/$supports.dynamicWorkspaces": false }, "x-disabledNote": false,
           "default": 5,
           "minimum": 1,
           "maximum": 10,
@@ -1917,6 +1945,7 @@
           "x-control": "stepper",
           "x-beside": true,
           "title": "Rows",
+          "x-enabledIf": { "/$supports.dynamicWorkspaces": false }, "x-disabledNote": false,
           "default": 5,
           "minimum": 1,
           "maximum": 10,
@@ -1931,6 +1960,7 @@
         "animate": {
           "type": "boolean",
           "title": "Directional slides",
+          "x-enabledIf": { "/$supports.dynamicWorkspaces": false }, "x-disabledNote": false,
           "default": true,
           "description": "Slide between workspaces whatever the compositor's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column."
         },
@@ -1938,7 +1968,7 @@
           "type": "array",
           "x-group": "Strips",
           "title": "Strips",
-          "x-showIf": { "/$supports.strips": true },
+          "x-showIf": { "/$supports.strips": true, "/$supports.stripsAlways": false },
           "default": [],
           "description": "Monitors whose windows sit side by side on a strip that scrolls (Hyprland's scrolling layout) instead of tiling. New windows open as a new column after the focused one.",
           "items": {
@@ -1951,8 +1981,8 @@
             }
           }
         },
-        "stripColumnWidth": { "type": "integer", "x-group": "Strips", "title": "Column width", "x-unit": "%", "default": 50, "minimum": 10, "maximum": 100, "description": "A new column's share of the monitor.", "x-showIf": { "strips": { "notEmpty": true }, "/$supports.strips": true }, "x-hypr": "scrolling.column_width", "x-hyprScale": 0.01 },
-        "stripFollowFocus": { "type": "boolean", "x-group": "Strips", "title": "Scroll to the focused window", "default": true, "x-showIf": { "strips": { "notEmpty": true }, "/$supports.strips": true }, "x-hypr": "scrolling.follow_focus" }
+        "stripColumnWidth": { "type": "integer", "x-group": "Strips", "title": "Column width", "x-unit": "%", "default": 50, "minimum": 10, "maximum": 100, "description": "A new column's share of the monitor.", "x-showIf": { "anyOf": [{ "strips": { "notEmpty": true }, "/$supports.strips": true }, { "/$supports.stripsAlways": true }] }, "x-hypr": "scrolling.column_width", "x-hyprScale": 0.01, "x-niri": "layout.default-column-width.proportion", "x-niriScale": 0.01, "x-niriValue": "float" },
+        "stripFollowFocus": { "type": "boolean", "x-group": "Strips", "title": "Scroll to the focused window", "default": true, "x-showIf": { "strips": { "notEmpty": true }, "/$supports.strips": true, "/$supports.stripsAlways": false }, "x-hypr": "scrolling.follow_focus" }
       }
     },
 
@@ -4417,23 +4447,26 @@
         "properties": {
           "type": "object",
           "additionalProperties": false,
+          "x-order": ["showEmpty", "monitorOnly", "labels", "relativeNumbers", "showAppIcons", "wideActive", "showActiveIcon", "showPopout", "popoutMenu", "clickToSwitch", "scrollToSwitch", "showBackground", "backgroundColor", "activeColor", "occupiedColor", "emptyColor", "textColor"],
           "properties": {
-            "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": true, "x-showIf": { "/Workspaces.layout": "standard" }, "description": "Off: only workspaces with windows, plus the active one." },
-            "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "x-showIf": { "/Workspaces.layout": "standard" }, "description": "Hide workspaces that are open on another monitor." },
+            "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": true, "x-showIf": { "/$supports.dynamicWorkspaces": false }, "description": "Off: only workspaces with windows, plus the active one (in a grid, of the row shown). Down to one on a strip monitor, its windows show alone." },
+            "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "x-showIf": { "/Workspaces.layout": "standard", "/$supports.dynamicWorkspaces": false }, "description": "Hide workspaces that are open on another monitor." },
             "labels": { "type": "string", "title": "Labels", "enum": ["numbers", "dots"], "x-enumLabels": { "numbers": "Numbers", "dots": "Dots" }, "default": "numbers", "description": "The workspace's number, on the bar and in the grid popout." },
-            "relativeNumbers": { "type": "boolean", "title": "Relative numbers", "default": false, "x-showIf": { "/Workspaces.layout": ["perMonitor", "grid"], "labels": "numbers" }, "description": "Number each monitor's workspaces from 1 (11 to 20 on the second monitor show as 1 to 10) instead of by their workspace id, on the bar and in the grid popout." },
-            "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "description": "Show the largest window's icon on occupied workspaces (in a grid, on the bar and in the popout)." },
-            "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "x-showIf": { "/Workspaces.layout": ["standard", "grid"] }, "description": "Make the active workspace twice as long." },
-            "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Show an arrow on the active workspace, pointing to where the shown row (or column) is in the grid." },
+            "relativeNumbers": { "type": "boolean", "title": "Relative numbers", "default": false, "x-showIf": { "labels": "numbers", "anyOf": [{ "/Workspaces.layout": ["perMonitor", "grid"] }, { "/$supports.dynamicWorkspaces": true }] }, "description": "Number each monitor's workspaces from 1 (11 to 20 on the second monitor show as 1 to 10) instead of by their workspace id, on the bar and in the grid popout." },
+            "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "x-showIf": { "/$supports.dynamicWorkspaces": false }, "description": "Show the largest window's icon on occupied workspaces (in a grid, on the bar and in the popout)." },
+            "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "x-showIf": { "anyOf": [{ "/Workspaces.layout": ["standard", "grid"] }, { "/$supports.dynamicWorkspaces": true }] }, "description": "Make the active workspace twice as long." },
+            "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "x-showIf": { "/Workspaces.layout": "grid", "/$supports.dynamicWorkspaces": false }, "description": "Show an arrow on the active workspace, pointing to where the shown row (or column) is in the grid." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }] }, "description": "In a grid, open the whole grid when hovered. Otherwise, on a strip monitor, open every workspace with its windows in strip order." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true, "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }] } },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral", "description": "Behind the workspaces, in the bar's widget style." },
+            "showBackground": { "type": "boolean", "title": "Background", "default": true, "description": "A box around the workspaces, in the bar's widget style. Off: the workspaces sit on the bar at the size of the widgets around them." },
+            "backgroundColor": { "type": "string", "title": "Background color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral", "x-showIf": { "showBackground": true }, "description": "Behind the workspaces, in the bar's widget style." },
             "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
-            "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "description": "Numbers, and the grid's active arrow. The colors also apply to the grid popout." }
+            "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "description": "Numbers, and the grid's active arrow. The colors also apply to the grid popout." },
+            "hoverColor": { "type": "string", "title": "Hover", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "description": "A cell's box under the pointer. Auto: the theme's highlight." }
           }
         }
       }

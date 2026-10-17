@@ -8,10 +8,11 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 ### Properties
 
 - `displayName` (readonly string): The compositor's name as people know it ("Hyprland"; the backend's own when it tells a variant apart, "SwayFX"), or "the compositor" for an unknown one.
-- `kind` (readonly string): Which compositor axiom runs under: "hyprland", "sway", "niri" or "" (unknown, or none).
+- `kind` (readonly string): Which compositor axiom runs under: "hyprland", "sway", "niri" or "" (unknown, or none), from HYPRLAND_INSTANCE_SIGNATURE / SWAYSOCK / NIRI_SOCKET; with more than one set (one left over from an earlie…
 - `backend` (readonly var): The backend for `kind`, or null (docs/dev/compositor/contract.md).
 - `ready` (readonly bool): Whether `supports` is final: a backend that finds out what it can do by asking (sway: SwayFX or not) isn't until it knows
 - `supports` (readonly var): What the compositor can do, by capability (contract.md › Capabilities): false for anything the backend doesn't say, and for what AXIOM_COMPOSITOR_OFF ("focusGrab,blur") turns off, so the fallbacks ca…
+- `builtInBinds` (readonly var): The binds the compositor carries out itself, so it can't be told to (niri's Mod + drag): { action: key, as axiom writes it }.
 - `windows` (readonly var): Every mapped window: [{ id, appId, initialAppId, title, workspaceId, workspaceName, output, floating, fullscreen, maximized, hidden, focusRank, x, y, w, h }]
 - `outputs` (readonly var): Every monitor: [{ name, description, x, y, width, height, scale, focused, activeWorkspaceId, specialWorkspaceId, reserved }]
 - `workspaces` (readonly var): Every workspace: [{ id, name, output, windowCount, active, focused }]
@@ -22,6 +23,10 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 - `splitWidthMultiplier` (readonly real): A tiled box wider than tall times this splits side by side
 - `surfacesReady` (readonly bool): Whether surfaces with a fixed stacking order (bars, border, docks, edge menus, the desktop) may map yet: the backend's stacking is in
 - `focused` (readonly var): The focused output, or null
+- `perMonitorBlocks` (readonly bool): Whether each output has a block of ids of its own: the grid and perMonitor layouts, and every layout where the compositor's workspaces belong to an output (supports.outputWorkspaces: niri's), as the …
+- `dynamicWorkspaces` (readonly bool): Whether the compositor makes and removes workspaces itself, one list per output (supports.dynamicWorkspaces: niri's).
+- `workspaceGrid` (readonly bool): Whether the workspaces are laid out in a grid: the grid layout, where the compositor leaves the workspaces to axiom
+- `blockSize` (readonly int): How many ids each output's block holds: the layout's size, or the backend's own where its workspaces are dynamic
 
 ### Signals
 
@@ -64,7 +69,7 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 - `goToWorkspace(id, mode, output, focusId)`: Goes to workspace `id`. mode: "go" (default), "move" (taking the focused window along) or "moveSilent" (sending it there, staying put).
 - `stepWorkspace(direction, mode)`: One step left/right/up/down from the current workspace: within the output's grid, or through 1..count in the standard layout (where up is previous and down next).
 - `nthWorkspace(n, mode)`: The n-th workspace (1-based) of the current row in a grid or perMonitor layout, or workspace n in the standard layout (number keybinds)
-- `stripDirection(screenName)`: "horizontal" | "vertical" on a strip monitor (its name), else "", always "" where the compositor has no strips (a config from Hyprland may still list them)
+- `stripDirection(screenName)`: "horizontal" | "vertical" on a strip monitor (its name), else "", always "" where the compositor has no strips (a config from Hyprland may still list them), always "horizontal" where it has nothing e…
 - `stepStrip(direction, output)`: Scrolls the strip of an output's active workspace a column on (1) or back (-1).
 - `workspaceBase(output)`: First workspace id an output (its name) shows: 1 in the standard layout, else its block's (grid/perMonitor, one block per output in a stable order — the primary first, then the rest by a description-…
-- `workspaceIds(output)`: The workspace ids an output (its name) shows, in order
+- `workspaceIds(output)`: The workspace ids an output (its name) shows, in order: the layout's, or the ones the compositor has where they're dynamic

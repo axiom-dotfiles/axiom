@@ -97,13 +97,17 @@ QtObject {
   }
 
   // Whether any of the windows (in the same global coordinates as `rect`)
-  // covers the rect
+  // covers the rect: by its `cover` where it has one (a place the
+  // compositor doesn't give exactly), else its geometry
   function covered(rect, windows) {
-    return windows.some(w => w.w > 0 && w.h > 0 && root.overlaps(rect, {
+    return windows.some(win => {
+      const w = win.cover ?? win;
+      return w.w > 0 && w.h > 0 && root.overlaps(rect, {
         "x": w.x,
         "y": w.y,
         "width": w.w,
         "height": w.h
-      }));
+      });
+    });
   }
 }

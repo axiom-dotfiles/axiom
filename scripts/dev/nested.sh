@@ -14,10 +14,14 @@
 # Usage: scripts/dev/nested.sh <sway|niri> [--copy-config] [--managed]
 #   --copy-config  start from a copy of ~/.config/axiom/config.json (with
 #                  the same parts off) instead of the defaults
-#   --managed      (sway) run sway on the scratch config folder's
-#                  sway/config, the one axiom's managed mode takes over
-#                  (written from the usual nested config the first time),
-#                  so the takeover, its reloads and a release can be tried
+#   --managed      run the compositor on the scratch config folder's own
+#                  config (sway/config, niri/config.kdl), the one axiom's
+#                  managed mode takes over (written from the usual nested
+#                  config the first time), so the takeover, its reloads and
+#                  a release can be tried
+#
+# axiom's "Restart shell" (qs kill -p <repo>) ends every axiom started from
+# the repo, the nested one too.
 #
 # Logs: qs log -p <repo> (the nested instance is the newest), or the
 # log.log under /run/user/$UID/quickshell/by-id/. IPC: qs ipc --newest call …
@@ -107,11 +111,20 @@ EOF
 else
   cat >"$scratch/niri.kdl" <<EOF
 spawn-at-startup "$launch"
+hotkey-overlay {
+    skip-at-startup
+}
 binds {
     Mod+Return { spawn "foot"; }
     Mod+Q { close-window; }
     Mod+Shift+E { quit; }
 }
 EOF
-  exec dbus-run-session -- niri -c "$scratch/niri.kdl"
+  conf="$scratch/niri.kdl"
+  if [[ $managed -eq 1 ]]; then
+    conf="$scratch/config/niri/config.kdl"
+    mkdir -p "$(dirname "$conf")"
+    [[ -f "$conf" ]] || cp "$scratch/niri.kdl" "$conf"
+  fi
+  exec dbus-run-session -- niri -c "$conf"
 fi

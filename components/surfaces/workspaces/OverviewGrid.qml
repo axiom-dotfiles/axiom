@@ -22,10 +22,11 @@ Rectangle {
   signal closeRequested
 
   readonly property var monitor: CompositorManager.outputFor(root.screen)
-  // The workspaces shown, one per cell, and the board's shape
+  // The workspaces shown, one per cell, and the board's shape: one column
+  // of them where the compositor keeps a list per monitor (niri's)
   readonly property var ids: CompositorManager.workspaceIds(root.monitor?.name ?? "")
-  readonly property int columns: WorkspacesConfig.boardColumns
-  readonly property int rows: WorkspacesConfig.boardRows
+  readonly property int columns: CompositorManager.dynamicWorkspaces ? 1 : WorkspacesConfig.boardColumns
+  readonly property int rows: CompositorManager.dynamicWorkspaces ? Math.max(1, root.ids.length) : WorkspacesConfig.boardRows
   readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
   // Global layout origin and logical size
   readonly property real monitorX: root.monitor?.x ?? 0
@@ -45,7 +46,7 @@ Rectangle {
   // The windows on the board's workspaces: this monitor's in a grid or
   // perMonitor layout; in the standard layout workspaces are shared, so
   // any monitor's
-  readonly property var windows: CompositorManager.windows.filter(w => (!WorkspacesConfig.perMonitorBlocks || w.output === root.monitor?.name) && root.ids.includes(w.workspaceId) && !w.hidden)
+  readonly property var windows: CompositorManager.windows.filter(w => (!CompositorManager.perMonitorBlocks || w.output === root.monitor?.name) && root.ids.includes(w.workspaceId) && !w.hidden)
   readonly property var byAddress: root.windows.reduce((map, w) => {
     map[w.id] = w;
     return map;

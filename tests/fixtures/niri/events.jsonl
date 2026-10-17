@@ -1,0 +1,19 @@
+{"WorkspacesChanged":{"workspaces":[{"id":3,"idx":3,"name":null,"output":"winit","is_urgent":false,"is_active":false,"is_focused":false,"active_window_id":null},{"id":2,"idx":2,"name":null,"output":"winit","is_urgent":false,"is_active":false,"is_focused":false,"active_window_id":4},{"id":1,"idx":1,"name":null,"output":"winit","is_urgent":false,"is_active":true,"is_focused":true,"active_window_id":5}]}}
+{"WindowsChanged":{"windows":[{"id":5,"title":"Alacritty","app_id":"Alacritty","pid":153356,"workspace_id":1,"is_focused":true,"is_floating":true,"is_urgent":false,"layout":{"pos_in_scrolling_layout":null,"tile_size":[813.0,1237.0],"window_size":[813,1237],"tile_pos_in_workspace_view":[738.0,82.0],"window_offset_in_tile":[0.0,0.0]},"focus_timestamp":{"secs":8751,"nanos":789846225}},{"id":4,"title":"foot","app_id":"foot","pid":153280,"workspace_id":2,"is_focused":false,"is_floating":false,"is_urgent":false,"layout":{"pos_in_scrolling_layout":[1,1],"tile_size":[684.0,1226.0],"window_size":[684,1226],"tile_pos_in_workspace_view":null,"window_offset_in_tile":[0.0,0.0]},"focus_timestamp":{"secs":8750,"nanos":680744311}},{"id":2,"title":"foot","app_id":"foot","pid":153150,"workspace_id":1,"is_focused":false,"is_floating":false,"is_urgent":false,"layout":{"pos_in_scrolling_layout":[1,1],"tile_size":[684.0,602.0],"window_size":[684,602],"tile_pos_in_workspace_view":null,"window_offset_in_tile":[0.0,0.0]},"focus_timestamp":{"secs":8749,"nanos":625025928}},{"id":3,"title":"foot","app_id":"foot","pid":153154,"workspace_id":1,"is_focused":false,"is_floating":false,"is_urgent":false,"layout":{"pos_in_scrolling_layout":[1,2],"tile_size":[684.0,602.0],"window_size":[684,602],"tile_pos_in_workspace_view":null,"window_offset_in_tile":[0.0,0.0]},"focus_timestamp":{"secs":8751,"nanos":637241693}}]}}
+{"KeyboardLayoutsChanged":{"keyboard_layouts":{"names":["English (US)"],"current_idx":0}}}
+{"OverviewOpenedOrClosed":{"is_open":false}}
+{"ConfigLoaded":{"failed":false}}
+{"CastsChanged":{"casts":[]}}
+{"WorkspaceActiveWindowChanged":{"workspace_id":1,"active_window_id":2}}
+{"WindowFocusChanged":{"id":2}}
+{"WorkspaceActiveWindowChanged":{"workspace_id":1,"active_window_id":6}}
+{"WindowOpenedOrChanged":{"window":{"id":6,"title":"foot","app_id":"foot","pid":153606,"workspace_id":1,"is_focused":true,"is_floating":false,"is_urgent":false,"layout":{"pos_in_scrolling_layout":[2,1],"tile_size":[684.0,1226.0],"window_size":[684,1226],"tile_pos_in_workspace_view":null,"window_offset_in_tile":[0.0,0.0]},"focus_timestamp":{"secs":8772,"nanos":111372811}}}}
+{"WindowFocusTimestampChanged":{"id":2,"focus_timestamp":{"secs":8771,"nanos":765365950}}}
+{"WorkspaceActiveWindowChanged":{"workspace_id":1,"active_window_id":2}}
+{"WindowFocusChanged":{"id":2}}
+{"WorkspaceActiveWindowChanged":{"workspace_id":1,"active_window_id":3}}
+{"WindowFocusChanged":{"id":3}}
+{"WindowLayoutsChanged":{"changes":[[3,{"pos_in_scrolling_layout":[1,1],"tile_size":[684.0,602.0],"window_size":[684,602],"tile_pos_in_workspace_view":null,"window_offset_in_tile":[0.0,0.0]}]]}}
+{"WindowClosed":{"id":2}}
+{"WindowLayoutsChanged":{"changes":[[3,{"pos_in_scrolling_layout":[1,1],"tile_size":[684.0,1226.0],"window_size":[684,1226],"tile_pos_in_workspace_view":null,"window_offset_in_tile":[0.0,0.0]}]]}}
+{"WindowFocusTimestampChanged":{"id":3,"focus_timestamp":{"secs":8773,"nanos":596434641}}}

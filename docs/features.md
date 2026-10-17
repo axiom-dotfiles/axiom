@@ -172,7 +172,7 @@ Then:
 - <kbd>Alt</kbd>+<kbd>Tab</kbd> and <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd> step through your windows, most recently used first, on the focused monitor. Let go of <kbd>Alt</kbd> to switch, press <kbd>Esc</kbd> to stay, or click a tile.
 - It only appears once you've held the keys for a moment, so a quick tap just swaps to your last window without anything drawn.
 - Show windows from everywhere, from this monitor only, or from this workspace only, as live previews or app icons, at the tile size you like (**Settings → Workspaces → Window switcher**).
-- The compositor holds the keys (on sway, the switcher takes the keyboard while it's open), so it never misses a fast release. It's on the Keybinds page as a preset, and on any other combination you like.
+- The compositor holds the keys (on sway and niri, the switcher takes the keyboard while it's open), so it never misses a fast release. It's on the Keybinds page as a preset, and on any other combination you like.
 
 ## Calendar
 

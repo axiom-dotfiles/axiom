@@ -1,8 +1,8 @@
 # Backend contract
 
-> **Files:** `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `services/SwayManager.qml`, `components/methods/HyprState.qml`, `components/methods/SwayState.qml`, `components/methods/CompositorLayer.qml`, `tests/tst_HyprState.qml`, `tests/tst_CompositorLayer.qml`
+> **Files:** `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `services/SwayManager.qml`, `services/NiriManager.qml`, `components/methods/HyprState.qml`, `components/methods/SwayState.qml`, `components/methods/NiriState.qml`, `components/methods/CompositorLayer.qml`, `tests/tst_HyprState.qml`, `tests/tst_CompositorLayer.qml`
 > **Config:** none
-> **Related:** [The compositor](README.md), [Sway backend](sway-backend.md)
+> **Related:** [The compositor](README.md), [Sway backend](sway-backend.md), [niri backend](niri-backend.md)
 
 What a compositor backend (`HyprlandManager`, `SwayManager`) gives `CompositorManager`. `CompositorManager`'s own defaults (empty lists, `""`, no-ops, `null` callbacks) are what a member the backend can't fill looks like.
 
@@ -16,6 +16,8 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
   - `focusRank` 0 is the focused window, higher means used less recently. Undefined when unknown.
   - The geometry is global, in logical pixels.
   - Only mapped windows are listed.
+  - Optional `column` and `tile` (1-based): its place in a strip where the compositor says (niri); `WorkspaceGeometry.stripOrder` orders by them over the geometry.
+  - Optional `cover` (`{ x, y, w, h }`, with `windowCover`): where a window whose geometry isn't exact surely is while its workspace shows; `DockLayout.covered` uses it over the geometry.
 - **Output**: `{ name, description, x, y, width, height, scale, focused, activeWorkspaceId, specialWorkspaceId, reserved: { top, right, bottom, left } }`.
   - `width`/`height` are logical.
   - `activeWorkspaceId` is -1 while unknown.
@@ -28,7 +30,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 
 ### Backend members
 - **State**: `windows`, `outputs`, `workspaces`, `focusedOutput`, `activeWindowId`, `gapsOut` (`{ top, right, bottom, left }`), `blur` (`{ enabled, size, passes }`), `splitWidthMultiplier`, `surfacesReady`, `supports`, `travelingTo` (the workspace a multi-leg switch has reached, -1 when none is under way).
-- **Optional**: `ready` (false while `supports` isn't final: sway asks whether it's SwayFX; `CompositorConfigManager` waits for it), `displayName` (a variant's name, "SwayFX"), `unsupportedHint(capability)` (what can do what this can't, for a greyed-out setting's note: `CompositorManager.unsupportedNote`). Left out: ready, named by `kind`, no hint.
+- **Optional**: `ready` (false while `supports` isn't final: sway asks whether it's SwayFX; `CompositorConfigManager` waits for it), `displayName` (a variant's name, "SwayFX"), `unsupportedHint(capability)` (what can do what this can't, for a greyed-out setting's note: `CompositorManager.unsupportedNote`), `builtInBinds` (`{ action: key }`, as axiom writes keys: binds the compositor does itself and can't be told to, niri's Mod + drag; the Keybinds page notes a bind on that key instead of flagging it, and warns of one on another). Left out: ready, named by `kind`, no hint, none built in.
 - **Signals**: `layersChanged`, `outputsHotplugged`, `configReloaded`, `keyboardLayoutChanged`, `windowFocused(appId)`. The facade re-emits them.
 - **Window switcher** (with `switcher`): signal `switcherKey(verb, argument)` (`step` with the step, `commit`, `cancel`), sent while the compositor holds the switcher's keys; `leaveSwitcher()` lets them go (a tile was clicked). `WindowSwitcherManager` listens to the backend directly.
 - **Windows**: `activateWindow(id)` (focus where it is), `closeWindow(id)`, `placeWindow(…)` and `resizeWindow(…)` (the overview), `toplevelFor(id)` (a `Quickshell.Wayland` toplevel, for previews).
@@ -40,6 +42,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
   - `scrollStrip(direction)`
   - `applyRemap(plan, outputNames)`
   - `refresh()`
+  - With `dynamicWorkspaces`: `blockSize` (ids in each output's block, more than it'll have), `focusOutput(name)` and `moveWindowToOutput(name, follow)` (left and right steps go to the next output).
 - **Outputs** (the Monitors page; `monitors`): `withOutputDetails(cb)`: every output, disabled ones too, as `{ name, description, width, height, refreshRate, x, y, scale, transform (0-7, Wayland's), disabled, mirrorOf ("none" or a name), vrr, availableModes: ["WxH@RHz"] }` plus optional `currentFormat`, `colorManagementPreset`, `sdrBrightness`, `sdrSaturation` (Hyprland's monitors JSON; `MonitorLayout` reads them), or null; `applyOutputs(rules, details)`: set the outputs as the `MonitorRule`s say, now (`details` resolve a mirror's connector). With `outputProfiles` the compositor also picks the saved profile for what's connected on every hotplug (Hyprland's Lua layer); without it `MonitorManager` applies it at start, after `outputsHotplugged`, and after `configReloaded` while no file of axiom's is loaded; a writer whose compositor resets outputs on a reload writes the matching profile into its files (sway's).
 - **Binds** (the Keybinds page): `withMainBinds(cb)`: the binds in effect outside the backend's own modes, as `{ modmask, key, keycode, description, submap }` (`modmask` in X11 bits: SHIFT 1, CAPS 2, CTRL 4, ALT 8, MOD2 16, MOD3 32, SUPER 64, MOD5 128; `BindKeys`), or null (`bindMerge`); `captureKeys(on)`: while on, every key reaches axiom instead of a bind (`keyCapture`). The facade's `withBinds` / `captureKeys` check the capability.
 - **Session and input**: `withKeyboard(cb)`, `cycleKeyboardLayout(direction, cb)`, `withCursorPos(cb)`, `warpCursorToLayer(…)`, `withLayerRects(cb)`, `exitSession()`, `dpmsCommand(on)` (a shell command, for the idle daemon).
@@ -56,18 +59,22 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `switcher` | Alt+Tab driven by compositor keys (`WindowSwitcherManager`) |
 | `switcherRelease` | the compositor reports letting go of the switcher's modifier itself (Hyprland's submap). Without it `SwitcherKeys` takes the keyboard while the switcher is open, to see the release |
 | `strips` | the strip settings, scrolling a strip |
+| `stripsAlways` | every output is a strip (niri): `stripDirection` is `horizontal` everywhere, the strip list is hidden |
+| `outputWorkspaces` | the compositor's workspaces belong to an output: every layout gets a block of ids per output (`CompositorManager.perMonitorBlocks`), and nothing is remapped |
+| `dynamicWorkspaces` | the compositor makes and removes workspaces itself, one list per output (niri): `workspaceIds` are the ones it has, the Workspaces section's layout is greyed out (its `x-intro` says why), up and down steps go through the list and left and right to the next output (`WorkspaceGeometry.outputToward`), the bar shows its workspaces with windows and the active one, the overview a column. Needs `outputWorkspaces` |
 | `focusGrab` | the native grab in `FocusGrab` |
 | `layerOrder` | the compositor stacks and arranges axiom's layers by `LayerStack.layers` itself (layer rules). Without it `LayerManager` maps them in that order and maps again any that land out of place ([layer arrangement](layer-arrangement.md)) |
 | `blur` | the compositor blurs axiom's translucent surfaces |
 | `blurThreshold` | the blur leaves pixels under `Appearance.blurThreshold` out (Hyprland's `ignore_alpha`), so the blur window casts the chrome's shadows itself, under it (`Appearance.shadowAlphaMax`). Without it (SwayFX, whose `blur_ignore_transparent` leaves out only clear pixels) windows of their own that aren't blurred cast them (`axiom-shadows`, `axiom-shadows-overlay`; `shell/BlurBacking.qml`) |
 | `cursorPos`, `cursorWarp` | `withCursorPos`, `warpCursorToLayer` |
-| `windowGeometry` | window positions and sizes are real: without it the screenshot's window mode is left out (`ScreenshotManager.kinds`; a `window` request takes a region) and no window obscures a dock (`DockManager.obscured`). The overview still draws windows where they say they are |
+| `windowGeometry` | window positions and sizes are real: without it the screenshot's window mode is left out (`ScreenshotManager.kinds`; a `window` request takes a region) and no window obscures a dock (`DockManager.obscured`) unless `windowCover`. The overview still draws windows where they say they are |
+| `windowCover` | without `windowGeometry`, windows carry a `cover` (niri's tiled ones), which obscures a dock (`DockManager.obscured`) |
 | `workspaceSlide` | `travel` legs slide |
 | `windowBorders`, `windowShape`, `windowGaps`, `windowBlur`, `windowOpacity` | the `WindowLook` parts shown and applied |
 | `windowRounding` | the shape part's rounding (plain sway's shape is the border width alone) |
 | `windowShadow`, `windowDim` | the window look's shadow and dim parts |
 | `inputConfig` | axiom sets the keyboard, mouse and touchpad |
-| `keyCapture` | the Keybinds page's recorder can take keys from the compositor's binds |
+| `keyCapture` | the Keybinds page's recorder can take keys from the compositor's binds: `captureKeys`, or the recorder window's shortcut inhibitor alone (niri) |
 | `bindMerge` | the user's own binds can be read (the Keybinds page's List, conflicts, Merge) |
 | `monitorColor` | a monitor rule's bit depth, color management and SDR fields |
 | `monitorMirror` | a monitor rule can mirror another output |

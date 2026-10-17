@@ -39,24 +39,34 @@ Singleton {
   }
 
   // Which compositor axiom runs under: "hyprland", "sway", "niri" or ""
-  // (unknown, or none). AXIOM_COMPOSITOR overrides it, for testing
-  // ("none" for no backend at all).
+  // (unknown, or none), from HYPRLAND_INSTANCE_SIGNATURE / SWAYSOCK /
+  // NIRI_SOCKET; with more than one set (one left over from an earlier
+  // session), the one still running (CompositorKind). AXIOM_COMPOSITOR
+  // overrides it, for testing ("none" for no backend at all).
   readonly property string kind: {
     const forced = Quickshell.env("AXIOM_COMPOSITOR") ?? "";
     if (forced !== "")
       return forced === "none" ? "" : forced;
-    if (Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE"))
-      return "hyprland";
-    if (Quickshell.env("SWAYSOCK"))
-      return "sway";
-    if (Quickshell.env("NIRI_SOCKET"))
-      return "niri";
-    return "";
+    const env = ["HYPRLAND_INSTANCE_SIGNATURE", "SWAYSOCK", "NIRI_SOCKET", "XDG_RUNTIME_DIR"].reduce((all, name) => {
+      all[name] = Quickshell.env(name) ?? "";
+      return all;
+    }, {});
+    const candidates = CompositorKind.candidates(env);
+    const picked = CompositorKind.pick(candidates, candidate => root._running(candidate));
+    if (candidates.length > 1)
+      console.log(`[CompositorManager] ${candidates.map(c => c.kind).join(", ")} named in the environment; running under ${picked}`);
+    return picked;
+  }
+
+  // Whether a CompositorKind candidate's process still runs
+  function _running(candidate) {
+    const pid = candidate.pid !== "" ? candidate.pid : CompositorKind.lockPid(candidate.lockFile !== "" ? FileManager.read(candidate.lockFile) : "");
+    return pid !== "" && CompositorKind.isProcess(candidate.kind, FileManager.read(`/proc/${pid}/comm`));
   }
 
   // The backend for `kind`, or null (docs/dev/compositor/contract.md). Only
   // the one picked is ever created.
-  readonly property var backend: kind === "hyprland" ? HyprlandManager : kind === "sway" ? SwayManager : null
+  readonly property var backend: kind === "hyprland" ? HyprlandManager : kind === "sway" ? SwayManager : kind === "niri" ? NiriManager : null
 
   // Whether `supports` is final: a backend that finds out what it can do
   // by asking (sway: SwayFX or not) isn't until it knows
@@ -74,6 +84,11 @@ Singleton {
       return result;
     }, {});
   }
+
+  // The binds the compositor carries out itself, so it can't be told to
+  // (niri's Mod + drag): { action: key, as axiom writes it }. The Keybinds
+  // page says so of a bind with that action instead of flagging it
+  readonly property var builtInBinds: root.backend?.builtInBinds ?? ({})
 
   // Appearance's surfaces are translucent only where the compositor blurs
   // behind them (Appearance.compositorBlurs: readers don't read services)
@@ -366,8 +381,8 @@ Singleton {
     mode = mode || "go";
     output = output || root.focusedOutput;
     const base = workspaceBase(output);
-    const size = WorkspacesConfig.size;
-    if (WorkspacesConfig.perMonitorBlocks && (id < base || id >= base + size)) {
+    const size = root.blockSize;
+    if (root.perMonitorBlocks && (id < base || id >= base + size)) {
       if (focusId)
         root.backend.activateWindow(focusId);
       else
@@ -429,6 +444,10 @@ Singleton {
   // output's grid, or through 1..count in the standard layout (where up is
   // previous and down next). Stops at the edges unless WorkspacesConfig.wrap.
   function stepWorkspace(direction, mode) {
+    if (root.dynamicWorkspaces) {
+      root._stepDynamic(direction, mode);
+      return;
+    }
     const base = workspaceBase(root.focusedOutput);
     const size = WorkspacesConfig.size;
     const index = _currentWorkspaceId() - base;
@@ -452,10 +471,45 @@ Singleton {
     goToWorkspace(base + row * cols + col, mode);
   }
 
+  // A step where the compositor keeps one list of workspaces per output
+  // (dynamicWorkspaces): up and down through the focused output's list
+  // (wrapping round with WorkspacesConfig.wrap), left and right to the
+  // output that way, taking the focused window along unless `mode` is "go"
+  function _stepDynamic(direction, mode) {
+    if (direction === "left" || direction === "right") {
+      const to = WorkspaceGeometry.outputToward(root.outputs, root.focusedOutput, direction);
+      if (to === "")
+        return;
+      if (mode === "move" || mode === "moveSilent")
+        root.backend.moveWindowToOutput(to, mode === "move");
+      else
+        root.backend.focusOutput(to);
+      return;
+    }
+    const ids = workspaceIds(root.focusedOutput);
+    if (ids.length === 0)
+      return;
+    const at = ids.indexOf(_currentWorkspaceId());
+    let next = at < 0 ? 0 : at + (direction === "up" ? -1 : 1);
+    if (next < 0 || next >= ids.length) {
+      if (!WorkspacesConfig.wrap)
+        return;
+      root.workspaceWrapped(root.focusedOutput, true, direction === "down");
+      next = (next + ids.length) % ids.length;
+    }
+    goToWorkspace(ids[next], mode);
+  }
+
   // The n-th workspace (1-based) of the current row in a grid or perMonitor
   // layout, or workspace n in the standard layout (number keybinds)
   function nthWorkspace(n, mode) {
-    if (!WorkspacesConfig.perMonitorBlocks) {
+    // The n-th of the output's list (one past its end is its last)
+    if (root.dynamicWorkspaces) {
+      if (n >= 1 && n <= root.blockSize)
+        goToWorkspace(workspaceBase(root.focusedOutput) + n - 1, mode);
+      return;
+    }
+    if (!root.perMonitorBlocks) {
       goToWorkspace(n, mode);
       return;
     }
@@ -469,8 +523,11 @@ Singleton {
 
   // "horizontal" | "vertical" on a strip monitor (its name), else "",
   // always "" where the compositor has no strips (a config from Hyprland
-  // may still list them)
+  // may still list them), always "horizontal" where it has nothing else
   function stripDirection(screenName) {
+    // Every output is a strip where the compositor only scrolls (niri)
+    if (root.supports.stripsAlways === true)
+      return "horizontal";
     return root.supports.strips ? WorkspacesConfig.stripDirection(screenName) : "";
   }
 
@@ -504,14 +561,32 @@ Singleton {
   // identity that survives a port change — not the compositor's discovery
   // order, which can reshuffle on a hotplug/reconnect/restart)
   function workspaceBase(output) {
-    if (!WorkspacesConfig.perMonitorBlocks)
-      return WorkspacesConfig.baseFor(0);
-    const index = _orderedOutputs().findIndex(o => o.name === output);
-    return WorkspacesConfig.baseFor(index >= 0 ? index : 0);
+    return root.perMonitorBlocks ? (root._bases[output] ?? 1) : 1;
   }
 
-  // The workspace ids an output (its name) shows, in order
+  // Whether each output has a block of ids of its own: the grid and
+  // perMonitor layouts, and every layout where the compositor's workspaces
+  // belong to an output (supports.outputWorkspaces: niri's), as the
+  // standard layout's shared ids can't
+  readonly property bool perMonitorBlocks: WorkspacesConfig.perMonitorBlocks || root.supports.outputWorkspaces === true
+  readonly property var _bases: WorkspaceGeometry.blockBases(root.outputs, General.primaryMonitor, root.blockSize)
+
+  // Whether the compositor makes and removes workspaces itself, one list
+  // per output (supports.dynamicWorkspaces: niri's). The Workspaces
+  // section's layout doesn't apply: its workspaces are the ones it has
+  readonly property bool dynamicWorkspaces: root.supports.dynamicWorkspaces === true
+  // Whether the workspaces are laid out in a grid: the grid layout, where
+  // the compositor leaves the workspaces to axiom
+  readonly property bool workspaceGrid: WorkspacesConfig.grid && !root.dynamicWorkspaces
+  // How many ids each output's block holds: the layout's size, or the
+  // backend's own where its workspaces are dynamic
+  readonly property int blockSize: root.dynamicWorkspaces ? root.backend.blockSize : WorkspacesConfig.size
+
+  // The workspace ids an output (its name) shows, in order: the layout's,
+  // or the ones the compositor has where they're dynamic
   function workspaceIds(output) {
+    if (root.dynamicWorkspaces)
+      return root.workspaces.filter(ws => ws.output === output).map(ws => ws.id);
     const base = workspaceBase(output);
     const ids = [];
     for (let i = 0; i < WorkspacesConfig.size; i++)
@@ -573,7 +648,8 @@ Singleton {
   // remapWorkspaces), and switches each output to the workspace matching
   // the one it showed (the backend's applyRemap)
   function _remapWorkspaces(from, to) {
-    if (!root.backend)
+    // Workspaces that belong to their output keep their place in it
+    if (!root.backend || root.supports.outputWorkspaces === true)
       return;
     const windows = root.windows.map(w => ({
           "id": w.id,

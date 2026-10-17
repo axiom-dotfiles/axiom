@@ -34,10 +34,11 @@ key (its key can't be read), continued (a line continued with \\).
 import json
 import re
 import shutil
-import subprocess
 import sys
 import time
 from pathlib import Path
+
+from bind_merge_common import REPEATING, in_git, ipc_action
 
 MODS = {"mod4": "SUPER", "super": "SUPER", "mod1": "ALT", "alt": "ALT", "ctrl": "CTRL", "control": "CTRL",
         "shift": "SHIFT", "lock": "CAPS", "mod2": "MOD2", "mod3": "MOD3", "mod5": "MOD5"}
@@ -51,60 +52,6 @@ FLAGS = {"--release": "release", "--locked": "locked"}
 HARMLESS = {"--no-warn", "--whole-window", "--no-repeat"}
 DIRECTIONS = {"left", "right", "up", "down"}
 MARK = "# (moved into axiom) "
-ROOT = Path(__file__).resolve().parent.parent
-# What a call names, for actions that open and close (BindActions.calls)
-CALLS = {"toggle": "toggle", "open": "open", "show": "open", "enable": "open",
-         "close": "close", "hide": "close", "disable": "close"}
-
-
-def ipc_actions():
-    """BindActions.ipcActions as [(action, regex)]: each IPC call, its
-    {call} and {0} as groups."""
-    text = (ROOT / "components/methods/BindActions.qml").read_text()
-    table = text[text.index("ipcActions:"):text.index("compositorActions:")]
-    actions = []
-    for name, call in re.findall(r'"(\w+)": \["([^"]+)"', table):
-        pattern = re.escape(call).replace(re.escape("{call}"), r"(?P<call>\w+)").replace(re.escape("{0}"), r"(?P<arg>\S+)")
-        actions.append((name, re.compile(pattern + "$")))
-    return actions
-
-
-IPC = ipc_actions()
-
-
-def repeating_actions():
-    """The actions axiom repeats while held by default (BindActions.actionFlags)."""
-    text = (ROOT / "components/methods/BindActions.qml").read_text()
-    table = text[text.index("actionFlags:"):text.index("flagNames:")]
-    return {name for name, flags in re.findall(r'"(\w+)": \[([^\]]*)\]', table) if '"repeating"' in flags}
-
-
-REPEATING = repeating_actions()
-# axiom started or called over IPC: qs -c axiom / qs -p <…axiom>
-SHELL = r"""(?:qs|quickshell) +(?:-c +axiom|-p +['"]?\S*axiom['"]?)"""
-
-
-def ipc_action(command):
-    """The axiom action an `exec` of an IPC call is, or None."""
-    if re.fullmatch(r"(?:qs|quickshell) +kill +.*;\s*" + SHELL + r" +-d", command):
-        return {"action": "restartShell"}
-    match = re.fullmatch(SHELL + r" +ipc +call +(.+)", command)
-    if not match:
-        return None
-    call = match.group(1).strip()
-    for name, pattern in IPC:
-        found = pattern.match(call)
-        if found:
-            entry = {"action": name}
-            groups = found.groupdict()
-            if groups.get("call"):
-                entry["call"] = CALLS.get(groups["call"], "toggle")
-            if groups.get("arg"):
-                entry["argument"] = unquote(groups["arg"])
-            return entry
-    return None
-
-
 def axiom_key(combo, code):
     parts = [p for p in combo.split("+") if p]
     if not parts:
@@ -125,13 +72,6 @@ def axiom_key(combo, code):
     order = ["SUPER", "CTRL", "ALT", "SHIFT", "CAPS", "MOD2", "MOD3", "MOD5"]
     mods.sort(key=order.index)
     return " + ".join(mods + [key])
-
-
-def unquote(text):
-    text = text.strip()
-    if len(text) >= 2 and text[0] == text[-1] and text[0] in "\"'":
-        return text[1:-1]
-    return text
 
 
 # How sway reads a bind's command (checked against sway 1.12): a config
@@ -237,11 +177,6 @@ def expand(text, variables):
     for name in sorted(variables, key=len, reverse=True):
         text = text.replace(name, variables[name])
     return text
-
-
-def in_git(path):
-    return subprocess.run(["git", "-C", str(path.parent), "rev-parse", "--show-toplevel"],
-                          capture_output=True, text=True).returncode == 0
 
 
 def user_files(sway, only):

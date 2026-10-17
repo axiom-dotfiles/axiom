@@ -1,19 +1,20 @@
 # Config modes (detached / included / managed)
 
-> **Files:** `services/CompositorConfigManager.qml`, `services/ConfigTakeover.qml`, `services/UserBindMerge.qml`, `services/RuntimeLayer.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`, `config/WindowBehaviourConfig.qml`
+> **Files:** `services/CompositorConfigManager.qml`, `services/ConfigTakeover.qml`, `services/UserBindMerge.qml`, `services/RuntimeLayer.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`, `services/NiriConfigWriter.qml`, `config/WindowBehaviourConfig.qml`, `services/CursorThemeManager.qml`, `scripts/cursor_theme.py`
 > **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `WindowBehaviour.*`, `Keybinds.binds`, `Monitors.profiles`, `WindowLook`, `Input`, `Session`, `Workspaces.strips`
 > **Related:** [Contract](contract.md), [Window look](window-look.md), [Hyprland's writer](../hyprland/config-modes.md), [Managed takeover](../hyprland/managed-takeover.md), [Sway backend](sway-backend.md)
 
 How axiom sets the compositor up, the same on every compositor with `supports.configModes`. `CompositorConfigManager` drives the three modes; the backend's config writer (`CompositorManager.backend.configWriter`; on Hyprland `HyprlandConfigWriter`, on sway `SwayConfigWriter`: [sway backend](sway-backend.md)) turns axiom's layer into the compositor's own text. Read this before touching anything axiom writes into a compositor's config.
 
 ### The layer
-- One layer covers: the binds (`Keybinds.binds`), the required settings (`Compositor.requiredSettings`), the [window look](window-look.md), the input (`Input`), the blur behind axiom's surfaces, the monitor profiles (`Monitors.profiles`) and the strips. In managed mode the writer adds `Session`, the shared options (`WindowBehaviour`: focus and the cursor, each field by its `x-hypr`/`x-sway`) and the compositor's own (the `Hyprland` or `Sway` section).
+- One layer covers: the binds (`Keybinds.binds`), the required settings (`Compositor.requiredSettings`), the [window look](window-look.md), the input (`Input`), the blur behind axiom's surfaces, the monitor profiles (`Monitors.profiles`) and the strips. In managed mode the writer adds `Session`, the shared options (`WindowBehaviour`: focus and the cursor, each field by its `x-hypr`/`x-sway`) and the compositor's own (the `Hyprland`, `Sway` or `Niri` section).
 - What the look and the input ask for is decided once, by `CompositorLayer.look` / `.input` (`spec(forFile)`: `{ look, input, surfacesBlur }`), and the writer turns that into text.
 - `mode` picks how the layer gets to the compositor:
   - **detached**: evaluated at runtime (`writer.runtimeApply()`), again after every config reload, which drops it
   - **included**: written to a module (`writer.moduleText(spec)` → `includePath`) the user's config loads (`includeLines`)
   - **managed**: written as the compositor's config itself (`writer.managedText(spec)` → `managedPath`), after a takeover (`writer.claim()`), loading the user's own files (`userFiles`) after it.
-- Whenever a file isn't loaded (included but the lines are missing, or a takeover refused), the runtime layer stands in and `problem` says why (`writer.notIncludedProblem` / `notManagedProblem` / `blockedProblem`). The writer's `checkLoaded(cb)` tells.
+- Whenever a file isn't loaded (included but the lines are missing, or a takeover refused), the runtime layer stands in and `problem` says why (`writer.notIncludedProblem` / `notManagedProblem` / `blockedProblem`). The writer's `checkLoaded(cb)` tells; it may answer `"failed"` when the compositor couldn't load its config at all (`writer.failedProblem`, no runtime layer then).
+- **Included but not loaded**: a notification, once per session and not while the onboarding is open (`_notifyNotIncluded`), offers **Add it for me** (`addIncludeLines`: the `compositorModule` hookup, the include lines added with a backup, then a reload) and Open settings. The Compositor card has the same button next to Copy while the module isn't loaded. Every compositor.
 
 ### The runtime layer
 - Each writer owns one: a `RuntimeLayer` (`HyprlandRuntimeLayer`, `SwayRuntimeLayer`), started by `writer.runtimeApply()`, taken out by `runtimeClear()`, told of each reload by `noteReload()`.
@@ -25,15 +26,22 @@ How axiom sets the compositor up, the same on every compositor with `supports.co
 - `_writeFile` re-reads the file before each write (`blockLoading`). A FileView skips a `setText` of the text it last wrote, and the file may no longer hold that text after a release.
 - `_reload()` reloads once more when asked while a reload runs, so a file written meanwhile isn't missed.
 
+### A compositor taking nothing at runtime (niri)
+Optional writer members, absent on Hyprland and sway:
+- `liveByFile`: the look and input reach the compositor in its files only: a change goes through `apply()` (rewriting the file, which the compositor reloads), and nothing is evaluated at runtime (`_applyLive`, `_syncFile`). The runtime layer is a file too (niri's detached wrapper); `specHook` hands the writer `spec(forFile)` for it.
+- `validate(text, cb)`: checked before each write; on an error the file stays as it was and `problem` is `writer.invalidProblem(error)`. When writes overlap, only the last asked for is written.
+
 ### Live parts: the look and the input
 - They are evaluated at runtime as they change (`_liveInputs`, debounced), in every mode: a reload on every step of a setting stalls the desktop, and detached, re-applying the whole layer redoes every bind. The file holds them as of its last write.
 - After every `configReloaded` in the file modes they are evaluated again (`_applyLive`), so they win over the user's own lines while they're on. Detached, the runtime layer evaluates them with the rest, through the writer's `liveLinesHook`.
 - A runtime eval can't take a setting back: a part turned off since it was evaluated reloads the compositor's config (`_undoLive`, `_droppedParts`). What was evaluated is `_liveState.applied` (a `PersistentProperties`): the look's parts the compositor applies (`supports.window<Part>`) and `input:<part>` (with `inputConfig`), so a part it can't apply (blur on sway) never causes a reload.
 - Once they've settled (2 s), the file modes' file is written with them too, without a reload (`_syncFile`, its own `FileView`), so the next session starts from them: before, a cursor theme changed live stayed the old one in the file, and in the `XCURSOR_THEME` apps got. (Hyprland reloads a `hyprland.lua` that changed by itself, once.)
 - The cursor theme is set as it changes (`writer.setCursor`, `_liveState.cursor`); a reload keeps it, so turning the part off leaves it until the session ends.
+- **The cursor theme's XCursor name** (`CursorThemeManager`, `scripts/cursor_theme.py`): a theme naming its cursors only the X11 way and inheriting nothing (Oxygen: `left_ptr`, no `default`) shows the `default` theme's cursors (often Adwaita's) for the standard names it lacks, the arrow among them. While the cursor part is on, such a theme gets a companion, `axiom-cursor-<theme>` in `$XDG_DATA_HOME/icons/`, inheriting it with those names linked to its own cursors (a complete theme gets none, and other themes' companions go). Each theme's companion has its own name: with one name for all, a switch between two such themes would leave the compositor's config as it was, and its cursors loaded. `CompositorLayer.input`'s `cursor.xcursor` is its name, else the theme's: niri's `xcursor-theme`, sway's `seat * xcursor_theme`, `XCURSOR_THEME` and GTK's `cursor-theme`/`cursor-size` (gsettings, set by the script) take it. Hyprland's `setcursor` and the greeter keep the theme's own name (Hyprland takes hyprcursor themes, and fills in missing names itself). The manager waits for the first answer (`CursorThemeManager.ready` in `live`), so a start writes the name once. The companion is left out of the themes to pick.
 
 ### Include and autostart lines
 - `includeLines` (included) and `autostartLines` (included and detached) are the writer's, as hookup targets `includeTarget` / `autostartTarget`. `IntegrationHookupManager` runs them under the keys `compositorInclude` (both lines) and `compositorAutostart`, so the onboarding offers Apply with a backup, as a theme integration does ([Theme integrations](../theming/theme-integrations.md)).
+- The Compositor card checks `compositorAutostart` when it's shown and when the mode changes. In detached and included modes, while the line is missing, it shows the line with Copy and **Add it for me** (`addAutostartLines`: the hookup with a backup, no reload, since it only matters at the next login). There's no notification: a user may start axiom some other way (a systemd unit, uwsm).
 
 ### Status card and saving
 - The settings page's Compositor section starts with `CompositorStatusCard`, built from:
@@ -60,7 +68,7 @@ How axiom sets the compositor up, the same on every compositor with `supports.co
 A backend with `configModes` gives `configWriter`, a singleton with:
 - **Files and lines**: `configDir`, `includePath`, `managedPath`, `userDir`, `userFiles`, `includeLines`, `autostartLines`, `includeTarget`, `autostartTarget`, the three `*Problem` texts.
 - **Text**: `moduleText(spec)`, `managedText(spec)`, `emptyModuleText`, `liveLines(spec)`, `inputsKey` (the rest of what its text depends on, so a change re-applies it), `isComplete(bind)`.
-- **Runtime**: `runtimeApply()`, `runtimeClear()`, `noteReload()`, `skippedKeys`, `liveLinesHook` (set by the manager), `runLive(lines)`, `setCursor(theme, size)`, `checkLoaded(cb)`, `reload(cb)`.
+- **Runtime**: `runtimeApply()`, `runtimeClear()`, `noteReload()`, `skippedKeys`, `liveLinesHook` (set by the manager), `runLive(lines)`, `setCursor(cursor)` (`CompositorLayer.input`'s), `checkLoaded(cb)`, `reload(cb)`.
 - **Takeover**: `claim()`, `release()`, `checkManaged()`, `findMonitorConflicts()`, `clearConflicts()`, `managedCheck`, `managedBlockedBy`, `managedBlockedRepo`, `monitorConflicts`; signals `claimed(adopted)`, `blocked()`, `released(result)`. Each writer forwards these to a `ConfigTakeover` on its `scripts/claim_<compositor>.sh` (same verbs and results: `check`/`claim`/`release`), and the bind merge to a `UserBindMerge` on its `scripts/merge_<compositor>_binds.py` (same JSON): a new compositor writes the two scripts, not the QML.
 - **Bind merge** (with `bindMerge`): `mergeUserBinds(only)`, `previewMerge()`, `merging`, `lastMerge`, `mergeable`, signal `bindsMerged(binds)`.
 

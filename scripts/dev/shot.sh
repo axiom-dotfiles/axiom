@@ -30,10 +30,13 @@ shift
 ipc() { qs -c axiom ipc call "$@" >/dev/null; }
 # The focused monitor, from whichever compositor runs
 if [[ -z "$monitor" ]]; then
-  if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+  # (its socket still there: a variable can outlive its compositor)
+  if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" && -e "${XDG_RUNTIME_DIR:-}/hypr/$HYPRLAND_INSTANCE_SIGNATURE/hyprland.lock" ]]; then
     monitor="$(hyprctl monitors -j | jq -r '.[] | select(.focused) | .name')"
-  elif [[ -n "${SWAYSOCK:-}" ]]; then
+  elif [[ -S "${SWAYSOCK:-}" ]]; then
     monitor="$(swaymsg -t get_outputs -r | jq -r '.[] | select(.focused) | .name')"
+  elif [[ -S "${NIRI_SOCKET:-}" ]]; then
+    monitor="$(niri msg -j focused-output | jq -r '.name')"
   fi
 fi
 [[ -n "$out" ]] || out="$(mktemp --suffix=.png "${TMPDIR:-/tmp}/axiom-shot-XXXXXX")"

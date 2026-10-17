@@ -200,6 +200,8 @@ Every public member of `Bar`, with the files that use it.
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`
 - `Bar.cellColors(barConfig, color, own, state)`: What a cell inside a widget (a workspace) draws in on its bar ({ fill, stroke, indicator, content }, see BarWidgetStyle.cell): `color` is its state color, `own…
   - in: `components/bar/widgets/workspaces/StripWindows.qml`, `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/content/WorkspaceGrid.qml`, `components/content/WorkspaceStrips.qml`
+- `Bar.cellHoverColor(properties)`: A Workspaces cell's box while hovered: its `hoverColor`, or for Auto (empty) the theme's highlight
+  - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `components/content/WorkspaceGrid.qml`, `components/content/WorkspaceStrips.qml`
 - `Bar.groupColors(barConfig)`: What a merged run of widgets draws its shared background in
   - in: `components/bar/WidgetGroup.qml`
 - `Bar.withAutoColors(widgets, widgetStyle, grouping, groupColor)`: A bar's widgets (by section) with each Auto color field (`x-autoColor`, left empty) set to the color BarAutoColors picks for it among its shown neighbours, see…

@@ -78,6 +78,7 @@ Dependencies point one way, methods → data owners → readers → services →
 - [README](compositor/README.md): `CompositorManager`, detection, capabilities, gating what a compositor can't do, `FocusGrab`.
 - [contract](compositor/contract.md): the neutral shapes and the members a backend provides.
 - [sway-backend](compositor/sway-backend.md): the sway backend (SwayManager), the plan for its config writer, and running a nested compositor (`scripts/dev/nested.sh`).
+- [niri-backend](compositor/niri-backend.md): the niri backend (NiriManager): its socket, per-output workspaces and strips, and its config writer (files only, validated, the detached wrapper).
 - [config-modes](compositor/config-modes.md): `CompositorConfigManager`, detached / included / managed, leaving a mode, the live parts, the config writer contract.
 - [window-look](compositor/window-look.md): `WindowLook` (borders, shape, gaps, blur, opacity): `CompositorLayer.look`, and Hyprland's one `hl.config`.
 - [layer-arrangement](compositor/layer-arrangement.md): how compositors arrange and stack layer windows (measured on sway and niri), and how axiom reproduces it.

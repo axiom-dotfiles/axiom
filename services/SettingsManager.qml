@@ -91,7 +91,7 @@ QtObject {
     // The icon folders, as the XDG icon spec looks them up: ~/.icons, then
     // each data dir's icons/
     const iconDirs = [Paths.homeDirectory + ".icons"].concat(Paths.dataSearchDirs.map(dir => dir + "/icons"));
-    CommandManager.run(["sh", "-c", 'for d in "$@"; do for t in "$d"/*; do [ -d "$t/cursors" ] || [ -f "$t/manifest.hl" ] && basename "$t"; done; done | sort -u', "sh"].concat(iconDirs), (code, out) => root._cursorThemes = out.split("\n").filter(name => name !== ""));
+    CommandManager.run(["sh", "-c", 'for d in "$@"; do for t in "$d"/*; do [ -d "$t/cursors" ] || [ -f "$t/manifest.hl" ] && basename "$t"; done; done | sort -u', "sh"].concat(iconDirs), (code, out) => root._cursorThemes = out.split("\n").filter(name => name !== "" && !name.startsWith(CursorThemeManager.companionPrefix)));
   }
 
   function _diff(local, saved, path) {

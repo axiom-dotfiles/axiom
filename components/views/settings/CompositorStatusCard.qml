@@ -22,7 +22,21 @@ FieldGroup {
       CompositorConfigManager.checkManaged();
   }
   onPendingModeChanged: root._checkPending()
-  Component.onCompleted: root._checkPending()
+  Component.onCompleted: {
+    root._checkPending();
+    root._checkAutostart();
+  }
+
+  // Whether the user's config starts axiom (checked when the card is
+  // built and when the mode changes; managed starts it itself)
+  readonly property bool autostartMissing: root.mode !== "managed" && IntegrationHookupManager.status.compositorAutostart !== undefined && !IntegrationHookupManager.isDone("compositorAutostart")
+  readonly property bool autostartAdded: (IntegrationHookupManager.results.compositorAutostart ?? []).some(result => result.changed)
+
+  function _checkAutostart() {
+    if (root.mode !== "managed")
+      IntegrationHookupManager.check("compositorAutostart");
+  }
+  onModeChanged: root._checkAutostart()
 
   // I18n.tr("Detached") I18n.tr("Included") I18n.tr("Managed")
   function _modeLabel(mode) {
@@ -97,6 +111,66 @@ FieldGroup {
   }
 
   readonly property bool blocked: root.pendingMode === "managed" && CompositorConfigManager.managedCheck === "blocked"
+
+  // Lines for the user's config: where they go, the text, Copy, and Add it
+  // for me (with a backup) while `canAdd`
+  component SetupLines: ColumnLayout {
+    id: block
+
+    property string hint
+    property string lines
+    property bool canAdd
+    property bool adding
+    property bool added
+
+    signal copyClicked
+    signal addClicked
+
+    Layout.fillWidth: true
+    spacing: Widget.spacing
+
+    StyledText {
+      text: block.hint
+      opacity: 0.7
+      textSize: Appearance.fontSize - 2
+      wrapMode: Text.WordWrap
+      Layout.fillWidth: true
+    }
+
+    StyledContainer {
+      Layout.fillWidth: true
+      implicitHeight: linesText.implicitHeight + Widget.padding * 2
+      backgroundColor: Theme.background
+
+      StyledText {
+        id: linesText
+        anchors.fill: parent
+        anchors.margins: Widget.padding
+        text: block.lines
+        textFamily: "monospace"
+        textSize: Appearance.fontSize - 2
+        wrapMode: Text.WrapAnywhere
+      }
+    }
+
+    RowLayout {
+      spacing: Widget.spacing
+
+      StyledTextButton {
+        implicitHeight: Widget.height - 4
+        text: I18n.tr("Copy")
+        onClicked: block.copyClicked()
+      }
+
+      StyledTextButton {
+        visible: block.canAdd
+        enabled: !block.adding && !block.added
+        implicitHeight: Widget.height - 4
+        text: block.added ? I18n.tr("Added") : block.adding ? I18n.tr("Adding…") : I18n.tr("Add it for me")
+        onClicked: block.addClicked()
+      }
+    }
+  }
 
   title: I18n.tr("Status")
   headerExtras: [
@@ -207,47 +281,48 @@ FieldGroup {
 
   StyledText {
     visible: root.mode === "detached"
-    text: I18n.tr("Nothing to set up. Binds on keys your config uses are skipped.")
+    text: root.autostartMissing ? I18n.tr("Binds on keys your config uses are skipped.") : I18n.tr("Nothing to set up. Binds on keys your config uses are skipped.")
     opacity: 0.7
     textSize: Appearance.fontSize - 2
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }
 
-  ColumnLayout {
+  SetupLines {
     visible: root.mode === "included"
-    Layout.fillWidth: true
-    spacing: Widget.spacing
-
-    StyledText {
-      text: I18n.tr("Add near the top of {0} (anything after overrides axiom):", Paths.shortenHome(CompositorConfigManager.managedPath))
-      opacity: 0.7
-      textSize: Appearance.fontSize - 2
-      wrapMode: Text.WordWrap
-      Layout.fillWidth: true
+    // Where the writer puts it (its include target): at the top, where
+    // the user's own lines after it win, or at the end (niri), where
+    // axiom's look wins
+    hint: {
+      const target = CompositorConfigManager.includeTarget;
+      const file = Paths.shortenHome(target?.file ?? CompositorConfigManager.managedPath);
+      return target?.place === "end" ? I18n.tr("Add at the end of {0} (axiom's look wins; binds on keys you bind stay yours):", file) : I18n.tr("Add near the top of {0} (anything after overrides axiom):", file);
     }
+    lines: CompositorConfigManager.includeLines
+    // While it isn't loaded: adds the lines (with a backup), as the
+    // notification's Add it for me does
+    canAdd: root.status !== "loaded" && CompositorConfigManager.includeTarget !== null
+    adding: IntegrationHookupManager.busy.compositorModule === true
+    onCopyClicked: CompositorConfigManager.copyIncludeLines()
+    onAddClicked: CompositorConfigManager.addIncludeLines()
+  }
 
-    StyledContainer {
-      Layout.fillWidth: true
-      implicitHeight: lines.implicitHeight + Widget.padding * 2
-      backgroundColor: Theme.background
-
-      StyledText {
-        id: lines
-        anchors.fill: parent
-        anchors.margins: Widget.padding
-        text: CompositorConfigManager.includeLines
-        textFamily: "monospace"
-        textSize: Appearance.fontSize - 2
-        wrapMode: Text.WrapAnywhere
-      }
+  // The modes that leave starting axiom to the user's config: shown while
+  // its autostart line is missing (the compositorAutostart hookup's check),
+  // and after Add it for me, until the next reload
+  SetupLines {
+    visible: root.mode !== "managed" && (root.autostartMissing || root.autostartAdded)
+    hint: {
+      const target = CompositorConfigManager.autostartTarget;
+      const file = Paths.shortenHome(target?.file ?? CompositorConfigManager.managedPath);
+      return target?.place === "start" ? I18n.tr("{0} doesn't start axiom with the session. Add near the top of {1}:", CompositorManager.displayName, file) : I18n.tr("{0} doesn't start axiom with the session. Add at the end of {1}:", CompositorManager.displayName, file);
     }
-
-    StyledTextButton {
-      implicitHeight: Widget.height - 4
-      text: I18n.tr("Copy")
-      onClicked: CompositorConfigManager.copyIncludeLines()
-    }
+    lines: CompositorConfigManager.autostartLines
+    canAdd: CompositorConfigManager.autostartTarget !== null
+    adding: IntegrationHookupManager.busy.compositorAutostart === true
+    added: root.autostartAdded
+    onCopyClicked: CompositorConfigManager.copyAutostartLines()
+    onAddClicked: CompositorConfigManager.addAutostartLines()
   }
 
   RowLayout {

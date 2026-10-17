@@ -188,8 +188,9 @@ Singleton {
     SwayManager.runCommands(lines, () => SwayManager.refresh());
   }
 
-  function setCursor(theme, size) {
-    SwayManager.runCommands([SwayConf.cursorLine(theme, size)]);
+  // `cursor`: CompositorLayer.input()'s
+  function setCursor(cursor) {
+    SwayManager.runCommands([SwayConf.cursorLine(cursor.xcursor, cursor.size)]);
   }
 
   // Calls back with the binds the user's own sway config holds

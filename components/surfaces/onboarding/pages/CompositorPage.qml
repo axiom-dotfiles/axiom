@@ -73,7 +73,9 @@ OnboardingPage {
         "icon": "input",
         "tag": I18n.tr("For complex setups"),
         "title": I18n.tr("Load axiom from my config"),
-        "description": I18n.tr("Your {0} stays yours: lines at its top load axiom's keybinds, borders and input.", root.config)
+        // Where the writer puts the lines (its include target): niri's go
+        // at the end
+        "description": CompositorConfigManager.includeTarget?.place === "end" ? I18n.tr("Your {0} stays yours: a line at its end loads axiom's keybinds, borders and input.", root.config) : I18n.tr("Your {0} stays yours: lines at its top load axiom's keybinds, borders and input.", root.config)
       },
       {
         "mode": "detached",

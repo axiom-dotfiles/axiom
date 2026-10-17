@@ -67,10 +67,4 @@ QtObject {
     const strip = strips.find(s => s.monitor === screenName) ?? strips.find(s => s.monitor === "*");
     return strip?.direction ?? "";
   }
-
-  // First id of the monitor at `monitorIndex` (a stable order, see
-  // CompositorManager.workspaceBase)
-  function baseFor(monitorIndex) {
-    return perMonitorBlocks ? Math.max(0, monitorIndex) * size + 1 : 1;
-  }
 }

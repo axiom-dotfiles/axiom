@@ -58,7 +58,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `WorkspaceCell.qml`: One workspace on the bar, in the bar's widget style (Bar.cellColors): a filled, tinted or outlined box inside the widget's own; on a bar whose widgets have no boxes, its number (or a dot) straight on the bar, under a li…
 - `WorkspaceCellRow.qml`: A bar switcher's row (a column on a vertical bar) of WorkspaceCells for workspaces `ids`: the cells' boxes at rest, the active one's sliding over them (ActiveCellIndicator), then their labels and icons over both.
 - `WorkspaceGridStrip.qml`: The grid layout's switcher: this monitor's columns × rows workspaces, of which the bar shows the active row (horizontal bar) or column (vertical bar), and the popout the whole grid.
-- `WorkspaceStrip.qml`: The standard layout's switcher: workspaces 1..count in a row (horizontal bar) or column (vertical bar); click one to go there, scroll to step through them.
+- `WorkspaceStrip.qml`: The standard layout's switcher: workspaces 1..count in a row (horizontal bar) or column (vertical bar), or the ones the compositor has where it makes them itself (CompositorManager.dynamicWorkspaces); click one to go th…
 
 ## components/content/
 
@@ -255,6 +255,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ChatProtocol.qml`: The chat providers' wire formats, as pure functions: ChatManager builds a request with request(), ChatRequest sends it with curl and feeds every streamed event to parse().
 - `ColorTemperature.qml`: The color of light at a temperature in Kelvin (Tanner Helland's fit to blackbody colors), for showing what a night light setting looks like.
 - `ColumnSplit.qml`: Splits an ordered list of cards into two newspaper columns (the first k on the left, the rest on the right) so both end as close together as they can, from the cards' heights.
+- `CompositorKind.qml`: Which compositor axiom runs under, from the environment (CompositorManager.kind).
 - `CompositorLayer.qml`: What axiom asks of the compositor, decided once in a neutral shape that every backend's config writer turns into its own text (Hyprland's Lua, sway's commands).
 - `ConfigExamples.qml`: Sharing a config.
 - `ConfigMigration.qml`: Upgrades older config.json layouts to the current one (see config/json/config.schema.json).
@@ -273,10 +274,13 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `IconResolver.qml`: Resolves icon names for window classes: desktop entries first, then known substitutions, then name variants that exist in the icon theme.
 - `KeyNames.qml`: Keys as Hyprland writes them ("SUPER + SHIFT + space"): turning a Qt key event into one (for recording a bind), and splitting one for display.
 - `KeybindFilter.qml`: The Keybinds page's filter over KeybindManager.keybindings: a search plus toggle chips in three groups (sections, modifiers, source).
+- `KeyboardLayouts.qml`: A keyboard's layouts as the shell shows them ({ layouts, index, keymap }, CompositorManager.withKeyboard), from the full names a compositor reports ("English (US)"): the same for every backend that only has those.
 - `LayerArrange.qml`: Where a compositor puts layer-shell surfaces on an output (pure): the wlr-layer-shell arrangement that sway, niri and Hyprland share (docs/dev/compositor/layer-arrangement.md).
 - `LayerStack.qml`: The order axiom's layer surfaces stack and reserve their space in, on every compositor (pure).
 - `LibraryOrder.qml`: How the editors' libraries (bar widgets, overlay modules) order their types: by label, or by group (the schema's `x-libraryGroups`, in order) and by label within each.
 - `MonitorLayout.qml`: Pure helpers for the Monitors page (MonitorManager): modes, scales, rotation, the layout's rects and snapping, and picking the profile for the connected outputs.
+- `NiriConf.qml`: niri's config text (KDL) and IPC requests from axiom's settings (NiriManager, NiriConfigWriter), as SwayConf is for sway: each bind's node, the window look, input and options, outputs, and the files axiom writes (docs/d…
+- `NiriState.qml`: niri's IPC replies and events (NiriManager) as the shapes the rest of the shell reads, which don't depend on the compositor (docs/dev/compositor/contract.md), as SwayState is for sway. niri's state is kept as its own ob…
 - `NoteMarkdown.qml`: A note's Markdown as blocks for the notes editor (content/parts/notes/ NoteEditor): paragraphs of plain lines (split at blank lines, which stay with the paragraph above; a code fence is never split, and holds no tasks),…
 - `PolkitAgents.qml`: The polkit agents axiom knows about (PolkitManager): a session has one agent, so while axiom is its agent these are stopped and left out of the generated autostart.
 - `PopoutGeometry.qml`: Which popouts give way to which (PopoutManager): every popout reports its footprint (rects in screen px, from SurfaceOutline.footprint, fillets included), and one opening closes only what it actually covers, by rank.
@@ -554,6 +558,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SettingsGroupCard.qml`: i18n: keys from the schema (titles, descriptions) One group of settings (a section's own fields, or one nested object) as a card: title, help text, then its rows.
 - `SettingsSidebar.qml`: i18n: keys from the schema (category names, card titles) Settings page, left: search and the category list; the selected category also lists its cards, and clicking one scrolls the page to it.
 - `TranslucencyStatus.qml`: The top of the Translucency card (its `x-intro`): a warning that it's experimental, and while the surfaces blur, the blur they get: the compositor's one (CompositorManager.blur, as in effect), set by the window look's b…
+- `WorkspacesStatus.qml`: The top of the Workspaces card (the section's `x-intro`): where the compositor makes its workspaces itself (CompositorManager. dynamicWorkspaces), why the layout below is greyed out and what the workspace keys do instead
 
 ## shell/
 
@@ -605,6 +610,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ConfigManager.qml`: ConfigManager handles loading, saving, and monitoring the configuration file
 - `ConfigTakeover.qml`: Taking a compositor's config over for the managed mode, and giving it back, through its claim script (scripts/claim_<compositor>.sh, every one with the same verbs and results), for that compositor's config writer, which…
 - `ConsumerRegistry.qml`: Reference-counted consumers of a shared poller (SystemManager, UpdatesManager, ...): each owner registers one request, and the service polls for the union of them, stopping when there are none.
+- `CursorThemeManager.qml`: The cursor theme as XCursor readers get it (the compositor's xcursor-theme, XCURSOR_THEME, GTK's cursor-theme).
 - `DailySchedule.qml`: A daily window, `startAt` until `endAt` ("HH:MM"; past midnight when the end is earlier), that says when its state is due: `due(inWindow)` fires when the window opens or closes, when the schedule is turned on, and when …
 - `DataMigrationManager.qml`: Moves an install from before the XDG folders over to them, once.
 - `DependencyManager.qml`: Startup checks for what the whole shell needs to look right: the icon font (every icon is a Material Symbols name, StyledIcon, which shows as a word without it) and the text font (`Appearance.font.family`, a free-text s…
@@ -637,6 +643,9 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `MonitorManager.qml`: The Monitors page: the connected outputs (CompositorManager. withOutputDetails, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Monitors.profiles, a draft of profiles (…
 - `NetworkingManager.qml`: Wi-Fi state and actions over NetworkManager (Quickshell.Networking, D-Bus, so nothing polls).
 - `NightLightManager.qml`: The night light (the NightLight section): warmer colors through hyprsunset, or wlsunset without it, started and stopped by axiom.
+- `NiriConfigWriter.qml`: niri's config writer (docs/dev/compositor/config-modes.md), reached as NiriManager.configWriter by CompositorConfigManager, which drives the modes.
+- `NiriIpcManager.qml`: niri's IPC socket ($NIRI_SOCKET), without a process per call: its event stream, and requests.
+- `NiriManager.qml`: CompositorManager's backend on niri (docs/dev/compositor/contract.md, docs/dev/compositor/niri-backend.md): niri's state as the compositor-neutral shapes (NiriState), and the primitives CompositorManager builds on.
 - `NotesManager.qml`: Notes: Markdown files in NotesConfig.directory ($XDG_DATA_HOME/axiom/notes/ by default, or a linked folder).
 - `NotificationManager.qml`: NotificationManager is the DBus notification server and the notification history.
 - `OnboardingManager.qml`: The first-run onboarder (shell/Onboarding): a series of pages that set the essentials up (the compositor, monitors, apps and keys, workspaces, the look, integrations), each applying as the user goes, with the compositor…
@@ -692,6 +701,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `LockscreenConfig.qml`: Reader for the Lockscreen section: which locker locks the session, and what the built-in one shows (`layout`, as saved: the lock never shows the layouts editor's unsaved draft, LockManager.editor.localLayout).
 - `MonitorsConfig.qml`: Reader for the Monitors section: the monitor profiles ({ name, outputs: [MonitorRule] }), edited on the Monitors page (MonitorManager) and applied by the compositor's config writer
 - `NightLight.qml`: Reader for the NightLight section: warmer colors through hyprsunset or wlsunset, run by NightLightManager.
+- `NiriConfig.qml`: Reader for the Niri section: niri's own options in the managed config (NiriConfigWriter; each field by its x-niri annotation).
 - `NotesConfig.qml`: Reader for the Notes section (see NotesManager).
 - `NotificationsConfig.qml`: Reader for the Notifications section (toasts and the history).
 - `OSDConfig.qml`: Reader for the OSD section (the volume, microphone and brightness on-screen displays).

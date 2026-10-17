@@ -176,6 +176,8 @@ hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)
 
 On sway (1.12+), add `exec qs -n -c axiom` to your sway config instead. Its workspaces, windows, keybinds, window look, input and monitors work as on Hyprland; what sway can't do (strips, blur behind the shell, window previews) is left out of the settings.
 
+On niri (26.04+), add `spawn-sh-at-startup "qs -n -c axiom"` to your `config.kdl`. Every niri output is a scrolling strip, and the bar shows each workspace's windows in column order (with one workspace configured, just the strip). Keybinds, the window look, input and monitors work in every mode; niri takes them from files only, so in detached mode axiom has niri load a wrapper around your config while it runs, and never edits your files. Blur behind the shell isn't there yet.
+
 </details>
 
 By default axiom runs in *detached* mode: it applies what it needs at runtime and never writes your Hyprland config. If you'd rather it did, it can also write a file you include, or manage `hyprland.lua` for you (see [Hyprland modes](docs/installation.md#installation)).
@@ -196,7 +198,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the layout and conventions, and [docs
 
 ## Roadmap
 
-- **Other Wayland compositors**, beyond Hyprland and sway (niri next)
+- **Other Wayland compositors**, beyond Hyprland, sway and niri
+- **Blur behind the shell on niri**
 - **More widgets** for bars and overlay pages
 - **More styles** for bars, widgets and menus
 - **More translations**

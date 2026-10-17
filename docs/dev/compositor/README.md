@@ -7,12 +7,12 @@
 How axiom reaches the compositor it runs under. Read this before anything that reads windows, outputs or workspaces, switches workspace, focuses a window, or does something only one compositor can.
 
 ### Detection
-- `CompositorManager.kind` is `"hyprland"`, `"sway"`, `"niri"` or `""` (unknown), from `HYPRLAND_INSTANCE_SIGNATURE` / `SWAYSOCK` / `NIRI_SOCKET`.
+- `CompositorManager.kind` is `"hyprland"`, `"sway"`, `"niri"` or `""` (unknown), from `HYPRLAND_INSTANCE_SIGNATURE` / `SWAYSOCK` / `NIRI_SOCKET`. With more than one set (one exported into the systemd user environment by an earlier session reaches the next compositor), the one whose process still runs wins (`methods/CompositorKind`).
 - `AXIOM_COMPOSITOR` overrides it for testing (`none` gives `""`).
-- `CompositorManager.backend` is that compositor's backend singleton (`HyprlandManager`, `SwayManager`), or null. Only the one picked is created.
+- `CompositorManager.backend` is that compositor's backend singleton (`HyprlandManager`, `SwayManager`, `NiriManager`), or null. Only the one picked is created.
 
 ### The facade
-- **Everything outside the backends goes through `CompositorManager`**: the window, output and workspace lists, focus, workspace switching, the keyboard layout, the cursor, the gaps, the blur, logging out. `check_structure.py` refuses `HyprlandManager.` anywhere else, except in the Hyprland-only features (below), and `SwayManager.`, `SwayIpcManager.`, `swaymsg` and `Quickshell.I3` outside the `Sway*` services. A backend's text and state helpers (`HyprLua`, `HyprConfigLua`, `HyprState`; `SwayConf`, `SwayState`) are refused outside its own services and helpers too.
+- **Everything outside the backends goes through `CompositorManager`**: the window, output and workspace lists, focus, workspace switching, the keyboard layout, the cursor, the gaps, the blur, logging out. `check_structure.py` refuses `HyprlandManager.` anywhere else, except in the Hyprland-only features (below), and `SwayManager.`, `SwayIpcManager.`, `swaymsg` and `Quickshell.I3` outside the `Sway*` services, and `NiriManager.`, `NiriIpcManager.`, `NiriConfigWriter.`, `NIRI_SOCKET` and a `niri` process outside the `Niri*` services. A backend's text and state helpers (`HyprLua`, `HyprConfigLua`, `HyprState`; `SwayConf`, `SwayState`; `NiriConf`, `NiriState`) are refused outside its own services and helpers too.
 - The state comes in [neutral shapes](contract.md#shapes): plain snapshots rebuilt on events, the same from every backend. Never hand a compositor's own objects (`lastIpcObject`, `HyprlandMonitor`) past the backend.
 - Logic that doesn't depend on the compositor lives in `CompositorManager`, so each backend only has primitives:
   - the workspace layout: `goToWorkspace`, `stepWorkspace`, `nthWorkspace`, `workspaceBase`, `workspaceIds`, `stepStrip`

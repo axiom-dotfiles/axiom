@@ -71,6 +71,7 @@ Item {
       readonly property var widget: root.widget ?? ({})
       readonly property bool hidden: editorRoot.widget.visible === false
       readonly property var propertiesSchema: root.dragLayer.typeInfo(editorRoot.widget.type)?.propertiesSchema ?? ({})
+      readonly property var propertiesOrder: root.dragLayer.typeInfo(editorRoot.widget.type)?.propertiesOrder ?? []
       // A page or edge menu it opens, to edit in the layouts editor
       readonly property var opens: OverlayManager.openedBy(editorRoot.widget)
 
@@ -145,7 +146,9 @@ Item {
 
             OptionsGroup {
               propertiesSchema: editorRoot.propertiesSchema
+              order: editorRoot.propertiesOrder
               numberMode: "stepper"
+              pairs: true
               values: editorRoot.widget.properties ?? ({})
               emptyText: I18n.tr("This widget has no options")
               onEdited: (path, value) => BarManager.updateWidgetProperty(editorRoot.zone, editorRoot.index, path[0], value)

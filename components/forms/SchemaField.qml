@@ -114,7 +114,10 @@ Loader {
     // switch: the switch itself isn't greyed out for it)
     if (root.allowed || (root._followsSibling && _blockedBy !== "/$compositor"))
       return "";
+    // false: none (the section's intro says why)
     const own = fieldSchema["x-disabledNote"] ?? "";
+    if (own === false)
+      return "";
     if (own !== "")
       return I18n.tr(own);
     if (_blockedBy.startsWith("/$supports."))

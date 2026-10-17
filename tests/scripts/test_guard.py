@@ -70,6 +70,18 @@ class Bash(unittest.TestCase):
         self.blocks("scripts/merge_sway_binds.py remove ~/.config/sway '[]'", f"python3 scripts/merge_hypr_binds.py remove {HOME}/.config/hypr '[]'")
         self.allows("scripts/merge_sway_binds.py extract ~/.config/sway", "scripts/merge_sway_binds.py remove /tmp/scratch/sway '[]'")
 
+    def test_claim_niri(self):
+        self.blocks(f"scripts/claim_niri.sh claim {HOME}/.config/niri axiom", "scripts/merge_niri_binds.py remove ~/.config/niri '[]'")
+        self.allows("scripts/claim_niri.sh claim /tmp/scratch/niri axiom", "scripts/claim_niri.sh check ~/.config/niri axiom")
+
+    def test_niri_session(self):
+        with mock.patch.dict(os.environ, {"NIRI_SOCKET": "/run/user/1000/niri.wayland-1.100.sock"}):
+            self.blocks("niri msg action quit", "niri msg action load-config-file --path /tmp/x.kdl",
+                        "niri msg output DP-1 off", "niri msg -j action quit")
+            self.allows("niri msg -j windows", "niri msg action focus-workspace 2",
+                        "NIRI_SOCKET=/run/user/1000/niri.wayland-2.200.sock niri msg action quit",
+                        "export NIRI_SOCKET=/run/user/1000/niri.wayland-2.200.sock; niri msg output winit scale 1")
+
     def test_claim_hyprland(self):
         self.blocks(f"scripts/claim_hyprland.sh claim {HOME}/.config/hypr axiom", "scripts/claim_hyprland.sh release ~/.config/hypr h f")
         self.allows("scripts/claim_hyprland.sh claim /tmp/scratch/hypr axiom", "scripts/claim_hyprland.sh check ~/.config/hypr axiom")

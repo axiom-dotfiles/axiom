@@ -28,12 +28,19 @@ Item {
   required property color occupiedColor
   required property color emptyColor
   required property color textColor
+  required property color hoverColor
   // A hook: the glyph a cell shows instead of its label and app icon (the
   // grid's position arrow), or ""
   property var glyphOf: (id, active) => ""
+  // The widget's (BarWidget.hitArea), which the cells read hover from
+  property var hitArea: null
 
   readonly property bool isVertical: barConfig.vertical
   readonly property real spacing: barConfig.widgetSpacing
+  // App icons on occupied cells: always where the compositor makes the
+  // workspaces (niri's show only the occupied ones, so a bare number says
+  // little)
+  readonly property bool appIcons: properties.showAppIcons || CompositorManager.dynamicWorkspaces
   // The workspace whose cell is hovered, which its box (drawn apart from
   // it) shows
   property int hoveredId: -1
@@ -88,6 +95,7 @@ Item {
         restLength: root.cellLength
         length: root._length(isActive)
         radius: root.cellRadius
+        hoverColor: root.hoverColor
       }
     }
   }
@@ -106,8 +114,10 @@ Item {
 
   Grid {
     id: cells
-    rows: root.isVertical ? Math.max(1, root.ids.length) : 1
-    columns: root.isVertical ? 1 : Math.max(1, root.ids.length)
+    // -1: as many as there are cells, so a cell added before a count
+    // would follow can't overflow the grid
+    rows: root.isVertical ? -1 : 1
+    columns: root.isVertical ? 1 : -1
     spacing: root.spacing
 
     Repeater {
@@ -117,9 +127,10 @@ Item {
         required property int index
         readonly property int wsId: root.ids[index] ?? 0
         readonly property string _glyph: root.glyphOf(wsId, isActive)
-        readonly property var biggestWindow: root.properties.showAppIcons && _glyph === "" && root._occupied(wsId) ? CompositorManager.biggestWindowForWorkspace(wsId) : null
+        readonly property var biggestWindow: root.appIcons && _glyph === "" && root._occupied(wsId) ? CompositorManager.biggestWindowForWorkspace(wsId) : null
 
         part: "content"
+        hitArea: root.hitArea
         barConfig: root.barConfig
         isActive: wsId === root.activeId
         look: root._look(wsId, isActive)
@@ -127,6 +138,7 @@ Item {
         restLength: root.cellLength
         length: root._length(isActive)
         radius: root.cellRadius
+        hoverColor: root.hoverColor
         labels: root.properties.labels
         // The workspace id, or counted from the monitor's first (its place
         // in the grid)
@@ -135,10 +147,21 @@ Item {
         iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.appId, biggestWindow.title) : ""
         clickable: root.properties.clickToSwitch
         onClicked: CompositorManager.goToWorkspace(wsId, "go", root.monitor?.name ?? "")
-        onHoveredChanged: {
+        // Also when the cell under the pointer comes to stand for another
+        // workspace (the shown set changed) or goes, so no box stays lit
+        function _syncHover(): void {
           if (hovered)
             root.hoveredId = wsId;
           else if (root.hoveredId === wsId)
+            root.hoveredId = -1;
+        }
+        onHoveredChanged: _syncHover()
+        onWsIdChanged: {
+          if (hovered)
+            root.hoveredId = wsId;
+        }
+        Component.onDestruction: {
+          if (root.hoveredId === wsId)
             root.hoveredId = -1;
         }
       }

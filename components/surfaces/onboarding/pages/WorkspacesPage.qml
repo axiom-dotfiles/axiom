@@ -10,7 +10,9 @@ import qs.components.forms
 // How workspaces are laid out (the Workspaces section), with a small
 // picture of two monitors in the chosen layout, then whether windows tile
 // or sit on strips (Workspaces.strips: every monitor here, one by one in
-// the list below)
+// the list below). Where the compositor makes its workspaces itself
+// (CompositorManager.dynamicWorkspaces) and only has strips (stripsAlways),
+// it says so instead of offering what doesn't apply.
 OnboardingPage {
   id: root
 
@@ -19,8 +21,20 @@ OnboardingPage {
   // "custom" (strips per monitor, from the list below: no card selected)
   readonly property string strips: WorkspacesConfig.strips.length === 1 && WorkspacesConfig.strips[0].monitor === "*" ? WorkspacesConfig.strips[0].direction : WorkspacesConfig.hasStrips ? "custom" : ""
 
+  readonly property bool dynamic: CompositorManager.dynamicWorkspaces
+
   title: I18n.tr("Workspaces")
   intro: I18n.tr("Workspaces are the desktops you switch between with Super + a number. The bar, the overview and the keybinds all follow the layout you pick here.")
+
+  IssueList {
+    visible: root.dynamic
+    issues: [
+      {
+        "level": "info",
+        "text": I18n.tr("{0} makes and removes workspaces itself: each monitor has one column of them, with an empty one at the end. The layout below doesn't apply; up and down step through the column, left and right go to the next monitor.", CompositorManager.displayName)
+      }
+    ]
+  }
 
   Repeater {
     model: [
@@ -46,6 +60,7 @@ OnboardingPage {
 
     delegate: OptionCard {
       required property var modelData
+      visible: !root.dynamic
       icon: modelData.icon
       title: modelData.title
       description: modelData.description
@@ -59,6 +74,7 @@ OnboardingPage {
 
   // Two monitors in the chosen layout
   Row {
+    visible: !root.dynamic
     Layout.alignment: Qt.AlignHCenter
     Layout.topMargin: Widget.spacing
     spacing: Widget.spacing * 2
@@ -111,10 +127,12 @@ OnboardingPage {
 
   SettingRows {
     Layout.fillWidth: true
-    paths: ["Workspaces.count", "Workspaces.columns", "Workspaces.rows", "Workspaces.wrap"]
+    // The layout's size doesn't apply where the compositor makes them
+    paths: root.dynamic ? ["Workspaces.wrap"] : ["Workspaces.count", "Workspaces.columns", "Workspaces.rows", "Workspaces.wrap"]
   }
 
   StyledText {
+    visible: CompositorManager.supports.stripsAlways !== true
     Layout.topMargin: Widget.spacing
     text: I18n.tr("Windows")
     font.bold: true
@@ -144,6 +162,8 @@ OnboardingPage {
 
     delegate: OptionCard {
       required property var modelData
+      // Every monitor is a strip where the compositor has nothing else
+      visible: CompositorManager.supports.stripsAlways !== true
       icon: modelData.icon
       title: modelData.title
       description: modelData.description

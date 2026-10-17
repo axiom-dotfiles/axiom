@@ -55,6 +55,7 @@ The base classes bar widgets extend, where their sizes come from, and how their 
 ### Workspaces cells
 - Workspaces sits on a background like the rest (`backgroundColor`). Its box is Auto (`neutral`).
 - Its cells (`workspaces/WorkspaceCell`) are inset by `widgetSpacing` inside that box.
+- A hovered cell's box is `hoverColor` (`Bar.cellHoverColor`; Auto is `Theme.backgroundHighlight`). On the bar, a cell reads hover from the widget's hit area (`hitArea.hovers(cell)`), which lies over the cells: their own `MouseArea` misses the leave after a click and stays lit. In a popout it uses its own.
 - Cells draw in the same style through `Bar.cellColors` → `BarWidgetStyle.cell`, which gives `{ fill, stroke, indicator, content }` from the cell's state color.
   - **Filled, tinted or outlined** styles draw boxes.
   - **Styles with no box** (underline, colored icons, plain) draw the cell's number or a dot straight on the bar. The dot becomes a pill when wide, with the cells narrowed to fit.

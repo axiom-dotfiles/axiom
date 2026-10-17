@@ -10,7 +10,8 @@ import qs.components.reusable
 // in the bar's separator style (a line when that's none), then the active
 // workspace's windows in strip order (StripWindows), cross-fading to the
 // next workspace's when it changes. Nothing, divider included, while the
-// workspace has none (`hasWindows`).
+// workspace has none (`hasWindows`). Without `divider` (the windows shown
+// alone) only the windows.
 Grid {
   id: root
 
@@ -22,16 +23,22 @@ Grid {
   required property color activeColor
   required property color occupiedColor
   required property color textColor
+  required property color hoverColor
   property bool clickable: true
+  // The widget's (BarWidget.hitArea), which the cells read hover from
+  property var hitArea: null
+  property bool divider: true
 
   readonly property bool isVertical: barConfig.vertical
   readonly property bool hasWindows: CompositorManager.stripWindows(root.workspaceId, root.stripVertical).length > 0
 
-  rows: isVertical ? 2 : 1
-  columns: isVertical ? 1 : 2
+  // Only what's shown: a Grid keeps spacing for an empty column or row
+  rows: isVertical && divider ? 2 : 1
+  columns: !isVertical && divider ? 2 : 1
   spacing: barConfig.widgetSpacing
 
   SeparatorMark {
+    visible: root.divider
     style: root.barConfig.separatorStyle === "none" ? "line" : root.barConfig.separatorStyle
     color: Theme.resolveColor(root.barConfig.separatorColor)
     thickness: root.barConfig.separatorThickness
@@ -57,7 +64,9 @@ Grid {
       activeColor: root.activeColor
       occupiedColor: root.occupiedColor
       textColor: root.textColor
+      hoverColor: root.hoverColor
       clickable: root.clickable
+      hitArea: root.hitArea
     }
   }
 }

@@ -1,6 +1,6 @@
 # Workspaces (layout, navigation, the bar widget)
 
-> **Files:** `config/WorkspacesConfig.qml`, `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `components/methods/WorkspaceGeometry.qml`, `components/bar/widgets/Workspaces.qml`, `components/bar/widgets/workspaces/`, `components/surfaces/workspaces/`
+> **Files:** `config/WorkspacesConfig.qml`, `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `components/methods/WorkspaceGeometry.qml`, `components/bar/widgets/Workspaces.qml`, `components/bar/widgets/workspaces/`, `components/surfaces/workspaces/`, `components/views/settings/WorkspacesStatus.qml`
 > **Config:** `Workspaces.*` (`layout`, `count`, `columns`, `rows`, …)
 > **Related:** [Workspace strips](workspace-strips.md), [Keybinds](keybinds.md), [Bar composition](../bar/composition.md), [Shared UI pieces](../core/shared-ui-pieces.md)
 
@@ -15,7 +15,9 @@ One workspace layout serves everything that shows workspaces or moves between th
 - `standard`: ids 1..`count`, shared by every monitor.
 - `perMonitor`: each monitor gets its own block of `count` ids.
 - `grid`: each monitor gets a block of `columns × rows` ids.
-- Blocks are numbered in a stable monitor order (`WorkspaceGeometry.orderMonitors`: the primary first, then by output identity). `WorkspacesConfig.baseFor(index)` gives a block's first id.
+- Blocks are numbered in a stable monitor order (`WorkspaceGeometry.orderMonitors`: the primary first, then by output identity). `WorkspaceGeometry.blockBases` gives each output's first id.
+- Where the compositor's workspaces belong to an output (`supports.outputWorkspaces`, niri), every layout gets blocks, `standard` too (`CompositorManager.perMonitorBlocks`), and nothing is remapped.
+- **Dynamic workspaces** (`supports.dynamicWorkspaces`, niri): the compositor makes and removes them itself, one column per output, so no layout applies. The section's fields are greyed out under its `x-intro` (`WorkspacesStatus`), except `wrap`. Blocks are the backend's `blockSize` long (`CompositorManager.blockSize`), `workspaceIds` are the ones it has, `workspaceGrid` is false whatever the layout says (so the Workspaces widget's `showActiveIcon` is hidden), the widget always shows app icons (`showAppIcons` is hidden; `WorkspaceCellRow.appIcons`), `wideActive` and `relativeNumbers` show whatever the layout, and the overview is one column.
 - Nothing else holds a workspace count or grid size.
 
 ### Ids
@@ -32,6 +34,7 @@ One workspace layout serves everything that shows workspaces or moves between th
 - `CompositorManager` works out the legs (`{ id, axis }`) and hands them to the backend's `travel`; a backend without `workspaceSlide` just goes to the last one ([contract](../compositor/contract.md)).
 - `mode` is `go`, `move` or `moveSilent`.
 - Surfaces on a monitor pass their output's name; the focused one is the default. In a grid, an id outside that monitor's block is refused.
+- **Dynamic workspaces**: up and down go through the output's list (`wrap` wraps round it, `workspaceWrapped` along the row), left and right to the output that way (`WorkspaceGeometry.outputToward`; the backend's `focusOutput`, or `moveWindowToOutput` for `move`/`moveSilent`), nothing without one. `nthWorkspace(n)` is the n-th of the list.
 - **In a grid** a move only reaches the monitor's own ids.
   - It goes sideways first, then vertically, sliding along each axis in turn (`animate`).
   - Each leg of a two-leg trip takes `_legSpeed` of the configured time.
@@ -54,7 +57,8 @@ One workspace layout serves everything that shows workspaces or moves between th
 ### The bar widget
 - `bar/widgets/Workspaces.qml` loads a strip by layout:
   - standard: `workspaces/WorkspaceStrip`
-  - grid: `workspaces/WorkspaceGridStrip`, showing the active row (or column, on a vertical bar).
+  - grid (`CompositorManager.workspaceGrid`): `workspaces/WorkspaceGridStrip`, showing the active row (or column, on a vertical bar).
+- **Which cells.** Without `showEmpty` (off by default; hidden with dynamic workspaces, which always leave empty ones out, the compositor's empty last one too) a strip shows the workspaces with windows and the active one; the grid strip does so within its row (`WorkspaceGridStrip.lineIds`). Down to one on a strip monitor, the strip shows alone ([workspace strips](workspace-strips.md)).
 - With `wideActive`, both strips make the active `WorkspaceCell` twice as long.
 - **Cells.** Both strips lay their cells out with `workspaces/WorkspaceCellRow`.
   - It holds every shown workspace, or one grid row.
@@ -65,6 +69,7 @@ One workspace layout serves everything that shows workspaces or moves between th
 - **Cross-fades.**
   - The grid strip cross-fades (`CrossFade`) to another row or column; the old one keeps its active cell while it fades.
   - `ActiveStrip` cross-fades to the windows of the next workspace.
+- **Background.** With `showBackground` off, `Workspaces.qml` leaves its box clear (the bar's color shows through) and drops the inset: the cells take the full `widgetSize`, while the widget keeps its place among the bar's boxed widgets (`hasBackground`).
 - **Pinned start.** The widget keeps its start put while its box resizes (`pinStart`, which `BarWidgetHost` reads), so its cells don't drift as the strip after them comes and goes.
 - **Options.** The strips share one schema definition. Layout-only options hide themselves with `x-showIf: { "/Workspaces.layout": … }`.
 - **Grid popout.** In a grid, the widget hands its `properties` and its bar's config to the `WorkspaceGrid` popout. Its cells are the strip's own `WorkspaceCell`s, with the same:

@@ -25,7 +25,10 @@ Grid {
   required property color activeColor
   required property color occupiedColor
   required property color textColor
+  required property color hoverColor
   property bool clickable: true
+  // The widget's (BarWidget.hitArea), which the cells read hover from
+  property var hitArea: null
   property bool animated: true
 
   readonly property var windows: CompositorManager.stripWindows(root.workspaceId, root.stripVertical)
@@ -56,8 +59,10 @@ Grid {
       thickness: root.thickness
       length: root.cellLength
       radius: root.radius
+      hoverColor: root.hoverColor
       iconPath: window ? IconResolver.resolveWindowIcon(window.appId, window.title) : ""
       clickable: root.clickable
+      hitArea: root.hitArea
       animated: root.animated
       onClicked: CompositorManager.focusWindow(address)
     }
