@@ -50,9 +50,12 @@ Settings are read as `properties.<key>`.
 - **`scrollToSwitch`** · boolean = true
   - Scroll to switch: Scroll over the widget to step through the workspaces (along the shown row or column in a grid).
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
+- **`showBackground`** · boolean = true
+  - Background: A box around the workspaces, in the bar's widget style. Off: the workspaces sit on the bar at the size of the widgets around them.
+  - in: `components/bar/widgets/Workspaces.qml`
 - **`backgroundColor`** · string = ""
-  - Background: Behind the workspaces, in the bar's widget style.
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="neutral"
+  - Background color: Behind the workspaces, in the bar's widget style.
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="neutral", x-showIf={"showBackground":true}
   - in: `components/bar/widgets/Workspaces.qml`, `components/bar/widgets/BarIconWidget.qml`
 - **`activeColor`** · string = ""
   - Active

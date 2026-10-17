@@ -11,14 +11,17 @@ import qs.components.bar.widgets.workspaces
 // monitor either one shows the active workspace's windows in strip order. It sits on a
 // background in the bar's widget style like any other widget, its cells
 // (WorkspaceCell, in the same style) inset by the inner spacing within a
-// box (filled, tinted or outlined). Without a box the cells sit straight on
-// the bar, each underlined itself for underline.
+// box (filled, tinted or outlined). With `showBackground` off the box takes
+// the bar's color (it's left clear) and the cells fill it at the widgets'
+// full size. Without a box the cells sit straight on the bar, each
+// underlined itself for underline.
 BarWidget {
   id: root
 
   readonly property int priority: 10
-  readonly property bool boxed: barConfig.widgetBoxed
-  // Within a box
+  // A box in its own color, else clear over the bar
+  readonly property bool boxed: barConfig.widgetBoxed && properties.showBackground
+  // Within a colored box
   readonly property real inset: boxed ? barConfig.widgetSpacing : 0
 
   // Its cells stay put while the strip after them comes and goes

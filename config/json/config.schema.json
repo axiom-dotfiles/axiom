@@ -4447,7 +4447,7 @@
         "properties": {
           "type": "object",
           "additionalProperties": false,
-          "x-order": ["showEmpty", "monitorOnly", "labels", "relativeNumbers", "showAppIcons", "appIconSize", "wideActive", "showActiveIcon", "showPopout", "popoutMenu", "clickToSwitch", "scrollToSwitch", "backgroundColor", "activeColor", "occupiedColor", "emptyColor", "textColor"],
+          "x-order": ["showEmpty", "monitorOnly", "labels", "relativeNumbers", "showAppIcons", "appIconSize", "wideActive", "showActiveIcon", "showPopout", "popoutMenu", "clickToSwitch", "scrollToSwitch", "showBackground", "backgroundColor", "activeColor", "occupiedColor", "emptyColor", "textColor"],
           "properties": {
             "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": true, "x-showIf": { "/$supports.dynamicWorkspaces": false }, "description": "Off: only workspaces with windows, plus the active one (in a grid, of the row shown). Down to one on a strip monitor, its windows show alone." },
             "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "x-showIf": { "/Workspaces.layout": "standard", "/$supports.dynamicWorkspaces": false }, "description": "Hide workspaces that are open on another monitor." },
@@ -4461,7 +4461,8 @@
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true, "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }] } },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral", "description": "Behind the workspaces, in the bar's widget style." },
+            "showBackground": { "type": "boolean", "title": "Background", "default": true, "description": "A box around the workspaces, in the bar's widget style. Off: the workspaces sit on the bar at the size of the widgets around them." },
+            "backgroundColor": { "type": "string", "title": "Background color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral", "x-showIf": { "showBackground": true }, "description": "Behind the workspaces, in the bar's widget style." },
             "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
