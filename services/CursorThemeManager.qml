@@ -13,7 +13,7 @@ import qs.config
  * shows the "default" theme's cursors (often Adwaita's) for the standard
  * names it lacks, the arrow among them. So while the Input section's
  * cursor part is on, scripts/cursor_theme.py makes a companion theme
- * (axiom-cursor in $XDG_DATA_HOME/icons/) inheriting it, with those names
+ * (axiom-cursor-<theme> in $XDG_DATA_HOME/icons/) inheriting it, with those names
  * linked to its own cursors, and sets GTK's cursor-theme and cursor-size
  * to what XCursor readers get. CompositorConfigManager hands that name on
  * (CompositorLayer.input's `xcursor`); Hyprland's setcursor and the greeter
@@ -29,8 +29,9 @@ Singleton {
   // Whether xcursorTheme has been known once (CompositorConfigManager
   // waits for it at start, so it writes the name once)
   readonly property bool ready: _wanted === "" || _resolvedOnce || Paths.greeter
-  // The companion theme's name (left out of the themes to pick)
-  readonly property string companionName: "axiom-cursor"
+  // What a companion theme's name starts with (left out of the themes to
+  // pick)
+  readonly property string companionPrefix: "axiom-cursor"
 
   readonly property string _wanted: InputConfig.input.cursor ? InputConfig.cursorTheme : ""
   readonly property int _size: InputConfig.input.cursorSize

@@ -9,27 +9,31 @@ sb_h_double_arrow) and don't say what they inherit. A lookup by a standard
 name ("default", "pointer", "ew-resize": what the cursor-shape protocol and
 toolkits ask for) then falls back to the "default" theme, often Adwaita,
 before any reader tries the X11 name: the arrow comes from another theme.
-For such a theme this writes a companion theme, axiom-cursor, in
+For such a theme this writes a companion theme, axiom-cursor-<theme>, in
 $XDG_DATA_HOME/icons/: it inherits <theme> and links each standard name
-the theme lacks to the theme's own X11 cursor. Prints JSON:
+the theme lacks to the theme's own X11 cursor. Each theme's companion has
+its own name, so a switch from one to another changes the name readers
+get, and they load the cursors again. Prints JSON:
 
-  { "theme": name to use (axiom-cursor, or <theme> when it needs none or
-    has no XCursor cursors), "filled": how many names were linked }
+  { "theme": name to use (axiom-cursor-<theme>, or <theme> when it needs
+    none or has no XCursor cursors), "filled": how many names were linked }
 
-A theme needing none removes an axiom-cursor left from another. Nothing is
-rewritten while it's already as wanted. --gsettings also sets
+Companions left from other themes are removed. Nothing is rewritten while
+it's already as wanted. --gsettings also sets
 org.gnome.desktop.interface cursor-theme (and cursor-size with --size) to
 it where gsettings has that schema.
 """
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
+# What every companion theme's name starts with
 NAME = "axiom-cursor"
 MARKER = "X-Axiom-Generated=true"
 
@@ -101,7 +105,7 @@ def cursors(theme, walked=None):
     """The cursors `theme` has, its own and what it inherits by name
     (not the implicit "default"): { name: file }, the nearest winning."""
     walked = walked if walked is not None else set()
-    if theme in walked or theme == NAME:
+    if theme in walked or theme.startswith(NAME):
         return {}
     walked.add(theme)
     found, parents = {}, []
@@ -136,8 +140,14 @@ def links_for(theme):
     return links
 
 
+def companion_name(theme):
+    """The companion theme's name for `theme`, as a folder and in a
+    compositor's config without quoting."""
+    return f"{NAME}-{re.sub(r'[^A-Za-z0-9._-]+', '_', theme)}"
+
+
 def index_text(theme):
-    return (f"[Icon Theme]\nName={NAME}\nComment={theme}, with the standard cursor names it lacks "
+    return (f"[Icon Theme]\nName={companion_name(theme)}\nComment={theme}, with the standard cursor names it lacks "
             f"(written by axiom)\nInherits={theme}\n{MARKER}\n")
 
 
@@ -161,7 +171,7 @@ def ours(dest):
 def write(dest, theme, links):
     """Writes the companion theme at `dest`, built beside it and swapped in."""
     dest.parent.mkdir(parents=True, exist_ok=True)
-    staged = Path(tempfile.mkdtemp(prefix=f".{NAME}.", dir=dest.parent))
+    staged = Path(tempfile.mkdtemp(prefix=f".{dest.name}.", dir=dest.parent))
     try:
         (staged / "cursors").mkdir()
         for name, target in links.items():
@@ -170,7 +180,7 @@ def write(dest, theme, links):
         staged.chmod(0o755)
         old = None
         if dest.exists():
-            old = dest.with_name(f".{NAME}.old")
+            old = dest.with_name(f".{dest.name}.old")
             shutil.rmtree(old, ignore_errors=True)
             dest.rename(old)
         staged.rename(dest)
@@ -201,10 +211,11 @@ def main(argv):
     parser.add_argument("--size", type=int, default=0)
     parser.add_argument("--gsettings", action="store_true")
     args = parser.parse_args(argv)
-    if args.theme == NAME or "/" in args.theme:
+    if args.theme.startswith(NAME) or "/" in args.theme:
         print(f"not a theme to wrap: {args.theme}", file=sys.stderr)
         return 2
-    dest = data_home() / "icons" / NAME
+    icons = data_home() / "icons"
+    dest = icons / companion_name(args.theme)
     links = links_for(args.theme)
     use = args.theme
     if links:
@@ -213,9 +224,11 @@ def main(argv):
                 print(f"{dest} isn't axiom's: left as it is", file=sys.stderr)
                 return 1
             write(dest, args.theme, links)
-        use = NAME
-    elif ours(dest):
-        shutil.rmtree(dest, ignore_errors=True)
+        use = dest.name
+    # Other themes' companions (and the one this theme no longer needs)
+    for other in icons.glob(f"{NAME}*") if icons.is_dir() else []:
+        if other.name != use and ours(other):
+            shutil.rmtree(other, ignore_errors=True)
     if args.gsettings:
         set_gsettings(use, args.size)
     print(json.dumps({"theme": use, "filled": len(links or {})}))

@@ -2181,8 +2181,8 @@ class CursorTheme(unittest.TestCase):
 
     def test_fills_missing_names(self):
         self.theme("Old", ["left_ptr", "hand2", "xterm", "text"])
-        self.assertEqual(self.run_script("Old"), {"theme": "axiom-cursor", "filled": 2})
-        made = self.data / "icons" / "axiom-cursor"
+        self.assertEqual(self.run_script("Old"), {"theme": "axiom-cursor-Old", "filled": 2})
+        made = self.data / "icons" / "axiom-cursor-Old"
         self.assertIn("Inherits=Old", (made / "index.theme").read_text())
         self.assertEqual(os.readlink(made / "cursors" / "default"), str(self.system / "icons/Old/cursors/left_ptr"))
         self.assertEqual(os.readlink(made / "cursors" / "pointer"), str(self.system / "icons/Old/cursors/hand2"))
@@ -2203,13 +2203,21 @@ class CursorTheme(unittest.TestCase):
         self.theme("New", ["default", "left_ptr"])
         self.run_script("Old")
         self.assertEqual(self.run_script("New"), {"theme": "New", "filled": 0})
-        self.assertFalse((self.data / "icons" / "axiom-cursor").exists())
+        self.assertFalse((self.data / "icons" / "axiom-cursor-Old").exists())
         # A theme with no XCursor cursors (hyprcursor only) keeps its name
         self.assertEqual(self.run_script("Missing"), {"theme": "Missing", "filled": 0})
 
+    def test_each_theme_its_own_name(self):
+        # One name for both would leave readers on the cursors they loaded
+        self.theme("Old", ["left_ptr"])
+        self.theme("Other Theme", ["arrow"])
+        self.run_script("Old")
+        self.assertEqual(self.run_script("Other Theme"), {"theme": "axiom-cursor-Other_Theme", "filled": 1})
+        self.assertFalse((self.data / "icons" / "axiom-cursor-Old").exists())
+
     def test_leaves_a_folder_not_its_own(self):
         self.theme("Old", ["left_ptr"])
-        (self.data / "icons" / "axiom-cursor").mkdir(parents=True)
+        (self.data / "icons" / "axiom-cursor-Old").mkdir(parents=True)
         env = {**os.environ, "HOME": str(self.home), "XDG_DATA_HOME": str(self.data), "XDG_DATA_DIRS": str(self.system)}
         done = subprocess.run([sys.executable, str(SCRIPTS / "cursor_theme.py"), "Old"], env=env, capture_output=True, text=True)
         self.assertEqual(done.returncode, 1)
