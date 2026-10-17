@@ -3,17 +3,20 @@
 
 > **File:** `services/DependencyManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Startup checks for what the whole shell needs to look right: the icon font (every icon is a Material Symbols name, StyledIcon, which shows as a word without it) and the text font (`Appearance.font.family`, a free-text setting: a misspelt name silently falls back to fontconfig's default). Warns in the log and notifies once per qs launch (the text font once per name, checked again whenever it changes). Created from shell.qml's `_services`. Also which commands are installed (`found`, filled by `check(commands)`), for the onboarder: the optional `tools` below, the apps it offers.
+Startup checks for what the whole shell needs to look right: the icon font (every icon is a Material Symbols name, StyledIcon, which shows as a word without it) and the text font (`Appearance.font.family`, a free-text setting: a misspelt name silently falls back to fontconfig's default). Warns in the log and notifies once per qs launch (the text font once per name, checked again whenever it changes). Created from shell.qml's `_services`. Also which commands are installed (`found`, filled by `check(commands)`), for the onboarder: the optional `tools` below, the apps it offers; and what installs them on this distribution (`distro`, `installLines`).
 
 ### Properties
 
 - `iconFontInstalled` (readonly bool)
 - `textFontInstalled` (readonly bool)
-- `tools` (readonly var): The programs features use, with the (Arch) package that has them.
+- `distro` (readonly string): The distribution family (Packages.distroFamily: "arch", "fedora", or "" for one axiom has no package names for), from os-release
+- `tools` (readonly var): The programs features use, for the onboarder's checks.
 - `found` (var): { command: bool } for every command checked so far
 
 ### Functions
 
 - `hasFontFamily(name)`: Whether fontconfig knows the family (any of its names, in any case)
+- `installLines(keys)`: The shell lines that install these commands (or "iconFont") here: [] on an unknown distribution
+- `installCommand(key)`: One line that installs a command here ("" on an unknown distribution)
 - `check(commands)`: Looks the commands up (command -v) and adds them to `found`
 - `has(command)`: Whether a command (its first word) is installed: undefined until checked
