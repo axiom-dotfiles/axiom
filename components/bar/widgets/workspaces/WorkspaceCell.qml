@@ -27,6 +27,8 @@ Item {
   property string labels: "numbers"
   property string label: ""
   property string iconPath: ""
+  // The app icon's size in px; 0 sizes it to the cell
+  property real iconSize: 0
   property string glyph: ""
   property bool clickable: true
   // Off until its inputs have settled (a popout's payload lands after
@@ -110,7 +112,7 @@ Item {
 
   Image {
     anchors.centerIn: parent
-    width: root.thickness * 0.65
+    width: root.iconSize > 0 ? root.iconSize : root.thickness * 0.65
     height: width
     sourceSize: Qt.size(64, 64)
     source: root.glyph === "" ? root.iconPath : ""

@@ -145,6 +145,7 @@ Item {
         activeColor: root.activeColor
         occupiedColor: root.occupiedColor
         textColor: root.iconColor
+        iconSize: root.properties.appIconSize
         clickable: root.properties.clickToSwitch
       }
     }

@@ -409,7 +409,9 @@ QtObject {
         "icon": def["x-icon"] ?? "widgets",
         // Its group in the widget library (`x-libraryGroup`)
         "group": def["x-libraryGroup"] ?? "",
-        "propertiesSchema": def.properties?.properties?.properties || null
+        "propertiesSchema": def.properties?.properties?.properties || null,
+        // Its options shown first, in order (their `x-order`)
+        "propertiesOrder": def.properties?.properties?.["x-order"] ?? []
       };
     }).filter(t => t !== null);
   }

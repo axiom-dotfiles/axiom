@@ -160,6 +160,7 @@ Item {
         activeColor: root.activeColor
         occupiedColor: root.occupiedColor
         textColor: root.textColor
+        iconSize: root.properties.appIconSize
         clickable: root.properties.clickToSwitch
       }
     }

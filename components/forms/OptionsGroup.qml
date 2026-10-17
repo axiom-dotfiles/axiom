@@ -15,6 +15,8 @@ FieldGroup {
   property var order: []
   property var values: ({})
   property string numberMode: ""
+  // Fields marked `x-beside` beside the one before them (SchemaPropertiesForm)
+  property bool pairs: false
   property string problem
   property string emptyText
 
@@ -37,6 +39,7 @@ FieldGroup {
     order: root.order
     values: root.values
     numberMode: root.numberMode
+    pairs: root.pairs
     onEdited: (path, value) => root.edited(path, value)
   }
 

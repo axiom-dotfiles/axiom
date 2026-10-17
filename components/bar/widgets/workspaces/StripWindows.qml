@@ -25,6 +25,8 @@ Grid {
   required property color activeColor
   required property color occupiedColor
   required property color textColor
+  // The app icons' size in px; 0 sizes them to the cells
+  property real iconSize: 0
   property bool clickable: true
   property bool animated: true
 
@@ -57,6 +59,7 @@ Grid {
       length: root.cellLength
       radius: root.radius
       iconPath: window ? IconResolver.resolveWindowIcon(window.appId, window.title) : ""
+      iconSize: root.iconSize
       clickable: root.clickable
       animated: root.animated
       onClicked: CompositorManager.focusWindow(address)

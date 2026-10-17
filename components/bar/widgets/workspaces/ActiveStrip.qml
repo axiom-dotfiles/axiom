@@ -23,6 +23,8 @@ Grid {
   required property color activeColor
   required property color occupiedColor
   required property color textColor
+  // StripWindows' iconSize
+  property real iconSize: 0
   property bool clickable: true
   property bool divider: true
 
@@ -61,6 +63,7 @@ Grid {
       activeColor: root.activeColor
       occupiedColor: root.occupiedColor
       textColor: root.textColor
+      iconSize: root.iconSize
       clickable: root.clickable
     }
   }

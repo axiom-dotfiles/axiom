@@ -4447,12 +4447,14 @@
         "properties": {
           "type": "object",
           "additionalProperties": false,
+          "x-order": ["showEmpty", "monitorOnly", "labels", "relativeNumbers", "showAppIcons", "appIconSize", "wideActive", "showActiveIcon", "showPopout", "popoutMenu", "clickToSwitch", "scrollToSwitch", "backgroundColor", "activeColor", "occupiedColor", "emptyColor", "textColor"],
           "properties": {
             "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": false, "x-showIf": { "/$supports.dynamicWorkspaces": false }, "description": "Off: only workspaces with windows, plus the active one (in a grid, of the row shown). Down to one on a strip monitor, its windows show alone." },
             "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "x-showIf": { "/Workspaces.layout": "standard", "/$supports.dynamicWorkspaces": false }, "description": "Hide workspaces that are open on another monitor." },
             "labels": { "type": "string", "title": "Labels", "enum": ["numbers", "dots"], "x-enumLabels": { "numbers": "Numbers", "dots": "Dots" }, "default": "numbers", "description": "The workspace's number, on the bar and in the grid popout." },
             "relativeNumbers": { "type": "boolean", "title": "Relative numbers", "default": false, "x-showIf": { "/Workspaces.layout": ["perMonitor", "grid"], "labels": "numbers" }, "description": "Number each monitor's workspaces from 1 (11 to 20 on the second monitor show as 1 to 10) instead of by their workspace id, on the bar and in the grid popout." },
             "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "description": "Show the largest window's icon on occupied workspaces (in a grid, on the bar and in the popout)." },
+            "appIconSize": { "type": "integer", "x-control": "stepper", "x-auto": { "value": 0, "start": 16 }, "x-beside": true, "title": "Icon size", "x-unit": "px", "default": 0, "minimum": 0, "maximum": 64, "description": "App icons on workspaces and a strip's windows, on the bar and in the popout. Off: sized to the cells." },
             "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "x-showIf": { "/Workspaces.layout": ["standard", "grid"] }, "description": "Make the active workspace twice as long." },
             "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Show an arrow on the active workspace, pointing to where the shown row (or column) is in the grid." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }] }, "description": "In a grid, open the whole grid when hovered. Otherwise, on a strip monitor, open every workspace with its windows in strip order." },
