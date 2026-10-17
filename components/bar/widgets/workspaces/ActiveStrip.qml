@@ -23,9 +23,12 @@ Grid {
   required property color activeColor
   required property color occupiedColor
   required property color textColor
+  required property color hoverColor
   // StripWindows' iconSize
   property real iconSize: 0
   property bool clickable: true
+  // The widget's (BarWidget.hitArea), which the cells read hover from
+  property var hitArea: null
   property bool divider: true
 
   readonly property bool isVertical: barConfig.vertical
@@ -63,8 +66,10 @@ Grid {
       activeColor: root.activeColor
       occupiedColor: root.occupiedColor
       textColor: root.textColor
+      hoverColor: root.hoverColor
       iconSize: root.iconSize
       clickable: root.clickable
+      hitArea: root.hitArea
     }
   }
 }

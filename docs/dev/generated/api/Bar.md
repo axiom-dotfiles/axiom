@@ -22,6 +22,7 @@ Reader for the Bars section and the bar look helpers: derived layout values (enr
 - `endsOptions(gapsOut)`: BarEnds' options, from Appearance and Hyprland's gaps_out
 - `widgetColors(barConfig, accent, foregroundName)`: What a bar widget draws in on its bar ({ fill, stroke, indicator, text, icon }, see BarWidgetStyle): `accent` is its color for its state, `foregroundName` the text color it's configured with
 - `cellColors(barConfig, color, own, state)`: What a cell inside a widget (a workspace) draws in on its bar ({ fill, stroke, indicator, content }, see BarWidgetStyle.cell): `color` is its state color, `own` what reads on it filled, `state` activ…
+- `cellHoverColor(properties)`: A Workspaces cell's box while hovered: its `hoverColor`, or for Auto (empty) the theme's highlight
 - `groupColors(barConfig)`: What a merged run of widgets draws its shared background in
 - `withAutoColors(widgets, widgetStyle, grouping, groupColor)`: A bar's widgets (by section) with each Auto color field (`x-autoColor`, left empty) set to the color BarAutoColors picks for it among its shown neighbours, seen against the bar or, filled and merged,…
 - `shadowBaseColor(look)`: The color of a shadow: `shadow`/`shadowColor` as a bar's look or the BarStyle section has them.

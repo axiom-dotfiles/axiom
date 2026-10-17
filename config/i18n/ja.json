@@ -3069,6 +3069,8 @@
     "Added": "追加済み",
     "Binds on keys your config uses are skipped.": "設定で使われているキーのバインドはスキップされます。",
     "{0} doesn't start axiom with the session. Add near the top of {1}:": "{0} はセッション開始時に axiom を起動しません。{1} の先頭付近に追加してください:",
-    "{0} doesn't start axiom with the session. Add at the end of {1}:": "{0} はセッション開始時に axiom を起動しません。{1} の末尾に追加してください:"
+    "{0} doesn't start axiom with the session. Add at the end of {1}:": "{0} はセッション開始時に axiom を起動しません。{1} の末尾に追加してください:",
+    "Hover": "ホバー",
+    "A cell's box under the pointer. Auto: the theme's highlight.": "ポインター下のセルの背景。自動：テーマのハイライト。"
   }
 }

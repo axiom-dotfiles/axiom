@@ -70,3 +70,7 @@ Settings are read as `properties.<key>`.
   - Text color: Numbers, and the grid's active arrow. The colors also apply to the grid popout.
   - x-options="colors"
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
+- **`hoverColor`** · string = ""
+  - Hover: A cell's box under the pointer. Auto: the theme's highlight.
+  - x-options="colors", x-emptyLabel="Auto"
+  - in: none found

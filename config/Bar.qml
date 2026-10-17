@@ -214,6 +214,12 @@ QtObject {
     return BarWidgetStyle.cell(Bar._widgetStyle(barConfig, false), color, own, state);
   }
 
+  // A Workspaces cell's box while hovered: its `hoverColor`, or for Auto
+  // (empty) the theme's highlight
+  function cellHoverColor(properties) {
+    return properties?.hoverColor ? Theme.resolveColor(properties.hoverColor) : Theme.backgroundHighlight;
+  }
+
   // What a merged run of widgets draws its shared background in
   function groupColors(barConfig) {
     const group = Theme.resolveColor(barConfig.groupColor);

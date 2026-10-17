@@ -28,9 +28,12 @@ Item {
   required property color occupiedColor
   required property color emptyColor
   required property color textColor
+  required property color hoverColor
   // A hook: the glyph a cell shows instead of its label and app icon (the
   // grid's position arrow), or ""
   property var glyphOf: (id, active) => ""
+  // The widget's (BarWidget.hitArea), which the cells read hover from
+  property var hitArea: null
 
   readonly property bool isVertical: barConfig.vertical
   readonly property real spacing: barConfig.widgetSpacing
@@ -88,6 +91,7 @@ Item {
         restLength: root.cellLength
         length: root._length(isActive)
         radius: root.cellRadius
+        hoverColor: root.hoverColor
       }
     }
   }
@@ -122,6 +126,7 @@ Item {
         readonly property var biggestWindow: root.properties.showAppIcons && _glyph === "" && root._occupied(wsId) ? CompositorManager.biggestWindowForWorkspace(wsId) : null
 
         part: "content"
+        hitArea: root.hitArea
         barConfig: root.barConfig
         isActive: wsId === root.activeId
         look: root._look(wsId, isActive)
@@ -129,6 +134,7 @@ Item {
         restLength: root.cellLength
         length: root._length(isActive)
         radius: root.cellRadius
+        hoverColor: root.hoverColor
         labels: root.properties.labels
         // The workspace id, or counted from the monitor's first (its place
         // in the grid)
@@ -138,10 +144,21 @@ Item {
         iconSize: root.properties.appIconSize
         clickable: root.properties.clickToSwitch
         onClicked: CompositorManager.goToWorkspace(wsId, "go", root.monitor?.name ?? "")
-        onHoveredChanged: {
+        // Also when the cell under the pointer comes to stand for another
+        // workspace (the shown set changed) or goes, so no box stays lit
+        function _syncHover(): void {
           if (hovered)
             root.hoveredId = wsId;
           else if (root.hoveredId === wsId)
+            root.hoveredId = -1;
+        }
+        onHoveredChanged: _syncHover()
+        onWsIdChanged: {
+          if (hovered)
+            root.hoveredId = wsId;
+        }
+        Component.onDestruction: {
+          if (root.hoveredId === wsId)
             root.hoveredId = -1;
         }
       }

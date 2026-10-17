@@ -43,6 +43,8 @@ Item {
   // Its box in the hover color: when hovered, or for a background layer,
   // when its content layer is
   property bool lit: hovered
+  // Its box while lit (Bar.cellHoverColor)
+  property color hoverColor: Theme.backgroundHighlight
   readonly property bool _drawsBox: part !== "content"
   readonly property bool _drawsContent: part !== "background"
   // Its box while the indicator stands for it stays at rest under the
@@ -53,7 +55,11 @@ Item {
 
   readonly property bool isVertical: barConfig.vertical
   readonly property bool boxed: barConfig.widgetBoxed
-  readonly property bool hovered: cellArea.containsMouse
+  // On the bar, the widget's hit area (BarWidget.hitArea) sits over the
+  // cells and takes the hover, so it's asked; elsewhere (a popout), the
+  // cell's own pointer area
+  property var hitArea: null
+  readonly property bool hovered: hitArea ? hitArea.hovers(root) : cellArea.containsMouse
 
   width: isVertical ? thickness : length
   height: isVertical ? length : thickness
@@ -62,7 +68,7 @@ Item {
     anchors.fill: parent
     visible: root._drawsBox
     radius: root.radius
-    color: root.lit && !root.isActive ? Theme.backgroundHighlight : root._clearActive ? Qt.alpha(root.look.fill, 0) : root.look.fill
+    color: root.lit && !root.isActive ? root.hoverColor : root._clearActive ? Qt.alpha(root.look.fill, 0) : root.look.fill
     border.color: root._clearActive ? Qt.alpha(root.look.stroke, 0) : root.look.stroke
     border.width: root.barConfig.widgetStyle === "outline" ? root.barConfig.outlineWidth : 0
 

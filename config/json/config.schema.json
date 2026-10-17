@@ -4465,7 +4465,8 @@
             "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
-            "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "description": "Numbers, and the grid's active arrow. The colors also apply to the grid popout." }
+            "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "description": "Numbers, and the grid's active arrow. The colors also apply to the grid popout." },
+            "hoverColor": { "type": "string", "title": "Hover", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "description": "A cell's box under the pointer. Auto: the theme's highlight." }
           }
         }
       }

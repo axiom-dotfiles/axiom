@@ -32,6 +32,7 @@ Item {
   readonly property color occupiedColor: Theme.resolveColor(properties.occupiedColor)
   readonly property color emptyColor: Theme.resolveColor(properties.emptyColor)
   readonly property color iconColor: Theme.resolveColor(properties.textColor)
+  readonly property color hoverColor: Bar.cellHoverColor(properties)
 
   readonly property var monitor: CompositorManager.outputFor(root.screen)
   readonly property string output: root.monitor?.name ?? ""
@@ -145,8 +146,10 @@ Item {
         activeColor: root.activeColor
         occupiedColor: root.occupiedColor
         textColor: root.iconColor
+        hoverColor: root.hoverColor
         iconSize: root.properties.appIconSize
         clickable: root.properties.clickToSwitch
+        hitArea: root.hitArea
       }
     }
   }
@@ -185,6 +188,8 @@ Item {
       occupiedColor: root.occupiedColor
       emptyColor: root.emptyColor
       textColor: root.iconColor
+      hitArea: root.hitArea
+      hoverColor: root.hoverColor
       // The active arrow takes the active cell's place
       glyphOf: (id, active) => active && root.properties.showActiveIcon ? root.positionGlyph(line.value, root.isVertical ? root.columns : root.rows) : ""
 

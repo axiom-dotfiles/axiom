@@ -39,6 +39,7 @@ Panel {
   readonly property color occupiedColor: Theme.resolveColor(root.properties.occupiedColor)
   readonly property color emptyColor: Theme.resolveColor(root.properties.emptyColor)
   readonly property color textColor: Theme.resolveColor(root.properties.textColor)
+  readonly property color hoverColor: Bar.cellHoverColor(root.properties)
   readonly property int base: CompositorManager.workspaceBase(root.output)
   // Not `cols`/`rows`: those are Panel's slot size
   readonly property int gridColumns: WorkspacesConfig.columns
@@ -87,6 +88,7 @@ Panel {
         thickness: root.cellSize
         length: root.cellLength
         radius: root.radius
+        hoverColor: root.hoverColor
         labels: root.properties.labels
         // The workspace id, or its place in the grid counted from 1, as on the bar
         label: root.properties.relativeNumbers ? index + 1 : wsId

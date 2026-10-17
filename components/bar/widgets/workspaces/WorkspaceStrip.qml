@@ -37,6 +37,7 @@ Item {
   readonly property color occupiedColor: Theme.resolveColor(properties.occupiedColor)
   readonly property color emptyColor: Theme.resolveColor(properties.emptyColor)
   readonly property color textColor: Theme.resolveColor(properties.textColor)
+  readonly property color hoverColor: Bar.cellHoverColor(properties)
 
   readonly property var monitor: CompositorManager.outputFor(root.screen)
   readonly property string output: root.monitor?.name ?? ""
@@ -143,6 +144,8 @@ Item {
       occupiedColor: root.occupiedColor
       emptyColor: root.emptyColor
       textColor: root.textColor
+      hitArea: root.hitArea
+      hoverColor: root.hoverColor
     }
 
     Loader {
@@ -160,8 +163,10 @@ Item {
         activeColor: root.activeColor
         occupiedColor: root.occupiedColor
         textColor: root.textColor
+        hoverColor: root.hoverColor
         iconSize: root.properties.appIconSize
         clickable: root.properties.clickToSwitch
+        hitArea: root.hitArea
       }
     }
   }

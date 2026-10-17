@@ -37,6 +37,7 @@ Panel {
   readonly property color activeColor: Theme.resolveColor(root.properties.activeColor)
   readonly property color occupiedColor: Theme.resolveColor(root.properties.occupiedColor)
   readonly property color textColor: Theme.resolveColor(root.properties.textColor)
+  readonly property color hoverColor: Bar.cellHoverColor(root.properties)
   readonly property int base: CompositorManager.workspaceBase(root.output)
   readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
   // A string, so the lines are only rebuilt when the set of workspaces
@@ -81,6 +82,7 @@ Panel {
           thickness: root.cellSize
           length: root.cellLength
           radius: root.radius
+          hoverColor: root.hoverColor
           labels: root.properties.labels
           // The workspace id, or its number on this monitor, as on the bar
           label: root.properties.relativeNumbers ? line.wsId - root.base + 1 : line.wsId
@@ -97,6 +99,7 @@ Panel {
           thickness: root.cellSize
           cellLength: root.cellSize
           radius: root.radius
+          hoverColor: root.hoverColor
           activeColor: root.activeColor
           occupiedColor: root.occupiedColor
           textColor: root.textColor
