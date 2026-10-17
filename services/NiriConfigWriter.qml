@@ -268,8 +268,10 @@ Singleton {
       return;
     const module = NiriConf.moduleText(_parts(spec, detachedPath));
     const wrapper = NiriConf.wrapperText(_header, _mainConfig, detachedPath);
+    // Checks finish in any order: only the last asked for is written
+    const asked = ++_runtimeWrites;
     root.validate(module, error => {
-      if (!root._runtimeOn)
+      if (!root._runtimeOn || asked !== root._runtimeWrites)
         return;
       if (error) {
         console.warn("[NiriConfigWriter]", root.invalidProblem(error));
@@ -290,6 +292,7 @@ Singleton {
   }
 
   property bool _runtimeOn: false
+  property int _runtimeWrites: 0
 
   // niri reloaded its config: a reload keeps the wrapper loaded
   function noteReload() {
@@ -392,14 +395,21 @@ Singleton {
   // Whether they've been read (NiriManager.ready waits for it, so a module
   // never binds a key the user's config does)
   readonly property bool userBindsRead: _userEntries !== null
+  property int _userReads: 0
 
   function _readUserConfig() {
+    // Reads finish in any order: only the last asked for counts
+    const asked = ++root._userReads;
     CommandManager.run([Paths.scriptsPath + "niri_config.py", "main"], (code, out) => {
+      if (asked !== root._userReads)
+        return;
       try {
         root._mainConfig = JSON.parse(out).main;
       } catch (e) {}
     });
     CommandManager.run([Paths.scriptsPath + "niri_config.py", "binds", "--skip", root.includePath, "--skip", root.detachedPath, "--skip-header", root._header], (code, out, err) => {
+      if (asked !== root._userReads)
+        return;
       if (code !== 0) {
         console.warn("[NiriConfigWriter] Can't read your niri config:", String(err).trim());
         // Nothing of the user's known: none skipped

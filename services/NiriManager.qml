@@ -465,8 +465,11 @@ Singleton {
   // The gaps, struts, layouts and mod key the config niri runs sets
   // (niri_config.py info)
   function _readConfig() {
+    // Reads finish in any order: only the last asked for counts (the
+    // running config may have changed between them)
+    const asked = ++root._configReads;
     CommandManager.run([Paths.scriptsPath + "niri_config.py", "info", "--config", NiriConfigWriter.runningConfig], (code, out) => {
-      if (code !== 0)
+      if (code !== 0 || asked !== root._configReads)
         return;
       try {
         const info = JSON.parse(out);
@@ -479,6 +482,7 @@ Singleton {
       } catch (e) {}
     });
   }
+  property int _configReads: 0
   // The outputs' names when last read, to tell a hotplug
   property string _outputNames: ""
   // The stream's first ConfigLoaded after it connects is the state niri
