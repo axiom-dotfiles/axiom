@@ -14,30 +14,30 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Input.keyboard`** · boolean = false
   - Set the keyboard: Layout and key repeat. Off, your compositor's own config applies.
   - x-greeter=true, x-group="Keyboard"
-  - read: `InputConfig.input` (whole) · in: `services/SwayManager.qml`
+  - read: `InputConfig.input` (whole) · in: `services/NiriManager.qml`, `services/SwayManager.qml`
 - **`Input.kbLayout`** · string = "us"
   - Keyboard layout: XKB layouts, comma-separated (e.g. us,de).
-  - x-greeter=true, x-group="Keyboard", x-hypr="input.kb_layout", x-sway="input type:keyboard xkb_layout {}", x-showIf={"keyboard":true}, x-hyprIf="keyboard"
-  - read: `InputConfig.input` (whole) · in: `services/SwayManager.qml`
+  - x-greeter=true, x-group="Keyboard", x-hypr="input.kb_layout", x-sway="input type:keyboard xkb_layout {}", x-niri="input.keyboard.xkb.layout", x-showIf={"keyboard":true}, x-hyprIf="keyboard"
+  - read: `InputConfig.input` (whole) · in: `services/NiriManager.qml`, `services/SwayManager.qml`
 - **`Input.kbVariant`** · string = ""
   - Layout variant: XKB variants, one per layout (e.g. colemak).
-  - x-greeter=true, x-group="Keyboard", x-hypr="input.kb_variant", x-sway="input type:keyboard xkb_variant {}", x-showIf={"keyboard":true}, x-hyprIf="keyboard"
+  - x-greeter=true, x-group="Keyboard", x-hypr="input.kb_variant", x-sway="input type:keyboard xkb_variant {}", x-niri="input.keyboard.xkb.variant", x-showIf={"keyboard":true}, x-hyprIf="keyboard"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.kbOptions`** · string = ""
   - XKB options: e.g. caps:escape,grp:alt_shift_toggle.
-  - x-greeter=true, x-group="Keyboard", x-hypr="input.kb_options", x-sway="input type:keyboard xkb_options {}", x-showIf={"keyboard":true}, x-hyprIf="keyboard"
+  - x-greeter=true, x-group="Keyboard", x-hypr="input.kb_options", x-sway="input type:keyboard xkb_options {}", x-niri="input.keyboard.xkb.options", x-showIf={"keyboard":true}, x-hyprIf="keyboard"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.repeatRate`** · integer = 50 · 1–100
   - Key repeat rate
-  - x-greeter=true, x-control="stepper", x-group="Keyboard", x-hypr="input.repeat_rate", x-sway="input type:keyboard repeat_rate {}", x-showIf={"keyboard":true}, x-hyprIf="keyboard"
+  - x-greeter=true, x-control="stepper", x-group="Keyboard", x-hypr="input.repeat_rate", x-sway="input type:keyboard repeat_rate {}", x-niri="input.keyboard.repeat-rate", x-showIf={"keyboard":true}, x-hyprIf="keyboard"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.repeatDelay`** · integer = 300 · 100–2000
   - Key repeat delay
-  - x-greeter=true, x-group="Keyboard", x-hypr="input.repeat_delay", x-sway="input type:keyboard repeat_delay {}", x-showIf={"keyboard":true}, x-hyprIf="keyboard"
+  - x-greeter=true, x-group="Keyboard", x-hypr="input.repeat_delay", x-sway="input type:keyboard repeat_delay {}", x-niri="input.keyboard.repeat-delay", x-showIf={"keyboard":true}, x-hyprIf="keyboard"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.numlockByDefault`** · boolean = true
   - Num Lock on at start
-  - x-greeter=true, x-group="Keyboard", x-hypr="input.numlock_by_default", x-sway="input type:keyboard xkb_numlock {}", x-swayValue="enabled", x-swayConfigOnly=true, x-showIf={"keyboard":true}, x-hyprIf="keyboard"
+  - x-greeter=true, x-group="Keyboard", x-hypr="input.numlock_by_default", x-sway="input type:keyboard xkb_numlock {}", x-niri="input.keyboard.numlock", x-niriValue="flag", x-swayValue="enabled", x-swayConfigOnly=true, x-showIf={"keyboard":true}, x-hyprIf="keyboard"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.mouse`** · boolean = false
   - Set the mouse: Acceleration, speed and buttons. Off, your compositor's own config applies.
@@ -45,15 +45,15 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.accelProfile`** · string = "default" · enum default|flat|adaptive
   - Pointer acceleration
-  - x-greeter=true, x-group="Mouse", x-hypr="input.accel_profile", x-hyprValue="emptyIsDefault", x-sway="input type:pointer accel_profile {}", x-swaySkip="default", x-showIf={"mouse":true}, x-hyprIf="mouse"
+  - x-greeter=true, x-group="Mouse", x-hypr="input.accel_profile", x-hyprValue="emptyIsDefault", x-sway="input type:pointer accel_profile {}", x-niri="input.mouse.accel-profile", x-niriSkip="default", x-swaySkip="default", x-showIf={"mouse":true}, x-hyprIf="mouse"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.sensitivity`** · integer = 0 · -100–100
   - Pointer speed: -100 to 100; 0 leaves it as the device reports.
-  - x-greeter=true, x-group="Mouse", x-hypr="input.sensitivity", x-hyprScale=0.01, x-sway="input type:pointer pointer_accel {}", x-swayScale=0.01, x-showIf={"mouse":true}, x-hyprIf="mouse"
+  - x-greeter=true, x-group="Mouse", x-hypr="input.sensitivity", x-hyprScale=0.01, x-sway="input type:pointer pointer_accel {}", x-niri="input.mouse.accel-speed", x-niriScale=0.01, x-niriValue="float", x-swayScale=0.01, x-showIf={"mouse":true}, x-hyprIf="mouse"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.leftHanded`** · boolean = false
   - Left-handed buttons
-  - x-greeter=true, x-group="Mouse", x-hypr="input.left_handed", x-sway="input type:pointer left_handed {}", x-swayValue="enabled", x-showIf={"mouse":true}, x-hyprIf="mouse"
+  - x-greeter=true, x-group="Mouse", x-hypr="input.left_handed", x-sway="input type:pointer left_handed {}", x-niri="input.mouse.left-handed", x-niriValue="flag", x-swayValue="enabled", x-showIf={"mouse":true}, x-hyprIf="mouse"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.touchpad`** · boolean = false
   - Set the touchpad: Off, your compositor's own config applies.
@@ -61,19 +61,19 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.naturalScroll`** · boolean = false
   - Natural scrolling
-  - x-greeter=true, x-group="Touchpad", x-hypr="input.touchpad.natural_scroll", x-sway="input type:touchpad natural_scroll {}", x-swayValue="enabled", x-showIf={"touchpad":true}, x-hyprIf="touchpad"
+  - x-greeter=true, x-group="Touchpad", x-hypr="input.touchpad.natural_scroll", x-sway="input type:touchpad natural_scroll {}", x-niri="input.touchpad.natural-scroll", x-niriValue="flag", x-swayValue="enabled", x-showIf={"touchpad":true}, x-hyprIf="touchpad"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.tapToClick`** · boolean = true
   - Tap to click
-  - x-greeter=true, x-group="Touchpad", x-hypr="input.touchpad.tap_to_click", x-sway="input type:touchpad tap {}", x-swayValue="enabled", x-showIf={"touchpad":true}, x-hyprIf="touchpad"
+  - x-greeter=true, x-group="Touchpad", x-hypr="input.touchpad.tap_to_click", x-sway="input type:touchpad tap {}", x-niri="input.touchpad.tap", x-niriValue="flag", x-swayValue="enabled", x-showIf={"touchpad":true}, x-hyprIf="touchpad"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.disableWhileTyping`** · boolean = true
   - Off while typing
-  - x-greeter=true, x-group="Touchpad", x-hypr="input.touchpad.disable_while_typing", x-sway="input type:touchpad dwt {}", x-swayValue="enabled", x-showIf={"touchpad":true}, x-hyprIf="touchpad"
+  - x-greeter=true, x-group="Touchpad", x-hypr="input.touchpad.disable_while_typing", x-sway="input type:touchpad dwt {}", x-niri="input.touchpad.dwt", x-niriValue="flag", x-swayValue="enabled", x-showIf={"touchpad":true}, x-hyprIf="touchpad"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.scrollFactor`** · integer = 100 · 10–500 · %
   - Scroll speed
-  - x-greeter=true, x-group="Touchpad", x-hypr="input.touchpad.scroll_factor", x-hyprScale=0.01, x-sway="input type:touchpad scroll_factor {}", x-swayScale=0.01, x-showIf={"touchpad":true}, x-hyprIf="touchpad"
+  - x-greeter=true, x-group="Touchpad", x-hypr="input.touchpad.scroll_factor", x-hyprScale=0.01, x-sway="input type:touchpad scroll_factor {}", x-niri="input.touchpad.scroll-factor", x-niriScale=0.01, x-niriValue="float", x-swayScale=0.01, x-showIf={"touchpad":true}, x-hyprIf="touchpad"
   - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
 - **`Input.cursor`** · boolean = false
   - Set the cursor: An installed cursor theme and its size. Off, the cursor is left alone.
@@ -93,6 +93,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `InputConfig`, with the files that use it.
 
 - `InputConfig.input` (var)
-  - in: `services/CompositorConfigManager.qml`, `services/SwayManager.qml`
+  - in: `services/CompositorConfigManager.qml`, `services/NiriManager.qml`, `services/SwayManager.qml`
 - `InputConfig.cursorTheme` (string): The cursor theme picked, set or not ("" for none)
   - in: `services/SettingsManager.qml`

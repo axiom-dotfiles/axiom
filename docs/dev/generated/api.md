@@ -58,6 +58,9 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [MonitorManager](api/MonitorManager.md): The Monitors page: the connected outputs (CompositorManager. withOutputDetails, read at startup and when monitors come, go or the config reloads; never polled)…
 - [NetworkingManager](api/NetworkingManager.md): Wi-Fi state and actions over NetworkManager (Quickshell.Networking, D-Bus, so nothing polls).
 - [NightLightManager](api/NightLightManager.md): The night light (the NightLight section): warmer colors through hyprsunset, or wlsunset without it, started and stopped by axiom.
+- [NiriConfigWriter](api/NiriConfigWriter.md): niri's config writer (docs/dev/compositor/config-modes.md), reached as NiriManager.configWriter by CompositorConfigManager, which drives the modes.
+- [NiriIpcManager](api/NiriIpcManager.md): niri's IPC socket ($NIRI_SOCKET), without a process per call: its event stream, and requests.
+- [NiriManager](api/NiriManager.md): CompositorManager's backend on niri (docs/dev/compositor/contract.md, docs/dev/compositor/niri-backend.md): niri's state as the compositor-neutral shapes (Niri…
 - [NotesManager](api/NotesManager.md): Notes: Markdown files in NotesConfig.directory ($XDG_DATA_HOME/axiom/notes/ by default, or a linked folder).
 - [NotificationManager](api/NotificationManager.md): NotificationManager is the DBus notification server and the notification history.
 - [OnboardingManager](api/OnboardingManager.md): The first-run onboarder (shell/Onboarding): a series of pages that set the essentials up (the compositor, monitors, apps and keys, workspaces, the look, integr…

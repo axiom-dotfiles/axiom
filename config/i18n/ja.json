@@ -2914,7 +2914,6 @@
     "Space between the dock and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows. Reserving its space, it keeps the compositor's gap between windows from them.": "ドックと、その辺の枠やバーとの間隔（両端も同じ）。自動では、その辺のフローティングバー、なければウィンドウに揃えます。領域を確保している場合、ウィンドウとの間は コンポジターのウィンドウ間の間隔になります。",
     "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends. Auto keeps the compositor's gap to the screen edges, as your windows do. Windows always keep the compositor's gap between windows from the bar.": "フローティングバーが画面の枠 (または画面の端) から離れる距離。バーの横方向と両端に適用されます。自動では、ウィンドウと同じく コンポジターの画面端との間隔を使います。ウィンドウとバーの間は常に コンポジターのウィンドウ間の間隔になります。",
     "Adds the line at the end: sway starts axiom with every session.": "行を末尾に追加します：sway が毎回のセッションで axiom を起動します。",
-    "Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen), command, or a compositor command in its own language (Hyprland: a dispatcher as Lua, hl.dsp.layout(\"swapsplit\"); sway: a command, layout tabbed).": "検索テキスト、ページ、エッジメニューまたはドックの ID、方向、ワークスペース番号、特殊ワークスペース名、リサイズ量（\"50 0\"）、スクリーンショットの種類（region、window、screen）、コマンド、またはコンポジター独自の言語のコマンド（Hyprland：Lua のディスパッチャー、hl.dsp.layout(\"swapsplit\")、sway：コマンド、layout tabbed）。",
     "it isn't one of your files in user/": "user/ 内のあなたのファイルではありません",
     "it goes on over several lines": "複数行にまたがっています",
     "Remove {0} binds your compositor config also has": "コンポジターの設定にもある {0} 件のバインドを削除",
@@ -3018,6 +3017,14 @@
     "Match axiom's shadow": "axiom の影に合わせる",
     "Finish changes how axiom sets up {0}: what the mode it's in now set up is given back.": "「完了」で axiom による {0} の設定方法が変わります。現在のモードが設定したものは元に戻されます。",
     "Shadow strength": "影の強さ",
-    "How strong windows cast it, matching axiom's or not. The compositor's own color keeps its strength.": "ウィンドウが落とす影の強さ（axiom に合わせる場合もそうでない場合も）。コンポジターの標準色ではその強さのままです。"
+    "How strong windows cast it, matching axiom's or not. The compositor's own color keeps its strength.": "ウィンドウが落とす影の強さ（axiom に合わせる場合もそうでない場合も）。コンポジターの標準色ではその強さのままです。",
+    "Action, e.g. focus-column-first": "アクション（例：focus-column-first）",
+    "Add it for me": "追加する",
+    "{0} doesn't load axiom's module": "{0} が axiom のモジュールを読み込んでいません",
+    "axiom's Included mode needs this in your config:\n{0}\nUntil it's there, axiom applies its settings at runtime.": "axiom の Included モードには、設定に次の行が必要です：\n{0}\nそれまでは、axiom は設定を実行時に適用します。",
+    "Adds the line at the end, so axiom's look wins; binds on keys your config binds stay yours.": "行を末尾に追加します。axiom の見た目が優先され、設定で割り当て済みのキーはそのまま残ります。",
+    "Adds the line at the end: niri starts axiom with every session.": "行を末尾に追加します：niri がセッションごとに axiom を起動します。",
+    "niri": "niri",
+    "Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen), command, or a compositor command in its own language (Hyprland: a dispatcher as Lua, hl.dsp.layout(\"swapsplit\"); sway: a command, layout tabbed; niri: an action as its config writes it, focus-column-first).": "検索テキスト、ページ、エッジメニューまたはドックの ID、方向、ワークスペース番号、特殊ワークスペース名、リサイズ量（\"50 0\"）、スクリーンショットの種類（region、window、screen）、コマンド、またはコンポジター独自の言語のコマンド（Hyprland：Lua のディスパッチャー、hl.dsp.layout(\"swapsplit\")、sway：コマンド、layout tabbed、niri：設定に書く形のアクション、focus-column-first）。"
   }
 }

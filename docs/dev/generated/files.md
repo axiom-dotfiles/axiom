@@ -278,6 +278,8 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `LayerStack.qml`: The order axiom's layer surfaces stack and reserve their space in, on every compositor (pure).
 - `LibraryOrder.qml`: How the editors' libraries (bar widgets, overlay modules) order their types: by label, or by group (the schema's `x-libraryGroups`, in order) and by label within each.
 - `MonitorLayout.qml`: Pure helpers for the Monitors page (MonitorManager): modes, scales, rotation, the layout's rects and snapping, and picking the profile for the connected outputs.
+- `NiriConf.qml`: niri's config text (KDL) and IPC requests from axiom's settings (NiriManager, NiriConfigWriter), as SwayConf is for sway: each bind's node, the window look, input and options, outputs, and the files axiom writes (docs/d…
+- `NiriState.qml`: niri's IPC replies and events (NiriManager) as the shapes the rest of the shell reads, which don't depend on the compositor (docs/dev/compositor/contract.md), as SwayState is for sway. niri's state is kept as its own ob…
 - `NoteMarkdown.qml`: A note's Markdown as blocks for the notes editor (content/parts/notes/ NoteEditor): paragraphs of plain lines (split at blank lines, which stay with the paragraph above; a code fence is never split, and holds no tasks),…
 - `PolkitAgents.qml`: The polkit agents axiom knows about (PolkitManager): a session has one agent, so while axiom is its agent these are stopped and left out of the generated autostart.
 - `PopoutGeometry.qml`: Which popouts give way to which (PopoutManager): every popout reports its footprint (rects in screen px, from SurfaceOutline.footprint, fillets included), and one opening closes only what it actually covers, by rank.
@@ -638,6 +640,9 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `MonitorManager.qml`: The Monitors page: the connected outputs (CompositorManager. withOutputDetails, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Monitors.profiles, a draft of profiles (…
 - `NetworkingManager.qml`: Wi-Fi state and actions over NetworkManager (Quickshell.Networking, D-Bus, so nothing polls).
 - `NightLightManager.qml`: The night light (the NightLight section): warmer colors through hyprsunset, or wlsunset without it, started and stopped by axiom.
+- `NiriConfigWriter.qml`: niri's config writer (docs/dev/compositor/config-modes.md), reached as NiriManager.configWriter by CompositorConfigManager, which drives the modes.
+- `NiriIpcManager.qml`: niri's IPC socket ($NIRI_SOCKET), without a process per call: its event stream, and requests.
+- `NiriManager.qml`: CompositorManager's backend on niri (docs/dev/compositor/contract.md, docs/dev/compositor/niri-backend.md): niri's state as the compositor-neutral shapes (NiriState), and the primitives CompositorManager builds on.
 - `NotesManager.qml`: Notes: Markdown files in NotesConfig.directory ($XDG_DATA_HOME/axiom/notes/ by default, or a linked folder).
 - `NotificationManager.qml`: NotificationManager is the DBus notification server and the notification history.
 - `OnboardingManager.qml`: The first-run onboarder (shell/Onboarding): a series of pages that set the essentials up (the compositor, monitors, apps and keys, workspaces, the look, integrations), each applying as the user goes, with the compositor…

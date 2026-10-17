@@ -13,40 +13,40 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Session.recommendedEnv`** · boolean = true
   - Recommended environment: Variables recommended on Wayland: GTK, Qt, Clutter and Electron apps run on Wayland (falling back to X11 where they can), Qt scales by pixel density and leaves window decorations to the compositor. Your own below win over them.
-  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `config/SessionConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `config/SessionConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`Session.env`** · array<object> = []
   - Environment: Variables set before anything starts. Changes apply to apps started afterwards.
-  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `config/SessionConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `config/SessionConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 
 ### `Session.env[]`
 
 - **`Session.env[]`** · object
 - **`Session.env[].name`** · string = ""
   - Name
-  - read: entry field, name match, `// reads:` marker · in: `components/content/Session.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: entry field, name match, `// reads:` marker · in: `components/content/Session.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`Session.env[].value`** · string = ""
   - Value
-  - read: entry field, name match, `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: entry field, name match, `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 
 ### `Session`
 
 - **`Session.autostart`** · array<object> = [{"command":"dbus-update-activation-environment --systemd WAYLAND_DIS…
   - Autostart: Commands run once when the compositor starts, after axiom.
-  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 
 ### `Session.autostart[]`
 
 - **`Session.autostart[]`** · object
 - **`Session.autostart[].command`** · string = ""
   - Command
-  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`Session.autostart[].enabled`** · boolean = true
   - On
-  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 
 ### Reader members
 
 Every public member of `SessionConfig`, with the files that use it.
 
 - `SessionConfig.session` (var)
-  - in: `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`

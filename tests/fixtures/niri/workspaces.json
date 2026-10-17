@@ -1,0 +1,32 @@
+[
+    {
+        "id": 3,
+        "idx": 3,
+        "name": null,
+        "output": "winit",
+        "is_urgent": false,
+        "is_active": false,
+        "is_focused": false,
+        "active_window_id": null
+    },
+    {
+        "id": 2,
+        "idx": 2,
+        "name": null,
+        "output": "winit",
+        "is_urgent": false,
+        "is_active": false,
+        "is_focused": false,
+        "active_window_id": 4
+    },
+    {
+        "id": 1,
+        "idx": 1,
+        "name": null,
+        "output": "winit",
+        "is_urgent": false,
+        "is_active": true,
+        "is_focused": true,
+        "active_window_id": 5
+    }
+]

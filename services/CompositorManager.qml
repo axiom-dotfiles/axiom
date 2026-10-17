@@ -56,7 +56,7 @@ Singleton {
 
   // The backend for `kind`, or null (docs/dev/compositor/contract.md). Only
   // the one picked is ever created.
-  readonly property var backend: kind === "hyprland" ? HyprlandManager : kind === "sway" ? SwayManager : null
+  readonly property var backend: kind === "hyprland" ? HyprlandManager : kind === "sway" ? SwayManager : kind === "niri" ? NiriManager : null
 
   // Whether `supports` is final: a backend that finds out what it can do
   // by asking (sway: SwayFX or not) isn't until it knows

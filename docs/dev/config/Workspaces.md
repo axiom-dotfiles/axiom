@@ -34,7 +34,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `WorkspacesConfig.animate` · in: `services/CompositorManager.qml`
 - **`Workspaces.strips`** · array<object> = []
   - Strips: Monitors whose windows sit side by side on a strip that scrolls (Hyprland's scrolling layout) instead of tiling. New windows open as a new column after the focused one.
-  - x-group="Strips", x-showIf={"/$supports.strips":true}
+  - x-group="Strips", x-showIf={"/$supports.strips":true,"/$supports.stripsAlways":false}
   - read: `WorkspacesConfig.strips` (part) · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/HyprlandConfigWriter.qml`
 
 ### `Workspaces.strips[]`
@@ -52,12 +52,12 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Workspaces.stripColumnWidth`** · integer = 50 · 10–100 · %
   - Column width: A new column's share of the monitor.
-  - x-group="Strips", x-showIf={"strips":{"notEmpty":true},"/$supports.strips":true}, x-hypr="scrolling.column_width", x-hyprScale=0.01
-  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigWriter.qml`
+  - x-group="Strips", x-showIf={"anyOf":[{"strips":{"notEmpty":true},"/$supports.strips":true},{"/$s…, x-hypr="scrolling.column_width", x-hyprScale=0.01, x-niri="layout.default-column-width.proportion", x-niriScale=0.01, x-niriValue="float"
+  - read: `WorkspacesConfig.stripOptions` (computed), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`
 - **`Workspaces.stripFollowFocus`** · boolean = true
   - Scroll to the focused window
-  - x-group="Strips", x-showIf={"strips":{"notEmpty":true},"/$supports.strips":true}, x-hypr="scrolling.follow_focus"
-  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigWriter.qml`
+  - x-group="Strips", x-showIf={"strips":{"notEmpty":true},"/$supports.strips":true,"/$supports.stri…, x-hypr="scrolling.follow_focus"
+  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`
 
 ### Reader members
 
@@ -76,7 +76,7 @@ Every public member of `WorkspacesConfig`, with the files that use it.
 - `WorkspacesConfig.rows` (int)
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/content/WorkspaceGrid.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorManager.qml`
 - `WorkspacesConfig.size` (int): Workspaces a monitor shows
-  - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `services/CompositorManager.qml`, `services/KeybindManager.qml`
+  - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `services/CompositorManager.qml`, `services/KeybindManager.qml`, `services/NiriManager.qml`
 - `WorkspacesConfig.wrap` (bool)
   - in: `services/CompositorManager.qml`
 - `WorkspacesConfig.animate` (bool)
@@ -90,6 +90,6 @@ Every public member of `WorkspacesConfig`, with the files that use it.
 - `WorkspacesConfig.hasStrips` (bool)
   - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/KeybindManager.qml`
 - `WorkspacesConfig.stripOptions` (var): The strip settings Hyprland takes (HyprLua.stripsLua)
-  - in: `services/HyprlandConfigWriter.qml`
+  - in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`
 - `WorkspacesConfig.stripDirection(screenName)`: The strip direction of the monitor named `screenName`, "" when it tiles
   - in: `services/CompositorManager.qml`
