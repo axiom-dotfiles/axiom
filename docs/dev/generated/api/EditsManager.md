@@ -3,7 +3,7 @@
 
 > **File:** `services/EditsManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The editors' unsaved edits, by overlay page: which pages hold a dirty draft (the navigator's dots and the unsaved-changes strip), and saving or discarding them all at once. Drafts survive leaving a page or closing the overlay, so this reminds rather than blocks. Also how the editors are laid out, which outlives their pages (saved in state/editors.json): whether the libraries group their types, and whether the bar editor stacks a horizontal bar's sections.
+The editors' unsaved edits, by overlay page: which pages hold a dirty draft (the navigator's dots and the unsaved-changes strip), and saving or discarding them all at once. Drafts survive leaving a page or closing the overlay, so this reminds rather than blocks. Also the text or number box holding typed text not committed yet (only the focused one can): its page shows Save at once, and Save / Reset commit or drop it first, while it reaches the running shell only on Enter or focus loss (a half-typed command or folder never runs). Also how the editors are laid out, which outlives their pages (saved in state/editors.json): whether the libraries group their types, and whether the bar editor stacks a horizontal bar's sections.
 
 ### Properties
 
@@ -12,11 +12,17 @@ The editors' unsaved edits, by overlay page: which pages hold a dirty draft (the
 - `canActOnAll` (readonly bool)
 - `libraryGrouped` (readonly bool): The widget and module libraries show their types by group (the schema's `x-libraryGroups`), else by name
 - `barStacked` (readonly bool): The bar editor draws a top or bottom bar's sections stacked down the side of the page, as a side bar's, rather than across it
+- `typingField` (readonly var): The box holding typed text (var: callers use commitTyped() and discardTyped()), and the window it's in, so only that window's Save shows it
+- `typingWindow` (readonly var)
 
 ### Functions
 
 - `setLibraryGrouped(value)`
 - `setBarStacked(value)`
+- `holdTyping(field, window)`
+- `releaseTyping(field)`
+- `commitTyping()`: Before a save: the typed text commits (dropped if it isn't valid yet)
+- `discardTyping()`
 - `isUnsaved(type)`
 - `saveAll()`: Each save merges onto the latest config, so they don't undo each other.
 - `discardAll()`

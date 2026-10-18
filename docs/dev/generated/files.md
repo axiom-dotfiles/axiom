@@ -123,7 +123,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `Card.qml`: Base for overlay modules (what BaseWidget is for bar modules): the card box filling its slot.
 - `CardHeader.qml`: Title row of a TitledCard, with Save (shown while `dirty`) and Reset buttons for whichever service owns the panel's pending edits.
 - `Panel.qml`: Content that lays out as a column and can be shown by either host: a bar popout (sized to its content, with the popout's box) or an overlay card (`embedded`: fills the slot, with the card's box).
-- `SaveResetActions.qml`: Save (shown while `dirty`) and Reset for whichever service owns a page's pending edits.
+- `SaveResetActions.qml`: Save (shown while `dirty`, or while a box in this window holds typed text: EditsManager.typingField) and Reset for whichever service owns a page's pending edits.
 - `SlotContext.qml`: What Card and Panel derive from their slot, in one place: its size in grid units (four to a card), shape, whether it's compact, bare, and the padding content lays out within
 - `TitledCard.qml`: A titled, scrolling panel card (settings, theme, bar editor panels): header with optional Save/Reset, divider, optional fixed extras (e.g. a tab strip), then the scrolling body that children go into.
 

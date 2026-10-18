@@ -28,14 +28,19 @@ ColumnLayout {
   // value pushed in (a selection switched, an editor reopened), which would
   // be written back onto whatever the form edits by then.
   signal valueEdited(string value)
-  // Every keystroke's text, once it matches `pattern`, so the edit shows
-  // as unsaved at once. The settings page only puts it in its draft:
-  // applied live per keystroke, a font or a folder applied half-typed
-  // made typing crawl (a notes folder ran `find` on `/`)
+  // Every keystroke's text, once it matches `pattern`, for a form that
+  // can hold it unsaved without applying it (the settings page's draft):
+  // applied live per keystroke, a font or a folder applied half-typed made
+  // typing crawl (a notes folder ran `find` on `/`). Typed text also shows
+  // its page's Save at once (EditsManager.holdTyping)
   signal valueTyped(string value)
 
   // Typed since the last commit or value pushed in
   property bool _typed: false
+  on_TypedChanged: {
+    if (!root._typed)
+      EditsManager.releaseTyping(root);
+  }
   // The Browse button's picker couldn't be shown (until a value commits)
   property bool _pickFailed: false
 
@@ -70,6 +75,7 @@ ColumnLayout {
 
   function _type() {
     root._typed = true;
+    EditsManager.holdTyping(root, root.Window.window);
     if (root.pattern === null || new RegExp(root.pattern).test(root._text))
       root.valueTyped(root._text);
   }
@@ -80,9 +86,24 @@ ColumnLayout {
       root._accept(root._text);
   }
 
+  // Save: commits what was typed, or drops it if it isn't valid yet
+  function commitTyped() {
+    root._commitTyped();
+    if (root._typed)
+      root.discardTyped();
+  }
+
+  // Reset: back to the value
+  function discardTyped() {
+    textEntry.text = root.currentConfigValue;
+    textArea.text = root.currentConfigValue;
+    root._typed = false;
+  }
+
   // Don't lose an edit when the page goes away with the field focused
   Component.onDestruction: {
     root._commitTyped();
+    EditsManager.releaseTyping(root);
     FilePickerManager.forget(root);
   }
 

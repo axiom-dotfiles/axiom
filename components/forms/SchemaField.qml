@@ -151,16 +151,15 @@ Loader {
       root.form.edited(root.row.path, value);
   }
 
-  // A text field's keystroke: a form with `typed` (the settings page)
-  // holds it as unsaved without applying it, any other takes it as an edit
+  // A text or number box's keystroke, for a form with `typed` (the
+  // settings page) to hold as unsaved without applying it. Others apply
+  // it on commit (the box shows Save meanwhile: EditsManager.holdTyping)
   function type(value) {
     if (root.form && typeof root.form.typed === "function")
       root.form.typed(root.row.path, value);
-    else
-      root.commit(value);
   }
 
-  // A text field's commit (Enter, focus loss): always passed on, since
+  // A typed commit (Enter, focus loss, Save): always passed on, since
   // `typed` may have put the value in already
   function commitTyped(value) {
     if (root.form)
@@ -252,7 +251,8 @@ Loader {
       headerInset: root.headerInset
       unit: root.fieldSchema["x-unit"] ?? ""
       mode: root.form?.numberMode || (root.fieldSchema["x-control"] ?? "auto")
-      onCommitted: value => root.commit(value)
+      onValueTyped: value => root.type(value)
+      onCommitted: (value, typed) => typed ? root.commitTyped(value) : root.commit(value)
     }
   }
 
@@ -286,7 +286,8 @@ Loader {
         headerInset: root.headerInset
         unit: root.fieldSchema["x-unit"] ?? ""
         mode: root.form?.numberMode || (root.fieldSchema["x-control"] ?? "auto")
-        onCommitted: value => root.commit(value)
+        onValueTyped: value => root.type(value)
+        onCommitted: (value, typed) => typed ? root.commitTyped(value) : root.commit(value)
       }
     }
   }

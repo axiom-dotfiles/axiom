@@ -4,9 +4,11 @@ import QtQuick.Layouts
 import Quickshell
 import qs.components.reusable
 import qs.config
+import qs.services
 
-// Save (shown while `dirty`) and Reset for whichever service owns a page's
-// pending edits. `compact` drops the labels to icons with tooltips, for
+// Save (shown while `dirty`, or while a box in this window holds typed
+// text: EditsManager.typingField) and Reset for whichever service owns a
+// page's pending edits. Both commit or drop that text first. `compact` drops the labels to icons with tooltips, for
 // headers too narrow for both.
 RowLayout {
   id: root
@@ -22,17 +24,22 @@ RowLayout {
   signal save
   signal reset
 
+  readonly property bool _typing: EditsManager.typingField !== null && EditsManager.typingWindow === root.Window.window
+
   spacing: Widget.spacing
 
   ActionButton {
     id: saveButton
-    visible: root.dirty
+    visible: root.dirty || root._typing
     enabled: root.canSave
     icon: "check"
     label: root.saveLabel
     fillColor: hovered ? Qt.lighter(Theme.accent, 1.1) : Theme.accent
     contentColor: Theme.background
-    onClicked: root.save()
+    onClicked: {
+      EditsManager.commitTyping();
+      root.save();
+    }
   }
 
   ActionButton {
@@ -42,7 +49,10 @@ RowLayout {
     fillColor: Theme.backgroundHighlight
     strokeColor: hovered ? Theme.accent : Theme.border
     contentColor: Theme.foreground
-    onClicked: root.reset()
+    onClicked: {
+      EditsManager.discardTyping();
+      root.reset();
+    }
   }
 
   // Sized to its label (translations differ in width, and fonts in height),

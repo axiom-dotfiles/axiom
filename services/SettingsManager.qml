@@ -143,7 +143,9 @@ QtObject {
   // The latest config with every changed setting from the draft on top
   function _merged() {
     const merged = Utils.clone(ConfigManager.config);
-    for (const changed of root.changedPaths) {
+    // Diffed now, not `changedPaths`: Save first commits typed text, an
+    // edit in place that `changedPaths` sees only next tick
+    for (const changed of _diff(draft.local, draft.saved, [])) {
       const path = changed.split(".");
       _setAt(merged, path, _valueAt(draft.local, path));
     }

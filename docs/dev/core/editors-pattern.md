@@ -11,6 +11,7 @@ The settings, bar, layouts, keybinds and monitors editors share one shape; a new
 - Mutate `draft.local` in place, then `changed()`. It re-clones next tick so bindings see it; `isDirty` is a JSON compare.
 - Structural editors show unsaved edits live through `ConfigManager.setPreview`.
 - Save merges onto the latest config (`commit`, which may refuse: the draft stays dirty). Reset reloads.
+- Typed text in a text or number box reaches the draft only on Enter, focus loss or Save, but shows Save at once: the box holds `EditsManager.typingField`, `SaveResetActions` (and `saveAll()` / `discardAll()`) commit or drop it first. Half-typed commands and paths never reach the preview.
 - `ensureLoaded()` on page open reloads only a clean draft.
 
 ### Selection
