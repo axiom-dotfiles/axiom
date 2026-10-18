@@ -21,7 +21,7 @@ elif has git && git -C "$repo" rev-parse --git-dir >/dev/null 2>&1; then
   branch=$(git -C "$repo" branch --show-current 2>/dev/null)
   [[ -n "$branch" && "$branch" != main ]] && axiom+=" (branch $branch)"
 else
-  axiom="unknown ($repo)"
+  axiom="unknown (neither a clone nor a package)"
 fi
 
 quickshell=$(qs --version 2>/dev/null | head -1)

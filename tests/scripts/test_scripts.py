@@ -2542,16 +2542,19 @@ class RestartScript(unittest.TestCase):
         self.state.touch()
         qs = self.stubs / "qs"
         # list: the live pids as qs list -j does; anything else is a launch
-        # (-n: not while one runs), started detached so it's reaped
+        # (-n: not while one runs), started detached so it's reaped. A
+        # zombie isn't live (qs drops an instance once it quits): CI's
+        # container reaps no orphans, so a killed instance stays one
         qs.write_text(f"""#!/bin/sh
 state="{self.state}"
+live() {{ s=$(cat "/proc/$1/stat" 2>/dev/null) && [ "${{s##*) }}" = "${{s##*) Z}}" ]; }}
 if [ "$1" = list ]; then
   echo "["
-  while read -r pid; do kill -0 "$pid" 2>/dev/null && echo "{{\\"pid\\": $pid}},"; done < "$state"
+  while read -r pid; do live "$pid" && echo "{{\\"pid\\": $pid}},"; done < "$state"
   echo "]"
   exit 0
 fi
-while read -r pid; do kill -0 "$pid" 2>/dev/null && exit 0; done < "$state"
+while read -r pid; do live "$pid" && exit 0; done < "$state"
 echo launch >> "{self.tmp}/launches"
 sleep 300 > /dev/null 2>&1 &
 echo $! >> "$state"
@@ -2579,10 +2582,11 @@ echo $! >> "$state"
         alive = []
         for pid in self.state.read_text().split():
             try:
-                os.kill(int(pid), 0)
+                stat = Path(f"/proc/{pid}/stat").read_text()
+            except OSError:
+                continue
+            if not stat.rsplit(") ", 1)[1].startswith("Z"):
                 alive.append(int(pid))
-            except ProcessLookupError:
-                pass
         return alive
 
     def restart(self):

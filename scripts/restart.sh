@@ -31,10 +31,13 @@ pids() {
   qs list -p "$repo" -j 2>/dev/null | grep -o '"pid": *[0-9]*' | grep -o '[0-9]*$'
 }
 
+# A zombie counts as gone: it has quit, and where nothing reaps orphans (a
+# container whose init doesn't) it stays one, which kill -0 still finds
 alive() {
-  local pid
+  local pid stat
   for pid in "$@"; do
-    kill -0 "$pid" 2>/dev/null && return 0
+    stat=$(cat "/proc/$pid/stat" 2>/dev/null) || continue
+    [[ "${stat##*) }" != Z* ]] && return 0
   done
   return 1
 }
