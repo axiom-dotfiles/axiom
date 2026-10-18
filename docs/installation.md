@@ -28,7 +28,7 @@ The whole shell runs on five things. Everything else is optional and only needed
 | Brightness (keys, OSD bar) | `brightnessctl` for a laptop panel; `ddcutil` for external monitors over DDC/CI (monitors that support it, with i2c access: the package's udev rule gives it to the logged-in user) |
 | NVIDIA GPU stats | `nvidia-smi` (AMD is read from sysfs) |
 | Idle (dim, lock, screen off, suspend) | `hypridle` (it runs on every compositor) |
-| Login screen | `greetd` and its text login `agreety` (`greetd-agreety` on Arch), the fallback; `pkexec` (polkit) to install it |
+| Login screen | `greetd` and its text login `agreety` (`greetd-agreety` on Arch), the fallback; `sway` for it to run in (recommended), or Hyprland without one; `pkexec` (polkit) to install it |
 | Themes generated from the wallpaper | The Python packages numpy and Pillow (`python-numpy python-pillow` on Arch, `python3-numpy python3-pillow` on Fedora) |
 | Calendar | The Python package icalendar (`python-icalendar` on Arch, `python3-icalendar` on Fedora); `secret-tool` (libsecret) to keep account passwords in your keyring |
 | Browse buttons for folders, importing a shared config | xdg-desktop-portal with a file chooser backend (`xdg-desktop-portal-gtk` or KDE's) and `python-gobject`; or `zenity` or `kdialog`. Without them, type the path |
@@ -52,7 +52,7 @@ curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.s
 It first prints its plan: the distribution, the compositor and each step. Then:
 
 1. **The compositor.** It uses the one you're running; else the one an earlier run set up; else, with several installed, it asks which one you use. It also offers to start axiom from every other one installed (each asked, default no). With none installed, it asks: Hyprland (the default, with every feature), niri, or sway. It doesn't install SwayFX, which replaces sway in place (the AUR's `swayfx` on Arch, COPR `swayfx/swayfx` on Fedora). `--compositor hyprland|sway|niri|none` picks without asking.
-2. **Packages.** It lists the optional features and offers them all at once (recommended), or one at a time, skipping any already installed. A feature with no package on your distribution is listed as not available there (wallpaper transitions on Fedora). It then shows the one `sudo pacman` or `sudo dnf` command it will run, and why, before running it.
+2. **Packages.** It lists the optional features and offers them all at once (recommended), or one at a time, skipping any already installed. The login screen brings sway to run in; with Hyprland, that sway is offered on its own (recommended, so taking them all installs it), and without it the login screen runs in Hyprland. A feature with no package on your distribution is listed as not available there (wallpaper transitions on Fedora). It then shows the one `sudo pacman` or `sudo dnf` command it will run, and why, before running it.
    - On Arch, every package comes from the official repositories.
    - On Fedora, quickshell comes from the COPR `errornointernet/quickshell` and Hyprland and its tools (hypridle, hyprsunset, satty) from `nett00n/hyprland`: Fedora's own quickshell is too old, and Hyprland left its repositories. A COPR is a third-party repository on Fedora's build service, so each one is shown and asked separately, and only enabled when something you picked needs it. The icon font isn't packaged there either: it's downloaded into `~/.local/share/fonts`, as you.
 3. **The clone.** It clones the latest release into `~/.config/quickshell/axiom`.

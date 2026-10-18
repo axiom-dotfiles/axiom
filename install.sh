@@ -99,7 +99,13 @@ FEATURES=(
   "X11 apps under sway (Steam, games, older apps)|Xwayland|sway"
   "Power profiles|powerprofilesctl|"
   "Browse buttons for folders and importing configs (the desktop's file picker)|xdg-desktop-portal-gtk py:gi|"
-  "Axiom as the login screen (set up later from Settings → Login screen; it runs in a sway of its own)|greetd agreety sway|"
+  # The login screen runs in a sway of its own, or in Hyprland where sway
+  # isn't installed: with Hyprland, sway is offered on its own (recommended,
+  # so "all" takes it) and declining it keeps the login screen. The first
+  # entry matching a compositor wins, so Hyprland's come first
+  "Axiom as the login screen (set up later from Settings → Login screen)|greetd agreety|hyprland"
+  "sway for the login screen to run in (recommended; without it, it runs in Hyprland)|sway|hyprland"
+  "Axiom as the login screen (set up later from Settings → Login screen)|greetd agreety sway|"
 )
 MIN_QS=0.3.2
 MIN_HYPRLAND=0.55.0
@@ -395,8 +401,8 @@ starts_axiom() {
 # else running, else the installed one already starting axiom, else asked
 # among the installed ones. It's the one this session gets into; every
 # installed one is offered the line that starts axiom too, each asked
-# separately (the login screen's feature installs Hyprland for itself, so
-# Hyprland being there doesn't make it the session's)
+# separately (the login screen's feature installs sway for itself, so sway
+# being there doesn't make it the session's)
 primary=""
 if [[ -n "$compositor_flag" ]]; then
   [[ "$compositor_flag" != none ]] && primary=$compositor_flag
@@ -436,7 +442,8 @@ else
     echo
     info "${bold}No compositor is installed yet.${reset} axiom runs under any of these:"
     cat <<'EOF'
-   1. Hyprland (recommended): every feature. The login screen runs it too.
+   1. Hyprland (recommended): every feature. The login screen runs in sway
+      (offered with it) or, without sway, in Hyprland.
    2. niri: windows in scrolling columns. No blur, no mouse binds, no
       Hyprland-only pages (Monitors, Keybinds' mouse binds, the switcher).
    3. sway: i3-style tiling. Plain sway has no blur or rounded corners;
