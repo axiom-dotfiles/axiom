@@ -1,11 +1,11 @@
 name: Small feature or improvement
-description: A change to something axiom has, a new setting or launcher command, or a small self-contained feature (a pomodoro timer, a todo list)
+description: A change to something axiom has, a new setting or launcher command, or a small self-contained feature
 labels: [enhancement, triage]
 body:
   - type: markdown
     attributes:
       value: |
-        For making something that exists better, a new option, a launcher command, or a small feature that stands on its own, like a pomodoro timer or a todo list.
+        For making something that exists better, a new option, a launcher command, or a small feature that stands on its own.
 
         Something to show on the bar or an overlay page? Use **Bar widget or module**. A new surface or subsystem? Use **New feature or component**.
   - type: textarea

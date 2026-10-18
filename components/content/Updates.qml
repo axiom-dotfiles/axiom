@@ -12,7 +12,7 @@ import qs.components.content.parts
 // the Updates widget's popout (the widget acquires the manager), or an
 // overlay card, which acquires it with its own settings and says so where
 // this distribution's updates can't be checked (UpdatesManager.supported).
-// properties (card): { intervalMinutes, includeAur, aurHelper }
+// properties (card): { intervalMinutes }; the AUR helper is UpdatesConfig's
 Panel {
   id: root
 
@@ -48,7 +48,7 @@ Panel {
       return;
     UpdatesManager.acquire(root, {
       "intervalMinutes": root.properties.intervalMinutes ?? 60,
-      "aurHelper": root.properties.includeAur ? (root.properties.aurHelper ?? "paru") : ""
+      "aurHelper": UpdatesConfig.activeAurHelper
     });
   }
   onPropertiesChanged: register()

@@ -26,7 +26,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Calendar.accounts[].name`** · string = ""
   - Name
   - read: `CalendarConfig.savedAccounts` (whole) · in: `components/views/CalendarPage.qml`, `components/views/settings/CalendarAccountsCard.qml`
-- **`Calendar.accounts[].kind`** · string = "caldav" · enum caldav|ics
+- **`Calendar.accounts[].kind`** · string = "caldav" · enum caldav|ics|local
   - Type
   - read: `CalendarConfig.savedAccounts` (whole) · in: `components/views/CalendarPage.qml`, `components/views/settings/CalendarAccountsCard.qml`
 - **`Calendar.accounts[].preset`** · string = "custom" · enum icloud|fastmail|nextcloud|custom
@@ -35,6 +35,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `CalendarConfig.savedAccounts` (whole) · in: `components/views/settings/CalendarAccountsCard.qml`
 - **`Calendar.accounts[].url`** · string = ""
   - Address: The server's address (any page on it: its calendars are found from there), or the feed's URL.
+  - x-showIf={"kind":{"not":"local"}}
   - read: `CalendarConfig.savedAccounts` (whole) · in: `components/views/settings/CalendarAccountsCard.qml`
 - **`Calendar.accounts[].username`** · string = ""
   - Username
@@ -113,7 +114,7 @@ Every public member of `CalendarConfig`, with the files that use it.
 
 - `CalendarConfig.savedAccounts` (var): Calendar.accounts as saved, for editing
   - in: `components/views/CalendarPage.qml`, `components/views/settings/CalendarAccountsCard.qml`
-- `CalendarConfig.accounts` (var): Calendar.accounts, each with an `id` (numbered when left empty) and a `name` (the username or the server's host when left empty)
+- `CalendarConfig.accounts` (var): Calendar.accounts, each with an `id` (numbered when left empty) and a `name` (the username or the server's host when left empty; "This computer" for a local on…
   - in: `components/content/parts/calendar/EventEditor.qml`, `components/forms/SchemaField.qml`, `components/views/CalendarPage.qml`, `components/views/settings/CalendarAccountsCard.qml`, `services/CalendarManager.qml`
 - `CalendarConfig.calendars` (var): Every account's calendars, flattened: { id ("<account>|<href>"), account, accountName, kind, href, name, color (the override, else the server's, else the accen…
   - in: `components/content/parts/calendar/EventEditor.qml`, `components/forms/SchemaField.qml`, `components/views/CalendarPage.qml`
@@ -149,5 +150,7 @@ Every public member of `CalendarConfig`, with the files that use it.
   - in: `components/bar/widgets/NextEvent.qml`, `components/content/Agenda.qml`, `components/content/parts/calendar/DateTimeField.qml`, `components/content/parts/calendar/EventRow.qml`, `components/content/parts/calendar/MonthGrid.qml`, `components/views/CalendarPage.qml`, `services/CalendarManager.qml`, `services/LauncherCommands.qml`
 - `CalendarConfig.calendar(id)`
   - in: `components/content/parts/calendar/EventEditor.qml`, `services/CalendarManager.qml`, `services/LauncherCommands.qml`
+- `CalendarConfig.writableKind(kind)`: Kinds whose events axiom can change: CalDAV accounts and local calendars (.ics subscriptions are read-only)
+  - in: `components/views/settings/CalendarAccountsCard.qml`
 - `CalendarConfig.hostOf(url)`
   - in: `components/views/settings/CalendarAccountsCard.qml`

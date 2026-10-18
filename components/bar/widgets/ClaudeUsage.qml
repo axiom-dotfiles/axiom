@@ -6,7 +6,7 @@ import qs.config
 import qs.components.hosts.popout
 
 // Claude plan usage from ClaudeUsageManager, for one or more Claude Code
-// accounts (one per CLAUDE_CONFIG_DIR). Shows the session or weekly limit's
+// accounts (one per CLAUDE_CONFIG_DIR, from ClaudeUsageConfig). Shows the session or weekly limit's
 // percent: the fullest account's, or every account's. Hovering lists every
 // limit per account; right click fetches again, left click runs the click
 // command.
@@ -15,7 +15,7 @@ BarIconWidget {
 
   // One state per configured account, in the configured order, labelled as
   // configured
-  readonly property var rows: properties.accounts.map(a => Object.assign({}, ClaudeUsageManager.stateFor(a.configDir) ?? {
+  readonly property var rows: ClaudeUsageConfig.accounts.map(a => Object.assign({}, ClaudeUsageManager.stateFor(a.configDir) ?? {
       "status": "pending"
     }, {
       "label": a.label || a.configDir
@@ -51,8 +51,8 @@ BarIconWidget {
 
   // Re-acquiring replaces the old request
   readonly property var usageRequest: ({
-      "accounts": root.properties.accounts,
-      "intervalMinutes": root.properties.intervalMinutes
+      "accounts": ClaudeUsageConfig.accounts,
+      "intervalMinutes": ClaudeUsageConfig.intervalMinutes
     })
   onUsageRequestChanged: ClaudeUsageManager.acquire(root, usageRequest)
   Component.onCompleted: ClaudeUsageManager.acquire(root, usageRequest)
@@ -72,7 +72,7 @@ BarIconWidget {
     popoutName: "ClaudeUsage"
     active: EdgeMenusConfig.opensOwnPopout(root.properties)
     extraData: ({
-        "accounts": root.properties.accounts,
+        "accounts": ClaudeUsageConfig.accounts,
         "warnThreshold": root.properties.warnThreshold,
         "criticalThreshold": root.properties.criticalThreshold
       })

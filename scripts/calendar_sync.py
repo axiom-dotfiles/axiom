@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Axiom's calendars: CalDAV accounts and read-only .ics subscriptions.
+"""Axiom's calendars: CalDAV accounts, read-only .ics subscriptions and
+local calendars (one .ics file per event in a folder on this machine).
 
 CalendarManager runs it with the system python3; it needs icalendar (and
 python-dateutil, which icalendar depends on). Recurrences are expanded here,
@@ -18,14 +19,16 @@ discover  {kind, url, username, password}
              `kind` "caldav" finds the calendars from any URL on the server
              (the principal and its calendar home, following redirects:
              iCloud moves to a pNN-caldav host); "ics" is one feed.
-sync      {stateDir, range: {from, to}, accounts: [Account], only?: {account, calendar}}
+sync      {stateDir, dataDir, range: {from, to}, accounts: [Account], only?: {account, calendar}}
           -> {ok, errors: [{calendar, code, message}], changed}
              Account: {id, kind, url, username, password, calendars: [{href}]}
              (the enabled ones). Fetches what changed (getctag, then etags;
              an .ics feed by ETag), keeps raw objects in
              <stateDir>/objects.json and writes the expanded occurrences in
              the range to <stateDir>/events.json, both atomically. `only`
-             refetches one calendar whatever its ctag.
+             refetches one calendar whatever its ctag. A "local" account's
+             calendar href is a folder name under <dataDir>/calendars/,
+             each event a <uid>.ics file in it (its mtime the etag).
 save      {…sync's input, account, calendar, href?, etag?, scope, rid?, event}
           -> {ok, href} then syncs the calendar again. No `href`: a new
              event. `scope` "series" edits the whole event, "occurrence"
@@ -307,6 +310,83 @@ def sync_feed(dav, url, cached, force):
     return {"ctag": new_etag, "objects": {url: {"etag": new_etag, "ics": text}}}
 
 
+def local_dir(data_dir, href):
+    """A local calendar's folder: <dataDir>/calendars/<href>, href one plain name."""
+    name = str(href or "")
+    if not data_dir or not name or name in (".", "..") or "/" in name or "\\" in name:
+        raise Failure("notFound", f"Not a local calendar: {name!r}")
+    return os.path.join(data_dir, "calendars", name)
+
+
+def local_path(data_dir, href):
+    """The file of a local event href (<calendar>/<uid>.ics)."""
+    calendar, _, name = str(href or "").partition("/")
+    if not name.endswith(".ics") or "/" in name or name.startswith("."):
+        raise Failure("notFound", f"Not a local event: {href!r}")
+    return os.path.join(local_dir(data_dir, calendar), name)
+
+
+def _local_etag(path):
+    st = os.stat(path)
+    return f"{st.st_mtime_ns}-{st.st_size}"
+
+
+def sync_local(data_dir, href, cached, force):
+    """A local calendar's {ctag, objects}: rereads only files whose etag changed."""
+    folder = local_dir(data_dir, href)
+    try:
+        names = sorted(n for n in os.listdir(folder) if n.endswith(".ics") and not n.startswith("."))
+    except FileNotFoundError:
+        names = []
+    old = (cached or {}).get("objects", {})
+    objects = {}
+    for name in names:
+        key = f"{href}/{name}"
+        path = os.path.join(folder, name)
+        try:
+            etag = _local_etag(path)
+            if not force and key in old and old[key].get("etag") == etag:
+                objects[key] = old[key]
+                continue
+            with open(path, encoding="utf-8") as f:
+                objects[key] = {"etag": etag, "ics": f.read()}
+        except OSError:
+            continue
+    ctag = "|".join(f"{k}:{v['etag']}" for k, v in sorted(objects.items()))
+    if cached and cached.get("ctag") == ctag and not force:
+        return cached
+    return {"ctag": ctag, "objects": objects}
+
+
+def _put_local(data_dir, href, cal, etag):
+    """Writes a local event atomically; `etag` must match the file (none: new)."""
+    path = local_path(data_dir, href)
+    exists = os.path.exists(path)
+    if (etag and (not exists or _local_etag(path) != etag)) or (not etag and exists):
+        raise Failure("conflict", "The event changed on disk")
+    cal.add_missing_timezones()
+    directory = os.path.dirname(path)
+    os.makedirs(directory, mode=0o700, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=directory, prefix=".tmp-")
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(cal.to_ical())
+        os.replace(tmp, path)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        raise
+
+
+def _delete_local(data_dir, href, etag):
+    path = local_path(data_dir, href)
+    if not os.path.exists(path):
+        return
+    if etag and _local_etag(path) != etag:
+        raise Failure("conflict", "The event changed on disk")
+    os.unlink(path)
+
+
 def _xml_escape(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
@@ -325,6 +405,10 @@ def run_sync(req):
     for account in req.get("accounts", []):
         kind = account.get("kind", "caldav")
         dav = Dav(account.get("username", ""), account.get("password", "")) if kind == "caldav" else Dav()
+        sync_one = {
+            "caldav": lambda href, cached, force: sync_caldav(dav, href, cached, force),
+            "local": lambda href, cached, force: sync_local(req.get("dataDir"), href, cached, force),
+        }.get(kind, lambda href, cached, force: sync_feed(dav, href, cached, force))
         for cal in account.get("calendars", []):
             cid = calendar_id(account["id"], cal["href"])
             cached = store["calendars"].get(cid)
@@ -336,7 +420,7 @@ def run_sync(req):
                 if kind == "caldav" and not account.get("password"):
                     raise Failure("noPassword", "No password saved for this account")
                 force = bool(only)
-                fresh = sync_caldav(dav, cal["href"], cached, force) if kind == "caldav" else sync_feed(dav, cal["href"], cached, force)
+                fresh = sync_one(cal["href"], cached, force)
                 if fresh is not cached:
                     changed = True
                 calendars[cid] = fresh
@@ -803,7 +887,10 @@ def _find_account(req):
     account = next((a for a in req.get("accounts", []) if a["id"] == req["account"]), None)
     if account is None:
         raise Failure("notFound", "Unknown account")
-    if account.get("kind", "caldav") != "caldav":
+    kind = account.get("kind", "caldav")
+    if kind == "local":
+        return account, None
+    if kind != "caldav":
         raise Failure("readOnly", "Subscriptions are read-only")
     if not account.get("password"):
         raise Failure("noPassword", "No password saved for this account")
@@ -819,7 +906,9 @@ def _cached_object(req):
     return obj
 
 
-def _put(dav, href, cal, etag):
+def _put(dav, href, cal, etag, data_dir=None):
+    if dav is None:
+        return _put_local(data_dir, href, cal, etag)
     headers = {"Content-Type": "text/calendar; charset=utf-8"}
     if etag:
         headers["If-Match"] = etag
@@ -854,7 +943,7 @@ def run_save(req):
     if not req.get("href"):
         cal, uid = build_new(event, tz)
         href = req["calendar"].rstrip("/") + "/" + uid + ".ics"
-        _put(dav, href, cal, None)
+        _put(dav, href, cal, None, req.get("dataDir"))
         return _resync(req, {"ok": True, "href": href})
     obj = _cached_object(req)
     cal = icalendar.Calendar.from_ical(obj["ics"])
@@ -862,7 +951,7 @@ def run_save(req):
         apply_occurrence(cal, event, req["rid"], tz)
     else:
         apply_series(cal, event, tz)
-    _put(dav, req["href"], cal, req.get("etag") or obj.get("etag"))
+    _put(dav, req["href"], cal, req.get("etag") or obj.get("etag"), req.get("dataDir"))
     return _resync(req, {"ok": True, "href": req["href"]})
 
 
@@ -874,8 +963,11 @@ def run_delete(req):
         obj = _cached_object(req)
         cal = icalendar.Calendar.from_ical(obj["ics"])
         if exclude_occurrence(cal, req["rid"], local_zone()):
-            _put(dav, req["href"], cal, etag or obj.get("etag"))
+            _put(dav, req["href"], cal, etag or obj.get("etag"), req.get("dataDir"))
             return _resync(req, {"ok": True})
+    if dav is None:
+        _delete_local(req.get("dataDir"), req["href"], etag)
+        return _resync(req, {"ok": True})
     headers = {"If-Match": etag} if etag else {}
     status, _, data, _ = dav.request("DELETE", req["href"], headers=headers)
     if status != 404:

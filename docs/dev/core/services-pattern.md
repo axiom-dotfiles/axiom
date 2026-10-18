@@ -19,13 +19,15 @@ How `services/` is built: one singleton per domain, owning state and side effect
   - Polls only the union of requested metrics: sysfs/procfs `FileView` reads, no processes on the hot path.
   - Stops entirely with no consumers.
   - With `history: true` it keeps 60-sample ring buffers (see [Writing modules](../overlay/writing-modules.md)).
-- **UpdatesManager**: pending package (and, on Arch, AUR) updates shared by every Updates widget (same acquire/release pattern).
+- **UpdatesManager**: pending package (and, on Arch, AUR) updates shared by every Updates widget and module (same acquire/release pattern; the AUR helper is the `Updates` section's, `UpdatesConfig.activeAurHelper`).
   - How it checks is the distribution's `Packages.updates` entry (`checkupdates` on Arch, `dnf check-update` on Fedora); on one with none, `supported` is false and nothing runs (the widget hides, the card says so).
   - Only one check may run at a time: concurrent `checkupdates` runs share its temp db and fail.
   - `upgrade(command, terminal)` runs the upgrade in a terminal (one at a time, `upgrading`) and checks again when it closes.
 - **Other polled services:**
   - `CalendarManager`: `acquire(owner)` with no request; its interval is the Calendar section's. See [Calendar](../features/calendar.md).
   - `WeatherManager`: takes no request (its settings are global).
+  - `ClaudeUsageManager`: `{ accounts, intervalMinutes }`, both from the `ClaudeUsage` section.
+  - `PomodoroManager`: `acquire(owner)` with no request, for its once-a-second `now`; the phase's end runs with no consumers (created from `_services`). See [Todo and pomodoro](../features/todo-pomodoro.md).
   - `TailscaleManager`: `available`, `backendState`/`connected`, `tailnetName`, `ip`.
   - `CommandManager`: `outputs[command]`, shared by identical commands (e.g. a Button's label).
 - **Widget side:** hold the request in a `readonly property var …Request` built from `properties`; acquire it in `Component.onCompleted` and in `on…RequestChanged`; release in `onDestruction`.

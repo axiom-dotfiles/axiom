@@ -18,6 +18,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### CommandOutput's figure text loops on its size
+- **Where:** `components/content/CommandOutput.qml` (the text `StyledText`, `id: body`)
+- **What:** The log shows `Binding loop detected for property "textSize"` while a Command output card is on a shown page: in statement mode `body`'s `textSize` comes from `body.height / 5`, and a `Layout.fillHeight` text's height follows its implicit height, which follows the size.
+- **Size:** small
+- **Found:** 2026-10-18, while adding the todo list and pomodoro timer
+
 ### The greeter on sway can't use a cursor theme's companion
 - **Where:** `services/GreetdManager.qml` (`_applyCompositor`), `services/CursorThemeManager.qml`
 - **What:** On sway the greeter sets `seat * xcursor_theme` to the theme's own name: the `axiom-cursor-<theme>` companion a theme like Oxygen needs for the standard cursor names lives in the user's `$XDG_DATA_HOME/icons`, which greetd's user can't read. Such a theme shows the default theme's arrow at the login screen. Copying the companion into the bundle (as the wallpapers are) and pointing the greeter's `XCURSOR_PATH` at it would fix it.

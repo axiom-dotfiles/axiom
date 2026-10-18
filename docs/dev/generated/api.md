@@ -68,6 +68,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [OnboardingManager](api/OnboardingManager.md): The first-run onboarder (shell/Onboarding): a series of pages that set the essentials up (the compositor, monitors, apps and keys, workspaces, the look, integr…
 - [OverlayManager](api/OverlayManager.md): OverlayManager holds the layouts editor's working copy of Overlay.views (the editor is the pinned last page).
 - [PolkitManager](api/PolkitManager.md): axiom as the session's polkit agent (the Polkit section): while PolkitConfig.enabled, a PolkitAgent answers apps' requests for administrator rights, and Polkit…
+- [PomodoroManager](api/PomodoroManager.md): The pomodoro timer: one for every widget and module, run here so it keeps time with nothing showing it.
 - [PopoutManager](api/PopoutManager.md): Every popout showing, where it is, and which gives way to which.
 - [RuntimeLayer](api/RuntimeLayer.md): Axiom's layer applied at runtime, for a compositor's config writer: the detached mode, and the fallback of the file modes while their file isn't loaded (docs/d…
 - [SavedConfigsManager](api/SavedConfigsManager.md): Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/saved/.
@@ -86,6 +87,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [TailscaleManager](api/TailscaleManager.md): Tailscale's state for every widget that shows it: one `tailscale status --json` at the shortest interval asked for, only while something has acquire()d it.
 - [ThemeManager](api/ThemeManager.md): ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallp…
 - [TimeZoneManager](api/TimeZoneManager.md): Other time zones' UTC offsets, for clocks set to one (a Clock module's or a bar Time widget's `timezone`): the JS engine can't convert times between zones (Tim…
+- [TodoManager](api/TodoManager.md): The todo list: one list for every widget and module, kept in $XDG_DATA_HOME/axiom/todo.json ({ version, items }: TodoItems' shape), written atomically and watc…
 - [UpdatesManager](api/UpdatesManager.md): Pending package updates, shared by every Updates widget, checked the way this distribution does (Packages.updates: checkupdates on Arch, dnf on Fedora; nothing…
 - [UserBindMerge](api/UserBindMerge.md): Moves the user's binds into axiom (managed mode), through the compositor's merge script (scripts/merge_<compositor>_binds.py, every one with the same verbs and…
 - [WallpaperManager](api/WallpaperManager.md): What changes the look on its own.
@@ -102,6 +104,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [BatteryConfig](api/BatteryConfig.md): Reader for the Battery section.
 - [CalendarConfig](api/CalendarConfig.md): Reader for the Calendar section (see CalendarManager).
 - [ChatConfig](api/ChatConfig.md): Reader for the Chat section.
+- [ClaudeUsageConfig](api/ClaudeUsageConfig.md): Reader for the ClaudeUsage section: the Claude Code logins every Claude usage widget reports on (see ClaudeUsageManager).
 - [CompositorConfig](api/CompositorConfig.md): Reader for the Compositor section: how axiom sets the compositor up (CompositorConfigManager)
 - [DesktopConfig](api/DesktopConfig.md): Reader for the Desktop section: overlay modules on the desktop, under the windows.
 - [DockConfig](api/DockConfig.md): Reader for the Dock section: any number of docks, each with its own place, pinned apps and behaviour (DockEntry in the schema).
@@ -125,6 +128,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [OverlayConfig](api/OverlayConfig.md): Overlay: the configured views, plus the card grid's layout constants.
 - [Paths](api/Paths.md): Derived, non-configurable filesystem paths (from the environment, not config).
 - [PolkitConfig](api/PolkitConfig.md): Reader for the Polkit section: whether axiom is the session's polkit agent (PolkitManager)
+- [PomodoroConfig](api/PomodoroConfig.md): Reader for the Pomodoro section: the session and break lengths every pomodoro widget and module runs (see PomodoroManager).
 - [PopoutsConfig](api/PopoutsConfig.md): Reader for the Popouts section: behaviour shared by bar popouts and screen-edge popouts.
 - [PowerMenuConfig](api/PowerMenuConfig.md): Reader for the PowerMenu section.
 - [Screenshots](api/Screenshots.md): Reader for the Screenshots section: where screenshots and recordings are saved (ScreenshotManager resolves the empty defaults)
@@ -133,6 +137,8 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [SwayConfig](api/SwayConfig.md): Reader for the Sway section: sway's own options in the managed config (SwayConfigWriter; each field by its x-sway annotation).
 - [Theme](api/Theme.md): The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - [ThemeIntegrations](api/ThemeIntegrations.md): Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().
+- [TodoConfig](api/TodoConfig.md): Reader for the Todo section: how every todo widget and module shows the list (the items are TodoManager's, in the data folder).
+- [UpdatesConfig](api/UpdatesConfig.md): Reader for the Updates section: how every updates widget and module checks for and installs updates (see UpdatesManager).
 - [WeatherConfig](api/WeatherConfig.md): Reader for the Weather section: the one location and units every weather widget and module shows (see WeatherManager).
 - [Widget](api/Widget.md): Reader for the Widget section: sizing for panels, cards, popouts and controls.
 - [WindowBehaviourConfig](api/WindowBehaviourConfig.md): Reader for the WindowBehaviour section: focus and the cursor, which every compositor's managed config writes (each field by its x-hypr / x-sway annotation).

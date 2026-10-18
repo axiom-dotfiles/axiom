@@ -272,6 +272,8 @@ QtObject {
   // -- Private --
 
   readonly property string _stateDir: Paths.userStatePath + "calendar"
+  // Local calendars: <dataDir>/calendars/<href>/<uid>.ics
+  readonly property string _dataDir: Paths.userDataPath
   readonly property string _desktopEntry: "axiom-calendar"
   property ConsumerRegistry _registry: ConsumerRegistry {}
   // [{ cmd, build(done), callback }], and the one running
@@ -334,6 +336,7 @@ QtObject {
     let waiting = accounts.filter(account => account.kind === "caldav").length;
     const finish = () => callback({
         "stateDir": root._stateDir,
+        "dataDir": root._dataDir,
         "range": root.range,
         "accounts": accounts
       });

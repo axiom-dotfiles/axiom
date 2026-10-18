@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 67,
+      "default": 68,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -1736,6 +1736,80 @@
       }
     },
 
+    "ClaudeUsage": {
+      "type": "object",
+      "x-category": "Modules",
+      "title": "Claude usage",
+      "description": "The Claude Code logins every Claude usage widget reports on.",
+      "additionalProperties": false,
+      "x-order": ["accounts", "intervalMinutes"],
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "title": "Accounts",
+          "default": [{ "label": "Personal", "configDir": "~/.claude" }],
+          "description": "One per Claude Code login: the CLAUDE_CONFIG_DIR it uses (~/.claude when unset). Usage is read with that login's token, which is never changed.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "x-order": ["label", "configDir"],
+            "properties": {
+              "label": { "type": "string", "title": "Label", "default": "", "description": "Shown in the popout; its first letter tells accounts apart on the bar." },
+              "configDir": { "type": "string", "title": "Config directory", "x-control": "folder", "default": "~/.claude" }
+            }
+          }
+        },
+        "intervalMinutes": { "type": "integer", "title": "Check interval", "x-unit": "min", "default": 5, "minimum": 2, "maximum": 60 }
+      }
+    },
+
+    "Updates": {
+      "type": "object",
+      "x-category": "Modules",
+      "title": "Package updates",
+      "description": "How every updates widget and module checks for and installs updates.",
+      "additionalProperties": false,
+      "x-order": ["includeAur", "aurHelper", "terminal", "upgradeCommand"],
+      "properties": {
+        "includeAur": { "type": "boolean", "title": "Include AUR", "default": false, "description": "Also count outdated AUR packages.", "x-showIf": { "/$distro": "arch" } },
+        "aurHelper": { "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": { "includeAur": true, "/$distro": "arch" } },
+        "terminal": { "x-scope": "personal", "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
+        "upgradeCommand": { "x-scope": "personal", "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu." }
+      }
+    },
+
+    "Todo": {
+      "type": "object",
+      "x-category": "Modules",
+      "x-scope": "personal",
+      "title": "Todo list",
+      "description": "The one todo list every todo widget and module shows. The items themselves are kept in your data folder, not in the config.",
+      "additionalProperties": false,
+      "x-order": ["showCompleted"],
+      "properties": {
+        "showCompleted": { "type": "boolean", "title": "Show completed items", "default": true, "description": "Under the open ones, the last finished first, until you clear them." }
+      }
+    },
+
+    "Pomodoro": {
+      "type": "object",
+      "x-category": "Modules",
+      "x-scope": "personal",
+      "title": "Pomodoro timer",
+      "description": "Focus sessions and breaks, shared by every pomodoro widget and module.",
+      "additionalProperties": false,
+      "x-order": ["workMinutes", "shortBreakMinutes", "longBreakMinutes", "longBreakEvery", "autoStartBreaks", "autoStartWork", "notify"],
+      "properties": {
+        "workMinutes": { "type": "integer", "title": "Focus session", "x-unit": "min", "default": 25, "minimum": 1, "maximum": 180 },
+        "shortBreakMinutes": { "type": "integer", "title": "Short break", "x-unit": "min", "default": 5, "minimum": 1, "maximum": 60 },
+        "longBreakMinutes": { "type": "integer", "title": "Long break", "x-unit": "min", "default": 15, "minimum": 1, "maximum": 120 },
+        "longBreakEvery": { "type": "integer", "title": "Long break every", "x-unit": "sessions", "default": 4, "minimum": 1, "maximum": 12, "description": "A long break follows this many focus sessions." },
+        "autoStartBreaks": { "type": "boolean", "title": "Start breaks by themselves", "default": true },
+        "autoStartWork": { "type": "boolean", "title": "Start focus sessions by themselves", "default": false, "description": "Off, a break ends waiting for you to start the next session." },
+        "notify": { "type": "boolean", "title": "Notify", "default": true, "description": "A notification when a session or break ends." }
+      }
+    },
+
     "OSD": {
       "x-scope": "look",
       "type": "object",
@@ -3415,9 +3489,9 @@
       "properties": {
         "id": { "type": "string", "default": "", "x-settings": false, "description": "Names the account's password in the keyring and its calendars' events." },
         "name": { "type": "string", "title": "Name", "default": "" },
-        "kind": { "type": "string", "title": "Type", "enum": ["caldav", "ics"], "x-enumLabels": { "caldav": "CalDAV account", "ics": "Subscription (.ics)" }, "default": "caldav" },
+        "kind": { "type": "string", "title": "Type", "enum": ["caldav", "ics", "local"], "x-enumLabels": { "caldav": "CalDAV account", "ics": "Subscription (.ics)", "local": "On this computer" }, "default": "caldav" },
         "preset": { "type": "string", "title": "Provider", "x-showIf": { "kind": "caldav" }, "enum": ["icloud", "fastmail", "nextcloud", "custom"], "x-enumLabels": { "icloud": "iCloud", "fastmail": "Fastmail", "nextcloud": "Nextcloud", "custom": "Other CalDAV server" }, "default": "custom" },
-        "url": { "type": "string", "title": "Address", "default": "", "description": "The server's address (any page on it: its calendars are found from there), or the feed's URL." },
+        "url": { "type": "string", "title": "Address", "default": "", "description": "The server's address (any page on it: its calendars are found from there), or the feed's URL.", "x-showIf": { "kind": { "not": "local" } } },
         "username": { "type": "string", "title": "Username", "default": "", "x-showIf": { "kind": "caldav" } },
         "calendars": { "type": "array", "x-settings": false, "default": [], "items": { "$ref": "#/definitions/CalendarEntry" } }
       }
@@ -3523,7 +3597,10 @@
         { "$ref": "#/definitions/ScreenRecordOverlayModule" },
         { "$ref": "#/definitions/CheatsheetOverlayModule" },
         { "$ref": "#/definitions/KeyboardLayoutOverlayModule" },
-        { "$ref": "#/definitions/SubmenuOverlayModule" }
+        { "$ref": "#/definitions/SubmenuOverlayModule" },
+        { "$ref": "#/definitions/TodoOverlayModule" },
+        { "$ref": "#/definitions/PomodoroOverlayModule" },
+        { "$ref": "#/definitions/FocusOverlayModule" }
       ]
     },
     "ThemePickerOverlayModule": {
@@ -3680,9 +3757,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "intervalMinutes": {"type": "integer", "title": "Check interval", "x-unit": "min", "default": 60, "minimum": 5, "maximum": 1440},
-            "includeAur": { "x-scope": "machine", "type": "boolean", "title": "Include AUR", "default": false, "x-showIf": { "/$distro": "arch" }},
-            "aurHelper": { "x-scope": "machine", "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": {"includeAur": true, "/$distro": "arch"}}
+            "intervalMinutes": {"type": "integer", "title": "Check interval", "x-unit": "min", "default": 60, "minimum": 5, "maximum": 1440}
           }
         }
       }
@@ -4308,6 +4383,69 @@
         "type": { "const": "Chat", "description": "AI chat" }
       }
     },
+    "TodoOverlayModule": {
+      "type": "object",
+      "x-icon": "checklist",
+      "x-libraryGroup": "Tools",
+      "x-keyboard": true,
+      "x-defaultSize": [4, 6],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Todo", "description": "Todo list" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showHeader": { "type": "boolean", "title": "Header", "default": true, "description": "The title, the open count and Clear completed." }
+          }
+        }
+      }
+    },
+    "PomodoroOverlayModule": {
+      "type": "object",
+      "x-icon": "timer",
+      "x-libraryGroup": "Tools",
+      "x-defaultSize": [4, 4],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Pomodoro", "description": "Pomodoro timer" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showTask": { "type": "boolean", "title": "Task", "default": true, "description": "Pick the todo the session is for." }
+          }
+        }
+      }
+    },
+    "FocusOverlayModule": {
+      "type": "object",
+      "x-icon": "center_focus_strong",
+      "x-libraryGroup": "Tools",
+      "x-keyboard": true,
+      "x-defaultSize": [8, 8],
+      "x-minSize": [4, 6],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Focus", "description": "Focus" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "x-order": ["showTimer", "showTodos", "showAgenda"],
+          "properties": {
+            "showTimer": { "type": "boolean", "title": "Pomodoro timer", "default": true },
+            "showTodos": { "type": "boolean", "title": "Todo list", "default": true },
+            "showAgenda": { "type": "boolean", "title": "Today's events", "default": true, "description": "Today in the shown calendars, with + to add an event." }
+          }
+        }
+      }
+    },
     "NotesOverlayModule": {
       "type": "object",
       "x-icon": "sticky_note_2",
@@ -4421,7 +4559,9 @@
         { "$ref": "#/definitions/SeparatorWidget" },
         { "$ref": "#/definitions/VolumeWidget" },
         { "$ref": "#/definitions/MicrophoneWidget" },
-        { "$ref": "#/definitions/BluetoothWidget" }
+        { "$ref": "#/definitions/BluetoothWidget" },
+        { "$ref": "#/definitions/TodoWidget" },
+        { "$ref": "#/definitions/PomodoroWidget" }
       ]
     },
     "WindowWidget": {
@@ -4754,6 +4894,54 @@
         }
       }
     },
+    "TodoWidget": {
+      "type": "object",
+      "x-icon": "checklist",
+      "x-libraryGroup": "Tools",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Todo", "description": "Todo list" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "hideWhenEmpty": { "type": "boolean", "title": "Hide when nothing is open", "default": false },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "The list, to add to and tick off, when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
+          }
+        }
+      }
+    },
+    "PomodoroWidget": {
+      "type": "object",
+      "x-icon": "timer",
+      "x-libraryGroup": "Tools",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Pomodoro", "description": "Pomodoro timer" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "hideWhenIdle": { "type": "boolean", "title": "Hide when stopped", "default": false, "description": "Show only while a session or break is on (start one from the launcher's /pomodoro or a module)." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "The timer's controls when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
+            "workColor": { "type": "string", "title": "Focus color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "breakColor": { "type": "string", "title": "Break color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "idleColor": { "type": "string", "title": "Stopped color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
+          }
+        }
+      }
+    },
     "IdleInhibitorWidget": {
       "type": "object",
       "x-icon": "coffee",
@@ -4841,14 +5029,10 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "includeAur": { "x-scope": "machine", "type": "boolean", "title": "Include AUR", "default": false, "description": "Also count outdated AUR packages.", "x-showIf": { "/$distro": "arch" } },
-            "aurHelper": { "x-scope": "machine", "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": { "includeAur": true, "/$distro": "arch" } },
             "intervalMinutes": { "type": "integer", "title": "Check interval", "x-unit": "min", "default": 30, "minimum": 5, "maximum": 1440 },
             "hideWhenEmpty": { "type": "boolean", "title": "Hide when up to date", "default": true },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List pending packages when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-            "terminal": { "x-scope": "personal", "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
-            "upgradeCommand": { "x-scope": "personal", "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu." },
             "manyThreshold": { "type": "integer", "title": "Many updates", "default": 50, "minimum": 1, "maximum": 1000, "description": "At or above this count, the widget uses the many-updates background." },
             "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "manyColor": { "type": "string", "title": "Many-updates color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
@@ -4870,27 +5054,10 @@
         "properties": {
           "type": "object",
           "additionalProperties": false,
-          "x-order": ["accounts", "metric", "display", "intervalMinutes"],
+          "x-order": ["metric", "display"],
           "properties": {
-            "accounts": {
-              "x-scope": "machine",
-              "type": "array",
-              "title": "Accounts",
-              "default": [{ "label": "Personal", "configDir": "~/.claude" }],
-              "description": "One per Claude Code login: the CLAUDE_CONFIG_DIR it uses (~/.claude when unset). Usage is read with that login's token, which is never changed.",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "x-order": ["label", "configDir"],
-                "properties": {
-                  "label": { "type": "string", "title": "Label", "default": "", "description": "Shown in the popout; its first letter tells accounts apart on the bar." },
-                  "configDir": { "type": "string", "title": "Config directory", "x-control": "folder", "default": "~/.claude" }
-                }
-              }
-            },
             "metric": { "type": "string", "title": "Limit shown", "default": "session", "enum": ["session", "weekly"], "x-enumLabels": { "session": "Current session", "weekly": "Weekly" } },
             "display": { "type": "string", "title": "Accounts shown", "default": "max", "enum": ["max", "all", "first"], "x-enumLabels": { "max": "Fullest", "all": "All", "first": "First" }, "description": "Which account's usage the bar shows. The popout lists every account." },
-            "intervalMinutes": { "type": "integer", "title": "Check interval", "x-unit": "min", "default": 5, "minimum": 2, "maximum": 60 },
             "icon": { "type": "string", "title": "Icon", "default": "data_usage", "description": "A Material Symbols name (fonts.google.com/icons), or text." },
             "warnThreshold": { "type": "integer", "title": "Warning at", "x-unit": "%", "default": 75, "minimum": 1, "maximum": 100 },
             "criticalThreshold": { "type": "integer", "title": "Critical at", "x-unit": "%", "default": 90, "minimum": 1, "maximum": 100 },

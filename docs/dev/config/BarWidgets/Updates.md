@@ -6,14 +6,6 @@
 
 Settings are read as `properties.<key>`.
 
-- **`includeAur`** · boolean = false
-  - Include AUR: Also count outdated AUR packages.
-  - x-scope="machine", x-showIf={"/$distro":"arch"}
-  - in: `components/bar/widgets/Updates.qml`
-- **`aurHelper`** · string = "paru" · enum paru|yay
-  - AUR helper
-  - x-scope="machine", x-showIf={"includeAur":true,"/$distro":"arch"}
-  - in: `components/bar/widgets/Updates.qml`
 - **`intervalMinutes`** · integer = 30 · 5–1440 · min
   - Check interval
   - in: `components/bar/widgets/Updates.qml`
@@ -27,14 +19,6 @@ Settings are read as `properties.<key>`.
   - Open instead: An edge menu to open in place of the popout.
   - x-options="edgeMenus", x-emptyLabel="Its own popout", x-showIf={"showPopout":true}
   - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
-- **`terminal`** · string = ""
-  - Terminal: Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal.
-  - x-scope="personal"
-  - in: `components/bar/widgets/Updates.qml`
-- **`upgradeCommand`** · string = ""
-  - Upgrade command: Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu.
-  - x-scope="personal"
-  - in: `components/bar/widgets/Updates.qml`
 - **`manyThreshold`** · integer = 50 · 1–1000
   - Many updates: At or above this count, the widget uses the many-updates background.
   - in: `components/bar/widgets/Updates.qml`

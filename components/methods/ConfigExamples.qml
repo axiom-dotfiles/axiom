@@ -272,7 +272,7 @@ QtObject {
       return example.map((item, i) => {
         if (!items)
           return Utils.clone(item);
-        const match = _match(current, item, i);
+        const match = _match(current, item, i, example);
         return _merge(match.item, item, items, node.scope, kept, strict && match.strict, rootSchema);
       }).filter(item => item !== undefined);
     }
@@ -312,9 +312,10 @@ QtObject {
     return node.schema ? SchemaValidation.applyDefaults(undefined, node.schema, rootSchema) : undefined;
   }
 
-  // The item of `list` that `item` (at `index` in its own list) stands for:
-  // { item, strict }, strict when found by id or name
-  function _match(list, item, index) {
+  // The item of `list` that `item` (at `index` in its own list `own`) stands
+  // for: { item, strict }, strict when found by id or name, or for a typed
+  // item with neither (a bar widget, a module) as the same nth of its type
+  function _match(list, item, index, own) {
     if (!Array.isArray(list))
       return {
         item: undefined,
@@ -330,6 +331,15 @@ QtObject {
           item: found,
           strict: true
         };
+    }
+    const type = item?.type;
+    if (typeof type === "string" && type !== "" && Array.isArray(own)) {
+      const nth = own.slice(0, index).filter(other => other?.type === type).length;
+      const found = list.filter(other => other?.type === type)[nth];
+      return {
+        item: found,
+        strict: found !== undefined
+      };
     }
     return {
       item: list[index],

@@ -25,8 +25,9 @@ Walks a value along the schema.
 - `pick(config, schema, personal)`: keeps the carried leaves.
 - `apply(current, example, schema, personal)`: takes the example's carried parts.
   - An array is taken outright, so nothing of the old layout stays.
-  - Inside the carried parts it keeps the user's other values from the same item. It matches by `id`, then `name`, then (machine values only) position, else falls back to the default.
-  - Position matching is machine-only because a personal value such as a command must not land on another button.
+  - Inside the carried parts it keeps the user's other values from the same item. It matches by `id`, then `name`; an item with neither but a `type` (a bar widget, a module) as the same nth item of that type (the second `SystemStats` is the user's second `SystemStats`, wherever it moved); anything else by position (machine values only); else it falls back to the default.
+  - Position matching is machine-only because a personal value such as a command must not land on another button. A match by type counts like one by id: an item of the same type is the same widget.
+  - A setting that serves every widget or module of a feature (accounts, a helper, a location) belongs in the feature's top-level section (`Weather`, `ClaudeUsage`, `Updates`, …, in the Modules category), not in each widget's `properties`: sections are matched by name, so it never depends on where the widget sits.
 - `sparse(config, schema)`: drops what loading fills back in.
 - `keepTakeovers(config, current, paths)`: puts back the current value of every `x-takeover` setting.
   - `takeoverPaths(schema)` is kept as `ConfigManager.takeoverPaths`: `Compositor.mode`, `Lockscreen.mode`, `Greeter.enabled`, `Idle.enabled`, `Polkit.enabled`.

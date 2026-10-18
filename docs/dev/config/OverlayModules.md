@@ -50,3 +50,6 @@ Every `OverlayModule` type, one page each: its file, annotations, and its own se
 | [Cheatsheet](OverlayModules/Cheatsheet.md) | Keybind cheat sheet | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="keyboard", x-libraryGroup="Tools", x-defaultSize=[8,6] |
 | [KeyboardLayout](OverlayModules/KeyboardLayout.md) | Keyboard layout | x-icon="keyboard", x-libraryGroup="Session", x-defaultSize=[2,1], x-hosts=["greeter"] |
 | [Submenu](OverlayModules/Submenu.md) | Submenu | x-hosts=["edgeMenu"], x-icon="menu_open", x-libraryGroup="Look & layout", x-defaultSize=[4,1], x-minSize=[2,1], x-canvasDetail="label" |
+| [Todo](OverlayModules/Todo.md) | Todo list | x-icon="checklist", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6] |
+| [Pomodoro](OverlayModules/Pomodoro.md) | Pomodoro timer | x-icon="timer", x-libraryGroup="Tools", x-defaultSize=[4,4] |
+| [Focus](OverlayModules/Focus.md) | Focus | x-icon="center_focus_strong", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[8,8], x-minSize=[4,6] |

@@ -394,6 +394,52 @@ QtObject {
       run: () => Qt.callLater(() => CalendarManager.openPage())
     },
     {
+      name: "todo",
+      aliases: ["task", "todos"],
+      glyph: "checklist",
+      usage: "[text]",
+      description: () => I18n.tr("Add a todo, or tick one off"),
+      available: () => !Paths.greeter,
+      status: () => TodoManager.openCount > 0 ? I18n.tr("{0} to do", TodoManager.openCount) : "",
+      options: arg => root._todo(arg),
+      // Ticking one off keeps the launcher open for the next
+      run: (arg, value) => {
+        if (value?.uid) {
+          TodoManager.toggle(value.uid);
+          return false;
+        }
+        return TodoManager.add(value?.add ?? arg) === "" ? false : undefined;
+      }
+    },
+    {
+      name: "pomodoro",
+      aliases: ["timer", "focus"],
+      glyph: "timer",
+      usage: "[start | pause | skip | stop]",
+      description: () => I18n.tr("Start or pause the pomodoro timer"),
+      available: () => !Paths.greeter,
+      status: () => PomodoroManager.idle ? "" : PomodoroManager.phaseLabel + " · " + PomodoroManager.remainingText,
+      // I18n.tr("start") I18n.tr("pause") I18n.tr("skip") I18n.tr("stop")
+      options: () => ["start", "pause", "skip", "stop"].map(word => ({
+              title: word,
+              value: word
+            })),
+      run: (arg, value) => {
+        const word = (value ?? arg ?? "").trim().toLowerCase();
+        if (word === "start")
+          PomodoroManager.start();
+        else if (word === "pause")
+          PomodoroManager.pause();
+        else if (word === "skip")
+          PomodoroManager.skip();
+        else if (word === "stop")
+          PomodoroManager.stop();
+        else
+          PomodoroManager.toggle();
+        return false;
+      }
+    },
+    {
       name: "event",
       aliases: ["newevent", "addevent"],
       glyph: "event",
@@ -785,6 +831,31 @@ QtObject {
   }
 
   // The event /event would add, as a row to check before Enter
+  // With text, a row adding it; then the open todos matching it, each
+  // ticked off when picked
+  function _todo(arg) {
+    const q = arg.trim();
+    const add = q === "" ? [] : [
+      {
+        title: I18n.tr("Add \"{0}\"", q),
+        subtitle: I18n.tr("To the todo list"),
+        glyph: "add_task",
+        matched: true,
+        value: {
+          add: q
+        }
+      }
+    ];
+    const open = TodoManager.shownItems.filter(item => !item.done && (q === "" || item.summary.toLowerCase().includes(q.toLowerCase())));
+    return add.concat(open.map(item => ({
+          title: item.summary,
+          subtitle: I18n.tr("Tick off"),
+          glyph: "check_box_outline_blank",
+          matched: true,
+          value: item
+        })));
+  }
+
   function _event(arg) {
     const parsed = CalendarManager.parseQuickAdd(arg);
     if (!parsed)

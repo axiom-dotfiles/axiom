@@ -12,10 +12,11 @@ QtObject {
   // Calendar.accounts as saved, for editing
   readonly property var savedAccounts: _c.accounts
   // Calendar.accounts, each with an `id` (numbered when left empty) and a
-  // `name` (the username or the server's host when left empty)
+  // `name` (the username or the server's host when left empty; "This
+  // computer" for a local one)
   readonly property var accounts: _c.accounts.map((account, index) => Object.assign({}, account, {
       "id": account.id || "account-" + (index + 1),
-      "name": account.name || account.username || root.hostOf(account.url) || I18n.tr("Account {0}", index + 1)
+      "name": account.name || account.username || root.hostOf(account.url) || (account.kind === "local" ? I18n.tr("This computer") : I18n.tr("Account {0}", index + 1))
     }))
   // Every account's calendars, flattened: { id ("<account>|<href>"),
   // account, accountName, kind, href, name, color (the override, else the
@@ -30,9 +31,9 @@ QtObject {
           "name": calendar.name || calendar.href,
           "color": String(calendar.color ? Theme.resolveColor(calendar.color) : (calendar.serverColor || Theme.accent)),
           "enabled": calendar.enabled,
-          "readOnly": account.kind !== "caldav" || calendar.readOnly,
+          "readOnly": !root.writableKind(account.kind) || calendar.readOnly,
           "events": calendar.components.includes("VEVENT"),
-          "writable": account.kind === "caldav" && !calendar.readOnly && calendar.components.includes("VEVENT")
+          "writable": root.writableKind(account.kind) && !calendar.readOnly && calendar.components.includes("VEVENT")
         }))))
   // The calendars shown, and those of them new events can go to
   readonly property var shownCalendars: root.calendars.filter(calendar => calendar.enabled && calendar.events)
@@ -65,6 +66,12 @@ QtObject {
 
   function calendar(id) {
     return root.calendars.find(calendar => calendar.id === id) ?? null;
+  }
+
+  // Kinds whose events axiom can change: CalDAV accounts and local
+  // calendars (.ics subscriptions are read-only)
+  function writableKind(kind) {
+    return kind === "caldav" || kind === "local";
   }
 
   function hostOf(url) {

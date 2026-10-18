@@ -10,7 +10,7 @@ Thanks for wanting to help. Bug reports, ideas, translations and code are all we
 | --- | --- |
 | **Bug report** | Something broken or behaving wrongly |
 | **New feature or component** | Something big: a new surface, page type, editor or subsystem |
-| **Small feature or improvement** | A change to something that exists, a new setting or launcher command, or a small feature that stands on its own (a pomodoro timer, a todo list) |
+| **Small feature or improvement** | A change to something that exists, a new setting or launcher command, or a small feature that stands on its own |
 | **Bar widget or module** | Something new for the bar, or a module for overlay pages, edge menus, the desktop, the lock screen or the login screen |
 | **App theme request** | Another app that should follow axiom's theme |
 | **Compositor or distribution support** | Running on another compositor, or installing on another distribution. Needs someone who runs it to test it |

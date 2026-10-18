@@ -128,6 +128,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 
 ### Content and calendar parts
 - **Content parts** (`content/parts/`): see [Content roots](../overlay/content-roots.md) and [Writing modules](../overlay/writing-modules.md). Also `AudioRow` (a mixer line: icon, title, volume slider, percentage, mute) and `TrayMenuList` / `TrayMenuItem` (a tray menu's entries, for the tray popout and its submenus).
+- **Todo and pomodoro parts** (`content/parts/`): `TodoList` (the add field and the items, `fill` or capped at `maxListHeight`) and `PomodoroDial` (the timer's ring, session dots, controls and task picker, `horizontal` for a wide card); see [Todo and pomodoro](../features/todo-pomodoro.md).
 - **Calendar parts** (`content/parts/calendar/`): see [Calendar](../features/calendar.md).
 
 ### Pure helpers (`methods/`)

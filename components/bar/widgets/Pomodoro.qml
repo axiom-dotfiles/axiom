@@ -1,0 +1,42 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+
+import qs.config
+import qs.services
+import qs.components.hosts.popout
+
+// The pomodoro timer (PomodoroManager): the time left while a session or
+// break is on, colored by which. Left click starts or pauses, right click
+// skips to the next phase, middle click stops; hovering opens the timer.
+BarIconWidget {
+  id: root
+
+  Component.onCompleted: PomodoroManager.acquire(root)
+  Component.onDestruction: PomodoroManager.release(root)
+
+  hidden: properties.hideWhenIdle && PomodoroManager.idle
+
+  icon: PomodoroManager.isBreak ? "coffee" : "timer"
+  text: PomodoroManager.remainingText
+  showText: !PomodoroManager.idle
+  accentColor: Theme.resolveColor(PomodoroManager.idle ? properties.idleColor : PomodoroManager.isBreak ? properties.breakColor : properties.workColor)
+  // Paused part way: faded
+  dim: !PomodoroManager.running && !PomodoroManager.idle ? 0.6 : 1
+
+  clickable: true
+  acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+  onClicked: button => {
+    if (button === Qt.RightButton)
+      PomodoroManager.skip();
+    else if (button === Qt.MiddleButton)
+      PomodoroManager.stop();
+    else
+      PomodoroManager.toggle();
+  }
+
+  PopoutAnchor {
+    hitArea: root.hitArea
+    popoutName: "Pomodoro"
+    active: EdgeMenusConfig.opensOwnPopout(root.properties) && !root.hidden
+  }
+}

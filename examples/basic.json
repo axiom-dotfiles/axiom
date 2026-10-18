@@ -297,8 +297,6 @@
               "hideWhenEmpty": false,
               "intervalMinutes": 30,
               "showPopout": true,
-              "terminal": "",
-              "upgradeCommand": "",
               "manyThreshold": 50,
               "backgroundColor": "",
               "manyColor": "",
