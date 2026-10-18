@@ -233,9 +233,9 @@ QtObject {
     root.importing = null;
     const fileName = path.split("/").pop();
     const parsed = root._readShared(path, fileName);
-    const config = parsed ? root._load(parsed) : null;
     if (!parsed)
       return;
+    const config = root._load(parsed);
     if (!config) {
       root.status = I18n.tr("\"{0}\" is not a valid config", fileName);
       return;
@@ -276,19 +276,7 @@ QtObject {
   // with `status` saying why when the file can't be applied.
   function applyShared(name, path, title) {
     const parsed = root._readShared(path, title);
-    const config = parsed ? root._load(parsed) : null;
-    if (!parsed)
-      return false;
-    if (!config) {
-      root.status = I18n.tr("\"{0}\" is not a valid config", title);
-      return false;
-    }
-    if (root._pendingApply) {
-      root.status = I18n.tr("Busy, try again");
-      return false;
-    }
-    _backupThenApply(name, config, false);
-    return true;
+    return parsed !== null && root._backupThenApply(name, root._load(parsed), false, title);
   }
 
   // The parsed shared file at `path`, or null with `status` saying why (as
@@ -348,15 +336,17 @@ QtObject {
     _exporter.setText(JSON.stringify(shared, null, 2) + "\n");
   }
 
-  function _backupThenApply(name, config, personal) {
+  // False (with `status` naming it as `label`) when `config` is invalid or
+  // another apply is under way
+  function _backupThenApply(name, config, personal, label = name) {
     if (!config) {
-      root.status = I18n.tr("\"{0}\" is not a valid config", name);
-      return;
+      root.status = I18n.tr("\"{0}\" is not a valid config", label);
+      return false;
     }
     // One at a time: a second would replace the first's backup mid-write
     if (root._pendingApply) {
       root.status = I18n.tr("Busy, try again");
-      return;
+      return false;
     }
     root._pendingApply = {
       name: name,
@@ -364,6 +354,7 @@ QtObject {
       personal: personal
     };
     save("before-" + name);
+    return true;
   }
 
   function _apply(pending) {
