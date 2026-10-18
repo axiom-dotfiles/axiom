@@ -115,6 +115,82 @@ Item {
   property bool opaque: false
   // Casting its own shadow, in its own window
   readonly property bool _ownShadow: root.castShadow && !root.backed
+  // Where its shape runs on past its outline, for a shadow `reach` long
+  // cast from it (rects in this item's coordinates, at rest): the shadow
+  // beside a wall that carries on past it then runs on at full strength
+  // to where it gives way to what carries it on (cut there by its holes),
+  // as that one's runs on to it from the other side, with no step where
+  // the two meet. Each is wide: a thin strip's blur is much weaker.
+  // - behind a flush end, the wall it continues (an island's or pill's
+  //   squared end, BarContainer._flushEnds), to the band hole;
+  // - past a straight joined end, its far wall running on into the pill
+  //   or island squared to meet it, or off a bare screen edge;
+  // - behind an attach edge it runs straight off (a bare screen edge): its
+  //   walls run on off screen, the shadow beside them not fading at it.
+  // A bar's pills, cast by their bar, add theirs to its shadow's source.
+  function shadowRunOn(reach) {
+    if (root.detached || reach <= 0)
+      return [];
+    const along = Math.min(root.alongLength, reach * 2), across = Math.min(root.boxDepth, reach * 2);
+    const behind = -root._back - reach, far = root.farV + root.half;
+    const m = root._m;
+    return (m.throughStart ? [root._rectFrom(0, behind, along, reach)] : []).concat(m.throughEnd ? [root._rectFrom(root.alongLength - along, behind, along, reach)] : [], root.joinStart && m.straightJoinStart ? [root._rectFrom(-reach, far - across, reach, across)] : [], root.joinEnd && m.straightJoinEnd ? [root._rectFrom(root.alongLength, far - across, reach, across)] : [], root.straight ? [root._rectFrom(0, behind, root.alongLength, reach)] : []);
+  }
+  readonly property var _shadowRunOn: root._ownShadow ? root.shadowRunOn(root.shadowReach) : []
+  // Boxes (in this item's coordinates) of surfaces running on from its
+  // box, a wall of theirs continuing one of its own (a submenu flush to a
+  // free end of its side). Its shadow casts as if that wall ran on past
+  // where the two meet (`source`), and gives way to theirs past it
+  // (`hole`), cast the same way from their side (a flush end's run-on):
+  // both at full strength where they meet, with no step
+  property var wallsRunOn: []
+  readonly property var _runsOn: {
+    const reach = root.shadowReach;
+    if (reach <= 0 || root.wallsRunOn.length === 0)
+      return [];
+    const b = root.boxRect, tol = root.strokeWidth + 2;
+    const right = b.x + b.width, bottom = b.y + b.height;
+    // Its attach side has no wall, unless it's a box of its own
+    const wall = side => root.detached || side !== root.edge;
+    const runs = [];
+    root.wallsRunOn.forEach(s => {
+      if (!s)
+        return;
+      // Beside it left or right: its top or bottom wall runs on there
+      const toLeft = s.x + s.width <= b.x + tol, toRight = s.x >= right - tol;
+      if (toLeft || toRight) {
+        const x0 = toLeft ? b.x : right, w = Math.min(b.height, reach * 2);
+        const sx = toLeft ? x0 - reach : x0, hx = toLeft ? x0 - reach * 2 : x0;
+        if (wall(Bar.Top) && Math.abs(s.y - b.y) <= 1)
+          runs.push({
+            "source": Qt.rect(sx, b.y, reach, w),
+            "hole": Qt.rect(hx, b.y - reach, reach * 2, reach)
+          });
+        if (wall(Bar.Bottom) && Math.abs(s.y + s.height - bottom) <= 1)
+          runs.push({
+            "source": Qt.rect(sx, bottom - w, reach, w),
+            "hole": Qt.rect(hx, bottom, reach * 2, reach)
+          });
+      }
+      // Above or below it: its left or right wall runs on there
+      const above = s.y + s.height <= b.y + tol, below = s.y >= bottom - tol;
+      if (above || below) {
+        const y0 = above ? b.y : bottom, w = Math.min(b.width, reach * 2);
+        const sy = above ? y0 - reach : y0, hy = above ? y0 - reach * 2 : y0;
+        if (wall(Bar.Left) && Math.abs(s.x - b.x) <= 1)
+          runs.push({
+            "source": Qt.rect(b.x, sy, w, reach),
+            "hole": Qt.rect(b.x - reach, hy, reach, reach * 2)
+          });
+        if (wall(Bar.Right) && Math.abs(s.x + s.width - right) <= 1)
+          runs.push({
+            "source": Qt.rect(right - w, sy, w, reach),
+            "hole": Qt.rect(right, hy, reach, reach * 2)
+          });
+      }
+    });
+    return runs;
+  }
   // A copy of a surface (AttachedSurfaceCopy): its fill alone, its stroke
   // in `mirrorStroke`
   property bool mirror: false
@@ -358,12 +434,24 @@ Item {
       // it, darkest under this surface's soft edge, a seam where the two
       // strokes meet (none on a bare edge, which has no stroke).
       holes: {
+        const runs = root._runsOn.map(r => r.hole);
         if (root.detached)
-          return [];
+          return runs;
         const reach = ownShadow.reach;
         const v = -root._back - reach, deep = root._back + root.depth + reach * 2;
-        const band = root.straight ? [] : [root._rectFrom(-reach, v, root.alongLength + reach * 2, reach + root._back + root.strokeWidth)];
-        return (root.joinStart ? [root._rectFrom(-reach, v, reach, deep)] : []).concat(root.joinEnd ? [root._rectFrom(root.alongLength, v, reach, deep)] : [], band, root.shadowHoles);
+        // (to the stroke's outer edge where it is in the window, not where
+        // it is on the surface still behind its edge: there the band let a
+        // line of this shadow through over the stroke, beside its wall,
+        // doubling the shadow of what it grows from)
+        const band = root.straight ? [] : [root._rectFrom(-reach, v, root.alongLength + reach * 2, reach + root._back + root.strokeWidth + root._hidden)];
+        // A straight joined end's far wall runs on into the stroke it
+        // joins (its first stroke's width of the end lies over that
+        // stroke): what it joins casts beside the wall up to its outer
+        // edge, as the band leaves a flush end's to it
+        const far = root.farV + root.half, sw = root.strokeWidth;
+        const straightStart = root.joinStart && root._straightJoinStart ? [root._rectFrom(-reach, far, reach + sw, reach)] : [];
+        const straightEnd = root.joinEnd && root._straightJoinEnd ? [root._rectFrom(root.alongLength - sw, far, reach + sw, reach)] : [];
+        return (root.joinStart ? [root._rectFrom(-reach, v, reach, deep)] : []).concat(root.joinEnd ? [root._rectFrom(root.alongLength, v, reach, deep)] : [], straightStart, straightEnd, band, root.shadowHoles, runs);
       }
     }
 
@@ -397,6 +485,35 @@ Item {
           PathSvg {
             path: root.strokePath
           }
+        }
+      }
+
+      // Where its shape runs on past its outline (shadowRunOn)
+      Repeater {
+        model: root._shadowRunOn.length
+
+        Rectangle {
+          required property int index
+          readonly property rect area: root._shadowRunOn[index] ?? Qt.rect(0, 0, 0, 0)
+          x: area.x
+          y: area.y
+          width: area.width
+          height: area.height
+          color: "black"
+        }
+      }
+      // ...and past the walls surfaces running on from its box continue
+      Repeater {
+        model: root._runsOn.length
+
+        Rectangle {
+          required property int index
+          readonly property rect area: root._runsOn[index]?.source ?? Qt.rect(0, 0, 0, 0)
+          x: area.x
+          y: area.y
+          width: area.width
+          height: area.height
+          color: "black"
         }
       }
 

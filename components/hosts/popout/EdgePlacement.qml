@@ -415,9 +415,15 @@ QtObject {
     container: root.container
     owner: root.owner
     open: root.open
-    stretch: root.showing && root.stretch ? Object.assign({}, root.stretch, root._toBarSpan(root.stretch.start, root.stretch.end)) : null
+    stretch: root.showing && root.stretch ? Object.assign({}, root.stretch, root._toBarSpan(root.stretch.start, root.stretch.end), {
+      "covered": root._covers
+    }) : null
     opening: root.showing && root.onPill && Appearance.translucent ? root._toBarSpan(root._coverStart, root._coverEnd) : null
   }
+  // Whether the surface is out over the stroke it stands on (none of it
+  // while it's all behind its edge): the bar runs a wall of it on from a
+  // pill's squared end only then (BarContainer._flushEnds)
+  readonly property bool _covers: root._coverEnd > root._coverStart
   property PillStretch _submenuStretch: PillStretch {
     container: root.container
     owner: root.owner + ":submenu"

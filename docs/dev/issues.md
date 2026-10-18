@@ -186,6 +186,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-17, while adding the niri backend
 
+### A pill bar's end reach trails a sliding popout's wall
+- **Where:** `components/hosts/popout/PillBarJoin.qml`, `components/bar/BarContainer.qml` (`_endReach`)
+- **What:** Seen on niri with a solid bottom bar (border off) whose SystemStats popout joins the left pill bar: while the popout slides in or out, the left bar's end pill, run on to the popout's top wall, trails it by about 8px for two or three frames (below the wall while opening, above it while closing), so the two strokes and their shadows step at the left bar's inner edge. At rest they line up. Probably the other bar's window committing a frame or so after the popout's (as `AttachedSurface`'s fillet opening is taken a stroke ahead for).
+- **Size:** small
+- **Found:** 2026-10-18, while fixing shadow seams where a wall runs on into another surface
+
 ### niri's flags can't be turned off from axiom
 - **Where:** `components/methods/NiriConf.qml` (`_niriArgs`), `config/json/config.schema.json` (`x-niriValue: "flag"`)
 - **What:** A niri flag (`tap`, `natural-scroll`, `numlock`, `focus-follows-mouse`) is on by being there and has no `false`; axiom writes one on and leaves it out off. Off in axiom while the user's own config has it on, it stays on.
@@ -227,12 +233,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** With a typing module (Notes) on the desktop, clicking into it and back to windows logs bursts of `Trying to disable` from `qt.qpa.wayland.textinput` (`QWaylandTextInputv3::disableSurface`; 174 in one session). Typing and handing focus back work. Likely Qt's text-input-v3 noise when focus moves between surfaces; not yet checked whether an edge menu's Notes logs the same.
 - **Size:** small
 - **Found:** 2026-10-14, while letting typing modules go on the desktop
-
-### `CornerMerge.opening` reads a missing container
-- **Where:** `components/bar/CornerMerge.qml` (`_placed`, `opening`)
-- **What:** Reloads log `TypeError: Cannot read property 'length' of null` at the `opening` binding. `_placed` checks `container !== null`, but `container` (`bar.pillBarStart`/`pillBarEnd`) can be unset or not yet laid out, and `opening` then reads `root.container.length`. Guard `_placed` with `!!root.container` (and check the end reach doesn't flash while it's missing).
-- **Size:** trivial
-- **Found:** 2026-10-14, while fixing pill-bar joins for popouts reaching a corner
 
 ### `Bar` reader holds the edges enum and breaks reader naming
 - **Where:** `config/Bar.qml` (`enum Location`, the `Bars` reader)

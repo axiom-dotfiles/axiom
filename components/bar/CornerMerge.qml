@@ -23,7 +23,9 @@ PillStretch {
   readonly property bool _joins: !!root._pill && (root.atStart ? root._pill.joinStart : root._pill.joinEnd)
   readonly property var _origin: root.bar.blurOrigin
   readonly property var _otherOrigin: root.container?.blurOrigin ?? null
-  readonly property bool _placed: root.container !== null && root._origin !== null && root._otherOrigin !== null
+  // (the bar there may be unset rather than null, or go before this
+  // re-evaluates: read it again where it's used)
+  readonly property bool _placed: !!root.container && root._origin !== null && root._otherOrigin !== null
   // On a right or bottom bar the other bar's end is its far one
   readonly property bool _right: root.bar.barConfig.right || root.bar.barConfig.bottom
   // Along the other bar: across this one
@@ -51,7 +53,7 @@ PillStretch {
   // the other bar's shadow following round that fillet
   // (BarContainer._shadowHoles). Not past the fillet's flat cap: the
   // stroke left open there showed through as a gap in the corner.
-  opening: root._placed ? Object.assign(SurfaceContext.opening(root._right ? root._filletTip : 0, root._right ? root.container.length : root._filletTip, root._right ? root._radius - 1 : 0, root._right ? 0 : root._radius - 1), {
+  opening: root._placed && root.container ? Object.assign(SurfaceContext.opening(root._right ? root._filletTip : 0, root._right ? root.container.length : root._filletTip, root._right ? root._radius - 1 : 0, root._right ? 0 : root._radius - 1), {
     "keepFill": true
   }) : null
 }

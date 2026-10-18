@@ -147,7 +147,9 @@ Rectangle {
   // endReach }, drawn as sent: each owner sets the pace it changes at.
   // - stretch: a pill stretched past its ends to carry a surface's fillets
   //   ({ index, start, end, squareStart, squareEnd, joinStart, joinEnd },
-  //   EdgeAttach.place's stretch). pillRects stays unstretched.
+  //   EdgeAttach.place's stretch; `covered`, false while its surface is
+  //   still all behind the stroke, EdgePlacement). pillRects stays
+  //   unstretched.
   // - opening: where a surface covers a pill's (or island's) inner stroke,
   //   { start, end } along the bar (`keepFill`: while opaque, only the
   //   stroke and its outer edge, for a surface joining it end-on, which
@@ -413,7 +415,7 @@ Rectangle {
     // cover the far stroke, whether or not the pill stretches for them),
     // from the outer edge they stand on out, nor on the solid bars its
     // ends make way for (whose stroke a pill's fillet curves into)
-    holes: [].concat(...root._openingHoles.map(h => h.rects)).concat(root._endBarHole(true, root.solidStart ?? root.pillBarStart), root._endBarHole(false, root.solidEnd ?? root.pillBarEnd)).filter(hole => hole !== null)
+    holes: [].concat(...root._openingHoles.map(h => h.rects)).concat([].concat(...root._flushEnds.map(f => f.holes)), root._endBarHole(true, root.solidStart ?? root.pillBarStart), root._endBarHole(false, root.solidEnd ?? root.pillBarEnd)).filter(hole => hole !== null)
     // ...and a joined surface's fillet (a pill's or popout's curving into
     // a solid bar's stroke) only as far as its curve, not the square it
     // sits in: past the curve the shadow runs on round it
@@ -453,6 +455,52 @@ Rectangle {
       "fillets": (fs > 0 ? [fillet(o.start, fs, false)] : []).concat(fe > 0 ? [fillet(o.end - fe, fe, true)] : [])
     };
   }
+  // The pill and island ends squared for a surface whose wall runs on
+  // from them past their inner edge (a popout flush to the end, a submenu
+  // joined straight into it, a popout on the perpendicular edge an end
+  // reach runs it on to), from the stretches. Each casts
+  // as if that wall ran on (`source`, a copy of the end past the inner edge
+  // in the shadow's source, wide: a thin strip's blur is much weaker), and
+  // is cut past the inner edge beside it, where the surface's shadow, cast
+  // the same way from its side (AttachedSurface), takes over: both at full
+  // strength where they meet, with no step. It's cut under the surface too
+  // (`holes`), as far as the run-on's shadow spreads (the surface casts
+  // there), or it glows round the run-on while the surface slides. All
+  // only while the surface is out over the stroke (the stretch's
+  // `covered`): squared before it slid out, the pill's own wall lost its
+  // shadow.
+  readonly property var _flushEnds: {
+    const reach = root.barConfig.shadowSize * 2;
+    const extent = root.barConfig.extent;
+    const across = root.isVertical ? root.width : root.height;
+    const near = root.barConfig.left || root.barConfig.top;
+    const inner = near ? extent : across - extent;
+    const rect = (along, length, from, deep) => root.isVertical ? Qt.rect(from, along, deep, length) : Qt.rect(along, from, length, deep);
+    // From the inner edge out, past the bar's far side
+    const outward = (along, length) => rect(along, length, near ? inner : -reach, near ? across - inner + reach : inner + reach);
+    // `span`: how far the surface reaches in from the end
+    const end = (at, atStart, span) => {
+      const length = Math.min(span, reach * 2), under = Math.min(span, length + reach);
+      return {
+        "source": rect(atStart ? at : at - length, length, near ? inner : inner - reach, reach),
+        "holes": [outward(atStart ? at - reach : at, reach), outward(atStart ? at : at - under, under)]
+      };
+    };
+    // ...where the pill or island is drawn ending there, squared
+    const drawn = (at, atStart) => root.pillShapes.some(r => (atStart ? r.squareStart : r.squareEnd) && Math.abs((atStart ? r.start : r.start + r.length) - at) <= 1);
+    const ends = [];
+    // (an end reach too: a pill run on from the bar's end to a surface on
+    // the perpendicular edge, whose wall carries on from its squared end)
+    root._stretchList.forEach(st => {
+      if (st.covered === false)
+        return;
+      if (st.squareStart && drawn(st.start, true))
+        ends.push(end(st.start, true, st.end - st.start));
+      if (st.squareEnd && drawn(st.end, false))
+        ends.push(end(st.end, false, st.end - st.start));
+    });
+    return ends;
+  }
   // The bar an end makes way for (`other`, its container: a solid bar, or
   // a pill bar its end pill merges into), from its inner edge on: a shadow
   // falling along this bar, or spread round a pill's fillet, would land on
@@ -475,6 +523,20 @@ Rectangle {
     id: shadowShape
     anchors.fill: parent
     visible: !root.backed
+
+    Repeater {
+      model: root._flushEnds.length
+
+      Rectangle {
+        required property int index
+        readonly property rect area: root._flushEnds[index]?.source ?? Qt.rect(0, 0, 0, 0)
+        x: area.x
+        y: area.y
+        width: area.width
+        height: area.height
+        color: "black"
+      }
+    }
   }
 
   // The blur window draws the bar's fill (BlurManager), once
@@ -760,6 +822,23 @@ Rectangle {
           y: pill.y
           fillColor: "black"
           mirrorStroke: "black"
+        }
+        // ...and where it runs on past its outline: off a bare screen
+        // edge, into what it joins straight (AttachedSurface.shadowRunOn)
+        readonly property var _runOnShadow: pill.shadowRunOn(Math.ceil(root.barConfig.shadowSize * 1.25))
+        Repeater {
+          model: pill._runOnShadow.length
+
+          Rectangle {
+            required property int index
+            readonly property rect area: pill._runOnShadow[index] ?? Qt.rect(0, 0, 0, 0)
+            parent: shadowShape
+            x: pill.x + area.x
+            y: pill.y + area.y
+            width: area.width
+            height: area.height
+            color: "black"
+          }
         }
 
         BlurShape {

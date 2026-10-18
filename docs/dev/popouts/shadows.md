@@ -49,3 +49,16 @@ Every surface with an exposed border casts the shell's shadow. It uses the `BarS
   - the dock's depth
   - the submenu's `shadowRoom`
 - **Submenu boxes:** unbacked, a parent's own shadow also leaves out its submenu's box (`AttachedSurface.shadowHoles`, from `SubPopout`'s `submenuBox`).
+
+### Walls that run on into another surface (unbacked)
+- Unbacked, each surface casts its own shadow, so where one surface's straight wall carries on as another's, each shadow would fade out at the line where they meet, as at a corner, and the two half-faded shadows met in a visible step.
+- **The rule:** each side casts as if the wall ran on past the meeting line, then gives way to the other's there. Both are at full strength at the line, so there is no step. The run-on is a wide black rect in the shadow's source: a thin strip's blur is much weaker.
+- **On the surface's side** (`AttachedSurface.shadowRunOn(reach)`):
+  - behind a flush end, the wall of the island or pill it continues; cut up to the stroke's outer edge by the band hole;
+  - past a straight joined end (a submenu running straight into a squared pill or island, or off a bare edge), along its far wall; it gives way across the stroke it joins as well;
+  - behind an attach edge it runs straight off (a bare screen edge), so the shadow beside its walls doesn't fade at the screen's edge.
+  - A bar's pills cast through their bar, which adds their run-ons to its source.
+- **On the bar's side** (`BarContainer._flushEnds`): a pill's or island's end squared for a surface's stretch (or an end reach: a pill bar's end pill run on to a popout on the perpendicular edge, `PillBarJoin`) casts its wall on past its inner edge, and is cut beside the wall past it and under the surface. Only while that surface is out over the stroke (the stretch's `covered`, from `EdgePlacement`): squared before the surface slid out, the pill's own wall lost its shadow and the run-on glowed under it.
+- **A parent and its submenu** (`AttachedSurface.wallsRunOn`, the submenu's box from `EdgeSurface`): where the submenu's box lines up with one of the parent's walls beside it (flush to a free end of its side), the parent's wall runs on and gives way past the parent's side. The submenu's own flush end runs on from its side.
+- **While sliding,** the band stays on the stroke where it is in the window (it reaches `_hidden` further), not where it is on the surface still behind its edge: otherwise a line of the surface's shadow showed over the stroke, doubling the bar's.
+- What's left is about 3 levels (of 255) between the two windows' shadows at the line, and the walls' anti-aliased edge where two strokes overlap.
