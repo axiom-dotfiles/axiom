@@ -130,6 +130,10 @@ QtObject {
         "arch": "jq",
         "fedora": "jq"
       },
+      "curl": {
+        "arch": "curl",
+        "fedora": "curl"
+      },
       "checkupdates": {
         "arch": "pacman-contrib",
         "fedora": null

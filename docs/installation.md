@@ -10,7 +10,7 @@ The whole shell runs on five things. Everything else is optional and only needed
 - A Wayland compositor: [Hyprland](https://hypr.land) 0.55+ with its Lua config (`hyprland.lua`), [niri](https://github.com/YaLTeR/niri) 26.04+, or [sway](https://swaywm.org) 1.12+ (SwayFX adds blur and rounded corners). What each supports is in the [README](../README.md#compositors)
 - [Quickshell](https://quickshell.org) 0.3.2 or newer (`qs`)
 - [Material Symbols](https://fonts.google.com/icons) for icons (`ttf-material-symbols-variable`). Any font works for text
-- `jq`, `python3`
+- `jq`, `curl`, `python3`
 
 <details open>
 <summary><b>Optional</b>, for the features that use them</summary>

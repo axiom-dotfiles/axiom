@@ -173,7 +173,7 @@ It uses the compositor you're running or have installed, or asks which one to in
 <details>
 <summary><b>By hand</b>: on another distribution, or if you'd rather not pipe to bash</summary>
 
-Install the requirements: a compositor (above), [Quickshell](https://quickshell.org) 0.3.2+, the [Material Symbols](https://fonts.google.com/icons) font, `git`, `jq` and `python3`. Optional features have their own dependencies, listed in [the installation guide](docs/installation.md#requirements).
+Install the requirements: a compositor (above), [Quickshell](https://quickshell.org) 0.3.2+, the [Material Symbols](https://fonts.google.com/icons) font, `git`, `jq`, `curl` and `python3`. Optional features have their own dependencies, listed in [the installation guide](docs/installation.md#requirements).
 
 Clone into Quickshell's config directory, and try it with `qs -c axiom`:
 

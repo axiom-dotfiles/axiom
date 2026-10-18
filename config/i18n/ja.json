@@ -3243,6 +3243,7 @@
     "Where the gallery comes from: the community-setups catalog's index.json. Change it only for a mirror or a fork.": "",
     "Browse community setups": "",
     "Community setups": "",
-    "Catalog": ""
+    "Catalog": "",
+    "Downloads (album art, Claude usage, community setups)": ""
   }
 }
