@@ -186,6 +186,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-17, while adding the niri backend
 
+### A side edge's submenus always open away from the edge
+- **Where:** `components/hosts/popout/SubmenuSide.qml` (`openToLeft`)
+- **What:** On a left or right edge a submenu always opens away from that edge (`openToLeft` is `edge === Bar.Right`), so a floating menu on the right edge opens every submenu to its left, across the menu's own content side. The maintainer finds that unexpected for a right-edge menu: which way it should open there (and whether by the box's place on screen, as top and bottom edges do) needs deciding. Seen with a `Submenu` module in a right-edge floating menu in nested niri.
+- **Size:** small
+- **Found:** 2026-10-18, while checking shadow seams on side-edge menus
+
 ### A pill bar's end reach trails a sliding popout's wall
 - **Where:** `components/hosts/popout/PillBarJoin.qml`, `components/bar/BarContainer.qml` (`_endReach`)
 - **What:** Seen on niri with a solid bottom bar (border off) whose SystemStats popout joins the left pill bar: while the popout slides in or out, the left bar's end pill, run on to the popout's top wall, trails it by about 8px for two or three frames (below the wall while opening, above it while closing), so the two strokes and their shadows step at the left bar's inner edge. At rest they line up. Probably the other bar's window committing a frame or so after the popout's (as `AttachedSurface`'s fillet opening is taken a stroke ahead for).

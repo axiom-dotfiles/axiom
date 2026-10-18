@@ -156,7 +156,8 @@ Item {
     root.wallsRunOn.forEach(s => {
       if (!s)
         return;
-      // Beside it left or right: its top or bottom wall runs on there
+      // Beside it (submenus open to the left or right): its top or bottom
+      // wall runs on there
       const toLeft = s.x + s.width <= b.x + tol, toRight = s.x >= right - tol;
       if (toLeft || toRight) {
         const x0 = toLeft ? b.x : right, w = Math.min(b.height, reach * 2);
@@ -170,22 +171,6 @@ Item {
           runs.push({
             "source": Qt.rect(sx, bottom - w, reach, w),
             "hole": Qt.rect(hx, bottom, reach * 2, reach)
-          });
-      }
-      // Above or below it: its left or right wall runs on there
-      const above = s.y + s.height <= b.y + tol, below = s.y >= bottom - tol;
-      if (above || below) {
-        const y0 = above ? b.y : bottom, w = Math.min(b.width, reach * 2);
-        const sy = above ? y0 - reach : y0, hy = above ? y0 - reach * 2 : y0;
-        if (wall(Bar.Left) && Math.abs(s.x - b.x) <= 1)
-          runs.push({
-            "source": Qt.rect(b.x, sy, w, reach),
-            "hole": Qt.rect(b.x - reach, hy, reach, reach * 2)
-          });
-        if (wall(Bar.Right) && Math.abs(s.x + s.width - right) <= 1)
-          runs.push({
-            "source": Qt.rect(right - w, sy, w, reach),
-            "hole": Qt.rect(right, hy, reach, reach * 2)
           });
       }
     });
