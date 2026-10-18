@@ -18,6 +18,8 @@ Panel {
   id: root
 
   readonly property bool wide: root.innerWidth >= Appearance.fontSize * 34
+  readonly property bool showTimer: root.properties.showTimer ?? true
+  readonly property bool showTodos: root.properties.showTodos ?? true
   readonly property bool showAgenda: root.properties.showAgenda ?? true
 
   spacing: Widget.spacing
@@ -64,7 +66,7 @@ Panel {
       spacing: Widget.spacing
 
       PomodoroDial {
-        visible: root.properties.showTimer ?? true
+        visible: root.showTimer
         Layout.fillWidth: true
         horizontal: true
         showTask: false
@@ -72,12 +74,12 @@ Panel {
       }
 
       StyledSeparator {
-        visible: (root.properties.showTimer ?? true) && (root.properties.showTodos ?? true)
+        visible: root.showTimer && root.showTodos
         Layout.fillWidth: true
       }
 
       TodoList {
-        visible: root.properties.showTodos ?? true
+        visible: root.showTodos
         Layout.fillWidth: true
         Layout.fillHeight: true
         fill: true

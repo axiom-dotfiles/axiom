@@ -9,8 +9,9 @@ import qs.components.methods
 import qs.components.reusable
 
 // One settings row: the SchemaField, with a dot while it has an unsaved
-// edit (clicking it discards just that edit) and a button that puts it back to the schema default, and under a
-// field with `x-hookup` (theme integrations) the IntegrationHookup panel
+// edit (clicking it discards just that edit) and a button that puts it
+// back to the schema default, and under a field with `x-hookup` (theme
+// integrations) the IntegrationHookup panel
 Item {
   id: root
 

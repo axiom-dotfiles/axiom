@@ -8,8 +8,9 @@ import qs.components.hosts.popout
 // Pending package updates from UpdatesManager: repo packages the way this
 // distribution checks them (`checkupdates` on Arch, `dnf check-update` on
 // Fedora; hidden on one UpdatesManager can't check), plus AUR packages via
-// paru/yay when enabled on Arch (UpdatesConfig). Left click opens a terminal to upgrade,
-// right click checks again now; hovering lists the packages.
+// paru/yay when enabled on Arch (UpdatesConfig). Left click opens a
+// terminal to upgrade, right click checks again now; hovering lists the
+// packages.
 BarIconWidget {
   id: root
 

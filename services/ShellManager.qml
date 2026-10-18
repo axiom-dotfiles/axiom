@@ -22,6 +22,27 @@ QtObject {
   // page's Show button)
   signal showOsd(string id)
 
+  // Opens the overlay page with the biggest module of the first of `types`
+  // any page has, else an edge menu with one (the first of `types` again);
+  // false with none
+  function openModule(types) {
+    for (const type of types) {
+      const page = OverlayConfig.pageWithModule(type);
+      if (page !== "") {
+        openOverlayPage(page);
+        return true;
+      }
+    }
+    for (const type of types) {
+      const menu = EdgeMenusConfig.menuWithModule(type);
+      if (menu) {
+        EdgeMenuManager.reveal(menu.id);
+        return true;
+      }
+    }
+    return false;
+  }
+
   // A surface's `monitors` mode with "general" resolved: "primary" |
   // "focused" | "all"
   function modeFor(mode) {

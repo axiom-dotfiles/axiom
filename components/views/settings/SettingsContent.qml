@@ -9,9 +9,8 @@ import qs.components.content.base
 
 // Settings page, right: the selected category's groups as cards in two
 // newspaper columns (wide ones across both), split by their measured
-// heights so both end together
-// or every setting matching the search, under its category's name. Acts as the `form` for its SchemaField
-// rows.
+// heights so both end together, or every setting matching the search,
+// under its category's name. Acts as the `form` for its SchemaField rows.
 Item {
   id: root
 
@@ -34,10 +33,6 @@ Item {
     for (const key of path)
       value = value?.[key];
     return value;
-  }
-
-  function _groupsOf(category) {
-    return SchemaLayout.categoryGroups(root.schema, category);
   }
 
   // Matches English and the translation, so either can be typed
@@ -68,9 +63,9 @@ Item {
   // category's name
   readonly property var groups: {
     if (!root.searching)
-      return root._groupsOf(root.category);
+      return SchemaLayout.categoryGroups(root.schema, root.category);
     // Hand-built cards have no rows to search
-    return [].concat(...root.categories.map(category => root._groupsOf(category).filter(group => group.kind !== "card").map(group => {
+    return [].concat(...root.categories.map(category => SchemaLayout.categoryGroups(root.schema, category).filter(group => group.kind !== "card").map(group => {
         const rows = root._matches(group.title) || root._matches(group.section) ? group.rows : group.rows.filter(row => root._rowMatches(row));
         return rows.length > 0 ? Object.assign({}, group, {
           "rows": rows,

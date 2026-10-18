@@ -13,8 +13,8 @@ import qs.components.reusable
 // config.json), Connect, which finds its calendars, and the calendars, each
 // shown or hidden, with its color and the one new events go to. A local
 // account ("On this computer") has no server: Add calendar makes one, named
-// and removed here (removing leaves its folder of events on disk). Account and calendar
-// edits go through the settings draft like any other row.
+// and removed here (removing leaves its folder of events on disk). Account
+// and calendar edits go through the settings draft like any other row.
 FoldingCard {
   id: root
 

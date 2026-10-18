@@ -156,11 +156,11 @@ QtObject {
   // Fields with `x-group` go on a card of that name instead, so one object
   // can make several cards. A nested object's `x-showIf` (on its siblings)
   // applies to all its cards. A section's `x-card` names a hand-built card
-  // (settings/<name>Card.qml, titled by `x-cardTitle`) that goes first (`x-cardFolds`: it folds like
-  // the generated cards, given its `foldKey`; `x-cardWide`: it spans both
-  // columns); its `x-intro` names a
-  // hand-built piece (settings/<name>.qml) at the top of the section's own
-  // card, above its fields (`intro`), as a nested object's does on its own.
+  // (settings/<name>Card.qml, titled by `x-cardTitle`) that goes first
+  // (`x-cardFolds`: it folds like the generated cards, given its `foldKey`;
+  // `x-cardWide`: it spans both columns); its `x-intro` names a hand-built
+  // piece (settings/<name>.qml) at the top of the section's own card, above
+  // its fields (`intro`), as a nested object's does on its own.
   // `x-cardPerField` makes each of the section's direct fields a card of
   // its own, titled and described by the field and sorted by title, a
   // switch's row labelled "Enabled"; the section's description gets a card
@@ -348,8 +348,8 @@ QtObject {
   // card of the category's own: settings/<card>Card.qml, wide, titled
   // `cardTitle` in the sidebar), then any other `x-category` in schema
   // order. A section without `x-category` is a category of its own. A
-  // declared category with no sections and no card is left out, as is a section
-  // whose own `x-showIf` (`/`-rooted keys, read by `valueOf`; e.g. the
+  // declared category with no sections and no card is left out, as is a
+  // section whose own `x-showIf` (`/`-rooted keys, read by `valueOf`; e.g. the
   // compositor's, as SettingsManager.configValueAt reads them) fails.
   function categories(schema, valueOf) {
     const make = (name, declared) => ({

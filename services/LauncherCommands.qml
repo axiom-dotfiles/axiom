@@ -480,7 +480,7 @@ QtObject {
           StopwatchManager.lap();
         else if (word === "reset")
           StopwatchManager.resetStopwatch();
-        else if (word === "start" ? !StopwatchManager.stopwatchRunning : word === "pause" ? StopwatchManager.stopwatchRunning : word === "")
+        else if (word === "" || (word === "start" && !StopwatchManager.stopwatchRunning) || (word === "pause" && StopwatchManager.stopwatchRunning))
           StopwatchManager.toggleStopwatch();
         return false;
       }

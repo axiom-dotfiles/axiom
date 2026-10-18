@@ -90,23 +90,7 @@ Singleton {
 
   // A page or edge menu with a Pomodoro or Focus module; false with none
   function openTimer() {
-    if (Paths.greeter)
-      return false;
-    for (const type of ["Pomodoro", "Focus"]) {
-      const page = OverlayConfig.pageWithModule(type);
-      if (page !== "") {
-        ShellManager.openOverlayPage(page);
-        return true;
-      }
-    }
-    for (const type of ["Pomodoro", "Focus"]) {
-      const menu = EdgeMenusConfig.menuWithModule(type);
-      if (menu) {
-        EdgeMenuManager.reveal(menu.id);
-        return true;
-      }
-    }
-    return false;
+    return !Paths.greeter && ShellManager.openModule(["Pomodoro", "Focus"]);
   }
 
   // -- Private --

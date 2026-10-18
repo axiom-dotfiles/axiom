@@ -2272,10 +2272,9 @@ QtObject {
 
   // v69 dropped the Dock and OSD sections' own Enabled: each dock and OSD
   // has one. A section that was off (set so, or by default) turns each of
-  // its entries off (with
-  // the default entry when it had none). Docks were off by default, and
-  // the default dock now is instead, so docks that were on without a list
-  // of their own get the old default, on
+  // its entries off (with the default entry when it had none). Docks were
+  // off by default, and the default dock now is instead, so docks that
+  // were on without a list of their own get the old default, on
   function _v68ToV69(config, changes) {
     const sections = [
       {

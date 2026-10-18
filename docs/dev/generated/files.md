@@ -151,6 +151,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `Sparkline.qml`: A small line graph of `values` (oldest first), filled underneath.
 - `StatFigure.qml`: A large value with its unit, and a small label underneath
 - `TileGrid.qml`: Places `count` tiles in the grid that gives them the largest size in this item, never stretched past `maxAspect` either way, with a short last row centred.
+- `TimeRing.qml`: A countdown ring, for the pomodoro timer (PomodoroDial) and the one-off timer (Stopwatch): how far it's gone around a `size` square, the time in the middle (faded while not `running`) and a short `label` under it.
 - `TodoList.qml`: The todo list (TodoManager), for the Todo popout and module and the Focus module: a field to add one, then the items (open, then done with Todo.showCompleted).
 - `TrayMenuItem.qml`: One entry of a tray menu (TrayMenuList): a separator, or a label with its check/radio indicator, icon and submenu chevron
 - `TrayMenuList.qml`: A tray menu's entries, shared by the tray popout and its submenus.
@@ -567,7 +568,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SavedConfigsCard.qml`: Settings page, Maintenance (the category's `card`, wide): save the config's look, layout, keybinds, apps and wallpapers under a name, and restore or delete saved ones.
 - `ScreenSpotPicker.qml`: A small screen showing where something sits (`spot`, 0-1 from the top left), with `presets` to click: dots that each apply their values.
 - `SelfUpdateStatusCard.qml`: The Updates category's first card (the section's `x-card`): the installed and newest release, what's new, and Check / Update
-- `SettingsContent.qml`: Settings page, right: the selected category's groups as cards in two newspaper columns (wide ones across both), split by their measured heights so both end together or every setting matching the search, under its catego…
+- `SettingsContent.qml`: Settings page, right: the selected category's groups as cards in two newspaper columns (wide ones across both), split by their measured heights so both end together, or every setting matching the search, under its categ…
 - `SettingsField.qml`: One settings row: the SchemaField, with a dot while it has an unsaved edit (clicking it discards just that edit) and a button that puts it back to the schema default, and under a field with `x-hookup` (theme integration…
 - `SettingsGroupCard.qml`: i18n: keys from the schema (titles, descriptions) One group of settings (a section's own fields, or one nested object) as a card: title, help text, then its rows.
 - `SettingsSidebar.qml`: i18n: keys from the schema (category names, card titles) Settings page, left: search and the category list; the selected category also lists its cards, and clicking one scrolls the page to it.

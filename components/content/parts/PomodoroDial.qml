@@ -25,36 +25,13 @@ GridLayout {
   columnSpacing: Widget.spacing * 2
   rowSpacing: Widget.spacing
 
-  Item {
-    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-    Layout.preferredWidth: root.dialSize
-    Layout.preferredHeight: root.dialSize
-
-    PercentageCircle {
-      anchors.fill: parent
-      percentage: PomodoroManager.progress * 100
-      iconText: ""
-      fillColor: root.phaseColor
-    }
-
-    ColumnLayout {
-      anchors.centerIn: parent
-      spacing: 0
-
-      StyledText {
-        Layout.alignment: Qt.AlignHCenter
-        text: PomodoroManager.remainingText
-        textSize: Math.max(Appearance.fontSize, Math.round(root.dialSize * 0.2))
-        font.bold: true
-        textColor: PomodoroManager.running ? Theme.foreground : Theme.foregroundAlt
-      }
-      StyledText {
-        Layout.alignment: Qt.AlignHCenter
-        text: PomodoroManager.idle || PomodoroManager.running ? PomodoroManager.phaseLabel : I18n.tr("Paused")
-        textSize: Appearance.fontSize - 2
-        textColor: root.phaseColor
-      }
-    }
+  TimeRing {
+    size: root.dialSize
+    progress: PomodoroManager.progress
+    text: PomodoroManager.remainingText
+    label: PomodoroManager.idle || PomodoroManager.running ? PomodoroManager.phaseLabel : I18n.tr("Paused")
+    color: root.phaseColor
+    running: PomodoroManager.running
   }
 
   ColumnLayout {

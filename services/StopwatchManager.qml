@@ -104,19 +104,7 @@ Singleton {
 
   // A page or edge menu with a Stopwatch module; false with none
   function openModule() {
-    if (Paths.greeter)
-      return false;
-    const page = OverlayConfig.pageWithModule("Stopwatch");
-    if (page !== "") {
-      ShellManager.openOverlayPage(page);
-      return true;
-    }
-    const menu = EdgeMenusConfig.menuWithModule("Stopwatch");
-    if (menu) {
-      EdgeMenuManager.reveal(menu.id);
-      return true;
-    }
-    return false;
+    return !Paths.greeter && ShellManager.openModule(["Stopwatch"]);
   }
 
   // -- Private --

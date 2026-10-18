@@ -73,40 +73,13 @@ Panel {
   // -- Timer --
 
   // Set: the ring with the time left
-  Item {
+  TimeRing {
     visible: root.timerMode && !StopwatchManager.timerIdle
-    Layout.alignment: Qt.AlignHCenter
-    Layout.preferredWidth: root.dialSize
-    Layout.preferredHeight: root.dialSize
-
-    PercentageCircle {
-      anchors.fill: parent
-      percentage: StopwatchManager.timerProgress * 100
-      iconText: ""
-      fillColor: Theme.accent
-    }
-
-    ColumnLayout {
-      anchors.centerIn: parent
-      spacing: 0
-
-      StyledText {
-        Layout.alignment: Qt.AlignHCenter
-        text: StopwatchManager.timerText
-        textSize: Math.max(Appearance.fontSize, Math.round(root.dialSize * 0.2))
-        font.bold: true
-        textColor: StopwatchManager.timerRunning ? Theme.foreground : Theme.foregroundAlt
-      }
-      StyledText {
-        Layout.alignment: Qt.AlignHCenter
-        Layout.maximumWidth: root.dialSize * 0.7
-        text: StopwatchManager.timerRunning ? StopwatchManager.timer.label : I18n.tr("Paused")
-        visible: text !== ""
-        elide: Text.ElideRight
-        textSize: Appearance.fontSize - 2
-        textColor: Theme.accent
-      }
-    }
+    size: root.dialSize
+    progress: StopwatchManager.timerProgress
+    text: StopwatchManager.timerText
+    label: StopwatchManager.timerRunning ? StopwatchManager.timer.label : I18n.tr("Paused")
+    running: StopwatchManager.timerRunning
   }
 
   // Not set: a duration to type, or a preset

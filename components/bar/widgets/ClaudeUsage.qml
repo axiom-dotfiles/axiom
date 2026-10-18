@@ -6,10 +6,10 @@ import qs.config
 import qs.components.hosts.popout
 
 // Claude plan usage from ClaudeUsageManager, for one or more Claude Code
-// accounts (one per CLAUDE_CONFIG_DIR, from ClaudeUsageConfig). Shows the session or weekly limit's
-// percent: the fullest account's, or every account's. Hovering lists every
-// limit per account; right click fetches again, left click runs the click
-// command.
+// accounts (one per CLAUDE_CONFIG_DIR, from ClaudeUsageConfig). Shows the
+// session or weekly limit's percent: the fullest account's, or every
+// account's. Hovering lists every limit per account; right click fetches
+// again, left click runs the click command.
 BarIconWidget {
   id: root
 
