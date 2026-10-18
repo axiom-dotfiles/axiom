@@ -379,6 +379,16 @@ Item {
     return sideJoined ? holes.concat([root.attachFilletHole(atStart)]) : holes;
   }
 
+  // Its fill as blur region pieces in this item's coordinates, slid as
+  // drawn (SurfaceOutline.blurRegion): what the blur window asks the
+  // compositor to blur for it, where that blurs only what a window asks
+  function blurPieces() {
+    return SurfaceOutline.blurRegion(root._spec, root._m, root.width, root.height, slideContainer.slideX, slideContainer.slideY, {
+      "start": root.startNearRadius,
+      "end": root.endNearRadius
+    });
+  }
+
   // Fill: the outline, closed back along the attach edge.
   // Joined ends also cover the perpendicular stroke up to the fillet.
   readonly property string fillPath: SurfaceOutline.fillPath(root._spec, root._m, root.width, root.height)

@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 
@@ -131,6 +132,26 @@ ReservedAreaWindow {
     }
   }
 
+  // Where the compositor blurs only what a window asks: the page's box and
+  // the navigator, as they slide and resize
+  BackgroundEffect.blurRegion: BlurManager.regions ? boxesBlur : null
+  Region {
+    id: boxesBlur
+
+    BoxBlurRegion {
+      target: overlayPages.box
+      moving: [slideTranslate.y, overlayPages.x, overlayPages.y, overlayPages.width, overlayPages.height]
+      opacity: slideContainer.opacity
+      radius: Appearance.borderRadius
+    }
+    BoxBlurRegion {
+      target: navigator
+      moving: slideTranslate.y
+      opacity: slideContainer.opacity
+      radius: Appearance.borderRadius
+    }
+  }
+
   Item {
     id: slideContainer
     anchors.fill: parent
@@ -148,6 +169,7 @@ ReservedAreaWindow {
     }
 
     transform: Translate {
+      id: slideTranslate
       y: root.slideOffset
       Behavior on y {
         NumberAnimation {

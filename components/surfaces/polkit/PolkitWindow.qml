@@ -111,6 +111,16 @@ PanelWindow {
   WlrLayershell.namespace: "axiom-polkit"
   WlrLayershell.keyboardFocus: root.shown && root.hasCard ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
+  // Where the compositor blurs only what a window asks: the whole dimmed
+  // screen, while backdrops blur (LayerStack.blurBackdrops)
+  BackgroundEffect.blurRegion: BlurManager.backdropRegions ? dimBlur : null
+  BoxBlurRegion {
+    id: dimBlur
+    target: dim
+    opacity: dim.opacity
+    threshold: 0.01
+  }
+
   Rectangle {
     id: dim
     anchors.fill: parent

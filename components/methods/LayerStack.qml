@@ -180,6 +180,14 @@ QtObject {
   // The blur window over the overlay: what it blurs is the overlay, so
   // never see-through (xray would blur the wallpaper in its place)
   readonly property var blurOverOverlay: ["blur-backing-overlay"]
+  // The chrome's own windows, for their popups alone (tooltips, the dock's
+  // menu): the chrome doesn't blur itself, its popups do
+  readonly property var blurChrome: root.barLayers.concat(["popout", "popout-under", "edge-popout", "edge-menu", "dock"])
+  // The windows whose fill, blur and shadow the blur window draws: not
+  // animated by the compositor while it does (they slide themselves), or
+  // their stroke and content fade or pop in and out while what the blur
+  // window draws for them doesn't
+  readonly property var blurBacked: root.barLayers.concat(["border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"])
 
   // A namespace's order (with or without its "axiom-" prefix); 0 (where
   // Hyprland puts a surface without a rule) for one not listed or without

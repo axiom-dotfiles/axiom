@@ -73,6 +73,17 @@ PanelWindow {
     onPressed: BackdropManager.clickedOutside()
   }
 
+  // Where the compositor blurs only what a window asks: the dim, as it
+  // slides, while backdrops blur (LayerStack.blurBackdrops)
+  BackgroundEffect.blurRegion: BlurManager.backdropRegions ? fillBlur : null
+  BoxBlurRegion {
+    id: fillBlur
+    target: fill
+    moving: slideOffset.y
+    opacity: fill.opacity
+    threshold: 0.01
+  }
+
   Rectangle {
     id: fill
     anchors.fill: parent

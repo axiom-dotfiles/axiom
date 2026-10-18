@@ -8,6 +8,7 @@ import QtQuick.Shapes
 import qs.config
 import qs.services
 import qs.components.hosts.popout
+import qs.components.methods
 import qs.components.reusable
 
 // One blur window (BlurBacking): click-through, drawing each of `shapes`
@@ -18,6 +19,9 @@ import qs.components.reusable
 // doesn't blur (BlurBacking).
 // The copies are keyed (KeyedModel): one coming or going adds or removes
 // only its own, so the others aren't remade (and don't restart).
+// Where the compositor blurs only what a window asks (niri:
+// supports.blurRegion), it asks for its shapes alone, as drawn: with no
+// alpha threshold there, the whole window would blur, its shadows too.
 PanelWindow {
   id: backing
   // The shapes it draws
@@ -59,6 +63,67 @@ PanelWindow {
     layer: backing.stackLayer
     wanted: backing.wanted
     held: backing.held
+  }
+
+  // Its shapes as its blur region, where the compositor blurs only that
+  // (supports.blurRegion): each shape's pieces as drawn, at its place on
+  // the screen and cut to its clipRect; none while it draws nothing
+  readonly property bool regionBlur: CompositorManager.supports.blurRegion === true && backing.part !== "shadows" && backing.wanted
+  readonly property var regionPieces: backing.regionBlur ? [].concat(...backing.shapes.map(shape => backing._piecesOf(shape))) : []
+
+  // reads: a shape's source (AttachedSurface, Rectangle, RoundedBorders)
+  function _piecesOf(shape) {
+    const src = shape?.source ?? null;
+    if (!src || !shape.shown)
+      return [];
+    const clip = shape.clipRect ?? {
+      "x": 0,
+      "y": 0,
+      "width": backing.width,
+      "height": backing.height
+    };
+    if (shape.kind === "frame") {
+      // The screen less the stroke's inner side, as frameMirror draws it
+      const w = backing.width, h = backing.height;
+      const x0 = src.innerLeft, y0 = src.innerTop, x1 = w - src.innerRight, y1 = h - src.innerBottom;
+      return SurfaceOutline.placeRegion([
+        {
+          "x": src.outerLeft,
+          "y": src.outerTop,
+          "width": w - src.outerRight - src.outerLeft,
+          "height": h - src.outerBottom - src.outerTop,
+          "cuts": [
+            {
+              "x": x0,
+              "y": y0,
+              "width": x1 - x0,
+              "height": y1 - y0,
+              "ellipse": false,
+              "radius": Math.max(0, Math.min(src.innerRadius, (x1 - x0) / 2, (y1 - y0) / 2))
+            }
+          ]
+        }
+      ], 0, 0, clip);
+    }
+    const pieces = shape.kind === "rect" ? [
+      {
+        "x": 0,
+        "y": 0,
+        "width": src.width,
+        "height": src.height,
+        "topLeft": src.topLeftRadius,
+        "topRight": src.topRightRadius,
+        "bottomLeft": src.bottomLeftRadius,
+        "bottomRight": src.bottomRightRadius
+      }
+    ] : src.blurPieces();
+    return SurfaceOutline.placeRegion(pieces, shape.x, shape.y, clip);
+  }
+
+  BackgroundEffect.blurRegion: backing.regionBlur ? blurRegion : null
+  BlurRegion {
+    id: blurRegion
+    pieces: backing.regionPieces
   }
 
   WlrLayershell.namespace: backing.layerNamespace

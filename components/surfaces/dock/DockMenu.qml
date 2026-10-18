@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Wayland
 
 import qs.config
 import qs.services
@@ -59,6 +60,15 @@ PopupWindow {
     windows: [root, root.grabWindow].concat(ShellManager.modalWindows)
     active: root.visible && root.full
     onCleared: root.close()
+  }
+
+  // Where the compositor blurs only what a window asks: the box, as
+  // Hyprland blurs layers' popups
+  BackgroundEffect.blurRegion: BlurManager.regions && !box.solid ? boxBlur : null
+  BoxBlurRegion {
+    id: boxBlur
+    target: box
+    radius: box.radius
   }
 
   StyledContainer {

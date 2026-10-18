@@ -1,6 +1,6 @@
 # Translucency and blur
 
-> **Files:** `config/Appearance.qml`, `services/BlurManager.qml`, `components/methods/HyprLua.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/views/settings/TranslucencyStatus.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`
+> **Files:** `config/Appearance.qml`, `services/BlurManager.qml`, `components/reusable/BlurRegion.qml`, `components/reusable/BoxBlurRegion.qml`, `components/methods/NiriConf.qml`, `components/methods/HyprLua.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/views/settings/TranslucencyStatus.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`
 > **Config:** `Appearance.surface.opacity`, `WindowLook.surfaceBlur*` (`surfaceBlur`, `surfaceBlurThroughWindows`, `surfaceBlurBackdrops`, `surfaceBlurPauseFullscreen`)
 > **Related:** [Blur window and openings](blur-window-openings.md), [Window look](../compositor/window-look.md), [Popout registry](../popouts/registry.md)
 
@@ -27,19 +27,29 @@ The translucency setting, how fills apply it, the Hyprland layer rules axiom wri
 - Accent colors and hover tints are left alone.
 
 ### Hyprland layer rules
-Written by `HyprLua.blurLua` (HyprlandConfigWriter's `_blurLua`, `M.blur()` in the module). The named layer rules are always written, `enabled` or not, since a rule is taken back by redefining it (no reload).
-- `axiom-blur`, on the namespaces that blur themselves (`HyprLua.blurSurfaces`: the blur window, the overlay, the floating launcher and switcher, notifications, …):
+Written by `HyprLua.blurLua` from `CompositorLayer.surfaceBlur`'s rule groups (the ones SwayFX's `layer_effects` and niri's xray rules are written from too), handed `spec.surfaces` (`M.blur()` in the module). The named layer rules are always written, `enabled` or not, since a rule is taken back by redefining it (no reload).
+- `axiom-blur`, on the namespaces that blur themselves (`LayerStack.blurSurfaces`: the blur window, the overlay, the floating launcher and switcher, notifications, …):
   - `blur_popups`, and `ignore_alpha` at the threshold. The big transparent windows need it; shadows are capped under the threshold while blurring (`Bar.shadowColor`).
   - `xray` is always written, off with `surfaceBlurThroughWindows`. Left out, a layer takes `decoration.blur.xray`, which the window look turns on.
-- `axiom-blur-popups`, on the chrome's own namespaces (`HyprLua.blurChrome`), for their popups alone (tooltips, the dock's menu):
+- `axiom-blur-popups`, on the chrome's own namespaces (`LayerStack.blurChrome`), for their popups alone (tooltips, the dock's menu):
   - Hyprland blurs a layer's popups whether or not the layer blurs, never with xray, and with its `ignore_alpha`.
   - So a bar popout, a popup drawn transparent over the blur window, blurs only under its content.
-- `axiom-blur-over-overlay`, on the blur window over the overlay (`HyprLua.blurOverOverlay`): `blur`, `ignore_alpha` at the threshold, and always `xray = false`, since it blurs the overlay under it.
+- `axiom-blur-over-overlay`, on the blur window over the overlay (`LayerStack.blurOverOverlay`): `blur`, `ignore_alpha` at the threshold, and always `xray = false`, since it blurs the overlay under it.
 - `axiom-blur-backdrops`, on `axiom-backdrop` and polkit (whose window holds its dim), at any alpha.
-- `axiom-blur-no-anim`: `no_anim` on `HyprLua.blurBacked`, the windows the blur window draws for, while it does.
+- `axiom-blur-no-anim`: `no_anim` on `LayerStack.blurBacked`, the windows the blur window draws for, while it does.
   - They slide themselves. Hyprland fading or popping one in (its `layers`/`fade` animations, read as it maps) would leave its stroke and content behind the fill, blur and shadow drawn for it, which it doesn't animate.
 - That's all it writes: the strength is Hyprland's own blur.
 - The module file holds the setting as saved (`_surfacesBlur(true)`). At runtime it's `BlurManager.active`, evaluated over the file after every reload.
+
+### niri: blur regions
+niri (26.04) blurs a layer rule's whole rectangle, with no alpha threshold, so a rule would frost axiom's full-screen windows edge to edge. Instead each window sends what blurs through ext-background-effect (`supports.blurRegion`, Quickshell's `BackgroundEffect.blurRegion`):
+- The blur window sends its shapes as drawn (`BlurBackingWindow.regionPieces`): an `AttachedSurface`'s fill (`blurPieces()`, from `SurfaceOutline.blurRegion`: the box out to the stroke's outer edge, its far corners rounded, each fillet's square less its circle), a rect with its radii, and the border's frame (the screen less its inner rounded rect), each placed and cut to its `clipRect` (`SurfaceOutline.placeRegion`), through `reusable/BlurRegion`.
+  - Its shadows lie outside every region, so they stay in it unblurred: no `axiom-shadows` windows (`BlurBacking.shadowsApart`).
+- Each surface that blurs itself (`LayerStack.blurSurfaces`: the overlay's box and navigator, floating popouts, toasts, the power menu, the workspace overview, the monitor prompt, the dock's preview) and the chrome's popups (tooltips, the dock's menu) sends its box (`reusable/BoxBlurRegion`), mapped as it slides, scales and fades: nothing while it's under `Appearance.blurThreshold`, as Hyprland's `ignore_alpha` leaves it out.
+- Backdrops and polkit's dim send their whole rect while `blurBackdrops` (at any alpha, `threshold` 0.01).
+- They do while `BlurManager.regions` (`backdropRegions`): the pause and the screens never touch niri's config.
+- The module holds only xray: a `layer-rule` per `CompositorLayer.surfaceBlur` group that blurs (`NiriConf.surfaceBlurNodes`), xray off with `surfaceBlurThroughWindows`, always off over the overlay. niri marks non-xray blur experimental: it can vanish during open and close animations.
+- The strength is niri's `blur {}` (the window look's blur part writes it); `NiriManager.blur` reads it back from `scripts/niri_config.py info` (its offset as the size) for the Translucency card and the lock screen's frost.
 
 ### No reload per step
 - The window look and the blur are CompositorConfigManager's `_liveInputs`.

@@ -39,7 +39,7 @@ Sets the compositor up for axiom (the Compositor section's mode, CompositorConfi
 ### Functions
 
 - `isComplete(bind)`: Whether a configured bind has everything it needs to be bound
-- `spec(forFile)`: The window look and the input that are on, for a file (`forFile`) or for now: { look (CompositorLayer.look), surfaces ({ blur, throughWindows, backdrops }), input (CompositorLayer.input), surfacesBlu…
+- `spec(forFile)`: The window look and the input that are on, for a file (`forFile`) or for now: { look (CompositorLayer.look), surfaces ({ blur, throughWindows, backdrops, threshold }: CompositorLayer.surfaceBlur's), …
 - `checkManaged()`
 - `mergeUserBinds(only)`: `only`: one of the user's files (the adopted one), else all of them
 - `previewMerge()`: Counts what a Merge would move, changing nothing (`mergeable`)

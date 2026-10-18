@@ -106,6 +106,56 @@ QtObject {
   }
 
   /**
+   * What blurs behind axiom's surfaces, by namespace, as rule groups every
+   * backend renders in its own terms (HyprLua.blurLua's layer rules,
+   * SwayConf.fxLines' layer effects, NiriConf.surfaceBlurNodes' xray).
+   * `surfaces`: { blur, throughWindows, backdrops, threshold }
+   * (CompositorConfigManager.spec). Each row:
+   *   name        the rule's name
+   *   namespaces  LayerStack's names (without "axiom-")
+   *   on          whether it applies now
+   *   blur        the layers blur themselves
+   *   popups      their popups blur (alone, without blur)
+   *   threshold   the alpha under which pixels are left out, or null
+   *   xray        whether only the wallpaper is blurred, or null to leave
+   *   noAnim      the compositor doesn't animate them
+   */
+  function surfaceBlur(surfaces) {
+    const on = surfaces?.blur === true;
+    const xray = surfaces?.throughWindows !== true;
+    const threshold = surfaces?.threshold ?? null;
+    const row = (name, namespaces, rowOn, fields) => Object.assign({
+        "name": name,
+        "namespaces": namespaces,
+        "on": rowOn,
+        "blur": false,
+        "popups": false,
+        "threshold": null,
+        "xray": null,
+        "noAnim": false
+      }, fields);
+    return [row("axiom-blur", LayerStack.blurSurfaces, on, {
+        "blur": true,
+        "popups": true,
+        "threshold": threshold,
+        "xray": xray
+      }), row("axiom-blur-popups", LayerStack.blurChrome, on, {
+        "popups": true,
+        "threshold": threshold
+      }), row("axiom-blur-backdrops", LayerStack.blurBackdrops, on && surfaces?.backdrops === true, {
+        "blur": true,
+        "threshold": 0.01,
+        "xray": xray
+      }), row("axiom-blur-no-anim", LayerStack.blurBacked, on, {
+        "noAnim": true
+      }), row("axiom-blur-over-overlay", LayerStack.blurOverOverlay, on, {
+        "blur": true,
+        "threshold": threshold,
+        "xray": false
+      })];
+  }
+
+  /**
    * A compositor shadow that's a gaussian of sigma radius / 2 (SwayFX's,
    * niri's: their softness is a blur radius) standing in for axiom's own
    * (a soft one: MultiEffect's blur; look()'s shadow, its baseAlpha

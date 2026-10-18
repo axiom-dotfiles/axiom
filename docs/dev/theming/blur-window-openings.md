@@ -16,13 +16,13 @@ How the chrome's translucent surfaces share one blurred backing window, how thei
 - `shell/BlurBacking`: one click-through `axiom-blur-backing` window per screen (a `shell/BlurBackingWindow`), layer order 9 (under the chrome, over the backdrop).
   - It draws a copy of each shape (`AttachedSurfaceCopy`, an `AttachedSurface` `mirror`, its geometry bound to the source's, sliding with it; a strip that slides reads `SlideAnimation.slideX`/`slideY`).
   - All copies are drawn opaque and then at the surface opacity at once, so overlaps never stack.
-- It's the only one of these windows Hyprland blurs, in one pass. The overlay, the floating launcher and switcher, notifications and the other free-standing surfaces still blur themselves.
+- It's the only one of these windows the compositor blurs, in one pass (on niri only where it sends its shapes as its blur region: [translucency](translucency-blur.md) › niri: blur regions). The overlay, the floating launcher and switcher, notifications and the other free-standing surfaces still blur themselves.
 - The chrome draws its own outer fill transparent: `AttachedSurface.backed`, `BarContainer.backed`, `RoundedBorders.backed`.
 
 ### Over the overlay
 - The overlay (Overlay layer) covers the blur window. So while it's open on a screen (`BlurManager.aboveOverlay`), a second `BlurBackingWindow` there, `axiom-blur-backing-overlay`, draws the shapes of the surfaces on the Overlay layer (`BlurShape.overlayLayer`: bar popouts and their submenus, edge popouts, the OSD; a dock's preview has no origin and fills and blurs itself), and the first window drops them.
   - Its order (see `docs/dev/generated/layers.md`) puts it after the overlay and before every surface it draws for, and it maps without Hyprland's animation.
-  - Its blur rule never uses xray (`HyprLua.blurOverOverlay`): what it blurs is the overlay.
+  - Its blur rule never uses xray (`LayerStack.blurOverOverlay`): what it blurs is the overlay.
 - Only the Overlay-layer shapes move up. Drawn over the Top layer, a bar's fill would cover the bar's content.
 - Each window casts only its own shapes' shadows, but cuts them by every shape on the screen (`BlurBackingWindow.cutBy`, the other window's), as the one window does. So a popout's shadow never falls on the bar it's joined to.
 

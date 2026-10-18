@@ -301,4 +301,197 @@ QtObject {
       out.push(rect(0, -back, m.alongLength, back));
     return out.filter(r => r.width > 0 && r.height > 0);
   }
+
+  /**
+   * The fill as a blur region, for a compositor that blurs only what a
+   * window asks (supports.blurRegion): pieces in the item's coordinates,
+   * out to the stroke's outer edge, slid by `dx`/`dy` and cut to the item
+   * (as the slide clips it). Each piece is a rect { x, y, width, height,
+   * topLeft, topRight, bottomLeft, bottomRight (corner radii), cuts }, its
+   * `cuts` taken out of it alone ({ x, y, width, height, ellipse, radius }:
+   * a concave fillet's circle). Detached, the box with its far corners
+   * rounded as drawn and its near ones `near` ({ start, end }).
+   */
+  function blurRegion(s, m, w, h, dx, dy, near) {
+    const R = s.filletRadius, half = m.half, L = m.alongLength, back = m.back;
+    const outer = r => r > 0 ? r + half : 0;
+    const far = m.farV + half;
+    // Edge-local pieces: u, v, along, deep, corner radii (start/end, far/
+    // near) and circles cut out ({ u, v, r }: the centre)
+    const pieces = [];
+    if (s.detached) {
+      pieces.push({
+        "u": m.startMargin,
+        "v": m.boxStart,
+        "along": s.boxAlong,
+        "deep": s.boxDepth,
+        "startFar": outer(m.startCornerRadius),
+        "endFar": outer(m.endCornerRadius),
+        "startNear": near?.start ?? 0,
+        "endNear": near?.end ?? 0
+      });
+    } else {
+      // The box, back to the backfill's far side
+      const u0 = m.filletStart ? m.startMargin : 0, u1 = m.filletEnd ? L - m.endMargin : L;
+      pieces.push({
+        "u": u0,
+        "v": -back,
+        "along": u1 - u0,
+        "deep": back + far,
+        "startFar": s.joinStart ? 0 : outer(m.startCornerRadius),
+        "endFar": s.joinEnd ? 0 : outer(m.endCornerRadius)
+      });
+      if (back > 0)
+        pieces.push({
+          "u": 0,
+          "v": -back,
+          "along": L,
+          "deep": back
+        });
+      // The attach edge's fillets: their squares less the circle beyond
+      // their arc (out to the stroke's outer side, towards its centre)
+      if (m.filletStart && m.startMargin > 0)
+        pieces.push({
+          "u": 0,
+          "v": 0,
+          "along": m.startMargin,
+          "deep": half + R,
+          "cuts": [
+            {
+              "u": 0,
+              "v": half + R,
+              "r": R - half
+            }
+          ]
+        });
+      if (m.filletEnd && m.endMargin > 0)
+        pieces.push({
+          "u": L - m.endMargin,
+          "v": 0,
+          "along": m.endMargin,
+          "deep": half + R,
+          "cuts": [
+            {
+              "u": L,
+              "v": half + R,
+              "r": R - half
+            }
+          ]
+        });
+      // A joined end's fillet curving from the far wall into what it joins
+      if (s.joinStart && !m.straightJoinStart)
+        pieces.push({
+          "u": 0,
+          "v": m.farV,
+          "along": half + R,
+          "deep": R,
+          "cuts": [
+            {
+              "u": half + R,
+              "v": m.farV + R,
+              "r": R - half
+            }
+          ]
+        });
+      if (s.joinEnd && !m.straightJoinEnd)
+        pieces.push({
+          "u": L - half - R,
+          "v": m.farV,
+          "along": half + R,
+          "deep": R,
+          "cuts": [
+            {
+              "u": L - half - R,
+              "v": m.farV + R,
+              "r": R - half
+            }
+          ]
+        });
+    }
+    const out = pieces.filter(p => p.along > 0 && p.deep > 0).map(p => {
+      const r = rectFrom(s.edge, w, h, back, p.u, p.v, p.along, p.deep);
+      const piece = Object.assign({}, r, {
+        "topLeft": 0,
+        "topRight": 0,
+        "bottomLeft": 0,
+        "bottomRight": 0,
+        "cuts": (p.cuts ?? []).filter(c => c.r > 0).map(c => {
+          const at = toItem(s.edge, w, h, back, c.u, c.v);
+          return {
+            "x": at.x - c.r,
+            "y": at.y - c.r,
+            "width": c.r * 2,
+            "height": c.r * 2,
+            "ellipse": true,
+            "radius": 0
+          };
+        })
+      });
+      // Each corner's radius onto the item corner it lands on
+      const corner = (u, v, radius) => {
+        if (!(radius > 0))
+          return;
+        const at = toItem(s.edge, w, h, back, u, v);
+        const left = Math.abs(at.x - r.x) < Math.abs(at.x - (r.x + r.width));
+        const top = Math.abs(at.y - r.y) < Math.abs(at.y - (r.y + r.height));
+        piece[(top ? "top" : "bottom") + (left ? "Left" : "Right")] = radius;
+      };
+      corner(p.u, p.v + p.deep, p.startFar);
+      corner(p.u + p.along, p.v + p.deep, p.endFar);
+      corner(p.u, p.v, p.startNear);
+      corner(p.u + p.along, p.v, p.endNear);
+      return piece;
+    });
+    return placeRegion(out, dx ?? 0, dy ?? 0, {
+      "x": 0,
+      "y": 0,
+      "width": w,
+      "height": h
+    });
+  }
+
+  /**
+   * Blur region pieces (blurRegion's) moved by `dx`/`dy` and cut to `clip`
+   * ({ x, y, width, height }, null for none), in whole pixels (a region's):
+   * a piece cut short keeps its corners' radii, no bigger than it is.
+   */
+  function placeRegion(pieces, dx, dy, clip) {
+    const out = [];
+    for (const p of pieces) {
+      let x0 = p.x + dx, y0 = p.y + dy, x1 = x0 + p.width, y1 = y0 + p.height;
+      if (clip) {
+        x0 = Math.max(x0, clip.x);
+        y0 = Math.max(y0, clip.y);
+        x1 = Math.min(x1, clip.x + clip.width);
+        y1 = Math.min(y1, clip.y + clip.height);
+      }
+      x0 = Math.floor(x0);
+      y0 = Math.floor(y0);
+      x1 = Math.ceil(x1);
+      y1 = Math.ceil(y1);
+      if (x1 <= x0 || y1 <= y0)
+        continue;
+      const most = Math.floor(Math.min(x1 - x0, y1 - y0) / 2);
+      const radius = r => Math.min(most, Math.round(r ?? 0));
+      out.push({
+        "x": x0,
+        "y": y0,
+        "width": x1 - x0,
+        "height": y1 - y0,
+        "topLeft": radius(p.topLeft),
+        "topRight": radius(p.topRight),
+        "bottomLeft": radius(p.bottomLeft),
+        "bottomRight": radius(p.bottomRight),
+        "cuts": (p.cuts ?? []).map(c => ({
+              "x": Math.round(c.x + dx),
+              "y": Math.round(c.y + dy),
+              "width": Math.round(c.width),
+              "height": Math.round(c.height),
+              "ellipse": c.ellipse === true,
+              "radius": Math.round(c.radius ?? 0)
+            }))
+      });
+    }
+    return out;
+  }
 }

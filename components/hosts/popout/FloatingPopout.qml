@@ -103,6 +103,16 @@ PopoutWrapperBase {
       item: root.closeOnClickOutside ? surfaceWindow.contentItem : box
     }
 
+    // Where the compositor blurs only what a window asks: the box, as it
+    // scales open
+    BackgroundEffect.blurRegion: BlurManager.regions && !BlurManager.opaqueOn(root.screen) ? boxBlur : null
+    BoxBlurRegion {
+      id: boxBlur
+      target: box
+      opacity: box.opacity
+      radius: Appearance.borderRadius
+    }
+
     FocusGrab {
       id: focusGrab
       windows: [surfaceWindow].concat(root.grabWindows, ShellManager.modalWindows)

@@ -61,11 +61,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`WindowLook.surfaceBlurThroughWindows`** · boolean = true
   - Blur windows behind surfaces: Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Tooltips and menus always blur what's behind them.
   - x-group="Blur", x-showIf={"/Appearance.surface.opacity":{"not":100},"surfaceBlur":true}, x-enabledIf={"/$supports.blur":true}
-  - read: `Appearance.blurThroughWindows` · in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`
+  - read: `Appearance.blurThroughWindows` · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.surfaceBlurBackdrops`** · boolean = false
   - Blur backdrops: Also blur the whole screen behind the overlay, launcher, power menu and workspace overview. Costs more while they open.
   - x-group="Blur", x-showIf={"/Appearance.surface.opacity":{"not":100},"surfaceBlur":true}, x-enabledIf={"/$supports.blur":true}
-  - read: `Appearance.blurBackdrops` (computed) · in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`
+  - read: `Appearance.blurBackdrops` (computed) · in: `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - **`WindowLook.surfaceBlurPauseFullscreen`** · boolean = true
   - Pause blur over fullscreen apps: While a fullscreen window (a game, a video) is open, nothing blurs, so a volume popup or notification over it costs nothing extra. Surfaces on that monitor turn opaque; elsewhere they stay translucent, unblurred.
   - x-scope="machine", x-group="Blur", x-showIf={"/Appearance.surface.opacity":{"not":100},"surfaceBlur":true}, x-enabledIf={"/$supports.blur":true}
@@ -214,7 +214,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.iconFamily` (string): Icons are Material Symbols names drawn in this font (StyledIcon), so they don't depend on the text font
   - in: `components/content/TopProcesses.qml`, `components/reusable/StyledIcon.qml`, `components/surfaces/onboarding/pages/ChecksPage.qml`, `services/DependencyManager.qml`
 - `Appearance.borderRadius` (int): --- Shape ---
-  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/EdgeSurface.qml`, `components/hosts/popout/FloatingPopout.qml` (+14 more)
+  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/EdgeSurface.qml` (+16 more)
 - `Appearance.connectorGap` (int): The gap a surface growing out of an edge keeps between its box and that edge, which its fillets curve across (AttachedSurface, EdgeAttach)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/SubPopout.qml`
 - `Appearance.borderWidth` (int)
@@ -232,13 +232,13 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.blur` (bool)
   - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/settings/TranslucencyStatus.qml`, `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - `Appearance.blurBackdrops` (bool)
-  - in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`
+  - in: `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - `Appearance.blurThroughWindows` (bool): Blurring what's under each surface, windows included, rather than the wallpaper alone (xray), which every surface shares
-  - in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`
+  - in: `services/CompositorConfigManager.qml`
 - `Appearance.blurPauseFullscreen` (bool): Nothing blurs while a fullscreen window is open (BlurManager.active)
   - in: `services/BlurManager.qml`
 - `Appearance.blurThreshold` (real)
-  - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `services/HyprlandConfigWriter.qml`
+  - in: `components/reusable/BoxBlurRegion.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `services/CompositorConfigManager.qml`
 - `Appearance.shadowAlphaMax` (real): A shadow's darkest alpha while blurring: under the threshold, so its halo isn't blurred (the blur window casts the chrome's, and Hyprland blurs the chrome's po…
   - in: `config/Bar.qml`
 - `Appearance.fill(color)`: A surface fill (a theme color, or a name or "#hex" as Theme.resolveColor gives one) at the surface opacity

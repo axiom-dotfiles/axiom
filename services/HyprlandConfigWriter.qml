@@ -107,17 +107,6 @@ Singleton {
     return HyprConfigLua.bindLua(bind, _bindCtx) !== "";
   }
 
-  // The blur behind axiom's surfaces, its rules written on or off
-  // (HyprLua.blurLua); `on`: whether axiom's surfaces blur
-  function _blurLua(on) {
-    return HyprLua.blurLua({
-      "on": on,
-      "threshold": Appearance.blurThreshold,
-      "throughWindows": Appearance.blurThroughWindows,
-      "backdrops": Appearance.blurBackdrops
-    });
-  }
-
   function _stripsLua() {
     return HyprLua.stripsLua(WorkspacesConfig.strips, ConfigManager.configSchema?.properties?.Workspaces, WorkspacesConfig.stripOptions);
   }
@@ -139,7 +128,7 @@ Singleton {
       "binds": HyprConfigLua.bindLines(KeybindsConfig.binds, _bindCtx),
       "look": HyprLua.lookLua(spec.look, schema?.WindowLook),
       "input": HyprLua.inputLua(spec.input, schema?.Input),
-      "blur": _blurLua(spec.surfacesBlur),
+      "blur": HyprLua.blurLua(spec.surfaces),
       "layers": HyprLua.layerRulesLua(),
       "monitors": HyprLua.monitorsLua(MonitorsConfig.profiles),
       "strips": _stripsLua()
@@ -199,7 +188,7 @@ Singleton {
   // The look, the input and the blur as Lua lines evaluated now, from
   // `spec` (CompositorConfigManager.spec(false))
   function liveLines(spec) {
-    return _lookLua(spec.look, spec.input).concat(_blurLua(spec.surfacesBlur));
+    return _lookLua(spec.look, spec.input).concat(HyprLua.blurLua(spec.surfaces));
   }
 
   // CompositorConfigManager's: the live lines, noting which parts they

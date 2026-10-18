@@ -118,6 +118,16 @@ Scope {
         }
       }
 
+      // Where the compositor blurs only what a window asks: the overview's
+      // panel
+      BackgroundEffect.blurRegion: BlurManager.regions ? overviewBlur : null
+      BoxBlurRegion {
+        id: overviewBlur
+        target: overview
+        opacity: content.opacity
+        radius: Appearance.borderRadius
+      }
+
       Item {
         id: content
         anchors.fill: parent

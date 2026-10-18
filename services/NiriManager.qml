@@ -42,10 +42,14 @@ Singleton {
   }
   // niri doesn't say how far it scrolls a strip, so the overview fits it
   readonly property real splitWidthMultiplier: 1
-  readonly property var blur: ({
-      "enabled": false,
-      "size": 0,
-      "passes": 0
+  // niri's blur as in effect, { enabled, size, passes }: the config's
+  // (niri_config.py info), its offset as the size (NiriConf.lookNodes
+  // writes the window look's size as the offset), niri's defaults until
+  // read
+  property var blur: ({
+      "enabled": true,
+      "size": 3,
+      "passes": 3
     })
   // niri doesn't stack layers by axiom's order: LayerManager maps them in
   // order itself, from the start
@@ -68,7 +72,10 @@ Singleton {
   // tabs are its window groups. No outputCapture: it has only
   // wlr-screencopy, which crashes Quickshell's own capture
   // (ScreenshotManager.grimFrames). No layerFrameSync: another layer's
-  // change can show a frame or so after the one sliding.
+  // change can show a frame or so after the one sliding. It blurs behind
+  // the shell's surfaces where each window says (blurRegion: no alpha
+  // threshold, a layer rule would blur the whole window), its
+  // ext-background-effect.
   readonly property var supports: ({
       "configModes": true,
       "keybinds": true,
@@ -83,6 +90,8 @@ Singleton {
       "windowRounding": true,
       "windowGaps": true,
       "windowBlur": true,
+      "blur": true,
+      "blurRegion": true,
       "windowShadow": true,
       "windowOpacity": true,
       "windowGroups": true,
@@ -114,12 +123,6 @@ Singleton {
       "mouseDrag": root._configModKey + " + mouse:272",
       "mouseResize": root._configModKey + " + mouse:273"
     })
-
-  // What niri does instead (CompositorManager.unsupportedNote).
-  // I18n.tr("niri blurs windows, but not behind the shell's surfaces yet.")
-  function unsupportedHint(capability) {
-    return capability === "blur" ? I18n.tr("niri blurs windows, but not behind the shell's surfaces yet.") : "";
-  }
 
   // Reads the outputs again (the rest comes as events)
   function refresh() {
@@ -466,7 +469,7 @@ Singleton {
   // What niri's Mod stands for, as axiom names it ("SUPER")
   property string _configModKey: "SUPER"
 
-  // The gaps, struts, layouts and mod key the config niri runs sets
+  // The gaps, struts, layouts, mod key and blur the config niri runs sets
   // (niri_config.py info)
   function _readConfig() {
     // Reads finish in any order: only the last asked for counts (the
@@ -483,6 +486,13 @@ Singleton {
         };
         root._configLayouts = info.layouts;
         root._configModKey = info.modKey || "SUPER";
+        const blur = {
+          "enabled": info.blur?.enabled !== false,
+          "size": Number(info.blur?.offset) || 0,
+          "passes": Number(info.blur?.passes) || 0
+        };
+        if (JSON.stringify(blur) !== JSON.stringify(root.blur))
+          root.blur = blur;
       } catch (e) {}
     });
   }

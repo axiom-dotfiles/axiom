@@ -156,6 +156,16 @@ PanelWindow {
   WlrLayershell.layer: WlrLayer.Overlay
   WlrLayershell.namespace: "axiom-powermenu"
 
+  // Where the compositor blurs only what a window asks: the card, as it
+  // fades and scales in
+  BackgroundEffect.blurRegion: BlurManager.regions ? cardBlur : null
+  BoxBlurRegion {
+    id: cardBlur
+    target: card
+    opacity: card.opacity
+    radius: Appearance.borderRadius
+  }
+
   Item {
     anchors.fill: parent
     // Keys can't attach to the window itself

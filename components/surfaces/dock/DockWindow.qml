@@ -487,6 +487,14 @@ Scope {
       height: root.vertical ? alongLength : crossDepth
     }
 
+    // A preview fills and blurs itself: where the compositor blurs only
+    // what a window asks, its shape as drawn
+    BackgroundEffect.blurRegion: root.preview && BlurManager.regions ? previewBlur : null
+    BlurRegion {
+      id: previewBlur
+      pieces: root.preview && BlurManager.regions ? SurfaceOutline.placeRegion(surface.blurPieces(), surface.x, surface.y, null) : []
+    }
+
     // Where the window is on screen: the blur window draws the dock's fill
     // (BlurManager) from there; not a preview's, drawn over the overlay
     LayerOrigin {

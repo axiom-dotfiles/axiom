@@ -202,25 +202,11 @@ QtObject {
   // The chrome (the border, bars and their popouts, edge popouts and
   // menus, docks) doesn't blur itself: the blur window (BlurManager,
   // shell/BlurBacking) draws its fills and is blurred in their place. The
-  // rest blur themselves, their popups too.
-  readonly property var blurSurfaces: LayerStack.blurSurfaces
-  // The chrome's own windows, for their popups alone (tooltips, the dock's
-  // menu): Hyprland blurs a layer's popups whether or not the layer blurs.
-  // A submenu (SubPopout, a popup of its popout's window) is drawn
-  // transparent over the blur window, so ignore_alpha leaves all but its
-  // content out.
-  readonly property var blurChrome: LayerStack.barLayers.concat(["popout", "popout-under", "edge-popout", "edge-menu", "dock"])
-  // Backdrops (and the polkit prompt, whose window holds its own dim) blur
-  // only when asked: the whole screen, at every alpha.
-  readonly property var blurBackdrops: LayerStack.blurBackdrops
-  // The windows whose fill, blur and shadow the blur window draws: not
-  // animated by Hyprland while it does (they slide themselves), or their
-  // stroke and content fade or pop in and out while what the blur window
-  // draws for them doesn't
-  readonly property var blurBacked: LayerStack.barLayers.concat(["border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"])
-  // The blur window over the overlay: what it blurs is the overlay, so
-  // never with xray (which would blur the wallpaper in its place)
-  readonly property var blurOverOverlay: LayerStack.blurOverOverlay
+  // rest blur themselves, their popups too. What blurs is
+  // CompositorLayer.surfaceBlur's, shared with SwayFX and niri; Hyprland
+  // blurs a layer's popups whether or not the layer blurs, so the chrome's
+  // (a submenu drawn transparent over the blur window) are left to
+  // ignore_alpha.
 
   function _blurRule(name, namespaces, effects, enabled) {
     return `hl.layer_rule({ name = ${string(name)}, match = { namespace = ${string(`^axiom-(${namespaces.join("|")})$`)} }, ${effects}, enabled = ${enabled} })`;
@@ -229,17 +215,28 @@ QtObject {
   /**
    * Lua lines for the blur behind axiom's surfaces: named layer rules,
    * always written, `enabled` or not, since a rule is taken back by
-   * redefining it (no reload). `opts`: { on, threshold, throughWindows
-   * (xray off), backdrops }. xray is always written: left out, a layer
-   * takes decoration.blur.xray, which the window look turns on. Nothing
-   * blurs while Hyprland's blur is off.
+   * redefining it (no reload). `surfaces`: { blur, threshold,
+   * throughWindows (xray off), backdrops } (CompositorConfigManager.spec).
+   * xray is always written where it's decided: left out, a layer takes
+   * decoration.blur.xray, which the window look turns on. Nothing blurs
+   * while Hyprland's blur is off.
    * A rule read as a surface maps (no_anim) applies from the next one.
    */
-  function blurLua(opts) {
-    const on = opts.on === true;
-    const threshold = value(opts.threshold);
-    const xray = `, xray = ${opts.throughWindows !== true}`;
-    return [_blurRule("axiom-blur", blurSurfaces, `blur = true, blur_popups = true, ignore_alpha = ${threshold}${xray}`, on), _blurRule("axiom-blur-popups", blurChrome, `blur_popups = true, ignore_alpha = ${threshold}`, on), _blurRule("axiom-blur-backdrops", blurBackdrops, `blur = true, ignore_alpha = 0.01${xray}`, on && opts.backdrops === true), _blurRule("axiom-blur-no-anim", blurBacked, "no_anim = true", on), _blurRule("axiom-blur-over-overlay", blurOverOverlay, `blur = true, ignore_alpha = ${threshold}, xray = false`, on)];
+  function blurLua(surfaces) {
+    return CompositorLayer.surfaceBlur(surfaces).map(rule => {
+      const effects = [];
+      if (rule.blur)
+        effects.push("blur = true");
+      if (rule.popups)
+        effects.push("blur_popups = true");
+      if (rule.threshold !== null)
+        effects.push(`ignore_alpha = ${value(rule.threshold)}`);
+      if (rule.xray !== null)
+        effects.push(`xray = ${rule.xray}`);
+      if (rule.noAnim)
+        effects.push("no_anim = true");
+      return _blurRule(rule.name, rule.namespaces, effects.join(", "), rule.on);
+    });
   }
 
   // --- Strips (Workspaces.strips, WorkspacesConfig.strips) ---

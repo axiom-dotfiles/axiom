@@ -236,7 +236,7 @@ TestCase {
       "look": HyprLua.lookLua(spec, root.WindowLook),
       "input": HyprLua.inputLua(CompositorLayer.input(inputValues), root.Input),
       "blur": HyprLua.blurLua({
-        "on": true,
+        "blur": true,
         "threshold": 0.5,
         "throughWindows": true,
         "backdrops": true

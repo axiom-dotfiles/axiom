@@ -10,7 +10,7 @@ import qs.services
 // The blur behind the chrome (BlurManager): per screen, one click-through
 // window under every chrome surface drawing each registered shape (the
 // border's frame, bars, popouts, edge menus, docks) filled. It's the only
-// one of them Hyprland blurs (HyprLua.blurSurfaces), in one pass, so where
+// one of them the compositor blurs (LayerStack.blurSurfaces), in one pass, so where
 // surfaces join their blur matches exactly. Their shadows are cast here
 // too, from the same copies: one per look (BlurShape.shadow), kept only
 // outside every shape, so a shadow runs unbroken round joined surfaces as
@@ -19,7 +19,9 @@ import qs.services
 // (Appearance.shadowAlphaMax), so they aren't blurred. A compositor whose
 // blur has no such threshold (SwayFX's blur_ignore_transparent leaves out
 // only clear pixels; no supports.blurThreshold) would blur every pixel of
-// them: a window beside each one, not blurred, casts them instead.
+// them: a window beside each one, not blurred, casts them instead. Where
+// it blurs only what a window asks (niri: supports.blurRegion), the
+// window asks for its shapes alone, so its shadows stay in it unblurred.
 // While the overlay is open on a screen it covers that window, so a second
 // one, over the overlay and under the surfaces on the Overlay layer (bar
 // and edge popouts, submenus, the OSD), draws those surfaces' shapes
@@ -45,8 +47,9 @@ Scope {
       readonly property bool aboveOverlay: BlurManager.aboveOverlay(perScreen.screenName)
       readonly property var overlayShapes: perScreen.aboveOverlay ? perScreen.onScreen.filter(shape => shape.overlayLayer) : []
       readonly property var otherShapes: perScreen.aboveOverlay ? perScreen.onScreen.filter(shape => !shape.overlayLayer) : perScreen.onScreen
-      // Whether the shadows go to windows of their own
-      readonly property bool shadowsApart: CompositorManager.supports.blurThreshold !== true
+      // Whether the shadows go to windows of their own: where the blur
+      // would reach them (no threshold, no region of its own)
+      readonly property bool shadowsApart: CompositorManager.supports.blurThreshold !== true && CompositorManager.supports.blurRegion !== true
 
       // On Top, under the chrome; on Overlay (under every surface there,
       // by its order) while a fullscreen window hides the Top layer, for

@@ -32,6 +32,15 @@ PanelWindow {
   onVisibleChanged: visible ? ShellManager.registerModal(root) : ShellManager.unregisterModal(root)
   Component.onDestruction: ShellManager.unregisterModal(root)
 
+  // Where the compositor blurs only what a window asks: the card
+  BackgroundEffect.blurRegion: BlurManager.regions ? cardBlur : null
+  BoxBlurRegion {
+    id: cardBlur
+    target: card
+    opacity: card.opacity
+    radius: Appearance.borderRadius
+  }
+
   Rectangle {
     id: card
 

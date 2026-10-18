@@ -160,7 +160,7 @@ Singleton {
       "binds": NiriConf.bindsNode(_plan.apply, _bindCtx),
       "outputs": _outputsIn(path),
       "options": NiriConf.optionNodes(schema?.Workspaces, WorkspacesConfig.stripOptions, false),
-      "look": NiriConf.lookNodes(spec.look),
+      "look": NiriConf.lookNodes(spec.look).concat(NiriConf.surfaceBlurNodes(spec.surfaces)),
       "input": NiriConf.inputNodes(spec.input, schema?.Input)
     };
   }

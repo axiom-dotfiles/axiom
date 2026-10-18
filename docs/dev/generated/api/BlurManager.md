@@ -10,6 +10,8 @@ The blur behind the shell's chrome: the border's frame, bars and their popouts, 
 - `paused` (readonly bool)
 - `active` (readonly bool)
 - `backing` (readonly bool): The surfaces leave their fill to the blur window: blurring, and its windows built (BlurBacking waits for the layer rules, as the chrome does)
+- `regions` (readonly bool): Whether a surface that blurs itself (LayerStack.blurSurfaces, the chrome's popups) asks the compositor to blur behind its box now, where it blurs only what a window asks (supports.blurRegion: no laye…
+- `backdropRegions` (readonly bool)
 - `shapes` (var): The registered BlurShapes; changes only as one comes or goes.
 
 ### Functions

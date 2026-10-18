@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Notifications
+import Quickshell.Wayland
 
 import qs.config
 import qs.services
@@ -140,6 +141,17 @@ PopupWindow {
     interval: root.duration
     running: !root.neverExpires && root.visible && !dragArea.containsMouse
     onTriggered: root.dismiss()
+  }
+
+  // Where the compositor blurs only what a window asks: the card, as it
+  // slides, fades and is dragged
+  BackgroundEffect.blurRegion: BlurManager.regions && !content.solid ? cardBlur : null
+  BoxBlurRegion {
+    id: cardBlur
+    target: content
+    moving: [card.y, dragShift.x]
+    opacity: card.opacity
+    radius: Appearance.borderRadius + 2
   }
 
   Item {
