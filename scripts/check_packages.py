@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-"""Check that the two package lists agree.
+"""Check that the three package lists agree.
 
-install.sh and components/methods/Packages.qml (the onboarder's install
-hints) each say what installs axiom's dependencies; this fails when they
-drift:
+install.sh, components/methods/Packages.qml (the onboarder's install hints)
+and the AUR PKGBUILDs (packaging/aur/*/PKGBUILD) each say what installs
+axiom's dependencies; this fails when they drift:
 - every key in install.sh's PACKAGES names the same Arch and Fedora package
   as Packages.packages (a COPR as Packages' `repo`, "download" as its
   `{ file, to }` with install.sh's ICON_FONT_URL and ICON_FONT_FILE, "-" and
   "n/a" as null)
 - every key install.sh's REQUIRED and FEATURES use is in PACKAGES
+- each PKGBUILD's depends are the Arch packages of REQUIRED (less git: a
+  package doesn't self-update), and its optdepends are exactly the Arch
+  packages of the compositors and of FEATURES
 
 Prints `error    <file>: <message>` per problem, as check_structure does.
 
@@ -23,6 +26,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 INSTALL = ROOT / "install.sh"
 PACKAGES_QML = ROOT / "components/methods/Packages.qml"
+PKGBUILDS = sorted((ROOT / "packaging/aur").glob("*/PKGBUILD"))
 DISTROS = ("arch", "fedora")
 COMPOSITORS = ("hyprland", "sway", "niri")
 
@@ -74,6 +78,18 @@ def same(cell, entry, font):
     return isinstance(entry, dict) and entry.get("name") == name and entry.get("repo") == repo
 
 
+def pkgbuild_arrays(path):
+    """depends and optdepends, as makepkg reads them"""
+    script = f'source "{path}"; printf "%s\\0" "${{depends[@]}}"; printf "\\1"; printf "%s\\0" "${{optdepends[@]}}"'
+    done = subprocess.run(["bash", "-c", script], capture_output=True, text=True, cwd=path.parent)
+    if done.returncode != 0:
+        error(path, f"can't be read: {done.stderr.strip()}")
+        return [], []
+    depends, optdepends = done.stdout.split("\1")
+    names = lambda items: [re.split(r"[<>=:]", item, maxsplit=1)[0].strip() for item in items.split("\0") if item]
+    return names(depends), names(optdepends)
+
+
 def main():
     text = INSTALL.read_text()
     rows = bash_array(text, "PACKAGES")
@@ -100,14 +116,28 @@ def main():
             if not same(cells[distro], packages[key].get(distro), font):
                 error(INSTALL, f"{key} on {distro} is {cells[distro]!r}, Packages.qml says {packages[key].get(distro)!r}")
 
+    feature_keys = []
     for feature in features:
         name, keys, _ = (feature.split("|") + ["", ""])[:3]
         for key in keys.split():
+            feature_keys.append(key)
             if key not in table:
                 error(INSTALL, f"feature {name!r} uses {key!r}, which isn't in PACKAGES")
     for key in required + list(COMPOSITORS):
         if key not in table:
             error(INSTALL, f"{key!r} isn't in PACKAGES")
+
+    arch = lambda keys: {table[key]["arch"] for key in keys if key in table and table[key]["arch"] not in ("-", "n/a")}
+    want_depends = arch(key for key in required if key != "git")
+    want_optdepends = arch(list(COMPOSITORS) + feature_keys) - want_depends
+    for path in PKGBUILDS:
+        depends, optdepends = pkgbuild_arrays(path)
+        if set(depends) != want_depends:
+            error(path, f"depends {sorted(depends)} aren't install.sh's required packages {sorted(want_depends)}")
+        for name in sorted(set(optdepends) - want_optdepends):
+            error(path, f"optdepends {name}, which no install.sh feature or compositor installs")
+        for name in sorted(want_optdepends - set(optdepends)):
+            error(path, f"no optdepends for {name} (install.sh offers it)")
 
 
 main()

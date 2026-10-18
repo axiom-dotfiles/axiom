@@ -10,7 +10,9 @@
 #              than the latest tag. Checks for a clean main that matches
 #              origin, runs the same checks as CI, opens git's editor on notes
 #              prefilled with the commits since the last tag, then tags and
-#              pushes. --dry-run stops before tagging.
+#              pushes. Last, it points the AUR package
+#              (packaging/aur/axiom-shell) at the new tag, for you to commit
+#              and push to the AUR. --dry-run stops before tagging.
 
 set -euo pipefail
 
@@ -21,7 +23,7 @@ version="" dry_run=false
 for arg in "$@"; do
   case "$arg" in
   --dry-run) dry_run=true ;;
-  -h | --help) sed -n '3,13p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+  -h | --help) sed -n '3,15p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
   -*) die "unknown option $arg" ;;
   *) version=$arg ;;
   esac
@@ -112,3 +114,21 @@ if command -v gh >/dev/null; then
     gh release create "$tag" --notes-from-tag --verify-tag
   fi
 fi
+
+# ─── The AUR package ─────────────────────────────────────────────────────────
+
+# Its PKGBUILD at the new tag: pkgver, pkgrel 1, the tag tarball's checksum
+# and .SRCINFO (docs/dev/packaging.md)
+aur=packaging/aur/axiom-shell
+url=$(sed -n "s/^url='\(.*\)'$/\1/p" "$aur/PKGBUILD")
+info "Pointing $aur at $tag"
+sum=$(curl -fsSL "$url/archive/refs/tags/$tag.tar.gz" | sha256sum | cut -d' ' -f1) ||
+  die "downloading $tag's tarball failed; update $aur/PKGBUILD by hand"
+sed -i -e "s/^pkgver=.*/pkgver=$version/" -e "s/^pkgrel=.*/pkgrel=1/" \
+  -e "s/^sha256sums=.*/sha256sums=('$sum')/" "$aur/PKGBUILD"
+if command -v makepkg >/dev/null; then
+  (cd "$aur" && makepkg --printsrcinfo >.SRCINFO)
+else
+  info "makepkg isn't installed: regenerate $aur/.SRCINFO on Arch (makepkg --printsrcinfo > .SRCINFO)"
+fi
+info "Commit $aur to main, then copy its PKGBUILD, axiom-shell.install and .SRCINFO into the AUR's axiom-shell repository and push them there"

@@ -33,7 +33,7 @@ CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
 # Where `qs -c axiom` looks for it
 QS_DIR=$CONFIG_HOME/quickshell/axiom
 AXIOM_DIR=${AXIOM_DIR:-$QS_DIR}
-# A distribution package's copy, with the marker the package writes
+# An AUR (or other) package's copy, with the marker its PKGBUILD writes
 PACKAGED_DIR=/usr/share/axiom
 
 # What installs each key (Packages.packages' keys, checked against it by
@@ -78,7 +78,8 @@ PACKAGES=(
 ICON_FONT_URL="https://github.com/google/material-design-icons/raw/master/variablefont/MaterialSymbolsRounded%5BFILL,GRAD,opsz,wght%5D.ttf"
 ICON_FONT_FILE=$HOME/.local/share/fonts/MaterialSymbolsRounded.ttf
 REQUIRED=(git quickshell jq python3 iconFont)
-# "feature|keys|compositors" (none listed: any), offered one at a time
+# "feature|keys|compositors" (none listed: any), offered one at a time;
+# the AUR package's optdepends say the same
 FEATURES=(
   "Wallpapers|awww|"
   "Themes generated from your wallpaper|py:numpy py:PIL|"
@@ -484,7 +485,7 @@ if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
   fi
 fi
 
-# Installed as a distribution package: `qs -c axiom` finds it
+# Installed as a package (the AUR's axiom-shell): `qs -c axiom` finds it
 # through /etc/xdg, so no clone, unless this runs from one
 packaged=0
 [[ -f "$PACKAGED_DIR/.packaged" ]] && ((!from_clone)) && ! is_axiom_clone "$AXIOM_DIR" && packaged=1

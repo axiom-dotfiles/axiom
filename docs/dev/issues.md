@@ -36,12 +36,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-17, while reviewing the shadow-on-or-off change
 
-### niri's overview drop moves a window's whole column
-- **Where:** `services/NiriManager.qml` (`placeWindow`)
-- **What:** Dropped beside or into another column on its own workspace (`reinsert`), a window is moved with `MoveColumnToIndex`, which moves the focused column: a window sharing its column with others takes them along. A drop onto another workspace moves only the window (`MoveWindowToWorkspace` by id). Expelling it from its column first (`ExpelWindowFromColumn`, which shifts the column indexes) would fix it; needs trying in `scripts/dev/nested.sh niri`.
-- **Size:** small
-- **Found:** 2026-10-17, while auditing the niri branch for merge
-
 ### A niri module refused in detached mode is only logged
 - **Where:** `services/NiriConfigWriter.qml` (`runtimeApply`), `services/CompositorConfigManager.qml` (`problem`)
 - **What:** In the file modes a module `niri validate` refuses sets `CompositorConfigManager.problem` (the Compositor card shows it). The detached mode's module (also the file modes' fallback) is checked the same way, but a refusal is only a `[NiriConfigWriter] niri refuses the config axiom made` warning in the log: the card says nothing, and niri keeps the module before. A raw bind niri refuses is the likely cause.
@@ -53,12 +47,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** Sway's and niri's own options are one card each, titled by the compositor. Hyprland's managed options are split by `x-group` into Layout, Decoration, Animations, Windows and Behaviour cards beside the compositor-neutral ones (Windows and focus, Mouse & cursor), and nothing on them says they're Hyprland's. Either one Hyprland card (about 30 rows), or group titles naming it.
 - **Size:** small
 - **Found:** 2026-10-17, while making niri's options one card
-
-### SwayFX blurs a floating popout's shadow halo
-- **Where:** `components/hosts/popout/FloatingPopout.qml` (its `SurfaceShadow`), `components/methods/LayerStack.qml` (`blurSurfaces`: `floating-popout`)
-- **What:** The floating popout blurs its own window and casts its shadow inside it. SwayFX's `blur_ignore_transparent` blurs every pixel that isn't fully clear, so its shadow shows as a frosted band (Hyprland's `ignore_alpha` leaves it out). The chrome's shadows are cast from a window apart on SwayFX (`axiom-shadows`); this one would need the same, or its shadow off there.
-- **Size:** small
-- **Found:** 2026-10-17, while fixing the chrome's shadows on SwayFX
 
 ### A greeter installed before v63 drops the monitor and keyboard layout
 - **Where:** `components/methods/GreeterBundle.qml` (`exportConfig`), `services/GreeterManager.qml`
@@ -93,12 +81,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 ### Any change of the mode to managed approves the takeover
 - **Where:** `services/CompositorConfigManager.qml` (`onModeChanged`)
 - **What:** Picking managed while axiom runs counts as approval, which includes editing config.json by hand or a sync tool writing it, not only the card's Save that `docs/dev/compositor/config-modes.md` describes. Imports keep `x-takeover`, so only direct edits reach it. Approving from SettingsManager's save only, or saying so in the doc.
-- **Size:** small
-- **Found:** 2026-10-16, while auditing the sway branch for merge
-
-### Sway's bind reading misses blocks and quoted outputs
-- **Where:** `components/methods/SwayConf.qml` (`configBinds`), `services/SwayConfigWriter.qml` (`monitorPattern`)
-- **What:** `bindsym { … }` blocks (the head applies to each inner line) aren't read, so axiom's runtime `bindsym --no-warn` overrides those keys; binds inside `bar { … }` count as main-mode binds. The monitor-rule check misses `output "Make Model Serial" …` and `output X { … }`.
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
@@ -144,12 +126,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while auditing the sway branch
 
-### Smart gaps make sway's gaps and reserved space wrong
-- **Where:** `components/methods/SwayState.qml` (`output`, `configInfo`), `services/SwayManager.qml` (`gapsOut`)
-- **What:** With `Sway.smartGaps` on (`smart_gaps on`), a workspace with one window has no gaps, but `gapsOut` still reports the configured ones, and `output().reserved` (the workspace rect less those gaps) comes out short by them. Bars and edge menus placed from `gapsOut` and the dock's `reserved` are then off by the gap on such a workspace. Needs per-workspace gaps (whether the active workspace has one tiled window).
-- **Size:** small
-- **Found:** 2026-10-16, while auditing the sway branch
-
 ### Overview drops on sway nest split containers
 - **Where:** `services/SwayManager.qml` (`placeWindow`)
 - **What:** A drop next to a window runs `split h|v` on the target every time, which wraps it in a new container even when its parent already splits that way, so repeated drops nest containers sway then draws as such (tabbed/stacked parents behave oddly). Split only when the parent's layout differs (the tree has it).
@@ -185,12 +161,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** A floating bar's automatic gap (`floatGap` -1) is the compositor's outer gaps (`CompositorManager.gapsOut`). With no backend (an unknown compositor) `gapsOut` is all 0, so a floating bar sits flush against the border. Sway's and niri's backends read their gaps from the config (`SwayState.configInfo`, `scripts/niri_config.py info`); decide what the gap is with no backend at all (a fixed default, or `Appearance.screenMargin`).
 - **Size:** small
 - **Found:** 2026-10-16, while testing layer order in nested sway
-
-### Blur behind axiom on niri
-- **Where:** `services/NiriManager.qml` (`supports`), `shell/BlurBackingWindow.qml`, `components/methods/SurfaceOutline.qml`
-- **What:** niri has no `blur` capability yet, so axiom's surfaces are solid there and the translucency setting is greyed out. niri blurs a layer surface's whole rect (a layer rule), not by its pixels' alpha as Hyprland and SwayFX do, so the full-screen blur window can't be blurred that way. It does take a region per surface (`ext-background-effect-v1`, Quickshell's `BackgroundEffect.blurRegion`): checked in nested niri 26.04, a rounded `Region` blurs exactly. What's missing is each `BlurShape` as a region: rects with their radius, the border frame as the screen less its inner rect, an attached surface as its box (`SurfaceOutline` metrics) with its fillets. Then `supports.blur`, with that region on the blur window.
-- **Size:** needs a plan
-- **Found:** 2026-10-17, while adding the niri backend
 
 ### niri reports no space reserved by bars, nor where tiled windows are
 - **Where:** `components/methods/NiriState.qml` (`outputs`, `windows`)

@@ -131,7 +131,7 @@ step "structure" python3 scripts/check_structure.py
 if printf '%s\n' "${changed[@]}" | grep -qE '\.(md|qml)$'; then
   step "doc citations" python3 scripts/check_docs.py
 fi
-if printf '%s\n' "${changed[@]}" | grep -qE '^(install\.sh|components/methods/Packages\.qml|scripts/check_packages\.py)'; then
+if printf '%s\n' "${changed[@]}" | grep -qE '^(install\.sh|components/methods/Packages\.qml|packaging/|scripts/check_packages\.py)'; then
   step "package lists" python3 scripts/check_packages.py
 fi
 if [[ ${#qml[@]} -gt 0 ]]; then

@@ -17,7 +17,7 @@ import qs.config
  * checks. Checks run once per qs launch (not per hot reload), daily, and
  * when the channel changes. Each release (or main's commit) is notified once.
  *
- * A packaged axiom (Paths.packaged) is updated by its
+ * A packaged axiom (the AUR's axiom-shell, Paths.packaged) is updated by its
  * package manager: this never checks, and its settings are hidden.
  *
  *   qs -c axiom ipc call selfUpdate check

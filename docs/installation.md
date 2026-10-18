@@ -61,6 +61,21 @@ It first prints its plan: the distribution, the compositor and each step. Then:
 Run from a text console (a TTY) outside a graphical session, it last offers to start the compositor. `--yes` answers yes to every question, `--minimal` installs only what's required, and `--dry-run` prints every command it would run and changes nothing. Running it again is safe. From a clone, run `./install.sh`: that clone is used wherever it is, and if it isn't at `~/.config/quickshell/axiom` (where `qs -c axiom` looks), the installer offers to link it there, or to move it.
 
 <details>
+<summary><b>From the AUR</b> (Arch, not published yet)</summary>
+
+> **Not on the AUR yet.** The packages are ready (`packaging/aur/`), but AUR account registration is closed for now, so they can't be published. Until then, use install.sh above, or build one yourself with `makepkg -si` in `packaging/aur/axiom-shell-git/`. Follow [#76](https://github.com/axiom-dotfiles/axiom/issues/76) for news, or to help.
+
+`axiom-shell` follows releases and `axiom-shell-git` the main branch:
+
+```bash
+paru -S axiom-shell
+```
+
+It installs axiom to `/usr/share/axiom` with the required packages; the compositor and each optional feature's packages are optional dependencies, so install the ones you want. `qs -c axiom` finds it (a clone in `~/.config/quickshell/axiom` runs instead, if you have one). Add the line that starts it to your compositor's config, as below. The package manager updates it, so **axiom updates** isn't in the settings, and the login screen runs the package's own copy.
+
+</details>
+
+<details>
 <summary><b>By hand</b>, or on another distribution</summary>
 
 Install the [requirements](#requirements), then clone into Quickshell's config directory:
@@ -142,7 +157,7 @@ The window look and **Input** (keyboard, mouse, touchpad, cursor) apply in every
 
 ## Updates
 
-axiom updates itself from the repository you cloned it from. It follows release tags (`v*`) by default, or every commit on `main` if you pick that channel under **Settings → Maintenance → axiom updates**. It checks when the shell starts and once a day, and the same page picks what happens next:
+Installed from the AUR, axiom updates with the rest of your system; restart it after an update. Otherwise, axiom updates itself from the repository you cloned it from. It follows release tags (`v*`) by default, or every commit on `main` if you pick that channel under **Settings → Maintenance → axiom updates**. It checks when the shell starts and once a day, and the same page picks what happens next:
 
 | Mode | What it does |
 | --- | --- |
@@ -182,6 +197,8 @@ Axiom can be your login screen, as a [greetd](https://sr.ht/~kennylevinsen/greet
   - **Local**: your clone as it is, whatever branch is checked out, uncommitted changes included. Use it to work on axiom. Any program running as you could change that code before your next **Update**, and then your password prompt is the only check, so the settings page warns you while it's on.
 
   Switching between them, or changing which channel axiom updates follow, needs an **Update** to take effect.
+
+  Installed from the AUR, there's no choice: the login screen runs the package's own copy in `/usr/share/axiom`, which only root can change, and `/usr/share/axiom-greeter` holds only its start-up scripts. The package manager updates it with the system; after an update, **Update** refreshes those scripts and the saved fallback config.
 
 - makes `/var/lib/axiom-greeter`. Its `config/` folder is yours: axiom exports the login screen's layout, look, theme, wallpapers and monitor layouts there whenever they change, so changing them needs no password. Only the parts of your config the login screen shows go there, and greetd's user can read them.
 - installs a polkit action, so Update and Remove ask for your password by name ("update or remove axiom's login screen") and run root's copy of the setup script rather than the one in your home folder.

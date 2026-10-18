@@ -14,7 +14,7 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 - `themePath` (readonly string)
 - `scriptsPath` (readonly string)
 - `resourcePath` (readonly string): What ships with axiom in config/: json/ (schema, theme defaults, emoji), themes/, i18n/
-- `packagedVersion` (readonly string): Installed as a distribution package: its version, from the marker the package writes ("" for a clone: docs/dev/packaging.md).
+- `packagedVersion` (readonly string): Installed as a package (the AUR's axiom-shell): its version, from the marker its PKGBUILD writes ("" for a clone: docs/dev/packaging.md).
 - `packaged` (readonly bool)
 - `userConfigPath` (readonly string): $XDG_CONFIG_HOME/axiom/: config.json and saved/
 - `statePath` (readonly string): Small persisted state (StateManager), $XDG_STATE_HOME/axiom/ui/.

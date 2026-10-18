@@ -1930,7 +1930,7 @@ class GreeterInstall(unittest.TestCase):
         self.assertEqual(self.run_script("check")["url"], "https://example.org/me/axiom.git")
 
     def package(self, version="1.2.0-1"):
-        """A packaged axiom at /usr/share/axiom, with the marker a package writes."""
+        """A packaged axiom at /usr/share/axiom, as its PKGBUILD lays it out."""
         package = self.root / "usr/share/axiom"
         for name in ["greeter.qml", "shell.qml", "scripts/greeter/greeter-session.sh", "scripts/greeter/hyprland.lua"]:
             (package / name).parent.mkdir(parents=True, exist_ok=True)

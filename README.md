@@ -210,12 +210,12 @@ Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axi
 ## Roadmap
 
 - **Other Wayland compositors**, beyond Hyprland, sway and niri
-- **Blur behind the shell on niri**
 - **More widgets** for bars and overlay pages
 - **More styles** for bars, widgets and menus
 - **More translations**
 - **Performance Improvements**
-- **Packages**: `axiom-shell` and `axiom-shell-git` for the AUR and COPR, and Nix
+- **Community Config Library and Showcase**
+- **Packages**: `axiom-shell` and `axiom-shell-git` for the AUR and COPR, and Nix. The AUR packages are ready but wait on AUR account registration reopening ([#76](https://github.com/axiom-dotfiles/axiom/issues/76))
 
 ## Acknowledgments
 

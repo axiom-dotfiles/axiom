@@ -1,18 +1,19 @@
-# Packaging: install.sh and packaged installs
+# Packaging: install.sh and the AUR packages
 
-> **Files:** `install.sh`, `scripts/check_packages.py`, `components/methods/Packages.qml`, `config/Paths.qml`
+> **Files:** `install.sh`, `packaging/aur/axiom-shell/PKGBUILD`, `packaging/aur/axiom-shell-git/PKGBUILD`, `scripts/check_packages.py`, `scripts/release.sh`, `components/methods/Packages.qml`, `config/Paths.qml`
 > **Config:** none
 > **Related:** [Self-update](features/self-update.md), [Greeter install](features/greeter-install.md), [Onboarding](features/onboarding.md), [Config manager](core/config-manager.md)
 
 How axiom gets onto a machine: the installer (a clone in the user's home) or a distribution package (root's copy in `/usr/share/axiom`). The user-facing side is `docs/installation.md`.
 
-### Two package lists, kept in step
-- `Packages.packages` (the onboarder's install hints) and install.sh's `PACKAGES` table both say what installs a dependency.
+### Three package lists, kept in step
+- `Packages.packages` (the onboarder's install hints), install.sh's `PACKAGES` table and the PKGBUILDs' `depends`/`optdepends` all say what installs a dependency.
 - They share keys: a command, a compositor by its lowercase name, `py:<module>`, `iconFont`, or a package without a command (`xdg-desktop-portal-gtk`).
 - `scripts/check_packages.py` (CI, `check_all.sh`, `verify.sh` when one of them changes) fails when:
   - an install.sh key's Arch or Fedora package differs from `Packages.packages` (a COPR is `owner/project:name` there and `{ name, repo }` here; `download` is `{ file, to }`, the same URL and file; `-` and `n/a` are `null`);
-  - a key in `REQUIRED`, `FEATURES` or a compositor isn't in `PACKAGES`.
-- Adding an optional feature: its keys in `Packages.packages` (if new), a `PACKAGES` row and a `FEATURES` row.
+  - a key in `REQUIRED` or `FEATURES` isn't in `PACKAGES`;
+  - a PKGBUILD's `depends` aren't `REQUIRED`'s Arch packages (less `git`), or its `optdepends` aren't exactly the compositors' and `FEATURES`' Arch packages.
+- Adding an optional feature: its keys in `Packages.packages` (if new), a `PACKAGES` row, a `FEATURES` row, and an `optdepends` line in both PKGBUILDs, in the same words.
 
 ### install.sh
 - One self-contained file, wrapped in `main` so `curl | bash` reads all of it first. Questions and the package manager read `/dev/tty`.
@@ -28,13 +29,20 @@ How axiom gets onto a machine: the installer (a clone in the user's home) or a d
 - **Packaged:** with `/usr/share/axiom/.packaged` and no clone, it skips the clone and only does packages and autostart.
 - **Testing:** `--dry-run` on the host, and real runs in `fedora:latest` / `archlinux:latest` containers with a sudo user and `AXIOM_REPO` pointing at a mounted clone (copy install.sh out of the clone first, or it treats the read-only mount as the install). Never run it for real on the dev machine.
 
-### What a package provides
-A distribution package installs axiom for every user, read-only:
-- The code in `/usr/share/axiom`, less what only development needs (tests, docs, CI, git hooks, `install.sh`, the check scripts, every `*.md`).
-- The marker `/usr/share/axiom/.packaged`, holding the package's version (`<version>-<release>`).
-- A link `/etc/xdg/quickshell/axiom` → `/usr/share/axiom`, so `qs -c axiom` finds it after `~/.config/quickshell/axiom` (a clone there still wins).
-- Nothing writes under the code ([config-manager.md](core/config-manager.md) › Where files live). Python's bytecode cache can't be written there either, which Python ignores; ship none, since bytecode for one Python version goes stale on the next.
-- No compositor as a hard dependency: any of Hyprland, sway (or SwayFX) and niri runs it.
+### The AUR packages
+Not on the AUR yet: AUR account registration is closed, so they wait in `packaging/aur/` until it reopens ([#76](https://github.com/axiom-dotfiles/axiom/issues/76), help wanted). The user docs describe installing them and say they aren't published.
+
+- `axiom-shell` (a release's tag tarball) and `axiom-shell-git` (main, `pkgver()` from `git describe`, `provides`/`conflicts` `axiom-shell`). The same `package()` otherwise.
+- **No compositor in `depends`:** pacman has no "one of"; `hyprland`, `sway` (which `swayfx` provides) and `niri` are `optdepends`. The package is the shell, not the session.
+- **Layout:**
+  - The code in `/usr/share/axiom`, less what only development needs (tests, docs, CI, git hooks, `install.sh`, the check scripts, every `*.md`).
+  - `/etc/xdg/quickshell/axiom` → `/usr/share/axiom`, so `qs -c axiom` finds it after `~/.config/quickshell/axiom` (a clone there still wins).
+  - The license in `/usr/share/licenses/<pkgname>/`.
+  - The marker `/usr/share/axiom/.packaged`, holding `pkgver-pkgrel`.
+- Nothing writes under the code ([config-manager.md](core/config-manager.md) › Where files live). Python's bytecode cache can't be written there either, which Python ignores; the package ships none, since bytecode for one Python version goes stale on the next.
+- `axiom-shell.install` prints the autostart lines on install, and to restart axiom on upgrade (pacman replaces files, which qs's watcher can miss).
+- **Releases:** `scripts/release.sh`, after pushing the tag, sets the release PKGBUILD's `pkgver`, `pkgrel=1` and the tarball's `sha256sums`, and regenerates `.SRCINFO` (`makepkg --printsrcinfo`). Committing that and pushing it to the AUR is the maintainer's step.
+- **Testing:** `makepkg` in a scratch copy of the folder, `namcap` on the PKGBUILD and the package (in an `archlinux` container if it isn't installed: its QML-module and `bash`/`sh` warnings are expected), and `tar -tf` the package to see its files.
 
 ### A packaged shell
 `Paths.packagedVersion` reads the marker beside the code (`Paths.packaged` when there is one). It changes:

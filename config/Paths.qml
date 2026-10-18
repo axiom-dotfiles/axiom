@@ -23,8 +23,8 @@ QtObject {
   // What ships with axiom in config/: json/ (schema, theme defaults,
   // emoji), themes/, i18n/
   readonly property string resourcePath: root.axiomPath + "config/"
-  // Installed as a distribution package: its version, from the marker the
-  // package writes ("" for a clone: docs/dev/packaging.md).
+  // Installed as a package (the AUR's axiom-shell): its version, from the
+  // marker its PKGBUILD writes ("" for a clone: docs/dev/packaging.md).
   // The package manager updates it (SelfUpdateManager stays off) and the
   // login screen runs it (GreeterManager)
   readonly property string packagedVersion: (FileManager.read(root.axiomPath + ".packaged") ?? "").trim()
