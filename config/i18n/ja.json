@@ -3092,6 +3092,10 @@
     "Active color": "アクティブ時の色",
     "Backs up /etc/greetd/config.toml, then changes only its default_session command, to start axiom's login screen in a compositor of its own (sway, else Hyprland).": "/etc/greetd/config.toml をバックアップしてから、default_session の command だけを変更し、専用のコンポジター（sway、なければ Hyprland）で axiom のログイン画面を起動するようにします。",
     "Each monitor's wallpaper, or a plain color.": "各モニターの壁紙、または単色です。",
-    "{0} (default)": "{0}（デフォルト）"
+    "{0} (default)": "{0}（デフォルト）",
+    "The login screen runs in a compositor of its own: sway, or Hyprland when sway isn't installed. Neither is, so it would always fall back to greetd's text login. Install sway (plain sway is enough):": "ログイン画面は専用のコンポジター（sway、sway がない場合は Hyprland）で動作します。どちらもインストールされていないため、常に greetd のテキストログインに切り替わります。sway をインストールしてください（通常の sway で十分です）:",
+    "The login screen runs in a compositor of its own: sway, or Hyprland when sway isn't installed. Neither is, so it would always fall back to greetd's text login. Install sway with your package manager.": "ログイン画面は専用のコンポジター（sway、sway がない場合は Hyprland）で動作します。どちらもインストールされていないため、常に greetd のテキストログインに切り替わります。パッケージマネージャーで sway をインストールしてください。",
+    "No compositor": "コンポジターなし",
+    "The login screen's compositor (Hyprland works too)": "ログイン画面のコンポジター（Hyprland でも可）"
   }
 }

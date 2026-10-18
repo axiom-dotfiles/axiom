@@ -21,6 +21,7 @@ FieldGroup {
     case "notInstalled":
       return Theme.warning;
     case "noGreetd":
+    case "noCompositor":
     case "checkFailed":
       return Theme.error;
     }
@@ -37,6 +38,8 @@ FieldGroup {
       return I18n.tr("Not installed");
     case "noGreetd":
       return I18n.tr("No greetd");
+    case "noCompositor":
+      return I18n.tr("No compositor");
     case "checking":
       return I18n.tr("Checking");
     case "checkFailed":

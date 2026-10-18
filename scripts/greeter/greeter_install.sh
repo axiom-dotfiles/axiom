@@ -30,7 +30,10 @@
 #                       the package manager updates it; the install folder
 #                       holds only scripts/greeter/ and the snapshot
 #                check      (no root) what's set up: prints { greetd,
-#                           agreety, displayManager, installed, configured,
+#                           agreety, compositor (what the login screen
+#                           runs in, as greeter-session.sh picks it:
+#                           "sway" | "hyprland" | "" for neither),
+#                           displayManager, installed, configured,
 #                           helper, installedSource ("git:tags" | "git:main"
 #                           | "local" | "package" | ""), url (git's), installedHash,
 #                           currentHash (for <source>: "" when the remote
@@ -224,6 +227,18 @@ current_hash() {
   fi
 }
 
+# The compositor greeter-session.sh starts the login screen in: sway, else
+# Hyprland (start-hyprland), where greetd's user finds them; "" for neither
+greeter_compositor() {
+  local dir
+  for dir in usr/local/bin usr/bin; do
+    [[ -x "$root/$dir/sway" ]] && { echo sway; return; }
+  done
+  for dir in usr/local/bin usr/bin; do
+    [[ -x "$root/$dir/start-hyprland" ]] && { echo hyprland; return; }
+  done
+}
+
 # greetd's default_session value of `key` (command, user), unquoted
 greetd_value() {
   [[ -f "$greetd_config" ]] || return 0
@@ -274,6 +289,7 @@ check)
   { [[ -x "$root/usr/bin/greetd" ]] || [[ -x "$root/usr/sbin/greetd" ]]; } && greetd=true
   agreety=false
   [[ -x "$root/usr/bin/agreety" ]] && agreety=true
+  compositor=$(greeter_compositor)
   dm=$(basename "$(readlink "$dm_link" 2>/dev/null)" .service)
   installed=false installed_hash=""
   if [[ -f "$install_dir/.greeter-hash" ]]; then
@@ -298,12 +314,12 @@ check)
   esac
   url=""
   [[ "$source" == git ]] && url=$(upstream_url)
-  jq -cn --argjson greetd "$greetd" --argjson agreety "$agreety" --arg dm "$dm" \
+  jq -cn --argjson greetd "$greetd" --argjson agreety "$agreety" --arg compositor "$compositor" --arg dm "$dm" \
     --argjson installed "$installed" --argjson configured "$configured" --argjson helper "$has_helper" \
     --arg installedSource "$installed_from" --arg url "$url" \
     --arg installedHash "$installed_hash" --arg currentHash "$(current_hash)" \
     --arg greeterUser "$(greetd_value user)" --argjson bundleWritable "$writable" \
-    '{greetd: $greetd, agreety: $agreety, displayManager: $dm, installed: $installed,
+    '{greetd: $greetd, agreety: $agreety, compositor: $compositor, displayManager: $dm, installed: $installed,
       configured: $configured, helper: $helper, installedSource: $installedSource, url: $url,
       installedHash: $installedHash, currentHash: $currentHash, greeterUser: $greeterUser,
       bundleWritable: $bundleWritable, error: ""}'
@@ -324,6 +340,7 @@ install | update)
   [[ -f "$greetd_config" ]] || fail "greetd isn't installed ($greetd_config is missing)"
   # The login screen's fallback: without it a broken greeter locks everyone out
   [[ -x "$root/usr/bin/agreety" ]] || fail "agreety (greetd's text login, the login screen's fallback) isn't installed"
+  [[ -n "$(greeter_compositor)" ]] || fail "neither sway nor Hyprland is installed: the login screen runs in one of them"
   [[ "$source" == git || "$source" == local || "$source" == package ]] || fail "unknown source: $source"
   [[ "$channel" == tags || "$channel" == main ]] || fail "unknown channel: $channel"
   if [[ "$source" == package ]]; then

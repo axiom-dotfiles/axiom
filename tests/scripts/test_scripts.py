@@ -1763,7 +1763,7 @@ class GreeterInstall(unittest.TestCase):
         self.original = ('[terminal]\nvt = 1\n\n[default_session]\n# the greeter\n'
                          f'command = "agreety --cmd /bin/sh"\nuser = "{self.user}"\n')
         self.config.write_text(self.original)
-        for name in ["greetd", "agreety"]:
+        for name in ["greetd", "agreety", "sway"]:
             program = self.root / "usr/bin" / name
             program.parent.mkdir(parents=True, exist_ok=True)
             program.write_text("#!/bin/sh\n")
@@ -1837,6 +1837,21 @@ class GreeterInstall(unittest.TestCase):
         # A content hash: it doesn't move with the clock
         time.sleep(1.1)
         self.assertEqual(self.run_script("hash", source="local"), local)
+
+    def test_compositor_the_login_screen_runs_in(self):
+        """sway, else Hyprland (start-hyprland), as greeter-session.sh picks;
+        Install refuses with neither, which would only ever show agreety."""
+        self.assertEqual(self.run_script("check")["compositor"], "sway")
+        (self.root / "usr/bin/sway").unlink()
+        hyprland = self.root / "usr/local/bin/start-hyprland"
+        hyprland.parent.mkdir(parents=True)
+        hyprland.write_text("#!/bin/sh\n")
+        hyprland.chmod(0o755)
+        self.assertEqual(self.run_script("check")["compositor"], "hyprland")
+        hyprland.unlink()
+        self.assertEqual(self.run_script("check")["compositor"], "")
+        self.assertIn("neither sway nor Hyprland", self.run_script("install", ok=False)["error"])
+        self.assertEqual(self.config.read_text(), self.original)
 
     def test_check_as_root(self):
         """As root (pkexec, CI) check runs nothing as another user: its third

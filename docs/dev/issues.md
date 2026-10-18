@@ -24,12 +24,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-18, while auditing the variousCompositorInducesBugFixes branch
 
-### The login screen's setup doesn't check it has a compositor to run in
-- **Where:** `services/GreeterManager.qml` (`status`), `scripts/greeter/greeter-session.sh`
-- **What:** `status` asks only for greetd and agreety. With neither sway nor Hyprland installed (a niri user who declined install.sh's sway), Install goes through and every boot falls back to agreety without saying why. A `noCompositor` status (sway or `start-hyprland` on PATH, as `greeter-session.sh` looks) with the install command would say so before installing.
-- **Size:** small
-- **Found:** 2026-10-18, while auditing the variousCompositorInducesBugFixes branch
-
 ### The greeter on sway can't use a cursor theme's companion
 - **Where:** `services/GreetdManager.qml` (`_applyCompositor`), `services/CursorThemeManager.qml`
 - **What:** On sway the greeter sets `seat * xcursor_theme` to the theme's own name: the `axiom-cursor-<theme>` companion a theme like Oxygen needs for the standard cursor names lives in the user's `$XDG_DATA_HOME/icons`, which greetd's user can't read. Such a theme shows the default theme's arrow at the login screen. Copying the companion into the bundle (as the wallpapers are) and pointing the greeter's `XCURSOR_PATH` at it would fix it.
