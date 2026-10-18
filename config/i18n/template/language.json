@@ -213,6 +213,7 @@
     "Append the connected device's battery level, when it reports one.": "",
     "Applications ({0})": "",
     "Applied": "",
+    "Applied \"{0}\" as \"{1}\". The previous configuration is saved as \"{2}\".": "",
     "Applied \"{0}\". The previous configuration is saved as \"{1}\".": "",
     "Applied at runtime": "",
     "Applied by axiom while it runs: your compositor's own config sets the monitors until then.": "",

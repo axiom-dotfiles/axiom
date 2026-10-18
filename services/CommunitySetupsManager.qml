@@ -10,8 +10,8 @@ import qs.components.methods
 // opened, never before, and the setups' thumbnails and screenshots into
 // the cache; applies one through SavedConfigsManager.applyShared (its
 // look only, after a "before-<id>" backup), first installing its palette
-// as the theme "community/<id>" and, when asked, its wallpaper, then saves
-// the result as the saved config "community-<id>", the active one. Every
+// as the theme "community/<id>" and, when asked, its wallpaper; the result
+// is saved as the snapshot "community-<id>", the active one. Every
 // download goes through scripts/community_fetch.sh and is checked against
 // the catalog's sha256. Nothing here runs in the greeter.
 QtObject {
@@ -233,7 +233,7 @@ QtObject {
     }
     if (setup.files.theme)
       ThemeManager.reloadCommunityThemes();
-    if (!SavedConfigsManager.applyShared(id, root._setupDir(id) + "config.json", setup.title)) {
+    if (!SavedConfigsManager.applyShared(id, root._setupDir(id) + "config.json", setup.title, root._snapshotPrefix + id)) {
       root._applying = "";
       root._status = SavedConfigsManager.status;
     }
@@ -262,10 +262,6 @@ QtObject {
         root._setWallpaper("file://" + root._applyWallpaper);
       root._applying = "";
       root._status = SavedConfigsManager.status;
-      // Its own saved config, so the saved configs list shows it as current
-      // (with Overwrite, and a dot once changed) like any other. Later: this
-      // runs inside the backup's write, through the same FileView
-      Qt.callLater(SavedConfigsManager.save, root._snapshotPrefix + name);
       console.log("[CommunitySetupsManager] Applied", name, setup?.title ?? "");
     }
 

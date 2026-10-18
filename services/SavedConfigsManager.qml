@@ -66,6 +66,8 @@ QtObject {
   // The config being written by save(), the new baseline once it's saved
   // (dropped once it's written or fails)
   property var _saving: null
+  // The status to show once save() has written, "" for "Saved"
+  property string _savedStatus: ""
   // An imported file awaiting confirmation: { name, title, description,
   // path, config, hasPersonal } (config loaded: migrated, defaults filled;
   // hasPersonal: the file holds keybinds, apps or commands), or null
@@ -74,12 +76,15 @@ QtObject {
   readonly property bool picking: FilePickerManager.running
 
   // An example, import or shared setup was applied as `name` (its backup
-  // is "before-<name>"), or failed to be (status says why)
+  // is "before-<name>"), or failed to be (status says why). Once applied,
+  // it's saved as its own snapshot ("example-<name>", "import-<name>" or
+  // the shared file's), the active one, so the saved configs list shows
+  // it as Current; the prefixes keep it from replacing one of the user's.
   signal applied(string name)
   signal applyFailed(string name)
 
   // What to apply once the running config is saved as its backup:
-  // { name, config, personal }, or null
+  // { name, config, personal, snapshot }, or null
   property var _pendingApply: null
   // The snapshot being restored once its wallpapers are checked:
   // { name, path, config }, or null
@@ -106,7 +111,8 @@ QtObject {
 
   // Saves the running config's snapshot parts (including unsaved settings
   // edits) under `name`, replacing any existing snapshot of that name.
-  function save(name) {
+  // `savedStatus`: the status once it's written, in place of "Saved".
+  function save(name, savedStatus = "") {
     const fileName = sanitize(name);
     if (fileName === "") {
       root.status = I18n.tr("Enter a name to save as");
@@ -115,6 +121,7 @@ QtObject {
     // Written by a FileView, not through argv, which caps one argument at
     // 128 KiB (the folder was made at startup)
     _writer.name = fileName;
+    root._savedStatus = savedStatus;
     root._saving = Utils.clone(ConfigManager.config);
     // Through an empty path first: a FileView skips setText of the text it
     // last read or wrote (no `saved`), which would leave an apply waiting
@@ -217,7 +224,7 @@ QtObject {
       root.status = I18n.tr("\"{0}\" could not be read", name);
       return;
     }
-    _backupThenApply(name, root._load(example), false);
+    _backupThenApply(name, root._load(example), false, name, "example-" + name);
   }
 
   // Opens the desktop's file picker; the chosen file goes to openImport
@@ -263,7 +270,7 @@ QtObject {
     const pending = root.importing;
     root.importing = null;
     if (pending)
-      _backupThenApply(pending.name, pending.config, personal && pending.hasPersonal);
+      _backupThenApply(pending.name, pending.config, personal && pending.hasPersonal, pending.name, "import-" + pending.name);
   }
 
   function cancelImport() {
@@ -272,11 +279,12 @@ QtObject {
 
   // Applies a shared file at `path` straight away, its look only (never
   // keybinds, apps or commands), after saving the running config as
-  // "before-<name>": a community setup (CommunitySetupsManager). False
-  // with `status` saying why when the file can't be applied.
-  function applyShared(name, path, title) {
+  // "before-<name>", then saves the result as `snapshot`: a community
+  // setup (CommunitySetupsManager). False with `status` saying why when
+  // the file can't be applied.
+  function applyShared(name, path, title, snapshot) {
     const parsed = root._readShared(path, title);
-    return parsed !== null && root._backupThenApply(name, root._load(parsed), false, title);
+    return parsed !== null && root._backupThenApply(name, root._load(parsed), false, title, snapshot);
   }
 
   // The parsed shared file at `path`, or null with `status` saying why (as
@@ -337,8 +345,9 @@ QtObject {
   }
 
   // False (with `status` naming it as `label`) when `config` is invalid or
-  // another apply is under way
-  function _backupThenApply(name, config, personal, label = name) {
+  // another apply is under way. `snapshot`: the name to save the result
+  // as once applied ("" for none)
+  function _backupThenApply(name, config, personal, label = name, snapshot = "") {
     if (!config) {
       root.status = I18n.tr("\"{0}\" is not a valid config", label);
       return false;
@@ -351,7 +360,8 @@ QtObject {
     root._pendingApply = {
       name: name,
       config: config,
-      personal: personal
+      personal: personal,
+      snapshot: snapshot
     };
     save("before-" + name);
     return true;
@@ -367,7 +377,11 @@ QtObject {
     SettingsManager.loadConfig();
     root.status = I18n.tr("Applied \"{0}\". The previous configuration is saved as \"{1}\".", pending.name, "before-" + pending.name);
     console.log("[SavedConfigsManager] Applied", pending.name, pending.personal ? "with personal parts" : "");
+    // Handlers may change the config first (a community setup's wallpaper)
     root.applied(pending.name);
+    // Later: this runs inside the backup's write, through the same FileView
+    if (pending.snapshot !== "")
+      Qt.callLater(root.save, pending.snapshot, I18n.tr("Applied \"{0}\" as \"{1}\". The previous configuration is saved as \"{2}\".", pending.name, sanitize(pending.snapshot), "before-" + pending.name));
   }
 
   // The parsed example (with its _example header), or null
@@ -453,7 +467,7 @@ QtObject {
     onSaved: {
       root._setActive(name, root._saving);
       root._saving = null;
-      root.status = I18n.tr("Saved \"{0}\"", name);
+      root.status = root._savedStatus || I18n.tr("Saved \"{0}\"", name);
       console.log("[SavedConfigsManager]", root.status);
       const pending = root._pendingApply;
       root._pendingApply = null;

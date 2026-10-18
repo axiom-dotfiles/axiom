@@ -19,14 +19,14 @@ Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/save
 
 ### Signals
 
-- `applied(string name)`: An example, import or shared setup was applied as `name` (its backup is "before-<name>"), or failed to be (status says why)
+- `applied(string name)`: An example, import or shared setup was applied as `name` (its backup is "before-<name>"), or failed to be (status says why).
 - `applyFailed(string name)`
 
 ### Functions
 
 - `sanitize(name)`
 - `exists(name)`
-- `save(name)`: Saves the running config's snapshot parts (including unsaved settings edits) under `name`, replacing any existing snapshot of that name.
+- `save(name, savedStatus = "")`: Saves the running config's snapshot parts (including unsaved settings edits) under `name`, replacing any existing snapshot of that name.
 - `restore(name)`
 - `restoreDefaults()`: Applies the schema defaults like an example (the look and personal parts; machine settings stay), after saving the running config as "before-defaults".
 - `applyExample(name)`: Saves the running config as "before-<name>", then applies the example (in _writer's onSaved, so a failed backup applies nothing)
@@ -34,6 +34,6 @@ Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/save
 - `openImport(path)`: Loads a shared file (an export, an example, or a whole config.json of any version) as `importing`, for the settings page to confirm
 - `confirmImport(personal)`: Applies `importing` (its personal parts too when `personal`: keybinds, apps, commands), after saving the running config as "before-<name>"
 - `cancelImport()`
-- `applyShared(name, path, title)`: Applies a shared file at `path` straight away, its look only (never keybinds, apps or commands), after saving the running config as "before-<name>": a community setup (CommunitySetupsManager).
+- `applyShared(name, path, title, snapshot)`: Applies a shared file at `path` straight away, its look only (never keybinds, apps or commands), after saving the running config as "before-<name>", then saves the result as `snapshot`: a community s…
 - `exportConfig(personal)`: Writes the running config's look (and personal parts, when `personal`) to ~/axiom-<name>-<date>-<time>.json, holding only what differs from the defaults: a file to share, in the format examples and i…
 - `remove(name)`

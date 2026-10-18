@@ -3241,6 +3241,7 @@
     "Community setups": "",
     "Catalog": "",
     "Downloads (album art, Claude usage, community setups)": "",
-    "Tested on {0}": ""
+    "Tested on {0}": "",
+    "Applied \"{0}\" as \"{1}\". The previous configuration is saved as \"{2}\".": ""
   }
 }

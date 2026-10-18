@@ -36,7 +36,7 @@ A gallery of setups other people shared at [axiom-dotfiles/community-setups](htt
 2. Rescans the community palettes (`ThemeManager.reloadCommunityThemes`).
 3. Hands the config to `SavedConfigsManager.applyShared(id, path, title)`: the same checks as Import (a `version`, not newer than this axiom), then `_backupThenApply` with personal parts **off**. So the running config is saved as `before-<id>`, only the look is taken (`ConfigExamples.apply`), and `x-takeover` settings are kept (`ConfigManager.restoreConfig`). Even a setup that got past the repo's CI can't bring a command.
 4. On `SavedConfigsManager.applied(id)`, sets the wallpaper (with `withWallpaper`) on every monitor as the fixed one, `wallpaperMode` `fixed`, in one `ConfigManager.commit`. On `applyFailed(id)` it stops.
-5. Saves the result as the saved config `community-<id>` (`SavedConfigsManager.save`, deferred out of the backup's write), which becomes the active one: the saved configs list shows it as Current, with Overwrite and the unsaved dot like any snapshot.
+5. `SavedConfigsManager` then saves the result (wallpaper included) as the snapshot `community-<id>`, the active one, as it does for examples and imports ([saved configs](../core/saved-configs-sharing.md)).
 - `applied` is derived, not stored: the id while `community-<id>` is `SavedConfigsManager.active` and not `modified`. Restoring another snapshot, applying anything else or changing the look clears that setup's **Applied** chip.
 
 ### Where it shows
