@@ -3,12 +3,12 @@
 
 > **File:** `services/ScreenshotManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shell/Screenshot shows a frozen frame (ScreencopyView) on each screen, where a region is dragged or a window clicked (`region`), or a window clicked (`window`), and crops it at the screen's own resolution. `screen` captures the focused monitor at once. The picture is saved in `folder` (the Screenshots section), or only to a scratch file with `copyOnly`, copied to the clipboard (wl-copy: Quickshell's clipboard is text only) and either notified (click opens it) or opened in an annotator (satty or swappy; its notification also has an "Edit in …" button). Recording (IPC `screenRecord`, the `screenRecord` bind, launcher `/record`, or R / the Record switch in an open picker) picks its area in the same picker (kind `record`), or takes the focused screen at once (`mode: "screen"`, the ScreenRecord card), and runs wf-recorder on it until stopped, with the system's sound (through pactl: `hasSystemAudio`) or the microphone if asked (`audio`), into `recordingFolder`, whose newest recordings `recordings` lists for the ScreenRecord cards.
+Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shell/Screenshot shows a frozen frame (ScreencopyView, or grim's picture where Quickshell can't capture safely: `grimFrames`) on each screen, where a region is dragged or a window clicked (`region`), or a window clicked (`window`), and crops it at the screen's own resolution. `screen` captures the focused monitor at once. The picture is saved in `folder` (the Screenshots section), or only to a scratch file with `copyOnly`, copied to the clipboard (wl-copy: Quickshell's clipboard is text only) and either notified (click opens it) or opened in an annotator (satty or swappy; its notification also has an "Edit in …" button). Recording (IPC `screenRecord`, the `screenRecord` bind, launcher `/record`, or R / the Record switch in an open picker) picks its area in the same picker (kind `record`), or takes the focused screen at once (`mode: "screen"`, the ScreenRecord card), and runs wf-recorder on it until stopped, with the system's sound (through pactl: `hasSystemAudio`) or the microphone if asked (`audio`), into `recordingFolder`, whose newest recordings `recordings` lists for the ScreenRecord cards.
 
 ### Properties
 
 - `picking` (bool): The picker is open (or an immediate capture is running)
-- `busy` (readonly bool): Picking, or waiting for the launcher to close first
+- `busy` (readonly bool): Picking, or waiting for the launcher to close first (or for grim)
 - `request` (var): { kind, screen: the screen an immediate `screen` capture takes }
 - `copyOnly` (bool): Keep nothing on disk, only copy (saved in Paths.statePath screenshot.json)
 - `recordAudio` (string): The sound the ScreenRecord card records with: "none" | "system" | "mic" (saved with copyOnly)
@@ -23,6 +23,8 @@ Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, laun
 - `recordings` (readonly var): The newest recordings in recordingFolder ([{ path, name, time, size }], newest first), once refreshRecordings has listed it
 - `folder` (readonly string): Where screenshots are saved: the Screenshots setting, else <Pictures>/Screenshots
 - `recordingFolder` (readonly string): Where recordings are saved and listed from: the setting, else with the screenshots
+- `grimFrames` (readonly bool): The picker's frozen frames are grim's pictures, taken just before it opens, not Quickshell's own capture (ScreencopyView): where the compositor has no capture Quickshell does safely (CompositorManage…
+- `frames` (readonly var): { screen name: picture path } while picking with grimFrames
 - `kinds` (readonly var): The kinds take() offers: "window" only where the compositor knows where windows are (CompositorManager.supports.windowGeometry)
 - `forCaller` (readonly bool)
 

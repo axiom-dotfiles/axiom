@@ -9,10 +9,11 @@ import qs.config
 import qs.services
 
 // One screen's screenshot picker: the screen frozen (one ScreencopyView
-// frame), dimmed except for what a click or release would capture, with
-// the window under the cursor highlighted. `region`: drag a region, or
-// click for the window under the cursor (the whole screen where there's
-// none), Enter for the screen. `window`: click a window. Esc or
+// frame, or grim's picture of it where Quickshell can't capture it
+// safely: ScreenshotManager.grimFrames), dimmed except for what a click
+// or release would capture, with the window under the cursor highlighted.
+// `region`: drag a region, or click for the window under the cursor (the
+// whole screen where there's none), Enter for the screen. `window`: click a window. Esc or
 // right-click cancels; Shift on release, or E, opens it in the annotator.
 // An immediate `screen` capture shows the same frame with nothing over it
 // and grabs as soon as it arrives. The capture is cropped from the frame
@@ -34,7 +35,7 @@ PanelWindow {
   readonly property bool windowsOnly: request?.kind === "window"
   readonly property bool focusedScreen: screen?.name === CompositorManager.focusedOutput
   // Buffer pixels per logical pixel
-  readonly property real pixelRatio: frame.sourceSize.width > 0 && root.width > 0 ? frame.sourceSize.width / root.width : (screen?.devicePixelRatio ?? 1)
+  readonly property real pixelRatio: root._frameSize.width > 0 && root.width > 0 ? root._frameSize.width / root.width : (screen?.devicePixelRatio ?? 1)
   readonly property rect fullRect: Qt.rect(0, 0, root.width, root.height)
 
   // The window under the cursor ({ x, y, width, height }, local), or null
@@ -44,7 +45,10 @@ PanelWindow {
   property point dragEnd: Qt.point(0, 0)
   property bool grabbing: false
   // The frame is in (ShellManager.captureFrozen)
-  readonly property bool frozen: frame.hasContent
+  readonly property bool frozen: ScreenshotManager.grimFrames ? still.status === Image.Ready : frame.hasContent
+  // What the frozen frame is drawn by, and its size in buffer pixels
+  readonly property Item _frameItem: ScreenshotManager.grimFrames ? still : frame
+  readonly property size _frameSize: ScreenshotManager.grimFrames ? still.sourceSize : frame.sourceSize
 
   readonly property rect dragRect: Qt.rect(Math.min(dragStart.x, dragEnd.x), Math.min(dragStart.y, dragEnd.y), Math.abs(dragEnd.x - dragStart.x), Math.abs(dragEnd.y - dragStart.y))
   // What a release would capture
@@ -120,7 +124,7 @@ PanelWindow {
 
   // The frame arrives once; an immediate capture takes it straight away
   function _onFrame() {
-    if (!frame.hasContent)
+    if (!root.frozen)
       return;
     ScreenshotManager.frameArrived();
     if (root.interactive || root.request?.screen !== root.screen?.name)
@@ -152,7 +156,7 @@ PanelWindow {
     ShaderEffectSource {
       id: crop
       anchors.fill: parent
-      sourceItem: frame
+      sourceItem: root._frameItem
       hideSource: false
       smooth: true
     }
@@ -161,16 +165,29 @@ PanelWindow {
   ScreencopyView {
     id: frame
     anchors.fill: parent
-    captureSource: root.screen
+    captureSource: ScreenshotManager.grimFrames ? null : root.screen
     live: false
     paintCursor: false
     onHasContentChanged: root._onFrame()
   }
 
+  // grim's picture of the screen, taken before the picker opened
+  Image {
+    id: still
+    anchors.fill: parent
+    visible: ScreenshotManager.grimFrames
+    readonly property string path: ScreenshotManager.grimFrames ? (ScreenshotManager.frames[root.screen?.name ?? ""] ?? "") : ""
+    source: still.path === "" ? "" : "file://" + still.path
+    asynchronous: true
+    cache: false
+    smooth: true
+    onStatusChanged: root._onFrame()
+  }
+
   Item {
     id: chrome
     anchors.fill: parent
-    visible: root.interactive && frame.hasContent && !root.grabbing
+    visible: root.interactive && root.frozen && !root.grabbing
     focus: true
 
     Keys.onPressed: event => {

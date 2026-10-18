@@ -89,6 +89,28 @@ TestCase {
     verify(!both.joinFillet);
   }
 
+  function test_straight_join_runs_through_join_backfill() {
+    // A submenu joined straight at its parent's bar side: its far wall
+    // runs on through the row it covers past that end (joinBackfill), into
+    // the squared pill it meets, rather than stopping a pixel short of it
+    const s = spec({
+      "joinStart": true,
+      "joinEnd": true,
+      "straightJoins": true,
+      "joinBackfill": 1
+    });
+    const m = SurfaceOutline.metrics(s);
+    compare(m.joinThroughStart, 1);
+    compare(m.joinThroughEnd, 1);
+    // Filleted joins and unjoined ends take none
+    const filleted = SurfaceOutline.metrics(spec({
+      "joinStart": true,
+      "joinBackfill": 1
+    }));
+    compare(filleted.joinThroughStart, 0);
+    compare(filleted.joinThroughEnd, 0);
+  }
+
   function test_withBoxStart() {
     const s = spec({});
     const m = SurfaceOutline.withBoxStart(s, SurfaceOutline.metrics(s), 28);

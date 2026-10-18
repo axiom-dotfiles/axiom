@@ -365,4 +365,65 @@ QtObject {
       "stretchTo": f.strokeTo
     });
   }
+
+  /**
+   * How a submenu joined at its parent's bar side meets the stroke there
+   * at its outer wall: with its fillet (and the corner past it) curving
+   * into the stroke, or running straight up into it, squared. Decided from
+   * where things rest, never as drawn. `p`:
+   *   wall (the submenu's outer wall, at rest), before (it opens toward
+   *   the edge's start), radius, stroke, merge (pillMerge)
+   *   own: the parent's pill or island as its box stretches it ({ index,
+   *     start, end, squareStart, squareEnd, joinStart, joinEnd }), or null
+   *     off a pill (the border's or a solid bar's stroke)
+   *   pills: every pill or island at rest ({ start, length }, indexed as
+   *     the bar's), stretchFrom, stretchTo (where a stretch may reach)
+   *   strokeFrom, strokeTo (off a pill: how far the stroke runs)
+   * Returns { fillet, stretch (the parent's pill stretched for it, or
+   * null), at (where along the edge that stretch reaches for it) }.
+   * Where a pill shows past the wall and starts within the fillet, its
+   * corner and `merge` of it (its own, or a neighbour), it's carried on
+   * past the fillet and its corner, by the rule a pill bar's joined end
+   * follows (EdgeAttach.pillJoinFilleted): a wall running straight into a
+   * pill that carries on past it met it at a bare right angle. Otherwise
+   * the pill runs to the wall and squares.
+   */
+  function submenuJoin(p) {
+    const before = !!p.before, wall = p.wall, need = p.radius * 2;
+    const sign = before ? -1 : 1;
+    const own = p.own ?? null;
+    if (!own)
+      return {
+        "fillet": before ? wall - need >= p.strokeFrom : wall + need <= p.strokeTo,
+        "stretch": null,
+        "at": null
+      };
+    // Its own as the box stretches it, beside the others at rest
+    const pills = (p.pills ?? []).filter((q, i) => i !== own.index).concat([
+      {
+        "start": own.start,
+        "length": own.end - own.start
+      }
+    ]);
+    const carried = EdgeAttach.pillJoinFilleted(pills, wall, !before, p.radius, p.merge ?? 0, p.stroke);
+    const grown = wall + sign * need;
+    const limit = before ? p.stretchFrom : p.stretchTo;
+    const fillet = carried && sign * (limit - grown) >= 0;
+    const at = fillet ? grown : before ? Math.max(wall, limit) : Math.min(wall, limit);
+    const start = before ? Math.min(own.start, at) : own.start;
+    const end = before ? own.end : Math.max(own.end, at);
+    return {
+      "fillet": fillet,
+      "at": at,
+      "stretch": {
+        "index": own.index,
+        "start": start,
+        "end": end,
+        "squareStart": (before && !fillet && at < own.start) || !!own.squareStart,
+        "squareEnd": (!before && !fillet && at > own.end) || !!own.squareEnd,
+        "joinStart": !!own.joinStart,
+        "joinEnd": !!own.joinEnd
+      }
+    };
+  }
 }

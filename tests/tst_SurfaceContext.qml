@@ -539,4 +539,165 @@ TestCase {
     compare(past.attachFromBar, 34);
     compare(past.attachAt + 24 / 2, 46);
   }
+
+  // A submenu joined at its parent's bar side, opening toward the end
+  // (radius 14, so a fillet and its corner take 28): the parent's island
+  // runs 400..600 as its box stretches it, its neighbour 700..900
+  function test_submenuJoin_data() {
+    const pills = [
+      {
+        "start": 100,
+        "length": 200
+      },
+      {
+        "start": 420,
+        "length": 160
+      },
+      {
+        "start": 700,
+        "length": 200
+      }
+    ];
+    const own = {
+      "index": 1,
+      "start": 400,
+      "end": 600
+    };
+    const base = {
+      "pills": pills,
+      "own": own,
+      "radius": 14,
+      "stroke": 2,
+      "merge": 16,
+      "stretchFrom": 0,
+      "stretchTo": 1000
+    };
+    const row = (tag, extra, fillet, end, squareEnd) => ({
+          "tag": tag,
+          "p": Object.assign({}, base, extra),
+          "fillet": fillet,
+          "end": end,
+          "squareEnd": squareEnd
+        });
+    return [
+      // Short of the neighbour by more than the merge: straight, squared
+      row("straight to the wall", {
+        "wall": 650
+      }, false, 650, true),
+      // The wall lands on the neighbour: the fillet and its corner curve
+      // into it, the island carried on to merge with it (the 90° corner)
+      row("lands on the neighbour", {
+        "wall": 750
+      }, true, 778, false),
+      // Within the merge of the neighbour: it'd merge, so fillet too
+      row("within merge of the neighbour", {
+        "wall": 690
+      }, true, 718, false),
+      // Further than the merge, but within the fillet, its corner and the
+      // merge: carried on, as a pill bar's joined end is
+      // (EdgeAttach.pillJoinFilleted)
+      row("within the fillet and merge of the neighbour", {
+        "wall": 670
+      }, true, 698, false),
+      // ...and just past that: straight
+      row("past the fillet and merge of the neighbour", {
+        "wall": 655
+      }, false, 655, true),
+      // Near the neighbour's far end: carried on past it for the fillet
+      row("past most of the neighbour", {
+        "wall": 890
+      }, true, 918, false),
+      // Its own island already carries on past the wall a little: carried
+      // on past the fillet, never a bare T
+      row("own island past the wall", {
+        "wall": 590
+      }, true, 618, false),
+      // ...and well past it: the same, inside what it already covers
+      row("own island well past the wall", {
+        "wall": 500
+      }, true, 600, false),
+      // No room to grow past the wall: straight at the limit
+      row("fillet past the limit", {
+        "wall": 750,
+        "stretchTo": 760
+      }, false, 750, true),
+      // Toward the start: mirrored, the first island its neighbour (its
+      // start: test_submenuJoin_before_reaches); its end stays put
+      row("before: straight", {
+        "wall": 350,
+        "before": true
+      }, false, 600, false), row("before: lands on the neighbour", {
+        "wall": 250,
+        "before": true
+      }, true, 600, false)];
+  }
+
+  function test_submenuJoin(data) {
+    const j = SurfaceContext.submenuJoin(data.p);
+    compare(j.fillet, data.fillet);
+    compare(j.stretch.end, data.end);
+    compare(j.stretch.squareEnd, data.squareEnd);
+    compare(j.stretch.index, 1);
+  }
+
+  function test_submenuJoin_before_reaches() {
+    const pills = [
+      {
+        "start": 100,
+        "length": 200
+      },
+      {
+        "start": 420,
+        "length": 160
+      }
+    ];
+    const p = {
+      "pills": pills,
+      "own": {
+        "index": 1,
+        "start": 400,
+        "end": 600
+      },
+      "radius": 14,
+      "stroke": 2,
+      "merge": 16,
+      "stretchFrom": 0,
+      "stretchTo": 1000,
+      "before": true
+    };
+    const straight = SurfaceContext.submenuJoin(Object.assign({}, p, {
+      "wall": 350
+    }));
+    compare(straight.stretch.start, 350);
+    verify(straight.stretch.squareStart);
+    const landed = SurfaceContext.submenuJoin(Object.assign({}, p, {
+      "wall": 250
+    }));
+    compare(landed.stretch.start, 222);
+    verify(!landed.stretch.squareStart);
+  }
+
+  function test_submenuJoin_off_a_pill() {
+    // On the border's or a solid bar's stroke: a fillet where the stroke
+    // runs on past it, nothing stretched
+    const p = {
+      "own": null,
+      "radius": 14,
+      "stroke": 2,
+      "strokeFrom": 0,
+      "strokeTo": 1000
+    };
+    const fits = SurfaceContext.submenuJoin(Object.assign({}, p, {
+      "wall": 900
+    }));
+    verify(fits.fillet);
+    compare(fits.stretch, null);
+    verify(!SurfaceContext.submenuJoin(Object.assign({}, p, {
+      "wall": 990
+    })).fillet);
+    verify(SurfaceContext.submenuJoin(Object.assign({}, p, {
+      "wall": 40,
+      "before": true
+    })).fillet);
+  }
 }

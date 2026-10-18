@@ -115,6 +115,67 @@ Item {
   property bool opaque: false
   // Casting its own shadow, in its own window
   readonly property bool _ownShadow: root.castShadow && !root.backed
+  // Where its shape runs on past its outline, for a shadow `reach` long
+  // cast from it (rects in this item's coordinates, at rest): the shadow
+  // beside a wall that carries on past it then runs on at full strength
+  // to where it gives way to what carries it on (cut there by its holes),
+  // as that one's runs on to it from the other side, with no step where
+  // the two meet. Each is wide: a thin strip's blur is much weaker.
+  // - behind a flush end, the wall it continues (an island's or pill's
+  //   squared end, BarContainer._flushEnds), to the band hole;
+  // - past a straight joined end, its far wall running on into the pill
+  //   or island squared to meet it, or off a bare screen edge;
+  // - behind an attach edge it runs straight off (a bare screen edge): its
+  //   walls run on off screen, the shadow beside them not fading at it.
+  // A bar's pills, cast by their bar, add theirs to its shadow's source.
+  function shadowRunOn(reach) {
+    if (root.detached || reach <= 0)
+      return [];
+    const along = Math.min(root.alongLength, reach * 2), across = Math.min(root.boxDepth, reach * 2);
+    const behind = -root._back - reach, far = root.farV + root.half;
+    const m = root._m;
+    return (m.throughStart ? [root._rectFrom(0, behind, along, reach)] : []).concat(m.throughEnd ? [root._rectFrom(root.alongLength - along, behind, along, reach)] : [], root.joinStart && m.straightJoinStart ? [root._rectFrom(-reach, far - across, reach, across)] : [], root.joinEnd && m.straightJoinEnd ? [root._rectFrom(root.alongLength, far - across, reach, across)] : [], root.straight ? [root._rectFrom(0, behind, root.alongLength, reach)] : []);
+  }
+  readonly property var _shadowRunOn: root._ownShadow ? root.shadowRunOn(root.shadowReach) : []
+  // Boxes (in this item's coordinates) of surfaces running on from its
+  // box, a wall of theirs continuing one of its own (a submenu flush to a
+  // free end of its side). Its shadow casts as if that wall ran on past
+  // where the two meet (`source`), and gives way to theirs past it
+  // (`hole`), cast the same way from their side (a flush end's run-on):
+  // both at full strength where they meet, with no step
+  property var wallsRunOn: []
+  readonly property var _runsOn: {
+    const reach = root.shadowReach;
+    if (reach <= 0 || root.wallsRunOn.length === 0)
+      return [];
+    const b = root.boxRect, tol = root.strokeWidth + 2;
+    const right = b.x + b.width, bottom = b.y + b.height;
+    // Its attach side has no wall, unless it's a box of its own
+    const wall = side => root.detached || side !== root.edge;
+    const runs = [];
+    root.wallsRunOn.forEach(s => {
+      if (!s)
+        return;
+      // Beside it (submenus open to the left or right): its top or bottom
+      // wall runs on there
+      const toLeft = s.x + s.width <= b.x + tol, toRight = s.x >= right - tol;
+      if (toLeft || toRight) {
+        const x0 = toLeft ? b.x : right, w = Math.min(b.height, reach * 2);
+        const sx = toLeft ? x0 - reach : x0, hx = toLeft ? x0 - reach * 2 : x0;
+        if (wall(Bar.Top) && Math.abs(s.y - b.y) <= 1)
+          runs.push({
+            "source": Qt.rect(sx, b.y, reach, w),
+            "hole": Qt.rect(hx, b.y - reach, reach * 2, reach)
+          });
+        if (wall(Bar.Bottom) && Math.abs(s.y + s.height - bottom) <= 1)
+          runs.push({
+            "source": Qt.rect(sx, bottom - w, reach, w),
+            "hole": Qt.rect(hx, bottom, reach * 2, reach)
+          });
+      }
+    });
+    return runs;
+  }
   // A copy of a surface (AttachedSurfaceCopy): its fill alone, its stroke
   // in `mirrorStroke`
   property bool mirror: false
@@ -147,7 +208,8 @@ Item {
   property real hiddenBehind: 0
   // How far it has slid behind that edge (none once out)
   readonly property real slid: Math.abs(slideContainer.slideX) + Math.abs(slideContainer.slideY)
-  readonly property real _hidden: root.slid + root.hiddenBehind
+  // ...and in all: what context along its slide follows (PillBarJoin)
+  readonly property real hiddenNow: root.slid + root.hiddenBehind
   // How far in from the surface's end the fillet shows at the edge, with
   // `hidden` of the surface still behind it (see SurfaceOutline._outline: a line along
   // the edge at v = half to sideU - R, an arc of radius R up to the wall)
@@ -168,10 +230,10 @@ Item {
   // frame or so after this one, so a stub of stroke showed under each
   // fillet as it landed. Within a stroke of the edge the fillet's own
   // stroke lies over the one it opens, so opening it early shows nothing.
-  readonly property real _filletHidden: Math.max(0, root._hidden - root.strokeWidth)
+  readonly property real _filletHidden: Math.max(0, root.hiddenNow - root.strokeWidth)
   readonly property real coverStart: root._filletIn(root.startMargin, root._filletHidden)
   // (nothing once it's all behind the edge)
-  readonly property real coverLength: root._hidden >= root.depth ? 0 : root.alongLength - root.coverStart - root._filletIn(root.endMargin, root._filletHidden)
+  readonly property real coverLength: root.hiddenNow >= root.depth ? 0 : root.alongLength - root.coverStart - root._filletIn(root.endMargin, root._filletHidden)
   // How much of that is the fillet curving up into each wall from the
   // attach edge (0 at a joined, flush or straight end): what it covers
   // shows round its curve, not across its square (a solid bar's shadow)
@@ -235,7 +297,8 @@ Item {
     "flushEndThrough": root.flushEndThrough,
     "straightJoins": root.straightJoins,
     "straightJoinStart": root.straightJoinStart,
-    "straightJoinEnd": root.straightJoinEnd
+    "straightJoinEnd": root.straightJoinEnd,
+    "joinBackfill": root.joinBackfill
   })
   readonly property var _natural: SurfaceOutline.metrics(root._baseSpec)
   readonly property var _m: SurfaceOutline.withBoxStart(root._spec, SurfaceOutline.metrics(root._spec), root.boxStart)
@@ -282,8 +345,8 @@ Item {
   readonly property real joinFillet: root._straightJoinStart ? 0 : root.filletRadius
   readonly property real joinFilletEnd: root._straightJoinEnd ? 0 : root.filletRadius
   // ...as much of it as is out past its edge now (none while it's behind)
-  readonly property real joinShown: Math.max(0, root.joinCover - root._hidden)
-  readonly property real joinShownEnd: Math.max(0, root.joinCoverEnd - root._hidden)
+  readonly property real joinShown: Math.max(0, root.joinCover - root.hiddenNow)
+  readonly property real joinShownEnd: Math.max(0, root.joinCoverEnd - root.hiddenNow)
 
   // The content box in this item's coordinates, at rest (not slid). On
   // every side but the attach edge it coincides with the outer edge of
@@ -338,7 +401,8 @@ Item {
     containerHeight: root.height
     containerWidth: root.width
     enableFade: false
-    overflow: root.shadowReach
+    // (and the row past a joined end, joinBackfill, which it covers)
+    overflow: Math.max(root.shadowReach, root.joinBackfill)
 
     // The shadow the outline casts, only outside it (none shows
     // through a translucent fill), from a copy of it filled (its own fill
@@ -356,12 +420,24 @@ Item {
       // it, darkest under this surface's soft edge, a seam where the two
       // strokes meet (none on a bare edge, which has no stroke).
       holes: {
+        const runs = root._runsOn.map(r => r.hole);
         if (root.detached)
-          return [];
+          return runs;
         const reach = ownShadow.reach;
         const v = -root._back - reach, deep = root._back + root.depth + reach * 2;
-        const band = root.straight ? [] : [root._rectFrom(-reach, v, root.alongLength + reach * 2, reach + root._back + root.strokeWidth)];
-        return (root.joinStart ? [root._rectFrom(-reach, v, reach, deep)] : []).concat(root.joinEnd ? [root._rectFrom(root.alongLength, v, reach, deep)] : [], band, root.shadowHoles);
+        // (to the stroke's outer edge where it is in the window, not where
+        // it is on the surface still behind its edge: there the band let a
+        // line of this shadow through over the stroke, beside its wall,
+        // doubling the shadow of what it grows from)
+        const band = root.straight ? [] : [root._rectFrom(-reach, v, root.alongLength + reach * 2, reach + root._back + root.strokeWidth + root.hiddenNow)];
+        // A straight joined end's far wall runs on into the stroke it
+        // joins (its first stroke's width of the end lies over that
+        // stroke): what it joins casts beside the wall up to its outer
+        // edge, as the band leaves a flush end's to it
+        const far = root.farV + root.half, sw = root.strokeWidth;
+        const straightStart = root.joinStart && root._straightJoinStart ? [root._rectFrom(-reach, far, reach + sw, reach)] : [];
+        const straightEnd = root.joinEnd && root._straightJoinEnd ? [root._rectFrom(root.alongLength - sw, far, reach + sw, reach)] : [];
+        return (root.joinStart ? [root._rectFrom(-reach, v, reach, deep)] : []).concat(root.joinEnd ? [root._rectFrom(root.alongLength, v, reach, deep)] : [], straightStart, straightEnd, band, root.shadowHoles, runs);
       }
     }
 
@@ -395,6 +471,35 @@ Item {
           PathSvg {
             path: root.strokePath
           }
+        }
+      }
+
+      // Where its shape runs on past its outline (shadowRunOn)
+      Repeater {
+        model: root._shadowRunOn.length
+
+        Rectangle {
+          required property int index
+          readonly property rect area: root._shadowRunOn[index] ?? Qt.rect(0, 0, 0, 0)
+          x: area.x
+          y: area.y
+          width: area.width
+          height: area.height
+          color: "black"
+        }
+      }
+      // ...and past the walls surfaces running on from its box continue
+      Repeater {
+        model: root._runsOn.length
+
+        Rectangle {
+          required property int index
+          readonly property rect area: root._runsOn[index]?.source ?? Qt.rect(0, 0, 0, 0)
+          x: area.x
+          y: area.y
+          width: area.width
+          height: area.height
+          color: "black"
         }
       }
 
@@ -490,6 +595,26 @@ Item {
       width: area.width
       height: area.height
       color: root._fill
+    }
+    // ...with a straight join's far wall running on through it
+    // (SurfaceOutline's joinThroughStart/End)
+    Rectangle {
+      readonly property rect area: root._rectFrom(-root._m.joinThroughStart, root._m.farV - root._m.half, root._m.joinThroughStart, root.strokeWidth)
+      visible: !root.detached && root._m.joinThroughStart > 0
+      x: area.x
+      y: area.y
+      width: area.width
+      height: area.height
+      color: root._stroke
+    }
+    Rectangle {
+      readonly property rect area: root._rectFrom(root.alongLength, root._m.farV - root._m.half, root._m.joinThroughEnd, root.strokeWidth)
+      visible: !root.detached && root._m.joinThroughEnd > 0
+      x: area.x
+      y: area.y
+      width: area.width
+      height: area.height
+      color: root._stroke
     }
 
     // Content box: same placement the old bordered Rectangle had, so

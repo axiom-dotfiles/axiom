@@ -86,7 +86,7 @@ Rectangle {
   // stretched onto it and join it. On a floating bar, its islands
   // (BarLayout.islandRects): one along it, or one per group.
   // Pills asked to reach an end run there, or a stub grows there for them
-  // (BarLayout.endReaches, setEndReach).
+  // (BarLayout.endReaches, setRequest).
   readonly property var pillRects: {
     if (islands)
       return BarLayout.islandRects(root._spans, root.barConfig.islandGap, root.barConfig.pillMerge, root.islandFrom, root.islandEnd, !root.barConfig.islandPills);
@@ -141,67 +141,60 @@ Rectangle {
   // on them, and joining any they then reach, while those are open
   readonly property var pillShapes: BarLayout.stretchIslands(root.pillRects, root._shownStretches, root.barConfig.pillMerge)
 
-  // Pills stretched past their ends to carry the fillets of surfaces
-  // standing on them, by owner (a bar popout, an edge popout): each
-  // { index, start, end, squareStart, squareEnd } (EdgeAttach.place's
-  // stretch). pillRects stays unstretched.
-  property var stretches: ({})
-  readonly property var _stretchList: Object.keys(root.stretches).map(k => root.stretches[k]).concat(root.pills ? root._endReach.stretches : [])
-  // Sets (or with null clears) `owner`'s stretch
-  function setStretch(owner, stretch) {
-    if (Utils.deepEqual(root.stretches[owner] ?? null, stretch ?? null))
-      return;
-    const next = Object.assign({}, root.stretches);
-    if (stretch)
-      next[owner] = stretch;
+  // What the surfaces standing on or joining this bar ask of it, by owner
+  // (PillStretch: a bar popout, an edge popout, a dock, a submenu, a pill
+  // bar merging into this one's corner), each { stretch, opening,
+  // endReach }, drawn as sent: each owner sets the pace it changes at.
+  // - stretch: a pill stretched past its ends to carry a surface's fillets
+  //   ({ index, start, end, squareStart, squareEnd, joinStart, joinEnd },
+  //   EdgeAttach.place's stretch; `covered`, false while its surface is
+  //   still all behind the stroke, EdgePlacement). pillRects stays
+  //   unstretched.
+  // - opening: where a surface covers a pill's (or island's) inner stroke,
+  //   { start, end } along the bar (`keepFill`: while opaque, only the
+  //   stroke and its outer edge, for a surface joining it end-on, which
+  //   covers the stroke but nothing inside it). While surfaces are
+  //   translucent the stroke is left open there (their fill no longer
+  //   hides it).
+  // - endReach: a pill asked to run from an end of the bar ({ atStart, to,
+  //   straight }, BarLayout.endReaches), by a surface joining this bar from
+  //   the perpendicular edge: a pill bar merging into this one's corner
+  //   (CornerMerge), a popout whose side joins it (PillBarJoin)
+  // Each part is kept by itself, so one changing never re-runs what reads
+  // the others: a stretch sent as drawn reads the pills, which end reaches
+  // shape (pillRects).
+  property var _stretches: ({})
+  property var _endReaches: ({})
+  property var _openings: ({})
+  readonly property var _stretchList: BarLayout.onPills(root.pillRects, Object.keys(root._stretches).map(k => root._stretches[k])).concat(root.pills ? root._endReach.stretches : [])
+  readonly property var _endReachList: Object.keys(root._endReaches).map(k => root._endReaches[k])
+  readonly property var _openingList: Object.keys(root._openings).map(k => root._openings[k])
+  // `map` with `owner`'s entry set to `value` (or with null cleared), or
+  // null where that changes nothing
+  function _withEntry(map, owner, value) {
+    if (Utils.deepEqual(map[owner] ?? null, value ?? null))
+      return null;
+    const next = Object.assign({}, map);
+    if (value)
+      next[owner] = value;
     else
       delete next[owner];
-    root.stretches = next;
+    return next;
   }
-
-  // Pills asked to run from an end of the bar, by owner: { atStart, to,
-  // straight } (BarLayout.endReaches), from a surface joining this bar from
-  // the perpendicular edge: a pill bar merging into this one's corner
-  // (CornerMerge), a popout whose side joins it (PillBarJoin)
-  property var endReachRequests: ({})
-  readonly property var _endReachList: Object.keys(root.endReachRequests).map(k => root.endReachRequests[k])
   // Sets (or with null clears) `owner`'s request
-  function setEndReach(owner, request) {
-    if (Utils.deepEqual(root.endReachRequests[owner] ?? null, request ?? null))
-      return;
-    const next = Object.assign({}, root.endReachRequests);
-    if (request)
-      next[owner] = request;
-    else
-      delete next[owner];
-    root.endReachRequests = next;
+  function setRequest(owner, request) {
+    const stretches = root._withEntry(root._stretches, owner, request?.stretch);
+    const endReaches = root._withEntry(root._endReaches, owner, request?.endReach);
+    const openings = root._withEntry(root._openings, owner, request?.opening);
+    if (stretches)
+      root._stretches = stretches;
+    if (endReaches)
+      root._endReaches = endReaches;
+    if (openings)
+      root._openings = openings;
   }
-  // Whether the pill asked to reach an end does so, as drawn
-  function carriesEnd(request) {
-    const stretch = (root._endReach?.stretches ?? []).find(s => request.atStart ? s.joinStart : s.joinEnd);
-    return !stretch || root.carries(stretch);
-  }
-
-  // Where surfaces standing on a pill or island cover its inner stroke,
-  // by owner: { start, end } along the bar (`keepFill`: while opaque, only
-  // the stroke and its outer edge, for a surface joining it end-on, which
-  // covers the stroke but nothing inside it). While surfaces are translucent
-  // the stroke is left open there (their fill no longer hides it).
-  property var openings: ({})
-  readonly property var _openingList: Object.keys(root.openings).map(k => root.openings[k])
-  // A solid bar's own inner stroke (border off) around them
+  // A solid bar's own inner stroke (border off) around the openings
   readonly property var _strokePieces: Utils.subtractSpans(0, root.length, root._openingList)
-  // Sets (or with null clears) `owner`'s opening
-  function setOpening(owner, opening) {
-    if (Utils.deepEqual(root.openings[owner] ?? null, opening ?? null))
-      return;
-    const next = Object.assign({}, root.openings);
-    if (opening)
-      next[owner] = opening;
-    else
-      delete next[owner];
-    root.openings = next;
-  }
 
   // A stretch changing while its popout is open (the calendar opening its
   // editor) was drawn but not shown: the bar's next frame was rendered,
@@ -211,7 +204,7 @@ Rectangle {
   // own (an invisible pixel flipping), and the last one shown is the right
   // one: an opening follows a surface sliding in another window.
   on_ShownStretchesChanged: repaint.burst()
-  onOpeningsChanged: repaint.burst()
+  on_OpeningListChanged: repaint.burst()
 
   // A stretch along the bar (from..to, in this item's coordinates) that a
   // surface joined to the border's inner stroke covers there, as
@@ -291,60 +284,12 @@ Rectangle {
     atStart: false
   }
 
-  // How far each pill reaches past its own ends for the stretches on it,
-  // animated, so it grows out to carry a surface and draws back after it.
-  // The pill itself follows its sections as drawn (Section.drawnPos).
-  Instantiator {
-    id: reaches
-    model: root.pillRects.length
-
-    delegate: QtObject {
-      required property int index
-      readonly property var rect: root.pillRects[index] ?? null
-      readonly property var target: BarLayout.stretchOf(root._stretchList, index)
-      readonly property bool squareStart: target?.squareStart ?? false
-      readonly property bool squareEnd: target?.squareEnd ?? false
-      readonly property bool joinStart: target?.joinStart ?? false
-      readonly property bool joinEnd: target?.joinEnd ?? false
-      property real before: target && rect ? Math.max(0, rect.start - target.start) : 0
-      property real after: target && rect ? Math.max(0, target.end - rect.start - rect.length) : 0
-
-      Glide on before {}
-      Glide on after {}
-    }
-  }
-  // Whether the pill `stretch` stands on reaches, as drawn, as far past its
-  // ends as it asks (a surface waits for it before sliding out onto it)
-  function carries(stretch) {
-    const reach = reaches.objectAt(stretch.index);
-    const rect = reach?.rect;
-    if (!rect)
-      return true;
-    return reach.before >= rect.start - stretch.start - 0.5 && reach.after >= stretch.end - rect.start - rect.length - 0.5;
-  }
-  // The stretches as drawn (see stretchOf), one per pill reaching past
-  // its ends or squared. One stretched on to an end to join the edge
-  // there joins it once it's reached it.
-  readonly property var _shownStretches: {
-    const shown = [];
-    for (let i = 0; i < reaches.count; i++) {
-      const reach = reaches.objectAt(i);
-      const rect = reach?.rect;
-      if (!rect || (reach.before <= 0 && reach.after <= 0 && !reach.squareStart && !reach.squareEnd))
-        continue;
-      const start = rect.start - reach.before, end = rect.start + rect.length + reach.after;
-      shown.push({
-        "index": i,
-        "start": start,
-        "end": end,
-        "squareStart": reach.squareStart,
-        "squareEnd": reach.squareEnd,
-        "joinStart": reach.joinStart && start <= 0.5,
-        "joinEnd": reach.joinEnd && end >= root.length - 0.5
-      });
-    }
-    return shown;
-  }
+  // The stretches as drawn (BarLayout.shownStretches): as their owners
+  // send them, already paced (a pill grows out to carry a surface before
+  // it slides out, and draws back after it; one joining from the
+  // perpendicular edge follows it along). The pill itself follows its
+  // sections as drawn (Section.drawnPos).
+  readonly property var _shownStretches: BarLayout.shownStretches(root.pillRects, root._stretchList, root.length)
   FrameNudge {
     id: repaint
   }
@@ -470,7 +415,7 @@ Rectangle {
     // cover the far stroke, whether or not the pill stretches for them),
     // from the outer edge they stand on out, nor on the solid bars its
     // ends make way for (whose stroke a pill's fillet curves into)
-    holes: [].concat(...root._openingHoles.map(h => h.rects)).concat(root._endBarHole(true, root.solidStart ?? root.pillBarStart), root._endBarHole(false, root.solidEnd ?? root.pillBarEnd)).filter(hole => hole !== null)
+    holes: [].concat(...root._openingHoles.map(h => h.rects)).concat([].concat(...root._flushEnds.map(f => f.holes)), root._endBarHole(true, root.solidStart ?? root.pillBarStart), root._endBarHole(false, root.solidEnd ?? root.pillBarEnd)).filter(hole => hole !== null)
     // ...and a joined surface's fillet (a pill's or popout's curving into
     // a solid bar's stroke) only as far as its curve, not the square it
     // sits in: past the curve the shadow runs on round it
@@ -510,6 +455,23 @@ Rectangle {
       "fillets": (fs > 0 ? [fillet(o.start, fs, false)] : []).concat(fe > 0 ? [fillet(o.end - fe, fe, true)] : [])
     };
   }
+  // The pill and island ends squared for a surface whose wall runs on
+  // from them past the inner edge, its shadow run on with it
+  // (BarLayout.flushEnds)
+  readonly property var _flushEnds: {
+    const across = root.isVertical ? root.width : root.height;
+    const near = root.barConfig.left || root.barConfig.top;
+    const rect = a => root.isVertical ? Qt.rect(a.from, a.along, a.deep, a.length) : Qt.rect(a.along, a.from, a.length, a.deep);
+    return BarLayout.flushEnds(root._stretchList, root.pillShapes, {
+      "reach": root.barConfig.shadowSize * 2,
+      "across": across,
+      "inner": near ? root.barConfig.extent : across - root.barConfig.extent,
+      "near": near
+    }).map(e => ({
+          "source": rect(e.source),
+          "holes": e.holes.map(rect)
+        }));
+  }
   // The bar an end makes way for (`other`, its container: a solid bar, or
   // a pill bar its end pill merges into), from its inner edge on: a shadow
   // falling along this bar, or spread round a pill's fillet, would land on
@@ -532,6 +494,20 @@ Rectangle {
     id: shadowShape
     anchors.fill: parent
     visible: !root.backed
+
+    Repeater {
+      model: root._flushEnds.length
+
+      Rectangle {
+        required property int index
+        readonly property rect area: root._flushEnds[index]?.source ?? Qt.rect(0, 0, 0, 0)
+        x: area.x
+        y: area.y
+        width: area.width
+        height: area.height
+        color: "black"
+      }
+    }
   }
 
   // The blur window draws the bar's fill (BlurManager), once
@@ -817,6 +793,23 @@ Rectangle {
           y: pill.y
           fillColor: "black"
           mirrorStroke: "black"
+        }
+        // ...and where it runs on past its outline: off a bare screen
+        // edge, into what it joins straight (AttachedSurface.shadowRunOn)
+        readonly property var _runOnShadow: pill.shadowRunOn(Math.ceil(root.barConfig.shadowSize * 1.25))
+        Repeater {
+          model: pill._runOnShadow.length
+
+          Rectangle {
+            required property int index
+            readonly property rect area: pill._runOnShadow[index] ?? Qt.rect(0, 0, 0, 0)
+            parent: shadowShape
+            x: pill.x + area.x
+            y: pill.y + area.y
+            width: area.width
+            height: area.height
+            color: "black"
+          }
         }
 
         BlurShape {

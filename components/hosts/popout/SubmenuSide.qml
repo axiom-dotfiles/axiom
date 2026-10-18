@@ -24,12 +24,6 @@ QtObject {
   // pill or island), which a joined submenu covers beside it
   property real attachLine: 0
   property real backfill: 0
-  // How far along (x) the stroke it grows from reaches without a submenu:
-  // its pill or island as the box stretches it, else what it may reach. A
-  // joined submenu whose fillet (and the corner past it) lands within
-  // keeps it; any other runs straight up into it.
-  property real strokeFrom: 0
-  property real strokeTo: 0
   // The parent's joined ends (along its edge)
   property bool joinStart: false
   property bool joinEnd: false

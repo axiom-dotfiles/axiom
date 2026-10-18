@@ -34,8 +34,9 @@ How surfaces meet the three non-solid bar backgrounds. Solid bars, the border, c
   - **The joining piece:** `hosts/popout/PillBarJoin`, a `PillStretch` on that bar's container. Its `available` is what makes the end joinable.
   - **Where the end sits:** on that bar's far stroke. Its window reaches a stroke's width onto it, as it does onto the border's or a solid bar's stroke.
     - Every end does this except a bare screen edge's (`EdgePopout.startStrokeInset`/`endStrokeInset`; the dock's likewise).
-  - **The bar's end pill runs out along the box** (`BarContainer.setEndReach`).
+  - **The bar's end pill runs out along the box** (the `endReach` of its `BarContainer.setRequest`).
     - The reach comes from `joinReach`, the far wall's reach (`AttachedSurface.joinWall`).
+    - It follows the box's far wall as it slides (`hidden`), and its far stroke opens only as far as the box has come ([Choreography](edge-attach.md#choreography)).
     - Either the end pill is stretched, or a stub is grown where the bar has no pill near its end (`BarLayout.endReaches`).
 - **Filleted join:** this applies where one of the bar's own pills (`sectionPills`, before any stretch) shows past the wall's outer edge at all (half a stroke out from where it rests, where a straight join would square it) and reaches within a fillet, a corner and `pillMerge` of it (`EdgeAttach.pillJoinFilleted`, read as `PillBarJoin.filleted`).
   - A pill showing past the wall by less than a fillet and a corner is stretched to carry them: a stretch only grows, so it couldn't square at the wall, and a straight join met its side in a bare T.
@@ -47,7 +48,7 @@ How surfaces meet the three non-solid bar backgrounds. Solid bars, the border, c
   - It runs into a pill or stub that goes only as far as the far wall and squares there (`square`).
   - The wall runs on into its end.
   - Its far stroke is left open inside the wall under a translucent box.
-- **The pill still curves out** to the border as ever, and the surface waits for it as it waits for its own stretch ([The pill grows first](edge-attach.md#the-pill-grows-first)).
+- **The pill still curves out** to the border as ever, following the surface along its slide ([Choreography](edge-attach.md#choreography)).
 - **A bar popout joining one** stretches its own pill to its bar's end (`pillJoins`).
   - On a pill, the box joins an end that `joins` asks for wherever its pill can reach that edge, or where its fillet would pass the stroke there.
   - The pill of a bar that owns the corner runs on past it, under the other bar's end.

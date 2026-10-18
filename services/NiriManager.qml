@@ -65,7 +65,10 @@ Singleton {
   readonly property bool ready: NiriConfigWriter.userBindsRead
   // What niri does (CompositorManager.supports). Its workspaces belong to
   // an output, and every output is a strip. A column's windows shown as
-  // tabs are its window groups.
+  // tabs are its window groups. No outputCapture: it has only
+  // wlr-screencopy, which crashes Quickshell's own capture
+  // (ScreenshotManager.grimFrames). No layerFrameSync: another layer's
+  // change can show a frame or so after the one sliding.
   readonly property var supports: ({
       "configModes": true,
       "keybinds": true,

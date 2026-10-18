@@ -14,7 +14,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BarContainer.qml`: Lays out a bar's five widget sections along its main axis in one pass, so they can never overlap: `left`/`right` hug the ends, `center` stays centered on the bar with `leftCenter`/`rightCenter` beside it.
 - `BarPanel.qml`: One bar's layer-shell window (shell/Bar makes one per BarManager.bars entry): its screen, layer and exclusive zone, holding the bar's BarContainer.
 - `BarWidgetHost.qml`: Hosts one bar module and turns its sizing contract into the numbers the bar layout works with.
-- `CornerMerge.qml`: One end of a pill bar that makes way for a pill bar at its corner (BarEnds "pillBar"), with its end pill joined there: that bar's end pill (grown if the bar has none there, BarContainer.setEndReach) runs on past this pi…
+- `CornerMerge.qml`: One end of a pill bar that makes way for a pill bar at its corner (BarEnds "pillBar"), with its end pill joined there: that bar's end pill (grown if the bar has none there, BarContainer.setRequest) runs on past this pil…
 - `SeparatorMark.qml`: A divider between bar widgets, centred where it's placed: a line across the bar, a dot, a slash or a chevron pointing along it.
 - `StandaloneBar.qml`: A bar's BarContainer outside a window of its own, sized from its config (BarPanel draws its bar through it).
 - `WidgetBackground.qml`: What a bar widget sits on, in its bar's widget style (widgetStyle, widgetShape): a fill or outline shaped by its caps (BarShapes), or for underline a line along one side.
@@ -238,7 +238,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `LayerOrigin.qml`: Where a layer-shell `window` is on its screen, as LayerManager works it out from how every window there asks to be laid out (and reports this one's): for surfaces whose fill the blur window draws, the joins in the borde…
 - `LayerSlot.qml`: A layer-shell `window` with a fixed place in the stack (a bar, the border, a dock, an integrated edge menu): bind its `visible` to `shown`, and what used to decide it to `wanted`.
 - `OutsideShadow.qml`: The shadow (SurfaceShadow) a sibling `target` casts, kept only outside its shape, so none shows through a translucent fill.
-- `PillBarJoin.qml`: A surface's end joining a pill bar on a perpendicular screen edge: its end sits on that bar's far stroke, and the bar's pill at this edge's end runs out along the surface (BarContainer.setEndReach: the end pill stretche…
+- `PillBarJoin.qml`: A surface's end joining a pill bar on a perpendicular screen edge: its end sits on that bar's far stroke, and the bar's pill at this edge's end runs out along the surface (BarContainer.setRequest's endReach: the end pil…
 - `PillStretch.qml`: Puts a surface's pill (or island) stretch (EdgeAttach.place's `stretch`) on the bar it stands on (`container`, a BarContainer) under its own owner key, and takes it off again when it clears, the bar changes or this goes.
 - `PopoutAnchor.qml`: Drop this into any bar widget that wants to open a bar popout on hover (or, given a `menu`, an edge menu).
 - `PopoutClaim.qml`: A popout host's place in PopoutManager: registered while it `wants` to show and has a footprint (rects in screen px), released when it stops.
@@ -475,7 +475,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 ## components/surfaces/screenshot/
 
-- `ScreenshotPickerWindow.qml`: One screen's screenshot picker: the screen frozen (one ScreencopyView frame), dimmed except for what a click or release would capture, with the window under the cursor highlighted.
+- `ScreenshotPickerWindow.qml`: One screen's screenshot picker: the screen frozen (one ScreencopyView frame, or grim's picture of it where Quickshell can't capture it safely: ScreenshotManager.grimFrames), dimmed except for what a click or release wou…
 
 ## components/surfaces/switcher/
 
@@ -679,7 +679,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `RuntimeLayer.qml`: Axiom's layer applied at runtime, for a compositor's config writer: the detached mode, and the fallback of the file modes while their file isn't loaded (docs/dev/compositor/config-modes.md).
 - `SavedConfigsManager.qml`: Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/saved/.
 - `ScreenLayoutEditor.qml`: The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lock screen's, LockManager.editor, or the greeter's, GreeterManager.editor): its modules on a bounded grid, edited through `layout`, its own …
-- `ScreenshotManager.qml`: Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shell/Screenshot shows a frozen frame (ScreencopyView) on each s…
+- `ScreenshotManager.qml`: Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shell/Screenshot shows a frozen frame (ScreencopyView, or grim's…
 - `SecretsManager.qml`: Secrets, which never go in config.json: chat API keys (scope `provider`) and calendar account passwords (scope `calendar`).
 - `SelfUpdateManager.qml`: Updates axiom itself (not packages: that's UpdatesManager).
 - `SettingsManager.qml`: The settings page's working copy of the config.

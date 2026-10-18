@@ -56,7 +56,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Bars[].pillMerge`** · integer = 12 · 0–200 · px
   - Merge distance: Groups closer than this share one pill (px).
   - x-group="Style", x-control="stepper", x-showIf={"background":["pills","floatingPills"]}
-  - read: `Bar.savedBars` (whole), `barConfig.pillMerge` · in: `components/bar/BarContainer.qml`, `components/hosts/popout/PillBarJoin.qml`, `config/Bar.qml`
+  - read: `Bar.savedBars` (whole), `barConfig.pillMerge` · in: `components/bar/BarContainer.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/PillBarJoin.qml`, `config/Bar.qml`
 - **`Bars[].spacing`** · integer = 4 · 0–50 · px
   - Spacing: Gap between widgets (px).
   - x-group="Size", x-control="stepper"

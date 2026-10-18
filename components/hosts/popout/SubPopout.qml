@@ -49,9 +49,9 @@ Item {
 
   // What the parent draws for us while we show: how far its box reaches
   // past its top and bottom, whether it squares its corner there, and,
-  // joined to its bar side without room for our outer fillet, where along
-  // the bar (x in its window) the pill or island we join must reach: our
-  // outer wall, running straight up into its squared end
+  // joined to its bar side, where along the bar (x in its window) our
+  // outer wall rests: the parent's placement decides from it how we meet
+  // the stroke there (SurfaceContext.submenuJoin, the slot's `join`)
   readonly property var parentStretch: {
     if (!root.occupied || !(root.contentReady || still.switching))
       return null;
@@ -63,7 +63,7 @@ Item {
       "squareTop": stretch?.squareStart ?? false,
       "squareBottom": stretch?.squareEnd ?? false,
       "joined": joined,
-      "joinReach": joined && !root.joinFillets ? root.outerWall : null
+      "wall": joined ? root.outerWall : null
     };
   }
 
@@ -188,11 +188,11 @@ Item {
     // The box's outer wall (outer edge of its stroke), x in the parent's
     // window: our attach edge lies a stroke inside the parent's side
     readonly property real outerWall: outer.openToLeft ? root.attachRect.x + Appearance.borderWidth - surface.boxStart - root.targetBoxWidth : root.attachRect.x + root.attachRect.width - Appearance.borderWidth + surface.boxStart + root.targetBoxWidth
-    // Joined, whether what we join reaches past our outer fillet and the
-    // corner beyond it (side.strokeFrom/To); else our wall runs straight up
-    // into it, stretched to meet it
-    readonly property real _joinRoom: Appearance.borderRadius * 2
-    readonly property bool joinFillets: outer.openToLeft ? root.outerWall - root._joinRoom >= (outer.slot?.side?.strokeFrom ?? 0) : root.outerWall + root._joinRoom <= (outer.slot?.side?.strokeTo ?? 0)
+    // Joined, whether our outer fillet curves into the stroke we join (a
+    // pill or island running on past it, carried on past the fillet
+    // where one shows past our wall at all); else our wall runs straight
+    // up into it, stretched to meet it (SurfaceContext.submenuJoin)
+    readonly property bool joinFillets: outer.slot?.join?.fillet ?? false
     readonly property real targetBoxHeight: root.place.end - root.place.start
     property real shownBoxWidth: still.holding ? still.held.width : root.targetBoxWidth
     property real shownBoxHeight: still.holding ? still.held.height : root.targetBoxHeight
@@ -379,7 +379,8 @@ Item {
           if (span && surface.joinSpan && span.start === surface.joinSpan.start)
             outer.slot.submenuJoinSpan = null;
         }
-        active: root.occupied && !root.isClosing && (root.contentReady || still.switching)
+        // Once the parent's box has grown out for it (SubmenuHost.contextReady)
+        active: root.occupied && !root.isClosing && (root.contentReady || still.switching) && (outer.slot?.contextReady ?? true)
         connectorGap: root.connectorGap
         boxWidth: root.shownBoxWidth
         boxHeight: root.shownBoxHeight
@@ -479,6 +480,10 @@ Item {
   Component.onCompleted: ShellManager.registerGrabPartner(submenuPopup, outer.screen?.name)
   onScreenChanged: ShellManager.registerGrabPartner(submenuPopup, outer.screen?.name)
   Component.onDestruction: ShellManager.unregisterGrabPartner(submenuPopup)
+
+  // How much of it is still behind its parent's side as it slides
+  // (AttachedSurface.slid): the pill reach under a joined one follows it
+  readonly property real hidden: surface.slid
 
   // What PopoutAnchor and the parent use of the inner PopoutWrapperBase;
   // the content is handed that one itself (`wrapper`)

@@ -16,10 +16,12 @@ import QtQuick
 //     startCornerRadius, endCornerRadius, connectorGap, joinStart,
 //     joinEnd, flushStart, flushEnd, flushStartThrough, flushEndThrough,
 //     detached, detachedOffset, backfill, straight, straightJoins,
-//     straightJoinStart, straightJoinEnd }
+//     straightJoinStart, straightJoinEnd, joinBackfill }
 // (straightJoinStart/End: one joined end's, where the edges it meets
 // differ, a bare screen edge at one and a solid bar's stroke at the
-// other; each defaults to straightJoins)
+// other; each defaults to straightJoins. joinBackfill: the row a surface
+// covers past its joined ends (a submenu's, beside its parent's backfill),
+// which a straight join's far wall runs on through)
 QtObject {
   id: root
 
@@ -69,6 +71,12 @@ QtObject {
       "joinFillet": joinFillet,
       "throughStart": !!s.flushStart && (s.flushStartThrough ?? true),
       "throughEnd": !!s.flushEnd && (s.flushEndThrough ?? true),
+      // How far a straight joined end's far wall runs on past it, through
+      // the row joinBackfill covers, into the stroke it joins (drawn beside
+      // that row's fill, outside the outline): stopped at the end, it left
+      // that row's pixel of wall open, a notch in the line
+      "joinThroughStart": !!s.joinStart && straightJoinStart ? (s.joinBackfill ?? 0) : 0,
+      "joinThroughEnd": !!s.joinEnd && straightJoinEnd ? (s.joinBackfill ?? 0) : 0,
       "startMargin": startMargin,
       "endMargin": endMargin,
       "alongLength": alongLength,

@@ -123,9 +123,6 @@
     "missing-property: Member \"okText\" not found on type SavedConfigsManager::_process with type Process": 1,
     "missing-property: Member \"removed\" not found on type SavedConfigsManager::_process with type Process": 1
   },
-  "services/ScreenshotManager.qml": {
-    "missing-property: Member \"kind\" not found on type ScreenshotManager::_delay with type QQmlTimer": 1
-  },
   "services/ThemeManager.qml": {
     "missing-property: Member \"command\" not found on type call to method objectAt, returning QObject": 1,
     "missing-property: Member \"queued\" not found on type call to method objectAt, returning QObject": 1,

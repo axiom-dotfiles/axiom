@@ -2,7 +2,6 @@
 //@ pragma Env QS_NO_RELOAD_POPUP=1
 //@ pragma Env QSG_RENDER_LOOP=threaded
 //@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
-//@ pragma Env mesa_glthread=false
 
 pragma ComponentBehavior: Bound
 import Quickshell

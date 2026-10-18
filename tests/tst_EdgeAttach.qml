@@ -547,41 +547,6 @@ TestCase {
     compare([p.start, p.joinStart, p.flushStart, p.contentStart], [-2, true, false, 50]);
   }
 
-  function test_reachStretch() {
-    const p = Object.assign(pill(400, 200), {
-      "index": 2
-    });
-    // Nothing to reach: its own stretch as it was
-    compare(EdgeAttach.reachStretch(null, p, null), null);
-    compare(EdgeAttach.reachStretch(null, null, 100), null);
-    // Past the pill's start: stretched there and squared
-    compare(EdgeAttach.reachStretch(null, p, 300), {
-      "index": 2,
-      "start": 300,
-      "end": 600,
-      "squareStart": true,
-      "squareEnd": false,
-      "joinStart": false,
-      "joinEnd": false
-    });
-    // Within its own stretch: as it was, an end it squared kept square
-    const own = {
-      "index": 2,
-      "start": 350,
-      "end": 650,
-      "squareStart": false,
-      "squareEnd": true,
-      "joinStart": false,
-      "joinEnd": false
-    };
-    compare(EdgeAttach.reachStretch(own, p, 500), own);
-    compare(EdgeAttach.reachStretch(own, p, 650).squareEnd, true);
-    compare(EdgeAttach.reachStretch(own, p, 700), Object.assign({}, own, {
-      "end": 700,
-      "squareEnd": true
-    }));
-  }
-
   function test_joinOpening() {
     // A top bar's surface joined at its start covers the left edge's
     // stroke from the screen's top down to its join
@@ -720,5 +685,36 @@ TestCase {
       "pillGrows": true
     }));
     compare([p.start, p.end, p.grow, p.flushStart, p.flushEnd], [300, 700, 0, true, true]);
+  }
+
+  function test_progressStretch() {
+    const rest = {
+      "start": 400,
+      "length": 200
+    };
+    const target = {
+      "index": 2,
+      "start": 300,
+      "end": 700,
+      "squareEnd": true
+    };
+    compare(EdgeAttach.progressStretch(rest, target, 0), null);
+    compare(EdgeAttach.progressStretch(rest, null, 1), null);
+    const half = EdgeAttach.progressStretch(rest, target, 0.5);
+    compare(half.start, 350);
+    compare(half.end, 650);
+    compare(half.index, 2);
+    verify(half.squareEnd, "its flags kept");
+    const full = EdgeAttach.progressStretch(rest, target, 1);
+    compare(full.start, 300);
+    compare(full.end, 700);
+    // Inside the pill's own span: never drawn back past it
+    const inside = EdgeAttach.progressStretch(rest, {
+      "index": 2,
+      "start": 450,
+      "end": 550
+    }, 1);
+    compare(inside.start, 400);
+    compare(inside.end, 600);
   }
 }

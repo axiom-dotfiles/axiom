@@ -174,6 +174,11 @@ Singleton {
       "purpose": "Screen recording"
     },
     {
+      "command": "grim",
+      "purpose": "Screenshots (the picker's frozen frame)",
+      "compositors": ["niri"]
+    },
+    {
       "command": "pactl",
       "purpose": "The system's sound in screen recordings"
     },
