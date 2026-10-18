@@ -103,10 +103,12 @@ PanelWindow {
   // Every shape, as the shadows' cut: each is kept outside them all,
   // so none falls on a surface joined to the one casting it. Captured
   // (and kept off screen) only once there are several groups or shapes
-  // to cut by.
+  // to cut by; never drawn otherwise (a fills-only window would draw the
+  // other window's shapes over what they belong to)
   Item {
     id: unionShapes
     anchors.fill: parent
+    visible: backing.cutByUnion
 
     // The other window's shapes, for the cut alone
     Item {
