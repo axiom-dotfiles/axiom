@@ -26,6 +26,8 @@
     the series moved) so they read back right (skipped without icalendar)
   - migrate_xdg.sh copies the repo's config and state into the XDG
     folders once, never overwriting, and marks them moved
+  - restart.sh ends every running axiom (one ignoring SIGTERM too) and
+    starts one, and a second restart fired meanwhile does nothing
   - cursor_theme.py makes the companion theme filling in a cursor theme's
     missing standard names, and only for a theme that needs it
   - pick_path.py falls back to zenity/kdialog without a portal, asking for
@@ -828,6 +830,7 @@ bindsym $mod+h focus left
 bindsym --locked XF86AudioRaiseVolume exec $ipc audio volumeUp
 bindsym $mod+space exec $ipc appLauncher toggle
 bindsym $mod+1 exec $ipc workspaces nth 1 go
+bindsym --release $mod+Ctrl+r exec '/opt/axiom/scripts/restart.sh'
 bindsym $mod+x layout tabbed
 bindsym --border $mod+button2 kill
 bindcode $mod+49 exec thing
@@ -848,6 +851,7 @@ mode "resize" {
         # Repeats only where axiom's action does (or a raw command as sway had it)
         self.assertEqual(by_key["SUPER + Q"], {"key": "SUPER + Q", "action": "closeWindow"})
         self.assertTrue(by_key["XF86AudioRaiseVolume"]["repeating"])
+        self.assertEqual(by_key["SUPER + CTRL + R"]["action"], "restartShell")
         self.assertEqual(by_key["SUPER + Return"], {"key": "SUPER + Return", "action": "exec", "argument": "foot"})
         self.assertEqual(by_key["SUPER + H"]["action"], "focusDir")
         self.assertEqual(by_key["XF86AudioRaiseVolume"]["action"], "volumeUp")
@@ -2391,6 +2395,90 @@ class CursorTheme(unittest.TestCase):
         env = {**os.environ, "HOME": str(self.home), "XDG_DATA_HOME": str(self.data), "XDG_DATA_DIRS": str(self.system)}
         done = subprocess.run([sys.executable, str(SCRIPTS / "cursor_theme.py"), "Old"], env=env, capture_output=True, text=True)
         self.assertEqual(done.returncode, 1)
+
+
+class RestartScript(unittest.TestCase):
+    """restart.sh with a stubbed qs whose instances are sleeps: it ends every
+    one and starts one, and a restart fired while one runs does nothing."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        self.addCleanup(self.end_all)
+        self.stubs = self.tmp / "stubs"
+        self.stubs.mkdir()
+        self.state = self.tmp / "pids"
+        self.state.touch()
+        qs = self.stubs / "qs"
+        # list: the live pids as qs list -j does; anything else is a launch
+        # (-n: not while one runs), started detached so it's reaped
+        qs.write_text(f"""#!/bin/sh
+state="{self.state}"
+if [ "$1" = list ]; then
+  echo "["
+  while read -r pid; do kill -0 "$pid" 2>/dev/null && echo "{{\\"pid\\": $pid}},"; done < "$state"
+  echo "]"
+  exit 0
+fi
+while read -r pid; do kill -0 "$pid" 2>/dev/null && exit 0; done < "$state"
+echo launch >> "{self.tmp}/launches"
+sleep 300 > /dev/null 2>&1 &
+echo $! >> "$state"
+""")
+        qs.chmod(qs.stat().st_mode | stat.S_IEXEC)
+        self.env = dict(os.environ, PATH=f"{self.stubs}:{os.environ['PATH']}",
+                        XDG_RUNTIME_DIR=str(self.tmp), WAYLAND_DISPLAY="wayland-test")
+
+    def end_all(self):
+        for pid in self.state.read_text().split():
+            try:
+                os.kill(int(pid), 9)
+            except ProcessLookupError:
+                pass
+
+    def start_instance(self, ignore_term=False):
+        command = "trap '' TERM; while :; do sleep 1; done" if ignore_term else "sleep 300"
+        pid = subprocess.run(["sh", "-c", f"sh -c \"{command}\" > /dev/null 2>&1 & echo $!"],
+                             capture_output=True, text=True, check=True).stdout.strip()
+        with self.state.open("a") as f:
+            f.write(pid + "\n")
+        return int(pid)
+
+    def alive(self):
+        alive = []
+        for pid in self.state.read_text().split():
+            try:
+                os.kill(int(pid), 0)
+                alive.append(int(pid))
+            except ProcessLookupError:
+                pass
+        return alive
+
+    def restart(self):
+        return subprocess.Popen(["bash", str(SCRIPTS / "restart.sh")], env=self.env,
+                                stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+
+    def test_ends_every_instance(self):
+        old = [self.start_instance(), self.start_instance(), self.start_instance(ignore_term=True)]
+        done = self.restart()
+        _, err = done.communicate(timeout=30)
+        self.assertEqual(done.returncode, 0, err)
+        alive = self.alive()
+        self.assertEqual(len(alive), 1)
+        self.assertNotIn(alive[0], old)
+
+    def test_none_running(self):
+        done = self.restart()
+        done.communicate(timeout=30)
+        self.assertEqual(len(self.alive()), 1)
+
+    def test_twice_at_once(self):
+        self.start_instance(ignore_term=True)
+        first, second = self.restart(), self.restart()
+        first.communicate(timeout=30)
+        second.communicate(timeout=30)
+        self.assertEqual(len(self.alive()), 1)
+        self.assertEqual((self.tmp / "launches").read_text().count("launch"), 1)
 
 
 class PickPath(unittest.TestCase):

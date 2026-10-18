@@ -111,7 +111,7 @@ QtObject {
 
   // The sway command of a compositor action (BindActions.compositorActions)
   // for `argument`, or "" when sway can't do it or the argument doesn't
-  // fit. `ctx`: { shellCommand, terminal, fileManager, browser }
+  // fit. `ctx`: { shellCommand, restartCommand, terminal, fileManager, browser }
   function actionCommand(action, argument, ctx) {
     const directions = ["left", "right", "up", "down"];
     switch (action) {
@@ -157,7 +157,7 @@ QtObject {
       return /^\S+$/.test(argument) ? "nop axiom special move " + argument : "";
     // Run by sway, not over IPC, so it works when the shell is stuck
     case "restartShell":
-      return _exec(`qs kill ${ctx.shellCommand.slice(3)}; ${ctx.shellCommand} -d`);
+      return _exec(ctx.restartCommand);
     case "exitSession":
       return "exit";
     case "terminal":

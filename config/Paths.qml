@@ -15,6 +15,9 @@ QtObject {
   readonly property string axiomPath: decodeURIComponent(Quickshell.shellDir.toString().replace("file://", "")).replace(/\/?$/, "/")
   // How compositors, binds and idle daemons start or call axiom
   readonly property string shellCommand: `qs -p '${root.axiomPath.replace(/\/$/, "")}'`
+  // The restart binds' command: ends every axiom on the display and starts
+  // one (scripts/restart.sh)
+  readonly property string restartCommand: `'${root.axiomPath}scripts/restart.sh'`
   readonly property string themePath: root.axiomPath + "config/themes/"
   readonly property string scriptsPath: root.axiomPath + "scripts/"
   // What ships with axiom in config/: json/ (schema, theme defaults,
@@ -44,7 +47,8 @@ QtObject {
   // Themes generated from the wallpaper ("generated/<name>")
   readonly property string generatedThemesPath: ConfigManager.dataDirs.generatedThemes
 
-  readonly property string hyprlandPath: root.homeDirectory + ".config/hypr/"
+  // Hyprland's config folder ($XDG_CONFIG_HOME/hypr/, where Hyprland looks)
+  readonly property string hyprlandPath: (Quickshell.env("XDG_CONFIG_HOME") || root.homeDirectory + ".config").replace(/\/$/, "") + "/hypr/"
   // Sway's config folder ($XDG_CONFIG_HOME/sway/, as sway looks there first)
   readonly property string swayPath: (Quickshell.env("XDG_CONFIG_HOME") || root.homeDirectory + ".config").replace(/\/$/, "") + "/sway/"
   // niri's config folder ($XDG_CONFIG_HOME/niri/, where niri looks)

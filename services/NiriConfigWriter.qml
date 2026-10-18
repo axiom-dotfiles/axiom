@@ -108,6 +108,7 @@ Singleton {
   readonly property var _bindCtx: ({
       "axiomPath": Paths.axiomPath.replace(/\/$/, ""),
       "shellCommand": shellCommand,
+      "restartCommand": Paths.restartCommand,
       "terminal": Apps.terminalCommand,
       "fileManager": Apps.fileManagerCommand,
       "browser": Apps.browserCommand

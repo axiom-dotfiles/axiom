@@ -61,7 +61,8 @@ def unquote(text):
 def ipc_action(command):
     """The axiom action a command calling axiom's IPC is ({ action, call,
     argument }), or None."""
-    if re.fullmatch(r"(?:qs|quickshell) +kill +.*;\s*" + SHELL + r" +-d", command):
+    if re.fullmatch(r"(?:qs|quickshell) +kill +.*;\s*" + SHELL + r" +-d", command) or \
+            re.fullmatch(r"""['"]?\S*axiom\S*/scripts/restart\.sh['"]?""", command):
         return {"action": "restartShell"}
     match = re.fullmatch(SHELL + r" +ipc +call +(.+)", command)
     if not match:

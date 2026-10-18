@@ -91,6 +91,7 @@ Singleton {
   // What the bind Lua needs from outside the bind
   readonly property var _bindCtx: ({
       "shellCommand": shellCommand,
+      "restartCommand": Paths.restartCommand,
       "terminal": Apps.terminalCommand,
       "fileManager": Apps.fileManagerCommand,
       "browser": Apps.browserCommand

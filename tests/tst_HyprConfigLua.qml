@@ -14,6 +14,7 @@ TestCase {
 
   readonly property var ctx: ({
       "shellCommand": "qs -p '/opt/axiom'",
+      "restartCommand": "'/opt/axiom/scripts/restart.sh'",
       "terminal": "kitty",
       "fileManager": "thunar",
       "browser": "firefox"
@@ -142,7 +143,7 @@ TestCase {
     compare(HyprConfigLua.dispatcherLua("resizeWindow", "10, -20", ctx), "hl.dsp.window.resize({ x = 10, y = -20, relative = true })");
     compare(HyprConfigLua.dispatcherLua("stripSwapColumn", "up", ctx), `hl.dsp.layout("swapcol l")`);
     compare(HyprConfigLua.dispatcherLua("terminal", "", ctx), `hl.dsp.exec_cmd("kitty")`);
-    verify(HyprConfigLua.dispatcherLua("restartShell", "", ctx).includes("qs kill -p '/opt/axiom'; qs -p '/opt/axiom' -d"));
+    verify(HyprConfigLua.dispatcherLua("restartShell", "", ctx).includes("'/opt/axiom/scripts/restart.sh'"));
     for (const action of Object.keys(BindActions.compositorActions))
       verify(HyprConfigLua.dispatcherLua(action, action === "resizeWindow" ? "10 10" : "left", ctx) !== "", action + " has no Lua");
   }

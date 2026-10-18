@@ -289,6 +289,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SchemaLayout.qml`: Turns the config schema into the settings page's layout: categories (`x-category` on each top-level section, ordered by the root's `x-categories`), each made of groups (the section's own fields, then one per nested obje…
 - `SchemaValidation.qml`: JSON-schema helpers for the config: validation, filling in defaults, and pruning unknown keys.
 - `Search.qml`: Pure helpers for searching lists by typed text: the launcher's fuzzy score, frecency from a { count, last } use record (Utils.recordUse) and whether text reads as math for the calculator.
+- `ShellInstances.qml`: Which axiom instances on a display keep running (InstanceManager): the newest, by launch time and then pid, so every instance decides the same.
 - `ShownLook.qml`: What the look shows at the moment, from what the user chose (config) and what changes on its own (runtime state ThemeManager keeps: the rotation's wallpapers, the theme schedule's variant).
 - `SurfaceContext.qml`: What a surface growing out of a screen edge touches, and every rule that follows from it, for each kind of surface alike: bar popouts, edge popouts (OSDs, floating edge menus, the attached launcher), docks and submenus.
 - `SurfaceOutline.qml`: The outline of a surface that grows out of an edge (AttachedSurface): a content box joined to the attach edge by two concave fillets, or a plain box held off it.
@@ -633,6 +634,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `HyprlandManager.qml`: CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprland's state as the compositor-neutral shapes (HyprState), and the primitives CompositorManager builds on.
 - `HyprlandRuntimeLayer.qml`: Axiom's Hyprland layer evaluated at runtime (RuntimeLayer), for HyprlandConfigWriter, which owns it.
 - `IdleInhibitManager.qml`: Shared on/off state for keeping the session awake.
+- `InstanceManager.qml`: Keeps one axiom per display.
 - `IntegrationHookupManager.qml`: Hooks theme integrations into their apps' configs: each ThemeIntegrations switch's `x-hookup` targets (the line that loads its axiom file, where it goes), run by scripts/integration_hookup.py.
 - `KeybindManager.qml`: KeybindManager reads the keybinds the compositor has registered (CompositorManager.withBinds).
 - `KeyboardLayoutManager.qml`: Active xkb layout of the main keyboard, shared by every KeyboardLayout widget.

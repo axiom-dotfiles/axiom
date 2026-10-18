@@ -15,6 +15,7 @@ TestCase {
   readonly property var ctx: ({
       "axiomPath": "/opt/axiom",
       "shellCommand": "qs -p '/opt/axiom'",
+      "restartCommand": "'/opt/axiom/scripts/restart.sh'",
       "terminal": "foot",
       "fileManager": "nautilus",
       "browser": "firefox"

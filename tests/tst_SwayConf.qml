@@ -12,6 +12,7 @@ TestCase {
 
   readonly property var ctx: ({
       "shellCommand": "qs -p '/opt/axiom'",
+      "restartCommand": "'/opt/axiom/scripts/restart.sh'",
       "terminal": "foot",
       "fileManager": "nautilus --new-window",
       "browser": "firefox"
@@ -45,7 +46,7 @@ TestCase {
       "key": "SUPER + SHIFT + R",
       "action": "restartShell",
       "release": true
-    }, ctx, true), "bindsym --no-warn --release --no-repeat Mod4+Shift+r \"exec \"'\"'\"qs kill -p '/opt/axiom'; qs -p '/opt/axiom' -d\"'\"'");
+    }, ctx, true), "bindsym --no-warn --release --no-repeat Mod4+Shift+r \"exec \"'\"'\"'/opt/axiom/scripts/restart.sh'\"'\"'");
     compare(SwayConf.bindLine({
       "key": "SUPER + Q",
       "action": "closeWindow"
@@ -116,7 +117,7 @@ TestCase {
       "key": "SUPER + SHIFT + R",
       "action": "restartShell",
       "release": true
-    }, ctx), "bindsym --no-warn --release --no-repeat Mod4+Shift+r exec \"qs kill -p '/opt/axiom'; qs -p '/opt/axiom' -d\"");
+    }, ctx), "bindsym --no-warn --release --no-repeat Mod4+Shift+r exec \"'/opt/axiom/scripts/restart.sh'\"");
   }
 
   // Checked in a headless sway 1.12: a tap fires bound alone, on release,

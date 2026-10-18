@@ -1,6 +1,6 @@
 # Services pattern
 
-> **Files:** `services/*.qml`, `services/ConsumerRegistry.qml`, `services/CommandManager.qml`, `services/SystemManager.qml`, `services/UpdatesManager.qml`, `shell.qml`
+> **Files:** `services/*.qml`, `services/ConsumerRegistry.qml`, `services/CommandManager.qml`, `services/SystemManager.qml`, `services/UpdatesManager.qml`, `services/InstanceManager.qml`, `components/methods/ShellInstances.qml`, `scripts/restart.sh`, `shell.qml`
 > **Config:** none of its own
 > **Related:** [Config manager](config-manager.md), [Config readers](config-readers.md), [Editors pattern](editors-pattern.md), [Shell manager and screen targeting](shell-manager-targeting.md)
 
@@ -46,5 +46,10 @@ They follow the same pattern:
   - Sends the low battery notifications, once per drop into low and then critical, whatever bars exist.
   - Created from `shell.qml`'s `_services` so it runs without a widget.
 - **KeyboardLayoutManager**, **MediaManager** (MPRIS), **CompositorManager** (the compositor, through its backend `HyprlandManager`: [compositor/](../compositor/README.md)), **StateManager**, **BarManager**, **LauncherManager**, **SettingsManager**, **SavedConfigsManager**, **AuthManager**, **LockManager**.
+
+### One axiom per display
+- **Restarting** is `scripts/restart.sh` (`Paths.restartCommand`), what every compositor's `restartShell` bind runs (SwayConf, NiriConf, HyprConfigLua; `bind_merge_common.py` reads it, and the old `qs kill …; qs … -d`, back as `restartShell`). It ends every axiom of the install on the display (SIGTERM, SIGKILL after 3 s) and starts one with `-n`. A lock per display drops a restart fired while one runs, and is held until the new one shows in `qs list`. Plain `qs kill` ends only one instance (the oldest, maybe already quitting) and returns before it has quit, so a bind fired twice left two, and every restart after kept two.
+- **InstanceManager** (from `_services`, not in the greeter) lists the install's instances on its display (`qs list -j`) at start and 5 s later. `ShellInstances.decide` keeps the newest (launch time, then pid, so every instance decides alike): it ends the others, an older one quits. A `console.warn` names what it ended.
+- `qs list` / `qs kill` match the display (`WAYLAND_DISPLAY`), so a nested axiom (`scripts/dev/nested.sh`) and the live one never end each other.
 
 Feature services each have their own doc under `docs/dev/features/`, `docs/dev/hyprland/` and `docs/dev/theming/` (see the index).

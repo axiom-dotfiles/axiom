@@ -96,6 +96,7 @@ for f in "${changed[@]}"; do
   scripts/calendar_sync.py) script_tests+=(CalendarSync) ;;
   scripts/greeter/*) script_tests+=(GreeterInstall) ;;
   scripts/pick_path.py) script_tests+=(PickPath) ;;
+  scripts/restart.sh) script_tests+=(RestartScript) ;;
   scripts/sway_config_text.py) script_tests+=(SwayConfigText) ;;
   scripts/dev/known_issues.py) script_tests+=(KnownIssues) ;;
   scripts/migrate_xdg.sh) script_tests+=(MigrateXdg) ;;

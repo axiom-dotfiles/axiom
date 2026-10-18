@@ -48,6 +48,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [HyprlandManager](api/HyprlandManager.md): CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprland's state as the compositor-neutral shapes (HyprState), and the primitives Co…
 - [HyprlandRuntimeLayer](api/HyprlandRuntimeLayer.md): Axiom's Hyprland layer evaluated at runtime (RuntimeLayer), for HyprlandConfigWriter, which owns it.
 - [IdleInhibitManager](api/IdleInhibitManager.md): Shared on/off state for keeping the session awake.
+- [InstanceManager](api/InstanceManager.md): Keeps one axiom per display.
 - [IntegrationHookupManager](api/IntegrationHookupManager.md): Hooks theme integrations into their apps' configs: each ThemeIntegrations switch's `x-hookup` targets (the line that loads its axiom file, where it goes), run …
 - [KeybindManager](api/KeybindManager.md): KeybindManager reads the keybinds the compositor has registered (CompositorManager.withBinds).
 - [KeyboardLayoutManager](api/KeyboardLayoutManager.md): Active xkb layout of the main keyboard, shared by every KeyboardLayout widget.

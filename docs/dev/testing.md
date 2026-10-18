@@ -34,7 +34,7 @@ How to look at, exercise and debug the live shell without breaking the user's se
   - Lock screen: [lockscreen.md › Testing](features/lockscreen.md) (`LockManager.editor.startPreview()`, draft-only demo layouts).
   - Greeter: [greeter-runtime.md › Testing](features/greeter-runtime.md) (windowed greeter) and [greeter-install.md › Testing](features/greeter-install.md) (scratch root).
   - Onboarding: [onboarding.md › Testing](features/onboarding.md) (`ipc call onboarding goTo <n>`).
-  - Another compositor: [sway-backend.md › Running it](compositor/sway-backend.md) (`scripts/dev/nested.sh <sway|niri>`: a nested compositor with a second axiom on scratch folders and its own D-Bus; kill only the nested compositor you started). Nested niri: [niri-backend.md › Running it](compositor/niri-backend.md) (keep its window visible).
+  - Another compositor: [sway-backend.md › Running it](compositor/sway-backend.md) (`scripts/dev/nested.sh <sway|niri|hyprland>`: a nested compositor with a second axiom on scratch folders and its own D-Bus; kill only the nested compositor you started). Nested niri: [niri-backend.md › Running it](compositor/niri-backend.md) (keep its window visible).
 
 ### Popout and layering checks
 - `scripts/dev/popout_matrix.py OUT_DIR [--only layout__variant ...]` shoots every bar layout × border × opacity scenario: [surface-context.md › Testing](popouts/surface-context.md).
