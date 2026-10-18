@@ -375,6 +375,8 @@ FoldingCard {
         Layout.fillWidth: true
         Layout.preferredHeight: Widget.height - 6
         placeholderText: I18n.tr("Name")
+        // One line, cut off rather than wrapped in a narrow field
+        input.wrapMode: TextInput.NoWrap
         Component.onCompleted: text = saved
         onSavedChanged: {
           if (!nameField.input.activeFocus)
