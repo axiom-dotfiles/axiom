@@ -46,10 +46,10 @@ Overlay modules drawn on the desktop, under the windows. Read this doc for deskt
   - ClockCalendar's events are read-only on the desktop.
 
 ### Modules
-- Allowed: the modules whose `x-hosts` list `desktop`: every module except the lock screen's and the greeter's own (Password, Login, Session, Power, KeyboardLayout) and Submenu (edge menus only).
-- The ones that take typing carry `x-keyboard` (see Input): Notes, Chat, Calculator, EmojiPicker, ClipboardHistory, Cheatsheet, WifiNetworks (its password), Calendar and Agenda (their event editors).
+- Allowed: the modules whose `x-hosts` list `desktop` (also the default): every module except the lock screen's and the greeter's own (Password, Login, Session, Power, KeyboardLayout) and Submenu (edge menus only). `check_structure` fails a module listing `overlay` without `desktop`, so a new one can't miss it.
+- The ones that take typing carry `x-keyboard` (see Input): Notes, Chat, Calculator, EmojiPicker, ClipboardHistory, Cheatsheet, WifiNetworks (its password), Calendar and Agenda (their event editors), Todo, Focus and Stopwatch (their fields). `check_structure` fails a desktop module with a text field and no `x-keyboard`.
 - ClipboardHistory shows clip history on the wallpaper; it's there only if the user adds it.
-- ClockCalendar has no `x-keyboard`, so its events stay read-only on the desktop (adding it would hand every desktop with a clock the keyboard on a click); Calendar and Agenda edit there.
+- ClockCalendar has `x-keyboard: false`, so its events stay read-only on the desktop (adding it would hand every desktop with a clock the keyboard on a click); Calendar and Agenda edit there.
 - The Clock module (styles, time zones) is in [clock-timezones.md](clock-timezones.md).
 
 ### Editing

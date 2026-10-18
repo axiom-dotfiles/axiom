@@ -139,7 +139,7 @@ Dependencies point one way:
 - **Schema annotations drive the UI; prefer a new annotation to a hand-kept list in QML.** The complete list is `docs/dev/core/schema-annotations.md`. The ones with rules attached:
   - `x-scope` (`look`/`personal`/`machine`, inherited, root `machine`) is what an example, import or export carries: a new setting inside a look section that names a monitor, path, account or command needs `machine`/`personal`.
   - `x-takeover` marks a setting that takes something over on this PC (compositor mode, locker, idle, polkit, greeter): loading or importing a config never changes it, only its own card does.
-  - `x-hosts` on overlay modules: the lock screen and the greeter are opt-in hosts (see UI conventions).
+  - `x-hosts` on overlay modules: every module lists `desktop` with `overlay` and `edgeMenu` (`check_structure` enforces it), and one with a text field sets `x-keyboard`; the lock screen and the greeter are opt-in hosts (see UI conventions).
   - `oneOf`s are discriminated by `type` (bar widgets, overlay views and modules).
 - An empty monitor means the primary monitor everywhere (`General.screensNamed`), except in `General.primaryMonitor` itself.
 - A path setting may hold `~` (typed, or handed back by a Browse button as `~/…`): it's expanded (`Paths.expandHome`) before it reaches a process or a file read, in its reader or, for widget/module options, the service that uses it. Processes run without a shell, so nothing else expands it.

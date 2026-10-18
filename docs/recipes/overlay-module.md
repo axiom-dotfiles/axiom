@@ -1,6 +1,6 @@
 # Recipe: a new overlay module
 
-> **Use when:** adding a card type for overlay pages (also usable in edge menus, and on the desktop, lock screen or greeter when it opts in).
+> **Use when:** adding a card type for overlay pages (also usable in edge menus and on the desktop, and on the lock screen or greeter when it opts in).
 > **Copy from:** `components/content/Battery.qml` (`Card`, `fullMinWidth`/`fullMinHeight`, `compactContent: CompactFigure`, `shape`), `components/content/ColorSwatch.qml` (driven by `properties`); schema `definitions.BatteryOverlayModule` (with `x-hosts`) or `definitions.CalculatorOverlayModule` (with `properties`).
 > **Docs:** [overlay/writing-modules](../dev/overlay/writing-modules.md), [overlay/content-roots](../dev/overlay/content-roots.md), [overlay/grow-expand](../dev/overlay/grow-expand.md), rules in `components/content/AGENTS.md`; generated: [config/OverlayModules](../dev/config/OverlayModules.md).
 
@@ -58,6 +58,7 @@ Schema entry:
 ```json
 "FooOverlayModule": {
   "type": "object",
+  "x-hosts": ["overlay", "edgeMenu", "desktop"],
   "x-icon": "bolt",
   "x-libraryGroup": "System",
   "x-defaultSize": [4, 2],
@@ -79,10 +80,11 @@ Schema entry:
 
 ## Steps
 1. Schema first: the definition plus its `$ref` in `definitions.OverlayModule.oneOf`. `x-defaultSize: [w, h]` in grid units (four to a card) if one card is the wrong starting size; `x-minSize` if it can't shrink that far.
-2. Hosts: without `x-hosts` a module may go on overlay pages and edge menus (`["overlay", "edgeMenu"]`). List `desktop` for display-only modules; `lockscreen` and `greeter` only under their rules (below).
-3. Write the module: `Card` for free-form, `Panel` for a column that can also be a bar popout. Read settings as `root.properties.<key>`.
-4. Make it work at any size: `fullMinWidth`/`fullMinHeight` plus `compactContent`, and a layout that adapts to `shape` (`"horizontal"`, …) and `compact`.
-5. Verify, then add it to a page to see it.
+2. Hosts: write `x-hosts` out, as every module does: `["overlay", "edgeMenu", "desktop"]` (also the default). **Every module goes on the desktop**; `check_structure` fails one listing `overlay` without `desktop`. Add `lockscreen` and `greeter` only under their rules (below).
+3. Typing: a module with a text field (in its file or a part it uses) sets `"x-keyboard": true`, so the desktop hands it the keyboard on a click; `false` only to keep it read-only there on purpose (ClockCalendar). `check_structure` fails a text field with neither.
+4. Write the module: `Card` for free-form, `Panel` for a column that can also be a bar popout. Read settings as `root.properties.<key>`.
+5. Make it work at any size: `fullMinWidth`/`fullMinHeight` plus `compactContent`, and a layout that adapts to `shape` (`"horizontal"`, …) and `compact`.
+6. Verify, then add it to a page and to a desktop layout to see it in both.
 
 ## Gotchas
 - Modules exist only while their page is shown: acquire in `Component.onCompleted`, release in `onDestruction`, keep lasting state in a service.
