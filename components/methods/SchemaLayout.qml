@@ -151,19 +151,21 @@ QtObject {
   }
 
   // One section as cards: { kind, key, title, description, section, path,
-  // rows, showIf, showIfParent }. The section's direct values make the
+  // rows, showIf, showIfParent, wide }. The section's direct values make the
   // first card (titled by the section), each nested object the next ones.
   // Fields with `x-group` go on a card of that name instead, so one object
   // can make several cards. A nested object's `x-showIf` (on its siblings)
   // applies to all its cards. A section's `x-card` names a hand-built card
   // (settings/<name>Card.qml) that goes first (`x-cardFolds`: it folds like
-  // the generated cards, given its `foldKey`); its `x-intro` names a
+  // the generated cards, given its `foldKey`; `x-cardWide`: it spans both
+  // columns); its `x-intro` names a
   // hand-built piece (settings/<name>.qml) at the top of the section's own
   // card, above its fields (`intro`), as a nested object's does on its own.
   // `x-cardPerField` makes each of the section's direct fields a card of
   // its own, titled and described by the field and sorted by title, a
   // switch's row labelled "Enabled"; the section's description gets a card
-  // first.
+  // first. A card holding a field marked `x-wide` spans both columns
+  // (`wide`).
   function groups(schema, sectionKey) {
     const section = schema.properties[sectionKey];
     const sectionTitle = section.title ?? sectionKey;
@@ -175,6 +177,7 @@ QtObject {
         "key": sectionKey + ":" + section["x-card"],
         "card": section["x-card"],
         "folds": section["x-cardFolds"] === true,
+        "wide": section["x-cardWide"] === true,
         "title": sectionTitle,
         "description": "",
         "section": sectionTitle,
@@ -290,6 +293,7 @@ QtObject {
         card.description = "";
       seen.add(path);
       delete card.defaultTitle;
+      card.wide = card.rows.some(row => row.schema?.["x-wide"] === true);
     }
     // The section's card, then its fields' by title, then nested objects'
     if (perField) {

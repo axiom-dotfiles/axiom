@@ -120,35 +120,35 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.shadow`** · boolean = false
   - Window shadows
-  - x-group="Shadows", x-enabledIf={"/$supports.windowShadow":true}
+  - x-group="Window shadows", x-enabledIf={"/$supports.windowShadow":true}
   - read: `WindowLookConfig.shadowOn` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shadowMatchShell`** · boolean = true
-  - Match axiom's shadow: Follow Look & Feel → Bar style: its shadow color and size. With it off there, windows cast none.
-  - x-group="Shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
+  - Match axiom's shadow: Follow Look & Feel → Surface shadow: its color and size. With it off there, windows cast none.
+  - x-group="Window shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
   - read: `WindowLookConfig.shadowAlpha` (computed), `WindowLookConfig.shadowColor` (computed), `WindowLookConfig.shadowOn` (computed), `WindowLookConfig.shadowSize` (computed), `WindowLookConfig.shadowSoft` (computed), `WindowLookConfig.shadowThemed` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shadowSize`** · integer = 10 · 0–100 · px
   - Shadow size
-  - x-control="stepper", x-group="Shadows", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true}
+  - x-control="stepper", x-group="Window shadows", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true}
   - read: `WindowLookConfig.shadowSize` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shadowPower`** · integer = 3 · 1–4
   - Shadow falloff: 1 fades slowly, 4 ends sharply.
-  - x-group="Shadows", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true,"/$compositor":"hyprland"}
+  - x-group="Window shadows", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true,"/$compositor":"hyprland"}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.shadowColor`** · string = ""
   - Shadow color: Unfocused windows cast it too.
-  - x-group="Shadows", x-options="colors", x-emptyLabel="Compositor's", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true}
+  - x-group="Window shadows", x-options="colors", x-emptyLabel="Compositor's", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true}
   - read: `WindowLookConfig.shadowColor` (computed), `WindowLookConfig.shadowThemed` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shadowStrength`** · integer = 100 · 10–400 · %
   - Shadow strength: How strong windows cast it, matching axiom's or not. The compositor's own color keeps its strength.
-  - x-control="stepper", x-group="Shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
+  - x-control="stepper", x-group="Window shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
   - read: `WindowLookConfig.shadowStrength` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.dim`** · boolean = false
   - Dim unfocused windows
-  - x-group="Dim", x-enabledIf={"/$supports.windowDim":true}
+  - x-group="Window dimming", x-enabledIf={"/$supports.windowDim":true}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.dimStrength`** · integer = 8 · 0–100 · %
   - Dim strength
-  - x-group="Dim", x-showIf={"dim":true}, x-enabledIf={"/$supports.windowDim":true}
+  - x-group="Window dimming", x-showIf={"dim":true}, x-enabledIf={"/$supports.windowDim":true}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.opacity`** · boolean = false
   - Set window opacity: Your apps' windows; the shell's own surfaces are Look & Feel → Translucency. Off, your own config's applies.

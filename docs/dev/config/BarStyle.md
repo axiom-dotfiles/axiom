@@ -85,15 +85,15 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `BarStyle.values` (whole), `barConfig.accentLineWidth` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
 - **`BarStyle.shadow`** · boolean = false
   - Shadow: Spread evenly round every bar (or its pills), the screen border, popouts, menus and docks. A transparent bar has nothing to cast one; a solid bar on the border leaves it to the border.
-  - x-group="Shadow"
+  - x-group="Surface shadow"
   - read: `BarStyle.shadowed`, `barConfig.shadow` · in: `components/hosts/popout/FloatingPopout.qml`
 - **`BarStyle.shadowColor`** · string = ""
   - Shadow color: Auto: the theme's accent.
-  - x-group="Shadow", x-options="colors", x-emptyLabel="Auto", x-showIf={"shadow":true}
+  - x-group="Surface shadow", x-options="colors", x-emptyLabel="Auto", x-showIf={"shadow":true}
   - read: `BarStyle.values` (whole), `barConfig.shadowColor` · in: `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `config/WindowLookConfig.qml`, `shell/BlurBackingWindow.qml`
 - **`BarStyle.shadowSize`** · integer = 12 · 2–64 · px
   - Shadow size
-  - x-group="Shadow", x-control="stepper", x-beside=true, x-showIf={"shadow":true}
+  - x-group="Surface shadow", x-control="stepper", x-beside=true, x-showIf={"shadow":true}
   - read: `BarStyle.values` (whole), `barConfig.shadowSize` · in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `config/WindowLookConfig.qml`, `shell/BlurBackingWindow.qml`
 
 ### Reader members

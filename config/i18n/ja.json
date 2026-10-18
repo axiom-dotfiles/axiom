@@ -3197,6 +3197,23 @@
     "timer": "",
     "The timer and stopwatch, to set and start, when hovered.": "",
     "stopwatch": "",
-    "Opens on": ""
+    "Opens on": "",
+    "Update status": "",
+    "Compositor status": "",
+    "Chat API keys": "",
+    "Follow Look & Feel → Surface shadow: its color and size. With it off there, windows cast none.": "",
+    "Hyprland behaviour": "",
+    "Chat conversations": "",
+    "Idle listeners": "",
+    "Surface shadow": "",
+    "Compositor setup": "",
+    "Hyprland layout": "",
+    "Launcher look": "",
+    "Chat display": "",
+    "Workspace strips": "",
+    "Hyprland windows": "",
+    "Window dimming": "",
+    "Hyprland animations": "",
+    "Launcher search": ""
   }
 }

@@ -286,6 +286,40 @@ TestCase {
     }
   }
 
+  // `x-cardWide` widens a hand-built card; a field's `x-wide` the
+  // generated card it lands on, and only that one
+  function test_wide() {
+    const groups = SchemaLayout.groups({
+      "properties": {
+        "S": {
+          "type": "object",
+          "title": "S",
+          "x-card": "List",
+          "x-cardWide": true,
+          "properties": {
+            "a": {
+              "type": "string"
+            },
+            "b": {
+              "type": "array",
+              "x-group": "B",
+              "x-wide": true,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "c": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }, "S");
+    compare(groups.map(group => [group.title, group.wide]), [["S", true], ["S", false], ["B", true]]);
+  }
+
   function test_objectGroups() {
     const groups = SchemaLayout.objectGroups({
       "x-order": ["b", "a"],

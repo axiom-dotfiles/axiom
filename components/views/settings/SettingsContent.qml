@@ -8,7 +8,8 @@ import qs.components.reusable
 import qs.components.content.base
 
 // Settings page, right: the selected category's groups as cards in two
-// newspaper columns, split by their measured heights so both end together
+// newspaper columns (wide ones across both), split by their measured
+// heights so both end together
 // (then its hand-built `page`, if any), or every setting matching the
 // search, under its category's name. Acts as the `form` for its SchemaField
 // rows.
@@ -273,9 +274,12 @@ Item {
           readonly property real gap: Widget.spacing * 2
           // Each card's measured height, by index
           property var heights: block.modelData.groups.map(() => 0)
-          property int split: 0
+          // Which cards span both columns (from the schema only)
+          readonly property var wide: block.modelData.groups.map(group => group.wide === true)
+          // Each run's split, between the wide cards
+          property var splits: []
           property bool settling: true
-          readonly property var tops: ColumnSplit.tops(block.heights, block.split, block.gap)
+          readonly property var placed: ColumnSplit.place(block.heights, block.wide, block.splits, block.gap)
 
           function setHeight(i, height) {
             if (block.heights[i] === height)
@@ -284,18 +288,18 @@ Item {
             next[i] = height;
             block.heights = next;
             if (block.settling) {
-              block.split = ColumnSplit.split(next, block.gap);
+              block.splits = ColumnSplit.splits(next, block.wide, block.gap);
               settle.restart();
             }
           }
 
           function relayout() {
             block.settling = true;
-            block.split = ColumnSplit.split(block.heights, block.gap);
+            block.splits = ColumnSplit.splits(block.heights, block.wide, block.gap);
             settle.restart();
           }
 
-          // Fixes `split` once the heights stop changing (cards loading or
+          // Fixes `splits` once the heights stop changing (cards loading or
           // folding): a quiet spell, restarted by every change, so not an
           // animation duration (which is 0 with motion off)
           Timer {
@@ -338,13 +342,14 @@ Item {
             }
           }
 
-          // The block's cards, the first `split` on the left. Positions
-          // follow the cards' heights live; `split` follows them only while
-          // `settling` (after a build, a resize or fold all)
+          // The block's cards, each run between wide ones split in two
+          // columns. Positions follow the cards' heights live; `splits`
+          // follow them only while `settling` (after a build, a resize or
+          // fold all)
           Item {
             id: cards
             Layout.fillWidth: true
-            implicitHeight: ColumnSplit.height(block.heights, block.split, block.gap)
+            implicitHeight: block.placed.height
             onWidthChanged: block.relayout()
 
             Repeater {
@@ -355,9 +360,14 @@ Item {
                 id: card
                 required property var modelData
                 required property int index
-                width: (cards.width - block.gap) / 2
-                x: card.index < block.split ? 0 : card.width + block.gap
-                y: block.tops[card.index] ?? 0
+                readonly property var place: block.placed.cards[card.index] ?? ({
+                    "column": 0,
+                    "y": 0
+                  })
+                readonly property real halfWidth: (cards.width - block.gap) / 2
+                width: card.place.column === -1 ? cards.width : card.halfWidth
+                x: card.place.column === 1 ? card.halfWidth + block.gap : 0
+                y: card.place.y
                 onImplicitHeightChanged: block.setHeight(card.index, card.implicitHeight)
                 Component.onCompleted: {
                   if (!root.searching)

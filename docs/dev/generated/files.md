@@ -567,7 +567,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SavedConfigsSection.qml`: Settings page, Maintenance (the category's `page`): save the config's look, layout, keybinds, apps and wallpapers under a name, and restore or delete saved ones.
 - `ScreenSpotPicker.qml`: A small screen showing where something sits (`spot`, 0-1 from the top left), with `presets` to click: dots that each apply their values.
 - `SelfUpdateStatusCard.qml`: The Updates category's first card (the section's `x-card`): the installed and newest release, what's new, and Check / Update
-- `SettingsContent.qml`: Settings page, right: the selected category's groups as cards in two newspaper columns, split by their measured heights so both end together (then its hand-built `page`, if any), or every setting matching the search, un…
+- `SettingsContent.qml`: Settings page, right: the selected category's groups as cards in two newspaper columns (wide ones across both), split by their measured heights so both end together (then its hand-built `page`, if any), or every setting…
 - `SettingsField.qml`: One settings row: the SchemaField, with a dot while it has an unsaved edit and a button that puts it back to the schema default, and under a field with `x-hookup` (theme integrations) the IntegrationHookup panel
 - `SettingsGroupCard.qml`: i18n: keys from the schema (titles, descriptions) One group of settings (a section's own fields, or one nested object) as a card: title, help text, then its rows.
 - `SettingsSidebar.qml`: i18n: keys from the schema (category names, card titles) Settings page, left: search and the category list; the selected category also lists its cards, and clicking one scrolls the page to it.

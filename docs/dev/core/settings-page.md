@@ -32,7 +32,9 @@ How the schema becomes the settings page: layout, cards, folding, sidebar and se
 
 ### Columns
 - Cards fill two newspaper columns in order: the first k on the left, the rest on the right. `methods/ColumnSplit` picks k from the cards' measured heights so both columns end as close together as they can.
-- Cards follow their heights live (a folding card moves the ones below it), but k only changes while a block is settling: after it's built (a new category or search), resized, or after Fold all. It is fixed once no height has changed for 150 ms (a literal: `animNormal` is 0 with motion off, which would fix k before cards load), so folding one card never moves cards across columns.
+- A wide card (`x-cardWide` on a hand-built card, `x-wide` on a field of a generated one: [Schema annotations](schema-annotations.md)) spans both columns and cuts the cards into runs, each split on its own; it starts below the taller column of the run before it (`ColumnSplit.runs` / `splits` / `place`).
+  - A narrow card alone in its run (between wide ones, or a category's only card) spans both columns too, rather than leave half the page empty.
+- Cards follow their heights live (a folding card moves the ones below it), but the splits only change while a block is settling: after it's built (a new category or search), resized, or after Fold all. They are fixed once no height has changed for 150 ms (a literal: `animNormal` is 0 with motion off, which would fix them before cards load), so folding one card never moves cards across columns.
 
 ### Sidebar and jumping
 - The sidebar is `SettingsSidebar`: a `TitledCard` of `ListEntryRow`s, with search in its header.

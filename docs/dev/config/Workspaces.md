@@ -36,7 +36,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `WorkspacesConfig.animate` · in: `services/CompositorManager.qml`
 - **`Workspaces.strips`** · array<object> = []
   - Strips: Monitors whose windows sit side by side on a strip that scrolls (Hyprland's scrolling layout) instead of tiling. New windows open as a new column after the focused one.
-  - x-group="Strips", x-showIf={"/$supports.strips":true,"/$supports.stripsAlways":false}
+  - x-group="Workspace strips", x-showIf={"/$supports.strips":true,"/$supports.stripsAlways":false}
   - read: `WorkspacesConfig.strips` (part) · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/HyprlandConfigWriter.qml`
 
 ### `Workspaces.strips[]`
@@ -54,11 +54,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Workspaces.stripColumnWidth`** · integer = 50 · 10–100 · %
   - Column width: A new column's share of the monitor.
-  - x-group="Strips", x-showIf={"anyOf":[{"strips":{"notEmpty":true},"/$supports.strips":true},{"/$s…, x-hypr="scrolling.column_width", x-hyprScale=0.01, x-niri="layout.default-column-width.proportion", x-niriScale=0.01, x-niriValue="float"
+  - x-group="Workspace strips", x-showIf={"anyOf":[{"strips":{"notEmpty":true},"/$supports.strips":true},{"/$s…, x-hypr="scrolling.column_width", x-hyprScale=0.01, x-niri="layout.default-column-width.proportion", x-niriScale=0.01, x-niriValue="float"
   - read: `WorkspacesConfig.stripOptions` (computed), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`
 - **`Workspaces.stripFollowFocus`** · boolean = true
   - Scroll to the focused window
-  - x-group="Strips", x-showIf={"strips":{"notEmpty":true},"/$supports.strips":true,"/$supports.stri…, x-hypr="scrolling.follow_focus"
+  - x-group="Workspace strips", x-showIf={"strips":{"notEmpty":true},"/$supports.strips":true,"/$supports.stri…, x-hypr="scrolling.follow_focus"
   - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`
 
 ### Reader members

@@ -13,34 +13,35 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Chat.defaultProvider`** · string = "anthropic"
   - Default provider: Used by presets that don't name a provider of their own.
-  - x-group="Conversations", x-options="chatProviders"
+  - x-group="Chat conversations", x-options="chatProviders"
   - read: `ChatConfig.defaultProvider` · in: `services/ChatManager.qml`
 - **`Chat.defaultPreset`** · string = "Default"
   - Default preset: What a new conversation starts with.
-  - x-group="Conversations", x-options="chatPresets"
+  - x-group="Chat conversations", x-options="chatPresets"
   - read: `ChatConfig.defaultPreset` · in: `services/ChatManager.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`
 - **`Chat.maxTokens`** · integer = 16000 · 256–128000 · tokens
   - Longest reply: A reply that reaches this is cut off, with a note saying so.
-  - x-group="Conversations"
+  - x-group="Chat conversations"
   - read: `ChatConfig.maxTokens` · in: `services/ChatManager.qml`
 - **`Chat.keepConversations`** · integer = 50 · 0–500
   - Conversations kept: Older ones are deleted. 0 keeps none: conversations last until the shell restarts.
-  - x-group="Conversations"
+  - x-group="Chat conversations"
   - read: `ChatConfig.keepConversations` · in: `components/content/parts/chat/ConversationList.qml`, `services/ChatManager.qml`
 - **`Chat.showThinking`** · boolean = true
   - Show thinking: Ask models that reason for a summary of it, shown folded above the reply.
-  - x-group="Display"
+  - x-group="Chat display"
   - read: `ChatConfig.showThinking` · in: `services/ChatManager.qml`
 - **`Chat.renderMarkdown`** · boolean = true
   - Format replies: Draw Markdown (headings, lists, tables, code blocks) instead of the raw text.
-  - x-group="Display"
+  - x-group="Chat display"
   - read: `ChatConfig.renderMarkdown` · in: `components/content/parts/chat/ChatMarkdownText.qml`, `components/content/parts/chat/ChatMessage.qml`
 - **`Chat.sendKey`** · string = "enter" · enum enter|ctrlEnter
   - Send with
-  - x-group="Display"
+  - x-group="Chat display"
   - read: `ChatConfig.sendKey` · in: `components/content/parts/chat/ChatComposer.qml`
 - **`Chat.providers`** · array<object> = [{"id":"anthropic","name":"Anthropic","kind":"anthropic","baseUrl":"h…
   - Providers: Where chats are sent. The OpenAI kind also covers Ollama, LM Studio, llama.cpp, OpenRouter, Groq and anything else with an OpenAI-style API: set its address.
+  - x-wide=true
   - read: `ChatConfig.savedProviders`, `ChatConfig.providers` (part) · in: `components/content/parts/chat/ModelPicker.qml`, `components/views/settings/ChatProvidersCard.qml`, `services/SecretsManager.qml`, `services/SettingsManager.qml`
 
 ### `Chat.providers[]`

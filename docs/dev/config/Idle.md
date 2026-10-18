@@ -57,7 +57,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `Idle.respectInhibitors`, `// reads:` marker · in: `services/HypridleManager.qml`
 - **`Idle.listeners`** · array<object> = []
   - Extra listeners: Commands of your own to run after a time idle, and when you return.
-  - x-group="Extra listeners", x-showIf={"enabled":true}
+  - x-group="Idle listeners", x-showIf={"enabled":true}
   - read: `Idle.listeners`, `// reads:` marker · in: `services/HypridleManager.qml`
 
 ### `Idle.listeners[]`
