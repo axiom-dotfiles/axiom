@@ -16,7 +16,7 @@
     { "name": "Calendar", "icon": "calendar_month" },
     { "name": "Modules", "icon": "widgets" },
     { "name": "Theme integrations", "icon": "format_paint" },
-    { "name": "Maintenance", "icon": "build", "page": "SavedConfigsSection" }
+    { "name": "Maintenance", "icon": "build", "card": "SavedConfigs", "cardTitle": "Saved configurations" }
   ],
   "x-libraryGroups": [
     "Desktop",
@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 67,
+      "default": 69,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -84,6 +84,7 @@
       "type": "object",
       "x-category": "Screen & Power",
       "x-card": "GreeterStatus",
+      "x-cardTitle": "greetd",
       "x-links": ["Layouts"],
       "title": "Login screen",
       "description": "Axiom as your login screen (a greetd greeter), laid out on the Layouts page like the lock screen. It runs as greetd's own user from a copy of axiom installed for it, and shows what axiom exports for it here: no root is needed to change it once it's set up.",
@@ -124,6 +125,7 @@
       "type": "object",
       "x-category": "Screen & Power",
       "x-card": "IdleStatus",
+      "x-cardTitle": "hypridle",
       "title": "Idle",
       "description": "What happens when you step away: dimming, locking, turning the screens off and suspending, run by hypridle.",
       "additionalProperties": false,
@@ -143,7 +145,7 @@
         "listeners": {
           "type": "array",
           "title": "Extra listeners",
-          "x-group": "Extra listeners",
+          "x-group": "Idle listeners",
           "default": [],
           "description": "Commands of your own to run after a time idle, and when you return.",
           "x-showIf": { "enabled": true },
@@ -166,6 +168,7 @@
       "type": "object",
       "x-category": "Screen & Power",
       "x-card": "PolkitStatus",
+      "x-cardTitle": "polkit agent",
       "title": "Authentication prompts",
       "description": "The password prompt apps show when they need administrator rights (polkit): installing updates, mounting drives, changing system settings.",
       "additionalProperties": false,
@@ -195,6 +198,7 @@
       "type": "object",
       "x-category": "General",
       "x-card": "Onboarding",
+      "x-cardTitle": "First-time setup",
       "title": "General",
       "additionalProperties": false,
       "properties": {
@@ -237,7 +241,7 @@
       "description": "The search launcher: apps, open windows, a calculator, web search, running commands, and / commands that control the shell.",
       "x-intro": "LauncherPlace",
       "additionalProperties": false,
-      "x-order": ["monitors", "edge", "position", "detached", "distance", "reverse", "width", "maxResults", "iconSize", "showBackdrop", "backdrop", "showDescriptions", "showRecent", "showHint", "hiddenApps", "windows", "calculator", "commands", "runCommands", "webSearch", "searchEngine", "chat", "clipboard", "clipboardSource", "clipboardMaxEntries", "emoji"],
+      "x-order": ["monitors", "edge", "position", "detached", "distance", "reverse", "width", "maxResults", "iconSize", "showBackdrop", "backdrop", "showDescriptions", "showRecent", "showHint", "windows", "calculator", "commands", "runCommands", "webSearch", "searchEngine", "chat", "clipboard", "clipboardSource", "clipboardMaxEntries", "emoji", "hiddenApps"],
       "properties": {
         "monitors": {
           "type": "string",
@@ -281,25 +285,25 @@
         },
         "reverse": { "type": "boolean", "title": "Search bar at the bottom", "default": false, "description": "Put the search field under the results, with the best match nearest to it. Suits the bottom edge." },
         "width": { "type": "integer", "title": "Width", "x-unit": "px", "default": 680, "minimum": 400, "maximum": 1200, "description": "Width of the launcher." },
-        "maxResults": { "type": "integer", "x-control": "stepper", "title": "Results shown", "default": 8, "minimum": 3, "maximum": 20, "description": "How many rows fit before the list scrolls." },
-        "iconSize": { "type": "integer", "x-control": "stepper", "title": "Icon size", "x-unit": "px", "default": 32, "minimum": 16, "maximum": 64, "description": "Size of the result icons." },
-        "showBackdrop": { "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the launcher, under the bars and border." },
-        "backdrop": { "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 25, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the launcher goes.", "x-showIf": { "showBackdrop": true } },
-        "showDescriptions": { "type": "boolean", "title": "Descriptions", "default": true, "description": "Show a second line under each result (an app's generic name, a window's class, a command's description)." },
-        "showRecent": { "type": "boolean", "title": "Frequent apps when empty", "default": true, "description": "List your most used apps before you type anything." },
-        "showHint": { "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the search prefixes and keys under the results." },
-        "hiddenApps": { "type": "array", "title": "Hidden apps", "default": [], "items": { "type": "string" }, "description": "Desktop entry ids never shown, comma-separated (e.g. avahi-discover, qv4l2)." },
-        "windows": { "type": "boolean", "title": "Open windows", "default": true, "description": "Also match open windows by title and class; picking one focuses it." },
-        "calculator": { "type": "boolean", "title": "Calculator", "default": true, "description": "Show the result of math as you type it (or after =), using qalc. Enter copies the result." },
-        "commands": { "type": "boolean", "title": "Shell commands (/)", "default": true, "description": "Type / for commands that control the shell: themes, volume, wifi, bluetooth, overlay pages, session and more." },
-        "runCommands": { "type": "boolean", "title": "Run commands (>)", "default": true, "description": "Type > and a command to run it. Shift+Enter runs it in the terminal." },
-        "webSearch": { "type": "boolean", "title": "Web search (?)", "default": true, "description": "Offer a web search for what you typed, last in the list (or first after ?)." },
-        "searchEngine": { "type": "string", "title": "Search engine URL", "default": "https://duckduckgo.com/?q={}", "description": "{} is replaced by the search terms.", "x-showIf": { "webSearch": true } },
-        "chat": { "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." },
-        "clipboard": { "type": "boolean", "title": "Clipboard history (:)", "default": true, "description": "Type : (or /clipboard) to search what you've copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don't; turning it off clears the history." },
-        "clipboardSource": { "type": "string", "title": "Clipboard history source", "default": "axiom", "enum": ["axiom", "cliphist"], "x-enumLabels": { "axiom": "axiom (in memory)", "cliphist": "cliphist" }, "description": "axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).", "x-showIf": { "clipboard": true } },
-        "clipboardMaxEntries": { "type": "integer", "title": "Clipboard history size", "default": 100, "minimum": 10, "maximum": 1000, "description": "How many clips axiom keeps.", "x-showIf": { "clipboard": true, "clipboardSource": "axiom" } },
-        "emoji": { "type": "boolean", "title": "Emoji (;)", "default": true, "description": "Type ; (or /emoji) to search emoji by name or keyword; Enter copies one. With wtype installed, Shift+Enter also types it into the focused window." }
+        "maxResults": { "x-group": "Launcher look", "type": "integer", "x-control": "stepper", "title": "Results shown", "default": 8, "minimum": 3, "maximum": 20, "description": "How many rows fit before the list scrolls." },
+        "iconSize": { "x-group": "Launcher look", "type": "integer", "x-control": "stepper", "title": "Icon size", "x-unit": "px", "default": 32, "minimum": 16, "maximum": 64, "description": "Size of the result icons." },
+        "showBackdrop": { "x-group": "Launcher look", "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the launcher, under the bars and border." },
+        "backdrop": { "x-group": "Launcher look", "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 25, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the launcher goes.", "x-showIf": { "showBackdrop": true } },
+        "showDescriptions": { "x-group": "Launcher look", "type": "boolean", "title": "Descriptions", "default": true, "description": "Show a second line under each result (an app's generic name, a window's class, a command's description)." },
+        "showRecent": { "x-group": "Launcher look", "type": "boolean", "title": "Frequent apps when empty", "default": true, "description": "List your most used apps before you type anything." },
+        "showHint": { "x-group": "Launcher look", "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the search prefixes and keys under the results." },
+        "hiddenApps": { "x-group": "Launcher search", "type": "array", "title": "Hidden apps", "default": [], "items": { "type": "string" }, "description": "Desktop entry ids never shown, comma-separated (e.g. avahi-discover, qv4l2)." },
+        "windows": { "x-group": "Launcher search", "type": "boolean", "title": "Open windows", "default": true, "description": "Also match open windows by title and class; picking one focuses it." },
+        "calculator": { "x-group": "Launcher search", "type": "boolean", "title": "Calculator", "default": true, "description": "Show the result of math as you type it (or after =), using qalc. Enter copies the result." },
+        "commands": { "x-group": "Launcher search", "type": "boolean", "title": "Shell commands (/)", "default": true, "description": "Type / for commands that control the shell: themes, volume, wifi, bluetooth, overlay pages, session and more." },
+        "runCommands": { "x-group": "Launcher search", "type": "boolean", "title": "Run commands (>)", "default": true, "description": "Type > and a command to run it. Shift+Enter runs it in the terminal." },
+        "webSearch": { "x-group": "Launcher search", "type": "boolean", "title": "Web search (?)", "default": true, "description": "Offer a web search for what you typed, last in the list (or first after ?)." },
+        "searchEngine": { "x-group": "Launcher search", "type": "string", "title": "Search engine URL", "default": "https://duckduckgo.com/?q={}", "description": "{} is replaced by the search terms.", "x-showIf": { "webSearch": true } },
+        "chat": { "x-group": "Launcher search", "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." },
+        "clipboard": { "x-group": "Launcher search", "type": "boolean", "title": "Clipboard history (:)", "default": true, "description": "Type : (or /clipboard) to search what you've copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don't; turning it off clears the history." },
+        "clipboardSource": { "x-group": "Launcher search", "type": "string", "title": "Clipboard history source", "default": "axiom", "enum": ["axiom", "cliphist"], "x-enumLabels": { "axiom": "axiom (in memory)", "cliphist": "cliphist" }, "description": "axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).", "x-showIf": { "clipboard": true } },
+        "clipboardMaxEntries": { "x-group": "Launcher search", "type": "integer", "title": "Clipboard history size", "default": 100, "minimum": 10, "maximum": 1000, "description": "How many clips axiom keeps.", "x-showIf": { "clipboard": true, "clipboardSource": "axiom" } },
+        "emoji": { "x-group": "Launcher search", "type": "boolean", "title": "Emoji (;)", "default": true, "description": "Type ; (or /emoji) to search emoji by name or keyword; Enter copies one. With wtype installed, Shift+Enter also types it into the focused window." }
       }
     },
 
@@ -420,6 +424,7 @@
       "x-showIf": { "/$supports.configModes": true },
       "x-links": ["Keybinds", "Monitors"],
       "x-card": "CompositorStatus",
+      "x-cardTitle": "Compositor status",
       "title": "Compositor",
       "description": "How axiom sets your compositor up: its keybinds, monitors, window look and input.",
       "additionalProperties": false,
@@ -428,7 +433,7 @@
           "x-takeover": true,
           "type": "string",
           "title": "Mode",
-          "x-group": "Setup",
+          "x-group": "Compositor setup",
           "enum": ["detached", "included", "managed"],
           "x-enumLabels": { "detached": "Detached (nothing to set up)", "included": "Included from your config", "managed": "Managed by axiom" },
           "default": "detached",
@@ -438,7 +443,7 @@
         "requiredSettings": {
           "type": "boolean",
           "title": "Required settings",
-          "x-group": "Setup",
+          "x-group": "Compositor setup",
           "default": true,
           "description": "Lock restore after a shell restart, ignoring apps' requests to maximize themselves, and a workspace slide animation.",
           "x-enabledIf": { "/$compositor": "hyprland" }
@@ -664,24 +669,25 @@
           "additionalProperties": false,
           "x-order": ["layout", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "dimSpecial", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "floatSwitchOverrideFocus", "resizeOnBorder", "hideLogo", "backgroundThemed", "backgroundColor", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling"],
           "properties": {
-            "layout": { "type": "string", "title": "Layout", "x-group": "Layout", "enum": ["dwindle", "master"], "x-enumLabels": { "dwindle": "Dwindle (binary splits)", "master": "Master and stack" }, "default": "dwindle", "description": "How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.", "x-hypr": "general.layout", "x-hyprAlways": true },
-            "preserveSplit": { "type": "boolean", "title": "Keep split direction", "x-group": "Layout", "default": true, "description": "Dwindle keeps a split's direction when the window is resized or moved.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.preserve_split", "x-hyprAlways": true },
-            "smartSplit": { "type": "boolean", "title": "Split by cursor position", "x-group": "Layout", "default": false, "description": "Dwindle splits towards the side of the window the cursor is on.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_split" },
-            "smartResizing": { "type": "boolean", "title": "Resize by cursor position", "x-group": "Layout", "default": true, "description": "Resizing moves the edge nearest the cursor.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_resizing" },
-            "forceSplit": { "type": "string", "title": "New windows go", "x-group": "Layout", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Towards the cursor", "1": "Left or above", "2": "Right or below" }, "default": "0", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.force_split", "x-hyprValue": "number" },
-            "splitRatio": { "type": "integer", "title": "Split ratio", "x-unit": "%", "x-group": "Layout", "default": 100, "minimum": 10, "maximum": 190, "description": "The first window's share of a new split; 100 splits evenly.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.default_split_ratio", "x-hyprScale": 0.01 },
-            "masterSize": { "type": "integer", "title": "Master size", "x-unit": "%", "x-group": "Layout", "default": 55, "minimum": 5, "maximum": 95, "x-showIf": { "layout": "master" }, "x-hypr": "master.mfact", "x-hyprScale": 0.01 },
-            "masterOrientation": { "type": "string", "title": "Master side", "x-group": "Layout", "enum": ["left", "right", "top", "bottom", "center"], "default": "left", "x-showIf": { "layout": "master" }, "x-hypr": "master.orientation" },
-            "masterNewStatus": { "type": "string", "title": "New windows become", "x-group": "Layout", "enum": ["slave", "master", "inherit"], "x-enumLabels": { "slave": "Part of the stack", "master": "The master", "inherit": "Like the focused window" }, "default": "slave", "x-showIf": { "layout": "master" }, "x-hypr": "master.new_status" },
-            "snap": { "type": "boolean", "title": "Snap floating windows", "x-group": "Layout", "default": false, "description": "Floating windows snap to each other and the screen edges.", "x-hypr": "general.snap.enabled" },
-            "dimSpecial": { "type": "integer", "title": "Dim behind special workspaces", "x-unit": "%", "x-group": "Decoration", "default": 20, "minimum": 0, "maximum": 100, "x-hypr": "decoration.dim_special", "x-hyprScale": 0.01 },
-            "animations": { "type": "boolean", "title": "Animations", "x-group": "Animations", "default": true, "x-hypr": "animations.enabled", "x-hyprAlways": true },
-            "animationPreset": { "type": "string", "title": "Style", "x-group": "Animations", "enum": ["hyprland", "axiom", "snappy", "bouncy", "lightning", "custom"], "x-enumLabels": { "hyprland": "Hyprland's defaults", "axiom": "Follow axiom's motion", "snappy": "Snappy", "bouncy": "Bouncy", "lightning": "Lightning", "custom": "Custom" }, "default": "axiom", "description": "Follow axiom's motion uses Look & Feel → Motion's speed, and turns Hyprland's animations off with axiom's.", "x-showIf": { "animations": true } },
-            "workspaceWraparound": { "type": "boolean", "title": "Wrap workspace animations", "x-group": "Animations", "default": false, "description": "Going from the last workspace to the first slides forward, not back.", "x-showIf": { "animations": true }, "x-hypr": "animations.workspace_wraparound" },
+            "layout": { "type": "string", "title": "Layout", "x-group": "Hyprland layout", "enum": ["dwindle", "master"], "x-enumLabels": { "dwindle": "Dwindle (binary splits)", "master": "Master and stack" }, "default": "dwindle", "description": "How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.", "x-hypr": "general.layout", "x-hyprAlways": true },
+            "preserveSplit": { "type": "boolean", "title": "Keep split direction", "x-group": "Hyprland layout", "default": true, "description": "Dwindle keeps a split's direction when the window is resized or moved.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.preserve_split", "x-hyprAlways": true },
+            "smartSplit": { "type": "boolean", "title": "Split by cursor position", "x-group": "Hyprland layout", "default": false, "description": "Dwindle splits towards the side of the window the cursor is on.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_split" },
+            "smartResizing": { "type": "boolean", "title": "Resize by cursor position", "x-group": "Hyprland layout", "default": true, "description": "Resizing moves the edge nearest the cursor.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_resizing" },
+            "forceSplit": { "type": "string", "title": "New windows go", "x-group": "Hyprland layout", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Towards the cursor", "1": "Left or above", "2": "Right or below" }, "default": "0", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.force_split", "x-hyprValue": "number" },
+            "splitRatio": { "type": "integer", "title": "Split ratio", "x-unit": "%", "x-group": "Hyprland layout", "default": 100, "minimum": 10, "maximum": 190, "description": "The first window's share of a new split; 100 splits evenly.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.default_split_ratio", "x-hyprScale": 0.01 },
+            "masterSize": { "type": "integer", "title": "Master size", "x-unit": "%", "x-group": "Hyprland layout", "default": 55, "minimum": 5, "maximum": 95, "x-showIf": { "layout": "master" }, "x-hypr": "master.mfact", "x-hyprScale": 0.01 },
+            "masterOrientation": { "type": "string", "title": "Master side", "x-group": "Hyprland layout", "enum": ["left", "right", "top", "bottom", "center"], "default": "left", "x-showIf": { "layout": "master" }, "x-hypr": "master.orientation" },
+            "masterNewStatus": { "type": "string", "title": "New windows become", "x-group": "Hyprland layout", "enum": ["slave", "master", "inherit"], "x-enumLabels": { "slave": "Part of the stack", "master": "The master", "inherit": "Like the focused window" }, "default": "slave", "x-showIf": { "layout": "master" }, "x-hypr": "master.new_status" },
+            "snap": { "type": "boolean", "title": "Snap floating windows", "x-group": "Hyprland layout", "default": false, "description": "Floating windows snap to each other and the screen edges.", "x-hypr": "general.snap.enabled" },
+            "dimSpecial": { "type": "integer", "title": "Dim behind special workspaces", "x-unit": "%", "x-group": "Hyprland behaviour", "default": 20, "minimum": 0, "maximum": 100, "x-hypr": "decoration.dim_special", "x-hyprScale": 0.01 },
+            "animations": { "type": "boolean", "title": "Animations", "x-group": "Hyprland animations", "default": true, "x-hypr": "animations.enabled", "x-hyprAlways": true },
+            "animationPreset": { "type": "string", "title": "Style", "x-group": "Hyprland animations", "enum": ["hyprland", "axiom", "snappy", "bouncy", "lightning", "custom"], "x-enumLabels": { "hyprland": "Hyprland's defaults", "axiom": "Follow axiom's motion", "snappy": "Snappy", "bouncy": "Bouncy", "lightning": "Lightning", "custom": "Custom" }, "default": "axiom", "description": "Follow axiom's motion uses Look & Feel → Motion's speed, and turns Hyprland's animations off with axiom's.", "x-showIf": { "animations": true } },
+            "workspaceWraparound": { "type": "boolean", "title": "Wrap workspace animations", "x-group": "Hyprland animations", "default": false, "description": "Going from the last workspace to the first slides forward, not back.", "x-showIf": { "animations": true }, "x-hypr": "animations.workspace_wraparound" },
             "curves": {
+              "x-wide": true,
               "type": "array",
               "title": "Curves",
-              "x-group": "Animations",
+              "x-group": "Hyprland animations",
               "default": [],
               "description": "Named bezier curves for the custom animations.",
               "x-showIf": { "animationPreset": "custom" },
@@ -698,7 +704,7 @@
             "customAnimations": {
               "type": "array",
               "title": "Animations",
-              "x-group": "Animations",
+              "x-group": "Hyprland animations",
               "default": [],
               "description": "One entry per animation to change; a parent (windows) covers its children (windowsIn, windowsOut, windowsMove).",
               "x-showIf": { "animationPreset": "custom" },
@@ -715,20 +721,20 @@
                 }
               }
             },
-            "floatSwitchOverrideFocus": { "type": "string", "title": "Crossing tiled/floating", "x-group": "Windows", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Leaves focus alone", "1": "Moves focus", "2": "Moves focus, also floating to floating" }, "default": "1", "description": "What moving the cursor between tiled and floating windows does.", "x-showIf": { "/WindowBehaviour.followMouse": true }, "x-hypr": "input.float_switch_override_focus", "x-hyprValue": "number" },
-            "resizeOnBorder": { "type": "boolean", "title": "Resize by dragging borders", "x-group": "Windows", "default": true, "x-hypr": "general.resize_on_border", "x-hyprAlways": true },
-            "hideLogo": { "type": "boolean", "title": "Hide Hyprland's logo and splash", "x-group": "Behaviour", "default": true, "x-hypr": ["misc.disable_hyprland_logo", "misc.disable_splash_rendering"], "x-hyprAlways": true },
-            "backgroundThemed": { "type": "boolean", "title": "Background in a theme color", "x-group": "Behaviour", "default": false, "description": "What shows where there's no wallpaper." },
-            "backgroundColor": { "type": "string", "title": "Background color", "x-group": "Behaviour", "x-options": "colors", "default": "base00", "x-showIf": { "backgroundThemed": true }, "x-hypr": "misc.background_color", "x-hyprValue": "color", "x-hyprIf": "backgroundThemed" },
-            "swallow": { "type": "boolean", "title": "Terminals swallow what they open", "x-group": "Behaviour", "default": true, "description": "A GUI app started from a terminal takes the terminal's place until it closes.", "x-hypr": "misc.enable_swallow", "x-hyprAlways": true },
-            "swallowRegex": { "type": "string", "title": "Swallowing terminals", "x-group": "Behaviour", "default": "^(kitty|foot|Alacritty|com\\.mitchellh\\.ghostty|org\\.wezfurlong\\.wezterm)$", "description": "A regex of terminal window classes.", "x-showIf": { "swallow": true }, "x-hypr": "misc.swallow_regex", "x-hyprIf": "swallow" },
-            "closeSpecialOnEmpty": { "type": "boolean", "title": "Close empty special workspaces", "x-group": "Behaviour", "default": true, "x-hypr": "misc.close_special_on_empty" },
-            "hideSpecialOnWorkspaceChange": { "type": "boolean", "title": "Hide special workspaces on switching", "x-group": "Behaviour", "default": false, "x-hypr": "binds.hide_special_on_workspace_change" },
-            "mouseWakesScreen": { "type": "boolean", "title": "Mouse wakes the screen", "x-group": "Behaviour", "default": true, "x-hypr": "misc.mouse_move_enables_dpms", "x-hyprAlways": true },
-            "keyWakesScreen": { "type": "boolean", "title": "Keys wake the screen", "x-group": "Behaviour", "default": false, "x-hypr": "misc.key_press_enables_dpms" },
-            "vrr": { "type": "string", "title": "Variable refresh rate", "x-group": "Behaviour", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Off", "1": "On", "2": "Fullscreen only" }, "default": "0", "x-hypr": "misc.vrr", "x-hyprValue": "number" },
-            "scrollEventDelay": { "type": "integer", "title": "Scroll bind delay", "x-unit": "ms", "x-group": "Behaviour", "default": 300, "minimum": 0, "maximum": 2000, "description": "How long a bound scroll ignores further scrolling.", "x-hypr": "binds.scroll_event_delay" },
-            "xwaylandZeroScaling": { "type": "boolean", "title": "Unscaled X11 apps", "x-group": "Behaviour", "default": true, "description": "X11 apps draw at native resolution on scaled monitors, instead of blurry.", "x-hypr": "xwayland.force_zero_scaling", "x-hyprAlways": true }
+            "floatSwitchOverrideFocus": { "type": "string", "title": "Crossing tiled/floating", "x-group": "Hyprland windows", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Leaves focus alone", "1": "Moves focus", "2": "Moves focus, also floating to floating" }, "default": "1", "description": "What moving the cursor between tiled and floating windows does.", "x-showIf": { "/WindowBehaviour.followMouse": true }, "x-hypr": "input.float_switch_override_focus", "x-hyprValue": "number" },
+            "resizeOnBorder": { "type": "boolean", "title": "Resize by dragging borders", "x-group": "Hyprland windows", "default": true, "x-hypr": "general.resize_on_border", "x-hyprAlways": true },
+            "hideLogo": { "type": "boolean", "title": "Hide Hyprland's logo and splash", "x-group": "Hyprland behaviour", "default": true, "x-hypr": ["misc.disable_hyprland_logo", "misc.disable_splash_rendering"], "x-hyprAlways": true },
+            "backgroundThemed": { "type": "boolean", "title": "Background in a theme color", "x-group": "Hyprland behaviour", "default": false, "description": "What shows where there's no wallpaper." },
+            "backgroundColor": { "type": "string", "title": "Background color", "x-group": "Hyprland behaviour", "x-options": "colors", "default": "base00", "x-showIf": { "backgroundThemed": true }, "x-hypr": "misc.background_color", "x-hyprValue": "color", "x-hyprIf": "backgroundThemed" },
+            "swallow": { "type": "boolean", "title": "Terminals swallow what they open", "x-group": "Hyprland behaviour", "default": true, "description": "A GUI app started from a terminal takes the terminal's place until it closes.", "x-hypr": "misc.enable_swallow", "x-hyprAlways": true },
+            "swallowRegex": { "type": "string", "title": "Swallowing terminals", "x-group": "Hyprland behaviour", "default": "^(kitty|foot|Alacritty|com\\.mitchellh\\.ghostty|org\\.wezfurlong\\.wezterm)$", "description": "A regex of terminal window classes.", "x-showIf": { "swallow": true }, "x-hypr": "misc.swallow_regex", "x-hyprIf": "swallow" },
+            "closeSpecialOnEmpty": { "type": "boolean", "title": "Close empty special workspaces", "x-group": "Hyprland behaviour", "default": true, "x-hypr": "misc.close_special_on_empty" },
+            "hideSpecialOnWorkspaceChange": { "type": "boolean", "title": "Hide special workspaces on switching", "x-group": "Hyprland behaviour", "default": false, "x-hypr": "binds.hide_special_on_workspace_change" },
+            "mouseWakesScreen": { "type": "boolean", "title": "Mouse wakes the screen", "x-group": "Hyprland behaviour", "default": true, "x-hypr": "misc.mouse_move_enables_dpms", "x-hyprAlways": true },
+            "keyWakesScreen": { "type": "boolean", "title": "Keys wake the screen", "x-group": "Hyprland behaviour", "default": false, "x-hypr": "misc.key_press_enables_dpms" },
+            "vrr": { "type": "string", "title": "Variable refresh rate", "x-group": "Hyprland behaviour", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Off", "1": "On", "2": "Fullscreen only" }, "default": "0", "x-hypr": "misc.vrr", "x-hyprValue": "number" },
+            "scrollEventDelay": { "type": "integer", "title": "Scroll bind delay", "x-unit": "ms", "x-group": "Hyprland behaviour", "default": 300, "minimum": 0, "maximum": 2000, "description": "How long a bound scroll ignores further scrolling.", "x-hypr": "binds.scroll_event_delay" },
+            "xwaylandZeroScaling": { "type": "boolean", "title": "Unscaled X11 apps", "x-group": "Hyprland behaviour", "default": true, "description": "X11 apps draw at native resolution on scaled monitors, instead of blurry.", "x-hypr": "xwayland.force_zero_scaling", "x-hyprAlways": true }
           }
         }
       }
@@ -837,6 +843,7 @@
       "properties": {
         "recommendedEnv": { "type": "boolean", "title": "Recommended environment", "default": true, "description": "Variables recommended on Wayland: GTK, Qt, Clutter and Electron apps run on Wayland (falling back to X11 where they can), Qt scales by pixel density and leaves window decorations to the compositor. Your own below win over them." },
         "env": {
+          "x-wide": true,
           "type": "array",
           "title": "Environment",
           "default": [],
@@ -908,14 +915,14 @@
         "blurVibrancy": { "type": "integer", "title": "Vibrancy", "x-unit": "%", "x-group": "Blur", "default": 17, "minimum": 0, "maximum": 100, "x-showIf": { "blur": true }, "x-enabledIf": { "/$supports.windowBlur": true, "/$compositor": "hyprland" }, "x-hypr": "decoration.blur.vibrancy", "x-hyprScale": 0.01, "x-hyprIf": "blur" },
         "blurPopups": { "type": "boolean", "title": "Blur menus and popups", "x-group": "Blur", "default": false, "x-showIf": { "blur": true, "windowBlur": true }, "x-enabledIf": { "/$supports.windowBlur": true, "/$compositor": "hyprland" }, "x-hypr": "decoration.blur.popups", "x-hyprIf": "blur" },
         "blurSpecial": { "type": "boolean", "title": "Blur behind special workspaces", "x-group": "Blur", "default": false, "description": "Expensive: redraws the blur on every frame.", "x-showIf": { "blur": true }, "x-enabledIf": { "/$supports.windowBlur": true, "/$compositor": "hyprland" }, "x-hypr": "decoration.blur.special", "x-hyprIf": "blur" },
-        "shadow": { "type": "boolean", "title": "Window shadows", "x-group": "Shadows", "default": false, "x-enabledIf": { "/$supports.windowShadow": true } },
-        "shadowMatchShell": { "type": "boolean", "title": "Match axiom's shadow", "x-group": "Shadows", "default": true, "description": "Follow Look & Feel → Bar style: its shadow color and size. With it off there, windows cast none.", "x-showIf": { "shadow": true }, "x-enabledIf": { "/$supports.windowShadow": true } },
-        "shadowSize": { "type": "integer", "x-control": "stepper", "title": "Shadow size", "x-unit": "px", "x-group": "Shadows", "default": 10, "minimum": 0, "maximum": 100, "x-showIf": { "shadow": true, "shadowMatchShell": false }, "x-enabledIf": { "/$supports.windowShadow": true } },
-        "shadowPower": { "type": "integer", "title": "Shadow falloff", "x-group": "Shadows", "default": 3, "minimum": 1, "maximum": 4, "description": "1 fades slowly, 4 ends sharply.", "x-showIf": { "shadow": true, "shadowMatchShell": false }, "x-enabledIf": { "/$supports.windowShadow": true, "/$compositor": "hyprland" } },
-        "shadowColor": { "type": "string", "title": "Shadow color", "x-group": "Shadows", "x-options": "colors", "x-emptyLabel": "Compositor's", "default": "", "description": "Unfocused windows cast it too.", "x-showIf": { "shadow": true, "shadowMatchShell": false }, "x-enabledIf": { "/$supports.windowShadow": true } },
-        "shadowStrength": { "type": "integer", "x-control": "stepper", "title": "Shadow strength", "x-unit": "%", "x-group": "Shadows", "default": 100, "minimum": 10, "maximum": 400, "description": "How strong windows cast it, matching axiom's or not. The compositor's own color keeps its strength.", "x-showIf": { "shadow": true }, "x-enabledIf": { "/$supports.windowShadow": true } },
-        "dim": { "type": "boolean", "title": "Dim unfocused windows", "x-group": "Dim", "default": false, "x-enabledIf": { "/$supports.windowDim": true } },
-        "dimStrength": { "type": "integer", "title": "Dim strength", "x-unit": "%", "x-group": "Dim", "default": 8, "minimum": 0, "maximum": 100, "x-showIf": { "dim": true }, "x-enabledIf": { "/$supports.windowDim": true } },
+        "shadow": { "type": "boolean", "title": "Window shadows", "x-group": "Window shadows", "default": false, "x-enabledIf": { "/$supports.windowShadow": true } },
+        "shadowMatchShell": { "type": "boolean", "title": "Match axiom's shadow", "x-group": "Window shadows", "default": true, "description": "Follow Look & Feel → Surface shadow: its color and size. With it off there, windows cast none.", "x-showIf": { "shadow": true }, "x-enabledIf": { "/$supports.windowShadow": true } },
+        "shadowSize": { "type": "integer", "x-control": "stepper", "title": "Shadow size", "x-unit": "px", "x-group": "Window shadows", "default": 10, "minimum": 0, "maximum": 100, "x-showIf": { "shadow": true, "shadowMatchShell": false }, "x-enabledIf": { "/$supports.windowShadow": true } },
+        "shadowPower": { "type": "integer", "title": "Shadow falloff", "x-group": "Window shadows", "default": 3, "minimum": 1, "maximum": 4, "description": "1 fades slowly, 4 ends sharply.", "x-showIf": { "shadow": true, "shadowMatchShell": false }, "x-enabledIf": { "/$supports.windowShadow": true, "/$compositor": "hyprland" } },
+        "shadowColor": { "type": "string", "title": "Shadow color", "x-group": "Window shadows", "x-options": "colors", "x-emptyLabel": "Compositor's", "default": "", "description": "Unfocused windows cast it too.", "x-showIf": { "shadow": true, "shadowMatchShell": false }, "x-enabledIf": { "/$supports.windowShadow": true } },
+        "shadowStrength": { "type": "integer", "x-control": "stepper", "title": "Shadow strength", "x-unit": "%", "x-group": "Window shadows", "default": 100, "minimum": 10, "maximum": 400, "description": "How strong windows cast it, matching axiom's or not. The compositor's own color keeps its strength.", "x-showIf": { "shadow": true }, "x-enabledIf": { "/$supports.windowShadow": true } },
+        "dim": { "type": "boolean", "title": "Dim unfocused windows", "x-group": "Window dimming", "default": false, "x-enabledIf": { "/$supports.windowDim": true } },
+        "dimStrength": { "type": "integer", "title": "Dim strength", "x-unit": "%", "x-group": "Window dimming", "default": 8, "minimum": 0, "maximum": 100, "x-showIf": { "dim": true }, "x-enabledIf": { "/$supports.windowDim": true } },
         "opacity": { "type": "boolean", "title": "Set window opacity", "x-group": "Window opacity", "default": false, "description": "Your apps' windows; the shell's own surfaces are Look & Feel → Translucency. Off, your own config's applies.", "x-enabledIf": { "/$supports.windowOpacity": true } },
         "activeOpacity": { "type": "integer", "title": "Focused window opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-enabledIf": { "/$supports.windowOpacity": true }, "x-hypr": "decoration.active_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" },
         "inactiveOpacity": { "type": "integer", "title": "Unfocused window opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-enabledIf": { "/$supports.windowOpacity": true }, "x-hypr": "decoration.inactive_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" },
@@ -1483,14 +1490,14 @@
           }
         },
         "shadow": {
-          "x-group": "Shadow",
+          "x-group": "Surface shadow",
           "type": "boolean",
           "title": "Shadow",
           "default": false,
           "description": "Spread evenly round every bar (or its pills), the screen border, popouts, menus and docks. A transparent bar has nothing to cast one; a solid bar on the border leaves it to the border."
         },
         "shadowColor": {
-          "x-group": "Shadow",
+          "x-group": "Surface shadow",
           "type": "string",
           "title": "Shadow color",
           "x-options": "colors",
@@ -1502,7 +1509,7 @@
           "description": "Auto: the theme's accent."
         },
         "shadowSize": {
-          "x-group": "Shadow",
+          "x-group": "Surface shadow",
           "type": "integer",
           "x-control": "stepper",
           "title": "Shadow size",
@@ -1572,6 +1579,8 @@
       "type": "object",
       "x-category": "Modules",
       "x-card": "ChatProviders",
+      "x-cardTitle": "Chat API keys",
+      "x-cardWide": true,
       "title": "Chat",
       "description": "The Chat overlay module, and the launcher's @ prefix. API keys are never stored here: set them on the card above (they go to your keyring, or $XDG_STATE_HOME/axiom/secrets.json without one), or in each provider's environment variable.",
       "additionalProperties": false,
@@ -1579,7 +1588,7 @@
         "defaultProvider": {
           "type": "string",
           "title": "Default provider",
-          "x-group": "Conversations",
+          "x-group": "Chat conversations",
           "default": "anthropic",
           "x-options": "chatProviders",
           "description": "Used by presets that don't name a provider of their own."
@@ -1587,24 +1596,25 @@
         "defaultPreset": {
           "type": "string",
           "title": "Default preset",
-          "x-group": "Conversations",
+          "x-group": "Chat conversations",
           "default": "Default",
           "x-options": "chatPresets",
           "description": "What a new conversation starts with."
         },
-        "maxTokens": { "type": "integer", "title": "Longest reply", "x-unit": "tokens", "x-group": "Conversations", "default": 16000, "minimum": 256, "maximum": 128000, "description": "A reply that reaches this is cut off, with a note saying so." },
-        "keepConversations": { "type": "integer", "title": "Conversations kept", "x-group": "Conversations", "default": 50, "minimum": 0, "maximum": 500, "description": "Older ones are deleted. 0 keeps none: conversations last until the shell restarts." },
-        "showThinking": { "type": "boolean", "title": "Show thinking", "x-group": "Display", "default": true, "description": "Ask models that reason for a summary of it, shown folded above the reply." },
-        "renderMarkdown": { "type": "boolean", "title": "Format replies", "x-group": "Display", "default": true, "description": "Draw Markdown (headings, lists, tables, code blocks) instead of the raw text." },
+        "maxTokens": { "type": "integer", "title": "Longest reply", "x-unit": "tokens", "x-group": "Chat conversations", "default": 16000, "minimum": 256, "maximum": 128000, "description": "A reply that reaches this is cut off, with a note saying so." },
+        "keepConversations": { "type": "integer", "title": "Conversations kept", "x-group": "Chat conversations", "default": 50, "minimum": 0, "maximum": 500, "description": "Older ones are deleted. 0 keeps none: conversations last until the shell restarts." },
+        "showThinking": { "type": "boolean", "title": "Show thinking", "x-group": "Chat display", "default": true, "description": "Ask models that reason for a summary of it, shown folded above the reply." },
+        "renderMarkdown": { "type": "boolean", "title": "Format replies", "x-group": "Chat display", "default": true, "description": "Draw Markdown (headings, lists, tables, code blocks) instead of the raw text." },
         "sendKey": {
           "type": "string",
           "title": "Send with",
-          "x-group": "Display",
+          "x-group": "Chat display",
           "enum": ["enter", "ctrlEnter"],
           "x-enumLabels": { "enter": "Enter (Shift+Enter for a new line)", "ctrlEnter": "Ctrl+Enter (Enter for a new line)" },
           "default": "enter"
         },
         "providers": {
+          "x-wide": true,
           "type": "array",
           "title": "Providers",
           "description": "Where chats are sent. The OpenAI kind also covers Ollama, LM Studio, llama.cpp, OpenRouter, Groq and anything else with an OpenAI-style API: set its address.",
@@ -1694,6 +1704,8 @@
       "type": "object",
       "x-category": "Calendar",
       "x-card": "CalendarAccounts",
+      "x-cardTitle": "Accounts",
+      "x-cardWide": true,
       "x-cardFolds": true,
       "title": "Calendar",
       "description": "Events from CalDAV accounts (iCloud, Fastmail, Nextcloud, …) and .ics subscriptions, for the calendar popout, the Calendar, Clock & calendar and Agenda modules, the Next event bar widget and the Calendar page. Passwords are never stored here: they go to your keyring (or $XDG_STATE_HOME/axiom/secrets.json without one).",
@@ -1736,23 +1748,107 @@
       }
     },
 
+    "ClaudeUsage": {
+      "type": "object",
+      "x-category": "Modules",
+      "title": "Claude usage",
+      "description": "The Claude Code logins every Claude usage widget reports on.",
+      "additionalProperties": false,
+      "x-order": ["accounts", "intervalMinutes"],
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "title": "Accounts",
+          "default": [{ "label": "Personal", "configDir": "~/.claude" }],
+          "description": "One per Claude Code login: the CLAUDE_CONFIG_DIR it uses (~/.claude when unset). Usage is read with that login's token, which is never changed.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "x-order": ["label", "configDir"],
+            "properties": {
+              "label": { "type": "string", "title": "Label", "default": "", "description": "Shown in the popout; its first letter tells accounts apart on the bar." },
+              "configDir": { "type": "string", "title": "Config directory", "x-control": "folder", "default": "~/.claude" }
+            }
+          }
+        },
+        "intervalMinutes": { "type": "integer", "title": "Check interval", "x-unit": "min", "default": 5, "minimum": 2, "maximum": 60 }
+      }
+    },
+
+    "Updates": {
+      "type": "object",
+      "x-category": "Modules",
+      "title": "Package updates",
+      "description": "How every updates widget and module checks for and installs updates.",
+      "additionalProperties": false,
+      "x-order": ["includeAur", "aurHelper", "terminal", "upgradeCommand"],
+      "properties": {
+        "includeAur": { "type": "boolean", "title": "Include AUR", "default": false, "description": "Also count outdated AUR packages.", "x-showIf": { "/$distro": "arch" } },
+        "aurHelper": { "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": { "includeAur": true, "/$distro": "arch" } },
+        "terminal": { "x-scope": "personal", "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
+        "upgradeCommand": { "x-scope": "personal", "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu." }
+      }
+    },
+
+    "Todo": {
+      "type": "object",
+      "x-category": "Modules",
+      "x-scope": "personal",
+      "title": "Todo list",
+      "description": "The one todo list every todo widget and module shows. The items themselves are kept in your data folder, not in the config.",
+      "additionalProperties": false,
+      "x-order": ["showCompleted"],
+      "properties": {
+        "showCompleted": { "type": "boolean", "title": "Show completed items", "default": true, "description": "Under the open ones, the last finished first, until you clear them." }
+      }
+    },
+
+    "Stopwatch": {
+      "type": "object",
+      "x-category": "Modules",
+      "x-scope": "personal",
+      "title": "Timer and stopwatch",
+      "description": "The one-off timer and the stopwatch every Stopwatch widget and module shows.",
+      "additionalProperties": false,
+      "x-order": ["presets", "notify"],
+      "properties": {
+        "presets": { "type": "array", "title": "Timer presets", "default": ["1m", "5m", "10m", "25m"], "items": { "type": "string" }, "description": "One-click timers, comma-separated: 5m, 1h30m, 90s, or 10m tea for a label." },
+        "notify": { "type": "boolean", "title": "Notify", "default": true, "description": "A notification when a timer ends." }
+      }
+    },
+
+    "Pomodoro": {
+      "type": "object",
+      "x-category": "Modules",
+      "x-scope": "personal",
+      "title": "Pomodoro timer",
+      "description": "Focus sessions and breaks, shared by every pomodoro widget and module.",
+      "additionalProperties": false,
+      "x-order": ["workMinutes", "shortBreakMinutes", "longBreakMinutes", "longBreakEvery", "autoStartBreaks", "autoStartWork", "notify"],
+      "properties": {
+        "workMinutes": { "type": "integer", "title": "Focus session", "x-unit": "min", "default": 25, "minimum": 1, "maximum": 180 },
+        "shortBreakMinutes": { "type": "integer", "title": "Short break", "x-unit": "min", "default": 5, "minimum": 1, "maximum": 60 },
+        "longBreakMinutes": { "type": "integer", "title": "Long break", "x-unit": "min", "default": 15, "minimum": 1, "maximum": 120 },
+        "longBreakEvery": { "type": "integer", "title": "Long break every", "x-unit": "sessions", "default": 4, "minimum": 1, "maximum": 12, "description": "A long break follows this many focus sessions." },
+        "autoStartBreaks": { "type": "boolean", "title": "Start breaks by themselves", "default": true },
+        "autoStartWork": { "type": "boolean", "title": "Start focus sessions by themselves", "default": false, "description": "Off, a break ends waiting for you to start the next session." },
+        "notify": { "type": "boolean", "title": "Notify", "default": true, "description": "A notification when a session or break ends." }
+      }
+    },
+
     "OSD": {
       "x-scope": "look",
       "type": "object",
       "x-category": "Dock & OSD",
       "x-card": "OSDList",
+      "x-cardTitle": "OSDs",
+      "x-cardWide": true,
       "x-cardFolds": true,
       "title": "OSD",
       "description": "On-screen displays of volume, microphone and brightness bars, shown when one of their bars changes.",
       "additionalProperties": false,
-      "x-order": ["enabled", "scrollToChange", "scrollStep", "osds"],
+      "x-order": ["scrollToChange", "scrollStep", "osds"],
       "properties": {
-        "enabled": {
-          "type": "boolean",
-          "title": "Enabled",
-          "default": true,
-          "description": "Show the OSDs when one of their bars changes."
-        },
         "scrollToChange": {
           "type": "boolean",
           "title": "Scroll to change",
@@ -1785,18 +1881,19 @@
       "type": "object",
       "x-category": "Dock & OSD",
       "x-card": "DockList",
+      "x-cardTitle": "Docks",
+      "x-cardWide": true,
       "x-cardFolds": true,
       "title": "Dock",
       "additionalProperties": false,
-      "x-order": ["enabled", "docks"],
+      "x-order": ["docks"],
       "properties": {
-        "enabled": { "type": "boolean", "title": "Enabled", "default": false, "description": "Show the docks below. Off hides every dock." },
         "docks": {
           "type": "array",
           "title": "Docks",
           "x-settings": false,
           "description": "Each dock has its own place, apps and behaviour.",
-          "default": [{ "id": "main" }],
+          "default": [{ "id": "main", "enabled": false }],
           "items": { "$ref": "#/definitions/DockEntry" }
         }
       }
@@ -1982,7 +2079,7 @@
         },
         "strips": {
           "type": "array",
-          "x-group": "Strips",
+          "x-group": "Workspace strips",
           "title": "Strips",
           "x-showIf": { "/$supports.strips": true, "/$supports.stripsAlways": false },
           "default": [],
@@ -1997,8 +2094,8 @@
             }
           }
         },
-        "stripColumnWidth": { "type": "integer", "x-group": "Strips", "title": "Column width", "x-unit": "%", "default": 50, "minimum": 10, "maximum": 100, "description": "A new column's share of the monitor.", "x-showIf": { "anyOf": [{ "strips": { "notEmpty": true }, "/$supports.strips": true }, { "/$supports.stripsAlways": true }] }, "x-hypr": "scrolling.column_width", "x-hyprScale": 0.01, "x-niri": "layout.default-column-width.proportion", "x-niriScale": 0.01, "x-niriValue": "float" },
-        "stripFollowFocus": { "type": "boolean", "x-group": "Strips", "title": "Scroll to the focused window", "default": true, "x-showIf": { "strips": { "notEmpty": true }, "/$supports.strips": true, "/$supports.stripsAlways": false }, "x-hypr": "scrolling.follow_focus" }
+        "stripColumnWidth": { "type": "integer", "x-group": "Workspace strips", "title": "Column width", "x-unit": "%", "default": 50, "minimum": 10, "maximum": 100, "description": "A new column's share of the monitor.", "x-showIf": { "anyOf": [{ "strips": { "notEmpty": true }, "/$supports.strips": true }, { "/$supports.stripsAlways": true }] }, "x-hypr": "scrolling.column_width", "x-hyprScale": 0.01, "x-niri": "layout.default-column-width.proportion", "x-niriScale": 0.01, "x-niriValue": "float" },
+        "stripFollowFocus": { "type": "boolean", "x-group": "Workspace strips", "title": "Scroll to the focused window", "default": true, "x-showIf": { "strips": { "notEmpty": true }, "/$supports.strips": true, "/$supports.stripsAlways": false }, "x-hypr": "scrolling.follow_focus" }
       }
     },
 
@@ -2124,6 +2221,7 @@
       "type": "object",
       "x-category": "Maintenance",
       "x-card": "SelfUpdateStatus",
+      "x-cardTitle": "Update status",
       "x-showIf": { "/$packaged": false },
       "title": "axiom updates",
       "description": "Updates come from the repository axiom was cloned from: its release tags, or its main branch. An update only fast-forwards: a clone with changed files or commits of its own is never touched.",
@@ -3415,9 +3513,9 @@
       "properties": {
         "id": { "type": "string", "default": "", "x-settings": false, "description": "Names the account's password in the keyring and its calendars' events." },
         "name": { "type": "string", "title": "Name", "default": "" },
-        "kind": { "type": "string", "title": "Type", "enum": ["caldav", "ics"], "x-enumLabels": { "caldav": "CalDAV account", "ics": "Subscription (.ics)" }, "default": "caldav" },
+        "kind": { "type": "string", "title": "Type", "enum": ["caldav", "ics", "local"], "x-enumLabels": { "caldav": "CalDAV account", "ics": "Subscription (.ics)", "local": "On this computer" }, "default": "caldav" },
         "preset": { "type": "string", "title": "Provider", "x-showIf": { "kind": "caldav" }, "enum": ["icloud", "fastmail", "nextcloud", "custom"], "x-enumLabels": { "icloud": "iCloud", "fastmail": "Fastmail", "nextcloud": "Nextcloud", "custom": "Other CalDAV server" }, "default": "custom" },
-        "url": { "type": "string", "title": "Address", "default": "", "description": "The server's address (any page on it: its calendars are found from there), or the feed's URL." },
+        "url": { "type": "string", "title": "Address", "default": "", "description": "The server's address (any page on it: its calendars are found from there), or the feed's URL.", "x-showIf": { "kind": { "not": "local" } } },
         "username": { "type": "string", "title": "Username", "default": "", "x-showIf": { "kind": "caldav" } },
         "calendars": { "type": "array", "x-settings": false, "default": [], "items": { "$ref": "#/definitions/CalendarEntry" } }
       }
@@ -3523,7 +3621,11 @@
         { "$ref": "#/definitions/ScreenRecordOverlayModule" },
         { "$ref": "#/definitions/CheatsheetOverlayModule" },
         { "$ref": "#/definitions/KeyboardLayoutOverlayModule" },
-        { "$ref": "#/definitions/SubmenuOverlayModule" }
+        { "$ref": "#/definitions/SubmenuOverlayModule" },
+        { "$ref": "#/definitions/TodoOverlayModule" },
+        { "$ref": "#/definitions/PomodoroOverlayModule" },
+        { "$ref": "#/definitions/FocusOverlayModule" },
+        { "$ref": "#/definitions/StopwatchOverlayModule" }
       ]
     },
     "ThemePickerOverlayModule": {
@@ -3680,9 +3782,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "intervalMinutes": {"type": "integer", "title": "Check interval", "x-unit": "min", "default": 60, "minimum": 5, "maximum": 1440},
-            "includeAur": { "x-scope": "machine", "type": "boolean", "title": "Include AUR", "default": false, "x-showIf": { "/$distro": "arch" }},
-            "aurHelper": { "x-scope": "machine", "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": {"includeAur": true, "/$distro": "arch"}}
+            "intervalMinutes": {"type": "integer", "title": "Check interval", "x-unit": "min", "default": 60, "minimum": 5, "maximum": 1440}
           }
         }
       }
@@ -4144,6 +4244,7 @@
     "ClockCalendarOverlayModule": {
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
+      "x-keyboard": false,
       "x-icon": "calendar_clock",
       "x-libraryGroup": "Time & weather",
       "required": ["type"],
@@ -4308,6 +4409,93 @@
         "type": { "const": "Chat", "description": "AI chat" }
       }
     },
+    "StopwatchOverlayModule": {
+      "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-icon": "timer_play",
+      "x-libraryGroup": "Tools",
+      "x-keyboard": true,
+      "x-defaultSize": [4, 6],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Stopwatch", "description": "Timer & stopwatch" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": { "type": "string", "title": "Opens on", "default": "auto", "enum": ["auto", "timer", "stopwatch"], "x-enumLabels": { "auto": "Whichever is running", "timer": "Timer", "stopwatch": "Stopwatch" } }
+          }
+        }
+      }
+    },
+    "TodoOverlayModule": {
+      "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-icon": "checklist",
+      "x-libraryGroup": "Tools",
+      "x-keyboard": true,
+      "x-defaultSize": [4, 6],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Todo", "description": "Todo list" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showHeader": { "type": "boolean", "title": "Header", "default": true, "description": "The title, the open count and Clear completed." }
+          }
+        }
+      }
+    },
+    "PomodoroOverlayModule": {
+      "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-icon": "timer",
+      "x-libraryGroup": "Tools",
+      "x-defaultSize": [4, 4],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Pomodoro", "description": "Pomodoro timer" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showTask": { "type": "boolean", "title": "Task", "default": true, "description": "Pick the todo the session is for." }
+          }
+        }
+      }
+    },
+    "FocusOverlayModule": {
+      "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-icon": "center_focus_strong",
+      "x-libraryGroup": "Tools",
+      "x-keyboard": true,
+      "x-defaultSize": [8, 8],
+      "x-minSize": [4, 6],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Focus", "description": "Focus" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "x-order": ["showTimer", "showTodos", "showAgenda"],
+          "properties": {
+            "showTimer": { "type": "boolean", "title": "Pomodoro timer", "default": true },
+            "showTodos": { "type": "boolean", "title": "Todo list", "default": true },
+            "showAgenda": { "type": "boolean", "title": "Today's events", "default": true, "description": "Today in the shown calendars, with + to add an event." }
+          }
+        }
+      }
+    },
     "NotesOverlayModule": {
       "type": "object",
       "x-icon": "sticky_note_2",
@@ -4421,7 +4609,10 @@
         { "$ref": "#/definitions/SeparatorWidget" },
         { "$ref": "#/definitions/VolumeWidget" },
         { "$ref": "#/definitions/MicrophoneWidget" },
-        { "$ref": "#/definitions/BluetoothWidget" }
+        { "$ref": "#/definitions/BluetoothWidget" },
+        { "$ref": "#/definitions/TodoWidget" },
+        { "$ref": "#/definitions/PomodoroWidget" },
+        { "$ref": "#/definitions/StopwatchWidget" }
       ]
     },
     "WindowWidget": {
@@ -4754,6 +4945,79 @@
         }
       }
     },
+    "StopwatchWidget": {
+      "type": "object",
+      "x-icon": "timer_play",
+      "x-libraryGroup": "Tools",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Stopwatch", "description": "Timer & stopwatch" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "hideWhenIdle": { "type": "boolean", "title": "Hide when stopped", "default": false, "description": "Show only while the timer or stopwatch runs or is paused (start one from the launcher's /timer or /stopwatch, or a module)." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "The timer and stopwatch, to set and start, when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
+            "timerColor": { "type": "string", "title": "Timer color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "stopwatchColor": { "type": "string", "title": "Stopwatch color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "idleColor": { "type": "string", "title": "Stopped color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
+          }
+        }
+      }
+    },
+    "TodoWidget": {
+      "type": "object",
+      "x-icon": "checklist",
+      "x-libraryGroup": "Tools",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Todo", "description": "Todo list" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "hideWhenEmpty": { "type": "boolean", "title": "Hide when nothing is open", "default": false },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "The list, to add to and tick off, when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
+          }
+        }
+      }
+    },
+    "PomodoroWidget": {
+      "type": "object",
+      "x-icon": "timer",
+      "x-libraryGroup": "Tools",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Pomodoro", "description": "Pomodoro timer" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "hideWhenIdle": { "type": "boolean", "title": "Hide when stopped", "default": false, "description": "Show only while a session or break is on (start one from the launcher's /pomodoro or a module)." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "The timer's controls when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
+            "workColor": { "type": "string", "title": "Focus color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "breakColor": { "type": "string", "title": "Break color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "idleColor": { "type": "string", "title": "Stopped color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
+          }
+        }
+      }
+    },
     "IdleInhibitorWidget": {
       "type": "object",
       "x-icon": "coffee",
@@ -4841,14 +5105,10 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "includeAur": { "x-scope": "machine", "type": "boolean", "title": "Include AUR", "default": false, "description": "Also count outdated AUR packages.", "x-showIf": { "/$distro": "arch" } },
-            "aurHelper": { "x-scope": "machine", "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": { "includeAur": true, "/$distro": "arch" } },
             "intervalMinutes": { "type": "integer", "title": "Check interval", "x-unit": "min", "default": 30, "minimum": 5, "maximum": 1440 },
             "hideWhenEmpty": { "type": "boolean", "title": "Hide when up to date", "default": true },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List pending packages when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-            "terminal": { "x-scope": "personal", "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
-            "upgradeCommand": { "x-scope": "personal", "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu." },
             "manyThreshold": { "type": "integer", "title": "Many updates", "default": 50, "minimum": 1, "maximum": 1000, "description": "At or above this count, the widget uses the many-updates background." },
             "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "manyColor": { "type": "string", "title": "Many-updates color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
@@ -4870,27 +5130,10 @@
         "properties": {
           "type": "object",
           "additionalProperties": false,
-          "x-order": ["accounts", "metric", "display", "intervalMinutes"],
+          "x-order": ["metric", "display"],
           "properties": {
-            "accounts": {
-              "x-scope": "machine",
-              "type": "array",
-              "title": "Accounts",
-              "default": [{ "label": "Personal", "configDir": "~/.claude" }],
-              "description": "One per Claude Code login: the CLAUDE_CONFIG_DIR it uses (~/.claude when unset). Usage is read with that login's token, which is never changed.",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "x-order": ["label", "configDir"],
-                "properties": {
-                  "label": { "type": "string", "title": "Label", "default": "", "description": "Shown in the popout; its first letter tells accounts apart on the bar." },
-                  "configDir": { "type": "string", "title": "Config directory", "x-control": "folder", "default": "~/.claude" }
-                }
-              }
-            },
             "metric": { "type": "string", "title": "Limit shown", "default": "session", "enum": ["session", "weekly"], "x-enumLabels": { "session": "Current session", "weekly": "Weekly" } },
             "display": { "type": "string", "title": "Accounts shown", "default": "max", "enum": ["max", "all", "first"], "x-enumLabels": { "max": "Fullest", "all": "All", "first": "First" }, "description": "Which account's usage the bar shows. The popout lists every account." },
-            "intervalMinutes": { "type": "integer", "title": "Check interval", "x-unit": "min", "default": 5, "minimum": 2, "maximum": 60 },
             "icon": { "type": "string", "title": "Icon", "default": "data_usage", "description": "A Material Symbols name (fonts.google.com/icons), or text." },
             "warnThreshold": { "type": "integer", "title": "Warning at", "x-unit": "%", "default": 75, "minimum": 1, "maximum": 100 },
             "criticalThreshold": { "type": "integer", "title": "Critical at", "x-unit": "%", "default": 90, "minimum": 1, "maximum": 100 },

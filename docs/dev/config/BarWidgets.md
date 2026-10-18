@@ -30,3 +30,6 @@ Every `BarWidget` type, one page each: its file, annotations, and its own settin
 | [Volume](BarWidgets/Volume.md) | Volume | x-icon="volume_up", x-libraryGroup="Media & audio" |
 | [Microphone](BarWidgets/Microphone.md) | Microphone | x-icon="mic", x-libraryGroup="Media & audio" |
 | [Bluetooth](BarWidgets/Bluetooth.md) | Bluetooth | x-icon="bluetooth", x-libraryGroup="Network & devices" |
+| [Todo](BarWidgets/Todo.md) | Todo list | x-icon="checklist", x-libraryGroup="Tools" |
+| [Pomodoro](BarWidgets/Pomodoro.md) | Pomodoro timer | x-icon="timer", x-libraryGroup="Tools" |
+| [Stopwatch](BarWidgets/Stopwatch.md) | Timer & stopwatch | x-icon="timer_play", x-libraryGroup="Tools" |

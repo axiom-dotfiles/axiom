@@ -3,9 +3,10 @@
 
 Keys come from:
   - every string literal passed to I18n.tr("...") in the QML, and
-  - the config schema's titles, descriptions, empty labels, disabled notes,
-    string enum values and `x-categories` and `x-libraryGroups` names (the settings UI and the
-    editors' libraries translate those themselves, so they need no code).
+  - the config schema's titles, descriptions, card titles, empty labels,
+    disabled notes, string enum values, `x-categories` names and card titles
+    and `x-libraryGroups` names (the settings UI and the editors' libraries
+    translate those themselves, so they need no code).
 
   scripts/check_i18n.py                 missing / unused entries per language,
                                         and files not in the canonical format
@@ -72,11 +73,12 @@ def unescape(s):
 
 def schema_strings(node, out):
     if isinstance(node, dict):
-        for key in ("title", "description", "x-group", "x-hookupNote", "x-emptyLabel", "x-disabledNote"):
+        for key in ("title", "description", "x-group", "x-cardTitle", "x-hookupNote", "x-emptyLabel", "x-disabledNote"):
             if isinstance(node.get(key), str):
                 out.add(node[key])
         if isinstance(node.get("x-categories"), list):
             out.update(c["name"] for c in node["x-categories"] if isinstance(c, dict) and isinstance(c.get("name"), str))
+            out.update(c["cardTitle"] for c in node["x-categories"] if isinstance(c, dict) and isinstance(c.get("cardTitle"), str))
         if isinstance(node.get("x-libraryGroups"), list):
             out.update(g for g in node["x-libraryGroups"] if isinstance(g, str))
         if isinstance(node.get("x-hookup"), list):

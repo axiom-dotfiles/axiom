@@ -48,7 +48,6 @@ FieldGroup {
     return I18n.tr("axiom answers apps' password requests.");
   }
 
-  title: I18n.tr("polkit agent")
   headerExtras: [
     StatusChip {
       text: root.statusLabel

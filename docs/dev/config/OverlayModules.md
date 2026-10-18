@@ -22,7 +22,7 @@ Every `OverlayModule` type, one page each: its file, annotations, and its own se
 | [BluetoothDevices](OverlayModules/BluetoothDevices.md) | Bluetooth devices | x-hosts=["overlay","edgeMenu","desktop"], x-icon="bluetooth", x-libraryGroup="Network & devices" |
 | [WifiNetworks](OverlayModules/WifiNetworks.md) | Wi-Fi networks | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="wifi", x-libraryGroup="Network & devices" |
 | [Screenshot](OverlayModules/Screenshot.md) | Screenshot | x-hosts=["overlay","edgeMenu","desktop"], x-icon="camera", x-libraryGroup="Tools", x-defaultSize=[4,2] |
-| [ClockCalendar](OverlayModules/ClockCalendar.md) | Clock & calendar | x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="calendar_clock", x-libraryGroup="Time & weather" |
+| [ClockCalendar](OverlayModules/ClockCalendar.md) | Clock & calendar | x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-keyboard=false, x-icon="calendar_clock", x-libraryGroup="Time & weather" |
 | [Clock](OverlayModules/Clock.md) | Clock | x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="schedule", x-libraryGroup="Time & weather", x-defaultSize=[4,3], x-canvasDetail="style" |
 | [Calendar](OverlayModules/Calendar.md) | Calendar | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="calendar_month", x-libraryGroup="Time & weather", x-defaultSize=[4,8] |
 | [Agenda](OverlayModules/Agenda.md) | Agenda | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="event_note", x-libraryGroup="Time & weather", x-defaultSize=[4,4] |
@@ -50,3 +50,7 @@ Every `OverlayModule` type, one page each: its file, annotations, and its own se
 | [Cheatsheet](OverlayModules/Cheatsheet.md) | Keybind cheat sheet | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="keyboard", x-libraryGroup="Tools", x-defaultSize=[8,6] |
 | [KeyboardLayout](OverlayModules/KeyboardLayout.md) | Keyboard layout | x-icon="keyboard", x-libraryGroup="Session", x-defaultSize=[2,1], x-hosts=["greeter"] |
 | [Submenu](OverlayModules/Submenu.md) | Submenu | x-hosts=["edgeMenu"], x-icon="menu_open", x-libraryGroup="Look & layout", x-defaultSize=[4,1], x-minSize=[2,1], x-canvasDetail="label" |
+| [Todo](OverlayModules/Todo.md) | Todo list | x-hosts=["overlay","edgeMenu","desktop"], x-icon="checklist", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6] |
+| [Pomodoro](OverlayModules/Pomodoro.md) | Pomodoro timer | x-hosts=["overlay","edgeMenu","desktop"], x-icon="timer", x-libraryGroup="Tools", x-defaultSize=[4,4] |
+| [Focus](OverlayModules/Focus.md) | Focus | x-hosts=["overlay","edgeMenu","desktop"], x-icon="center_focus_strong", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[8,8], x-minSize=[4,6] |
+| [Stopwatch](OverlayModules/Stopwatch.md) | Timer & stopwatch | x-hosts=["overlay","edgeMenu","desktop"], x-icon="timer_play", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6] |

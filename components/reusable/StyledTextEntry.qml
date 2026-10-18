@@ -44,7 +44,10 @@ StyledContainer {
     verticalAlignment: TextInput.AlignVCenter
     text: root.text
     onTextChanged: root.text = text
+    // TextInput emits textEdited before textChanged: `text` is brought up
+    // to date first, or a handler reading it gets the text before the edit
     onTextEdited: {
+      root.text = text;
       root.typed = true;
       root.textEdited();
     }

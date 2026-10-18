@@ -8,7 +8,7 @@ Reader for the Calendar section (see CalendarManager). Account passwords are not
 ### Properties
 
 - `savedAccounts` (readonly var): Calendar.accounts as saved, for editing
-- `accounts` (readonly var): Calendar.accounts, each with an `id` (numbered when left empty) and a `name` (the username or the server's host when left empty)
+- `accounts` (readonly var): Calendar.accounts, each with an `id` (numbered when left empty) and a `name` (the username or the server's host when left empty; "This computer" for a local one)
 - `calendars` (readonly var): Every account's calendars, flattened: { id ("<account>|<href>"), account, accountName, kind, href, name, color (the override, else the server's, else the accent), enabled, readOnly, events (it holds …
 - `shownCalendars` (readonly var): The calendars shown, and those of them new events can go to
 - `writableCalendars` (readonly var)
@@ -29,4 +29,5 @@ Reader for the Calendar section (see CalendarManager). Account passwords are not
 ### Functions
 
 - `calendar(id)`
+- `writableKind(kind)`: Kinds whose events axiom can change: CalDAV accounts and local calendars (.ics subscriptions are read-only)
 - `hostOf(url)`

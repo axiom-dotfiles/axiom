@@ -8,18 +8,19 @@ import qs.components.hosts.popout
 // Pending package updates from UpdatesManager: repo packages the way this
 // distribution checks them (`checkupdates` on Arch, `dnf check-update` on
 // Fedora; hidden on one UpdatesManager can't check), plus AUR packages via
-// paru/yay when enabled on Arch. Left click opens a terminal to upgrade,
-// right click checks again now; hovering lists the packages.
+// paru/yay when enabled on Arch (UpdatesConfig). Left click opens a
+// terminal to upgrade, right click checks again now; hovering lists the
+// packages.
 BarIconWidget {
   id: root
 
   // [{ name, from, to }], checked by the shared UpdatesManager
   readonly property var repoPackages: UpdatesManager.repoPackages
-  readonly property var aurPackages: properties.includeAur && UpdatesManager.hasAur ? UpdatesManager.aurPackages : []
+  readonly property var aurPackages: UpdatesConfig.includeAur && UpdatesManager.hasAur ? UpdatesManager.aurPackages : []
   readonly property int count: repoPackages.length + aurPackages.length
 
   hidden: !UpdatesManager.supported || (properties.hideWhenEmpty && count === 0)
-  readonly property string upgradeCommand: properties.upgradeCommand || UpdatesManager.upgradeCommand(properties.includeAur ? properties.aurHelper : "")
+  readonly property string upgradeCommand: UpdatesConfig.upgradeCommand || UpdatesManager.upgradeCommand(UpdatesConfig.activeAurHelper)
 
   icon: "download"
   text: String(count)
@@ -29,7 +30,7 @@ BarIconWidget {
   // Re-acquiring replaces the old request
   readonly property var updatesRequest: ({
       "intervalMinutes": root.properties.intervalMinutes,
-      "aurHelper": root.properties.includeAur ? root.properties.aurHelper : ""
+      "aurHelper": UpdatesConfig.activeAurHelper
     })
   onUpdatesRequestChanged: UpdatesManager.acquire(root, updatesRequest)
   Component.onCompleted: UpdatesManager.acquire(root, updatesRequest)
@@ -41,7 +42,7 @@ BarIconWidget {
     if (button === Qt.RightButton)
       UpdatesManager.refresh();
     else
-      UpdatesManager.upgrade(root.upgradeCommand, root.properties.terminal);
+      UpdatesManager.upgrade(root.upgradeCommand, UpdatesConfig.terminal);
   }
 
   PopoutAnchor {

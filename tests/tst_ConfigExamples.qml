@@ -413,9 +413,9 @@ TestCase {
       }
     };
     const kept = ConfigExamples.apply(current, example, schema);
-    // The bar matched by id, its widgets only by position: the command is
-    // neither the example's nor (for another button) the user's
-    compare(kept.Bars[0].widgets.left[0].properties.command, "");
+    // The bar matched by id, its button as the first button: the user's
+    // command stays, the example's isn't taken
+    compare(kept.Bars[0].widgets.left[0].properties.command, "mine");
     compare(kept.Bars[0].monitor, "DP-1");
     compare(kept.Dock.docks.map(d => d.pinned), [["kitty"], []]);
     compare(kept.Keybinds.binds, current.Keybinds.binds);
@@ -449,6 +449,32 @@ TestCase {
       "type": "Time",
       "properties": {}
     });
+  }
+
+  function test_apply_matches_widgets_by_type() {
+    const stats = path => ({
+          "type": "SystemStats",
+          "properties": {
+            "diskPath": path
+          }
+        });
+    const time = {
+      "type": "Time",
+      "properties": {}
+    };
+    const current = {
+      "Bars": [bar("main", "DP-1", [stats("/home"), time, stats("/data")])]
+    };
+    // Moved behind another widget: still the first and second SystemStats
+    const result = ConfigExamples.apply(current, {
+      "Bars": [bar("main", "", [time, stats("/theirs"), time, stats("/theirs")])]
+    }, schema);
+    compare(result.Bars[0].widgets.left.map(w => w.properties.diskPath), [undefined, "/home", undefined, "/data"]);
+    // A third of a type the user has two of gets the default
+    const more = ConfigExamples.apply(current, {
+      "Bars": [bar("main", "", [stats(""), stats(""), stats("")])]
+    }, schema);
+    compare(more.Bars[0].widgets.left.map(w => w.properties.diskPath), ["/home", "/data", "/"]);
   }
 
   function test_keep_moved_look() {

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
+import qs.services
 import qs.components.reusable
 
 // i18n: keys from callers and the schema (titles, descriptions, type labels)
@@ -47,7 +48,13 @@ ColumnLayout {
   // I18n.tr("min") I18n.tr("days") I18n.tr("tokens")
   readonly property string unitText: root.unit === "" ? "" : I18n.tr(root.unit)
 
-  signal committed(int value)
+  // `typed`: from the value box (Enter, focus loss, Save), emitted even
+  // when it equals the value (a form's draft may hold it already)
+  signal committed(int value, bool typed)
+  // Each keystroke's value in the box, clamped, for a form that holds it
+  // unsaved without applying it (SchemaField.type). The box also shows
+  // its page's Save at once (EditsManager.holdTyping)
+  signal valueTyped(int value)
 
   Layout.fillWidth: true
   spacing: 4
@@ -73,7 +80,7 @@ ColumnLayout {
   function commit() {
     commitTimer.stop();
     if (root.value !== root.currentConfigValue)
-      root.committed(root.value);
+      root.committed(root.value, false);
   }
 
   // Follow outside changes (a reload, a reset elsewhere) unless the user
@@ -249,7 +256,21 @@ ColumnLayout {
       // left showing (the value changed while it had focus: what it edits
       // switched under it) would land on what it edits now.
       property bool typed: false
-      onTextEdited: input.typed = true
+      onTypedChanged: {
+        if (!input.typed)
+          EditsManager.releaseTyping(input);
+      }
+      onTextEdited: {
+        input.typed = true;
+        EditsManager.holdTyping(input, input.Window.window);
+        const parsed = parseInt(input.text, 10);
+        if (!isNaN(parsed))
+          root.valueTyped(root.clamp(parsed));
+      }
+      Component.onDestruction: {
+        input.apply();
+        EditsManager.releaseTyping(input);
+      }
       // Untyped, it follows the value while it has focus too
       Connections {
         target: root
@@ -261,8 +282,20 @@ ColumnLayout {
 
       function apply() {
         const parsed = parseInt(input.text, 10);
-        if (input.typed && !isNaN(parsed))
-          root.setValue(parsed, true);
+        if (input.typed && !isNaN(parsed)) {
+          commitTimer.stop();
+          root.value = root.clamp(parsed);
+          root.committed(root.value, true);
+        }
+        input.typed = false;
+        input.text = String(root.value);
+      }
+
+      // Save commits what was typed; Reset drops it
+      function commitTyped() {
+        input.apply();
+      }
+      function discardTyped() {
         input.typed = false;
         input.text = String(root.value);
       }

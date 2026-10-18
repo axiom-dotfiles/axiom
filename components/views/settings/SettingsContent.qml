@@ -8,10 +8,9 @@ import qs.components.reusable
 import qs.components.content.base
 
 // Settings page, right: the selected category's groups as cards in two
-// newspaper columns, split by their measured heights so both end together
-// (then its hand-built `page`, if any), or every setting matching the
-// search, under its category's name. Acts as the `form` for its SchemaField
-// rows.
+// newspaper columns (wide ones across both), split by their measured
+// heights so both end together, or every setting matching the search,
+// under its category's name. Acts as the `form` for its SchemaField rows.
 Item {
   id: root
 
@@ -22,11 +21,12 @@ Item {
   readonly property var schema: ConfigManager.configSchema
   readonly property string query: SettingsManager.query.trim().toLowerCase()
   readonly property bool searching: query !== ""
-  // The category's hand-built part (settings/<page>.qml), after its cards
-  readonly property string page: root.searching ? "" : root.category?.page ?? ""
 
   signal edited(var path, var value)
   onEdited: (path, value) => SettingsManager.setValue(path, value)
+  // A text field's keystroke: unsaved at once, applied on its commit
+  signal typed(var path, var value)
+  onTyped: (path, value) => SettingsManager.setDraftValue(path, value)
 
   function valueAt(path) {
     let value = SettingsManager.localConfig;
@@ -35,22 +35,23 @@ Item {
     return value;
   }
 
-  function _groupsOf(category) {
-    return [].concat(...(category?.sections ?? []).map(section => SchemaLayout.groups(root.schema, section)));
-  }
-
   // Matches English and the translation, so either can be typed
   function _matches(text) {
     return !!text && (text.toLowerCase().includes(root.query) || I18n.tr(text).toLowerCase().includes(root.query));
   }
 
+  // Whether an `x-showIf`-style condition holds, its plain keys being
+  // siblings under `parent` (a key path)
+  function conditionHolds(condition, parent) {
+    return SchemaLayout.showIfHolds(condition, key => key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : root.valueAt(parent.concat(key)));
+  }
+
   // A card from an object with `x-showIf` (e.g. managed-only settings), or
   // one whose every row is hidden by its own `x-showIf` (an `x-group` card)
   function _groupShown(group) {
-    const valueIn = parent => key => key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : root.valueAt(parent.concat(key));
-    if (!SchemaLayout.showIfHolds(group.showIf, valueIn(group.showIfParent)))
+    if (!root.conditionHolds(group.showIf, group.showIfParent))
       return false;
-    return group.kind !== "rows" || group.rows.length === 0 || group.rows.some(row => row.kind === "group" || SchemaLayout.showIfHolds(row.schema?.["x-showIf"], valueIn(row.path.slice(0, -1))));
+    return group.kind !== "rows" || group.rows.length === 0 || group.rows.some(row => row.kind === "group" || root.conditionHolds(row.schema?.["x-showIf"], row.path.slice(0, -1)));
   }
 
   function _rowMatches(row) {
@@ -62,9 +63,9 @@ Item {
   // category's name
   readonly property var groups: {
     if (!root.searching)
-      return root._groupsOf(root.category);
+      return SchemaLayout.categoryGroups(root.schema, root.category);
     // Hand-built cards have no rows to search
-    return [].concat(...root.categories.map(category => root._groupsOf(category).filter(group => group.kind !== "card").map(group => {
+    return [].concat(...root.categories.map(category => SchemaLayout.categoryGroups(root.schema, category).filter(group => group.kind !== "card").map(group => {
         const rows = root._matches(group.title) || root._matches(group.section) ? group.rows : group.rows.filter(row => root._rowMatches(row));
         return rows.length > 0 ? Object.assign({}, group, {
           "rows": rows,
@@ -270,9 +271,12 @@ Item {
           readonly property real gap: Widget.spacing * 2
           // Each card's measured height, by index
           property var heights: block.modelData.groups.map(() => 0)
-          property int split: 0
+          // Which cards span both columns (from the schema only)
+          readonly property var wide: block.modelData.groups.map(group => group.wide === true)
+          // Each run's split, between the wide cards
+          property var splits: []
           property bool settling: true
-          readonly property var tops: ColumnSplit.tops(block.heights, block.split, block.gap)
+          readonly property var placed: ColumnSplit.place(block.heights, block.wide, block.splits, block.gap)
 
           function setHeight(i, height) {
             if (block.heights[i] === height)
@@ -281,18 +285,18 @@ Item {
             next[i] = height;
             block.heights = next;
             if (block.settling) {
-              block.split = ColumnSplit.split(next, block.gap);
+              block.splits = ColumnSplit.splits(next, block.wide, block.gap);
               settle.restart();
             }
           }
 
           function relayout() {
             block.settling = true;
-            block.split = ColumnSplit.split(block.heights, block.gap);
+            block.splits = ColumnSplit.splits(block.heights, block.wide, block.gap);
             settle.restart();
           }
 
-          // Fixes `split` once the heights stop changing (cards loading or
+          // Fixes `splits` once the heights stop changing (cards loading or
           // folding): a quiet spell, restarted by every change, so not an
           // animation duration (which is 0 with motion off)
           Timer {
@@ -335,13 +339,14 @@ Item {
             }
           }
 
-          // The block's cards, the first `split` on the left. Positions
-          // follow the cards' heights live; `split` follows them only while
-          // `settling` (after a build, a resize or fold all)
+          // The block's cards, each run between wide ones split in two
+          // columns. Positions follow the cards' heights live; `splits`
+          // follow them only while `settling` (after a build, a resize or
+          // fold all)
           Item {
             id: cards
             Layout.fillWidth: true
-            implicitHeight: ColumnSplit.height(block.heights, block.split, block.gap)
+            implicitHeight: block.placed.height
             onWidthChanged: block.relayout()
 
             Repeater {
@@ -352,17 +357,26 @@ Item {
                 id: card
                 required property var modelData
                 required property int index
-                width: (cards.width - block.gap) / 2
-                x: card.index < block.split ? 0 : card.width + block.gap
-                y: block.tops[card.index] ?? 0
+                readonly property var place: block.placed.cards[card.index] ?? ({
+                    "column": 0,
+                    "y": 0
+                  })
+                readonly property real halfWidth: (cards.width - block.gap) / 2
+                width: card.place.column === -1 ? cards.width : card.halfWidth
+                x: card.place.column === 1 ? card.halfWidth + block.gap : 0
+                y: card.place.y
                 onImplicitHeightChanged: block.setHeight(card.index, card.implicitHeight)
                 Component.onCompleted: {
                   if (!root.searching)
                     root._cards[card.modelData.key] = card;
+                  // Its title from the schema (`x-cardTitle`, or the
+                  // category's `cardTitle`), as the sidebar names it
                   if (card.modelData.kind === "card")
-                    card.setSource(Qt.resolvedUrl(card.modelData.card + "Card.qml"), card.modelData.folds ? {
+                    card.setSource(Qt.resolvedUrl(card.modelData.card + "Card.qml"), Object.assign({
+                      "title": I18n.tr(card.modelData.title)
+                    }, card.modelData.folds ? {
                       "foldKey": card.modelData.key
-                    } : {});
+                    } : {}));
                   else
                     card.sourceComponent = rowsCard;
                   block.setHeight(card.index, card.implicitHeight);
@@ -420,14 +434,6 @@ Item {
             }
           }
         }
-      }
-
-      // The category's hand-built part (Maintenance's saved configurations)
-      Loader {
-        active: root.page !== ""
-        visible: active
-        Layout.fillWidth: true
-        source: active ? Qt.resolvedUrl(root.page + ".qml") : ""
       }
     }
   }

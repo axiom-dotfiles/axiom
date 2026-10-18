@@ -4,10 +4,13 @@ import QtQuick.Layouts
 import Quickshell
 import qs.components.reusable
 import qs.config
+import qs.services
 
-// Save (shown while `dirty`) and Reset for whichever service owns a page's
-// pending edits. `compact` drops the labels to icons with tooltips, for
-// headers too narrow for both.
+// Save and Discard (both shown while `dirty`, or while a box in this window
+// holds typed text: EditsManager.typingField) for whichever service owns a
+// page's pending edits. Save commits that text first, Discard drops it;
+// `reset` drops the edits back to what's saved. `compact` drops the labels
+// to icons with tooltips, for headers too narrow for both.
 RowLayout {
   id: root
 
@@ -22,31 +25,40 @@ RowLayout {
   signal save
   signal reset
 
+  readonly property bool _typing: EditsManager.typingField !== null && EditsManager.typingWindow === root.Window.window
+
   spacing: Widget.spacing
 
   ActionButton {
     id: saveButton
-    visible: root.dirty
+    visible: root.dirty || root._typing
     enabled: root.canSave
     icon: "check"
     label: root.saveLabel
     fillColor: hovered ? Qt.lighter(Theme.accent, 1.1) : Theme.accent
     contentColor: Theme.background
-    onClicked: root.save()
+    onClicked: {
+      EditsManager.commitTyping();
+      root.save();
+    }
   }
 
   ActionButton {
     id: resetButton
+    visible: root.dirty || root._typing
     icon: "undo"
-    label: I18n.tr("Reset")
+    label: I18n.tr("Discard")
     fillColor: Theme.backgroundHighlight
     strokeColor: hovered ? Theme.accent : Theme.border
     contentColor: Theme.foreground
-    onClicked: root.reset()
+    onClicked: {
+      EditsManager.discardTyping();
+      root.reset();
+    }
   }
 
   // Sized to its label (translations differ in width, and fonts in height),
-  // at least `minWidth` so Save and Reset line up in English
+  // at least `minWidth` so Save and Discard line up in English
   component ActionButton: Rectangle {
     id: button
 

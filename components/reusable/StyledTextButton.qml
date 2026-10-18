@@ -1,10 +1,11 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import qs.config
 
 // A button with a text label and an optional Material Symbols icon, with
-// hover and press colors.
+// hover and press colors and an optional tooltip.
 Rectangle {
   id: root
 
@@ -17,6 +18,7 @@ Rectangle {
   property string iconText: ""
   // Draw the icon after the label instead of before it
   property bool iconAfter: false
+  property string tooltipText: ""
 
   // -- Configurable Appearance --
   property int textPadding: 8
@@ -83,5 +85,13 @@ Rectangle {
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
     onClicked: root.clicked()
+  }
+
+  LazyLoader {
+    active: mouseArea.containsMouse && root.tooltipText !== ""
+    StyledToolTip {
+      target: root
+      text: root.tooltipText
+    }
   }
 }

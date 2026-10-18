@@ -35,66 +35,79 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `LauncherConfig.width` · in: `components/surfaces/launcher/Launcher.qml`, `components/surfaces/launcher/LauncherPanel.qml`
 - **`Launcher.maxResults`** · integer = 8 · 3–20
   - Results shown: How many rows fit before the list scrolls.
-  - x-control="stepper"
+  - x-group="Launcher look", x-control="stepper"
   - read: `LauncherConfig.maxResults` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherManager.qml`
 - **`Launcher.iconSize`** · integer = 32 · 16–64 · px
   - Icon size: Size of the result icons.
-  - x-control="stepper"
+  - x-group="Launcher look", x-control="stepper"
   - read: `LauncherConfig.iconSize` · in: `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/launcher/LauncherRow.qml`
 - **`Launcher.showBackdrop`** · boolean = true
   - Dim background: Dim the whole screen behind the launcher, under the bars and border.
+  - x-group="Launcher look"
   - read: `LauncherConfig.showBackdrop` · in: `components/surfaces/launcher/Launcher.qml`
 - **`Launcher.backdrop`** · integer = 25 · 0–90 · %
   - Backdrop darkness: How dark the screen behind the launcher goes.
-  - x-showIf={"showBackdrop":true}
+  - x-group="Launcher look", x-showIf={"showBackdrop":true}
   - read: `LauncherConfig.backdrop` (computed) · in: `components/surfaces/launcher/Launcher.qml`
 - **`Launcher.showDescriptions`** · boolean = true
   - Descriptions: Show a second line under each result (an app's generic name, a window's class, a command's description).
+  - x-group="Launcher look"
   - read: `LauncherConfig.showDescriptions` · in: `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/launcher/LauncherRow.qml`
 - **`Launcher.showRecent`** · boolean = true
   - Frequent apps when empty: List your most used apps before you type anything.
+  - x-group="Launcher look"
   - read: `LauncherConfig.showRecent` · in: `services/LauncherManager.qml`
 - **`Launcher.showHint`** · boolean = true
   - Controls hint: Show the search prefixes and keys under the results.
+  - x-group="Launcher look"
   - read: `LauncherConfig.showHint` · in: `components/surfaces/launcher/LauncherPanel.qml`
 - **`Launcher.hiddenApps`** · array<string> = []
   - Hidden apps: Desktop entry ids never shown, comma-separated (e.g. avahi-discover, qv4l2).
+  - x-group="Launcher search"
   - read: `LauncherConfig.hiddenApps` · in: `services/LauncherManager.qml`
 - **`Launcher.windows`** · boolean = true
   - Open windows: Also match open windows by title and class; picking one focuses it.
+  - x-group="Launcher search"
   - read: `LauncherConfig.windows` · in: `services/LauncherManager.qml`
 - **`Launcher.calculator`** · boolean = true
   - Calculator: Show the result of math as you type it (or after =), using qalc. Enter copies the result.
+  - x-group="Launcher search"
   - read: `LauncherConfig.calculator` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`
 - **`Launcher.commands`** · boolean = true
   - Shell commands (/): Type / for commands that control the shell: themes, volume, wifi, bluetooth, overlay pages, session and more.
+  - x-group="Launcher search"
   - read: `LauncherConfig.commands` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherManager.qml`
 - **`Launcher.runCommands`** · boolean = true
   - Run commands (>): Type > and a command to run it. Shift+Enter runs it in the terminal.
+  - x-group="Launcher search"
   - read: `LauncherConfig.runCommands` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`
 - **`Launcher.webSearch`** · boolean = true
   - Web search (?): Offer a web search for what you typed, last in the list (or first after ?).
+  - x-group="Launcher search"
   - read: `LauncherConfig.webSearch` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`
 - **`Launcher.searchEngine`** · string = "https://duckduckgo.com/?q={}"
   - Search engine URL: {} is replaced by the search terms.
-  - x-showIf={"webSearch":true}
+  - x-group="Launcher search", x-showIf={"webSearch":true}
   - read: `LauncherConfig.searchEngine` · in: `services/LauncherManager.qml`
 - **`Launcher.chat`** · boolean = true
   - Ask chat (@): Type @ and a question to ask it in the overlay's Chat module, with the default preset.
+  - x-group="Launcher search"
   - read: `LauncherConfig.chat` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherManager.qml`
 - **`Launcher.clipboard`** · boolean = true
   - Clipboard history (:): Type : (or /clipboard) to search what you've copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don't; turning it off clears the history.
+  - x-group="Launcher search"
   - read: `LauncherConfig.clipboard` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/ClipboardManager.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`
 - **`Launcher.clipboardSource`** · string = "axiom" · enum axiom|cliphist
   - Clipboard history source: axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).
-  - x-showIf={"clipboard":true}
+  - x-group="Launcher search", x-showIf={"clipboard":true}
   - read: `LauncherConfig.clipboardSource` · in: `services/ClipboardManager.qml`
 - **`Launcher.clipboardMaxEntries`** · integer = 100 · 10–1000
   - Clipboard history size: How many clips axiom keeps.
-  - x-showIf={"clipboard":true,"clipboardSource":"axiom"}
+  - x-group="Launcher search", x-showIf={"clipboard":true,"clipboardSource":"axiom"}
   - read: `LauncherConfig.clipboardMaxEntries` · in: `services/ClipboardManager.qml`
 - **`Launcher.emoji`** · boolean = true
   - Emoji (;): Type ; (or /emoji) to search emoji by name or keyword; Enter copies one. With wtype installed, Shift+Enter also types it into the focused window.
+  - x-group="Launcher search"
   - read: `LauncherConfig.emoji` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`
 
 ### Reader members

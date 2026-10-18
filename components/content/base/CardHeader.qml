@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import qs.components.reusable
 import qs.config
 
-// Title row of a TitledCard, with Save (shown while `dirty`) and Reset
+// Title row of a TitledCard, with Save and Discard (shown while `dirty`)
 // buttons for whichever service owns the panel's pending edits. Items
 // placed inside sit just after the title. The title elides and the buttons
 // drop to icons when the row is too narrow.

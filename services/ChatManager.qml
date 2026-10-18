@@ -210,16 +210,8 @@ Singleton {
   // Opens the overlay on the page with the (biggest) Chat module, else an
   // edge menu with one (moving the cursor into it)
   function openPage() {
-    const page = OverlayConfig.pageWithModule("Chat");
-    if (page !== "") {
-      ShellManager.openOverlayPage(page);
+    if (ShellManager.openModule(["Chat"]))
       return true;
-    }
-    const menu = EdgeMenusConfig.menuWithModule("Chat");
-    if (menu) {
-      EdgeMenuManager.reveal(menu.id);
-      return true;
-    }
     NotificationManager.sendNotification("axiom", I18n.tr("No chat module"), I18n.tr("Add a Chat module to an overlay page or an edge menu."));
     return false;
   }

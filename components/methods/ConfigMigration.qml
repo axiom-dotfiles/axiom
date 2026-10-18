@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 67
+  readonly property int currentVersion: 69
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -161,6 +161,10 @@ QtObject {
       result = _v65ToV66(result, changes);
     if (version < 67)
       result = _v66ToV67(result, changes);
+    if (version < 68)
+      result = _v67ToV68(result, changes);
+    if (version < 69)
+      result = _v68ToV69(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2212,6 +2216,100 @@ QtObject {
         continue;
       layout.blurWallpaper = blur;
       changes.push(`Lockscreen.blurWallpaper -> ${section}.layout.blurWallpaper`);
+    }
+    return config;
+  }
+
+  // v68 moved what every widget and module of a feature shares out of
+  // each one's properties, into a section (as v30 did for Battery): the
+  // ClaudeUsage widget's accounts and check interval, and the Updates
+  // widget's and module's AUR helper, terminal and upgrade command. The
+  // first that set one carries over; matched by position, an import or a
+  // snapshot otherwise dropped them whenever the bar changed.
+  function _v67ToV68(config, changes) {
+    const moves = [
+      {
+        "type": "ClaudeUsage",
+        "keys": ["accounts", "intervalMinutes"],
+        "modules": false
+      },
+      {
+        "type": "Updates",
+        "keys": ["includeAur", "aurHelper", "terminal", "upgradeCommand"],
+        "modules": true
+      }
+    ];
+    for (const move of moves) {
+      const found = [];
+      const take = (item, where) => {
+        if (item.type === move.type && item.properties && typeof item.properties === "object")
+          found.push({
+            "where": where,
+            "props": item.properties
+          });
+      };
+      root._eachWidget(config, take);
+      if (move.modules)
+        root._eachModule(config, take);
+      const section = config[move.type] && typeof config[move.type] === "object" ? config[move.type] : null;
+      const moved = {};
+      for (const f of found) {
+        for (const key of move.keys) {
+          if (!(key in f.props))
+            continue;
+          if (!(key in moved) && !(section && key in section)) {
+            moved[key] = f.props[key];
+            changes.push(`${f.where}.${key} -> ${move.type}.${key}`);
+          }
+          delete f.props[key];
+        }
+      }
+      if (Object.keys(moved).length > 0)
+        config[move.type] = Object.assign(section ?? {}, moved);
+    }
+    return config;
+  }
+
+  // v69 dropped the Dock and OSD sections' own Enabled: each dock and OSD
+  // has one. A section that was off (set so, or by default) turns each of
+  // its entries off (with the default entry when it had none). Docks were
+  // off by default, and the default dock now is instead, so docks that
+  // were on without a list of their own get the old default, on
+  function _v68ToV69(config, changes) {
+    const sections = [
+      {
+        "key": "Dock",
+        "list": "docks",
+        "wasOn": false,
+        "defaultOn": false
+      },
+      {
+        "key": "OSD",
+        "list": "osds",
+        "wasOn": true,
+        "defaultOn": true
+      }
+    ];
+    for (const each of sections) {
+      const section = config[each.key];
+      if (!section || typeof section !== "object")
+        continue;
+      // Unset, it was its old default
+      const on = "enabled" in section ? section.enabled !== false : each.wasOn;
+      delete section.enabled;
+      const listed = Array.isArray(section[each.list]);
+      if (on && (listed || each.defaultOn))
+        continue;
+      const entries = listed ? section[each.list] : [
+        {
+          "id": "main"
+        }
+      ];
+      for (const entry of entries)
+        if (entry && typeof entry === "object")
+          entry.enabled = on && entry.enabled !== false;
+      section[each.list] = entries;
+      changes.push(`${each.key}.enabled -> ${each.key}.${each.list}[].enabled`);
     }
     return config;
   }

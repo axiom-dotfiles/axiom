@@ -8,5 +8,5 @@ Overlay page types: `<type>.qml` is loaded by `OverlayPages` for each entry of `
 - **A new view = this file + a `<X>OverlayView` schema definition + its `$ref` in `definitions.OverlayView.oneOf`.** The type const is the file name; pick one that doesn't collide with a content type (`CalendarPage`, not `Calendar`).
 - **A tool page** (`x-tool: true`) is always in config: add it to the `Overlay.views` default, a `ConfigMigration` step that appends it to existing configs (copy `_v45ToV46` and its `tst_Config` test), a `_page(...)` entry in `services/LauncherCommands.qml`, and a row in the `docs/usage.md` launcher table.
 - Editor pages follow `docs/dev/core/editors-pattern.md`: the manager owns the draft and selection (`select*()`), the page never assigns them.
-- `settings/` holds hand-built settings parts: `x-card: "<Name>"` loads `settings/<Name>Card.qml`, `x-intro` loads `settings/<Name>.qml`. `check_structure.py` doesn't verify these exist: check yourself.
+- `settings/` holds hand-built settings parts: `x-card: "<Name>"` loads `settings/<Name>Card.qml` (titled by the section's `x-cardTitle`, never in its QML), `x-intro` loads `settings/<Name>.qml`. `check_structure.py` doesn't verify these exist: check yourself.
 - A new subfolder imported only from URL-loaded files needs a qs restart (ask the user).

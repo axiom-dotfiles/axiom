@@ -172,7 +172,6 @@ FieldGroup {
     }
   }
 
-  title: I18n.tr("Status")
   headerExtras: [
     StyledText {
       text: root._modeLabel(root.mode)

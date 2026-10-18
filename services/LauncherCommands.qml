@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 
 import qs.config
+import qs.components.methods
 
 /*
  * The launcher's slash commands, one per shell feature. LauncherManager
@@ -394,6 +395,97 @@ QtObject {
       run: () => Qt.callLater(() => CalendarManager.openPage())
     },
     {
+      name: "todo",
+      aliases: ["task", "todos"],
+      glyph: "checklist",
+      usage: "[text]",
+      description: () => I18n.tr("Add a todo, or tick one off"),
+      available: () => !Paths.greeter,
+      status: () => TodoManager.openCount > 0 ? I18n.tr("{0} to do", TodoManager.openCount) : "",
+      options: arg => root._todo(arg),
+      // Ticking one off keeps the launcher open for the next
+      run: (arg, value) => {
+        if (value?.uid) {
+          TodoManager.toggle(value.uid);
+          return false;
+        }
+        return TodoManager.add(value?.add ?? arg) === "" ? false : undefined;
+      }
+    },
+    {
+      name: "pomodoro",
+      aliases: ["focus"],
+      glyph: "timer",
+      usage: "[start | pause | skip | stop]",
+      description: () => I18n.tr("Start or pause the pomodoro timer"),
+      available: () => !Paths.greeter,
+      status: () => PomodoroManager.idle ? "" : PomodoroManager.phaseLabel + " · " + PomodoroManager.remainingTextNow(),
+      options: () => ["start", "pause", "skip", "stop"].map(word => ({
+              title: word,
+              value: word
+            })),
+      run: (arg, value) => {
+        const word = (value ?? arg ?? "").trim().toLowerCase();
+        if (word === "start")
+          PomodoroManager.start();
+        else if (word === "pause")
+          PomodoroManager.pause();
+        else if (word === "skip")
+          PomodoroManager.skip();
+        else if (word === "stop")
+          PomodoroManager.stop();
+        else
+          PomodoroManager.toggle();
+        return false;
+      }
+    },
+    {
+      name: "timer",
+      aliases: ["countdown"],
+      glyph: "hourglass_top",
+      usage: "<10m | 1h30m | 1:30> [label] | pause | reset",
+      description: () => I18n.tr("Set a one-off timer"),
+      available: () => !Paths.greeter,
+      status: () => StopwatchManager.timerIdle ? "" : StopwatchManager.timerTextNow(),
+      options: arg => root._timer(arg),
+      run: (arg, value) => {
+        const word = (value?.word ?? arg ?? "").trim().toLowerCase();
+        // Pause and resume only a set timer (toggling an idle one would
+        // start its last duration again)
+        if (word === "pause" || word === "resume") {
+          if (!StopwatchManager.timerIdle)
+            StopwatchManager.toggleTimer();
+        } else if (word === "reset")
+          StopwatchManager.resetTimer();
+        else
+          return StopwatchManager.startTimerText(value?.text ?? arg) ? undefined : false;
+        return false;
+      }
+    },
+    {
+      name: "stopwatch",
+      aliases: ["sw"],
+      glyph: "timer",
+      usage: "[start | pause | lap | reset]",
+      description: () => I18n.tr("Start, pause or lap the stopwatch"),
+      available: () => !Paths.greeter,
+      status: () => StopwatchManager.stopwatchIdle ? "" : StopwatchManager.elapsedTextNow(),
+      options: () => ["start", "pause", "lap", "reset"].map(word => ({
+              title: word,
+              value: word
+            })),
+      run: (arg, value) => {
+        const word = (value ?? arg ?? "").trim().toLowerCase();
+        if (word === "lap")
+          StopwatchManager.lap();
+        else if (word === "reset")
+          StopwatchManager.resetStopwatch();
+        else if (word === "" || (word === "start" && !StopwatchManager.stopwatchRunning) || (word === "pause" && StopwatchManager.stopwatchRunning))
+          StopwatchManager.toggleStopwatch();
+        return false;
+      }
+    },
+    {
       name: "event",
       aliases: ["newevent", "addevent"],
       glyph: "event",
@@ -782,6 +874,73 @@ QtObject {
         title: NotesManager.titleOf(path),
         line: -1
       }));
+  }
+
+  // With text, a row adding it; then the open todos matching it, each
+  // ticked off when picked
+  function _todo(arg) {
+    const q = arg.trim();
+    const add = q === "" ? [] : [
+      {
+        title: I18n.tr("Add \"{0}\"", q),
+        subtitle: I18n.tr("To the todo list"),
+        glyph: "add_task",
+        matched: true,
+        value: {
+          add: q
+        }
+      }
+    ];
+    const open = TodoManager.shownItems.filter(item => !item.done && (q === "" || item.summary.toLowerCase().includes(q.toLowerCase())));
+    return add.concat(open.map(item => ({
+          title: item.summary,
+          subtitle: I18n.tr("Tick off"),
+          glyph: "check_box_outline_blank",
+          matched: true,
+          value: item
+        })));
+  }
+
+  // A row starting the typed timer (or saying what to type), then pause and
+  // reset while one is set
+  function _timer(arg) {
+    const parsed = StopwatchClock.parse(arg);
+    const rows = [];
+    if (parsed.ms > 0)
+      rows.push({
+        title: I18n.tr("Start a {0} timer", StopwatchClock.format(parsed.ms, false, true)),
+        subtitle: parsed.label,
+        glyph: "hourglass_top",
+        matched: true,
+        value: {
+          text: arg
+        }
+      });
+    else if (arg.trim() === "")
+      rows.push({
+        title: I18n.tr("How long"),
+        subtitle: I18n.tr("10m, 1h30m, 90s or 1:30, then a label if you like"),
+        glyph: "hourglass_top",
+        matched: true,
+        value: {
+          text: ""
+        }
+      });
+    if (!StopwatchManager.timerIdle)
+      rows.push({
+        title: StopwatchManager.timerRunning ? "pause" : "resume",
+        glyph: StopwatchManager.timerRunning ? "pause" : "play_arrow",
+        value: {
+          word: StopwatchManager.timerRunning ? "pause" : "resume"
+        }
+      }, {
+        title: "reset",
+        glyph: "stop",
+        value: {
+          word: "reset"
+        }
+      });
+    return rows;
   }
 
   // The event /event would add, as a row to check before Enter

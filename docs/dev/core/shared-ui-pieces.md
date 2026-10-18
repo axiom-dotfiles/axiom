@@ -56,7 +56,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 - `DragChip`: a carryable icon + name pill.
 - `views/layouts/EntryListTarget`: a list of rows that reorders its own carried rows.
 - `InspectorHeader`: icon well, name, place, actions, divider.
-- `content/base/SaveResetActions`: an editor's Save/Reset pair. `compact` drops to icons, as `CardHeader` does when its row is too narrow. Items placed in a `CardHeader` sit just after its title.
+- `content/base/SaveResetActions`: an editor's Save/Discard pair, both shown only with unsaved edits or typed text. `compact` drops to icons, as `CardHeader` does when its row is too narrow. Items placed in a `CardHeader` sit just after its title.
 
 ### Forms (`forms/`)
 - `SchemaField`: one schema row, any type. It picks `SchemaSwitch`, `SchemaNumberField` (slider or stepper), `SchemaComboBox`, `SchemaTextField` (commits on Enter, focus loss or a suggestion; a Browse button with `x-control: "folder"`) or `SchemaObjectArray` (a list of `SchemaArrayItem`s): use `SchemaField`, not those, unless you need one alone.
@@ -67,7 +67,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 - `GreeterSetup`: setting up the login screen (what Install changes, Install/Update/Remove, the commands left to run). Used by Settings' `GreeterStatusCard` and the onboarder.
 
 ### Bar pieces (`bar/`)
-- `BaseWidget`: the rounded box a bar widget sits in; `IconTextWidget`: an icon and a label along the bar's axis (rotated on a vertical bar).
+- `BaseWidget`: the rounded box a bar widget sits in; `IconTextWidget`: an icon and a label along the bar's axis (rotated on a vertical bar); `steadyDigits` sizes a ticking label by its digit count.
 - `WidgetBackground`: a widget's or merged run's background in the bar's widget style and shape, with the hover outline and editor highlight.
 - `SeparatorMark`: a line, dot, slash or chevron divider (the Separator widget's and the bar's `separatorStyle`).
 - `methods/BarShapes` (caps and SVG outlines), `methods/BarWidgetStyle` (colors per widget style), `methods/BarAutoColors` (Auto widget colors).
@@ -128,6 +128,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 
 ### Content and calendar parts
 - **Content parts** (`content/parts/`): see [Content roots](../overlay/content-roots.md) and [Writing modules](../overlay/writing-modules.md). Also `AudioRow` (a mixer line: icon, title, volume slider, percentage, mute) and `TrayMenuList` / `TrayMenuItem` (a tray menu's entries, for the tray popout and its submenus).
+- **Todo and pomodoro parts** (`content/parts/`): `TodoList` (the add field and the items, `fill` or capped at `maxListHeight`) `PomodoroDial` (the timer's ring, session dots, controls and task picker, `horizontal` for a wide card) and `TimeRing` (a countdown ring with the time and a label in the middle, used by `PomodoroDial` and the one-off timer in `content/Stopwatch.qml`); see [Todo and pomodoro](../features/todo-pomodoro.md).
 - **Calendar parts** (`content/parts/calendar/`): see [Calendar](../features/calendar.md).
 
 ### Pure helpers (`methods/`)

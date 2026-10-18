@@ -7,9 +7,8 @@ Reader for the Dock section: any number of docks, each with its own place, pinne
 
 ### Properties
 
-- `enabled` (readonly bool)
 - `docks` (readonly var)
-- `shownIds` (readonly var): The enabled ones, by id: what the shell builds (none while the section is off)
+- `shownIds` (readonly var): The enabled ones, by id: what the shell builds
 
 ### Functions
 

@@ -11,7 +11,9 @@ import qs.components.reusable
 // one shown at a time: its address and username, its password (to the
 // keyring, or the secrets file without one: never the settings draft or
 // config.json), Connect, which finds its calendars, and the calendars, each
-// shown or hidden, with its color and the one new events go to. Account
+// shown or hidden, with its color and the one new events go to. A local
+// account ("On this computer") has no server: Add calendar makes one, named
+// and removed here (removing leaves its folder of events on disk). Account
 // and calendar edits go through the settings draft like any other row.
 FoldingCard {
   id: root
@@ -27,22 +29,25 @@ FoldingCard {
   readonly property var account: root.accounts[root.current] ?? null
   // The shown account's id as the reader fills it in (numbered when empty)
   readonly property string accountId: root.account ? (root.account.id || "account-" + (root.current + 1)) : ""
+  readonly property bool isLocal: root.account?.kind === "local"
   readonly property string passwordStatus: root.accountId ? SecretsManager.secretStatus("calendar", root.accountId) : ""
 
   // Connect's state: { busy, ok, text }
   property var result: null
   property bool confirmRemove: false
+  // The local calendar a second click removes ("" for none)
+  property string confirmDrop: ""
   // False once destroyed, for callbacks that outlive the card
   property bool _alive: true
   Component.onDestruction: root._alive = false
 
-  title: I18n.tr("Accounts")
   description: CalendarManager.missingModule ? CalendarManager.missingText(CalendarManager.missingModule) : CalendarManager.available ? "" : I18n.tr("The calendar helper couldn't run (it needs python3).")
   collapsed: SettingsManager.isCollapsed(root.foldKey)
   onToggled: SettingsManager.setCollapsed(root.foldKey, !root.collapsed)
   onCurrentChanged: {
     root.result = null;
     root.confirmRemove = false;
+    root.confirmDrop = "";
     // A password typed for one account is never saved to another
     passwordField.text = "";
   }
@@ -152,9 +157,42 @@ FoldingCard {
     });
   }
 
+  // A new local calendar: its href is the folder its events go in, never
+  // one a removed calendar left behind
+  function addLocal() {
+    const accounts = Utils.clone(root.accounts);
+    const calendars = accounts[root.current].calendars ?? [];
+    calendars.push({
+      "href": root.accountId + "-" + Date.now().toString(36),
+      "name": I18n.tr("Calendar {0}", calendars.length + 1),
+      "serverColor": "",
+      "color": "",
+      "enabled": true,
+      "readOnly": false,
+      "components": ["VEVENT"]
+    });
+    accounts[root.current].id = root.accountId;
+    accounts[root.current].calendars = calendars;
+    root._commit(accounts);
+  }
+
+  // Removes a local calendar on a second click; its folder stays
+  function dropLocal(href) {
+    if (root.confirmDrop !== href) {
+      root.confirmDrop = href;
+      return;
+    }
+    const accounts = Utils.clone(root.accounts);
+    accounts[root.current].calendars = accounts[root.current].calendars.filter(calendar => calendar.href !== href);
+    root._commit(accounts);
+    root.confirmDrop = "";
+  }
+
   function setCalendar(href, values) {
     const accounts = Utils.clone(root.accounts);
-    const calendar = accounts[root.current].calendars.find(c => c.href === href);
+    const calendar = accounts[root.current]?.calendars.find(c => c.href === href);
+    if (!calendar)
+      return;
     Object.assign(calendar, values);
     root._commit(accounts);
   }
@@ -169,7 +207,7 @@ FoldingCard {
   StyledText {
     visible: root.accounts.length === 0
     Layout.fillWidth: true
-    text: I18n.tr("No accounts yet. Add one for a CalDAV server (iCloud, Fastmail, Nextcloud, …) or an .ics subscription.")
+    text: I18n.tr("No accounts yet. Add one for a CalDAV server (iCloud, Fastmail, Nextcloud, …), an .ics subscription, or calendars kept on this computer.")
     textColor: Theme.foregroundAlt
     wrapMode: Text.WordWrap
   }
@@ -189,7 +227,7 @@ FoldingCard {
         readonly property var entry: root.accounts[tab.index]
 
         implicitHeight: Widget.height - 4
-        text: tab.entry.name || tab.entry.username || CalendarConfig.hostOf(tab.entry.url) || I18n.tr("Account {0}", tab.index + 1)
+        text: tab.entry.name || tab.entry.username || CalendarConfig.hostOf(tab.entry.url) || (tab.entry.kind === "local" ? I18n.tr("This computer") : I18n.tr("Account {0}", tab.index + 1))
         active: tab.index === root.current
         onClicked: root.selected = tab.index
       }
@@ -256,13 +294,21 @@ FoldingCard {
 
     StyledText {
       Layout.fillWidth: true
-      text: root.result?.busy ? I18n.tr("Connecting…") : root.result?.text ?? ""
-      textColor: root.result?.busy ? Theme.foregroundAlt : root.result?.ok ? Theme.success : Theme.error
+      text: root.isLocal ? I18n.tr("Kept in {0}", Paths.userDataPath + "calendars") : root.result?.busy ? I18n.tr("Connecting…") : root.result?.text ?? ""
+      textColor: root.isLocal || root.result?.busy ? Theme.foregroundAlt : root.result?.ok ? Theme.success : Theme.error
       textSize: Appearance.fontSize - 2
       wrapMode: Text.Wrap
     }
     StyledTextButton {
       implicitHeight: Widget.height - 4
+      visible: root.isLocal
+      iconText: "add"
+      text: I18n.tr("Add calendar")
+      onClicked: root.addLocal()
+    }
+    StyledTextButton {
+      implicitHeight: Widget.height - 4
+      visible: !root.isLocal
       enabled: !root.result?.busy && (root.account?.url ?? "") !== ""
       iconText: "sync"
       text: (root.account?.calendars ?? []).length > 0 ? I18n.tr("Refresh calendars") : I18n.tr("Connect")
@@ -312,10 +358,54 @@ FoldingCard {
         color: calendarRow.calendar.color ? Theme.resolveColor(calendarRow.calendar.color) : (calendarRow.calendar.serverColor || Theme.accent)
       }
       StyledText {
+        visible: !root.isLocal
         Layout.fillWidth: true
         text: calendarRow.calendar.name || calendarRow.calendar.href
         textFormat: Text.PlainText
         elide: Text.ElideRight
+      }
+      // A local calendar's name is the user's to change, committed like
+      // every settings text field: on Enter, focus loss or the page's Save
+      // (EditsManager.holdTyping shows Save while typed). Pushed in (the
+      // row shows another calendar when one above it is removed), never
+      // while being typed in
+      StyledTextEntry {
+        id: nameField
+        readonly property string saved: calendarRow.calendar.name ?? ""
+        visible: root.isLocal
+        Layout.fillWidth: true
+        Layout.preferredHeight: Widget.height - 6
+        placeholderText: I18n.tr("Name")
+        // One line, cut off rather than wrapped in a narrow field
+        input.wrapMode: TextInput.NoWrap
+        Component.onCompleted: text = saved
+        Component.onDestruction: nameField.commitTyped()
+        onSavedChanged: {
+          if (!nameField.typed)
+            nameField.text = nameField.saved;
+        }
+        onTextEdited: EditsManager.holdTyping(nameField, nameField.Window.window)
+        onAccepted: nameField.commitTyped()
+        input.onActiveFocusChanged: {
+          if (!nameField.input.activeFocus)
+            nameField.commitTyped();
+        }
+
+        // The typed name (an empty one puts the saved name back)
+        function commitTyped() {
+          const name = nameField.text.trim();
+          if (nameField.typed && name !== "" && name !== nameField.saved)
+            root.setCalendar(calendarRow.calendar.href, {
+              "name": name
+            });
+          nameField.discardTyped();
+        }
+
+        function discardTyped() {
+          nameField.typed = false;
+          nameField.text = nameField.saved;
+          EditsManager.releaseTyping(nameField);
+        }
       }
       StatusChip {
         shown: calendarRow.calendar.readOnly ?? false
@@ -323,29 +413,36 @@ FoldingCard {
         text: I18n.tr("Read-only")
       }
       SegmentButton {
-        visible: !(calendarRow.calendar.readOnly ?? false) && root.account.kind === "caldav"
+        visible: !(calendarRow.calendar.readOnly ?? false) && CalendarConfig.writableKind(root.account.kind)
         Layout.fillWidth: false
         implicitHeight: Widget.height - 6
         text: I18n.tr("Default")
         active: root.defaultCalendar === calendarRow.calendarId
         onClicked: SettingsManager.setValue(["Calendar", "defaultCalendar"], active ? "" : calendarRow.calendarId)
       }
-      StyledComboEntry {
+      // The color picker every color setting uses, its rows in their colors
+      SchemaComboBox {
+        Layout.fillWidth: false
         Layout.preferredWidth: Appearance.fontSize * 11
-        icon: "palette"
-        options: [
-          {
-            "value": "",
-            "label": I18n.tr("Server color")
-          }
-        ].concat(Theme.baseColorNames.map(name => ({
-              "value": name,
-              "label": name
-            })))
-        value: calendarRow.calendar.color ?? ""
-        onPicked: value => root.setCalendar(calendarRow.calendar.href, {
+        label: ""
+        options: [""].concat(Theme.baseColorNames)
+        optionLabels: ({
+            "": root.isLocal ? I18n.tr("Accent") : I18n.tr("Server color")
+          })
+        swatches: true
+        currentValue: calendarRow.calendar.color ?? ""
+        onSelectionChanged: value => root.setCalendar(calendarRow.calendar.href, {
             "color": value
           })
+      }
+      StyledTextButton {
+        visible: root.isLocal
+        implicitHeight: Widget.height - 6
+        iconText: "delete"
+        text: root.confirmDrop === calendarRow.calendar.href ? I18n.tr("Click again to remove (its files stay)") : ""
+        hoverColor: Theme.error
+        tooltipText: root.confirmDrop === calendarRow.calendar.href ? "" : I18n.tr("Remove this calendar")
+        onClicked: root.dropLocal(calendarRow.calendar.href)
       }
     }
   }

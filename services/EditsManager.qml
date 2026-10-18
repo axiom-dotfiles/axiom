@@ -6,6 +6,11 @@ import QtQuick
 // or discarding them all at once. Drafts survive leaving a page or closing
 // the overlay, so this reminds rather than blocks.
 //
+// Also the text or number box holding typed text not committed yet (only
+// the focused one can): its page shows Save at once, and Save / Reset
+// commit or drop it first, while it reaches the running shell only on
+// Enter or focus loss (a half-typed command or folder never runs).
+//
 // Also how the editors are laid out, which outlives their pages (saved in
 // state/editors.json): whether the libraries group their types, and
 // whether the bar editor stacks a horizontal bar's sections.
@@ -74,6 +79,45 @@ QtObject {
     root._barStacked = saved.barStacked === true;
   }
 
+  // The box holding typed text (var: callers use commitTyped() and
+  // discardTyped()), and the window it's in, so only that window's Save
+  // shows it
+  readonly property var typingField: root._typingField
+  readonly property var typingWindow: root._typingWindow
+  property var _typingField: null
+  property var _typingWindow: null
+
+  function holdTyping(field, window) {
+    root._typingField = field;
+    root._typingWindow = window;
+  }
+
+  function releaseTyping(field) {
+    if (root._typingField !== field)
+      return;
+    root._typingField = null;
+    root._typingWindow = null;
+  }
+
+  // Before a save: the typed text commits (dropped if it isn't valid yet)
+  function commitTyping() {
+    root._typingField?.commitTyped();
+  }
+
+  function discardTyping() {
+    root._typingField?.discardTyped();
+  }
+
+  // Drops the typed text only if its box is inside `item` (one card's
+  // Discard)
+  function discardTypingIn(item) {
+    for (let each = root._typingField; each; each = each.parent)
+      if (each === item) {
+        root._typingField.discardTyped();
+        return;
+      }
+  }
+
   function isUnsaved(type) {
     return root.unsaved.includes(type);
   }
@@ -81,6 +125,7 @@ QtObject {
   // Each save merges onto the latest config, so they don't undo each other.
   // A rejected one stays dirty (and listed).
   function saveAll() {
+    root.commitTyping();
     if (SettingsManager.isDirty)
       SettingsManager.saveChanges();
     if (BarManager.isDirty)
@@ -100,6 +145,7 @@ QtObject {
   }
 
   function discardAll() {
+    root.discardTyping();
     if (SettingsManager.isDirty)
       SettingsManager.resetChanges();
     if (BarManager.isDirty)

@@ -7,7 +7,6 @@ Reader for the OSD section (the volume, microphone and brightness on-screen disp
 
 ### Properties
 
-- `enabled` (readonly bool)
 - `scrollStep` (readonly real): Level change per wheel notch (0-1); 0 when scrolling is off
 - `osds` (readonly var)
 - `shownIds` (readonly var): The enabled ones, by id: what the shell builds

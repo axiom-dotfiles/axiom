@@ -18,8 +18,8 @@ The schema is the single source of truth for config: shape, `default`s (there is
 ### Placement
 - `x-settings: false`: hides a key from the settings page (edited elsewhere, or UI-owned state).
 - `x-category` (on a top-level section): names its sidebar category.
-- `x-categories` (root, `[{ name, icon, page }]`): orders the categories and gives their icons (`SchemaLayout.categories`). A category left out comes last, with a generic icon.
-  - `page` is a hand-built part shown after the category's cards (`views/settings/<page>.qml`), so a category can have no sections. Example: Maintenance's `SavedConfigsSection`; see [Saved configs and sharing](saved-configs-sharing.md).
+- `x-categories` (root, `[{ name, icon, card, cardTitle }]`): orders the categories and gives their icons (`SchemaLayout.categories`). A category left out comes last, with a generic icon.
+  - `card` is a hand-built card of the category's own (`views/settings/<card>Card.qml`), always wide, after its sections' cards; `cardTitle` titles it, on the card and in the sidebar. A category with one can have no sections. Example: Maintenance's `SavedConfigsCard`; see [Saved configs and sharing](saved-configs-sharing.md).
 - `x-links` (on a section): page types it links to (`Themes`, `Layouts`, or a view type). The link buttons take the page's label and icon from `OverlayConfig.viewLabel` / `viewIcon`.
 - `x-order` (on an object): the keys shown first, in order. This applies to its form, or to its settings cards, whose order is their first field's.
 - `x-group`: puts a field on a card of that name. One section or object can make several cards.
@@ -34,6 +34,8 @@ The schema is the single source of truth for config: shape, `default`s (there is
 ### Hand-built parts
 - `x-card: "<Name>"` (section): adds `views/settings/<Name>Card.qml` as its first card.
   - `x-cardFolds: true`: it folds like the generated cards and joins Fold all, getting its group key `<Section>:<Name>` as `foldKey`.
+  - `x-cardTitle`: its title, on the card and in the sidebar (the card's QML sets none). Every `x-card` has one.
+  - `x-cardWide: true`: it spans both columns (the calendar accounts, chat API keys, the Dock and OSD lists).
   - `check_structure.py` does not verify the file exists: a typo only shows in `scripts/log.sh`.
 - `x-intro: "<Name>"`: puts `views/settings/<Name>.qml` at the top of the section's own card, above its fields (NightLight's `NightLightStatus`).
 
@@ -51,6 +53,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-enabledIf`: as `x-showIf`, but a field whose condition fails stays shown, greyed out, its value kept and not editable (`SchemaField.allowed`), with why above its description. Use it for what the compositor can't do (`"/$supports.windowBlur": true`), so the setting is still found and says what would: the note is `CompositorManager.unsupportedNote(capability)` (the backend's `unsupportedHint` adds what can, e.g. "SwayFX can."), or "<Compositor> only." for `/$compositor`. Only a row shown on its own says it: a row that a sibling shows (a part's fields, `x-showIf: { part: true }`) is greyed without repeating the note under its switch. `SchemaLayout.compositorAllows` counts it too, so the launcher's `/config` doesn't offer such a setting.
   - `x-disabledNote`: the note instead (English, translated); `false` for none, where the section's `x-intro` says why (the Workspaces section under niri).
 - `x-beside: true`: puts a field beside the one before it on its settings card, each half wide (`SettingsGroupCard`'s two-column grid; Workspaces' rows beside columns). Give the pair the same `x-showIf`. A bar widget's options pair the same way in the widget inspector (`SchemaPropertiesForm`'s `pairs`), but only while both are shown.
+- `x-wide: true` (field): the settings card the field lands on spans both columns (`SchemaLayout.groups`' `wide`). Put it on the field that needs the room, usually an array of objects (chat providers, Hyprland curves, session environment). See [Settings page](settings-page.md) › Columns.
 - `x-applyOnSave`: keeps a setting in the draft until Save instead of applying it live (Hyprland's `mode`, which can take over files).
 - `x-snapshot: true`: a machine setting a saved snapshot carries too (the wallpaper setup: wallpapers, folder, mode, rotation, light/dark wallpapers, theme schedule), since a snapshot restores on the PC it was saved on. Exports and examples still leave it out. See [Saved configs and sharing](saved-configs-sharing.md).
 - `x-takeover: true`: a setting that takes something over on this PC (Hyprland mode, locker, idle, polkit, greeter). Loading or importing a config never changes it; only its own card does. See [Saved configs and sharing](saved-configs-sharing.md).
@@ -84,8 +87,8 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - On overlay modules:
   - `x-defaultSize` (`[w, h]` in grid units, four to a card): the size it's added at.
   - `x-minSize`: the least a drop into a gap shrinks it to; half the default when left out (`OverlayConfig.minSize`).
-  - `x-hosts`: `overlay`, `edgeMenu`, `lockscreen`, `greeter`, `desktop`. The first two when left out, so the lock screen, the greeter and the desktop only take modules that list them.
-  - `x-keyboard: true`: the module takes typing. The desktop, which otherwise never takes the keyboard, takes it on a click while its layout shows one (`OverlayConfig.moduleInfo(type).keyboard`, `ScreenLayoutView.wantsKeyboard`). Needed for a typing module to list `desktop` in `x-hosts`.
+  - `x-hosts`: `overlay`, `edgeMenu`, `lockscreen`, `greeter`, `desktop`. `overlay`, `edgeMenu` and `desktop` when left out, so the lock screen and the greeter only take modules that list them. Every module on overlay pages goes on the desktop too (`check_structure`).
+  - `x-keyboard: true`: the module takes typing. The desktop, which otherwise never takes the keyboard, takes it on a click while its layout shows one (`OverlayConfig.moduleInfo(type).keyboard`, `ScreenLayoutView.wantsKeyboard`). Needed for a typing module on the desktop: `check_structure` fails a desktop module with a text field (in its file or its content parts) and no `x-keyboard`. `false` says it stays read-only there on purpose (ClockCalendar).
   - `x-required`: part of every grid on its hosts; never removed, duplicated or in the library (the lock screen's `Password`).
   - `x-canvasDetail`: a module property the layouts editor shows on its tile (a list joined). `x-canvasFill`: a color property the tile is filled with (`OverlayConfig`).
 - `x-tool: true` on the hand-built view types: the navigator's tool group.

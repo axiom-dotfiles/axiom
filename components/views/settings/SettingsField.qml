@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import qs.config
 import qs.services
 import qs.components.forms
@@ -8,8 +9,9 @@ import qs.components.methods
 import qs.components.reusable
 
 // One settings row: the SchemaField, with a dot while it has an unsaved
-// edit and a button that puts it back to the schema default, and under a
-// field with `x-hookup` (theme integrations) the IntegrationHookup panel
+// edit (clicking it discards just that edit) and a button that puts it
+// back to the schema default, and under a field with `x-hookup` (theme
+// integrations) the IntegrationHookup panel
 Item {
   id: root
 
@@ -58,14 +60,37 @@ Item {
     visible: root.isValue
 
     UnsavedDot {
+      id: dot
       anchors.verticalCenter: parent.verticalCenter
       shown: root.changed
+
+      // Larger than the dot, which is hard to hit
+      MouseArea {
+        id: dotArea
+        anchors.fill: parent
+        anchors.margins: -4
+        enabled: root.changed
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: {
+          EditsManager.discardTypingIn(root);
+          SettingsManager.discard([root.row.path]);
+        }
+      }
+
+      LazyLoader {
+        active: dotArea.containsMouse
+        StyledToolTip {
+          target: dot
+          text: I18n.tr("Discard this change")
+        }
+      }
     }
 
     SquareIconButton {
       visible: !root.atDefault
       size: Appearance.fontSize + 8
-      iconText: "undo"
+      iconText: "settings_backup_restore"
       iconSize: Appearance.fontSize - 1
       backgroundColor: Theme.backgroundHighlight
       tooltipText: I18n.tr("Reset to default")

@@ -27,6 +27,7 @@ Cross-cutting UI signals (power menu, launcher, overlays) that modules connect t
 ### Other placement notes
 - The workspace overview is built on every screen and opens on the one under the cursor (`CompositorManager.withHoveredScreen`, a cursor position lookup).
 - Wallpapers are per monitor (`ThemeManager.wallpaperFor(monitor)`; picked ones are `Appearance.wallpapers[monitor]`, set from the overlay's Themes page); the primary monitor's is also `Appearance.wallpaper`, the fallback for the others. See [Wallpaper and schedules](../theming/wallpaper-and-schedules.md).
+- `openModule(types)` opens the overlay page with the biggest module of the first type any page has, else reveals an edge menu with one (false with neither): what a notification click or a service's "show me" uses (Chat, Pomodoro, Stopwatch).
 - Which popouts give way to which is PopoutManager's: see [Popout registry](../popouts/registry.md). An integrated edge menu holds no popout claim and takes no part (its exclusive zone pushes the others inwards instead).
 
 ### Modal windows

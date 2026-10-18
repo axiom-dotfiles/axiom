@@ -34,6 +34,7 @@ Shell manager manages global options and signals
 
 ### Functions
 
+- `openModule(types)`: Opens the overlay page with the biggest module of the first of `types` any page has, else an edge menu with one (the first of `types` again); false with none
 - `modeFor(mode)`: A surface's `monitors` mode with "general" resolved: "primary" | "focused" | "all"
 - `targetFor(mode, name)`: The screen whose instance of a surface answers a shortcut or IPC call and holds the keyboard: the focused monitor when it opens there or everywhere, else the one it's built on (`name` for a "monitor"…
 - `isTarget(screen, mode, name)`

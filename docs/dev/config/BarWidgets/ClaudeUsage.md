@@ -6,26 +6,11 @@
 
 Settings are read as `properties.<key>`.
 
-- **`accounts`** · array<object> = [{"label":"Personal","configDir":"~/.claude"}]
-  - Accounts: One per Claude Code login: the CLAUDE_CONFIG_DIR it uses (~/.claude when unset). Usage is read with that login's token, which is never changed.
-  - x-scope="machine"
-  - in: `components/bar/widgets/ClaudeUsage.qml`
-- **`accounts[]`** · object
-- **`accounts[].label`** · string = ""
-  - Label: Shown in the popout; its first letter tells accounts apart on the bar.
-  - in: `components/bar/widgets/ClaudeUsage.qml`
-- **`accounts[].configDir`** · string = "~/.claude"
-  - Config directory
-  - x-control="folder"
-  - in: `components/bar/widgets/ClaudeUsage.qml`
 - **`metric`** · string = "session" · enum session|weekly
   - Limit shown
   - in: `components/bar/widgets/ClaudeUsage.qml`
 - **`display`** · string = "max" · enum max|all|first
   - Accounts shown: Which account's usage the bar shows. The popout lists every account.
-  - in: `components/bar/widgets/ClaudeUsage.qml`
-- **`intervalMinutes`** · integer = 5 · 2–60 · min
-  - Check interval
   - in: `components/bar/widgets/ClaudeUsage.qml`
 - **`icon`** · string = "data_usage"
   - Icon: A Material Symbols name (fonts.google.com/icons), or text.

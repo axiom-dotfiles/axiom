@@ -6,7 +6,7 @@ import qs.services
 import qs.components.reusable
 
 /**
- * Settings page, Maintenance (the category's `page`): save the config's
+ * Settings page, Maintenance (the category's `card`, wide): save the config's
  * look, layout, keybinds, apps and wallpapers under a name, and restore or
  * delete saved ones. Only the active one (last saved or restored) can be
  * overwritten from its row; it's marked Current, with an unsaved dot once
@@ -20,7 +20,6 @@ import qs.components.reusable
 FieldGroup {
   id: root
 
-  title: I18n.tr("Saved configurations")
   description: I18n.tr("Snapshots of the look, layout, keybinds, apps and wallpapers, stored in {0}. Restoring one leaves monitors, accounts, theme integrations and other settings for this PC as they are.", SavedConfigsManager.savedDir)
 
   // Row awaiting a confirming click: { name, action }. The defaults row uses

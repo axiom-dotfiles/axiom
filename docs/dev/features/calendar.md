@@ -1,15 +1,21 @@
 # Calendar
 
-> **Files:** `services/CalendarManager.qml`, `scripts/calendar_sync.py`, `config/CalendarConfig.qml`, `components/methods/CalendarEvents.qml`, `components/content/Calendar.qml`, `components/content/Agenda.qml`, `components/content/ClockCalendar.qml`, `components/content/parts/calendar/`
+> **Files:** `services/CalendarManager.qml`, `scripts/calendar_sync.py`, `config/CalendarConfig.qml`, `components/views/settings/CalendarAccountsCard.qml`, `components/methods/CalendarEvents.qml`, `components/content/Calendar.qml`, `components/content/Agenda.qml`, `components/content/ClockCalendar.qml`, `components/content/parts/calendar/`
 > **Config:** `Calendar.*` (reader `CalendarConfig`)
 > **Related:** [Secrets](../core/secrets.md), [Services pattern](../core/services-pattern.md), [Notifications](notifications.md), [Lockscreen](lockscreen.md), [Greeter runtime](greeter-runtime.md)
 
-CalDAV accounts and read-only .ics feeds: syncing through a Python helper, editing events, reminders, and the calendar UI parts.
+CalDAV accounts, read-only .ics feeds and local calendars: syncing through a Python helper, editing events, reminders, and the calendar UI parts.
 
 ### Sources
 - **CalDAV accounts.**
 - **Read-only .ics subscriptions:** `https://` / `webcal://`, or a local `file://` feed.
-- Both go through `scripts/calendar_sync.py`:
+- **Local calendars** (kind `local`, "On this computer"): no server and no password.
+  - Each calendar's `href` is a folder name, `<account id>-<base36 time>` (never one a removed calendar left behind), under `$XDG_DATA_HOME/axiom/calendars/` (`dataDir` in the request).
+  - Each event is a `<uid>.ics` file in it; its etag is the file's mtime and size, and a write whose etag no longer matches is a `conflict`. A `.ics` file dropped in by hand is picked up by the next sync.
+  - The Accounts card's **Add calendar** makes one; names are edited in place. Removing a calendar or the account only drops it from the config: its folder stays (a draft can be reverted, so nothing is deleted).
+  - An href that isn't one plain name, or an event href leaving its folder, is refused (`notFound`).
+  - `CalendarConfig.writableKind(kind)` is the one place that says local and CalDAV calendars can be changed.
+- All three go through `scripts/calendar_sync.py`:
   - run with the system `python3`;
   - uses `icalendar` (and `python-dateutil`, its dependency), system packages on every distribution;
   - expands recurrences itself (`occurrences`, on `dateutil.rrule`): never `recurring-ical-events`, which Fedora doesn't package. `CalendarSync` makes importing it fail, so Arch and Fedora run the same code;
@@ -78,6 +84,7 @@ CalDAV accounts and read-only .ics feeds: syncing through a Python helper, editi
 - **`delete`:** DELETEs the event, or adds an EXDATE for a single occurrence.
 - **Conflicts:** a 412 is `conflict`. The editor keeps the draft and says so.
 - **Moving to another calendar:** a new event there, then the old one is deleted.
+- **Local calendars:** the same edits, written to the event's file atomically (mode 600) or unlinked, instead of a PUT or DELETE.
 
 ### Reads
 - `byDay` (`CalendarEvents.byDay` over the shown calendars)
@@ -134,5 +141,5 @@ CalDAV accounts and read-only .ics feeds: syncing through a Python helper, editi
 Drafts, and everything about days, spans, dots, what's next, reminders due and quick add, are pure, in `methods/CalendarEvents` (tested in `tst_CalendarEvents`).
 
 ### Testing
-- Test the helper against a scratch Radicale (`pip install radicale`), or with the served-feed tests in `tests/scripts/test_scripts.py`.
+- Test the helper against a scratch Radicale (`pip install radicale`), or with the served-feed and local-calendar tests in `tests/scripts/test_scripts.py` (`CalendarSync`).
 - Never add a test account to the live config without removing it again.

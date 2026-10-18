@@ -104,9 +104,12 @@ StyledContainer {
         }
       }
 
+      // Only as wide as what's in it (a layout fills by default, which
+      // took half the header from the title and chevron)
       RowLayout {
         id: extras
         visible: !root.collapsed && children.length > 0
+        Layout.fillWidth: false
         Layout.alignment: Qt.AlignTop
         spacing: Widget.spacing
       }

@@ -117,7 +117,8 @@ Dependencies point one way, methods → data owners → readers → services →
 - [notifications](features/notifications.md): server, history, toasts, DND.
 - [chat](features/chat.md): LLM chat, providers, streaming.
 - [notes](features/notes.md): Markdown notes, block editor, browser.
-- [calendar](features/calendar.md): CalDAV / .ics, sync helper, reminders, calendar parts.
+- [calendar](features/calendar.md): CalDAV / .ics / local calendars, sync helper, reminders, calendar parts.
+- [todo-pomodoro](features/todo-pomodoro.md): the todo list, the pomodoro timer, the timer & stopwatch and the Focus module.
 - [clock-timezones](features/clock-timezones.md): other time zones, Clock module styles.
 - [screenshots-recording](features/screenshots-recording.md): screenshots, recording, the picker.
 - [brightness](features/brightness.md): backlight / DDC, the module, OSD bars.

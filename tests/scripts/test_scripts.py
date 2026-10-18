@@ -1677,6 +1677,60 @@ class CalendarSync(unittest.TestCase):
         self.assertEqual([e["code"] for e in result["errors"]], ["notFound"])
         self.assertEqual(len(json.loads((state / "events.json").read_text())["events"]), 4)
 
+    def test_local_calendar(self):
+        """A local calendar: an event saved as a file in its folder, edited,
+        read back by sync and deleted. Hrefs outside <dataDir>/calendars
+        are refused."""
+        data, state = self.tmp / "local-data", self.tmp / "local-state"
+        ms = lambda *args: int(__import__("datetime").datetime(*args, tzinfo=__import__("datetime").timezone.utc)
+                               .timestamp() * 1000)
+        base = {
+            "stateDir": str(state), "dataDir": str(data),
+            "range": {"from": ms(2026, 7, 1), "to": ms(2026, 8, 1)},
+            "accounts": [{"id": "here", "kind": "local", "calendars": [{"href": "personal"}]}],
+        }
+        event = {"title": "Dentist", "allDay": False, "start": ms(2026, 7, 9, 14), "end": ms(2026, 7, 9, 15),
+                 "reminder": -1}
+        saved = self.run_helper("save", dict(base, account="here", calendar="personal", scope="series", event=event))
+        self.assertTrue(saved["ok"], saved)
+        path = data / "calendars" / saved["href"]
+        self.assertTrue(path.is_file())
+        events = json.loads((state / "events.json").read_text())["events"]
+        self.assertEqual([(e["title"], e["start"], e["calendar"]) for e in events],
+                         [("Dentist", ms(2026, 7, 9, 14), "here|personal")])
+
+        edited = self.run_helper("save", dict(base, account="here", calendar="personal", scope="series",
+                                              href=saved["href"], etag=events[0]["etag"],
+                                              event=dict(event, title="Dentist (moved)")))
+        self.assertTrue(edited["ok"], edited)
+        events = json.loads((state / "events.json").read_text())["events"]
+        self.assertEqual([e["title"] for e in events], ["Dentist (moved)"])
+        # A stale etag is a conflict, not an overwrite
+        stale = self.run_helper("save", dict(base, account="here", calendar="personal", scope="series",
+                                             href=saved["href"], etag="0-0", event=event))
+        self.assertEqual(stale["code"], "conflict")
+
+        # A file dropped into the folder by hand is picked up
+        (data / "calendars" / "personal" / "extra.ics").write_text(CALENDAR_FEED)
+        synced = self.run_helper("sync", base)
+        self.assertTrue(synced["changed"])
+        self.assertGreater(len(json.loads((state / "events.json").read_text())["events"]), 1)
+        (data / "calendars" / "personal" / "extra.ics").unlink()
+
+        deleted = self.run_helper("delete", dict(base, account="here", calendar="personal", scope="series",
+                                                 href=saved["href"], etag=events[0]["etag"]))
+        self.assertTrue(deleted["ok"], deleted)
+        self.assertFalse(path.exists())
+        self.assertEqual(json.loads((state / "events.json").read_text())["events"], [])
+
+        for bad in ("..", "a/b"):
+            refused = self.run_helper("sync", dict(base, accounts=[{"id": "here", "kind": "local",
+                                                                    "calendars": [{"href": bad}]}]))
+            self.assertEqual([e["code"] for e in refused["errors"]], ["notFound"], bad)
+        refused = self.run_helper("delete", dict(base, account="here", calendar="personal", scope="series",
+                                                 href="personal/../../escape.ics", etag=""))
+        self.assertEqual(refused["code"], "notFound")
+
     def test_edits(self):
         """New events, a moved occurrence, an excluded one and a shifted
         series, read back through the same expansion the sync uses."""

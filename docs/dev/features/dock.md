@@ -8,8 +8,7 @@ App docks on screen edges: pinned and running apps, magnification, hover and int
 
 ### Config
 - The `Dock` section, read by `DockConfig`.
-- `enabled` is off by default.
-- `docks` is `[DockEntry]`.
+- `docks` is `[DockEntry]`, each with its own `enabled`; the default dock starts off (the section-wide `enabled` went in config v69).
 - Docks are edited on `views/settings/DockListCard`, the section's `x-card`, in its own `Dock` settings category.
 
 ### Building (shell/Dock)

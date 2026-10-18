@@ -11,11 +11,11 @@ Everything below is one shell and one config, and everything is set from inside 
 <p align="center"><img src="../assets/screenshots/desktop.webp" alt="A floating pill bar down the left, a transparent bar down the right and the dock at the top, inside the screen border"></p>
 
 - Bars are defined in config. Have any number, on any monitor (or a copy on every one) and any edge.
-- **23 widget types:**
+- **26 widget types:**
   - Workspaces, Window, Time, NextEvent (the next event from your calendars), Media
   - Volume, Microphone, Network, Bluetooth, Battery, SystemStats, SystemTray, Notifications
   - Updates, Weather, Tailscale, KeyboardLayout, IdleInhibitor, Privacy
-  - ScreenRecord (shown while recording; click to stop), Claude usage (your Claude Code plan limits, for one or more logins)
+  - ScreenRecord (shown while recording; click to stop), Claude usage (your Claude Code plan limits, for one or more logins), Todo (open count), Pomodoro (the time left), Timer & stopwatch
   - Button (runs any command, opens a page or toggles an edge menu) and Separator
 - **Popouts** grow out of the bar, or out of the screen border, with filleted corners. Widgets open theirs on hover, and Buttons can run their action on hover too.
 - **The bar editor** draws each bar's sections the way the bar lays them out, on the side of the page matching the bar's edge:
@@ -66,7 +66,7 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
 <p align="center"><img src="../assets/screenshots/overlay-home.webp" alt="The overlay's Home page: Wi-Fi, quick actions, media, notifications, a clock and calendar, the mixer, network, weather and disks" width="900"></p>
 
 - A full-screen overlay made of pages. Each page is a grid you place modules on, with gaps wherever you like. Pages have their own name and icon in the navigator.
-- **36 modules**, and every one adapts to its size and shape (square, wide or tall, down to a compact figure):
+- **40 modules**, and every one adapts to its size and shape (square, wide or tall, down to a compact figure):
 
   | Group | Modules |
   | --- | --- |
@@ -76,6 +76,7 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
   | Time and plans | Clock (digital, stacked or analog, in any time zone), World clocks, Clock & calendar, Calendar, Agenda, Weather |
   | Workspace | Workspaces map, Notifications |
   | Writing | Notes, AI chat |
+  | Focus | Todo list, Pomodoro timer, Timer & stopwatch (one-off timers with presets, a stopwatch with laps), Focus (the timer, the todos and today's events together) |
   | Utilities | Calculator (with a keypad; math, units and currencies), Clipboard history (with pins), Emoji picker, Command output (any command's output as a card), Keybind cheat sheet |
   | Look | Theme picker, Wallpapers, Palette, Theme color swatch, Greeting |
 
@@ -114,7 +115,7 @@ One editor, one grid, for everything made of modules: your **overlay pages**, yo
 - Click a module to edit its options in the inspector, which also has steppers for its exact size.
 - Edge menus are drawn against their screen edge. The desktop and the lock and login screens are a screen-sized grid, with an optional double grid for finer placement.
 - **Desktop widgets:** modules on your desktop, under your windows, fitted inside the bars and border so they line up with your tiled windows. They sit straight on the wallpaper (or in frosted cards) and take clicks, while the empty desktop is clicked through. One layout can cover all monitors, the primary monitor, or a monitor of its own (by name, so a laptop's screen keeps its layout when you dock and undock).
-- Every change shows live on your desktop (or on screen, for the lock and login screens, with **Show on screen**). **Save** keeps it, **Reset** throws it away.
+- Every change shows live on your desktop (or on screen, for the lock and login screens, with **Show on screen**). **Save** keeps it, **Discard** throws it away.
 - Each page and menu lists what opens it, and adds a bar button or a keybind for it.
 
 ## Edge menus
@@ -192,7 +193,7 @@ One config works on all three. Switch compositors and your bars, pages, theme an
 | :---: | :---: |
 | <img src="../assets/screenshots/calendar-page.webp" alt="The Calendar page: the month with events from two calendars, the day's agenda, and the calendar switches"> | <img src="../assets/screenshots/popout-calendar.webp" alt="The bar's calendar popout with the day's events" width="300"> |
 
-- **Sources:** your calendars from **CalDAV** accounts (iCloud, Fastmail, Nextcloud or any CalDAV server), and read-only **.ics subscriptions** (holidays, shared feeds, Google's secret iCal address).
+- **Sources:** your calendars from **CalDAV** accounts (iCloud, Fastmail, Nextcloud or any CalDAV server), read-only **.ics subscriptions** (holidays, shared feeds, Google's secret iCal address), and **local calendars** kept on this computer (one `.ics` file per event in `~/.local/share/axiom/calendars/`).
   - Add accounts in **Settings → Calendar**, then pick which of an account's calendars show.
   - Give any calendar a theme color in place of the server's.
   - Passwords go to your keyring, never into the config.
@@ -315,6 +316,8 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
   - `@` in the launcher asks a question.
   - API keys come from environment variables, your keyring or a mode-600 secrets file, never `config.json`.
 - **Notes:** Markdown files in a folder you choose, edited in place with task checkboxes. A note open in two places stays in sync, and `/notes` in the launcher searches them all.
+- **Todo list and pomodoro timer:** one list and one timer, on the bar, in popouts and as modules. Pick the todo a session is for; a notification marks each session's and break's end. `/todo` adds or ticks off, `/pomodoro` starts, pauses or skips.
+- **Timer and stopwatch:** a one-off timer (`/timer 10m tea`, or a preset) and a stopwatch with laps, both able to run at once, on the bar, in a popout or as a module.
 - **Power menu:** your choice of session actions, in your order, driven by mouse or keyboard. Log out, reboot and power off ask you to confirm.
 - **Monitors:** a page to arrange monitors by dragging (they snap edge to edge).
   - Set each one's mode, scale, rotation and VRR, and on Hyprland mirroring, bit depth and color management.

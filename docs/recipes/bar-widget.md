@@ -79,6 +79,7 @@ Without a popout of its own, `showPopout` is `"title": "Menu popout", "default":
 ## Gotchas
 - `BarWidgetHost` handles `popoutMenu` itself (an edge menu instead of the popout): the widget's own `PopoutAnchor` is gated by `EdgeMenusConfig.opensOwnPopout(root.properties)`, never by `properties.showPopout` alone.
 - Every widget but Button, Separator and the tray has `showPopout` / `popoutMenu`, even without a popout of its own (they open an edge menu).
+- A label that ticks (a countdown, an elapsed time, any number changing every second) sets `steadyDigits: true` on its `BarIconWidget`: tabular digits, sized by its digit count, so the bar doesn't resize every tick (only when it gains or drops a digit). Copy `Pomodoro.qml`.
 - Sizes come from the bar (`barConfig.widgetSize`, `barConfig` padding/spacing/font/radius), never `Widget.*`. `BarIconWidget` already does this; a widget drawing more must too.
 - A color field the bar should pick when empty has `"default": ""`, `"x-emptyLabel": "Auto"` and an `x-autoColor` role (`accent`, `alt`, `warning`, `critical`, `off`, `neutral`). `tst_Config` checks these.
 - Color fields show only in the bar looks they do something in (`$bar.<key>` conditions; the rules are in [bar/widget-style](../dev/bar/widget-style.md#which-color-fields-show)): the state colors that feed `accentColor` hide under Plain text, and `foregroundColor` shows only when filled, not merged, with the bar's text color Auto. A widget without an icon shows its color only boxed and not merged, or underlined (`TimeWidget`).

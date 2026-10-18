@@ -151,19 +151,21 @@ QtObject {
   }
 
   // One section as cards: { kind, key, title, description, section, path,
-  // rows, showIf, showIfParent }. The section's direct values make the
+  // rows, showIf, showIfParent, wide }. The section's direct values make the
   // first card (titled by the section), each nested object the next ones.
   // Fields with `x-group` go on a card of that name instead, so one object
   // can make several cards. A nested object's `x-showIf` (on its siblings)
   // applies to all its cards. A section's `x-card` names a hand-built card
-  // (settings/<name>Card.qml) that goes first (`x-cardFolds`: it folds like
-  // the generated cards, given its `foldKey`); its `x-intro` names a
-  // hand-built piece (settings/<name>.qml) at the top of the section's own
-  // card, above its fields (`intro`), as a nested object's does on its own.
+  // (settings/<name>Card.qml, titled by `x-cardTitle`) that goes first
+  // (`x-cardFolds`: it folds like the generated cards, given its `foldKey`;
+  // `x-cardWide`: it spans both columns); its `x-intro` names a hand-built
+  // piece (settings/<name>.qml) at the top of the section's own card, above
+  // its fields (`intro`), as a nested object's does on its own.
   // `x-cardPerField` makes each of the section's direct fields a card of
   // its own, titled and described by the field and sorted by title, a
   // switch's row labelled "Enabled"; the section's description gets a card
-  // first.
+  // first. A card holding a field marked `x-wide` spans both columns
+  // (`wide`).
   function groups(schema, sectionKey) {
     const section = schema.properties[sectionKey];
     const sectionTitle = section.title ?? sectionKey;
@@ -175,7 +177,8 @@ QtObject {
         "key": sectionKey + ":" + section["x-card"],
         "card": section["x-card"],
         "folds": section["x-cardFolds"] === true,
-        "title": sectionTitle,
+        "wide": section["x-cardWide"] === true,
+        "title": section["x-cardTitle"] ?? sectionTitle,
         "description": "",
         "section": sectionTitle,
         "path": [sectionKey],
@@ -290,6 +293,7 @@ QtObject {
         card.description = "";
       seen.add(path);
       delete card.defaultTitle;
+      card.wide = card.rows.some(row => row.schema?.["x-wide"] === true);
     }
     // The section's card, then its fields' by title, then nested objects'
     if (perField) {
@@ -311,18 +315,48 @@ QtObject {
     return result.concat(cards);
   }
 
-  // [{ name, icon, page, sections: [key], links: [page type] }]: the
-  // root's `x-categories` in order (`icon`, and `page`, a hand-built part
-  // shown after the cards), then any other `x-category` in schema order.
-  // A section without `x-category` is a category of its own. A declared
-  // category with no sections and no page is left out, as is a section
-  // whose own `x-showIf` (`/`-rooted keys, read by `valueOf`; e.g. the
+  // A category's cards in page order: its sections' (`groups`), then its
+  // own `card`. Wide cards ahead of every narrow one stay at the top; any
+  // other goes to the bottom, so none cuts the columns partway down
+  // (`methods/ColumnSplit` lays them out)
+  function categoryGroups(schema, category) {
+    const all = [].concat(...(category?.sections ?? []).map(section => root.groups(schema, section)));
+    if (category?.card)
+      all.push({
+        "kind": "card",
+        "key": category.name + ":" + category.card,
+        "card": category.card,
+        "folds": false,
+        "wide": true,
+        "title": category.cardTitle || category.name,
+        "description": "",
+        "section": category.name,
+        "path": [],
+        "rows": [],
+        "showIf": null,
+        "showIfParent": []
+      });
+    const lead = all.findIndex(group => !group.wide);
+    if (lead < 0)
+      return all;
+    const rest = all.slice(lead);
+    return all.slice(0, lead).concat(rest.filter(group => !group.wide), rest.filter(group => group.wide));
+  }
+
+  // [{ name, icon, card, cardTitle, sections: [key], links: [page type] }]:
+  // the root's `x-categories` in order (`icon`, and `card`, a hand-built
+  // card of the category's own: settings/<card>Card.qml, wide, titled
+  // `cardTitle` in the sidebar), then any other `x-category` in schema
+  // order. A section without `x-category` is a category of its own. A
+  // declared category with no sections and no card is left out, as is a
+  // section whose own `x-showIf` (`/`-rooted keys, read by `valueOf`; e.g. the
   // compositor's, as SettingsManager.configValueAt reads them) fails.
   function categories(schema, valueOf) {
     const make = (name, declared) => ({
           "name": name,
           "icon": declared?.icon ?? "settings",
-          "page": declared?.page ?? "",
+          "card": declared?.card ?? "",
+          "cardTitle": declared?.cardTitle ?? "",
           "sections": [],
           "links": []
         });
@@ -344,6 +378,6 @@ QtObject {
         if (!category.links.includes(link))
           category.links.push(link);
     }
-    return result.filter(c => c.sections.length > 0 || c.page !== "");
+    return result.filter(c => c.sections.length > 0 || c.card !== "");
   }
 }

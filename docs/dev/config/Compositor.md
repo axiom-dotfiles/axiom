@@ -13,11 +13,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Compositor.mode`** · string = "detached" · enum detached|included|managed
   - Mode: Applies on Save. The status card says what the change will do.
-  - x-takeover=true, x-group="Setup", x-applyOnSave=true
+  - x-takeover=true, x-group="Compositor setup", x-applyOnSave=true
   - read: `CompositorConfig.mode` · in: `components/surfaces/onboarding/pages/FinishPage.qml`, `components/views/Monitors.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/OnboardingManager.qml`, `services/SwayConfigWriter.qml`
 - **`Compositor.requiredSettings`** · boolean = true
   - Required settings: Lock restore after a shell restart, ignoring apps' requests to maximize themselves, and a workspace slide animation.
-  - x-group="Setup", x-enabledIf={"/$compositor":"hyprland"}
+  - x-group="Compositor setup", x-enabledIf={"/$compositor":"hyprland"}
   - read: `CompositorConfig.requiredSettings` · in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`
 
 ### Reader members

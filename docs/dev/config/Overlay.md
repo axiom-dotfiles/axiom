@@ -75,7 +75,7 @@ Every public member of `OverlayConfig`, with the files that use it.
 - `OverlayConfig.isTool(type)`
   - in: `components/hosts/overlay/OverlayPages.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/layouts/PagesSection.qml`
 - `OverlayConfig.pageWithModule(type)`: The page to open for a module type (what openOverlayPage takes): the named Custom page where it's biggest, "" when no page has it
-  - in: `services/CalendarManager.qml`, `services/ChatManager.qml`, `services/LauncherCommands.qml`
+  - in: `services/CalendarManager.qml`, `services/LauncherCommands.qml`, `services/ShellManager.qml`
 - `OverlayConfig.cardUnit` (int): Card grid layout (see GridPlacement for the geometry).
   - in: `services/EdgeMenuManager.qml`
 - `OverlayConfig.cardSpacing` (int)

@@ -9,10 +9,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 ### `Dock`
 
-- **`Dock.enabled`** · boolean = false
-  - Enabled: Show the docks below. Off hides every dock.
-  - read: `DockConfig.enabled` · in: `components/views/settings/DockListCard.qml`
-- **`Dock.docks`** · array<DockEntry> = [{"id":"main"}]
+- **`Dock.docks`** · array<DockEntry> = [{"id":"main","enabled":false}]
   - Docks: Each dock has its own place, apps and behaviour.
   - x-settings=false
   - read: `DockConfig.docks` (computed) · in: `components/views/settings/DockListCard.qml`, `services/DockManager.qml`, `services/KeybindManager.qml`
@@ -29,7 +26,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `DockConfig.docks` (whole) · in: `components/views/settings/DockListCard.qml`, `services/DockManager.qml`, `services/KeybindManager.qml`
 - **`Dock.docks[].enabled`** · boolean = true
   - Enabled
-  - read: `DockConfig.docks` (whole) · in: `components/views/settings/DockListCard.qml`
+  - read: entry field, name match · in: `config/DockConfig.qml`
 - **`Dock.docks[].monitors`** · string = "general" · enum general|primary|focused|all|monitor
   - Monitors: Where the dock appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse), and the dock moves with it; every monitor shows it on all of them at once; a specific monitor is the one picked below.
   - read: `DockConfig.docks` (whole) · in: `services/DockManager.qml`
@@ -124,11 +121,9 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 Every public member of `DockConfig`, with the files that use it.
 
-- `DockConfig.enabled` (bool)
-  - in: `components/views/settings/DockListCard.qml`
 - `DockConfig.docks` (var)
   - in: `components/views/settings/DockListCard.qml`, `services/DockManager.qml`, `services/KeybindManager.qml`
-- `DockConfig.shownIds` (var): The enabled ones, by id: what the shell builds (none while the section is off)
+- `DockConfig.shownIds` (var): The enabled ones, by id: what the shell builds
   - in: `services/DockManager.qml`, `shell/Dock.qml`
 - `DockConfig.dockById(id)`
   - in: `services/DockManager.qml`, `shell/Dock.qml`

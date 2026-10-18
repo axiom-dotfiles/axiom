@@ -21,6 +21,10 @@ BaseWidget {
   property color foregroundColor: Theme.background
   property color iconColor: foregroundColor
   property int fontSize: Appearance.fontSize
+  // Digits of equal width (tabular figures), the label taking the room of
+  // its text with every digit a 0: a ticking time keeps its size, changing
+  // only when it gains or drops a digit (passing an hour)
+  property bool steadyDigits: false
   // Draws nothing and takes no room, padding included (a widget with
   // nothing to show). Not `visible: false`, which would still be measured.
   property bool hidden: false
@@ -33,7 +37,8 @@ BaseWidget {
 
   // Icon footprint along the main axis; the label's is its (unrotated) width
   readonly property real iconLength: _hasIcon ? (isVertical ? iconLabel.implicitHeight : iconLabel.implicitWidth) : 0
-  readonly property real _naturalLength: iconLength + _gap + (_hasText ? textLabel.implicitWidth : 0)
+  readonly property real _textLength: steadyDigits ? Math.max(textLabel.implicitWidth, Math.ceil(steadyMetrics.advanceWidth)) : textLabel.implicitWidth
+  readonly property real _naturalLength: iconLength + _gap + (_hasText ? _textLength : 0)
 
   readonly property real _padding: hidden ? 0 : padding
 
@@ -94,9 +99,19 @@ BaseWidget {
         elide: Text.ElideRight
         font.family: Appearance.fontFamily
         font.pixelSize: root.fontSize * root.textScale
+        font.features: root.steadyDigits ? ({
+            "tnum": 1
+          }) : ({})
 
         ColorGlide on color {}
       }
     }
+  }
+
+  // The label with its digits as zeros, for steadyDigits
+  TextMetrics {
+    id: steadyMetrics
+    font: textLabel.font
+    text: root.steadyDigits ? root.displayText.replace(/[0-9]/g, "0") : ""
   }
 }

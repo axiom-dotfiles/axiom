@@ -48,7 +48,6 @@ FieldGroup {
     return I18n.tr("hypridle runs with the config axiom writes from these settings.");
   }
 
-  title: I18n.tr("hypridle")
   headerExtras: [
     StatusChip {
       text: root.statusLabel

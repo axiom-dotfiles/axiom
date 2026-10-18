@@ -286,6 +286,111 @@ TestCase {
     }
   }
 
+  // `x-cardWide` widens a hand-built card; a field's `x-wide` the
+  // generated card it lands on, and only that one
+  function test_wide() {
+    const groups = SchemaLayout.groups({
+      "properties": {
+        "S": {
+          "type": "object",
+          "title": "S",
+          "x-card": "List",
+          "x-cardWide": true,
+          "properties": {
+            "a": {
+              "type": "string"
+            },
+            "b": {
+              "type": "array",
+              "x-group": "B",
+              "x-wide": true,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "c": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }, "S");
+    compare(groups.map(group => [group.title, group.wide]), [["S", true], ["S", false], ["B", true]]);
+  }
+
+  // Wide cards ahead of every narrow one stay first, the rest go last;
+  // the category's own card is wide, after its sections'
+  function test_categoryGroups_order() {
+    const wide = {
+      "type": "array",
+      "x-wide": true,
+      "items": {
+        "type": "object",
+        "properties": {
+          "c": {
+            "type": "string"
+          }
+        }
+      }
+    };
+    const schema = {
+      "properties": {
+        "S": {
+          "type": "object",
+          "title": "S",
+          "x-card": "Status",
+          "x-cardWide": true,
+          "properties": {
+            "a": {
+              "type": "string",
+              "x-group": "A"
+            },
+            "w": Object.assign({
+              "x-group": "W"
+            }, wide),
+            "b": {
+              "type": "string",
+              "x-group": "B"
+            }
+          }
+        }
+      }
+    };
+    const groups = SchemaLayout.categoryGroups(schema, {
+      "name": "Cat",
+      "sections": ["S"],
+      "card": "Own",
+      "cardTitle": "Own card"
+    });
+    compare(groups.map(group => group.title), ["S", "A", "B", "W", "Own card"]);
+    compare(groups[4].key, "Cat:Own");
+    compare(groups.map(group => group.wide), [true, false, false, true, true]);
+  }
+
+  // A hand-built card is titled by `x-cardTitle`, which every real one has
+  // (its QML sets none)
+  function test_card_titles() {
+    const groups = SchemaLayout.groups({
+      "properties": {
+        "S": {
+          "type": "object",
+          "title": "Section",
+          "x-card": "List",
+          "x-cardTitle": "Entries",
+          "properties": {}
+        }
+      }
+    }, "S");
+    compare(groups[0].title, "Entries");
+    for (const key in schema.properties) {
+      const section = schema.properties[key];
+      if (section["x-card"])
+        verify(typeof section["x-cardTitle"] === "string" && section["x-cardTitle"] !== "", key);
+    }
+  }
+
   function test_objectGroups() {
     const groups = SchemaLayout.objectGroups({
       "x-order": ["b", "a"],
@@ -447,7 +552,8 @@ TestCase {
         {
           "name": "Tools",
           "icon": "build",
-          "page": "ToolsPage"
+          "card": "Tools",
+          "cardTitle": "Tool card"
         }
       ],
       "properties": {
@@ -479,10 +585,10 @@ TestCase {
     compare(categories[0].icon, "star");
     compare(categories[0].sections, ["Two"]);
     compare(categories[0].links, ["Themes"]);
-    compare(categories[1].page, "ToolsPage");
+    compare([categories[1].card, categories[1].cardTitle], ["Tools", "Tool card"]);
     compare(categories[1].sections, []);
     compare(categories[2].icon, "settings");
-    compare(categories[2].page, "");
+    compare(categories[2].card, "");
   }
 
   function test_real_schema_categories() {
@@ -491,8 +597,8 @@ TestCase {
     const declared = schema["x-categories"].map(c => c.name);
     for (const category of categories) {
       verify(declared.includes(category.name), "declared in x-categories: " + category.name);
-      if (category.page !== "") {
-        verify(files.text("components/views/settings/" + category.page + ".qml").length > 0, category.page);
+      if (category.card !== "") {
+        verify(files.text("components/views/settings/" + category.card + "Card.qml").length > 0, category.card);
         continue;
       }
       verify(category.sections.length > 0, category.name);

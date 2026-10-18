@@ -104,7 +104,6 @@ FieldGroup {
   // Keys may have changed outside the shell (secret-tool, the file)
   Component.onCompleted: SecretsManager.refresh(ChatConfig.providers)
 
-  title: I18n.tr("API keys")
   headerExtras: [
     StyledText {
       text: SecretsManager.keyringAvailable === null ? "" : SecretsManager.keyringAvailable ? I18n.tr("Stored in your keyring") : I18n.tr("No keyring: stored in {0}", Paths.shortenHome(SecretsManager.secretsPath))

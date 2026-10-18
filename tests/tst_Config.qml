@@ -855,7 +855,7 @@ TestCase {
   // Every Auto color field of the schema goes Auto in the v41 migration
   // (widgets added since start Auto: no saved config can have them older)
   function test_v41_covers_every_auto_color() {
-    const addedSince = ["NextEvent"];
+    const addedSince = ["NextEvent", "Todo", "Pomodoro", "Stopwatch"];
     schema.definitions.BarWidget.oneOf.forEach(ref => {
       const def = schema.definitions[ref.$ref.replace("#/definitions/", "")];
       if (addedSince.includes(def.properties.type.const))
@@ -2143,5 +2143,142 @@ TestCase {
       }
     }).config;
     compare([fresh.Lockscreen.layout.blurWallpaper, fresh.Greeter.layout.blurWallpaper], [true, true]);
+  }
+
+  function test_v69_dock_and_osd_enabled_per_entry() {
+    const shown = config => [config.Dock.docks.map(dock => dock.enabled), config.OSD.osds.map(osd => osd.enabled)];
+    const off = load({
+      "version": 68,
+      "Dock": {
+        "enabled": false,
+        "docks": [
+          {
+            "id": "a"
+          },
+          {
+            "id": "b",
+            "enabled": false
+          }
+        ]
+      },
+      "OSD": {
+        "enabled": false
+      }
+    });
+    compare(shown(off.config), [[false, false], [false]], "an Enabled that was off turns every entry off");
+    compare("enabled" in off.config.Dock, false);
+    compare("enabled" in off.config.OSD, false);
+    compare(off.removed, []);
+    compare(errors(off.config), []);
+
+    const on = load({
+      "version": 68,
+      "Dock": {
+        "enabled": true
+      },
+      "OSD": {
+        "enabled": true,
+        "osds": [
+          {
+            "id": "a",
+            "enabled": false
+          },
+          {
+            "id": "b"
+          }
+        ]
+      }
+    });
+    compare(shown(on.config), [[true], [false, true]], "on, entries keep their own; docks on without a list get the old default dock, on");
+
+    const unset = load({
+      "version": 68,
+      "Dock": {
+        "docks": [
+          {
+            "id": "a"
+          }
+        ]
+      }
+    });
+    compare(shown(unset.config), [[false], [true]], "unset, docks were off and OSDs on");
+    compare(shown(load({
+      "version": 69
+    }).config), [[false], [true]], "a new config's dock starts off");
+  }
+
+  function test_v68_shared_widget_settings_move_to_sections() {
+    const accounts = [
+      {
+        "label": "Work",
+        "configDir": "~/.claude-work"
+      }
+    ];
+    const migrated = load({
+      "version": 67,
+      "Bars": [
+        {
+          "id": "main",
+          "widgets": {
+            "left": [
+              {
+                "type": "ClaudeUsage",
+                "properties": {
+                  "accounts": accounts,
+                  "intervalMinutes": 10,
+                  "metric": "weekly"
+                }
+              },
+              {
+                "type": "Updates",
+                "properties": {
+                  "includeAur": true,
+                  "aurHelper": "yay",
+                  "upgradeCommand": "topgrade",
+                  "intervalMinutes": 45
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "EdgeMenus": [
+        {
+          "id": "right",
+          "modules": [
+            {
+              "type": "Updates",
+              "properties": {
+                "aurHelper": "paru",
+                "terminal": "kitty"
+              }
+            }
+          ]
+        }
+      ]
+    });
+    const config = migrated.config;
+    compare(config.ClaudeUsage, {
+      "accounts": accounts,
+      "intervalMinutes": 10
+    });
+    // The bar's first, the module's only where the bar set none
+    compare(config.Updates, {
+      "includeAur": true,
+      "aurHelper": "yay",
+      "terminal": "kitty",
+      "upgradeCommand": "topgrade"
+    });
+    const left = config.Bars[0].widgets.left;
+    compare([left[0].properties.accounts, left[0].properties.metric], [undefined, "weekly"]);
+    compare([left[1].properties.aurHelper, left[1].properties.intervalMinutes], [undefined, 45]);
+    compare(config.EdgeMenus[0].modules[0].properties.aurHelper, undefined);
+    compare(migrated.removed, []);
+    compare(errors(config), []);
+    // Nothing set: the sections keep their defaults
+    const fresh = load({
+      "version": 67
+    }).config;
+    compare([fresh.ClaudeUsage.intervalMinutes, fresh.Updates.aurHelper], [5, "paru"]);
   }
 }

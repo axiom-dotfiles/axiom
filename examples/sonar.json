@@ -107,8 +107,6 @@
               "intervalMinutes": 30,
               "hideWhenEmpty": true,
               "showPopout": true,
-              "terminal": "kitty",
-              "upgradeCommand": "",
               "manyThreshold": 50,
               "backgroundColor": "",
               "manyColor": "",

@@ -16,6 +16,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `SessionConfig.session` (whole), `// reads:` marker · in: `config/SessionConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`Session.env`** · array<object> = []
   - Environment: Variables set before anything starts. Changes apply to apps started afterwards.
+  - x-wide=true
   - read: `SessionConfig.session` (whole), `// reads:` marker · in: `config/SessionConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 
 ### `Session.env[]`

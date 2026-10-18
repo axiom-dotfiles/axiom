@@ -143,7 +143,9 @@ QtObject {
   // The latest config with every changed setting from the draft on top
   function _merged() {
     const merged = Utils.clone(ConfigManager.config);
-    for (const changed of root.changedPaths) {
+    // Diffed now, not `changedPaths`: Save first commits typed text, an
+    // edit in place that `changedPaths` sees only next tick
+    for (const changed of _diff(draft.local, draft.saved, [])) {
       const path = changed.split(".");
       _setAt(merged, path, _valueAt(draft.local, path));
     }
@@ -161,6 +163,38 @@ QtObject {
       _setAt(live, path, value);
       ConfigManager.applyConfig(live);
     }
+    draft.changed();
+  }
+
+  // Sets several values ([{ path, value }]), applied live in one go
+  function setValues(entries) {
+    const live = Utils.clone(ConfigManager.config);
+    let apply = false;
+    for (const entry of entries) {
+      _setAt(draft.local, entry.path, entry.value);
+      if (!schemaAt(entry.path)?.["x-applyOnSave"]) {
+        _setAt(live, entry.path, entry.value);
+        apply = true;
+      }
+    }
+    if (apply)
+      ConfigManager.applyConfig(live);
+    draft.changed();
+  }
+
+  // Puts the settings at these key paths back as saved (one card's
+  // Discard)
+  function discard(paths) {
+    root.setValues(paths.map(path => ({
+          "path": path,
+          "value": Utils.clone(_valueAt(draft.saved, path))
+        })));
+  }
+
+  // Sets one value in the draft only (a text field being typed in), so
+  // it shows as unsaved; setValue applies it
+  function setDraftValue(path, value) {
+    _setAt(draft.local, path, value);
     draft.changed();
   }
 

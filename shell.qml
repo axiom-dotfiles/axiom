@@ -18,7 +18,7 @@ ShellRoot {
   // (CompositorConfigManager only with configModes, where it has work at
   // start; elsewhere other services may still create it, and it stays
   // inert: live)
-  readonly property var _services: [InstanceManager, DataMigrationManager, DependencyManager, CompositorManager, CompositorManager.supports.configModes ? CompositorConfigManager : null, HypridleManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager, EdgeMenuManager, BrightnessManager, NotesManager, MonitorManager, OnboardingManager, ClipboardManager, NightLightManager, WallpaperManager, DockManager, SystemManager, BatteryManager, PolkitManager, GreeterManager, CalendarManager]
+  readonly property var _services: [InstanceManager, DataMigrationManager, DependencyManager, CompositorManager, CompositorManager.supports.configModes ? CompositorConfigManager : null, HypridleManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager, EdgeMenuManager, BrightnessManager, NotesManager, TodoManager, PomodoroManager, StopwatchManager, MonitorManager, OnboardingManager, ClipboardManager, NightLightManager, WallpaperManager, DockManager, SystemManager, BatteryManager, PolkitManager, GreeterManager, CalendarManager]
 
   Lockscreen {
     id: lockscreen

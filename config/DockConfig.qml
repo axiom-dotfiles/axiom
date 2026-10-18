@@ -10,14 +10,12 @@ QtObject {
 
   readonly property var _c: ConfigManager.config.Dock
 
-  readonly property bool enabled: _c.enabled
   // [DockEntry]. Goes through a string so a reload that leaves the list
   // unchanged doesn't rebuild the docks.
   readonly property string _docksJson: JSON.stringify(_c.docks)
   readonly property var docks: JSON.parse(_docksJson)
-  // The enabled ones, by id: what the shell builds (none while the section
-  // is off)
-  readonly property var shownIds: root.enabled ? root.docks.filter(dock => dock.enabled).map(dock => dock.id) : []
+  // The enabled ones, by id: what the shell builds
+  readonly property var shownIds: root.docks.filter(dock => dock.enabled).map(dock => dock.id)
 
   function dockById(id) {
     return root.docks.find(dock => dock.id === id) ?? null;

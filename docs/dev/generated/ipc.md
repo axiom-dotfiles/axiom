@@ -129,6 +129,17 @@ Every `IpcHandler`: call with `qs -c axiom ipc call <target> <function> [args]`.
 - `toggle()`
 - `page(type: string)`
 
+## pomodoro
+
+`services/PomodoroManager.qml` · enabled: `!Paths.greeter`
+- `start(): void`
+- `pause(): void`
+- `toggle(): void`
+- `skip(): void`
+- `stop(): void`
+- `reset(): void`
+- `status(): string`
+
 ## popouts
 
 `services/PopoutManager.qml`
@@ -161,6 +172,26 @@ Every `IpcHandler`: call with `qs -c axiom ipc call <target> <function> [args]`.
 - `check(): void`
 - `update(): void`
 - `open(): void`
+
+## stopwatch
+
+`services/StopwatchManager.qml` · enabled: `!Paths.greeter`
+- `timer(text: string): bool`
+- `toggleTimer(): void`
+- `resetTimer(): void`
+- `toggle(): void`
+- `lap(): void`
+- `reset(): void`
+- `status(): string`
+
+## todo
+
+`services/TodoManager.qml` · enabled: `!Paths.greeter`
+- `add(text: string): bool`
+- `list(): string`
+- `toggle(text: string): bool`
+- `clearCompleted(): void`
+- `count(): int`
 
 ## wallpaper
 

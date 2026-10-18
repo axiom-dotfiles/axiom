@@ -48,7 +48,6 @@ FieldGroup {
     return I18n.tr("Off");
   }
 
-  title: I18n.tr("greetd")
   headerExtras: [
     StatusChip {
       text: root.statusLabel

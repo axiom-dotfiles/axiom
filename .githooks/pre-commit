@@ -2,9 +2,10 @@
 # Regenerates what's built from the code being committed (the index, not the
 # working tree) and stages it, so a commit never carries stale output:
 #   - docs/dev/config and docs/dev/generated (scripts/gen_docs.py)
-#   - the translations (scripts/check_i18n.py --fill): every new key, empty,
-#     in each config/i18n/<code>.json, and the empty template a new language
-#     is copied from, config/i18n/template/language.json
+#   - the translations (scripts/check_i18n.py --fill --prune): every new key,
+#     empty, in each config/i18n/<code>.json, every key nothing uses any more
+#     dropped from them, and the empty template a new language is copied
+#     from, config/i18n/template/language.json
 #   - the theme template, config/themes/template/theme.json
 #     (scripts/gen_theme_template.py)
 # Enabled per clone with
@@ -49,19 +50,19 @@ fi
 
 if [[ $i18n -eq 1 && -f "$tmp/scripts/check_i18n.py" ]]; then
   # Exits 1 while entries are untranslated, which is fine to commit
-  python3 "$tmp/scripts/check_i18n.py" --fill >/dev/null || true
+  python3 "$tmp/scripts/check_i18n.py" --fill --prune >/dev/null || true
   template=config/i18n/template/language.json
   mkdir -p "$(dirname "$template")"
   cmp -s "$tmp/$template" <(git show ":$template" 2>/dev/null) || place "$template"
   for file in "$tmp"/config/i18n/*.json; do
     rel="config/i18n/$(basename "$file")"
     cmp -s "$file" <(git show ":$rel") && continue
-    # A language file with unstaged edits is left alone: filling it from the
-    # index would drop them
+    # A language file with unstaged edits is left alone: rewriting it from
+    # the index would drop them
     if git diff --quiet -- "$rel"; then
       place "$rel"
     else
-      echo "pre-commit: $rel has unstaged edits, so its new keys weren't added; stage it and commit again" >&2
+      echo "pre-commit: $rel has unstaged edits, so its keys weren't brought up to date; stage it and commit again" >&2
       exit 1
     fi
   done
