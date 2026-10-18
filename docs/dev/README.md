@@ -127,3 +127,4 @@ Dependencies point one way, methods → data owners → readers → services →
 - [polkit](features/polkit.md): the polkit agent.
 - [onboarding](features/onboarding.md): the first-run onboarder.
 - [self-update](features/self-update.md): axiom updating its own clone.
+- [community-setups](features/community-setups.md): the community setups gallery, its catalog, downloading and applying one.

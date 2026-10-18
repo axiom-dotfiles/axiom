@@ -37,10 +37,12 @@ Walks a value along the schema.
 - `snapshotFiles(config, schema)` and `withSnapshot(config, saved, schema, existing)`: restore the `x-snapshot` settings; a `file://` URL comes back only while its file exists, and a wallpaper is never blanked (otherwise the current one stays).
 
 ### Loading an example or import
-- `applyExample(name)` and `confirmImport(personal)`:
+- `applyExample(name)`, `confirmImport(personal)` and `applyShared(name, path, title)` (a [community setup](../features/community-setups.md), personal parts always off, no confirm row):
   1. Load the file (`_load`) through `ConfigManager.normalizeConfig`, so any version migrates. A file older than the window look's move out of `Hyprland.managed` (v58, v63) never held those settings, so `ConfigExamples.keepMovedLook` keeps the running config's (restoring a snapshot does the same).
   2. Save the running config as `before-<name>`.
   3. Once that is written, restore `ConfigExamples.apply`.
+  4. `applied(name)` is signalled, or `applyFailed(name)` if the backup or the restore failed (`status` says why).
+- An import or shared file is checked first (`_readShared`): it needs a `version`, and one from a newer axiom is refused.
 - `browseImport()` opens the desktop's file picker for a JSON file ([File picker](file-picker.md)).
   - The chosen file becomes `importing`, with title and description from its `_example` header, for the page's confirm row. The row's switch for personal parts starts off.
 

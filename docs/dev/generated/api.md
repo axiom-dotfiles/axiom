@@ -21,6 +21,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [ClaudeUsageManager](api/ClaudeUsageManager.md): Claude plan usage (the numbers Claude Code's /usage shows) for one or more Claude Code accounts, each a CLAUDE_CONFIG_DIR.
 - [ClipboardManager](api/ClipboardManager.md): The clipboard history the launcher searches (":" or /clipboard), while Launcher.clipboard is on.
 - [CommandManager](api/CommandManager.md): Shell commands polled for their output (e.g. a bar Button's label), shared by every widget asking for the same command: each distinct command runs once per int…
+- [CommunitySetupsManager](api/CommunitySetupsManager.md): The community setups gallery (github.com/axiom-dotfiles/community-setups): downloads the catalog (CommunitySetups.indexUrl) when the gallery is opened, never b…
 - [CompositorConfigManager](api/CompositorConfigManager.md): Sets the compositor up for axiom (the Compositor section's mode, CompositorConfig.mode), through its backend's config writer (CompositorManager.backend.configW…
 - [CompositorManager](api/CompositorManager.md): The running compositor, for the rest of axiom: its windows, outputs and workspaces in shapes that don't depend on it, what it supports, and every workspace swi…
 - [ConfigDraft](api/ConfigDraft.md): A working copy of one config section for an editor (settings, bar, overlay, edge menu, keybind and monitor editors).
@@ -106,6 +107,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [CalendarConfig](api/CalendarConfig.md): Reader for the Calendar section (see CalendarManager).
 - [ChatConfig](api/ChatConfig.md): Reader for the Chat section.
 - [ClaudeUsageConfig](api/ClaudeUsageConfig.md): Reader for the ClaudeUsage section: the Claude Code logins every Claude usage widget reports on (see ClaudeUsageManager).
+- [CommunitySetups](api/CommunitySetups.md): Reader for the CommunitySetups section: whether the community setups gallery is on, and where its catalog is (CommunitySetupsManager)
 - [CompositorConfig](api/CompositorConfig.md): Reader for the Compositor section: how axiom sets the compositor up (CompositorConfigManager)
 - [DesktopConfig](api/DesktopConfig.md): Reader for the Desktop section: overlay modules on the desktop, under the windows.
 - [DockConfig](api/DockConfig.md): Reader for the Dock section: any number of docks, each with its own place, pinned apps and behaviour (DockEntry in the schema).

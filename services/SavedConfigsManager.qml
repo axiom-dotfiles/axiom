@@ -73,6 +73,11 @@ QtObject {
   // The file picker is open
   readonly property bool picking: FilePickerManager.running
 
+  // An example, import or shared setup was applied as `name` (its backup
+  // is "before-<name>"), or failed to be (status says why)
+  signal applied(string name)
+  signal applyFailed(string name)
+
   // What to apply once the running config is saved as its backup:
   // { name, config, personal }, or null
   property var _pendingApply: null
@@ -226,37 +231,11 @@ QtObject {
   // any version) as `importing`, for the settings page to confirm
   function openImport(path) {
     root.importing = null;
-    const content = FileManager.read("file://" + path);
     const fileName = path.split("/").pop();
-    if (!content) {
-      root.status = I18n.tr("\"{0}\" could not be read", fileName);
+    const parsed = root._readShared(path, fileName);
+    const config = parsed ? root._load(parsed) : null;
+    if (!parsed)
       return;
-    }
-    let parsed;
-    try {
-      parsed = JSON.parse(content);
-    } catch (e) {
-      console.warn("[SavedConfigsManager] Could not parse", path + ":", e);
-      root.status = I18n.tr("\"{0}\" is not valid JSON", fileName);
-      return;
-    }
-    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-      root.status = I18n.tr("\"{0}\" is not a valid config", fileName);
-      return;
-    }
-    // Without one it would be migrated as a version 1 config, which can
-    // quietly rewrite a newer layout; a newer one would lose what this
-    // version doesn't know
-    const version = parsed.version;
-    if (!Number.isInteger(version) || version < 1) {
-      root.status = I18n.tr("\"{0}\" has no config version, so it can't be imported", fileName);
-      return;
-    }
-    if (version > ConfigMigration.currentVersion) {
-      root.status = I18n.tr("\"{0}\" is from a newer axiom. Update axiom to import it.", fileName);
-      return;
-    }
-    const config = root._load(parsed);
     if (!config) {
       root.status = I18n.tr("\"{0}\" is not a valid config", fileName);
       return;
@@ -289,6 +268,61 @@ QtObject {
 
   function cancelImport() {
     root.importing = null;
+  }
+
+  // Applies a shared file at `path` straight away, its look only (never
+  // keybinds, apps or commands), after saving the running config as
+  // "before-<name>": a community setup (CommunitySetupsManager). False
+  // with `status` saying why when the file can't be applied.
+  function applyShared(name, path, title) {
+    const parsed = root._readShared(path, title);
+    const config = parsed ? root._load(parsed) : null;
+    if (!parsed)
+      return false;
+    if (!config) {
+      root.status = I18n.tr("\"{0}\" is not a valid config", title);
+      return false;
+    }
+    if (root._pendingApply) {
+      root.status = I18n.tr("Busy, try again");
+      return false;
+    }
+    _backupThenApply(name, config, false);
+    return true;
+  }
+
+  // The parsed shared file at `path`, or null with `status` saying why (as
+  // `label`). One without a version would be migrated as a version 1
+  // config, which can quietly rewrite a newer layout; a newer one would
+  // lose what this version doesn't know.
+  function _readShared(path, label) {
+    const content = FileManager.read("file://" + path);
+    if (!content) {
+      root.status = I18n.tr("\"{0}\" could not be read", label);
+      return null;
+    }
+    let parsed;
+    try {
+      parsed = JSON.parse(content);
+    } catch (e) {
+      console.warn("[SavedConfigsManager] Could not parse", path + ":", e);
+      root.status = I18n.tr("\"{0}\" is not valid JSON", label);
+      return null;
+    }
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      root.status = I18n.tr("\"{0}\" is not a valid config", label);
+      return null;
+    }
+    const version = parsed.version;
+    if (!Number.isInteger(version) || version < 1) {
+      root.status = I18n.tr("\"{0}\" has no config version, so it can't be imported", label);
+      return null;
+    }
+    if (version > ConfigMigration.currentVersion) {
+      root.status = I18n.tr("\"{0}\" is from a newer axiom. Update axiom to import it.", label);
+      return null;
+    }
+    return parsed;
   }
 
   // Writes the running config's look (and personal parts, when `personal`)
@@ -335,12 +369,14 @@ QtObject {
   function _apply(pending) {
     if (!ConfigManager.restoreConfig(ConfigExamples.apply(ConfigManager.config, pending.config, ConfigManager.configSchema, pending.personal))) {
       root.status = I18n.tr("\"{0}\" is not a valid config", pending.name);
+      root.applyFailed(pending.name);
       return;
     }
     root._setActive("", null);
     SettingsManager.loadConfig();
     root.status = I18n.tr("Applied \"{0}\". The previous configuration is saved as \"{1}\".", pending.name, "before-" + pending.name);
     console.log("[SavedConfigsManager] Applied", pending.name, pending.personal ? "with personal parts" : "");
+    root.applied(pending.name);
   }
 
   // The parsed example (with its _example header), or null
@@ -435,8 +471,11 @@ QtObject {
     }
     onSaveFailed: error => {
       root._saving = null;
+      const pending = root._pendingApply;
       root._pendingApply = null;
       root.status = I18n.tr("Failed to save \"{0}\"", name);
+      if (pending)
+        root.applyFailed(pending.name);
       console.warn("[SavedConfigsManager] Could not write", path + ":", FileViewError.toString(error));
     }
   }

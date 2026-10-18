@@ -17,6 +17,11 @@ Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/save
 - `importing` (var): An imported file awaiting confirmation: { name, title, description, path, config, hasPersonal } (config loaded: migrated, defaults filled; hasPersonal: the file holds keybinds, apps or commands), or …
 - `picking` (readonly bool): The file picker is open
 
+### Signals
+
+- `applied(string name)`: An example, import or shared setup was applied as `name` (its backup is "before-<name>"), or failed to be (status says why)
+- `applyFailed(string name)`
+
 ### Functions
 
 - `sanitize(name)`
@@ -29,5 +34,6 @@ Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/save
 - `openImport(path)`: Loads a shared file (an export, an example, or a whole config.json of any version) as `importing`, for the settings page to confirm
 - `confirmImport(personal)`: Applies `importing` (its personal parts too when `personal`: keybinds, apps, commands), after saving the running config as "before-<name>"
 - `cancelImport()`
+- `applyShared(name, path, title)`: Applies a shared file at `path` straight away, its look only (never keybinds, apps or commands), after saving the running config as "before-<name>": a community setup (CommunitySetupsManager).
 - `exportConfig(personal)`: Writes the running config's look (and personal parts, when `personal`) to ~/axiom-<name>-<date>-<time>.json, holding only what differs from the defaults: a file to share, in the format examples and i…
 - `remove(name)`

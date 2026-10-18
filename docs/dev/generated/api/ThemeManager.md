@@ -8,7 +8,7 @@ ThemeManager owns the active theme's data (loaded from its file, watched, with d
 ### Properties
 
 - `wallpaperModel` (readonly FolderListModel): ========================================================================= Public Models & State =========================================================================
-- `themeFamilies` (readonly var): One entry per theme, a dark/light pair being one theme: [{ label, dark, light, darkPreview, lightPreview, generated }], where dark/light are Appearance.theme names ("" for a variant the theme doesn't…
+- `themeFamilies` (readonly var): One entry per theme, a dark/light pair being one theme: [{ label, dark, light, darkPreview, lightPreview, generated, community }], where dark/light are Appearance.theme names ("" for a variant the th…
 - `currentFamily` (readonly var): The family Appearance.theme belongs to, or null
 - `isGenerating` (readonly bool)
 - `currentTheme` (readonly var): The active theme's JSON ({ name, variant, paired, colors, semantic }), read through config/Theme
@@ -43,3 +43,4 @@ ThemeManager owns the active theme's data (loaded from its file, watched, with d
 - `themeIntegrations(themeName = root.activeTheme, keys = [])`: Runs the enabled integrations (scripts/theme_<key>.sh, one per ThemeIntegrations switch) for a theme; `keys` limits it to those (none: all of them)
 - `integrationTitle(key)`: An integration's name (its schema title, untranslated)
 - `integrationCommands(key)`
+- `reloadCommunityThemes()`: Rescans the community setups' palettes, after one is installed (CommunitySetupsManager)

@@ -26,6 +26,8 @@ Questions and help with setting up go in [Discussions › Q&A](https://github.co
 
 **Want to add a theme?** Copy `config/themes/template/theme.json` to `config/themes/<name>.json`, set its `name`, `author` and `variant`, and replace the sixteen `base00`–`base0F` colors. The `semantic` names map onto those and are already sensible, so only change the ones your palette needs. For a dark/light pair, give each file a `paired` field naming the other. It shows up under **Themes** as soon as you save.
 
+**Want to share your setup?** Submit it to [community-setups](https://github.com/axiom-dotfiles/community-setups), where anyone can browse and apply it from **Settings → Maintenance → Community setups**. **Export and submit…** there starts it; the repository's [guide](https://github.com/axiom-dotfiles/community-setups/blob/main/CONTRIBUTING.md) has the rest. The `examples/` shipped with axiom are picked by the maintainers.
+
 **Found a security problem?** Don't open an issue: report it privately as [SECURITY.md](SECURITY.md) describes.
 
 ## Help wanted

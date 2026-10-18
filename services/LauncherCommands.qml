@@ -69,7 +69,7 @@ QtObject {
       status: () => ThemeManager.currentFamily?.label ?? ThemeManager.activeTheme,
       options: () => ThemeManager.themeFamilies.map(family => ({
               title: family.label,
-              subtitle: family === ThemeManager.currentFamily ? I18n.tr("Current") : family.generated ? I18n.tr("Generated") : family.dark && family.light ? I18n.tr("Dark and light") : family.dark ? I18n.tr("Dark") : I18n.tr("Light"),
+              subtitle: family === ThemeManager.currentFamily ? I18n.tr("Current") : family.generated ? I18n.tr("Generated") : family.community ? I18n.tr("From a community setup") : family.dark && family.light ? I18n.tr("Dark and light") : family.dark ? I18n.tr("Dark") : I18n.tr("Light"),
               value: family
             })),
       run: (arg, value) => {
@@ -322,9 +322,9 @@ QtObject {
       name: "config",
       aliases: ["set", "cfg"],
       glyph: "settings",
-      usage: "<setting> <value> | save <name> | restore <name> | example <name>",
+      usage: "<setting> <value> | save <name> | restore <name> | example <name> | community <search>",
       needsArg: true,
-      description: () => I18n.tr("Change a setting, save and restore the config, or apply an example setup"),
+      description: () => I18n.tr("Change a setting, save and restore the config, or apply an example or community setup"),
       options: arg => root._configOptions(arg),
       run: (arg, value) => root._configRun(value)
     },
@@ -685,7 +685,16 @@ QtObject {
             next: "example "
           }
         }
-      ];
+      ].concat(CommunitySetupsManager.enabled ? [
+        {
+          title: "community",
+          subtitle: I18n.tr("Search the community setups and apply one (the current config is saved first)"),
+          glyph: "groups",
+          value: {
+            next: "community "
+          }
+        }
+      ] : []);
       return rows.concat(SettingsManager.settingPaths.map(entry => ({
             title: entry.key,
             subtitle: I18n.tr(entry.schema.title ?? entry.key) + " · " + root._configShow(SettingsManager.valueOf(entry.key), entry.schema),
@@ -739,6 +748,9 @@ QtObject {
               example: example.name
             }
           }));
+
+    if (head === "community" && CommunitySetupsManager.enabled)
+      return root._communityOptions(rest);
 
     const entry = SettingsManager.settingFor(head);
     if (!entry)
@@ -801,9 +813,39 @@ QtObject {
       SavedConfigsManager.applyExample(value.example);
       return;
     }
+    if (value?.community) {
+      CommunitySetupsManager.apply(value.community, false);
+      return;
+    }
     if (value?.key !== undefined && !SettingsManager.commitValue(value.key, value.set))
       console.warn("[LauncherCommands] Could not set", value.key);
     return false;
+  }
+
+  // The community setups matching `rest` (CommunityCatalog.search, so
+  // `matched`), with their thumbnails; the catalog is downloaded the first
+  // time they're asked for
+  function _communityOptions(rest) {
+    CommunitySetupsManager.open();
+    if (!CommunitySetupsManager.loaded)
+      return [
+        {
+          title: "community " + rest,
+          subtitle: CommunitySetupsManager.loading ? I18n.tr("Loading the community setups…") : CommunitySetupsManager.status || I18n.tr("No community setups yet"),
+          glyph: CommunitySetupsManager.loading ? "hourglass_empty" : "cloud_off",
+          value: {}
+        }
+      ];
+    return CommunitySetupsManager.search(rest, []).map(setup => ({
+          title: "community " + setup.id,
+          subtitle: setup.compatible ? I18n.tr("{0} by {1} · {2}", setup.title, setup.author, setup.description) : I18n.tr("{0} needs a newer axiom", setup.title),
+          glyph: setup.compatible ? "" : "warning",
+          image: CommunitySetupsManager.thumbs[setup.id] ?? "",
+          matched: true,
+          value: setup.compatible ? {
+            community: setup.id
+          } : {}
+        }));
   }
 
   function _configShow(value, schema) {

@@ -14,7 +14,9 @@ TestCase {
       "ui": "/home/u/.local/state/axiom/ui/",
       "data": "/home/u/.local/share/axiom/",
       "notes": "/home/u/.local/share/axiom/notes/",
-      "generatedThemes": "/home/u/.local/state/axiom/themes/"
+      "generatedThemes": "/home/u/.local/state/axiom/themes/",
+      "communityThemes": "/home/u/.local/share/axiom/themes/",
+      "cache": "/home/u/.cache/axiom/"
     });
   }
 
@@ -23,11 +25,14 @@ TestCase {
       "HOME": "/home/u",
       "XDG_CONFIG_HOME": "/cfg/",
       "XDG_STATE_HOME": "/st",
-      "XDG_DATA_HOME": "/data//"
+      "XDG_DATA_HOME": "/data//",
+      "XDG_CACHE_HOME": "/cache"
     });
     compare(dirs.config, "/cfg/axiom/", "a trailing slash isn't doubled");
     compare(dirs.state, "/st/axiom/");
     compare(dirs.notes, "/data/axiom/notes/");
+    compare(dirs.communityThemes, "/data/axiom/themes/");
+    compare(dirs.cache, "/cache/axiom/");
   }
 
   function test_ignoredVariables() {
@@ -68,7 +73,9 @@ TestCase {
       "ui": "/repo/config/state/",
       "data": "/home/u/.local/share/axiom/",
       "notes": "/repo/config/state/notes/",
-      "generatedThemes": "/repo/config/themes/generated/"
+      "generatedThemes": "/repo/config/themes/generated/",
+      "communityThemes": "/home/u/.local/share/axiom/themes/",
+      "cache": "/home/u/.cache/axiom/"
     }, "state and data were already XDG");
     compare(DataDirs.legacy(env, "/repo/").config, "/repo/config/user/", "with or without a trailing slash");
   }

@@ -22,7 +22,7 @@ How the active theme is loaded, how themes are grouped into dark/light families,
 
 ### Theme files
 - `config/themes/template/theme.json` is the theme a new one is copied from: empty name, author and pair, plus `theme-defaults.json`'s fallback colors and dark semantic map. `scripts/gen_theme_template.py` writes it, the pre-commit hook runs that when the defaults change, and `test_scripts.py`'s `Themes` fails when it's stale. It sits in a subfolder, so the theme scan (`showDirs: false`) doesn't list it.
-- `config/themes/*.json` are static; `Paths.generatedThemesPath` (`~/.local/state/axiom/themes/*.json`, named `generated/<name>`) come from a wallpaper.
+- `config/themes/*.json` are static; `Paths.generatedThemesPath` (`~/.local/state/axiom/themes/*.json`, named `generated/<name>`) come from a wallpaper; `Paths.communityThemesPath` (`~/.local/share/axiom/themes/*.json`, named `community/<id>`) are the palettes [community setups](../features/community-setups.md) brought, each a theme on its own (`paired` ignored), listed after the stock ones (`community: true` on their families).
 - Static themes keep the hue slots fixed, even where an upstream base16 port reorders them, because the semantic names and the terminal ANSI colors read them by slot:
   - `base08` red, `09` orange, `0A` yellow, `0B` green, `0C` cyan, `0D` blue, `0E` magenta.
 - A scheme without some hue fills that slot with its nearest color (Rosé Pine's pine as green, Dracula's purple as blue).

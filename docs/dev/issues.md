@@ -18,6 +18,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### A model of size -1 when the overlay grid resizes
+- **Where:** `components/hosts/overlay/OverlayPages.qml` (around the `grid` unit change; the model itself not found yet)
+- **What:** The log shows `Model size of -1 is less than 0` right after `Overlay card unit 572 for 3376x1231` (the overlay's first sizing on a monitor), five times in one session. Opening the Themes or Settings page again didn't repeat it, so it's likely a Repeater or Grid whose count is worked out from a size that is still 0 or unset at that moment.
+- **Size:** small
+- **Found:** 2026-10-18, while adding the community setups gallery
+
 ### CommandOutput's figure text loops on its size
 - **Where:** `components/content/CommandOutput.qml` (the text `StyledText`, `id: body`)
 - **What:** The log shows `Binding loop detected for property "textSize"` while a Command output card is on a shown page: in statement mode `body`'s `textSize` comes from `body.height / 5`, and a `Layout.fillHeight` text's height follows its implicit height, which follows the size.

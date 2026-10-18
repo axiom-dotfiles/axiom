@@ -65,7 +65,7 @@ The first character picks the provider:
 
 ### /config
 - `/config` sets any setting by dotted path (`/config Appearance.font.size 14`). It saves at once through `SettingsManager.commitValue`.
-- It also holds `save` / `restore` for snapshots and `example` for the example setups, as on the settings page ([saved configs](../core/saved-configs-sharing.md)):
+- It also holds `save` / `restore` for snapshots, `example` for the example setups, and `community <search>` for the [community setups](community-setups.md) (with their thumbnails, applied without a wallpaper), as on the settings page ([saved configs](../core/saved-configs-sharing.md)):
   - `save` suggests only `SavedConfigsManager.active`, saying whether it is `modified`. Another snapshot is replaced only by typing its name.
   - `restore` lists the active snapshot first.
   - There is no delete, since a row runs without a confirm.

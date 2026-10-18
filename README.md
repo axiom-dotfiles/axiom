@@ -106,6 +106,8 @@ See **[all the features](docs/features.md)**, with screenshots of every surface.
 > **No file was edited by hand.** Each setup was built with axiom's own editors and Settings page, and ships in [`examples/`](examples). Apply one from **Settings → Maintenance** or with `/config example <name>` in the launcher. It changes the look and layout only (wallpapers, monitors, apps and accounts stay yours), and your current setup is saved first.
 >
 > Your own setup travels the same way: **Settings → Maintenance → Share** exports its look and layout to a file, leaving out monitors, wallpapers, accounts and paths. **Import…** applies anyone's file just as an example applies. Keybinds, apps and commands come along only if you ask, since a shared command runs as you.
+>
+> **More from the community:** browse and apply setups other people shared at [**community-setups**](https://github.com/axiom-dotfiles/community-setups) from **Settings → Maintenance → Community setups** (or `/config community`), and submit yours there.
 
 <details>
 <summary><b>See all nine</b></summary>

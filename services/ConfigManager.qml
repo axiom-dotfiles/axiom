@@ -20,7 +20,7 @@ QtObject {
   readonly property string configFile: "config.json"
 
   // Where axiom keeps what it writes (DataDirs: config, state, ui, data,
-  // notes, generatedThemes), read by Paths. The XDG folders, except while
+  // notes, generatedThemes, communityThemes, cache), read by Paths. The XDG folders, except while
   // an install from before them still has its data in the repo
   // (legacyLayout): that session runs on the old folders, and
   // DataMigrationManager copies them over and reloads.
@@ -35,7 +35,8 @@ QtObject {
       "HOME": Quickshell.env("HOME"),
       "XDG_CONFIG_HOME": Quickshell.env("XDG_CONFIG_HOME"),
       "XDG_STATE_HOME": Quickshell.env("XDG_STATE_HOME"),
-      "XDG_DATA_HOME": Quickshell.env("XDG_DATA_HOME")
+      "XDG_DATA_HOME": Quickshell.env("XDG_DATA_HOME"),
+      "XDG_CACHE_HOME": Quickshell.env("XDG_CACHE_HOME")
     })
 
   // Saves wait while DataMigrationManager copies the legacy folders, so
