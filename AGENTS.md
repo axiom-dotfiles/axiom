@@ -38,7 +38,7 @@ This file holds only the rules. **The mechanics of every service and surface are
 | Which file does X | `grep -n '<word>' docs/dev/generated/files.md` (generated, ~700 lines: grep it, never read it whole) |
 | Every IPC target / every layer's stacking order | `docs/dev/generated/ipc.md`, `docs/dev/generated/layers.md` (generated) |
 
-**Found a problem outside the task?** Don't fix it unasked and don't only mention it: add an entry to `docs/dev/issues.md` (its format is at the top), and tell the user you did. Quote a log warning's message in backticks under **What** so `verify.sh` marks that line `(known: …)`. Remove an entry in the change that fixes it.
+**Found a problem outside the task?** Don't fix it unasked and don't only mention it: add an entry to `docs/dev/issues.md` (its format is at the top), and tell the user you did. Quote a log warning's message in backticks under **What** so `verify.sh` marks that line `(known: …)`. Remove an entry in the change that fixes it. Never open a GitHub issue: those are for people reporting and requesting (`CONTRIBUTING.md`), and `issues.md` is where agents record problems; a maintainer moves an entry to GitHub when it should be one.
 
 ## Running / reloading
 
@@ -61,6 +61,7 @@ Enforced by `.claude/hooks/guard.py` (a PreToolUse hook in `.claude/settings.jso
 - Tell the live niri session to quit, load another config or change its outputs (`niri msg action quit` / `load-config-file`, `niri msg output`): only a nested one (`scripts/dev/nested.sh niri`, its `NIRI_SOCKET`).
 - Apply a theme integration's hookup to the real configs (run `integration_hookup.py` with a scratch `HOME`/`XDG_CONFIG_HOME`).
 - Install, update or remove the greeter for real, or restart greetd (it ends the session). Test `scripts/greeter/greeter_install.sh` with a scratch `AXIOM_GREETER_ROOT`, and look at the greeter with `AXIOM_GREETER=1 AXIOM_GREETER_WINDOWED=1 AXIOM_GREETER_DIR=<scratch> qs -p "$PWD/greeter.qml"` (a window; `qs kill` only that instance).
+- Open a GitHub issue (`gh issue create`, or `gh api` posting one): record the problem in `docs/dev/issues.md` instead.
 - The user's `~/.config/hypr/user/` is a symlink to `~/repos/dotfiles/hypr/user`.
 
 ## Checks

@@ -2,9 +2,31 @@
 
 Thanks for wanting to help. Bug reports, ideas, translations and code are all welcome.
 
-- **Found a bug?** [Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) with what you did, what happened, your compositor, and the output of `scripts/log.sh` from your clone.
-- **Have an idea?** Open a feature request first if it's big, so we can agree on the shape before you build it.
-- **Want to translate?** Copy `config/i18n/ja.json` to `config/i18n/<code>.json` and fill it in. `scripts/check_i18n.py` lists what's missing. It shows up under **Settings → General → Language** right away.
+## Reporting and requesting
+
+[Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) and pick the form that fits:
+
+| Form | For |
+| --- | --- |
+| **Bug report** | Something broken or behaving wrongly |
+| **New feature or component** | Something big: a new surface, page type, editor or subsystem |
+| **Small feature or improvement** | A change to something that exists, a new setting or launcher command, or a small feature that stands on its own (a pomodoro timer, a todo list) |
+| **Bar widget or module** | Something new for the bar, or a module for overlay pages, edge menus, the desktop, the lock screen or the login screen |
+| **App theme request** | Another app that should follow axiom's theme |
+| **Compositor or distribution support** | Running on another compositor, or installing on another distribution. Needs someone who runs it to test it |
+| **Translation** | A new language, or wrong or untranslated text |
+
+For a bug, paste the output of two commands from axiom's `scripts/` folder (`~/.config/quickshell/axiom/scripts/` for a clone, `/usr/share/axiom/scripts/` for a package): `bug_info.sh`, which prints your versions and setup, and `log.sh`, which shows the shell's log.
+
+Each form adds its kind's label plus `triage`, which a maintainer swaps for `needs-info`, `help wanted`, `good first issue` or a `compositor: …` label once it's sorted. Platform requests also carry `needs-maintainer` until someone signs up to test them.
+
+Questions, help with setting up, and ideas not ready to be a request go in [Discussions](https://github.com/axiom-dotfiles/axiom/discussions). Want to build something big? Open its request first, so we can agree on the shape before you build it.
+
+**Want to translate?** Copy `config/i18n/ja.json` to `config/i18n/<code>.json` and fill it in. `scripts/check_i18n.py` lists what's missing. It shows up under **Settings → General → Language** right away.
+
+### GitHub issues and `docs/dev/issues.md`
+
+They do different jobs. **GitHub issues** are reports and requests from people using axiom. [`docs/dev/issues.md`](docs/dev/issues.md) is a log kept in the repository of problems in the code, found while working on something else. Contributors and coding agents add to it rather than fixing things outside their change. Agents never open GitHub issues. A maintainer moves an entry to GitHub when it needs discussion or someone to pick it up.
 
 ## Setting up
 
@@ -28,7 +50,7 @@ axiom has no build step: Quickshell runs the QML as it is and reloads a file the
 3. **Edit and save.** The running shell reloads, so you see the change straight away.
 4. **Check it** with `scripts/dev/verify.sh` until it prints `verify ok`. It formats your QML, runs the checks your change touches and shows the shell's log.
 5. **Update the docs** that describe what you changed (verify.sh lists them).
-6. **Open a pull request** against `main` and fill in the template. CI runs every check (`scripts/dev/verify.sh --all` locally).
+6. **Open a pull request** against `main` and fill in the template, linking the issue it closes (`Fixes #123`). CI runs every check (`scripts/dev/verify.sh --all` locally).
 
 Found an unrelated bug along the way? Add it to `docs/dev/issues.md` instead of fixing it in the same pull request.
 

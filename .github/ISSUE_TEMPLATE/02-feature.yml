@@ -1,0 +1,42 @@
+name: New feature or component
+description: Something big that axiom doesn't have yet, such as a new surface, page type, editor or subsystem
+labels: [feature, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For something new and sizeable: a new kind of surface or page, an editor, a whole subsystem. Big features are agreed on before anyone builds them, so describe the need first and the solution second.
+
+        Smaller asks have their own forms: **Small feature or improvement** (a setting, a launcher command, a pomodoro timer), **Bar widget or module**, **App theme request**, and **Compositor or distribution support**.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you want to do
+      description: The problem or use case, rather than a solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: How it could work
+      description: What you picture, where it would live (the bar, an overlay page, its own window, …) and how you'd use it. Sketches and screenshots from other shells help.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: What comes close today
+      description: Parts of axiom you'd build on, workarounds you use now, or how other shells do it.
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Helping out
+      options:
+        - label: I'd like to build this myself, with guidance on the shape.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues, and this isn't one of them.
+          required: true

@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and help
+    url: https://github.com/axiom-dotfiles/axiom/discussions/categories/q-a
+    about: How do I…? Stuck setting something up? Ask in Discussions rather than opening an issue.
+  - name: Ideas to talk over
+    url: https://github.com/axiom-dotfiles/axiom/discussions/categories/ideas
+    about: Not sure what it should look like yet? Shape it in Discussions, then open a request.
+  - name: Show your setup
+    url: https://github.com/axiom-dotfiles/axiom/discussions/categories/show-and-tell
+    about: Share your bars, pages and themes.
+  - name: Contributing guide
+    url: https://github.com/axiom-dotfiles/axiom/blob/main/CONTRIBUTING.md
+    about: Setting up a clone, the workflow, and adding a translation yourself.

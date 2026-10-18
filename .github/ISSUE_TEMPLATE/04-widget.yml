@@ -1,0 +1,52 @@
+name: Bar widget or module
+description: Something new to show on the bar, or a new module for overlay pages, edge menus, the desktop, the lock screen or the login screen
+labels: [widget, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A **bar widget** sits on a bar, and can open a popout on hover. A **module** is a card on a grid: overlay pages, edge menus, the desktop, the lock screen and the login screen are all grids of modules. One request can ask for both.
+  - type: textarea
+    id: what
+    attributes:
+      label: What it shows or does
+      description: What you'd see, and what clicking, scrolling or hovering it would do.
+    validations:
+      required: true
+  - type: checkboxes
+    id: where
+    attributes:
+      label: Where it should show
+      description: Tick every place you'd use it.
+      options:
+        - label: The bar
+        - label: Overlay pages and edge menus
+        - label: The desktop (behind your windows)
+        - label: The lock screen
+        - label: The login screen
+  - type: markdown
+    attributes:
+      value: |
+        **About the lock and login screens:** anyone at the keyboard can see and use them, so they only take modules that show nothing private and launch, change or write nothing: no notifications, clipboard, notes, files or app launchers. The lock screen can show your session's media or volume; the login screen runs before anyone has logged in, so it only has what the machine itself knows (the clock, the weather, the battery). If you ticked either, say below why it's safe there.
+  - type: textarea
+    id: data
+    attributes:
+      label: Where its data comes from
+      description: An app, a command, a D-Bus service, a web API, a file? Link it if you can.
+  - type: textarea
+    id: lockscreen
+    attributes:
+      label: Why it's safe on the lock or login screen
+      description: Only if you ticked one of them.
+  - type: textarea
+    id: mockup
+    attributes:
+      label: Mockup or example
+      description: A sketch, or a screenshot of something similar elsewhere.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues, and this isn't one of them.
+          required: true

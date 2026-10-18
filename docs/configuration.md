@@ -78,4 +78,6 @@ scripts/log.sh -f       # follow
 
 A clean reload prints only `Reloading configuration...` and `Configuration Loaded`.
 
+Reporting a bug? Include the output of `scripts/bug_info.sh` (your versions, compositor, distribution and config mode) along with the log. Both scripts are in axiom's folder: `~/.config/quickshell/axiom` for a clone, `/usr/share/axiom` for a package.
+
 Icons showing as words (`wifi`, `battery_full`) mean the icon font is missing: install `ttf-material-symbols-variable` and restart the shell.

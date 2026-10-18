@@ -1,0 +1,62 @@
+name: Small feature or improvement
+description: A change to something axiom has, a new setting or launcher command, or a small self-contained feature (a pomodoro timer, a todo list)
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For making something that exists better, a new option, a launcher command, or a small feature that stands on its own, like a pomodoro timer or a todo list.
+
+        Something to show on the bar or an overlay page? Use **Bar widget or module**. A new surface or subsystem? Use **New feature or component**.
+  - type: textarea
+    id: what
+    attributes:
+      label: What you want
+      description: The problem or use case, and what you'd like axiom to do about it.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: The part of axiom it changes, if any.
+      options:
+        - Something new
+        - Bar or bar popouts
+        - Overlay pages, or their editors
+        - Edge menus
+        - Dock
+        - Desktop widgets
+        - Settings
+        - Launcher
+        - Notifications
+        - OSD
+        - Lock screen
+        - Login screen (greeter)
+        - Workspaces or overview
+        - Keybinds, monitors or compositor setup
+        - Themes and app integrations
+        - Chat, calendar or notes
+        - First-start setup
+        - Installer or distribution package
+        - Self-update
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: How it could work
+      description: A setting, a launcher command (`/…`), a button, a keybind? Where would you find it?
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Workarounds you use now, or how other shells do it.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues, and this isn't one of them.
+          required: true

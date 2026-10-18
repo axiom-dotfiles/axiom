@@ -1,0 +1,44 @@
+name: Translation
+description: Ask for a new language, or report wrong or untranslated text in one
+labels: [translation, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A language is one JSON file, so it's a good first contribution: copy `config/i18n/ja.json` to `config/i18n/<code>.json` and translate its entries. `scripts/check_i18n.py` lists what's missing, and it shows under **Settings → General → Language** as soon as you save. See [CONTRIBUTING.md](https://github.com/axiom-dotfiles/axiom/blob/main/CONTRIBUTING.md).
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - A new language
+        - Wrong text in a language
+        - Text that isn't translated
+    validations:
+      required: true
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      description: Its name and code.
+      placeholder: "German (de)"
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: For wrong or untranslated text, where it shows (screen, setting, button), what it says, and what it should say. A screenshot helps.
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Helping out
+      options:
+        - label: I'd translate it, or fix it, myself.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues, and this isn't one of them.
+          required: true

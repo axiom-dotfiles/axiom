@@ -201,7 +201,7 @@ By default axiom runs *detached*: it applies its keybinds and settings at runtim
 
 ## Contributing
 
-Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) for a bug or an idea, or fork the repository and open a pull request against `main`. CI runs the same checks as `scripts/check_all.sh`.
+Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) and pick the form that fits (a bug, a feature, a bar widget or module, an app to theme, a compositor or distribution, a translation), or fork the repository and open a pull request against `main`. CI runs the same checks as `scripts/check_all.sh`.
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers setting up, the workflow, and where in the docs to start. There's no build step: `qs` interprets the QML and hot-reloads on save.
 

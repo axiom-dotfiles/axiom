@@ -1,0 +1,54 @@
+name: App theme request
+description: Make another app follow axiom's theme
+labels: [theme-integration, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        axiom themes other apps by writing a colors file of their own (`axiom.<ext>`) whenever the theme changes, which the app's config then includes. The more you can tell us about how the app takes colors, the quicker it gets added.
+  - type: input
+    id: app
+    attributes:
+      label: App
+      description: Its name and a link to it.
+      placeholder: "Foo terminal, https://example.org/foo"
+    validations:
+      required: true
+  - type: textarea
+    id: format
+    attributes:
+      label: How it takes colors
+      description: The config file and format (TOML, CSS, …), where it lives, and whether it can include another file. A link to its theming docs is ideal.
+      placeholder: |
+        ~/.config/foo/config.toml, and it can `import` another TOML file.
+        Docs: https://example.org/foo/docs/themes
+    validations:
+      required: true
+  - type: dropdown
+    id: reload
+    attributes:
+      label: Does it pick up new colors while running?
+      options:
+        - Yes, on its own when the file changes
+        - Yes, with a command or signal (say which below)
+        - No, only after a restart
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: An existing theme for it
+      description: A link to a base16, Catppuccin or similar theme for the app, or its own default colors file. It shows which colors it takes.
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: The reload command, quirks, or parts of the app a theme can't reach.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues and the apps already under **Settings → Theme integrations**, and this app isn't one of them.
+          required: true
