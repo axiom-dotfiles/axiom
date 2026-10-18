@@ -27,9 +27,17 @@ Panel {
   fullMinWidth: Appearance.fontSize * 16
   fullMinHeight: Appearance.fontSize * 14
 
+  // The calendar only while today's events show
+  function registerCalendar() {
+    if (root.showAgenda)
+      CalendarManager.acquire(root);
+    else
+      CalendarManager.release(root);
+  }
+  onShowAgendaChanged: registerCalendar()
   Component.onCompleted: {
     PomodoroManager.acquire(root);
-    CalendarManager.acquire(root);
+    root.registerCalendar();
   }
   Component.onDestruction: {
     PomodoroManager.release(root);

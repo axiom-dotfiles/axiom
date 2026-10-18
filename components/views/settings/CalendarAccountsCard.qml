@@ -296,7 +296,7 @@ FoldingCard {
     StyledText {
       Layout.fillWidth: true
       text: root.isLocal ? I18n.tr("Kept in {0}", Paths.userDataPath + "calendars") : root.result?.busy ? I18n.tr("Connecting…") : root.result?.text ?? ""
-      textColor: root.result?.busy ? Theme.foregroundAlt : root.result?.ok ? Theme.success : Theme.error
+      textColor: root.isLocal || root.result?.busy ? Theme.foregroundAlt : root.result?.ok ? Theme.success : Theme.error
       textSize: Appearance.fontSize - 2
       wrapMode: Text.Wrap
     }

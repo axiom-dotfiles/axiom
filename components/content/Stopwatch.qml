@@ -48,7 +48,7 @@ Panel {
   Component.onDestruction: StopwatchManager.release(root)
 
   compactContent: CompactFigure {
-    icon: !StopwatchManager.timerIdle ? "hourglass_top" : "timer"
+    icon: !StopwatchManager.timerIdle ? "hourglass_top" : "timer_play"
     value: !StopwatchManager.timerIdle ? StopwatchManager.timerText : StopwatchManager.elapsedText
     label: !StopwatchManager.timerIdle ? (StopwatchManager.timer.label || I18n.tr("Timer")) : I18n.tr("Stopwatch")
   }

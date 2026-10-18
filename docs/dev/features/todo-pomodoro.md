@@ -23,7 +23,7 @@ One todo list, one pomodoro timer and one one-off timer + stopwatch, each shown 
   - Every `longBreakEvery`-th finished focus session is followed by a long break.
   - `Pomodoro.autoStartBreaks` / `autoStartWork` say whether the next phase starts by itself.
 - **Kept:** in a `PersistentProperties` (a QML reload) and StateManager `pomodoro` (a restart), with the todo it's for (`todoUid`).
-- **The end:** one single-shot timer to `endsAt`, at most an hour at a time, running with nothing showing the timer (the service is created from `shell.qml`'s `_services`). At the end it advances and, with `Pomodoro.notify`, sends a notification (`desktopEntry` `axiom-pomodoro`; a click opens a page or edge menu with a Pomodoro or Focus module: `openTimer`). A phase that ended over 5 minutes before axiom noticed (it wasn't running) advances without one.
+- **The end:** handled once per end (`_finish` re-checks the state, since a restart can queue it twice); one single-shot timer to `endsAt`, at most an hour at a time, running with nothing showing the timer (the service is created from `shell.qml`'s `_services`). At the end it advances and, with `Pomodoro.notify`, sends a notification (`desktopEntry` `axiom-pomodoro`; a click opens a page or edge menu with a Pomodoro or Focus module: `openTimer`). A phase that ended over 5 minutes before axiom noticed (it wasn't running) advances without one.
 - **The display:** `now` ticks once a second only while running and something has `acquire(owner)`d it (the widget, the modules).
 - **UI:** `PomodoroDial` (ring, phase, a dot per session to the long break, stop / start-pause / skip, task picker). The `Pomodoro` widget: time left while not idle, colored by phase; left click toggles, right skips, middle stops. Its popout and module are `content/Pomodoro.qml`.
 - **Entry points:** IPC `pomodoro` (`start`, `pause`, `toggle`, `skip`, `stop`, `reset`, `status`); launcher `/pomodoro [start|pause|skip|stop]`.
@@ -38,7 +38,7 @@ One todo list, one pomodoro timer and one one-off timer + stopwatch, each shown 
 - **Entry points:** IPC `stopwatch` (`timer <text>`, `toggleTimer`, `resetTimer`, `toggle`, `lap`, `reset`, `status`); launcher `/timer <duration> [label]` (a row previews it; pause and reset while set) and `/stopwatch [start|pause|lap|reset]`.
 
 ### Focus module
-- `content/Focus.qml`: the dial (no task picker: the list's "work on this" picks it), the todo list, and today's events (`DayPane`, acquiring `CalendarManager`), side by side when wide. `showTimer` / `showTodos` / `showAgenda`.
+- `content/Focus.qml`: the dial (no task picker: the list's "work on this" picks it), the todo list, and today's events (`DayPane`; `CalendarManager` acquired only while `showAgenda` is on), side by side when wide. `showTimer` / `showTodos` / `showAgenda`.
 
 ### Settings
 - `Todo`, `Pomodoro` and `Stopwatch` are Modules sections, scope `personal`: shared by every widget and module, carried by an export only with personal parts.

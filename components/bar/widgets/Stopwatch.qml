@@ -22,7 +22,7 @@ BarIconWidget {
 
   hidden: properties.hideWhenIdle && !root.showsTimer && !root.showsStopwatch
 
-  icon: root.showsTimer ? "hourglass_top" : "timer"
+  icon: root.showsTimer ? "hourglass_top" : "timer_play"
   text: root.showsTimer ? StopwatchManager.timerText : StopwatchManager.elapsedText
   // Ticking: sized by its digit count, not by each second's digits
   steadyDigits: true
