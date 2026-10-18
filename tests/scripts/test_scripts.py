@@ -141,6 +141,17 @@ class Themes(unittest.TestCase):
             for key, value in defaults["semantic"][variant].items():
                 self.assertIn(value, BASES, f"{variant}.{key}")
 
+    def test_template_is_current_and_complete(self):
+        result = subprocess.run([sys.executable, str(SCRIPTS / "gen_theme_template.py"), "--check"],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        template = json.loads((THEMES / "template" / "theme.json").read_text())
+        schema = json.loads((THEMES / "theme.schema.json").read_text())
+        self.assertEqual([k for k in schema["required"] if k not in template], [])
+        self.assertEqual([k for k in schema["properties"]["semantic"]["required"] if k not in template["semantic"]], [])
+        for base in BASES:
+            self.assertRegex(template["colors"][base], HEX)
+
 
 def luminance(color):
     channels = [int(color[i:i + 2], 16) / 255 for i in (1, 3, 5)]

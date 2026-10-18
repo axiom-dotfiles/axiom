@@ -29,4 +29,4 @@ Fixes #
 - [ ] New settings are in `config/json/config.schema.json` with a default, plus a reader property
 - [ ] A change to the layout of existing config bumps `version`, with a `ConfigMigration` step and a test
 - [ ] The docs that verify.sh lists still describe the change (`docs/dev/`, and `docs/` for anything users see)
-- [ ] Problems found along the way and not fixed here are in `docs/dev/issues.md`
+- [ ] Unrelated problems found along the way are reported as issues, not fixed here

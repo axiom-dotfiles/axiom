@@ -58,7 +58,7 @@ axiom ships the setups from the README in `examples/`. Apply one from **Settings
 
 - Hand-made themes live in `config/themes/`, and generated ones in `~/.local/state/axiom/themes/`.
 - A theme is a base16 palette (`base00`–`base0F`) plus optional semantic overrides. See `config/themes/theme.schema.json`.
-- To add a theme, drop a JSON file in `config/themes/`. To make a dark/light pair, give each file a `paired` field naming the other.
+- To add a theme, copy the template `config/themes/template/theme.json` to `config/themes/<name>.json`, then set its name, variant and sixteen colors. To make a dark/light pair, give each file a `paired` field naming the other.
 
 ### Translations
 

@@ -5,6 +5,8 @@
 #   - the translations (scripts/check_i18n.py --fill): every new key, empty,
 #     in each config/i18n/<code>.json, and the empty template a new language
 #     is copied from, config/i18n/template/language.json
+#   - the theme template, config/themes/template/theme.json
+#     (scripts/gen_theme_template.py)
 # Enabled per clone with
 #   git config core.hooksPath .githooks
 set -euo pipefail
@@ -13,10 +15,11 @@ root="$(git rev-parse --show-toplevel)"
 cd "$root"
 
 staged="$(git diff --cached --name-only --diff-filter=ACMRD)"
-docs=0 i18n=0
+docs=0 i18n=0 theme=0
 grep -qE '\.qml$|^config/json/config\.schema\.json$|^scripts/(gen_docs|qml_modules)\.py$' <<<"$staged" && docs=1
 grep -qE '\.qml$|^config/json/config\.schema\.json$|^scripts/check_i18n\.py$|^config/i18n/' <<<"$staged" && i18n=1
-[[ $docs -eq 1 || $i18n -eq 1 ]] || exit 0
+grep -qE '^config/json/theme-defaults\.json$|^scripts/gen_theme_template\.py$|^config/themes/template/' <<<"$staged" && theme=1
+[[ $docs -eq 1 || $i18n -eq 1 || $theme -eq 1 ]] || exit 0
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -49,7 +52,7 @@ if [[ $i18n -eq 1 && -f "$tmp/scripts/check_i18n.py" ]]; then
   python3 "$tmp/scripts/check_i18n.py" --fill >/dev/null || true
   template=config/i18n/template/language.json
   mkdir -p "$(dirname "$template")"
-  cmp -s "$tmp/$template" "$template" || place "$template"
+  cmp -s "$tmp/$template" <(git show ":$template" 2>/dev/null) || place "$template"
   for file in "$tmp"/config/i18n/*.json; do
     rel="config/i18n/$(basename "$file")"
     cmp -s "$file" <(git show ":$rel") && continue
@@ -62,4 +65,11 @@ if [[ $i18n -eq 1 && -f "$tmp/scripts/check_i18n.py" ]]; then
       exit 1
     fi
   done
+fi
+
+if [[ $theme -eq 1 && -f "$tmp/scripts/gen_theme_template.py" ]]; then
+  python3 "$tmp/scripts/gen_theme_template.py" >/dev/null
+  template=config/themes/template/theme.json
+  mkdir -p "$(dirname "$template")"
+  cmp -s "$tmp/$template" <(git show ":$template" 2>/dev/null) || place "$template"
 fi

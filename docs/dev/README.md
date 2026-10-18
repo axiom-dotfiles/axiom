@@ -23,7 +23,7 @@ Dependencies point one way, methods → data owners → readers → services →
 - [generated/layers.md](generated/layers.md): every layer namespace's `order` and why, from `LayerStack.layers`.
 
 ### Known issues
-- [issues.md](issues.md): problems found in the code but not fixed yet. Add one when you find something out of scope; remove it with the fix. Reports and requests from people are GitHub issues, which agents never open.
+- [issues.md](issues.md): coding agents' working list of problems found in the code but not fixed yet (add one when you find something out of scope; remove it with the fix). Not where people report or look up problems: that's GitHub issues, which agents never open.
 
 ### Installing
 - [packaging.md](packaging.md): install.sh (distributions, compositors, `--dry-run`), what a packaged shell does differently, and `check_packages.py`.

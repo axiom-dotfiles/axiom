@@ -20,13 +20,13 @@ For a bug, paste the output of two commands from axiom's `scripts/` folder (`~/.
 
 Each form adds its kind's label plus `triage`, which a maintainer swaps for `needs-info`, `help wanted`, `good first issue` or a `compositor: …` label once it's sorted. Platform requests also carry `needs-maintainer` until someone signs up to test them.
 
-Questions, help with setting up, and ideas not ready to be a request go in [Discussions](https://github.com/axiom-dotfiles/axiom/discussions). Want to build something big? Open its request first, so we can agree on the shape before you build it.
+Questions and help with setting up go in [Discussions › Q&A](https://github.com/axiom-dotfiles/axiom/discussions/categories/q-a), ideas not ready to be a request in [Ideas](https://github.com/axiom-dotfiles/axiom/discussions/categories/ideas), and your setup in [Show and tell](https://github.com/axiom-dotfiles/axiom/discussions/categories/show-and-tell). Want to build something big? Open its request first, so we can agree on the shape before you build it.
 
 **Want to translate?** Copy `config/i18n/template/language.json` to `config/i18n/<code>.json` (`de.json`), fill in `_meta.name` (the language's own name, `Deutsch`) and `_meta.locale` (`de_DE`), adjust the date formats, and translate the strings. Anything left empty shows in English, so a partial translation is fine to send. `scripts/check_i18n.py` lists what's missing. It shows up under **Settings → General → Language** right away.
 
-### GitHub issues and `docs/dev/issues.md`
+**Want to add a theme?** Copy `config/themes/template/theme.json` to `config/themes/<name>.json`, set its `name`, `author` and `variant`, and replace the sixteen `base00`–`base0F` colors. The `semantic` names map onto those and are already sensible, so only change the ones your palette needs. For a dark/light pair, give each file a `paired` field naming the other. It shows up under **Themes** as soon as you save.
 
-They do different jobs. **GitHub issues** are reports and requests from people using axiom. [`docs/dev/issues.md`](docs/dev/issues.md) is a log kept in the repository of problems in the code, found while working on something else. Contributors and coding agents add to it rather than fixing things outside their change. Agents never open GitHub issues. A maintainer moves an entry to GitHub when it needs discussion or someone to pick it up.
+**Found a security problem?** Don't open an issue: report it privately as [SECURITY.md](SECURITY.md) describes.
 
 ## Setting up
 
@@ -37,7 +37,7 @@ axiom has no build step: Quickshell runs the QML as it is and reloads a file the
    git clone https://github.com/<you>/axiom.git ~/.config/quickshell/axiom
    ```
    (Already running axiom from a clone? Use that one, and add your fork as a remote.)
-2. Turn on the pre-commit hook, which keeps the generated docs and the translation files up to date (new text goes into every language, empty, and into the template a new language starts from):
+2. Turn on the pre-commit hook, which keeps what's generated up to date: the developer docs, the translation files (new text goes into every language, empty, and into the template a new language starts from) and the theme template:
    ```bash
    git config core.hooksPath .githooks
    ```
@@ -46,13 +46,13 @@ axiom has no build step: Quickshell runs the QML as it is and reloads a file the
 ## The workflow
 
 1. **Branch** off `main`.
-2. **Find your way in.** Use the table below to find the doc for what you're touching, and read it first. Check [`docs/dev/issues.md`](docs/dev/issues.md) for known problems in that area.
+2. **Find your way in.** Use the table below to find the doc for what you're touching, and read it first. Check the [open issues](https://github.com/axiom-dotfiles/axiom/issues) in that area too.
 3. **Edit and save.** The running shell reloads, so you see the change straight away.
 4. **Check it** with `scripts/dev/verify.sh` until it prints `verify ok`. It formats your QML, runs the checks your change touches and shows the shell's log.
 5. **Update the docs** that describe what you changed (verify.sh lists them).
 6. **Open a pull request** against `main` and fill in the template, linking the issue it closes (`Fixes #123`). CI runs every check (`scripts/dev/verify.sh --all` locally).
 
-Found an unrelated bug along the way? Add it to `docs/dev/issues.md` instead of fixing it in the same pull request.
+Found an unrelated bug along the way? [Report it](https://github.com/axiom-dotfiles/axiom/issues/new?template=01-bug.yml) rather than fixing it in the same pull request.
 
 ## How it's laid out
 

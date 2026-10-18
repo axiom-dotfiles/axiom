@@ -1,0 +1,22 @@
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A place to shape an idea before it's a request. Once it's clear what you want, open the [issue form](https://github.com/axiom-dotfiles/axiom/issues/new/choose) that fits (a feature, a widget or module, an app to theme, …) and link this discussion.
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What you'd like axiom to do, and the problem it solves for you.
+    validations:
+      required: true
+  - type: textarea
+    id: open
+    attributes:
+      label: What's still open
+      description: The parts you're unsure about, or would like opinions on.
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples
+      description: Sketches, or screenshots of how other shells or apps do it.

@@ -78,7 +78,7 @@ for f in "${changed[@]}"; do
   # tests/scripts/test_scripts.py's classes for each script (the whole
   # file takes ~15 s); a new script with tests gets a line here
   case "$f" in
-  scripts/theme_*.sh | scripts/lib/theme_env.sh | scripts/templates/* | config/themes/* | config/json/theme-defaults.json)
+  scripts/theme_*.sh | scripts/lib/theme_env.sh | scripts/templates/* | config/themes/* | config/json/theme-defaults.json | scripts/gen_theme_template.py)
     script_tests+=(Themes TerminalPalette ThemeIntegrations)
     ;;
   scripts/integration_hookup.py) script_tests+=(HookupScript) ;;
