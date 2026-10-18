@@ -3,17 +3,18 @@
 # Quickshell theme -> qt5ct / qt6ct color scheme, and a KDE color scheme.
 #
 # Usage: theme_qt.sh <theme.json> [output_dir]
-#   output: ~/.config/qt5ct/colors/axiom.conf and ~/.config/qt6ct/colors/axiom.conf (each tool that is installed),
+#   output: ~/.config/qt5ct/colors/axiom.conf and ~/.config/qt6ct/colors/axiom.conf (each tool that is installed, if any),
 #           ~/.local/share/color-schemes/Axiom.colors (KDE apps; into output_dir: axiom.conf and Axiom.colors)
 #   hookup: in qt5ct/qt6ct, Palette: Custom, color scheme "axiom" (needs QT_QPA_PLATFORMTHEME=qt5ct, which
 #           axiom's managed session sets); ColorScheme=Axiom in kdeglobals' [General], after which its
-#           color groups are kept a copy of Axiom.colors (as Plasma does)
-#   reload: each Qt app's next start (KDE apps are told the palette changed)
+#           color groups are kept a copy of Axiom.colors (as Plasma does), and in its [UiSettings]
+#           (apps with a color scheme menu; one picking another there is warned about)
+#   reload: each Qt app's next start (KDE apps on the kde platform theme are told the palette changed)
 #
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/theme_env.sh"
-usage_or_help 3 11 "$@"
+usage_or_help 3 12 "$@"
 require_cmds jq
 
 if [ $# -ge 2 ]; then
@@ -25,10 +26,7 @@ else
     for TOOL in qt5ct qt6ct; do
         command -v "$TOOL" &>/dev/null && OUTPUTS+=("${XDG_CONFIG_HOME:-$HOME/.config}/$TOOL/colors/axiom.conf")
     done
-    if [ ${#OUTPUTS[@]} -eq 0 ]; then
-        echo "Error: neither 'qt5ct' nor 'qt6ct' is installed." >&2
-        exit 1
-    fi
+    # Neither: the KDE scheme alone (KDE apps read it without them)
 fi
 load_theme "$1"
 export_theme_colors
@@ -72,12 +70,26 @@ render_template "$SCRIPT_DIR/templates/qt_template.colors" "$SCHEME"
 # KDE apps outside Plasma read kdeglobals' copy of the scheme, not the
 # file: once Apply has named it there, its groups are kept in step (only
 # the keys the scheme sets; the rest of kdeglobals stays as it is)
-KDEGLOBALS="${XDG_CONFIG_HOME:-$HOME/.config}/kdeglobals"
+KDE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
+KDEGLOBALS="$KDE_CONFIG/kdeglobals"
 [ $# -lt 2 ] && [ -f "$KDEGLOBALS" ] || exit 0
-SELECTED=$(awk '/^\[/ { general = ($0 == "[General]"); next }
-    general && /^ColorScheme[ \t]*=/ { sub(/^[^=]*=[ \t]*/, ""); value = $0 }
-    END { print value }' "$KDEGLOBALS")
-[ "$SELECTED" == "Axiom" ] || exit 0
+# The ColorScheme a KDE config file sets in group $2 ("" for none)
+scheme_in() {
+    awk -v group="[$2]" '/^\[/ { here = ($0 == group); next }
+        here && /^ColorScheme[ \t]*=/ { sub(/^[^=]*=[ \t]*/, ""); value = $0 }
+        END { print value }' "$1"
+}
+# Apps with a color scheme menu (KColorSchemeManager: Okular, Dolphin,
+# Kate) read [UiSettings] from their own rc before kdeglobals': say which
+# ones picked another scheme there, as kdeglobals' then doesn't reach them
+if [ "$(scheme_in "$KDEGLOBALS" UiSettings)" == "Axiom" ]; then
+    for RC in "$KDE_CONFIG"/*rc; do
+        [ -f "$RC" ] || continue
+        OWN=$(scheme_in "$RC" UiSettings)
+        [ -z "$OWN" ] || [ "$OWN" == "Axiom" ] || warn "'$RC' picks its own color scheme ($OWN): choose Axiom in that app's Settings → Color Scheme to follow axiom's theme."
+    done
+fi
+[ "$(scheme_in "$KDEGLOBALS" General)" == "Axiom" ] || exit 0
 REAL="$(realpath -m "$KDEGLOBALS")"
 if [ ! -w "$REAL" ] || [ ! -w "$(dirname "$REAL")" ]; then
     warn "'$KDEGLOBALS' is '$REAL', which you can't change: KDE apps keep its colors."

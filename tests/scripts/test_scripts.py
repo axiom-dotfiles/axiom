@@ -359,6 +359,24 @@ class ThemeIntegrations(unittest.TestCase):
         self.run_script(SCRIPTS / "theme_qt.sh", [theme])
         self.assertEqual(kdeglobals.read_text(), first, "a second run changes nothing")
 
+    def test_qt_warns_of_kde_apps_picking_their_own_scheme(self):
+        """Okular and the like read [UiSettings] from their own rc before
+        kdeglobals': one naming another scheme there is said, not changed."""
+        config = Path(self.env["XDG_CONFIG_HOME"])
+        config.mkdir(parents=True)
+        (config / "kdeglobals").write_text("[General]\nColorScheme=Axiom\n\n[UiSettings]\nColorScheme=Axiom\n")
+        okular = config / "okularrc"
+        okular.write_text("[UiSettings]\nColorScheme=BreezeDark\n")
+        (config / "dolphinrc").write_text("[UiSettings]\nColorScheme=Axiom\n")
+        (config / "katerc").write_text("[General]\nColorScheme=Other\n")
+        problems, _ = run_problems(SCRIPTS / "theme_qt.sh", [THEMES / "ayu-dark.json"], self.env)
+        self.assertEqual(len(problems), 1, problems)
+        self.assertIn("okularrc", problems[0])
+        self.assertIn("BreezeDark", problems[0])
+        self.assertEqual(okular.read_text(), "[UiSettings]\nColorScheme=BreezeDark\n")
+        okular.write_text("[UiSettings]\nColorScheme=Axiom\n")
+        self.assertEqual(run_problems(SCRIPTS / "theme_qt.sh", [THEMES / "ayu-dark.json"], self.env)[0], [])
+
     def test_ncspot_leaves_your_keys(self):
         config = self.out / "config.toml"
         config.parent.mkdir(parents=True)
@@ -515,6 +533,31 @@ class HookupScript(unittest.TestCase):
         self.assertEqual(len(backups), 1)
         self.assertEqual(os.readlink(backups[0]), str(real))
         self.assertTrue(self.hookup("status", "gtk")["targets"][1]["done"])
+
+    def test_qt_names_the_scheme_for_kde_apps_with_their_own_menu(self):
+        """kdeglobals gets ColorScheme=Axiom in [General] (KColorScheme's
+        copy) and in [UiSettings], which KColorSchemeManager apps (Okular,
+        Dolphin) read and otherwise fall back to Breeze from: two targets in
+        one file, both applied, the user's own choice commented out."""
+        kdeglobals = self.write("kdeglobals", "[General]\nColorScheme=BreezeDark\n\n[UiSettings]\nColorScheme=BreezeDark\n\n[KDE]\nwidgetStyle=Fusion\n")
+        targets = [t for t in self.hookup("status", "qt")["targets"] if t["path"].endswith("kdeglobals")]
+        self.assertEqual([(t["section"], t["done"]) for t in targets], [("General", False), ("UiSettings", False)])
+        self.hookup("apply", "qt")
+        data = configparser.ConfigParser(interpolation=None, strict=False, comment_prefixes=("#",))
+        data.optionxform = str
+        data.read_string(kdeglobals.read_text())
+        self.assertEqual(data["General"]["ColorScheme"], "Axiom")
+        self.assertEqual(data["UiSettings"]["ColorScheme"], "Axiom")
+        self.assertEqual(data["KDE"]["widgetStyle"], "Fusion")
+        self.assertEqual(kdeglobals.read_text().count("# axiom: ColorScheme=BreezeDark"), 2)
+        self.assertTrue(all(t["done"] for t in self.hookup("status", "qt")["targets"] if t["path"].endswith("kdeglobals")))
+        # Without a [UiSettings] of its own, Apply adds the group
+        kdeglobals.write_text("[General]\nColorScheme=Axiom\n")
+        self.hookup("apply", "qt")
+        data = configparser.ConfigParser(interpolation=None, strict=False)
+        data.optionxform = str
+        data.read_string(kdeglobals.read_text())
+        self.assertEqual(data["UiSettings"]["ColorScheme"], "Axiom")
 
     def test_end_keeps_a_symlink_and_backs_up(self):
         real = Path(self.tmp) / "dotfiles" / "kitty.conf"

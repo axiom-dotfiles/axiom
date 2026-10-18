@@ -18,12 +18,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
-### The Qt integration's KDE half needs qt5ct or qt6ct
-- **Where:** `scripts/theme_qt.sh` (exits when neither tool is installed), `services/ThemeManager.qml` (`_integrationCommands.qt`)
-- **What:** The "Qt and KDE apps" switch writes the KDE color scheme and keeps `kdeglobals` in step, which KDE apps read without qt5ct or qt6ct. But the switch counts as installed only with one of those tools, and `theme_qt.sh` exits before writing `Axiom.colors` without one, so someone with only KDE apps (Dolphin, Okular) gets nothing. To decide: make qt*ct optional there (write the KDE scheme always, and the qt*ct schemes for the tools present), and what tells that KDE apps are installed.
-- **Size:** small
-- **Found:** 2026-10-18, while auditing the variousCompositorInducesBugFixes branch
-
 ### The greeter on sway can't use a cursor theme's companion
 - **Where:** `services/GreetdManager.qml` (`_applyCompositor`), `services/CursorThemeManager.qml`
 - **What:** On sway the greeter sets `seat * xcursor_theme` to the theme's own name: the `axiom-cursor-<theme>` companion a theme like Oxygen needs for the standard cursor names lives in the user's `$XDG_DATA_HOME/icons`, which greetd's user can't read. Such a theme shows the default theme's arrow at the login screen. Copying the companion into the bundle (as the wallpapers are) and pointing the greeter's `XCURSOR_PATH` at it would fix it.

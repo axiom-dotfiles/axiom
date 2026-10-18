@@ -3074,7 +3074,6 @@
     "Qt and KDE apps": "Qt と KDE アプリ",
     "KDE apps": "KDE アプリ",
     "Writes an \"axiom\" color scheme for qt5ct and qt6ct, and an \"Axiom\" KDE color scheme (Dolphin, Gwenview, Okular, Kate…).": "qt5ct と qt6ct 用の「axiom」カラースキームと、KDE 用の「Axiom」カラースキーム（Dolphin、Gwenview、Okular、Kate など）を書き出します。",
-    "Qt apps take the palette from qt5ct / qt6ct only with QT_QPA_PLATFORMTHEME=qt5ct, which a managed compositor config sets while this is on (apps started from your next login get it); otherwise set it in your compositor's environment. KDE apps read most of their colors from kdeglobals instead: once its ColorScheme is Axiom, axiom keeps its color groups a copy of the scheme on every theme change, as Plasma does.": "Qt アプリが qt5ct / qt6ct のパレットを使うのは QT_QPA_PLATFORMTHEME=qt5ct のときだけです。これがオンの間は管理モードのコンポジター設定がこれを設定します（次回のログイン以降に起動したアプリに反映されます）。それ以外の場合はコンポジターの環境で設定してください。KDE アプリは色の大半を kdeglobals から読みます。その ColorScheme が Axiom になると、axiom はテーマが変わるたびに、Plasma と同じようにその色グループをスキームの写しに保ちます。",
     "In-use color": "使用中の色",
     "Rounded follows the widget corner radius. Capsule always gives fully round pill ends, whatever the radius. Slanted and arrow widgets take a little more room for their points.": "角丸はウィジェットの角の丸みに従います。カプセルは角の丸みに関係なく、常に両端が完全に丸いピル形になります。斜めと矢印のウィジェットは、とがった部分のために少し広く場所を取ります。",
     "Disconnected color": "未接続時の色",
@@ -3096,6 +3095,8 @@
     "The login screen runs in a compositor of its own: sway, or Hyprland when sway isn't installed. Neither is, so it would always fall back to greetd's text login. Install sway (plain sway is enough):": "ログイン画面は専用のコンポジター（sway、sway がない場合は Hyprland）で動作します。どちらもインストールされていないため、常に greetd のテキストログインに切り替わります。sway をインストールしてください（通常の sway で十分です）:",
     "The login screen runs in a compositor of its own: sway, or Hyprland when sway isn't installed. Neither is, so it would always fall back to greetd's text login. Install sway with your package manager.": "ログイン画面は専用のコンポジター（sway、sway がない場合は Hyprland）で動作します。どちらもインストールされていないため、常に greetd のテキストログインに切り替わります。パッケージマネージャーで sway をインストールしてください。",
     "No compositor": "コンポジターなし",
-    "The login screen's compositor (Hyprland works too)": "ログイン画面のコンポジター（Hyprland でも可）"
+    "The login screen's compositor (Hyprland works too)": "ログイン画面のコンポジター（Hyprland でも可）",
+    "Qt apps take the palette from qt5ct / qt6ct only with QT_QPA_PLATFORMTHEME=qt5ct, which a managed compositor config sets while this is on (apps started from your next login get it); otherwise set it in your compositor's environment. KDE apps read most of their colors from kdeglobals instead: once its ColorScheme is Axiom, axiom keeps its color groups a copy of the scheme on every theme change, as Plasma does. Apps with a color scheme menu of their own (Okular, Dolphin, Kate, Gwenview) pick Breeze outside Plasma unless kdeglobals' UiSettings names one: the last line does, for every app whose own menu is left at Default. Those apps load the scheme when they start, so restart them after a theme change.": "Qt アプリが qt5ct / qt6ct のパレットを使うのは QT_QPA_PLATFORMTHEME=qt5ct のときだけです。これがオンの間は管理モードのコンポジター設定がこれを設定します（次回のログイン以降に起動したアプリに反映されます）。それ以外の場合はコンポジターの環境で設定してください。KDE アプリは色の大半を kdeglobals から読みます。その ColorScheme が Axiom になると、axiom はテーマが変わるたびに、Plasma と同じようにその色グループをスキームの写しに保ちます。独自の配色メニューを持つアプリ（Okular、Dolphin、Kate、Gwenview）は、kdeglobals の UiSettings が配色を指定しない限り、Plasma の外では Breeze を使います。最後の行がそれを指定し、自分のメニューが「デフォルト」のままのすべてのアプリに反映されます。これらのアプリは起動時に配色を読み込むため、テーマを変えたら再起動してください。",
+    "KDE apps with a color scheme menu (Okular, Dolphin, Kate…)": "配色メニューのある KDE アプリ（Okular、Dolphin、Kate…）"
   }
 }
