@@ -183,12 +183,21 @@ QtObject {
   // breaks games bundling an older SDL.
   readonly property var recommendedEnv: [["GDK_BACKEND", "wayland,x11,*"], ["QT_QPA_PLATFORM", "wayland;xcb"], ["CLUTTER_BACKEND", "wayland"], ["ELECTRON_OZONE_PLATFORM_HINT", "auto"], ["QT_AUTO_SCREEN_SCALE_FACTOR", "1"], ["QT_WAYLAND_DISABLE_WINDOWDECORATION", "1"]]
 
+  // The theme integrations' variables ([name, value]; `integrations`: the
+  // ThemeIntegrations switches): the Qt one loads qt5ct / qt6ct, whose
+  // palette is axiom's (qt6ct's plugin answers to "qt5ct" too, so one
+  // value covers Qt 5 and Qt 6 apps)
+  function integrationEnv(integrations) {
+    return integrations?.qt ? [["QT_QPA_PLATFORMTHEME", "qt5ct"]] : [];
+  }
+
   // The session's environment ([{ name, value }], each name once, every
   // backend's): the recommended one when `session.recommendedEnv`, the
-  // cursor's (`cursor`: input()'s, or null), then the session's own,
-  // which win over both. A name that isn't a variable's is left out.
-  function sessionEnv(session, cursor) {
-    const pairs = (session?.recommendedEnv ? root.recommendedEnv : []).concat(cursor ? [["XCURSOR_THEME", cursor.xcursor ?? cursor.theme], ["XCURSOR_SIZE", String(cursor.size)]] : []);
+  // theme integrations' (integrationEnv), the cursor's (`cursor`:
+  // input()'s, or null), then the session's own, which win over all of
+  // them. A name that isn't a variable's is left out.
+  function sessionEnv(session, cursor, integrations) {
+    const pairs = (session?.recommendedEnv ? root.recommendedEnv : []).concat(root.integrationEnv(integrations)).concat(cursor ? [["XCURSOR_THEME", cursor.xcursor ?? cursor.theme], ["XCURSOR_SIZE", String(cursor.size)]] : []);
     const all = pairs.map(([name, value]) => ({
           "name": name,
           "value": value

@@ -86,6 +86,7 @@ Singleton {
   // What the bind commands need from outside the bind
   readonly property var _bindCtx: ({
       "shellCommand": shellCommand,
+      "restartCommand": Paths.restartCommand,
       "terminal": Apps.terminalCommand,
       "fileManager": Apps.fileManagerCommand,
       "browser": Apps.browserCommand
@@ -142,7 +143,9 @@ Singleton {
       "header": _header,
       "userDir": userDir,
       "options": SwayConf.optionLines(schema?.WindowBehaviour, WindowBehaviourConfig.behaviour).concat(SwayConf.optionLines(schema?.Sway, SwayConfig.options)),
-      "env": CompositorLayer.sessionEnv(SessionConfig.session, spec.input.cursor),
+      "env": CompositorLayer.sessionEnv(SessionConfig.session, spec.input.cursor, {
+        "qt": ThemeIntegrations.qt
+      }),
       "start": {
         "command": startCommand,
         "idle": Idle.enabled,

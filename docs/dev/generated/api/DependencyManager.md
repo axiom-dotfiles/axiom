@@ -19,5 +19,8 @@ Startup checks for what the whole shell needs to look right: the icon font (ever
 - `installLines(keys)`: The shell lines that install these commands (or "iconFont") here: [] on an unknown distribution
 - `label(key)`: A key as people read it: "python: numpy" for "py:numpy", the font's family for "iconFont"
 - `installCommand(key)`: One line that installs a command here ("" on an unknown distribution)
+- `commandsOf(tool)`: A tool's commands: its own, then its `alternatives`
+- `toolFound(tool)`: Whether a tool is installed (any of commandsOf): undefined until each one is checked, unless one already is
+- `toolCommand(tool)`: The command a tool is installed as (the first of commandsOf found), or its own
 - `check(commands)`: Looks the commands up (command -v; a "py:<module>" with python3's importlib) and adds them to `found`
 - `has(command)`: Whether a command (its first word) is installed: undefined until checked

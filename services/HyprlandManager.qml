@@ -6,6 +6,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 
+import qs.config
 import qs.components.methods
 
 /* CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md):
@@ -29,8 +30,9 @@ Singleton {
   readonly property string focusedOutput: Hyprland.focusedMonitor?.name ?? ""
   // The focused window's id (its "0x…" address), or ""
   readonly property string activeWindowId: Hyprland.activeToplevel ? "0x" + Hyprland.activeToplevel.address : ""
-  // Writes axiom's layer into Hyprland's config (CompositorConfigManager)
-  readonly property var configWriter: HyprlandConfigWriter
+  // Writes axiom's layer into Hyprland's config (CompositorConfigManager).
+  // None in the greeter, which writes no config
+  readonly property var configWriter: Paths.greeter ? null : HyprlandConfigWriter
   // What Hyprland does (CompositorManager.supports)
   readonly property var supports: ({
       "configModes": true,

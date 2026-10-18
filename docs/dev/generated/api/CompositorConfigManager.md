@@ -7,7 +7,7 @@ Sets the compositor up for axiom (the Compositor section's mode, CompositorConfi
 
 ### Properties
 
-- `writer` (readonly var): The running compositor's config writer, or null: only with configModes may anything here touch a compositor's config
+- `writer` (readonly var): The running compositor's config writer, or null: only with configModes may anything here touch a compositor's config, and never in the greeter, whose compositor is its own (its binds would reach the …
 - `live` (readonly bool): Only once the compositor's capabilities are final: the parts applied depend on them (_appliedParts), and one seen missing for a moment would count as turned off and reload the compositor.
 - `mode` (readonly string)
 - `problem` (readonly string): Why the chosen mode isn't in effect, or ""

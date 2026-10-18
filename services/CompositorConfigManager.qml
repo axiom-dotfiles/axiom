@@ -33,8 +33,10 @@ Singleton {
   id: root
 
   // The running compositor's config writer, or null: only with configModes
-  // may anything here touch a compositor's config
-  readonly property var writer: CompositorManager.supports.configModes ? CompositorManager.backend.configWriter : null
+  // may anything here touch a compositor's config, and never in the
+  // greeter, whose compositor is its own (its binds would reach the login
+  // screen, its files the session's config)
+  readonly property var writer: !Paths.greeter && CompositorManager.supports.configModes ? CompositorManager.backend.configWriter : null
   // Only once the compositor's capabilities are final: the parts applied
   // depend on them (_appliedParts), and one seen missing for a moment would
   // count as turned off and reload the compositor. And once the cursor
@@ -623,7 +625,7 @@ Singleton {
   // Everything the layer is made of but the look, the input and the blur;
   // a change re-applies it (in the file modes, rewriting the file, which
   // reloads the compositor)
-  readonly property string _inputs: [mode, KeybindsConfig._bindsJson, MonitorsConfig._profilesJson, SessionConfig._sessionJson, WorkspacesConfig._stripsJson, CompositorConfig.requiredSettings, writer?.inputsKey ?? ""].join("|")
+  readonly property string _inputs: [mode, KeybindsConfig._bindsJson, MonitorsConfig._profilesJson, SessionConfig._sessionJson, ThemeIntegrations.qt, WorkspacesConfig._stripsJson, CompositorConfig.requiredSettings, writer?.inputsKey ?? ""].join("|")
   on_InputsChanged: _debounce.restart()
 
   // The window look, the input and the blur behind axiom (paused over a

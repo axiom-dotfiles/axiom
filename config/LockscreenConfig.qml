@@ -16,12 +16,11 @@ QtObject {
   readonly property string mode: _c.mode
   // What lock buttons run in "none" mode
   readonly property string lockCommand: _c.lockCommand
-  readonly property bool blurWallpaper: _c.blurWallpaper
 
   // The built-in lock screen: { columns, rows (its grid, fitted to each
   // monitor; fineGrid splits its units in two), otherScreens ("layout":
   // the modules without the password | "background"), background
-  // ("wallpaper" | "color"), backgroundColor, dim (%), moduleBorders,
+  // ("wallpaper" | "color"), blurWallpaper, backgroundColor, dim (%), moduleBorders,
   // modules }. LockSurface takes it whole, so the layouts editor's preview
   // can hand it the draft instead
   readonly property var layout: _c.layout

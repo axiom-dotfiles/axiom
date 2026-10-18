@@ -177,7 +177,7 @@ QtObject {
   /**
    * The niri action (a node) of a compositor action (BindActions.
    * compositorActions) for `argument`, or null when niri can't do it or
-   * the argument doesn't fit. `ctx`: { axiomPath, shellCommand, terminal,
+   * the argument doesn't fit. `ctx`: { axiomPath, shellCommand, restartCommand, terminal,
    * fileManager, browser }
    */
   function actionNode(action, argument, ctx) {
@@ -237,7 +237,7 @@ QtObject {
       return _ipc(ctx, ["windowSwitcher", BindActions.switcherSteps[action] > 0 ? "next" : "previous"]);
     // Run by niri, not over IPC, so it works when the shell is stuck
     case "restartShell":
-      return node("spawn-sh", [`qs kill ${ctx.shellCommand.slice(3)}; ${ctx.shellCommand} -d`]);
+      return node("spawn-sh", [ctx.restartCommand]);
     case "exitSession":
       return node("quit", [], {
         "skip-confirmation": true

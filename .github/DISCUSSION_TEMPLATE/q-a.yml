@@ -1,0 +1,24 @@
+title: "How do I "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask anything about using or setting up axiom. If something is broken rather than unclear, a [bug report](https://github.com/axiom-dotfiles/axiom/issues/new?template=01-bug.yml) gets it fixed sooner.
+  - type: textarea
+    id: question
+    attributes:
+      label: What you're trying to do
+      description: The goal, and where you're stuck.
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you've tried
+      description: Settings you changed, docs you read, what happened instead.
+  - type: textarea
+    id: system
+    attributes:
+      label: System info
+      description: Optional. The output of `scripts/bug_info.sh`, from axiom's folder (`~/.config/quickshell/axiom` for a clone, `/usr/share/axiom` for a package).
+      render: text

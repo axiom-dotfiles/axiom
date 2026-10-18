@@ -48,18 +48,18 @@ Settings are read as `properties.<key>`.
   - x-scope="personal"
   - in: `components/bar/widgets/ClaudeUsage.qml`
 - **`backgroundColor`** · string = ""
-  - Background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"
+  - Color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/ClaudeUsage.qml`, `components/bar/widgets/BarIconWidget.qml`
 - **`warnColor`** · string = ""
-  - Warning background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="warning"
+  - Warning color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="warning", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/ClaudeUsage.qml`
 - **`criticalColor`** · string = ""
-  - Critical background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="critical"
+  - Critical color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="critical", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/ClaudeUsage.qml`
 - **`foregroundColor`** · string = "base00"
   - Text color
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":"filled","$bar.widgetGrouping":{"not":"merged"},"…
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`

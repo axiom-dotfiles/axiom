@@ -10,10 +10,11 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 - `homeDirectory` (readonly string): --- Paths (from the environment, not from any config value) ---
 - `axiomPath` (readonly string): Shell root (this repo), always with a trailing slash.
 - `shellCommand` (readonly string): How compositors, binds and idle daemons start or call axiom
+- `restartCommand` (readonly string): The restart binds' command: ends every axiom on the display and starts one (scripts/restart.sh)
 - `themePath` (readonly string)
 - `scriptsPath` (readonly string)
 - `resourcePath` (readonly string): What ships with axiom in config/: json/ (schema, theme defaults, emoji), themes/, i18n/
-- `packagedVersion` (readonly string): Installed as a distribution package: its version, from the marker the package writes ("" for a clone: docs/dev/packaging.md).
+- `packagedVersion` (readonly string): Installed as a package (the AUR's axiom-shell): its version, from the marker its PKGBUILD writes ("" for a clone: docs/dev/packaging.md).
 - `packaged` (readonly bool)
 - `userConfigPath` (readonly string): $XDG_CONFIG_HOME/axiom/: config.json and saved/
 - `statePath` (readonly string): Small persisted state (StateManager), $XDG_STATE_HOME/axiom/ui/.
@@ -21,7 +22,7 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 - `userDataPath` (readonly string): $XDG_DATA_HOME/axiom/: what the user made (the default notes folder)
 - `defaultNotesPath` (readonly string)
 - `generatedThemesPath` (readonly string): Themes generated from the wallpaper ("generated/<name>")
-- `hyprlandPath` (readonly string)
+- `hyprlandPath` (readonly string): Hyprland's config folder ($XDG_CONFIG_HOME/hypr/, where Hyprland looks)
 - `swayPath` (readonly string): Sway's config folder ($XDG_CONFIG_HOME/sway/, as sway looks there first)
 - `niriPath` (readonly string): niri's config folder ($XDG_CONFIG_HOME/niri/, where niri looks)
 - `dataSearchDirs` (readonly var): Where to look for data the system (or the user) installed, most important first: $XDG_DATA_HOME, then $XDG_DATA_DIRS (DataDirs.searchDirs; /usr/share isn't where every distro has it).

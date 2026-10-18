@@ -4,7 +4,7 @@
 > **Config:** none
 > **Related:** [Developer docs](README.md), [testing](testing.md)
 
-Problems found while working on something else: not fixed yet, but recorded so they aren't lost. **Add an entry whenever you find a problem outside the task at hand** rather than fixing it unasked or only mentioning it. Remove the entry in the change that fixes it. Before starting work in an area, check here for what's already known about it.
+Problems found while working on something else: not fixed yet, but recorded so they aren't lost. **Add an entry whenever you find a problem outside the task at hand** rather than fixing it unasked or only mentioning it. Remove the entry in the change that fixes it. Before starting work in an area, check here for what's already known about it. This is a working list for coding agents and the maintainer, meant to move to GitHub over time: it's not where to report or look up problems, which is [GitHub issues](https://github.com/axiom-dotfiles/axiom/issues). Agents never open a GitHub issue themselves; the maintainer moves an entry there.
 
 Each entry is a `###` heading plus these four bullets, in this order (`scripts/check_docs.py` checks the shape and that cited paths and members exist):
 
@@ -18,6 +18,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### The greeter on sway can't use a cursor theme's companion
+- **Where:** `services/GreetdManager.qml` (`_applyCompositor`), `services/CursorThemeManager.qml`
+- **What:** On sway the greeter sets `seat * xcursor_theme` to the theme's own name: the `axiom-cursor-<theme>` companion a theme like Oxygen needs for the standard cursor names lives in the user's `$XDG_DATA_HOME/icons`, which greetd's user can't read. Such a theme shows the default theme's arrow at the login screen. Copying the companion into the bundle (as the wallpapers are) and pointing the greeter's `XCURSOR_PATH` at it would fix it.
+- **Size:** small
+- **Found:** 2026-10-18, while moving the greeter to sway
+
 ### install.sh still installs the rest of a feature whose COPR was declined
 - **Where:** `install.sh` (the declined-COPR loop after the COPR prompts)
 - **What:** Declining a COPR on Fedora marks each feature with a package from it as skipped, but drops only that COPR's packages: the feature's other packages stay in the one `dnf install`. Declining `nett00n/hyprland` while setting up niri skips the login screen's feature yet still installs `greetd`. Rebuilding `packages` from the features left (and the required keys) after the prompts would fix it; test with `--dry-run` in a `fedora:latest` container.
@@ -29,18 +35,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** Since config v66 axiom's shadow only spreads evenly, so the spec's shadow `offset` is a constant 0 that `look()` hands on and each writer writes (`decoration.shadow.offset`, `shadow_offset`, niri's `offset`). Writing 0 still matters (it resets a user's own offset), so each writer could write 0 itself and the field go from the spec and its tests.
 - **Size:** small
 - **Found:** 2026-10-17, while reviewing the shadow-on-or-off change
-
-### Night light's tool is chosen in two places
-- **Where:** `components/views/settings/NightLightStatus.qml` (`wanted`), `services/DependencyManager.qml` (`tools`: `compositors`), `services/NightLightManager.qml` (`tool`)
-- **What:** "hyprsunset on Hyprland, wlsunset elsewhere" is worked out by `NightLightManager.tool`, again by `NightLightStatus.wanted` for its install hint, and a third time as `DependencyManager.tools`' rows. `NightLightManager` could expose the tool it wants, for both to read.
-- **Size:** trivial
-- **Found:** 2026-10-17, while reviewing the distro-support branch for merge
-
-### niri's overview drop moves a window's whole column
-- **Where:** `services/NiriManager.qml` (`placeWindow`)
-- **What:** Dropped beside or into another column on its own workspace (`reinsert`), a window is moved with `MoveColumnToIndex`, which moves the focused column: a window sharing its column with others takes them along. A drop onto another workspace moves only the window (`MoveWindowToWorkspace` by id). Expelling it from its column first (`ExpelWindowFromColumn`, which shifts the column indexes) would fix it; needs trying in `scripts/dev/nested.sh niri`.
-- **Size:** small
-- **Found:** 2026-10-17, while auditing the niri branch for merge
 
 ### A niri module refused in detached mode is only logged
 - **Where:** `services/NiriConfigWriter.qml` (`runtimeApply`), `services/CompositorConfigManager.qml` (`problem`)
@@ -54,12 +48,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-17, while making niri's options one card
 
-### SwayFX blurs a floating popout's shadow halo
-- **Where:** `components/hosts/popout/FloatingPopout.qml` (its `SurfaceShadow`), `components/methods/LayerStack.qml` (`blurSurfaces`: `floating-popout`)
-- **What:** The floating popout blurs its own window and casts its shadow inside it. SwayFX's `blur_ignore_transparent` blurs every pixel that isn't fully clear, so its shadow shows as a frosted band (Hyprland's `ignore_alpha` leaves it out). The chrome's shadows are cast from a window apart on SwayFX (`axiom-shadows`); this one would need the same, or its shadow off there.
-- **Size:** small
-- **Found:** 2026-10-17, while fixing the chrome's shadows on SwayFX
-
 ### A greeter installed before v63 drops the monitor and keyboard layout
 - **Where:** `components/methods/GreeterBundle.qml` (`exportConfig`), `services/GreeterManager.qml`
 - **What:** An installed greeter on older code reads a v63 bundle without migrating it and prunes `Compositor`, `Monitors` and `Input` as unknown, so until the greeter is updated the login screen loses the monitor layout and, in managed mode, `kbLayout`/`kbOptions` (a password typed on the wrong layout). The outdated notice says to update, but not that it's required. Exporting the legacy `Hyprland.monitors`/`managed` keys for a while, or a firmer notice, would cover it.
@@ -70,12 +58,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Where:** `components/methods/ConfigMigration.qml` (`_v57ToV58`, `_v58ToV59`, `_v62ToV63`)
 - **What:** Each step moves what's present. A hand-trimmed config (the UI saves every default) loses what the managed file always wrote: no `Hyprland.managed` means no border 2/rounding 8; a missing `dimInactive` (old default on) leaves dim off; missing keyboard keys turn repeat 50/300 back to the compositor's; `shadowThemed` without `shadowColor` becomes the compositor's color, not `base00`. In managed mode a missing key could be read as its old default.
 - **Size:** small
-- **Found:** 2026-10-16, while auditing the sway branch for merge
-
-### Corner rounding is greyed out on plain sway with no note
-- **Where:** `components/forms/SchemaField.qml` (`disabledNote`)
-- **What:** `WindowLook.rounding` needs `/$supports.windowRounding` (SwayFX only), but the note is suppressed for a row shown by a sibling switch, and `shape` itself isn't greyed, so nothing says why. Suppress the note only when the sibling is blocked by the same key.
-- **Size:** trivial
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
 ### SwayFX remaps the chrome on a fresh qs start
@@ -90,18 +72,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
-### Hyprland's key capture watchdog can end a later capture
-- **Where:** `services/HyprlandManager.qml` (`captureKeys`)
-- **What:** Each capture enters the one `axiom_record` submap with a 30 s `hl.timer` leaving it; a second capture within those 30 s is cut short by the first's timer. Sway's got a mode name per capture (796b16e); Hyprland's needs the same or a timer handle it removes.
-- **Size:** trivial
-- **Found:** 2026-10-16, while auditing the sway branch for merge
-
-### Monitor VRR offers Hyprland's modes on sway
-- **Where:** `components/views/monitors/MonitorInspector.qml`, `components/methods/SwayConf.qml` (`outputCommand`)
-- **What:** VRR offers Off/On/Fullscreen only/Fullscreen games and video; sway has on or off, so the fullscreen ones turn adaptive sync on everywhere. A capability (`monitorVrrModes`) would offer only Off/On without it.
-- **Size:** trivial
-- **Found:** 2026-10-16, while auditing the sway branch for merge
-
 ### A fullscreen window re-sends the whole live layer
 - **Where:** `services/CompositorConfigManager.qml` (`_liveInputs`)
 - **What:** `BlurManager.active` flips as a fullscreen window opens or closes and is in `_liveInputs`, so each flip re-sends the whole look and input (Hyprland's `hl.config({ input = … })`, sway's `[all] border pixel`, `gaps … all set`), not just the blur rules: a user's runtime tweak (`border toggle`, `gaps current plus`) is undone whenever anything goes fullscreen. A blur-only change should send only the blur lines.
@@ -111,12 +81,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 ### Any change of the mode to managed approves the takeover
 - **Where:** `services/CompositorConfigManager.qml` (`onModeChanged`)
 - **What:** Picking managed while axiom runs counts as approval, which includes editing config.json by hand or a sync tool writing it, not only the card's Save that `docs/dev/compositor/config-modes.md` describes. Imports keep `x-takeover`, so only direct edits reach it. Approving from SettingsManager's save only, or saying so in the doc.
-- **Size:** small
-- **Found:** 2026-10-16, while auditing the sway branch for merge
-
-### Sway's bind reading misses blocks and quoted outputs
-- **Where:** `components/methods/SwayConf.qml` (`configBinds`), `services/SwayConfigWriter.qml` (`monitorPattern`)
-- **What:** `bindsym { … }` blocks (the head applies to each inner line) aren't read, so axiom's runtime `bindsym --no-warn` overrides those keys; binds inside `bar { … }` count as main-mode binds. The monitor-rule check misses `output "Make Model Serial" …` and `output X { … }`.
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
@@ -162,12 +126,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while auditing the sway branch
 
-### Smart gaps make sway's gaps and reserved space wrong
-- **Where:** `components/methods/SwayState.qml` (`output`, `configInfo`), `services/SwayManager.qml` (`gapsOut`)
-- **What:** With `Sway.smartGaps` on (`smart_gaps on`), a workspace with one window has no gaps, but `gapsOut` still reports the configured ones, and `output().reserved` (the workspace rect less those gaps) comes out short by them. Bars and edge menus placed from `gapsOut` and the dock's `reserved` are then off by the gap on such a workspace. Needs per-workspace gaps (whether the active workspace has one tiled window).
-- **Size:** small
-- **Found:** 2026-10-16, while auditing the sway branch
-
 ### Overview drops on sway nest split containers
 - **Where:** `services/SwayManager.qml` (`placeWindow`)
 - **What:** A drop next to a window runs `split h|v` on the target every time, which wraps it in a new container even when its parent already splits that way, so repeated drops nest containers sway then draws as such (tabbed/stacked parents behave oddly). Split only when the parent's layout differs (the tree has it).
@@ -204,12 +162,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-16, while testing layer order in nested sway
 
-### Blur behind axiom on niri
-- **Where:** `services/NiriManager.qml` (`supports`), `shell/BlurBackingWindow.qml`, `components/methods/SurfaceOutline.qml`
-- **What:** niri has no `blur` capability yet, so axiom's surfaces are solid there and the translucency setting is greyed out. niri blurs a layer surface's whole rect (a layer rule), not by its pixels' alpha as Hyprland and SwayFX do, so the full-screen blur window can't be blurred that way. It does take a region per surface (`ext-background-effect-v1`, Quickshell's `BackgroundEffect.blurRegion`): checked in nested niri 26.04, a rounded `Region` blurs exactly. What's missing is each `BlurShape` as a region: rects with their radius, the border frame as the screen less its inner rect, an attached surface as its box (`SurfaceOutline` metrics) with its fillets. Then `supports.blur`, with that region on the blur window.
-- **Size:** needs a plan
-- **Found:** 2026-10-17, while adding the niri backend
-
 ### niri reports no space reserved by bars, nor where tiled windows are
 - **Where:** `components/methods/NiriState.qml` (`outputs`, `windows`)
 - **What:** niri's IPC gives no layer surface geometry and, in 26.04, no position for a tiled window (`tile_pos_in_workspace_view` is null; only floating windows have one). So an output's `reserved` is 0 (the dock centres on the whole screen, not its work area), and tiled windows are laid out from their column and place in it from the output's edge, without niri's scroll (`windowGeometry` stays off: no screenshot window mode; the dock hides behind a window's `cover`, its column or the whole output, which ignores struts, reserved space and `center-focused-column`).
@@ -228,15 +180,9 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** trivial
 - **Found:** 2026-10-17, while testing the niri backend
 
-### The greeter runs its own Hyprland session
-- **Where:** `scripts/greeter/greeter-session.sh`, `services/GreetdManager.qml` (`_applyHyprland`)
-- **What:** The greeter runs its own Hyprland session (`start-hyprland`, `hyprctl dispatch exit`), whatever compositor the user's session uses. Decide whether it keeps Hyprland or moves to cage/sway. (The onboarding's binds table and Welcome copy no longer assume Hyprland.)
-- **Size:** small
-- **Found:** 2026-10-16, while decoupling the shell from Hyprland
-
 ### Two exclusive-focus surfaces at once without a native grab
 - **Where:** `services/FocusGrab.qml` (`exclusive`), `components/hosts/overlay/OverlayPanel.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/EdgePopout.qml`
-- **What:** Without `supports.focusGrab`, every active grab's surface asks for `WlrKeyboardFocus.Exclusive`. With the overlay open (exclusive the whole time) and a popout with a text field opened over it, two surfaces on the Overlay layer ask for exclusive focus. Which one gets the keyboard is up to the compositor and wasn't checked in nested sway or niri: typing into a popout over the overlay may go to the overlay. Not seen yet; check it in `scripts/dev/nested.sh sway`.
+- **What:** Without `supports.focusGrab`, every active grab's surface asks for `WlrKeyboardFocus.Exclusive`. With the overlay open (exclusive the whole time) and a popout with a text field opened over it, two surfaces on the Overlay layer ask for exclusive focus. Which one gets the keyboard is up to the compositor. On niri the older one keeps it (found fixing the polkit prompt, c49b429, which now turns `exclusive` off while `ShellManager.modalShown`), so there typing into a popout over the overlay goes to the overlay. Sway is unchecked (`scripts/dev/nested.sh sway`). A fix in the same spirit: only the newest active grab is `exclusive`.
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the layer-placement branch
 
@@ -245,12 +191,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** An app whose `.desktop` icon isn't in the icon theme (here `xdg-desktop-portal-gtk`'s `applications-system-symbolic`) logs `Could not load icon` at each size it's drawn, though the fallback icon shows. Noise in `scripts/log.sh`; either skip hidden/`NoDisplay` entries or resolve the name before handing it to an Image.
 - **Size:** trivial
 - **Found:** 2026-10-16, while auditing the layer-placement branch
-
-### Python bytecode is written into the repo
-- **Where:** `scripts/bind_merge_common.py`, `scripts/niri_kdl.py`
-- **What:** Scripts that import a sibling module (the bind mergers, the niri config scripts) leave `__pycache__/` in `scripts/`, which a packaged (read-only) install can't write. Set `PYTHONDONTWRITEBYTECODE=1` where the shell runs python. Blocks packaging, not the XDG move.
-- **Size:** small
-- **Found:** 2026-10-15, while moving config and state to the XDG folders
 
 ### Hyprland starts axiom by its repo path, and self-update assumes git
 - **Where:** `services/HyprlandConfigWriter.qml` (`shellCommand`), `services/SelfUpdateManager.qml`, `scripts/greeter/greeter_install.sh`
@@ -263,12 +203,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** After moving an install over, `config/user/`, `config/state/` and `config/themes/generated/` are left in place (with `MOVED.md`) so a rollback still finds them. Once rolling back past the move is no longer supported, delete them (or offer to), and drop the legacy layout code.
 - **Size:** small
 - **Found:** 2026-10-15, while moving config and state to the XDG folders
-
-### Disk usage shifts onto the wrong path when one is missing
-- **Where:** `services/SystemManager.qml` (`_df`)
-- **What:** `df` is run once for every requested path and its output lines are matched to the paths by position. A path that doesn't exist (a `diskPath` typed wrong, an unmounted drive) gets no line, only an error on stderr, so every path after it shows the next path's usage and the last one shows none. Run `df` per path, or add `--output=target` and match lines to paths by that.
-- **Size:** small
-- **Found:** 2026-10-15, while auditing the folder picker commit
 
 ### Text input warnings when the desktop takes the keyboard
 - **Where:** `components/surfaces/desktop/DesktopWindow.qml` (`WlrLayershell.keyboardFocus`)
@@ -299,15 +233,3 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** Opening bar popouts on a floating-pills bar logs binding loops, dozens per session: `property "_wall"` (PillBarJoin, created at EdgePlacement.qml:345), `property "joinReach"` (EdgePlacement), `property "surfaceX"` / `property "surfaceY"` (BarPopouts' window), `property "_spec"` (AttachedSurface) and `property "place"` / `property "alignedBoxStart"` (SubPopout). They're in every qs instance's log back to 2026-10-13, before the corner-priority change. The values settle (no visible glitch reported), but a loop can leave a stale value for a frame and buries real warnings. Likely one cycle: the placement reads the pill's join reach, which reads the placement's wall. (`_surfaceFromEdge`'s loop is gone: it now comes from the layout's `attachAt`, not the drawn surface.) Not reproduced on 2026-10-16 (popouts from a floating-pills bar, and one joining a perpendicular pill bar, on Hyprland and in nested sway): it may have gone with later placement changes. Delete this entry if it doesn't come back.
 - **Size:** needs a plan
 - **Found:** 2026-10-14, while reviewing verify.sh output for the agent-setup changes
-
-### Schema root `description` duplicates the annotation docs
-- **Where:** `config/json/config.schema.json` (root `description`)
-- **What:** A 3 KB description restates the `x-*` annotations and is already incomplete (no `x-control`, `x-hypr*` or `x-scope`). The complete list is `docs/dev/core/schema-annotations.md`. Trim it to one line pointing there.
-- **Size:** trivial
-- **Found:** 2026-10-13, while splitting architecture.md
-
-### `Compositor.requiredSettings` has no developer doc
-- **Where:** `config/HyprlandConfig.qml` (`requiredSettings`), `docs/dev/hyprland/config-modes.md`
-- **What:** It's in the schema and the generated reference (`docs/dev/config/Hyprland.md`), but no hand-written doc explains what it does. Add a section to `config-modes.md`. (`wallpaperDaemon` moved to `Appearance.wallpaperDaemon`, covered in `wallpaper-and-schedules.md`.)
-- **Size:** trivial
-- **Found:** 2026-10-13, while splitting architecture.md

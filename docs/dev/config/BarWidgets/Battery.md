@@ -17,22 +17,22 @@ Settings are read as `properties.<key>`.
   - x-options="edgeMenus", x-emptyLabel="None", x-showIf={"showPopout":true}
   - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`backgroundColor`** · string = ""
-  - Background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"
+  - Color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Battery.qml`, `components/bar/widgets/BarIconWidget.qml`
 - **`chargingColor`** · string = ""
-  - Charging background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="alt"
+  - Charging color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="alt", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Battery.qml`
 - **`lowColor`** · string = ""
-  - Low background: At or below Battery > Low at (in settings).
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="warning"
+  - Low color: At or below Battery > Low at (in settings).
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="warning", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Battery.qml`
 - **`criticalColor`** · string = ""
-  - Critical background: At or below Battery > Critical at (in settings).
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="critical"
+  - Critical color: At or below Battery > Critical at (in settings).
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="critical", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Battery.qml`
 - **`foregroundColor`** · string = "base00"
   - Text color
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":"filled","$bar.widgetGrouping":{"not":"merged"},"…
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`

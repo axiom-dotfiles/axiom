@@ -58,12 +58,12 @@ axiom ships the setups from the README in `examples/`. Apply one from **Settings
 
 - Hand-made themes live in `config/themes/`, and generated ones in `~/.local/state/axiom/themes/`.
 - A theme is a base16 palette (`base00`–`base0F`) plus optional semantic overrides. See `config/themes/theme.schema.json`.
-- To add a theme, drop a JSON file in `config/themes/`. To make a dark/light pair, give each file a `paired` field naming the other.
+- To add a theme, copy the template `config/themes/template/theme.json` to `config/themes/<name>.json`, then set its name, variant and sixteen colors. To make a dark/light pair, give each file a `paired` field naming the other.
 
 ### Translations
 
 - Pick a language in **Settings → General → Language**.
-- To add a language, create `config/i18n/<code>.json` (see `ja.json`). It shows up in the dropdown right away.
+- To add a language, copy the empty template `config/i18n/template/language.json` to `config/i18n/<code>.json`, set `_meta.name` and `_meta.locale`, and translate the strings. It shows up in the dropdown right away.
 - Missing strings fall back to English. `scripts/check_i18n.py` reports what's missing.
 
 ## Troubleshooting
@@ -77,5 +77,7 @@ scripts/log.sh -f       # follow
 ```
 
 A clean reload prints only `Reloading configuration...` and `Configuration Loaded`.
+
+Reporting a bug? Include the output of `scripts/bug_info.sh` (your versions, compositor, distribution and config mode) along with the log. Both scripts are in axiom's folder: `~/.config/quickshell/axiom` for a clone, `/usr/share/axiom` for a package.
 
 Icons showing as words (`wifi`, `battery_full`) mean the icon font is missing: install `ttf-material-symbols-variable` and restart the shell.

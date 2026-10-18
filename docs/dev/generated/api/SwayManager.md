@@ -13,7 +13,7 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `focusedOutput` (readonly string): The focused output's name, or ""
 - `activeWindowId` (readonly string): The focused window's id (its con_id), or "": from focus events as they come, the tree otherwise
 - `gapsOut` (readonly var): Sway's gap at the screen edges, after reserved zones: its outer gap plus the inner one every window keeps.
-- `configWriter` (readonly var): Writes axiom's layer into sway's config (CompositorConfigManager)
+- `configWriter` (readonly var): Writes axiom's layer into sway's config (CompositorConfigManager).
 - `fx` (readonly bool): Whether sway is SwayFX (blur, rounded corners, shadows, dimming), once known: its get_version reply adds sway_original_version.
 - `ready` (readonly bool): Whether `supports` is final (the variant is known)
 - `displayName` (readonly string)
@@ -53,6 +53,7 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `captureKeys(on)`: While on, every key reaches axiom instead of a bind (the Keybinds page's recorder): an empty mode, left by an unreachable key.
 - `withKeyboard(callback)`: Calls back with the main keyboard's layouts ({ layouts, index, keymap }, SwayState.keyboard), or null
 - `cycleKeyboardLayout(direction, callback)`: Switches every keyboard to its "next" or "prev" layout, then calls back
+- `applyInput(input, inputSchema)`: Sets the input options and cursor now (`input`: CompositorLayer.input's, `inputSchema`: Input's), as their parts say: the greeter's sway, which loads no config of axiom's
 - `withCursorPos(callback)`: Sway can't say where the cursor is, nor list layer surfaces
 - `withLayerRects(callback)`
 - `unsupportedHint(capability)`: What can do what plain sway can't (CompositorManager.unsupportedNote).

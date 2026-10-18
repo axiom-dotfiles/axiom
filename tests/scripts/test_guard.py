@@ -55,6 +55,13 @@ class Bash(unittest.TestCase):
         self.blocks("qs -c axiom ipc call monitors keep", "qs -c axiom ipc call selfUpdate update")
         self.allows("qs -c axiom ipc call monitors revert", "qs -c axiom ipc call onboarding goTo 2")
 
+    def test_github_issues(self):
+        self.blocks("gh issue create --title x --body y", "gh api repos/a/b/issues -f title=x",
+                    "gh api -X POST /repos/a/b/issues --input body.json", "gh api --method=post repos/a/b/issues",
+                    "gh api graphql -f query='mutation { createIssue(input: {}) { issue { id } } }'")
+        self.allows("gh issue list", "gh issue view 16", "gh api repos/a/b/issues", "gh api repos/a/b/issues -X GET -f state=open",
+                    "gh label list", "gh pr create --fill")
+
     def test_greetd_and_greeter(self):
         self.blocks("sudo systemctl restart greetd", "systemctl stop greetd.service", "pkill greetd",
                     "scripts/greeter/greeter_install.sh install . me")

@@ -17,7 +17,8 @@ import qs.services
 // translatable string: I18n.tr("{0} updates", count).
 // Settings titles/descriptions come from the schema and are translated by
 // the settings UI, so they need no code. scripts/check_i18n.py lists
-// missing/unused entries (--fill adds the missing ones, empty).
+// missing/unused entries (--fill adds the missing ones, empty) and keeps the
+// empty dictionary a new language is copied from, config/i18n/template/.
 //
 // tr() and formatDate() read the language, so bindings using them update
 // when it (or the active dictionary file) changes.

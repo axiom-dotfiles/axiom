@@ -10,6 +10,8 @@ How widget backgrounds are drawn: their shapes, merged and powerline runs, hit t
 - `WidgetGroup` draws a `bar/WidgetBackground` under each host that has one (`BarWidgetHost.background`). The background follows the host's geometry and `contentOpacity`.
 - It is drawn in the bar's shape settings:
   - **`widgetShape`:** rounded, capsule, slanted or arrow.
+    - Rounded takes the bar's widget radius. Qt caps a radius at half the thickness, so a radius that large draws the same as capsule.
+    - Capsule is always a full pill, and so are the Workspaces cells inside it (`Bar.cellRadius`).
   - **`widgetEnds`:** a slanted or arrow widget's (or run's) own ends. They can be shaped (an arrow's notched and pointed), pointed at both ends (an arrow's only, via `x-enumShowIf`), or rounded.
   - **`widgetGrouping`:** see Runs below.
 - `methods/BarShapes` gives each widget two things:

@@ -36,7 +36,7 @@ jobs:
       - name: Docs match the code (links, paths, members)
         run: python3 scripts/check_docs.py
 
-      # install.sh and Packages.qml (the onboarder's hints)
+      # install.sh, Packages.qml (the onboarder's hints) and the AUR PKGBUILDs
       - name: Package lists agree
         run: python3 scripts/check_packages.py
 

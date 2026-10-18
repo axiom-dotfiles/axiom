@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 66,
+      "default": 67,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -61,14 +61,6 @@
           "default": "loginctl lock-session",
           "description": "What axiom's lock buttons run when the locker is your own.",
           "x-showIf": { "mode": "none" }
-        },
-        "blurWallpaper": {
-          "x-scope": "look",
-          "type": "boolean",
-          "title": "Blur wallpaper",
-          "default": true,
-          "description": "Blur the wallpaper behind the lock screen.",
-          "x-showIf": { "mode": { "not": "none" } }
         },
         "layout": {
           "x-scope": "look",
@@ -1299,7 +1291,7 @@
           "x-showIf": {
             "widgetStyle": ["filled", "tinted", "outline"]
           },
-          "description": "Rounded follows the widget corner radius. Slanted and arrow widgets take a little more room for their points."
+          "description": "Rounded follows the widget corner radius. Capsule always gives fully round pill ends, whatever the radius. Slanted and arrow widgets take a little more room for their points."
         },
         "widgetGrouping": {
           "x-group": "Bar widgets",
@@ -1372,7 +1364,13 @@
             "slash": "Slash",
             "chevron": "Chevron"
           },
-          "description": "Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing."
+          "description": "Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing.",
+          "x-showIf": {
+            "anyOf": [
+              { "widgetGrouping": { "not": "powerline" } },
+              { "widgetStyle": ["underline", "accentText", "plain"] }
+            ]
+          }
         },
         "separatorColor": {
           "x-group": "Bar accents",
@@ -1381,6 +1379,10 @@
           "x-options": "colors",
           "default": "base03",
           "x-showIf": {
+            "anyOf": [
+              { "widgetGrouping": { "not": "powerline" } },
+              { "widgetStyle": ["underline", "accentText", "plain"] }
+            ],
             "separatorStyle": {
               "not": "none"
             }
@@ -1396,6 +1398,10 @@
           "maximum": 6,
           "x-unit": "px",
           "x-showIf": {
+            "anyOf": [
+              { "widgetGrouping": { "not": "powerline" } },
+              { "widgetStyle": ["underline", "accentText", "plain"] }
+            ],
             "separatorStyle": {
               "not": "none"
             }
@@ -1412,6 +1418,10 @@
           "x-unit": "px",
           "description": "Room between a separator and the widgets on either side of it.",
           "x-showIf": {
+            "anyOf": [
+              { "widgetGrouping": { "not": "powerline" } },
+              { "widgetStyle": ["underline", "accentText", "plain"] }
+            ],
             "separatorStyle": {
               "not": "none"
             }
@@ -1801,8 +1811,8 @@
       "description": "Re-theme external apps whenever the shell theme changes. Each writes its own axiom file; turned on, it shows the line that loads that file from the app's config, to copy or to apply (which backs your config up first).",
       "additionalProperties": false,
       "properties": {
-        "gtk": { "type": "boolean", "title": "GTK", "default": false, "description": "Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (adw-gtk-theme on Arch, adw-gtk3-theme on Fedora).", "x-hookup": [{"file": "{config}/gtk-3.0/gtk.css", "place": "start", "text": "@import url(\"axiom.css\");", "accept": "^@import url\\([\"']?axiom\\.css"}, {"file": "{config}/gtk-4.0/gtk.css", "place": "start", "text": "@import url(\"axiom.css\");"}] },
-        "qt": { "type": "boolean", "title": "Qt (qt5ct / qt6ct)", "default": false, "description": "Writes an \"axiom\" color scheme for qt5ct and qt6ct (Qt apps need QT_QPA_PLATFORMTHEME=qt5ct / qt6ct).", "x-hookup": [{"file": "{config}/qt5ct/qt5ct.conf", "place": "section", "section": "Appearance", "comment": ";", "requires": "qt5ct", "text": "custom_palette=true\ncolor_scheme_path={config}/qt5ct/colors/axiom.conf"}, {"file": "{config}/qt6ct/qt6ct.conf", "place": "section", "section": "Appearance", "comment": ";", "requires": "qt6ct", "text": "custom_palette=true\ncolor_scheme_path={config}/qt6ct/colors/axiom.conf"}] },
+        "gtk": { "type": "boolean", "title": "GTK", "default": false, "description": "Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (adw-gtk-theme on Arch, adw-gtk3-theme on Fedora).", "x-hookup": [{"file": "{config}/gtk-3.0/gtk.css", "place": "start", "text": "@import url(\"axiom.css\");", "accept": "^@import url\\([\"']?axiom\\.css"}, {"file": "{config}/gtk-4.0/gtk.css", "place": "start", "text": "@import url(\"axiom.css\");", "accept": "^@import url\\([\"']?axiom\\.css", "wrapLink": "@import url(\"file://{link}\");"}] },
+        "qt": { "type": "boolean", "title": "Qt and KDE apps", "default": false, "description": "Writes an \"axiom\" color scheme for qt5ct and qt6ct, and an \"Axiom\" KDE color scheme (Dolphin, Gwenview, Okular, Kate…).", "x-hookupNote": "Qt apps take the palette from qt5ct / qt6ct only with QT_QPA_PLATFORMTHEME=qt5ct, which a managed compositor config sets while this is on (apps started from your next login get it); otherwise set it in your compositor's environment. KDE apps read most of their colors from kdeglobals instead: once its ColorScheme is Axiom, axiom keeps its color groups a copy of the scheme on every theme change, as Plasma does. Apps with a color scheme menu of their own (Okular, Dolphin, Kate, Gwenview) pick Breeze outside Plasma unless kdeglobals' UiSettings names one: the last line does, for every app whose own menu is left at Default. Those apps load the scheme when they start, so restart them after a theme change.", "x-hookup": [{"file": "{config}/qt5ct/qt5ct.conf", "place": "section", "section": "Appearance", "comment": ";", "requires": "qt5ct", "text": "custom_palette=true\ncolor_scheme_path={config}/qt5ct/colors/axiom.conf"}, {"file": "{config}/qt6ct/qt6ct.conf", "place": "section", "section": "Appearance", "comment": ";", "requires": "qt6ct", "text": "custom_palette=true\ncolor_scheme_path={config}/qt6ct/colors/axiom.conf"}, {"file": "{config}/kdeglobals", "title": "KDE apps", "place": "section", "section": "General", "text": "ColorScheme=Axiom"}, {"file": "{config}/kdeglobals", "title": "KDE apps with a color scheme menu (Okular, Dolphin, Kate…)", "place": "section", "section": "UiSettings", "text": "ColorScheme=Axiom"}] },
         "kitty": { "type": "boolean", "title": "Kitty", "default": false, "description": "Writes kitty/axiom.conf. Reloads kitty when allow_remote_control is on.", "x-hookup": [{"file": "{config}/kitty/kitty.conf", "place": "end", "text": "include axiom.conf", "accept": "^include\\s+\\S*axiom\\.conf"}] },
         "alacritty": { "type": "boolean", "title": "Alacritty", "default": false, "description": "Writes alacritty/axiom.toml. Alacritty reloads it by itself.", "x-hookupNote": "Alacritty loads imported files before its own, so colors set in alacritty.toml still win: remove them to use axiom's.", "x-hookup": [{"file": "{config}/alacritty/alacritty.toml", "place": "section", "section": "general", "replace": "conflict", "text": "import = [\"{config}/alacritty/axiom.toml\"]", "accept": "^(general\\.)?import\\s*=.*axiom\\.toml"}] },
         "foot": { "type": "boolean", "title": "Foot", "default": false, "description": "Writes foot/axiom.ini. Applies to new windows.", "x-hookup": [{"file": "{config}/foot/foot.ini", "place": "top", "replace": "keep", "text": "include={config}/foot/axiom.ini", "accept": "^include\\s*=\\s*\\S*axiom\\.ini"}] },
@@ -2244,7 +2254,7 @@
       "description": "A screen of overlay modules on a bounded grid of columns × rows units, fitted to each monitor: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).",
       "type": "object",
       "additionalProperties": false,
-      "x-order": ["columns", "rows", "fineGrid", "otherScreens", "background", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
+      "x-order": ["columns", "rows", "fineGrid", "otherScreens", "background", "blurWallpaper", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
       "properties": {
         "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9)." },
         "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
@@ -2265,8 +2275,9 @@
           "enum": ["wallpaper", "color"],
           "x-enumLabels": { "wallpaper": "Wallpaper", "color": "Color" },
           "default": "wallpaper",
-          "description": "Each monitor's wallpaper (blurred when Blur wallpaper is on), or a plain color."
+          "description": "Each monitor's wallpaper, or a plain color."
         },
+        "blurWallpaper": { "x-group": "Background", "type": "boolean", "title": "Blur wallpaper", "default": true, "x-showIf": { "background": "wallpaper" } },
         "backgroundColor": { "x-group": "Background", "type": "string", "title": "Color", "x-options": "colors", "default": "base00", "x-showIf": { "background": "color" } },
         "dim": { "x-group": "Background", "type": "integer", "title": "Dim", "default": 40, "minimum": 0, "maximum": 100, "x-unit": "%", "x-control": "slider", "description": "Darken the background so the modules stand out." },
         "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": true, "description": "Draw each module's card box. Off shows modules straight on the background. The password field and the greeting have their own switches." },
@@ -3024,7 +3035,7 @@
             "slant": "Slanted",
             "arrow": "Arrow"
           },
-          "description": "Rounded follows the widget corner radius. Slanted and arrow widgets take a little more room for their points.",
+          "description": "Rounded follows the widget corner radius. Capsule always gives fully round pill ends, whatever the radius. Slanted and arrow widgets take a little more room for their points.",
           "x-showIf": {
             "overrideWidgetStyle": true,
             "widgetStyle": ["filled", "tinted", "outline"]
@@ -3116,7 +3127,11 @@
           },
           "description": "Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing.",
           "x-showIf": {
-            "overrideAccents": true
+            "overrideAccents": true,
+            "anyOf": [
+              { "widgetGrouping": { "not": "powerline" } },
+              { "widgetStyle": ["underline", "accentText", "plain"] }
+            ]
           }
         },
         "separatorColor": {
@@ -3127,6 +3142,10 @@
           "default": "base03",
           "x-showIf": {
             "overrideAccents": true,
+            "anyOf": [
+              { "widgetGrouping": { "not": "powerline" } },
+              { "widgetStyle": ["underline", "accentText", "plain"] }
+            ],
             "separatorStyle": {
               "not": "none"
             }
@@ -3143,6 +3162,10 @@
           "x-unit": "px",
           "x-showIf": {
             "overrideAccents": true,
+            "anyOf": [
+              { "widgetGrouping": { "not": "powerline" } },
+              { "widgetStyle": ["underline", "accentText", "plain"] }
+            ],
             "separatorStyle": {
               "not": "none"
             }
@@ -3160,6 +3183,10 @@
           "description": "Room between a separator and the widgets on either side of it.",
           "x-showIf": {
             "overrideAccents": true,
+            "anyOf": [
+              { "widgetGrouping": { "not": "powerline" } },
+              { "widgetStyle": ["underline", "accentText", "plain"] }
+            ],
             "separatorStyle": {
               "not": "none"
             }
@@ -4415,8 +4442,8 @@
             "emptyText": { "type": "string", "title": "Empty text", "default": "—", "description": "Shown when no window is focused." },
             "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
             "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4440,9 +4467,9 @@
             "idleText": { "type": "string", "title": "Idle text", "default": "No player", "description": "Shown when nothing is playing." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the media controls when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-            "playingColor": { "type": "string", "title": "Playing background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "pausedColor": { "type": "string", "title": "Paused background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "playingColor": { "type": "string", "title": "Playing color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "pausedColor": { "type": "string", "title": "Paused color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4473,12 +4500,12 @@
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true, "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }] } },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
-            "showBackground": { "type": "boolean", "title": "Background", "default": true, "description": "A box around the workspaces, in the bar's widget style. Off: the workspaces sit on the bar at the size of the widgets around them." },
-            "backgroundColor": { "type": "string", "title": "Background color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral", "x-showIf": { "showBackground": true }, "description": "Behind the workspaces, in the bar's widget style." },
-            "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
-            "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
-            "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "description": "Numbers, and the grid's active arrow. The colors also apply to the grid popout." },
+            "showBackground": { "type": "boolean", "title": "Background", "default": true, "description": "A box around the workspaces, in the bar's widget style. Off: the workspaces sit on the bar at the size of the widgets around them.", "x-showIf": { "$bar.widgetStyle": ["filled", "tinted", "outline"] } },
+            "backgroundColor": { "type": "string", "title": "Background color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral", "x-showIf": { "showBackground": true, "$bar.widgetStyle": ["filled", "tinted", "outline"], "$bar.widgetGrouping": { "not": "merged" } }, "description": "Behind the workspaces, in the bar's widget style." },
+            "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01", "x-showIf": { "$bar.widgetStyle": ["filled", "tinted", "outline", "underline"] } },
+            "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "description": "Numbers, and the grid's active arrow. The colors also apply to the grid popout.", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetTextColor": "" } },
             "hoverColor": { "type": "string", "title": "Hover", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "description": "A cell's box under the pointer. Auto: the theme's highlight." }
           }
         }
@@ -4507,8 +4534,8 @@
             "verticalDate": { "type": "string", "title": "Vertical date", "default": "day", "enum": ["day", "monthDay", "numeric"], "x-enumLabels": { "day": "Day and weekday", "monthDay": "Month, day and weekday", "numeric": "Day over month number" }, "description": "The date's lines on a vertical bar, when no date format is set.", "x-showIf": { "showDate": true } },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the calendar when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "anyOf": [{ "$bar.widgetStyle": ["filled", "tinted", "outline"], "$bar.widgetGrouping": { "not": "merged" } }, { "$bar.widgetStyle": "underline" }] } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4532,9 +4559,9 @@
             "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 250, "maximum": 60000 },
             "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
             "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
-            "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "connectedColor": { "type": "string", "title": "Connected color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "disconnectedColor": { "type": "string", "title": "Disconnected color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4557,9 +4584,9 @@
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Wi-Fi menu when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing." },
-            "backgroundColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Connected color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "disconnectedColor": { "type": "string", "title": "Disconnected color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4581,7 +4608,7 @@
             "iconSize": { "type": "integer", "x-control": "stepper", "title": "Icon size", "default": 18, "minimum": 8, "maximum": 64, "x-unit": "px", "description": "Size of tray icons (px)." },
             "showPassive": { "type": "boolean", "title": "Show passive", "default": true, "description": "Also show items that report themselves as passive (idle)." },
             "showPopout": { "type": "boolean", "title": "Menus", "default": true, "description": "Open an item's menu when it's hovered." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral" }
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral", "x-showIf": { "anyOf": [{ "$bar.widgetStyle": ["filled", "tinted", "outline"], "$bar.widgetGrouping": { "not": "merged" } }, { "$bar.widgetStyle": "underline" }] } }
           }
         }
       }
@@ -4603,8 +4630,8 @@
             "showCount": { "type": "boolean", "title": "Show count", "default": true, "description": "Badge with the number of notifications." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the notification list when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" },
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } },
             "dndColor": { "type": "string", "title": "Do-not-disturb icon", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "badgeColor": { "type": "string", "title": "Badge", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" }
           }
@@ -4639,8 +4666,8 @@
             "popoutMenu": { "type": "string", "title": "Popout menu", "default": "", "x-options": "edgeMenus", "description": "The edge menu shown on hover. It can differ from the one a click opens.", "x-showIf": { "showPopout": true } },
             "labelCommand": { "x-scope": "personal", "type": "string", "title": "Label command", "default": "", "description": "Shell command whose first line of output is shown as the label, re-run on an interval." },
             "labelInterval": { "type": "integer", "title": "Label interval", "x-unit": "ms", "default": 5000, "minimum": 500, "maximum": 3600000, "description": "How often the label command runs.", "x-showIf": { "labelCommand": { "not": "" } } },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4662,11 +4689,11 @@
             "showPercentage": { "type": "boolean", "title": "Show percentage", "default": true },
             "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
             "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "chargingColor": { "type": "string", "title": "Charging background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt" },
-            "lowColor": { "type": "string", "title": "Low background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "description": "At or below Battery > Low at (in settings)." },
-            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical", "description": "At or below Battery > Critical at (in settings)." },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "chargingColor": { "type": "string", "title": "Charging color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "lowColor": { "type": "string", "title": "Low color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "description": "At or below Battery > Low at (in settings).", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "criticalColor": { "type": "string", "title": "Critical color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical", "description": "At or below Battery > Critical at (in settings).", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4696,9 +4723,9 @@
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open live graphs of the shown metrics when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "warnThreshold": { "type": "integer", "title": "Warning at", "default": 90, "minimum": 1, "maximum": 100, "description": "Any usage (%) or temperature (°C) at or above this switches to the warning background." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "warnColor": { "type": "string", "title": "Warning color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4721,8 +4748,8 @@
             "hideSingle": { "type": "boolean", "title": "Hide single layout", "default": false, "description": "Hide the widget when only one layout is configured." },
             "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
             "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4744,9 +4771,9 @@
             "showLabel": { "type": "boolean", "title": "Show label", "default": false },
             "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
             "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
-            "activeColor": { "type": "string", "title": "Active background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "inactiveColor": { "type": "string", "title": "Inactive background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "activeColor": { "type": "string", "title": "Active color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "inactiveColor": { "type": "string", "title": "Inactive color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4771,8 +4798,8 @@
             "ignoreApps": { "x-scope": "personal", "type": "array", "items": { "type": "string" }, "title": "Ignored apps", "default": ["cava"], "description": "App names that never trigger an indicator, comma-separated." },
             "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
             "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
-            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "activeColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4794,8 +4821,8 @@
             "showTimer": { "type": "boolean", "title": "Show time recorded", "default": true },
             "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
             "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
-            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "activeColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4823,9 +4850,9 @@
             "terminal": { "x-scope": "personal", "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
             "upgradeCommand": { "x-scope": "personal", "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu." },
             "manyThreshold": { "type": "integer", "title": "Many updates", "default": 50, "minimum": 1, "maximum": 1000, "description": "At or above this count, the widget uses the many-updates background." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "manyColor": { "type": "string", "title": "Many-updates background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "manyColor": { "type": "string", "title": "Many-updates color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4870,10 +4897,10 @@
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List every limit per account when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "clickCommand": { "x-scope": "personal", "type": "string", "title": "Click command", "default": "", "description": "Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
-            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "warnColor": { "type": "string", "title": "Warning color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "criticalColor": { "type": "string", "title": "Critical color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4895,8 +4922,8 @@
             "showCondition": { "type": "boolean", "title": "Show condition", "default": false, "description": "Show the condition (e.g. Rain) next to the temperature." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Show the forecast when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4920,8 +4947,8 @@
             "maxLength": { "type": "integer", "x-control": "stepper", "title": "Title length", "default": 24, "minimum": 4, "maximum": 100, "description": "Longest title shown before it is shortened (characters)." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the calendar when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4969,9 +4996,9 @@
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the output mixer when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "mutedColor": { "type": "string", "title": "Muted color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -4996,11 +5023,11 @@
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the input mixer when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
-            "activeColor": { "type": "string", "title": "In-use background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "description": "Used while an app is recording from the microphone." },
+            "activeColor": { "type": "string", "title": "In-use color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "description": "Used while an app is recording from the microphone.", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "hideWhenIdle": { "type": "boolean", "title": "Hide when idle", "default": false, "description": "Only show the widget while the microphone is in use or muted." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "mutedColor": { "type": "string", "title": "Muted color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }
@@ -5025,10 +5052,10 @@
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Bluetooth menu when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. blueman-manager). Empty does nothing." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-            "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt" },
-            "disabledColor": { "type": "string", "title": "Off background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
-            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+            "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "connectedColor": { "type": "string", "title": "Connected color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "disabledColor": { "type": "string", "title": "Off color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
       }

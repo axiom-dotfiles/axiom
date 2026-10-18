@@ -7,7 +7,7 @@
 ## Files to touch
 1. `components/bar/widgets/<Type>.qml`: the widget. The file name is the type const.
 2. `config/json/config.schema.json`: a `<Type>Widget` entry in `definitions`, and `{ "$ref": "#/definitions/<Type>Widget" }` appended to `definitions.BarWidget.oneOf`.
-3. `config/i18n/*.json`: via `scripts/check_i18n.py --fill` (the title, descriptions and the type's `description`, which is its library label).
+3. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template (the title, descriptions and the type's `description`, which is its library label, are keys).
 4. If it opens a popout of its own: `components/content/<Name>.qml` ([bar-popout](bar-popout.md)).
 5. If it needs data that's polled: the service's `acquire`/`release` ([service](service.md)).
 
@@ -59,9 +59,9 @@ Schema entry (in `definitions`):
         "showLabel": { "type": "boolean", "title": "Show label", "default": false },
         "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Show the details when hovered." },
         "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-        "activeColor": { "type": "string", "title": "Active background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
-        "inactiveColor": { "type": "string", "title": "Inactive background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
-        "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+        "activeColor": { "type": "string", "title": "Active color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+        "inactiveColor": { "type": "string", "title": "Inactive color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+        "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
       }
     }
   }
@@ -74,13 +74,14 @@ Without a popout of its own, `showPopout` is `"title": "Menu popout", "default":
 2. Write `components/bar/widgets/<Type>.qml` with its purpose comment above the root.
 3. Read every setting as `properties.<key>` (always present: defaults are filled at load).
 4. Polled data: a request built from `properties` only (copy `Updates.qml`'s `updatesRequest`), acquired in `Component.onCompleted` and on its change, released in `onDestruction`.
-5. Run `scripts/check_i18n.py --fill`, then verify.
+5. Verify.
 
 ## Gotchas
 - `BarWidgetHost` handles `popoutMenu` itself (an edge menu instead of the popout): the widget's own `PopoutAnchor` is gated by `EdgeMenusConfig.opensOwnPopout(root.properties)`, never by `properties.showPopout` alone.
 - Every widget but Button, Separator and the tray has `showPopout` / `popoutMenu`, even without a popout of its own (they open an edge menu).
 - Sizes come from the bar (`barConfig.widgetSize`, `barConfig` padding/spacing/font/radius), never `Widget.*`. `BarIconWidget` already does this; a widget drawing more must too.
 - A color field the bar should pick when empty has `"default": ""`, `"x-emptyLabel": "Auto"` and an `x-autoColor` role (`accent`, `alt`, `warning`, `critical`, `off`, `neutral`). `tst_Config` checks these.
+- Color fields show only in the bar looks they do something in (`$bar.<key>` conditions; the rules are in [bar/widget-style](../dev/bar/widget-style.md#which-color-fields-show)): the state colors that feed `accentColor` hide under Plain text, and `foregroundColor` shows only when filled, not merged, with the bar's text color Auto. A widget without an icon shows its color only boxed and not merged, or underlined (`TimeWidget`).
 - The type const must not match a `components/content/` file another file sees alongside it (e.g. a `Battery` widget and `Battery` content): `check_structure.py` errors.
 - `hidden: true` hides the widget and disables its clicks; use it for "hide when empty" settings.
 - `onClicked` gets the button when `acceptedButtons` lists more than one (`Updates.qml`).

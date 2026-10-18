@@ -81,7 +81,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `EmojiPicker.qml`: Emoji to copy (EmojiManager, as the launcher's ";" does): a search field, Unicode's groups as tabs and a grid, most used first until you search or pick a group.
 - `Favourites.qml`: App launcher buttons.
 - `Greeting.qml`: A line of text, as big as its slot allows: resizing the module resizes the text. {name} is the display name, {user} the user name and {greeting} good morning, afternoon or evening; empty text says hey to the display nam…
-- `KeyboardLayout.qml`: The greeter's keyboard layout (x-hosts: greeter only): the active one, and a click switches to the next (the layouts the greeter's Hyprland has: Input's while its keyboard part is on, else its own).
+- `KeyboardLayout.qml`: The greeter's keyboard layout (x-hosts: greeter only): the active one, and a click switches to the next (the layouts the greeter's compositor has: Input's while its keyboard part is on, else its own).
 - `Login.qml`: The greeter's login box (x-hosts: greeter only; x-required, so every greeter layout has one): who logs in and their password.
 - `Network.qml`: The primary connection (name, IP, wifi signal), live throughput with a graph, and Tailscale's state when it's installed.
 - `NightLightControls.qml`: The night light (NightLightManager): on or off, how warm (right is warmer) and how dim, and its schedule.
@@ -289,6 +289,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SchemaLayout.qml`: Turns the config schema into the settings page's layout: categories (`x-category` on each top-level section, ordered by the root's `x-categories`), each made of groups (the section's own fields, then one per nested obje…
 - `SchemaValidation.qml`: JSON-schema helpers for the config: validation, filling in defaults, and pruning unknown keys.
 - `Search.qml`: Pure helpers for searching lists by typed text: the launcher's fuzzy score, frecency from a { count, last } use record (Utils.recordUse) and whether text reads as math for the calculator.
+- `ShellInstances.qml`: Which axiom instances on a display keep running (InstanceManager): the newest, by launch time and then pid, so every instance decides the same.
 - `ShownLook.qml`: What the look shows at the moment, from what the user chose (config) and what changes on its own (runtime state ThemeManager keeps: the rotation's wallpapers, the theme schedule's variant).
 - `SurfaceContext.qml`: What a surface growing out of a screen edge touches, and every rule that follows from it, for each kind of surface alike: bar popouts, edge popouts (OSDs, floating edge menus, the attached launcher), docks and submenus.
 - `SurfaceOutline.qml`: The outline of a surface that grows out of an edge (AttachedSurface): a content box joined to the attach edge by two concave fillets, or a plain box held off it.
@@ -424,7 +425,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 - `AppsPage.qml`: The apps the keybinds open (terminal, file manager, browser), with the installed ones offered to pick from, the main modifier, and the keys that matter most on day one.
 - `BindsTable.qml`: The keys axiom binds for some actions (from Keybinds.binds): one row per action, with its first key, its label, and a warning when the running layer skipped that key because the user's own config holds it
-- `ChecksPage.qml`: What's missing: the icon font, and the programs features use (DependencyManager.tools), with the commands that install them on this distribution (DependencyManager.installLines), or just their names on one axiom has no …
+- `ChecksPage.qml`: What's missing: the icon font, and the programs features use (DependencyManager.tools; one is there when any of its alternatives is, as the login screen's compositor), with the commands that install them on this distrib…
 - `CompositorPage.qml`: How axiom and the compositor's config fit together, on any compositor axiom can set up (configModes): what its config folder holds (OnboardingManager.configState), the three modes (always all three: managed recommended,…
 - `FinishPage.qml`: The last page: what Finish does to the compositor's config, whether axiom starts with the session, and where to go from here
 - `IntegrationsPage.qml`: How axiom fits into the system: self-updates, the launcher's clipboard history, whether axiom runs hypridle (Idle.enabled), whether axiom's lock screen locks (Lockscreen.mode), and whether it's the polkit agent (Polkit.…
@@ -633,6 +634,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `HyprlandManager.qml`: CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprland's state as the compositor-neutral shapes (HyprState), and the primitives CompositorManager builds on.
 - `HyprlandRuntimeLayer.qml`: Axiom's Hyprland layer evaluated at runtime (RuntimeLayer), for HyprlandConfigWriter, which owns it.
 - `IdleInhibitManager.qml`: Shared on/off state for keeping the session awake.
+- `InstanceManager.qml`: Keeps one axiom per display.
 - `IntegrationHookupManager.qml`: Hooks theme integrations into their apps' configs: each ThemeIntegrations switch's `x-hookup` targets (the line that loads its axiom file, where it goes), run by scripts/integration_hookup.py.
 - `KeybindManager.qml`: KeybindManager reads the keybinds the compositor has registered (CompositorManager.withBinds).
 - `KeyboardLayoutManager.qml`: Active xkb layout of the main keyboard, shared by every KeyboardLayout widget.

@@ -85,16 +85,25 @@ Loader {
     const labels = Object.assign({}, fieldSchema["x-enumLabels"] ?? {});
     if (fieldSchema["x-emptyLabel"])
       labels[""] = fieldSchema["x-emptyLabel"];
-    return Object.keys(labels).reduce((out, value) => {
+    const out = Object.keys(labels).reduce((out, value) => {
       out[value] = I18n.tr(labels[value]);
       return out;
     }, {});
+    // A color without Auto marks its default, listed first
+    if (root.isColor && !fieldSchema["x-emptyLabel"] && fieldSchema.default)
+      out[fieldSchema.default] = I18n.tr("{0} (default)", fieldSchema.default);
+    return out;
   }
 
-  // A sibling key of this row's path (or a `/`-rooted config path), for
-  // `x-showIf` and `x-enumShowIf`, in any form
+  // A sibling key of this row's path (or a `/`-rooted config path, or a
+  // `$` key from the form's `context`), for `x-showIf` and `x-enumShowIf`,
+  // in any form
   function _valueOf(key) {
-    return key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : root.form?.valueAt(root.row.path.slice(0, -1).concat(key));
+    if (key.startsWith("/"))
+      return SettingsManager.configValueAt(key.slice(1));
+    if (key.startsWith("$"))
+      return root.form?.context?.[key];
+    return root.form?.valueAt(root.row.path.slice(0, -1).concat(key));
   }
 
   // `x-showIf`, checked against _valueOf

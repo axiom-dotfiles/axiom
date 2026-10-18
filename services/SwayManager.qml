@@ -40,8 +40,11 @@ Singleton {
     "bottom": _liveGaps.outer + _liveGaps.inner,
     "left": _liveGaps.outer + _liveGaps.inner
   } : _gaps
-  // Writes axiom's layer into sway's config (CompositorConfigManager)
-  readonly property var configWriter: SwayConfigWriter
+  // Writes axiom's layer into sway's config (CompositorConfigManager). None
+  // in the greeter, which writes no config: building the writer there, as
+  // the greeter's first singletons are still being built, went past Qt's
+  // creation depth ("Component creation is recursing") and broke them
+  readonly property var configWriter: Paths.greeter ? null : SwayConfigWriter
   // Whether sway is SwayFX (blur, rounded corners, shadows, dimming), once
   // known: its get_version reply adds sway_original_version. Kept across a
   // reload of the shell, so it's known at once then.
@@ -355,6 +358,13 @@ Singleton {
   // Switches every keyboard to its "next" or "prev" layout, then calls back
   function cycleKeyboardLayout(direction, callback) {
     SwayIpcManager.command(`input type:keyboard xkb_switch_layout ${direction === "prev" ? "prev" : "next"}`, () => callback?.());
+  }
+
+  // Sets the input options and cursor now (`input`: CompositorLayer.input's,
+  // `inputSchema`: Input's), as their parts say: the greeter's sway, which
+  // loads no config of axiom's
+  function applyInput(input, inputSchema) {
+    root.runCommands(SwayConf.inputLines(input, inputSchema, true));
   }
 
   // Sway can't say where the cursor is, nor list layer surfaces

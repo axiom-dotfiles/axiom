@@ -493,7 +493,8 @@ QtObject {
   // key unless listed here, none for ones every desktop has
   readonly property var _integrationCommands: ({
       "gtk": [],
-      "qt": ["qt6ct", "qt5ct"],
+      // qt*ct, or a KDE app (which reads the KDE scheme without them)
+      "qt": ["qt6ct", "qt5ct", "okular", "dolphin", "kate", "kwrite", "gwenview", "konsole", "ark", "spectacle", "systemsettings"],
       "helix": ["hx", "helix"],
       "vscode": ["code", "codium"],
       "zed": ["zed", "zeditor", "zedit", "dev.zed.Zed"],

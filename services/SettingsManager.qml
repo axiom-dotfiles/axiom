@@ -185,8 +185,13 @@ QtObject {
     case "chatPresets":
       return ChatConfig.presets.map(preset => preset.name);
     case "colors":
-      // `x-emptyLabel`: empty picks a color automatically
-      return (fieldSchema["x-emptyLabel"] ? [""] : []).concat(Theme.baseColorNames);
+      // `x-emptyLabel`: empty picks a color automatically; without it the
+      // default comes first, the way back to it
+      {
+        const auto = !!fieldSchema["x-emptyLabel"];
+        const first = auto ? "" : (fieldSchema.default ?? "");
+        return (auto || first !== "" ? [first] : []).concat(Theme.baseColorNames.filter(name => name !== first));
+      }
     case "cursorThemes":
       {
         const current = InputConfig.cursorTheme;

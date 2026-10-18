@@ -1,0 +1,58 @@
+name: Compositor or distribution support
+description: Run axiom on another compositor, or install it on another distribution
+labels: [platform, needs-maintainer, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        axiom runs on Hyprland, niri and sway, and its installer supports Arch, Fedora and distributions based on them. On other compositors with layer-shell, the bar, launcher and notifications mostly work already; the compositor-specific parts (workspaces, keybinds, window rules, the config writer) need a backend.
+
+        **Support only lands with someone to keep it working.** The maintainers can't run every compositor or distribution, so a new one needs a person who uses it daily and tests changes and releases on it, or who'd write and keep up the support themselves. Please say below how you could help.
+
+        Some fields only apply to one kind; skip the ones that don't.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - Compositor
+        - Distribution
+    validations:
+      required: true
+  - type: input
+    id: name
+    attributes:
+      label: Name and version
+      placeholder: "river 0.4, or openSUSE Tumbleweed"
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: Who uses it, and what it would take today to run axiom there (what you tried, what broke).
+  - type: textarea
+    id: compositor
+    attributes:
+      label: (Compositor) What it offers
+      description: Does it support layer-shell? How do programs talk to it (an IPC socket, an event stream, a CLI)? What's its config format, and can it include another file? Links to its docs help most.
+  - type: textarea
+    id: distro
+    attributes:
+      label: (Distribution) Packages
+      description: Its package manager and base (Debian, openSUSE, NixOS, …). Are Quickshell 0.3.2+ and your compositor packaged there, and in which repositories? Does anyone package axiom for it already?
+  - type: checkboxes
+    id: maintainer
+    attributes:
+      label: How you could help
+      options:
+        - label: I use it daily.
+        - label: I'll test changes and releases on it.
+        - label: I'd write the support myself, and keep it up.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues, and this isn't one of them.
+          required: true

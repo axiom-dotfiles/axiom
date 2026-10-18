@@ -34,7 +34,8 @@ QtObject {
 
   // --- What's set up ---
 
-  // The last `check`: { greetd, agreety, displayManager, installed,
+  // The last `check`: { greetd, agreety, compositor ("sway" | "hyprland":
+  // what the login screen runs in, "" for neither), displayManager, installed,
   // configured, helper, installedSource, url, installedHash, currentHash,
   // greeterUser, bundleWritable, error }, or
   // null before the first
@@ -49,7 +50,9 @@ QtObject {
   onWantedSourceChanged: root.check()
 
   // "checking" | "checkFailed" (lastError says why) | "noGreetd"
-  // (greetd or its text login, agreety, isn't installed) | "off" |
+  // (greetd or its text login, agreety, isn't installed) | "noCompositor"
+  // (neither sway nor Hyprland, which it runs in, is installed; a copy
+  // already set up still shows, with Remove) | "off" |
   // "notInstalled" (Greeter.enabled, but no copy: set up by hand, or
   // removed outside axiom) | "outdated" (the copy is behind its source,
   // came from another source, or greetd's command was changed; a source
@@ -60,6 +63,8 @@ QtObject {
       return root._checkFailed ? "checkFailed" : "checking";
     if (!report.greetd || !report.agreety)
       return "noGreetd";
+    if (report.compositor === "" && !report.installed)
+      return "noCompositor";
     if (!report.installed)
       return GreeterConfig.enabled ? "notInstalled" : "off";
     if (!report.configured || report.installedSource !== root.wantedSource || (report.currentHash && report.installedHash !== report.currentHash))

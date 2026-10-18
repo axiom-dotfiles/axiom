@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 66
+  readonly property int currentVersion: 67
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -159,6 +159,8 @@ QtObject {
       result = _v64ToV65(result, changes);
     if (version < 66)
       result = _v65ToV66(result, changes);
+    if (version < 67)
+      result = _v66ToV67(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2192,6 +2194,25 @@ QtObject {
     };
     convert(config.BarStyle, "BarStyle");
     (Array.isArray(config.Bars) ? config.Bars : []).forEach((bar, i) => convert(bar, `Bars[${i}]`));
+    return config;
+  }
+
+  // v67 moved Lockscreen.blurWallpaper into each screen layout, next to its
+  // background: the lock screen and the login screen blur their wallpaper
+  // independently (the greeter followed the lock screen's)
+  function _v66ToV67(config, changes) {
+    const lockscreen = config.Lockscreen;
+    if (!lockscreen || typeof lockscreen !== "object" || lockscreen.blurWallpaper === undefined)
+      return config;
+    const blur = lockscreen.blurWallpaper;
+    delete lockscreen.blurWallpaper;
+    for (const section of ["Lockscreen", "Greeter"]) {
+      const layout = config[section]?.layout;
+      if (typeof blur !== "boolean" || !layout || typeof layout !== "object" || layout.blurWallpaper !== undefined)
+        continue;
+      layout.blurWallpaper = blur;
+      changes.push(`Lockscreen.blurWallpaper -> ${section}.layout.blurWallpaper`);
+    }
     return config;
   }
 }

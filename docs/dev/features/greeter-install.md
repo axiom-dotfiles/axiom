@@ -50,6 +50,7 @@ Axiom as greetd's login screen, laid out like the lock screen. This doc covers t
   - `ext::` transports are off, and git never prompts.
   - A copy that can't be swapped in leaves the old one in place.
   - It refuses without `agreety` (`greetd-agreety`), the fallback login.
+  - It refuses without sway or Hyprland's `start-hyprland` (in `/usr/bin` or `/usr/local/bin`), what `greeter-session.sh` runs the login screen in; `check` reports which as `compositor`. The onboarder's Checks page lists it too (`DependencyManager.tools`' `sway`, with `start-hyprland` as its alternative).
 
 #### Then it sets up
 - **`/var/lib/axiom-greeter`:**
@@ -75,6 +76,7 @@ Axiom as greetd's login screen, laid out like the lock screen. This doc covers t
 | `checking` | A check is running. |
 | `checkFailed` | The first check failed. `lastError` says why; Check again retries. |
 | `noGreetd` | greetd or agreety is missing. |
+| `noCompositor` | Neither sway nor Hyprland (`start-hyprland`), which the login screen runs in, is installed (the check's `compositor` is `""`). Install refuses then. An installed copy keeps its status (so Remove stays), and `GreeterSetup` warns that it falls back to agreety. |
 | `off` | The greeter is off. |
 | `notInstalled` | `Greeter.enabled` is set, but there is no copy. |
 | `outdated` | One of: the copy's hash isn't its source's current one; `installedSource` isn't `GreeterManager.wantedSource` (the setting changed); greetd's command changed. A git remote that can't be reached (`currentHash` "") does not count as behind. |

@@ -20,6 +20,8 @@ ColumnLayout {
   // What installs greetd and agreety here ("" on a distribution axiom has
   // no package names for)
   readonly property string installGreetd: DependencyManager.installCommand(["greetd", "agreety"])
+  // What installs sway, the compositor it runs in ("" as above)
+  readonly property string installSway: DependencyManager.installCommand(["sway"])
 
   spacing: Widget.spacing
 
@@ -45,6 +47,26 @@ ColumnLayout {
     }
   }
 
+  // No compositor to run in: sway (plain sway is enough), or Hyprland.
+  // Set up already, it falls back to agreety until one is installed
+  ColumnLayout {
+    visible: root.status === "noCompositor" || (root.report?.installed === true && root.report?.compositor === "")
+    Layout.fillWidth: true
+    spacing: Widget.spacing
+
+    StyledText {
+      text: root.installSway !== "" ? I18n.tr("The login screen runs in a compositor of its own: sway, or Hyprland when sway isn't installed. Neither is, so it would always fall back to greetd's text login. Install sway (plain sway is enough):") : I18n.tr("The login screen runs in a compositor of its own: sway, or Hyprland when sway isn't installed. Neither is, so it would always fall back to greetd's text login. Install sway with your package manager.")
+      textColor: root.status === "noCompositor" ? Theme.foreground : Theme.warning
+      wrapMode: Text.WordWrap
+      Layout.fillWidth: true
+    }
+
+    CodeLine {
+      visible: text !== ""
+      text: root.installSway
+    }
+  }
+
   // What Install does
   ColumnLayout {
     visible: root.status === "off" || root.status === "notInstalled"
@@ -58,7 +80,7 @@ ColumnLayout {
     }
 
     Repeater {
-      model: [I18n.tr("Copies axiom's code (from where Code from below says) to /usr/share/axiom-greeter, for greetd's user to run (your home folder is private to you)."), I18n.tr("Makes /var/lib/axiom-greeter, with a folder of yours that axiom keeps the login screen's look and layout in: changing them later needs no password."), I18n.tr("Backs up /etc/greetd/config.toml, then changes only its default_session command, to start axiom's login screen in a Hyprland of its own.")]
+      model: [I18n.tr("Copies axiom's code (from where Code from below says) to /usr/share/axiom-greeter, for greetd's user to run (your home folder is private to you)."), I18n.tr("Makes /var/lib/axiom-greeter, with a folder of yours that axiom keeps the login screen's look and layout in: changing them later needs no password."), I18n.tr("Backs up /etc/greetd/config.toml, then changes only its default_session command, to start axiom's login screen in a compositor of its own (sway, else Hyprland).")]
 
       delegate: StyledText {
         required property string modelData
@@ -90,7 +112,7 @@ ColumnLayout {
   // that trusts
   StyledText {
     readonly property bool local: GreeterConfig.source === "local" && !Paths.packaged
-    visible: root.report !== null && root.status !== "noGreetd"
+    visible: root.report !== null && root.status !== "noGreetd" && root.status !== "noCompositor"
     // i18n: I18n.tr("the newest release") I18n.tr("the main branch")
     text: Paths.packaged ? I18n.tr("The login screen runs the copy of axiom your package manager installed, so it updates with the system. Only root can change it.") : local ? I18n.tr("Code from Local: Update copies your clone as it is, uncommitted changes included. Any program running as you can change that code before you next update, and the password prompt is then the only check. Choose Git unless you're working on axiom.") : I18n.tr("Code from Git: root fetches {0} from {1}, as axiom's own updates follow it. Nothing that can write to your clone can change what the login screen runs.", I18n.tr(SelfUpdate.channel === "main" ? "the main branch" : "the newest release"), root.report?.url || I18n.tr("your clone's remote"))
     textColor: local ? Theme.warning : Theme.foreground
@@ -152,7 +174,7 @@ ColumnLayout {
     }
 
     StyledTextButton {
-      visible: root.status === "noGreetd" || root.status === "checking" || root.status === "checkFailed"
+      visible: root.status === "noGreetd" || root.status === "noCompositor" || root.status === "checking" || root.status === "checkFailed"
       enabled: root.status !== "checking"
       implicitHeight: Widget.height - 4
       iconText: "refresh"

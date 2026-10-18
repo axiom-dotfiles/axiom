@@ -91,6 +91,7 @@ Singleton {
   // What the bind Lua needs from outside the bind
   readonly property var _bindCtx: ({
       "shellCommand": shellCommand,
+      "restartCommand": Paths.restartCommand,
       "terminal": Apps.terminalCommand,
       "fileManager": Apps.fileManagerCommand,
       "browser": Apps.browserCommand
@@ -161,7 +162,9 @@ Singleton {
       "header": _header,
       "userDir": userDir,
       "session": SessionConfig.session,
-      "env": CompositorLayer.sessionEnv(SessionConfig.session, spec.input.cursor),
+      "env": CompositorLayer.sessionEnv(SessionConfig.session, spec.input.cursor, {
+        "qt": ThemeIntegrations.qt
+      }),
       "cursor": spec.input.cursor,
       // Hyprland's own options and the shared ones, as one
       "schema": {

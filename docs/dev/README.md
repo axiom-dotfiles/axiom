@@ -23,10 +23,10 @@ Dependencies point one way, methods → data owners → readers → services →
 - [generated/layers.md](generated/layers.md): every layer namespace's `order` and why, from `LayerStack.layers`.
 
 ### Known issues
-- [issues.md](issues.md): problems found but not fixed yet. Add one when you find something out of scope; remove it with the fix.
+- [issues.md](issues.md): coding agents' working list of problems found in the code but not fixed yet (add one when you find something out of scope; remove it with the fix). Not where people report or look up problems: that's GitHub issues, which agents never open.
 
 ### Installing
-- [packaging.md](packaging.md): install.sh (distributions, compositors, `--dry-run`), what a packaged shell does differently, and `check_packages.py`.
+- [packaging.md](packaging.md): install.sh (distributions, compositors, `--dry-run`), the AUR packages, what a packaged shell does differently, and `check_packages.py`.
 
 ### Testing
 - [testing.md](testing.md): how to look at, exercise and debug the running shell safely; the testing sections of every doc.
@@ -80,7 +80,7 @@ Dependencies point one way, methods → data owners → readers → services →
 ### compositor/
 - [README](compositor/README.md): `CompositorManager`, detection, capabilities, gating what a compositor can't do, `FocusGrab`.
 - [contract](compositor/contract.md): the neutral shapes and the members a backend provides.
-- [sway-backend](compositor/sway-backend.md): the sway backend (SwayManager), the plan for its config writer, and running a nested compositor (`scripts/dev/nested.sh`).
+- [sway-backend](compositor/sway-backend.md): the sway backend (SwayManager), the plan for its config writer, and running a nested compositor (`scripts/dev/nested.sh`: sway, niri or Hyprland).
 - [niri-backend](compositor/niri-backend.md): the niri backend (NiriManager): its socket, per-output workspaces and strips, and its config writer (files only, validated, the detached wrapper).
 - [config-modes](compositor/config-modes.md): `CompositorConfigManager`, detached / included / managed, leaving a mode, the live parts, the config writer contract.
 - [window-look](compositor/window-look.md): `WindowLook` (borders, shape, gaps, blur, opacity): `CompositorLayer.look`, and Hyprland's one `hl.config`.

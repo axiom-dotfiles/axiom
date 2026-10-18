@@ -15,13 +15,16 @@ QtObject {
   readonly property string axiomPath: decodeURIComponent(Quickshell.shellDir.toString().replace("file://", "")).replace(/\/?$/, "/")
   // How compositors, binds and idle daemons start or call axiom
   readonly property string shellCommand: `qs -p '${root.axiomPath.replace(/\/$/, "")}'`
+  // The restart binds' command: ends every axiom on the display and starts
+  // one (scripts/restart.sh)
+  readonly property string restartCommand: `'${root.axiomPath}scripts/restart.sh'`
   readonly property string themePath: root.axiomPath + "config/themes/"
   readonly property string scriptsPath: root.axiomPath + "scripts/"
   // What ships with axiom in config/: json/ (schema, theme defaults,
   // emoji), themes/, i18n/
   readonly property string resourcePath: root.axiomPath + "config/"
-  // Installed as a distribution package: its version, from the marker the
-  // package writes ("" for a clone: docs/dev/packaging.md).
+  // Installed as a package (the AUR's axiom-shell): its version, from the
+  // marker its PKGBUILD writes ("" for a clone: docs/dev/packaging.md).
   // The package manager updates it (SelfUpdateManager stays off) and the
   // login screen runs it (GreeterManager)
   readonly property string packagedVersion: (FileManager.read(root.axiomPath + ".packaged") ?? "").trim()
@@ -44,7 +47,8 @@ QtObject {
   // Themes generated from the wallpaper ("generated/<name>")
   readonly property string generatedThemesPath: ConfigManager.dataDirs.generatedThemes
 
-  readonly property string hyprlandPath: root.homeDirectory + ".config/hypr/"
+  // Hyprland's config folder ($XDG_CONFIG_HOME/hypr/, where Hyprland looks)
+  readonly property string hyprlandPath: (Quickshell.env("XDG_CONFIG_HOME") || root.homeDirectory + ".config").replace(/\/$/, "") + "/hypr/"
   // Sway's config folder ($XDG_CONFIG_HOME/sway/, as sway looks there first)
   readonly property string swayPath: (Quickshell.env("XDG_CONFIG_HOME") || root.homeDirectory + ".config").replace(/\/$/, "") + "/sway/"
   // niri's config folder ($XDG_CONFIG_HOME/niri/, where niri looks)

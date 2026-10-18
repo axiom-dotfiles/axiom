@@ -19,10 +19,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Lock command: What axiom's lock buttons run when the locker is your own.
   - x-showIf={"mode":"none"}
   - read: `LockscreenConfig.lockCommand` · in: `services/HypridleManager.qml`, `services/LockManager.qml`
-- **`Lockscreen.blurWallpaper`** · boolean = true
-  - Blur wallpaper: Blur the wallpaper behind the lock screen.
-  - x-scope="look", x-showIf={"mode":{"not":"none"}}
-  - read: `LockscreenConfig.blurWallpaper` · in: `components/surfaces/greeter/GreeterSurface.qml`, `components/surfaces/lockscreen/LockSurface.qml`
 
 ### `Lockscreen.layout`
 
@@ -45,9 +41,13 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-group="Grid"
   - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
 - **`Lockscreen.layout.background`** · string = "wallpaper" · enum wallpaper|color
-  - Background: Each monitor's wallpaper (blurred when Blur wallpaper is on), or a plain color.
+  - Background: Each monitor's wallpaper, or a plain color.
   - x-group="Background"
   - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
+- **`Lockscreen.layout.blurWallpaper`** · boolean = true
+  - Blur wallpaper
+  - x-group="Background", x-showIf={"background":"wallpaper"}
+  - read: `LockscreenConfig.layout` (whole) · in: `config/LockscreenConfig.qml`
 - **`Lockscreen.layout.backgroundColor`** · string = "base00"
   - Color
   - x-group="Background", x-options="colors", x-showIf={"background":"color"}
@@ -81,8 +81,6 @@ Every public member of `LockscreenConfig`, with the files that use it.
   - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/layouts/LockscreenTarget.qml`, `services/HypridleManager.qml`, `services/LockManager.qml`, `services/OverlayManager.qml`
 - `LockscreenConfig.lockCommand` (string): What lock buttons run in "none" mode
   - in: `services/HypridleManager.qml`, `services/LockManager.qml`
-- `LockscreenConfig.blurWallpaper` (bool)
-  - in: `components/surfaces/greeter/GreeterSurface.qml`, `components/surfaces/lockscreen/LockSurface.qml`
 - `LockscreenConfig.layout` (var): The built-in lock screen: { columns, rows (its grid, fitted to each monitor; fineGrid splits its units in two), otherScreens ("layout": the modules without the…
   - in: `components/surfaces/lockscreen/LockSurface.qml`
 - `LockscreenConfig.fieldGroups` (var): The layout's own fields in groups (`x-group`), for the layouts editor

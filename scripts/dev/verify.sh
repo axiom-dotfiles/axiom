@@ -78,7 +78,7 @@ for f in "${changed[@]}"; do
   # tests/scripts/test_scripts.py's classes for each script (the whole
   # file takes ~15 s); a new script with tests gets a line here
   case "$f" in
-  scripts/theme_*.sh | scripts/lib/theme_env.sh | scripts/templates/* | config/themes/* | config/json/theme-defaults.json)
+  scripts/theme_*.sh | scripts/lib/theme_env.sh | scripts/templates/* | config/themes/* | config/json/theme-defaults.json | scripts/gen_theme_template.py)
     script_tests+=(Themes TerminalPalette ThemeIntegrations)
     ;;
   scripts/integration_hookup.py) script_tests+=(HookupScript) ;;
@@ -94,8 +94,9 @@ for f in "${changed[@]}"; do
   scripts/merge_hypr_binds.py | scripts/hypr_binds.lua) script_tests+=(MergeHyprBinds ClaimHyprland) ;;
   scripts/generate_theme.py) script_tests+=(GenerateTheme) ;;
   scripts/calendar_sync.py) script_tests+=(CalendarSync) ;;
-  scripts/greeter/*) script_tests+=(GreeterInstall) ;;
+  scripts/greeter/*) script_tests+=(GreeterInstall GreeterSession) ;;
   scripts/pick_path.py) script_tests+=(PickPath) ;;
+  scripts/restart.sh) script_tests+=(RestartScript) ;;
   scripts/sway_config_text.py) script_tests+=(SwayConfigText) ;;
   scripts/dev/known_issues.py) script_tests+=(KnownIssues) ;;
   scripts/migrate_xdg.sh) script_tests+=(MigrateXdg) ;;
@@ -130,7 +131,7 @@ step "structure" python3 scripts/check_structure.py
 if printf '%s\n' "${changed[@]}" | grep -qE '\.(md|qml)$'; then
   step "doc citations" python3 scripts/check_docs.py
 fi
-if printf '%s\n' "${changed[@]}" | grep -qE '^(install\.sh|components/methods/Packages\.qml|scripts/check_packages\.py)'; then
+if printf '%s\n' "${changed[@]}" | grep -qE '^(install\.sh|components/methods/Packages\.qml|packaging/|scripts/check_packages\.py)'; then
   step "package lists" python3 scripts/check_packages.py
 fi
 if [[ ${#qml[@]} -gt 0 ]]; then

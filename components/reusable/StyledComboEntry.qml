@@ -181,7 +181,9 @@ Item {
     id: dropdown
     y: root.height + Widget.spacing / 2
     width: root.width
-    padding: Widget.spacing / 2
+    // Rows are inset from the rounded border (as SchemaComboBox's), so
+    // the highlight never meets it
+    padding: Widget.spacing
     // The field keeps the keys: the list is driven from it
     focus: false
     closePolicy: Popup.CloseOnPressOutsideParent

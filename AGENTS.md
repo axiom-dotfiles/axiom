@@ -30,7 +30,7 @@ This file holds only the rules. **The mechanics of every service and surface are
 | Themes, integrations, wallpaper, blur | `docs/dev/theming/` |
 | A feature (launcher, lockscreen, greeter, dock, OSD, chat, notes, calendar, …) | `docs/dev/features/<feature>.md` |
 | Looking at or debugging the live shell | `docs/dev/testing.md` |
-| install.sh, a packaged install | `docs/dev/packaging.md` |
+| install.sh, the AUR packages, a packaged install | `docs/dev/packaging.md` |
 | Known problems not fixed yet (check before working in an area) | `docs/dev/issues.md` |
 | **What a setting is, its default, who reads it** | `docs/dev/config/<Section>.md` (generated; `grep -rn 'Section.key' docs/dev/config/`) |
 | A bar widget / overlay module / view type's settings | `docs/dev/config/{BarWidgets,OverlayModules,OverlayViews}/<Type>.md` (generated) |
@@ -38,12 +38,12 @@ This file holds only the rules. **The mechanics of every service and surface are
 | Which file does X | `grep -n '<word>' docs/dev/generated/files.md` (generated, ~700 lines: grep it, never read it whole) |
 | Every IPC target / every layer's stacking order | `docs/dev/generated/ipc.md`, `docs/dev/generated/layers.md` (generated) |
 
-**Found a problem outside the task?** Don't fix it unasked and don't only mention it: add an entry to `docs/dev/issues.md` (its format is at the top), and tell the user you did. Quote a log warning's message in backticks under **What** so `verify.sh` marks that line `(known: …)`. Remove an entry in the change that fixes it.
+**Found a problem outside the task?** Don't fix it unasked and don't only mention it: add an entry to `docs/dev/issues.md` (its format is at the top), and tell the user you did. Quote a log warning's message in backticks under **What** so `verify.sh` marks that line `(known: …)`. Remove an entry in the change that fixes it. Never open a GitHub issue: those are for people reporting and requesting (`CONTRIBUTING.md`), and `issues.md` is where agents record problems; a maintainer moves an entry to GitHub when it should be one.
 
 ## Running / reloading
 
 - **After any change run `scripts/dev/verify.sh`** (formats, checks, regenerates docs, runs the affected tests, shows the shell's log with known issues marked, lists the docs describing what you changed; `--all` runs every CI check) until it prints `verify ok`. Read the docs it lists if behaviour changed. **To look at something**: `scripts/dev/shot.sh page <ViewType>` / `launcher [text]` / `ipc <target> <open> [close]` prints a screenshot's path.
-- The shell runs detached; never start/stop it from this session. Saving a file it has loaded hot-reloads it. qs watches by inode: after `sed -i`, `qmlformat -i` or `git checkout`, see `docs/dev/testing.md` to force a reload. A second axiom runs only nested, under another compositor, through `scripts/dev/nested.sh <sway|niri>` (scratch folders, its own D-Bus; `docs/dev/compositor/sway-backend.md`).
+- The shell runs detached; never start/stop it from this session. Saving a file it has loaded hot-reloads it. qs watches by inode: after `sed -i`, `qmlformat -i` or `git checkout`, see `docs/dev/testing.md` to force a reload. A second axiom runs only nested, under another compositor, through `scripts/dev/nested.sh <sway|niri|hyprland>` (scratch folders, its own D-Bus; `docs/dev/compositor/sway-backend.md`).
 - **Logs**: `scripts/log.sh` (warnings/errors since the last reload; `--debug` adds `console.log`, `--all`, `-f`, `-g PATTERN`). A clean reload is just `Reloading configuration...` + `Configuration Loaded`. stdout/journalctl show nothing. `console.log` for tracing, `console.warn` only for real problems.
 - A settings category has no IPC: add a temporary `IpcHandler` calling `SettingsManager.openCategory(name)` to `shell.qml` (never inside a singleton), and revert it in place.
 - `~/.config/axiom/config.json` is owned by the settings UI but may be edited directly to test. `ConfigManager` watches it; an invalid file never replaces the running config (the last good one stays and `savesBlocked` refuses saves until it's fixed).
@@ -61,6 +61,7 @@ Enforced by `.claude/hooks/guard.py` (a PreToolUse hook in `.claude/settings.jso
 - Tell the live niri session to quit, load another config or change its outputs (`niri msg action quit` / `load-config-file`, `niri msg output`): only a nested one (`scripts/dev/nested.sh niri`, its `NIRI_SOCKET`).
 - Apply a theme integration's hookup to the real configs (run `integration_hookup.py` with a scratch `HOME`/`XDG_CONFIG_HOME`).
 - Install, update or remove the greeter for real, or restart greetd (it ends the session). Test `scripts/greeter/greeter_install.sh` with a scratch `AXIOM_GREETER_ROOT`, and look at the greeter with `AXIOM_GREETER=1 AXIOM_GREETER_WINDOWED=1 AXIOM_GREETER_DIR=<scratch> qs -p "$PWD/greeter.qml"` (a window; `qs kill` only that instance).
+- Open a GitHub issue (`gh issue create`, or `gh api` posting one): record the problem in `docs/dev/issues.md` instead.
 - The user's `~/.config/hypr/user/` is a symlink to `~/repos/dotfiles/hypr/user`.
 
 ## Checks
@@ -69,9 +70,10 @@ All run in CI; `scripts/dev/verify.sh --all` (= `scripts/check_all.sh`) runs eve
 - `scripts/check_structure.py` doesn't check `x-card`/`x-intro` files: check those exist yourself. Run it after adding, renaming or moving QML files.
 - `scripts/run_tests.sh [Name…]` (`tests/tst_<Name>.qml`; schema defaults and `ConfigMigration` are `tst_Config`): add a case when changing a methods helper or a migration step.
 - `scripts/check_qmllint.py` fails on warnings not in `scripts/qmllint-baseline.json`. Fix new warnings; `--update-baseline` only for Quickshell type-info gaps, or when it reports baselined warnings gone.
-- `scripts/check_i18n.py --fill` after changing user-visible text or a schema title/description, then translate the empty entries it added; `--prune` drops entries no longer used. It writes the files atomically in their one format (2-space JSON); edit them some other way and it reports `format` (`--format` fixes it).
+- Translation files keep themselves up to date: the pre-commit hook runs `scripts/check_i18n.py --fill` on what's committed, adding each new key (from `I18n.tr()` or a schema title/description) empty to every `config/i18n/<code>.json` and to `config/i18n/template/language.json`, the empty dictionary a new language starts from (generated: never edit it by hand). **Agents never translate**, not even when it looks easy: leave every entry as the hook leaves it (empty shows in English), and don't run `--fill` yourself; translating is for the maintainer and human contributors. `--prune` drops entries no longer used. The checker writes the files atomically in their one format (2-space JSON); edit them some other way and it reports `format` (`--format` fixes it).
 - `scripts/check_docs.py` fails on a hand-written doc citing a path or `Singleton.member` that's gone (fix the doc with the code), and on a schema `x-*` annotation missing from `docs/dev/core/schema-annotations.md`.
-- `scripts/check_packages.py` fails when install.sh's package table and `Packages.packages` disagree: a new dependency goes in both (`docs/dev/packaging.md`).
+- `scripts/check_packages.py` fails when install.sh's package table, `Packages.packages` and the AUR PKGBUILDs disagree: a new dependency goes in all three (`docs/dev/packaging.md`).
+- `config/themes/template/theme.json` (the theme a new one is copied from) comes from `scripts/gen_theme_template.py`, run by the pre-commit hook when `theme-defaults.json` changes. Never edit it by hand.
 - `docs/dev/config/` and `docs/dev/generated/` come from `scripts/gen_docs.py` (verify.sh and the pre-commit hook rebuild them; CI fails when stale; verify.sh warns when the hook isn't set up: `git config core.hooksPath .githooks`). Never edit them by hand.
 - `scripts/check_doc_drift.py` (warnings only) lists docs whose `Files:` changed in 5+ commits since the doc did: they may describe old code. Reread one against the code before relying on it, and touch it (fix or confirm) to reset the count.
 
@@ -124,7 +126,7 @@ Dependencies point one way:
 - **Config writes** go only through `ConfigManager.setTheme` / `setWallpaper(s)` / `saveConfig` / `commit(object)` (validates first; returns false and changes nothing if rejected), or `SettingsManager.setValue` / `commitValue(s)` from UI. Never mutate `ConfigManager.config` and expect it to persist.
 - **Editors** (settings, bar, overlay, edge menus, keybinds, monitors, screen layouts) edit a `ConfigDraft`; unsaved edits show live through `ConfigManager.setPreview(section, value)` and readers read `previews.X ?? config.X`. Selection lives in the manager and changes through its `select*()` (`selectBar`, `selectView`, `selectMenu`, `selectProfile`); views don't assign it. See `docs/dev/core/editors-pattern.md`.
 - Secrets (chat API keys, calendar passwords) never go in config.json or argv: `SecretsManager`, written through stdin. Clipboard history is never written to disk; only clips the user pins are (`~/.local/state/axiom/ui/clipboardPins.json`).
-- **The compositor is reached only through `CompositorManager`** (`docs/dev/compositor/README.md`): its windows, outputs and workspaces (neutral shapes, never a compositor's own objects), its signals, and every workspace switch and window focus (`goToWorkspace` / `stepWorkspace` / `nthWorkspace` / `focusWindow`, never a direct dispatch). Its backend (`HyprlandManager`, `SwayManager`, `NiriManager`) is the only one talking to the compositor; only the `Hyprland*` services import `Quickshell.Hyprland` or send Lua (`hl.*`), only the `Sway*` / `Niri*` services talk to sway / niri, and only the Hyprland-only features (`GreetdManager`, `OnboardingManager`) use `HyprlandManager` directly (`check_structure` enforces all of it).
+- **The compositor is reached only through `CompositorManager`** (`docs/dev/compositor/README.md`): its windows, outputs and workspaces (neutral shapes, never a compositor's own objects), its signals, and every workspace switch and window focus (`goToWorkspace` / `stepWorkspace` / `nthWorkspace` / `focusWindow`, never a direct dispatch). Its backend (`HyprlandManager`, `SwayManager`, `NiriManager`) is the only one talking to the compositor; only the `Hyprland*` services import `Quickshell.Hyprland` or send Lua (`hl.*`), only the `Sway*` / `Niri*` services talk to sway / niri, and only the Hyprland-only features (`OnboardingManager`, and `GreetdManager`'s branch for a greeter on Hyprland) use `HyprlandManager` directly (`check_structure` enforces all of it).
 - **Gate on a capability, not a compositor**: `CompositorManager.supports.<key>` in code, `"/$supports.<key>": true` in a schema `x-showIf`, `x-needs` on a page type. Nothing writes a compositor's config unless `supports.configModes`. Surfaces closing on an outside click use `FocusGrab`.
 - State that must survive a QML reload lives in a `PersistentProperties` (JSON for arrays); small persisted state goes in `StateManager` (`~/.local/state/axiom/ui/*.json`) or `Paths.userStatePath`.
 - **Nothing is written under `Paths.axiomPath`** (a package installs it read-only): what axiom writes goes in the XDG folders through `Paths.userConfigPath` / `statePath` / `userStatePath` / `userDataPath` / `generatedThemesPath` (`docs/dev/core/config-manager.md` › Where files live).
@@ -149,7 +151,7 @@ Dependencies point one way:
 - English source text, inline: `I18n.tr("Text")`, with placeholders for values (`I18n.tr("{0} updates", count)`), never template-string sentences.
 - Dates through `I18n.formatDate(date, I18n.dateFormat("longDate" | …))`, never `Qt.formatDateTime`.
 - Schema forms translate their own titles, descriptions and options. Keys chosen at runtime are declared in a comment as `I18n.tr("…")` so the checker sees them.
-- A language is `config/i18n/<code>.json`. Logs, validation errors and migration notes stay English.
+- A language is `config/i18n/<code>.json`, started from a copy of `config/i18n/template/language.json`. Agents never translate any entry; the pre-commit hook keeps the files' keys current (Checks). Logs, validation errors and migration notes stay English.
 
 ## UI conventions
 

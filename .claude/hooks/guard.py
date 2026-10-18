@@ -145,6 +145,20 @@ def scratch(value):
     return real != HOME and real != HOME / ".config" and real != Path("/")
 
 
+def gh_api_opens_issue(args):
+    """`gh api` creating an issue: GraphQL's createIssue, or a POST to a repo's
+    issues (gh posts when given a field, -f/-F/--input, unless told GET)."""
+    if any("createIssue" in a for a in args):
+        return True
+    if not any(re.fullmatch(r"/?repos/[^/]+/[^/]+/issues/?", a) for a in args):
+        return False
+    method = next((m.group(1) for m in (re.fullmatch(r"(?:-X|--method)=?(\w+)", a) for a in args) if m), None)
+    method = method or next((b for a, b in zip(args, args[1:]) if a in {"-X", "--method"}), None)
+    if method:
+        return method.upper() == "POST"
+    return any(re.match(r"(-[fF]|--field|--raw-field|--input)", a) for a in args)
+
+
 # ----------------------------------------------------------------- rules
 
 def check_argv(env, argv, cwd):
@@ -164,6 +178,10 @@ def check_argv(env, argv, cwd):
     # The shell itself, and its IPC
     if name in QS:
         check_qs(env, args)
+
+    # Opening a GitHub issue: problems go in docs/dev/issues.md
+    if name == "gh" and (args[:2] == ["issue", "create"] or args[:1] == ["api"] and gh_api_opens_issue(args[1:])):
+        deny("Never, while testing", "don't open GitHub issues; record the problem in docs/dev/issues.md and tell the user.")
 
     # Greetd
     if name in {"systemctl", "service", "pkill", "killall"} and any("greetd" in a for a in args):

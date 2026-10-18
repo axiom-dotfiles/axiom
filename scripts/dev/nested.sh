@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Runs another compositor nested (a window in this session) with a second
+# Runs a compositor nested (a window in this session) with a second
 # axiom inside it, for working on a compositor backend
 # (docs/dev/compositor/sway-backend.md). The live shell, its config and its
 # D-Bus names are left alone:
@@ -11,17 +11,19 @@
 #   - its config turns off what would reach outside it: the idle daemon
 #     (it would replace the session's) and the polkit agent
 #
-# Usage: scripts/dev/nested.sh <sway|niri> [--copy-config] [--managed]
+# Usage: scripts/dev/nested.sh <sway|niri|hyprland> [--copy-config] [--managed]
 #   --copy-config  start from a copy of ~/.config/axiom/config.json (with
 #                  the same parts off) instead of the defaults
 #   --managed      run the compositor on the scratch config folder's own
-#                  config (sway/config, niri/config.kdl), the one axiom's
-#                  managed mode takes over (written from the usual nested
-#                  config the first time), so the takeover, its reloads and
-#                  a release can be tried
+#                  config (sway/config, niri/config.kdl,
+#                  hypr/hyprland.lua), the one axiom's managed mode takes
+#                  over (written from the usual nested config the first
+#                  time), so the takeover, its reloads and a release can be
+#                  tried
 #
-# axiom's "Restart shell" (qs kill -p <repo>) ends every axiom started from
-# the repo, the nested one too.
+# axiom's "Restart shell" (scripts/restart.sh) and its one-per-display check
+# (InstanceManager) end only the axioms on their own display, so the nested
+# and the live one never end each other.
 #
 # Logs: qs log -p <repo> (the nested instance is the newest), or the
 # log.log under /run/user/$UID/quickshell/by-id/. IPC: qs ipc --newest call …
@@ -42,16 +44,23 @@ repo="$(cd "$(dirname "$0")/../.." && pwd)"
 scratch="${AXIOM_NESTED_DIR:-${XDG_RUNTIME_DIR:-/tmp}/axiom-nested-$kind}"
 
 case "$kind" in
-sway | niri) ;;
+sway | niri) bin="$kind" ;;
+hyprland) bin=Hyprland ;;
 *)
-  echo "usage: $0 <sway|niri> [--copy-config]" >&2
+  echo "usage: $0 <sway|niri|hyprland> [--copy-config] [--managed]" >&2
   exit 2
   ;;
 esac
-command -v "$kind" >/dev/null || {
-  echo "$kind is not installed" >&2
+command -v "$bin" >/dev/null || {
+  echo "$bin is not installed" >&2
   exit 1
 }
+# Hyprland's Wayland backend asks for xdg_wm_base 6, which sway (1.12) doesn't
+# have: it fails at once (CBackend::create() failed). Run it from Hyprland or niri
+if [[ "$kind" == "hyprland" && -n "${SWAYSOCK:-}" ]]; then
+  echo "nested Hyprland doesn't start under sway (it needs xdg_wm_base 6); run it from Hyprland or niri" >&2
+  exit 1
+fi
 command -v dbus-run-session >/dev/null || {
   echo "dbus-run-session (dbus) is needed" >&2
   exit 1
@@ -108,6 +117,24 @@ EOF
     [[ -f "$conf" ]] || cp "$scratch/sway.conf" "$conf"
   fi
   exec dbus-run-session -- env WLR_BACKENDS=wayland sway -c "$conf"
+elif [[ "$kind" == "hyprland" ]]; then
+  cat >"$scratch/hyprland.lua" <<EOF
+hl.config({ misc = { disable_hyprland_logo = true, disable_splash_rendering = true, force_default_wallpaper = 0, background_color = "rgb(1e1e2e)" } })
+hl.on("hyprland.start", function() hl.exec_cmd("$launch") end)
+hl.bind("SUPER + Return", hl.dsp.exec_cmd("foot"))
+hl.bind("SUPER + Q", hl.dsp.window.close())
+hl.bind("SUPER + SHIFT + E", hl.dsp.exit())
+for i = 1, 5 do
+  hl.bind("SUPER + " .. i, hl.dsp.focus({ workspace = i }))
+end
+EOF
+  conf="$scratch/hyprland.lua"
+  if [[ $managed -eq 1 ]]; then
+    conf="$scratch/config/hypr/hyprland.lua"
+    mkdir -p "$(dirname "$conf")"
+    [[ -f "$conf" ]] || cp "$scratch/hyprland.lua" "$conf"
+  fi
+  exec dbus-run-session -- Hyprland -c "$conf"
 else
   cat >"$scratch/niri.kdl" <<EOF
 spawn-at-startup "$launch"

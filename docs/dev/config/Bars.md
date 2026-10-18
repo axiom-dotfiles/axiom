@@ -118,7 +118,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-group="Widgets", x-beside=true, x-showIf={"overrideWidgetStyle":true,"widgetStyle":"underline"}
   - read: `Bar.savedBars` (whole), `barConfig.lineSide` · in: `components/bar/WidgetBackground.qml`, `components/bar/widgets/workspaces/CellUnderline.qml`, `config/Bar.qml`
 - **`Bars[].widgetShape`** · string = "rounded" · enum rounded|capsule|slant|arrow
-  - Shape: Rounded follows the widget corner radius. Slanted and arrow widgets take a little more room for their points.
+  - Shape: Rounded follows the widget corner radius. Capsule always gives fully round pill ends, whatever the radius. Slanted and arrow widgets take a little more room for their points.
   - x-group="Widgets", x-showIf={"overrideWidgetStyle":true,"widgetStyle":["filled","tinted","outline…
   - read: `Bar.savedBars` (whole), `barConfig.widgetShape` · in: `components/bar/WidgetGroup.qml`, `config/Bar.qml`
 - **`Bars[].widgetGrouping`** · string = "separate" · enum separate|merged|powerline
@@ -143,19 +143,19 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `barConfig.overrideAccents`, entry field, name match, `// reads:` marker · in: `config/Bar.qml`
 - **`Bars[].separatorStyle`** · string = "none" · enum none|line|dot|slash|chevron
   - Separators: Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing.
-  - x-group="Accents", x-showIf={"overrideAccents":true}
+  - x-group="Accents", x-showIf={"overrideAccents":true,"anyOf":[{"widgetGrouping":{"not":"powerline"…
   - read: `Bar.savedBars` (whole), `barConfig.separatorStyle` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
 - **`Bars[].separatorColor`** · string = "base03"
   - Separator color
-  - x-group="Accents", x-options="colors", x-showIf={"overrideAccents":true,"separatorStyle":{"not":"none"}}
+  - x-group="Accents", x-options="colors", x-showIf={"overrideAccents":true,"anyOf":[{"widgetGrouping":{"not":"powerline"…
   - read: `Bar.savedBars` (whole), `barConfig.separatorColor` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
 - **`Bars[].separatorThickness`** · integer = 2 · 1–6 · px
   - Separator thickness
-  - x-group="Accents", x-control="stepper", x-showIf={"overrideAccents":true,"separatorStyle":{"not":"none"}}
+  - x-group="Accents", x-control="stepper", x-showIf={"overrideAccents":true,"anyOf":[{"widgetGrouping":{"not":"powerline"…
   - read: `Bar.savedBars` (whole), `barConfig.separatorThickness` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
 - **`Bars[].separatorGap`** · integer = 2 · 0–24 · px
   - Separator margin: Room between a separator and the widgets on either side of it.
-  - x-group="Accents", x-control="stepper", x-showIf={"overrideAccents":true,"separatorStyle":{"not":"none"}}
+  - x-group="Accents", x-control="stepper", x-showIf={"overrideAccents":true,"anyOf":[{"widgetGrouping":{"not":"powerline"…
   - read: `barConfig.separatorGap`, entry field, name match · in: `config/Bar.qml`
 - **`Bars[].accentLine`** · string = "none" · enum none|inner|outer
   - Accent line: A line along the bar's edge toward the windows (inner) or the screen edge (outer); on pills, along each pill.
@@ -204,6 +204,8 @@ Every public member of `Bar`, with the files that use it.
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`
 - `Bar.cellColors(barConfig, color, own, state)`: What a cell inside a widget (a workspace) draws in on its bar ({ fill, stroke, indicator, content }, see BarWidgetStyle.cell): `color` is its state color, `own…
   - in: `components/bar/widgets/workspaces/StripWindows.qml`, `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/content/WorkspaceGrid.qml`, `components/content/WorkspaceStrips.qml`
+- `Bar.cellRadius(barConfig, cell, inset)`: The corners of a Workspaces cell `cell` thick, inset by `inset` in its widget: a pill for capsule widgets, else the widgets' radius less the inset
+  - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
 - `Bar.cellHoverColor(properties)`: A Workspaces cell's box while hovered: its `hoverColor`, or for Auto (empty) the theme's highlight
   - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `components/content/WorkspaceGrid.qml`, `components/content/WorkspaceStrips.qml`
 - `Bar.groupColors(barConfig)`: What a merged run of widgets draws its shared background in
@@ -224,10 +226,14 @@ Every public member of `Bar`, with the files that use it.
   - in: `components/hosts/popout/EdgePlacement.qml`, `components/methods/SurfaceContext.qml`
 - `Bar.reservedZone(barConfig, gapsOut)`: The exclusive zone a bar sets (BarPanel), given Hyprland's gaps_out on its edge.
   - in: `components/bar/BarPanel.qml`, `services/BarManager.qml`
+- `Bar.boxedStyles` (var): The widget styles that draw each widget on a box of its own: only they have shapes and grouping
+  - in: only inside the reader
 - `Bar.lookGroups` (var): A bar's look groups (its override flag and the fields it covers, the flag's `x-group` in the Bar definition): each is the BarStyle section's unless the bar ove…
   - in: only inside the reader
 - `Bar.lookOf(barConfig)`: A bar entry with its look filled from BarStyle where it doesn't override it
-  - in: only inside the reader
+  - in: `components/views/barEditor/BarsPanel.qml`
+- `Bar.lookContext(barConfig)`: The look a bar's widgets draw in, as `$bar.<key>` for their options' `x-showIf`: lookOf's BarStyle keys, with grouping only for boxed styles (as enrichBarConfi…
+  - in: `components/views/barEditor/WidgetInspector.qml`
 - `Bar.savedBars` (var): The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings
   - in: `components/surfaces/onboarding/pages/LookPage.qml`, `components/views/layouts/OpenerButtons.qml`, `services/EdgeMenuManager.qml`
 - `Bar.expandBars(bars)`: A bar on every monitor (`monitor: "*"`) becomes one entry per screen, each with its own id (keying its BarPanel) and that screen as its monitor.

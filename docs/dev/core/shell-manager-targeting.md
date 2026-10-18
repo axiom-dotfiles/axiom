@@ -33,6 +33,7 @@ Cross-cutting UI signals (power menu, launcher, overlays) that modules connect t
 - Every focus grab lets input through to `modalWindows`:
   - the screenshot pickers (`captureWindows`)
   - modal prompts (`registerModal` / `unregisterModal`; the polkit prompt).
+- `modalShown`: one of them is up. A grab's `FocusGrab.exclusive` is off meanwhile, so the modal gets the keyboard.
 
 ### Stepping aside
 - `beginStepAside(owner)` / `endStepAside(owner)` (`steppedAside`) is for a prompt axiom doesn't draw: another polkit agent's window, or a file picker, which opens under the Overlay layer.

@@ -1,6 +1,6 @@
 # Themes
 
-> **Files:** `services/ThemeManager.qml`, `config/Theme.qml`, `config/json/theme-defaults.json`, `config/themes/`, `scripts/generate_theme.py`, `components/views/Themes.qml`, `components/content/ThemePicker.qml`, `components/content/Palette.qml`
+> **Files:** `services/ThemeManager.qml`, `config/Theme.qml`, `config/json/theme-defaults.json`, `config/themes/`, `scripts/gen_theme_template.py`, `scripts/generate_theme.py`, `components/views/Themes.qml`, `components/content/ThemePicker.qml`, `components/content/Palette.qml`
 > **Config:** `Appearance.theme`
 > **Related:** [Theme integrations](theme-integrations.md), [Wallpaper and schedules](wallpaper-and-schedules.md), [Config readers](../core/config-readers.md)
 
@@ -21,6 +21,7 @@ How the active theme is loaded, how themes are grouped into dark/light families,
 - `setLightMode(bool)` switches the current theme's variant by hand (config). The schedule uses `followSchedule(bool)` (runtime only). `Appearance.darkMode` follows the shown theme.
 
 ### Theme files
+- `config/themes/template/theme.json` is the theme a new one is copied from: empty name, author and pair, plus `theme-defaults.json`'s fallback colors and dark semantic map. `scripts/gen_theme_template.py` writes it, the pre-commit hook runs that when the defaults change, and `test_scripts.py`'s `Themes` fails when it's stale. It sits in a subfolder, so the theme scan (`showDirs: false`) doesn't list it.
 - `config/themes/*.json` are static; `Paths.generatedThemesPath` (`~/.local/state/axiom/themes/*.json`, named `generated/<name>`) come from a wallpaper.
 - Static themes keep the hue slots fixed, even where an upstream base16 port reorders them, because the semantic names and the terminal ANSI colors read them by slot:
   - `base08` red, `09` orange, `0A` yellow, `0B` green, `0C` cyan, `0D` blue, `0E` magenta.

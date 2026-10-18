@@ -58,10 +58,10 @@ Settings are read as `properties.<key>`.
   - x-showIf={"labelCommand":{"not":""}}
   - in: `components/bar/widgets/Button.qml`
 - **`backgroundColor`** · string = ""
-  - Background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"
+  - Color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/BarIconWidget.qml`
 - **`foregroundColor`** · string = "base00"
   - Text color
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":"filled","$bar.widgetGrouping":{"not":"merged"},"…
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`

@@ -29,7 +29,12 @@ for DIR in "$CONFIG_DIR/gtk-3.0" "$CONFIG_DIR/gtk-4.0"; do
         printf '/* GTK user CSS (created by axiom; yours to edit) */\n%s\n' "$IMPORT" | write_atomic "$DIR/gtk.css"
         echo "📄 Created '$DIR/gtk.css' importing the colors"
     elif ! grep -qF "$IMPORT" "$DIR/gtk.css" 2>/dev/null; then
-        warn "'$DIR/gtk.css' doesn't import the colors: add '$IMPORT' at its top."
+        if [ -L "$DIR/gtk.css" ] && [ ! -w "$(realpath -m "$DIR/gtk.css")" ]; then
+            # A theme's own gtk.css (nwg-look and others link GTK 4's to it)
+            warn "'$DIR/gtk.css' is a link to '$(realpath -m "$DIR/gtk.css")', which you can't change: Apply (in the GTK integration's settings) replaces the link with a file importing it and the colors."
+        else
+            warn "'$DIR/gtk.css' doesn't import the colors: add '$IMPORT' at its top."
+        fi
     fi
 done
 

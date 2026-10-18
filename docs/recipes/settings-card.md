@@ -12,7 +12,7 @@
 ## Files to touch
 1. `config/json/config.schema.json`: the annotation on the section (or property).
 2. `components/views/settings/<Name>Card.qml` (or `<Name>.qml` for an intro).
-3. `config/i18n/*.json` via `scripts/check_i18n.py --fill`.
+3. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template.
 
 ## Skeleton
 A status card:

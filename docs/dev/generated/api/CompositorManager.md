@@ -54,6 +54,7 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 - `biggestWindowForWorkspace(workspaceId)`: The largest window on a workspace (its icon stands for the workspace), or null
 - `stripWindows(workspaceId, vertical)`: A workspace's windows in strip order (WorkspaceGeometry.stripOrder)
 - `lastFocused(windows)`: Of `windows`, the one focused last (focused now, if any is), or null
+- `applyInput(input, inputSchema)`: Sets the input options and cursor now (`input`: CompositorLayer.input's, `inputSchema`: Input's), for a compositor running no config of axiom's (the greeter's).
 - `withKeyboard(callback)`: Calls back with the main keyboard's layouts ({ layouts, index, keymap }), or null
 - `cycleKeyboardLayout(direction, callback)`: Switches every keyboard to its "next" or "prev" layout, then calls back
 - `withLayerRects(callback)`: Calls back with each output's layer surfaces ({ [output]: { w, h, layers: [{ namespace, x, y, w, h }] } }), or null when unknown

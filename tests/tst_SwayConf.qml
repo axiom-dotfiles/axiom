@@ -12,6 +12,7 @@ TestCase {
 
   readonly property var ctx: ({
       "shellCommand": "qs -p '/opt/axiom'",
+      "restartCommand": "'/opt/axiom/scripts/restart.sh'",
       "terminal": "foot",
       "fileManager": "nautilus --new-window",
       "browser": "firefox"
@@ -45,7 +46,7 @@ TestCase {
       "key": "SUPER + SHIFT + R",
       "action": "restartShell",
       "release": true
-    }, ctx, true), "bindsym --no-warn --release --no-repeat Mod4+Shift+r \"exec \"'\"'\"qs kill -p '/opt/axiom'; qs -p '/opt/axiom' -d\"'\"'");
+    }, ctx, true), "bindsym --no-warn --release --no-repeat Mod4+Shift+r \"exec \"'\"'\"'/opt/axiom/scripts/restart.sh'\"'\"'");
     compare(SwayConf.bindLine({
       "key": "SUPER + Q",
       "action": "closeWindow"
@@ -116,7 +117,7 @@ TestCase {
       "key": "SUPER + SHIFT + R",
       "action": "restartShell",
       "release": true
-    }, ctx), "bindsym --no-warn --release --no-repeat Mod4+Shift+r exec \"qs kill -p '/opt/axiom'; qs -p '/opt/axiom' -d\"");
+    }, ctx), "bindsym --no-warn --release --no-repeat Mod4+Shift+r exec \"'/opt/axiom/scripts/restart.sh'\"");
   }
 
   // Checked in a headless sway 1.12: a tap fires bound alone, on release,
@@ -131,7 +132,50 @@ TestCase {
         "key": "Super_L",
         "action": "launcher"
       }
-    ], ctx), ["unbindsym --release Super_L"]);
+    ], ctx), ["unbindsym --release Super_L", "unbindsym Super_L"]);
+  }
+
+  // A tap's press is bound to nothing, so an input method's virtual
+  // keyboard never sees it (and fires the tap after Super+Tab)
+  function test_tapKeepsItsPress() {
+    const lines = SwayConf.bindLines([
+      {
+        "key": "Super_L",
+        "action": "launcher"
+      }
+    ], ctx);
+    compare(lines.length, 2);
+    compare(lines[1], "bindsym --no-warn --no-repeat Super_L nop");
+  }
+
+  // Any release bind's press is kept the same way (a restart bind fired
+  // twice), locked where it is, but never over a bind of that press
+  function test_releaseKeepsItsPress() {
+    const restart = {
+      "key": "SUPER + CTRL + R",
+      "action": "restartShell",
+      "release": true
+    };
+    compare(SwayConf.bindLines([restart], ctx).slice(1), ["bindsym --no-warn --no-repeat Mod4+Ctrl+r nop"]);
+    compare(SwayConf.unbindLines([restart], ctx), ["unbindsym --release Mod4+Ctrl+r", "unbindsym Mod4+Ctrl+r"]);
+    const locked = Object.assign({}, restart, {
+      "locked": true
+    });
+    compare(SwayConf.bindLines([locked], ctx).slice(1), ["bindsym --no-warn --no-repeat --locked Mod4+Ctrl+r nop"]);
+    compare(SwayConf.unbindLines([locked], ctx)[1], "unbindsym --locked Mod4+Ctrl+r");
+    const press = {
+      "key": "SUPER + CTRL + R",
+      "action": "launcher"
+    };
+    compare(SwayConf.bindLines([restart, press], ctx).length, 2, "the press is another bind's");
+    compare(SwayConf.unbindLines([press, restart], ctx).length, 2);
+    compare(SwayConf.bindLines([
+      {
+        "key": "SUPER + mouse:272",
+        "action": "closeWindow",
+        "release": true
+      }
+    ], ctx).length, 1, "a mouse button's press stays");
   }
 
   function test_switcherAndSpecialAreAxiomsOwn() {
@@ -270,7 +314,7 @@ TestCase {
         "key": "SUPER + mouse:274",
         "action": "closeWindow"
       }
-    ], ctx), ["unbindsym --locked XF86AudioRaiseVolume", "unbindsym --release Mod4+q", "unbindsym --whole-window Mod4+BTN_MIDDLE"]);
+    ], ctx), ["unbindsym --locked XF86AudioRaiseVolume", "unbindsym --release Mod4+q", "unbindsym --whole-window Mod4+BTN_MIDDLE", "unbindsym Mod4+q"]);
   }
 
   function test_lookLines() {

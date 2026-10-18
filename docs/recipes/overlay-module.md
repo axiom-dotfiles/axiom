@@ -7,7 +7,7 @@
 ## Files to touch
 1. `components/content/<Type>.qml`: the module. The file name is the type const.
 2. `config/json/config.schema.json`: a `<Type>OverlayModule` entry in `definitions`, and its `$ref` appended to `definitions.OverlayModule.oneOf`.
-3. `config/i18n/*.json` via `scripts/check_i18n.py --fill`.
+3. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template.
 4. A service, if it needs data ([service](service.md)): modules only read and acquire.
 
 ## Skeleton
@@ -82,7 +82,7 @@ Schema entry:
 2. Hosts: without `x-hosts` a module may go on overlay pages and edge menus (`["overlay", "edgeMenu"]`). List `desktop` for display-only modules; `lockscreen` and `greeter` only under their rules (below).
 3. Write the module: `Card` for free-form, `Panel` for a column that can also be a bar popout. Read settings as `root.properties.<key>`.
 4. Make it work at any size: `fullMinWidth`/`fullMinHeight` plus `compactContent`, and a layout that adapts to `shape` (`"horizontal"`, …) and `compact`.
-5. `scripts/check_i18n.py --fill`, then verify, then add it to a page to see it.
+5. Verify, then add it to a page to see it.
 
 ## Gotchas
 - Modules exist only while their page is shown: acquire in `Component.onCompleted`, release in `onDestruction`, keep lasting state in a service.

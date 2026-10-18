@@ -33,6 +33,11 @@ if [ ! -f "$REAL" ]; then
     exit 0
 fi
 
+if [ ! -w "$REAL" ] || [ ! -w "$(dirname "$REAL")" ]; then
+    warn "'$CONFIG' is '$REAL', which you can't change: copy axiom's [theme] block from '$OUTPUT' into a config.toml of your own."
+    exit 0
+fi
+
 # Where the markers are, and the keys the user sets in [theme] outside them
 # shellcheck disable=SC2016
 SCAN=$(awk -v begin="$BEGIN" -v end="$END" '

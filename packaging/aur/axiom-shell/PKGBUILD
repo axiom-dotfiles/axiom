@@ -1,0 +1,69 @@
+# Maintainer: Travis Hepworth <travis at batk dot me>
+#
+# axiom's release package. scripts/release.sh bumps pkgver, sha256sums and
+# .SRCINFO; axiom-shell-git is the same package built from main. Both keep
+# their depends and optdepends in step with install.sh's tables
+# (scripts/check_packages.py). docs/dev/packaging.md says how it's laid out.
+
+pkgname=axiom-shell
+pkgver=1.1.10
+pkgrel=1
+pkgdesc='A Quickshell desktop shell for Hyprland, sway and niri: bar, launcher, notifications, lock and login screens, overlay pages'
+arch=('any')
+url='https://github.com/axiom-dotfiles/axiom'
+license=('MIT')
+# No compositor: it's the shell, not the session, and any one of
+# hyprland, sway (or swayfx, which provides it) and niri runs it
+depends=('quickshell>=0.3.2' 'jq' 'python' 'ttf-material-symbols-variable')
+optdepends=(
+  'hyprland: the compositor with every feature'
+  'niri: run axiom under niri'
+  'sway: run axiom under sway (swayfx provides it), and the compositor the login screen runs in'
+  'xorg-xwayland: X11 apps under sway (Steam, games, older apps)'
+  'xwayland-satellite: X11 apps under niri (Steam, games, older apps)'
+  'awww: wallpapers'
+  'python-numpy: themes generated from your wallpaper'
+  'python-pillow: themes generated from your wallpaper'
+  'python-icalendar: calendar accounts and feeds'
+  'libsecret: calendar accounts and feeds'
+  'networkmanager: Wi-Fi menu and network widget'
+  'pacman-contrib: package update checks'
+  'wl-clipboard: copying screenshots, the launcher calculator and emoji, clipboard history'
+  'wf-recorder: screen recording'
+  'satty: annotating screenshots'
+  'libqalculate: launcher calculator'
+  'wtype: typing emoji from the launcher'
+  'cliphist: clipboard history with images, shared with other apps'
+  'brightnessctl: brightness keys and OSD bar (laptop panels)'
+  'ddcutil: brightness keys and OSD bar (external monitors over DDC/CI)'
+  'hypridle: locking on idle'
+  'hyprsunset: night light (Hyprland)'
+  'wlsunset: night light (sway, niri)'
+  'power-profiles-daemon: power profiles'
+  'xdg-desktop-portal-gtk: browse buttons for folders and importing configs'
+  'python-gobject: browse buttons for folders and importing configs'
+  'greetd: axiom as the login screen (set up from Settings → Login screen)'
+  'greetd-agreety: axiom as the login screen (its text fallback)'
+)
+install=axiom-shell.install
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('7612994fc7b5615ff6007117e64efbb21b7b5a075e8a00be7ff44bfd70c4acd8')
+
+package() {
+  cd "axiom-$pkgver"
+  local dest="$pkgdir/usr/share/axiom"
+  install -d "$dest"
+  cp -r --no-preserve=ownership . "$dest"
+  # What only working on axiom needs (the greeter's copy leaves out the same)
+  rm -rf "$dest"/{tests,docs,.github,.githooks,.claude,packaging,scripts/dev}
+  rm -f "$dest"/{install.sh,.gitignore,.gitattributes,.qmlformat.ini,.qmlls.ini,.shellcheckrc} \
+    "$dest"/scripts/{check_*,gen_docs.py,gen_theme_template.py,ci_summary.py,run_tests.sh,release.sh,qml_modules.py,qmllint-baseline.json}
+  find "$dest" -name '*.md' -delete
+  # The marker the shell reads (Paths.packaged): updates come from pacman,
+  # and the login screen runs this copy
+  printf '%s\n' "$pkgver-$pkgrel" >"$dest/.packaged"
+  # Where `qs -c axiom` looks after ~/.config/quickshell/axiom
+  install -d "$pkgdir/etc/xdg/quickshell"
+  ln -s /usr/share/axiom "$pkgdir/etc/xdg/quickshell/axiom"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

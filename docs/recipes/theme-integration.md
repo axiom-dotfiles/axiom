@@ -63,7 +63,6 @@ Template variables: `${BACKGROUND}`, `${FOREGROUND}`, `${ACCENT}`, `${ANSI_0}`â€
    - Copy the closest existing entry for the file format.
 4. Add the reader property and, if needed, the `_integrationCommands` entry.
 5. Add the test entries (`FORMATS`, `STUBS`, and an args branch only if needed).
-6. Run `scripts/check_i18n.py --fill` for the title and description.
 
 ## Gotchas
 - **Only the hookup touches the user's config.** The script writes only its own `axiom.*` file. Only `integration_hookup.py` edits the user's app config, on the user's Apply click, after a backup. ncspot is the one exception (no include support; it rewrites only between its markers).

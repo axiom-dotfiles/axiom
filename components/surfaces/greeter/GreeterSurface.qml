@@ -33,7 +33,9 @@ ScreenLayoutView {
   layout: GreeterConfig.layout
   modules: root.isTarget ? root.allModules : root.layout?.otherScreens === "layout" ? root.allModules.filter(module => module?.type !== "Login") : []
   wallpaper: ThemeManager.wallpaperFor(root.screen.name)
-  blurWallpaper: LockscreenConfig.blurWallpaper
+  // The login screen is solid (CompositorManager keeps the greeter's
+  // surfaces opaque): no frosting, in the editor's preview either
+  frost: false
   host: ({
       "kind": "greeter",
       "target": root.isTarget,

@@ -26,6 +26,13 @@ beside it) or "conflict" (nothing is done: copy only). `requires` names a
 command without which the target is skipped; `comment` is the comment
 prefix (default "#").
 
+`wrapLink` is for a file that is a link to one the user can't write (a
+theme's gtk.css under /usr/share/themes, a /nix/store file): Apply then
+replaces the link with a file holding `wrapLink` ({link} = the file it
+pointed at) and the text, and keeps the link as the backup. Without it,
+such a target is skipped ("readonly"): nothing outside the user's own
+files is ever written.
+
 `note` replaces the settings page's line about where the text goes, and
 `title` names the target above its path (two targets in one file).
 
@@ -37,6 +44,7 @@ one per line (for the theme script).
 
 apply backs up each file it changes beside the real file (a symlink is
 followed and kept) as <name>.axiom-bak-<time>, then writes it atomically.
+A file it can't write (or whose directory it can't) is never touched.
 Nothing is deleted: replaced lines are commented out. Prints JSON.
 """
 import configparser
@@ -102,6 +110,17 @@ def fish_line(line):
 
 def which(cmd):
     return shutil.which(cmd) is not None
+
+
+def writable(path):
+    """Whether apply could write `path` atomically and back it up: the file
+    and its directory (the nearest existing one when it's missing)"""
+    if os.path.lexists(path):
+        return os.access(path, os.W_OK) and os.access(os.path.dirname(path), os.W_OK)
+    parent = os.path.dirname(path)
+    while parent and not os.path.isdir(parent):
+        parent = os.path.dirname(parent)
+    return bool(parent) and os.access(parent, os.W_OK)
 
 
 def resolve_target(target, d):
@@ -192,7 +211,7 @@ def plan(t):
     out = {"text": t["text"], "place": place, "skipped": t.get("skipped", ""), "where": t.get("where", ""),
            "note": t.get("note", ""), "title": t.get("title", ""), "copyOnly": not path and not t.get("skipped"),
            "exists": False, "link": False, "done": False, "replaces": [], "alongside": [], "conflicts": [],
-           "createsSection": False, "shell": t.get("shell", ""),
+           "createsSection": False, "wraps": False, "shell": t.get("shell", ""),
            "section": t.get("section", ""), "requires": t.get("requires", "")}
     if not path or out["skipped"]:
         return out, None
@@ -204,8 +223,17 @@ def plan(t):
                 "path": path, "resolved": real})
     if place == "copy":
         out["done"] = out["exists"]
+        if not out["done"] and not writable(real):
+            out["skipped"] = "readonly"
         return out, None
     lines = Path(real).read_text().splitlines() if out["exists"] else []
+    if not writable(real):
+        # A link to a file the user doesn't own: replaced by a file loading
+        # it when the target says how, else left alone
+        if os.path.islink(path) and t.get("wrapLink") and os.access(os.path.dirname(os.path.abspath(path)), os.W_OK):
+            out["wraps"] = True
+        else:
+            out["skipped"] = "readonly"
     want = [line for line in t["text"].splitlines() if line.strip()]
     span = scope(lines, place, t.get("section"))
     if place == "section" and span is None:
@@ -220,6 +248,11 @@ def plan(t):
     if accept and any(accept.search(line.strip()) for line in lines if not is_comment(line, comment)):
         missing = []
     out["done"] = out["exists"] and not missing
+    if out["done"]:
+        out["skipped"] = ""
+        out["wraps"] = False
+    elif out["skipped"]:
+        return out, None
     if place in ("top", "section", "shellrc") and missing:
         keys = {key_of(line, place) for line in missing} - {None}
         if t.get("shell") == "fish":
@@ -263,6 +296,17 @@ def apply_one(t, d, stamp):
         result["changed"] = True
         return result
     lines, missing, (start, end) = work
+    if out["wraps"]:
+        # The link becomes the backup (still pointing where it did), and a
+        # file of the user's takes its place
+        path = out["path"]
+        backup = f"{path}.axiom-bak-{stamp}"
+        os.symlink(os.readlink(path), backup)
+        result["backup"] = shown(backup, d)
+        text = [t["wrapLink"].replace("{link}", real)] + missing
+        write_atomic(path, "\n".join(text) + "\n", 0o644)
+        result["changed"] = True
+        return result
     comment = t.get("comment", "#")
     place = t.get("place", "")
     if place in ("top", "section", "shellrc") and t.get("replace", "comment") == "comment" and t.get("shell") != "fish":

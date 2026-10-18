@@ -28,7 +28,7 @@ The whole shell runs on five things. Everything else is optional and only needed
 | Brightness (keys, OSD bar) | `brightnessctl` for a laptop panel; `ddcutil` for external monitors over DDC/CI (monitors that support it, with i2c access: the package's udev rule gives it to the logged-in user) |
 | NVIDIA GPU stats | `nvidia-smi` (AMD is read from sysfs) |
 | Idle (dim, lock, screen off, suspend) | `hypridle` (it runs on every compositor) |
-| Login screen | `greetd` and its text login `agreety` (`greetd-agreety` on Arch), the fallback; `pkexec` (polkit) to install it |
+| Login screen | `greetd` and its text login `agreety` (`greetd-agreety` on Arch), the fallback; `sway` for it to run in (recommended), or Hyprland without one; `pkexec` (polkit) to install it |
 | Themes generated from the wallpaper | The Python packages numpy and Pillow (`python-numpy python-pillow` on Arch, `python3-numpy python3-pillow` on Fedora) |
 | Calendar | The Python package icalendar (`python-icalendar` on Arch, `python3-icalendar` on Fedora); `secret-tool` (libsecret) to keep account passwords in your keyring |
 | Browse buttons for folders, importing a shared config | xdg-desktop-portal with a file chooser backend (`xdg-desktop-portal-gtk` or KDE's) and `python-gobject`; or `zenity` or `kdialog`. Without them, type the path |
@@ -51,14 +51,29 @@ curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.s
 
 It first prints its plan: the distribution, the compositor and each step. Then:
 
-1. **The compositor.** It uses the one you're running; else the one an earlier run set up; else, with several installed, it asks which one you use. It also offers to start axiom from every other one installed (each asked, default no). With none installed, it asks: Hyprland (the default, with every feature, and what the login screen runs), niri, or sway. It doesn't install SwayFX, which replaces sway in place (the AUR's `swayfx` on Arch, COPR `swayfx/swayfx` on Fedora). `--compositor hyprland|sway|niri|none` picks without asking.
-2. **Packages.** It lists the optional features and offers them all at once (recommended), or one at a time, skipping any already installed. A feature with no package on your distribution is listed as not available there (wallpaper transitions on Fedora). It then shows the one `sudo pacman` or `sudo dnf` command it will run, and why, before running it.
+1. **The compositor.** It uses the one you're running; else the one an earlier run set up; else, with several installed, it asks which one you use. It also offers to start axiom from every other one installed (each asked, default no). With none installed, it asks: Hyprland (the default, with every feature), niri, or sway. It doesn't install SwayFX, which replaces sway in place (the AUR's `swayfx` on Arch, COPR `swayfx/swayfx` on Fedora). `--compositor hyprland|sway|niri|none` picks without asking.
+2. **Packages.** It lists the optional features and offers them all at once (recommended), or one at a time, skipping any already installed. The login screen brings sway to run in; with Hyprland, that sway is offered on its own (recommended, so taking them all installs it), and without it the login screen runs in Hyprland. A feature with no package on your distribution is listed as not available there (wallpaper transitions on Fedora). It then shows the one `sudo pacman` or `sudo dnf` command it will run, and why, before running it.
    - On Arch, every package comes from the official repositories.
    - On Fedora, quickshell comes from the COPR `errornointernet/quickshell` and Hyprland and its tools (hypridle, hyprsunset, satty) from `nett00n/hyprland`: Fedora's own quickshell is too old, and Hyprland left its repositories. A COPR is a third-party repository on Fedora's build service, so each one is shown and asked separately, and only enabled when something you picked needs it. The icon font isn't packaged there either: it's downloaded into `~/.local/share/fonts`, as you.
 3. **The clone.** It clones the latest release into `~/.config/quickshell/axiom`.
 4. **Autostart.** It asks before adding the line that starts axiom to the end of the compositor's config (`hyprland.lua`, sway's `config`, niri's `config.kdl`), backing up the file first. A config that doesn't exist yet starts as the compositor's own default one, so its starter keybinds are there too.
 
 Run from a text console (a TTY) outside a graphical session, it last offers to start the compositor. `--yes` answers yes to every question, `--minimal` installs only what's required, and `--dry-run` prints every command it would run and changes nothing. Running it again is safe. From a clone, run `./install.sh`: that clone is used wherever it is, and if it isn't at `~/.config/quickshell/axiom` (where `qs -c axiom` looks), the installer offers to link it there, or to move it.
+
+<details>
+<summary><b>From the AUR</b> (Arch, not published yet)</summary>
+
+> **Not on the AUR yet.** The packages are ready (`packaging/aur/`), but AUR account registration is closed for now, so they can't be published. Until then, use install.sh above, or build one yourself with `makepkg -si` in `packaging/aur/axiom-shell-git/`. Follow [#76](https://github.com/axiom-dotfiles/axiom/issues/76) for news, or to help.
+
+`axiom-shell` follows releases and `axiom-shell-git` the main branch:
+
+```bash
+paru -S axiom-shell
+```
+
+It installs axiom to `/usr/share/axiom` with the required packages; the compositor and each optional feature's packages are optional dependencies, so install the ones you want. `qs -c axiom` finds it (a clone in `~/.config/quickshell/axiom` runs instead, if you have one). Add the line that starts it to your compositor's config, as below. The package manager updates it, so **axiom updates** isn't in the settings, and the login screen runs the package's own copy.
+
+</details>
 
 <details>
 <summary><b>By hand</b>, or on another distribution</summary>
@@ -142,7 +157,7 @@ The window look and **Input** (keyboard, mouse, touchpad, cursor) apply in every
 
 ## Updates
 
-axiom updates itself from the repository you cloned it from. It follows release tags (`v*`) by default, or every commit on `main` if you pick that channel under **Settings → Maintenance → axiom updates**. It checks when the shell starts and once a day, and the same page picks what happens next:
+Installed from the AUR, axiom updates with the rest of your system; restart it after an update. Otherwise, axiom updates itself from the repository you cloned it from. It follows release tags (`v*`) by default, or every commit on `main` if you pick that channel under **Settings → Maintenance → axiom updates**. It checks when the shell starts and once a day, and the same page picks what happens next:
 
 | Mode | What it does |
 | --- | --- |
@@ -183,9 +198,11 @@ Axiom can be your login screen, as a [greetd](https://sr.ht/~kennylevinsen/greet
 
   Switching between them, or changing which channel axiom updates follow, needs an **Update** to take effect.
 
+  Installed from the AUR, there's no choice: the login screen runs the package's own copy in `/usr/share/axiom`, which only root can change, and `/usr/share/axiom-greeter` holds only its start-up scripts. The package manager updates it with the system; after an update, **Update** refreshes those scripts and the saved fallback config.
+
 - makes `/var/lib/axiom-greeter`. Its `config/` folder is yours: axiom exports the login screen's layout, look, theme, wallpapers and monitor layouts there whenever they change, so changing them needs no password. Only the parts of your config the login screen shows go there, and greetd's user can read them.
 - installs a polkit action, so Update and Remove ask for your password by name ("update or remove axiom's login screen") and run root's copy of the setup script rather than the one in your home folder.
-- backs up `/etc/greetd/config.toml` (`.axiom-original`, plus `.axiom-bak-<date>` for each change), then points only its `default_session` command at axiom's greeter. The greeter runs in a Hyprland of its own, whichever compositor you log in to, so Hyprland has to be installed for it.
+- backs up `/etc/greetd/config.toml` (`.axiom-original`, plus `.axiom-bak-<date>` for each change), then points only its `default_session` command at axiom's greeter. The greeter runs in a compositor of its own, whichever one you log in to: sway (no SwayFX needed), or Hyprland when sway isn't installed or can't start. Its log is `/var/lib/axiom-greeter/state/greeter.log` (`sudo` to read it).
 
 To make greetd your display manager, disable the current one and enable greetd (the settings card shows the commands). If the login screen fails to start, it tries again with the config saved at install, then falls back to greetd's text login, `agreety`. **Remove** puts greetd's config back and deletes both folders and the polkit action. Logging in through `agreety` starts your login shell.
 

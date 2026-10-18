@@ -10,9 +10,9 @@ import qs.components.methods
 // session, and the conversation with greetd (Quickshell's Greetd: PAM
 // through greetd's IPC). Only the greeter references it, so the user's
 // own shell never connects to greetd; its preview leaves every action
-// inert. Also the greeter's Hyprland: the monitor layouts and the input
-// options the bundle carries (HyprLua.greeterLua), and the
-// keyboard layout switch.
+// inert. Also the greeter's compositor (sway, else Hyprland): the monitor
+// layouts and the input options the bundle carries, and the keyboard
+// layout switch.
 QtObject {
   id: root
 
@@ -46,9 +46,11 @@ QtObject {
       return;
     root.cancel();
     root._selectedUser = user;
-    // Their last session, if any
+    // Their last session, if any. Taken even before the sessions are read
+    // (the remembered user is selected at start, while they're still being
+    // listed): selectedSession falls back to the first while it's unknown
     const last = user ? root._saved.sessions?.[user.name] : undefined;
-    if (last && root._sessions.some(session => session.id === last))
+    if (last)
       root._selectedSessionId = last;
   }
 
@@ -217,16 +219,27 @@ QtObject {
     });
   }
 
-  // The monitors and the bundle's input
-  function _applyHyprland() {
-    if (CompositorManager.kind !== "hyprland")
-      return;
+  // The monitors and the bundle's input, on the greeter's compositor (sway,
+  // else Hyprland: greeter-session.sh)
+  function _applyCompositor() {
     const config = ConfigManager.config;
-    const lua = HyprLua.greeterLua(config.Monitors.profiles, ConfigManager.configSchema.properties.Input, config.Input, name => HyprConfigLua.hex(Theme.resolveColor(name)));
-    HyprlandManager.runLua(lua.join("\n"));
-    const cursor = CompositorLayer.input(config.Input).cursor;
-    if (cursor)
-      HyprlandManager.setCursor(cursor.theme, cursor.size);
+    const inputSchema = ConfigManager.configSchema.properties.Input;
+    if (CompositorManager.kind === "hyprland") {
+      // Its Lua picks the monitor profile again on each hotplug
+      const lua = HyprLua.greeterLua(config.Monitors.profiles, inputSchema, config.Input, name => HyprConfigLua.hex(Theme.resolveColor(name)));
+      HyprlandManager.runLua(lua.join("\n"));
+      const cursor = CompositorLayer.input(config.Input).cursor;
+      if (cursor)
+        HyprlandManager.setCursor(cursor.theme, cursor.size);
+      return;
+    }
+    // The saved profile for what's connected at start
+    CompositorManager.withOutputDetails(outputs => {
+      const rules = MonitorLayout.savedRules(config.Monitors.profiles, outputs ?? []);
+      if (rules.length > 0)
+        CompositorManager.applyOutputs(rules, outputs);
+    });
+    CompositorManager.applyInput(CompositorLayer.input(config.Input), inputSchema);
   }
 
   Component.onCompleted: {
@@ -238,10 +251,10 @@ QtObject {
       root.selectUser(root._saved.lastUser);
     root._readSessions();
     CommandManager.run(["ls", "-1", "/var/lib/AccountsService/icons"], (exitCode, out) => root._avatars = out.split("\n").filter(name => name !== ""));
-    // Windowed (looked at from a running session), the Hyprland is the
+    // Windowed (looked at from a running session), the compositor is the
     // session's own: left alone
     if (Quickshell.env("AXIOM_GREETER_WINDOWED") !== "1")
-      root._applyHyprland();
+      root._applyCompositor();
     root._readLayouts();
   }
 }

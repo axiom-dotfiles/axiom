@@ -35,7 +35,6 @@ ScreenLayoutView {
   layout: LockscreenConfig.layout
   modules: root.isTarget ? root.allModules : root.layout?.otherScreens === "layout" ? root.allModules.filter(module => module?.type !== "Password") : []
   wallpaper: root.screen ? ThemeManager.wallpaperFor(root.screen.name) : ""
-  blurWallpaper: LockscreenConfig.blurWallpaper
   hyprBlur: CompositorManager.blur
   host: ({
       "kind": "lockscreen",

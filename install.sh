@@ -33,7 +33,7 @@ CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
 # Where `qs -c axiom` looks for it
 QS_DIR=$CONFIG_HOME/quickshell/axiom
 AXIOM_DIR=${AXIOM_DIR:-$QS_DIR}
-# A distribution package's copy, with the marker the package writes
+# An AUR (or other) package's copy, with the marker its PKGBUILD writes
 PACKAGED_DIR=/usr/share/axiom
 
 # What installs each key (Packages.packages' keys, checked against it by
@@ -78,7 +78,8 @@ PACKAGES=(
 ICON_FONT_URL="https://github.com/google/material-design-icons/raw/master/variablefont/MaterialSymbolsRounded%5BFILL,GRAD,opsz,wght%5D.ttf"
 ICON_FONT_FILE=$HOME/.local/share/fonts/MaterialSymbolsRounded.ttf
 REQUIRED=(git quickshell jq python3 iconFont)
-# "feature|keys|compositors" (none listed: any), offered one at a time
+# "feature|keys|compositors" (none listed: any), offered one at a time;
+# the AUR package's optdepends say the same
 FEATURES=(
   "Wallpapers|awww|"
   "Themes generated from your wallpaper|py:numpy py:PIL|"
@@ -99,7 +100,13 @@ FEATURES=(
   "X11 apps under sway (Steam, games, older apps)|Xwayland|sway"
   "Power profiles|powerprofilesctl|"
   "Browse buttons for folders and importing configs (the desktop's file picker)|xdg-desktop-portal-gtk py:gi|"
-  "Axiom as the login screen (set up later from Settings → Login screen; it runs in a Hyprland of its own)|greetd agreety hyprland|"
+  # The login screen runs in a sway of its own, or in Hyprland where sway
+  # isn't installed: with Hyprland, sway is offered on its own (recommended,
+  # so "all" takes it) and declining it keeps the login screen. The first
+  # entry matching a compositor wins, so Hyprland's come first
+  "Axiom as the login screen (set up later from Settings → Login screen)|greetd agreety|hyprland"
+  "sway for the login screen to run in (recommended; without it, it runs in Hyprland)|sway|hyprland"
+  "Axiom as the login screen (set up later from Settings → Login screen)|greetd agreety sway|"
 )
 MIN_QS=0.3.2
 MIN_HYPRLAND=0.55.0
@@ -395,8 +402,8 @@ starts_axiom() {
 # else running, else the installed one already starting axiom, else asked
 # among the installed ones. It's the one this session gets into; every
 # installed one is offered the line that starts axiom too, each asked
-# separately (the login screen's feature installs Hyprland for itself, so
-# Hyprland being there doesn't make it the session's)
+# separately (the login screen's feature installs sway for itself, so sway
+# being there doesn't make it the session's)
 primary=""
 if [[ -n "$compositor_flag" ]]; then
   [[ "$compositor_flag" != none ]] && primary=$compositor_flag
@@ -436,7 +443,8 @@ else
     echo
     info "${bold}No compositor is installed yet.${reset} axiom runs under any of these:"
     cat <<'EOF'
-   1. Hyprland (recommended): every feature. The login screen runs it too.
+   1. Hyprland (recommended): every feature. The login screen runs in sway
+      (offered with it) or, without sway, in Hyprland.
    2. niri: windows in scrolling columns. No blur, no mouse binds, no
       Hyprland-only pages (Monitors, Keybinds' mouse binds, the switcher).
    3. sway: i3-style tiling. Plain sway has no blur or rounded corners;
@@ -477,7 +485,7 @@ if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
   fi
 fi
 
-# Installed as a distribution package: `qs -c axiom` finds it
+# Installed as a package (the AUR's axiom-shell): `qs -c axiom` finds it
 # through /etc/xdg, so no clone, unless this runs from one
 packaged=0
 [[ -f "$PACKAGED_DIR/.packaged" ]] && ((!from_clone)) && ! is_axiom_clone "$AXIOM_DIR" && packaged=1

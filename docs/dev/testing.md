@@ -1,6 +1,6 @@
 # Testing and debugging the running shell
 
-> **Files:** `scripts/dev/verify.sh`, `scripts/dev/shot.sh`, `scripts/log.sh`, `scripts/check_all.sh`, `scripts/run_tests.sh`, `scripts/dev/popout_matrix.py`
+> **Files:** `scripts/dev/verify.sh`, `scripts/dev/shot.sh`, `scripts/log.sh`, `scripts/bug_info.sh`, `scripts/check_all.sh`, `scripts/run_tests.sh`, `scripts/dev/popout_matrix.py`
 > **Config:** none
 > **Related:** [Developer docs](README.md), [AGENTS.md](../../AGENTS.md) (Running / reloading, Never while testing, Checks)
 
@@ -13,6 +13,7 @@ How to look at, exercise and debug the live shell without breaking the user's se
 ### Reloads and logs
 - The shell runs detached and hot-reloads files it has loaded. Never start or stop it yourself; a relaunch from a shell once reset config.json to defaults. Ask the user to restart.
 - `scripts/log.sh` shows warnings and errors since the last reload. `--debug` adds `console.log`, `--all` covers earlier reloads, `-f` follows, `-g PATTERN` filters. A clean reload is just `Reloading configuration...` + `Configuration Loaded`.
+- `scripts/bug_info.sh` prints the block the bug report form asks for: axiom's version (a clone's `git describe`, or the `.packaged` marker), Quickshell's, the running compositor (from its socket variable) and its monitor count, the distribution, and config.json's `version` and `Compositor.mode`. No names or paths. It ships in packages; it's not a check.
 - **qs watches files by inode.** `sed -i`, `/usr/lib/qt6/bin/qmlformat -i`, `git checkout <file>` and `git stash push/pop` all replace the inode. Later edits to that file may then not reload, and the shell silently keeps old code.
   - To force a reload, make a real in-place content change to a file that's still watched (append `// x` with Python's `open(p, 'w')`, then remove it). Rewriting identical content doesn't count.
   - Count `Reloading` lines in `scripts/log.sh --all` before and after to confirm.
@@ -34,7 +35,7 @@ How to look at, exercise and debug the live shell without breaking the user's se
   - Lock screen: [lockscreen.md › Testing](features/lockscreen.md) (`LockManager.editor.startPreview()`, draft-only demo layouts).
   - Greeter: [greeter-runtime.md › Testing](features/greeter-runtime.md) (windowed greeter) and [greeter-install.md › Testing](features/greeter-install.md) (scratch root).
   - Onboarding: [onboarding.md › Testing](features/onboarding.md) (`ipc call onboarding goTo <n>`).
-  - Another compositor: [sway-backend.md › Running it](compositor/sway-backend.md) (`scripts/dev/nested.sh <sway|niri>`: a nested compositor with a second axiom on scratch folders and its own D-Bus; kill only the nested compositor you started). Nested niri: [niri-backend.md › Running it](compositor/niri-backend.md) (keep its window visible).
+  - Another compositor: [sway-backend.md › Running it](compositor/sway-backend.md) (`scripts/dev/nested.sh <sway|niri|hyprland>`: a nested compositor with a second axiom on scratch folders and its own D-Bus; kill only the nested compositor you started). Nested niri: [niri-backend.md › Running it](compositor/niri-backend.md) (keep its window visible).
 
 ### Popout and layering checks
 - `scripts/dev/popout_matrix.py OUT_DIR [--only layout__variant ...]` shoots every bar layout × border × opacity scenario: [surface-context.md › Testing](popouts/surface-context.md).

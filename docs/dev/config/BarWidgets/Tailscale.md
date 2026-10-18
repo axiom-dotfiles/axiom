@@ -23,14 +23,14 @@ Settings are read as `properties.<key>`.
   - x-options="edgeMenus", x-emptyLabel="None", x-showIf={"showPopout":true}
   - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`connectedColor`** · string = ""
-  - Connected background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"
+  - Connected color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Tailscale.qml`
 - **`disconnectedColor`** · string = ""
-  - Disconnected background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="off"
+  - Disconnected color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="off", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Tailscale.qml`
 - **`foregroundColor`** · string = "base00"
   - Text color
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":"filled","$bar.widgetGrouping":{"not":"merged"},"…
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`

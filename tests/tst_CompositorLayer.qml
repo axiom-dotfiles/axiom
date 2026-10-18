@@ -132,6 +132,30 @@ TestCase {
     }, null), []);
   }
 
+  function test_integrationEnv() {
+    compare(CompositorLayer.sessionEnv({}, null, {
+      "qt": true
+    }), [
+      {
+        "name": "QT_QPA_PLATFORMTHEME",
+        "value": "qt5ct"
+      }
+    ], "the Qt integration loads qt5ct / qt6ct");
+    compare(CompositorLayer.sessionEnv({}, null, {
+      "qt": false
+    }), []);
+    compare(CompositorLayer.sessionEnv({
+      "env": [
+        {
+          "name": "QT_QPA_PLATFORMTHEME",
+          "value": "kde"
+        }
+      ]
+    }, null, {
+      "qt": true
+    }).map(entry => entry.value), ["kde"], "the session's own wins");
+  }
+
   function test_luminance() {
     compare(CompositorLayer.luminance("000000"), 0);
     compare(CompositorLayer.luminance("ffffff"), 1);

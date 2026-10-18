@@ -60,8 +60,10 @@ Singleton {
   }
 
   // The programs features use, for the onboarder's checks. `compositors`
-  // limits one to those compositors (CompositorManager.kind); one with
-  // nothing to install on this distribution (Packages) is left out.
+  // limits one to those compositors (CompositorManager.kind);
+  // `alternatives` are commands that do its job as well (toolFound), the
+  // command itself being what's installed when none is; one with nothing
+  // to install on this distribution (Packages) is left out.
   // I18n.tr("Calculator in the launcher") I18n.tr("Brightness of a laptop screen")
   // I18n.tr("Brightness of external monitors") I18n.tr("Copying to the clipboard")
   // I18n.tr("Reading JSON (theme integrations)") I18n.tr("Pending package updates")
@@ -76,6 +78,7 @@ Singleton {
   // I18n.tr("Annotating screenshots (swappy works too)")
   // I18n.tr("Power profiles in the quick actions")
   // I18n.tr("Theme generation from the wallpaper") I18n.tr("Calendar accounts and feeds")
+  // I18n.tr("The login screen's compositor (Hyprland works too)")
   readonly property var tools: [
     {
       "command": "qalc",
@@ -176,8 +179,35 @@ Singleton {
     {
       "command": "powerprofilesctl",
       "purpose": "Power profiles in the quick actions"
+    },
+    // What the login screen runs in (greeter-session.sh): sway, else
+    // Hyprland
+    {
+      "command": "sway",
+      "alternatives": ["start-hyprland"],
+      "purpose": "The login screen's compositor (Hyprland works too)"
     }
   ].filter(tool => Packages.applies(root.distro, tool.command) && (tool.compositors === undefined || tool.compositors.includes(CompositorManager.kind)))
+
+  // A tool's commands: its own, then its `alternatives`
+  function commandsOf(tool) {
+    return [tool.command].concat(tool.alternatives ?? []);
+  }
+
+  // Whether a tool is installed (any of commandsOf): undefined until each
+  // one is checked, unless one already is
+  function toolFound(tool) {
+    const states = root.commandsOf(tool).map(command => root.found[command]);
+    if (states.includes(true))
+      return true;
+    return states.includes(undefined) ? undefined : false;
+  }
+
+  // The command a tool is installed as (the first of commandsOf found), or
+  // its own
+  function toolCommand(tool) {
+    return root.commandsOf(tool).find(command => root.found[command] === true) ?? tool.command;
+  }
 
   // { command: bool } for every command checked so far
   property var found: ({})

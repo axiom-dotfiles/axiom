@@ -29,7 +29,7 @@ Item {
   // A cell's thickness across the bar, and its corners within the
   // background's
   readonly property real cell: barConfig.widgetSize - inset * 2
-  readonly property real cellRadius: Math.max(0, barConfig.radius - inset)
+  readonly property real cellRadius: Bar.cellRadius(barConfig, cell, inset)
   // Along the bar: square, or narrower for dots straight on the bar
   readonly property real cellLength: barConfig.widgetBoxed || properties.labels !== "dots" || properties.showAppIcons || CompositorManager.dynamicWorkspaces ? cell : Math.round(cell * 0.6)
 

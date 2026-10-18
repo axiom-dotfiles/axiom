@@ -31,7 +31,7 @@ QtObject {
 
   // The dispatcher Lua of a compositor action (BindActions.compositorActions)
   // for `argument`, or "" when the argument doesn't fit it. `ctx`:
-  // { shellCommand, terminal, fileManager, browser }
+  // { shellCommand, restartCommand, terminal, fileManager, browser }
   function dispatcherLua(action, argument, ctx) {
     switch (action) {
     case "focusDir":
@@ -92,7 +92,7 @@ QtObject {
       return `hl.dsp.window.move({ workspace = ${_lua("special:" + argument)} })`;
     // Run by Hyprland, not over IPC, so it works when the shell is stuck
     case "restartShell":
-      return `hl.dsp.exec_cmd(${_lua(`qs kill ${ctx.shellCommand.slice(3)}; ${ctx.shellCommand} -d`)})`;
+      return `hl.dsp.exec_cmd(${_lua(ctx.restartCommand)})`;
     case "exitSession":
       return `hl.dsp.exec_cmd(${_lua("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'")})`;
     // The apps from the Apps settings, so a bind follows them

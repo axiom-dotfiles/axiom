@@ -365,7 +365,6 @@
     "overrides": {}
   },
   "Lockscreen": {
-    "blurWallpaper": true,
     "layout": {
       "modules": [
         {

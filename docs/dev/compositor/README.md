@@ -24,7 +24,7 @@ How axiom reaches the compositor it runs under. Read this before anything that r
 ### Capabilities
 - `CompositorManager.supports` maps each capability to true or false. The keys are listed in [contract.md › Capabilities](contract.md#capabilities). A backend lists what it does; anything it doesn't list is false.
 - `AXIOM_COMPOSITOR_OFF=focusGrab,blur` turns capabilities off, so a fallback can be tried on a compositor that has the real thing.
-- **Gate a compositor-specific feature on a capability, not on `kind`.** Only code that is Hyprland's by nature checks `kind === "hyprland"` (the greeter's Hyprland session, the onboarding's Hyprland check).
+- **Gate a compositor-specific feature on a capability, not on `kind`.** Only code that is Hyprland's by nature checks `kind === "hyprland"` (the greeter's Hyprland branch, the onboarding's Hyprland check).
 
 ### Hyprland-only features
 - These talk to `HyprlandManager` directly (`runLua`, `withBinds`, `setCursor`), each gated on its capability. The Keybinds and Monitors pages don't: they go through `CompositorManager` (`withBinds`, `captureKeys`, `withOutputDetails`, `applyOutputs`).
@@ -43,7 +43,7 @@ How axiom reaches the compositor it runs under. Read this before anything that r
 - Surfaces that close on an outside click use `FocusGrab` (`windows`, `active`, `cleared`), never `HyprlandGrab`.
   - With `supports.focusGrab` it loads Hyprland's grab.
   - Otherwise it clears once keyboard focus (each window's content `Window.active`) has left every one of its windows for 100 ms, or a click lands outside them. While such a grab is active:
-    - `FocusGrab.exclusive` is true, and its surface asks for `WlrKeyboardFocus.Exclusive` instead of `OnDemand` (an on-demand layer surface gets the keyboard only once clicked, where no grab hands it over);
+    - `FocusGrab.exclusive` is true, and its surface asks for `WlrKeyboardFocus.Exclusive` instead of `OnDemand` (an on-demand layer surface gets the keyboard only once clicked, where no grab hands it over). Not while `ShellManager.modalShown`: the modal asks for it too, and of two exclusive surfaces on one layer niri keeps the older;
     - every screen's backdrop window (`surfaces/backdrop/ScreenBackdrop`) covers its screen, transparent, under the grabbing surface, and a press on it clears the grab (`BackdropManager.catching`, `clickedOutside`). Bars and other surfaces above it take their own clicks.
 
 ### The window look

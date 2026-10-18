@@ -12,10 +12,10 @@
   - on its own D-Bus session
   - with idle and polkit off.
 - `--copy-config` starts from your own config.
-- `scripts/dev/nested.sh niri` does the same for niri ([niri backend](niri-backend.md)). `AXIOM_COMPOSITOR=none` in the nested launch runs axiom on no backend at all (the bar, the launcher and notifications; empty workspaces): the "unknown compositor" case to keep working.
+- `scripts/dev/nested.sh niri` does the same for niri ([niri backend](niri-backend.md)), `scripts/dev/nested.sh hyprland` for Hyprland (a second Hyprland in a window; commands to it take its signature: `hyprctl -i <n>` or `HYPRLAND_INSTANCE_SIGNATURE=…`, `hyprctl instances` lists them; not under sway, whose `xdg_wm_base` 5 is too old for Hyprland's Wayland backend, so run it from Hyprland or niri). `--managed` runs any of them on the scratch config folder's own config, the one managed mode takes over (axiom finds every compositor's config folder through `XDG_CONFIG_HOME`). `AXIOM_COMPOSITOR=none` in the nested launch runs axiom on no backend at all (the bar, the launcher and notifications; empty workspaces): the "unknown compositor" case to keep working.
 - Logs: the newest `/run/user/$UID/quickshell/by-pid/<pid>/log.log` (`pgrep -af "qs -p"`: the one without `-d`).
 - IPC: `qs ipc --pid <pid> call …`.
-- Closing the window, or killing that `sway`, ends both.
+- Closing the window, or killing that compositor, ends both.
 
 ### X11 apps
 - They need Xwayland, which Arch's sway only lists as optional (`xorg-xwayland`): it's a dependency of its own (`DependencyManager.tools`, install.sh's sway feature). `Sway.xwayland` says when sway starts it.
@@ -74,6 +74,7 @@ The [config modes](config-modes.md) on sway; the text comes from the pure `SwayC
   - Actions: `focus`/`move <dir>`, `resize grow|shrink width|height N px`, `kill`, `fullscreen toggle`, `floating toggle`, `sticky toggle` (pin), `move position center`, `layout toggle split`, `exit`; IPC actions and apps as `exec`, quoted when sway would split or unquote them. Raw binds written for sway pass through.
   - **Quoting** (`SwayConf.quote`, `bindCommand`; checked against sway 1.12's parser). Sway takes unescaped quotes out and keeps a backslash before one, so a `"` can't be escaped: `quote` puts each run without a `"` in double quotes and each `"` in single ones. A config file keeps a bind's command as written but unescapes it (backslashes doubled). At runtime sway splits the command list at `;`/`,` before `bindsym` sees it (an unquoted `a, b` runs `b` at once) and strips the quotes, so the runtime layer sends any command holding those quoted whole (`bindLine(…, runtime)`). `merge_sway_binds.py` reads a user's command the way sway does (`stored_command`, `exec_text`).
   - A modifier tapped on its own (`modifierTap`) is its keysym alone with `--release` (`bindsym --release Super_L`): sway fires it only when no other key came between, and not at all with `Mod4+` before it (checked in a headless sway 1.12).
+  - **A release bind's press** (a tap's, `restartShell`'s, any bind with `release`; not a mouse button's) is bound too, to `nop` (`SwayConf._keptPresses`), so sway keeps it: an input method (fcitx5) sends back the keys sway passes it through a virtual keyboard of its own, which sway matches binds on too, so without it the release fired once per keyboard: the tap after every combo (Super+Tab) and twice after a tap (seen on sway 1.12 with fcitx5), and likely the restart bind that started several axioms (reported 2026-10-18). The release still fires (checked in a headless sway 1.12 for a tap and a combo). It carries the bind's `--locked`, and is left out when another bind of axiom's uses that press.
   - `mouseDrag`/`mouseResize` are sway's `floating_modifier <mod> normal|inverse`: one modifier with the left or right button, from the drag bind (else the resize bind). A mouse bind on several modifiers or another button isn't complete on sway (`isComplete`); a resize bind on a different modifier from the drag's can't be had too.
   - Strips, pseudotiling and groups aren't sway's: those binds are left out.
   - axiom's own: the switcher (`nop axiom switcher step ±1`) and special groups (`nop axiom special toggle|move <name>`), which `SwayManager` reads from `binding` events.
@@ -93,4 +94,4 @@ The [config modes](config-modes.md) on sway; the text comes from the pure `SwayC
 - **Layer stacking.** With no `layerOrder`, `LayerManager` maps the stacked surfaces in `LayerStack` order ([layer arrangement](layer-arrangement.md)); checked in nested sway for a solid and a floating-pills bar against the border, and an integrated edge menu.
 - **Workspace blocks.** `workspace number N` creates N on the focused output, and the facade focuses the output first. Checked on two nested outputs (`swaymsg create_output`); the perMonitor and grid blocks and a live remap still need a look.
 - **Focus follows the mouse.** In nested sway the pointer over the nested window refocuses the output under it after a command; read state with that in mind.
-- **The greeter** stays a Hyprland session (`issues.md`).
+- **The greeter** runs on its own sway when sway is installed (`greeter-session.sh`, [greeter runtime](../features/greeter-runtime.md)): `GreetdManager` applies the monitors and input there through `CompositorManager.applyOutputs` / `applyInput`.

@@ -43,14 +43,14 @@ Settings are read as `properties.<key>`.
   - Warning at: Any usage (%) or temperature (°C) at or above this switches to the warning background.
   - in: `components/bar/widgets/SystemStats.qml`
 - **`backgroundColor`** · string = ""
-  - Background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"
+  - Color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/SystemStats.qml`, `components/bar/widgets/BarIconWidget.qml`
 - **`warnColor`** · string = ""
-  - Warning background
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="warning"
+  - Warning color
+  - x-options="colors", x-emptyLabel="Auto", x-autoColor="warning", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/SystemStats.qml`
 - **`foregroundColor`** · string = "base00"
   - Text color
-  - x-options="colors"
+  - x-options="colors", x-showIf={"$bar.widgetStyle":"filled","$bar.widgetGrouping":{"not":"merged"},"…
   - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`

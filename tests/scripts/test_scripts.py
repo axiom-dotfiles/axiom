@@ -26,6 +26,8 @@
     the series moved) so they read back right (skipped without icalendar)
   - migrate_xdg.sh copies the repo's config and state into the XDG
     folders once, never overwriting, and marks them moved
+  - restart.sh ends every running axiom (one ignoring SIGTERM too) and
+    starts one, and a second restart fired meanwhile does nothing
   - cursor_theme.py makes the companion theme filling in a cursor theme's
     missing standard names, and only for a theme that needs it
   - pick_path.py falls back to zenity/kdialog without a portal, asking for
@@ -63,7 +65,7 @@ NCSPOT_MARKERS = "# axiom theme: begin (rewritten on every theme change)\n# axio
 # Apps the integrations require or signal; stubs keep them from touching a
 # running session
 STUBS = ["alacritty", "bat", "btop", "foot", "fzf", "ghostty", "hx", "kitty", "lazygit",
-         "nvim", "wezterm", "yazi", "qt5ct", "qt6ct", "pkill", "gsettings"]
+         "nvim", "wezterm", "yazi", "qt5ct", "qt6ct", "pkill", "gsettings", "busctl"]
 
 
 def parallel(fn, items):
@@ -86,6 +88,7 @@ def scratch_env(tmp):
         "HOME": str(tmp / "home"),
         "XDG_CONFIG_HOME": str(tmp / "home" / ".config"),
         "XDG_STATE_HOME": str(tmp / "home" / ".local" / "state"),
+        "XDG_DATA_HOME": str(tmp / "home" / ".local" / "share"),
         "XDG_RUNTIME_DIR": str(tmp / "run"),
         "PATH": f"{stubs}:{env['PATH']}",
         "GIT_CONFIG_GLOBAL": str(tmp / "gitconfig"),
@@ -137,6 +140,17 @@ class Themes(unittest.TestCase):
         for variant in ("dark", "light"):
             for key, value in defaults["semantic"][variant].items():
                 self.assertIn(value, BASES, f"{variant}.{key}")
+
+    def test_template_is_current_and_complete(self):
+        result = subprocess.run([sys.executable, str(SCRIPTS / "gen_theme_template.py"), "--check"],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        template = json.loads((THEMES / "template" / "theme.json").read_text())
+        schema = json.loads((THEMES / "theme.schema.json").read_text())
+        self.assertEqual([k for k in schema["required"] if k not in template], [])
+        self.assertEqual([k for k in schema["properties"]["semantic"]["required"] if k not in template["semantic"]], [])
+        for base in BASES:
+            self.assertRegex(template["colors"][base], HEX)
 
 
 def luminance(color):
@@ -278,7 +292,7 @@ def gtk_css_problems(path):
 def integration_args(key, theme, target):
     """(output path to check, the script's arguments) for rendering `theme`
     into the directory `target`"""
-    if key in ("gtk", "vscode"):
+    if key in ("gtk", "vscode", "qt"):
         return target, [theme, target]
     if key in ("vesktop", "firefox"):
         target = target / "axiom.css"
@@ -326,6 +340,53 @@ class ThemeIntegrations(unittest.TestCase):
         for (theme, script), problems in zip(jobs, parallel(render, jobs)):
             with self.subTest(script=script.name, theme=theme.name):
                 self.assertEqual(problems, [])
+
+    def test_qt_keeps_kdeglobals_in_step_once_chosen(self):
+        kdeglobals = Path(self.env["XDG_CONFIG_HOME"]) / "kdeglobals"
+        kdeglobals.parent.mkdir(parents=True)
+        mine = "[Colors:View]\nBackgroundNormal=1,2,3\nCustom=x\n\n[General]\nColorScheme=BreezeDark\n\n[WM]\nactiveFont=Sans,10\n"
+        kdeglobals.write_text(mine)
+        theme = THEMES / "ayu-dark.json"
+        self.run_script(SCRIPTS / "theme_qt.sh", [theme])
+        scheme = Path(self.env["XDG_DATA_HOME"]) / "color-schemes" / "Axiom.colors"
+        self.assertTrue(scheme.is_file())
+        self.assertEqual(kdeglobals.read_text(), mine, "untouched until it names the scheme")
+        kdeglobals.write_text(mine.replace("BreezeDark", "Axiom"))
+        self.run_script(SCRIPTS / "theme_qt.sh", [theme])
+        first = kdeglobals.read_text()
+        data = configparser.ConfigParser(interpolation=None, strict=False)
+        data.optionxform = str
+        data.read_string(first)
+        colors = configparser.ConfigParser(interpolation=None, strict=False)
+        colors.optionxform = str
+        colors.read_string(scheme.read_text())
+        self.assertEqual(data["Colors:View"]["BackgroundNormal"], colors["Colors:View"]["BackgroundNormal"])
+        self.assertRegex(data["Colors:View"]["BackgroundNormal"], r"^\d+,\d+,\d+$")
+        self.assertEqual(data["Colors:View"]["Custom"], "x", "keys the scheme doesn't set stay")
+        self.assertEqual(data["WM"]["activeFont"], "Sans,10")
+        self.assertEqual(data["WM"]["activeBackground"], colors["WM"]["activeBackground"])
+        self.assertEqual(dict(data["Colors:Selection"]), dict(colors["Colors:Selection"]), "missing groups are added")
+        self.assertEqual(dict(data["General"]), {"ColorScheme": "Axiom"})
+        self.run_script(SCRIPTS / "theme_qt.sh", [theme])
+        self.assertEqual(kdeglobals.read_text(), first, "a second run changes nothing")
+
+    def test_qt_warns_of_kde_apps_picking_their_own_scheme(self):
+        """Okular and the like read [UiSettings] from their own rc before
+        kdeglobals': one naming another scheme there is said, not changed."""
+        config = Path(self.env["XDG_CONFIG_HOME"])
+        config.mkdir(parents=True)
+        (config / "kdeglobals").write_text("[General]\nColorScheme=Axiom\n\n[UiSettings]\nColorScheme=Axiom\n")
+        okular = config / "okularrc"
+        okular.write_text("[UiSettings]\nColorScheme=BreezeDark\n")
+        (config / "dolphinrc").write_text("[UiSettings]\nColorScheme=Axiom\n")
+        (config / "katerc").write_text("[General]\nColorScheme=Other\n")
+        problems, _ = run_problems(SCRIPTS / "theme_qt.sh", [THEMES / "ayu-dark.json"], self.env)
+        self.assertEqual(len(problems), 1, problems)
+        self.assertIn("okularrc", problems[0])
+        self.assertIn("BreezeDark", problems[0])
+        self.assertEqual(okular.read_text(), "[UiSettings]\nColorScheme=BreezeDark\n")
+        okular.write_text("[UiSettings]\nColorScheme=Axiom\n")
+        self.assertEqual(run_problems(SCRIPTS / "theme_qt.sh", [THEMES / "ayu-dark.json"], self.env)[0], [])
 
     def test_ncspot_leaves_your_keys(self):
         config = self.out / "config.toml"
@@ -379,6 +440,9 @@ class HookupScript(unittest.TestCase):
         self.config = Path(self.env["XDG_CONFIG_HOME"])
 
     def tearDown(self):
+        system = Path(self.tmp) / "system"
+        if system.is_dir():
+            system.chmod(0o755)
         shutil.rmtree(self.tmp)
 
     def hookup(self, action, key, schema=None, targets=None):
@@ -440,6 +504,71 @@ class HookupScript(unittest.TestCase):
         targets = self.hookup("status", "firefox")["targets"]
         self.assertTrue(targets)
         self.assertTrue(all(t["skipped"] == "profiles" for t in targets))
+
+    def readonly_file(self, name, text):
+        """A file in a directory the user can't write (like /usr/share/themes)"""
+        if os.geteuid() == 0:
+            self.skipTest("root can write anywhere")
+        theme = Path(self.tmp) / "system" / name
+        theme.parent.mkdir(parents=True)
+        theme.write_text(text)
+        theme.chmod(0o444)
+        theme.parent.chmod(0o555)
+        return theme
+
+    def test_link_to_a_readonly_file_is_skipped(self):
+        real = self.readonly_file("kitty.conf", "font_size 12\n")
+        link = self.config / "kitty" / "kitty.conf"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(real)
+        self.assertEqual(self.hookup("status", "kitty")["targets"][0]["skipped"], "readonly")
+        result = self.hookup("apply", "kitty")["results"][0]
+        self.assertFalse(result["changed"])
+        self.assertEqual(result["error"], "")
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(real.read_text(), "font_size 12\n")
+
+    def test_gtk_link_to_a_theme_is_wrapped(self):
+        real = self.readonly_file("gtk.css", "@define-color window_bg_color #fff;\n")
+        self.write("gtk-3.0/gtk.css", "")
+        link = self.config / "gtk-4.0" / "gtk.css"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(real)
+        status = self.hookup("status", "gtk")["targets"][1]
+        self.assertTrue(status["wraps"])
+        self.assertEqual(status["skipped"], "")
+        self.hookup("apply", "gtk")
+        self.assertFalse(link.is_symlink())
+        self.assertEqual(link.read_text(), f'@import url("file://{real}");\n@import url("axiom.css");\n')
+        backups = self.backups(link)
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(os.readlink(backups[0]), str(real))
+        self.assertTrue(self.hookup("status", "gtk")["targets"][1]["done"])
+
+    def test_qt_names_the_scheme_for_kde_apps_with_their_own_menu(self):
+        """kdeglobals gets ColorScheme=Axiom in [General] (KColorScheme's
+        copy) and in [UiSettings], which KColorSchemeManager apps (Okular,
+        Dolphin) read and otherwise fall back to Breeze from: two targets in
+        one file, both applied, the user's own choice commented out."""
+        kdeglobals = self.write("kdeglobals", "[General]\nColorScheme=BreezeDark\n\n[UiSettings]\nColorScheme=BreezeDark\n\n[KDE]\nwidgetStyle=Fusion\n")
+        targets = [t for t in self.hookup("status", "qt")["targets"] if t["path"].endswith("kdeglobals")]
+        self.assertEqual([(t["section"], t["done"]) for t in targets], [("General", False), ("UiSettings", False)])
+        self.hookup("apply", "qt")
+        data = configparser.ConfigParser(interpolation=None, strict=False, comment_prefixes=("#",))
+        data.optionxform = str
+        data.read_string(kdeglobals.read_text())
+        self.assertEqual(data["General"]["ColorScheme"], "Axiom")
+        self.assertEqual(data["UiSettings"]["ColorScheme"], "Axiom")
+        self.assertEqual(data["KDE"]["widgetStyle"], "Fusion")
+        self.assertEqual(kdeglobals.read_text().count("# axiom: ColorScheme=BreezeDark"), 2)
+        self.assertTrue(all(t["done"] for t in self.hookup("status", "qt")["targets"] if t["path"].endswith("kdeglobals")))
+        # Without a [UiSettings] of its own, Apply adds the group
+        kdeglobals.write_text("[General]\nColorScheme=Axiom\n")
+        self.hookup("apply", "qt")
+        data = configparser.ConfigParser(interpolation=None, strict=False)
+        data.optionxform = str
+        data.read_string(kdeglobals.read_text())
+        self.assertEqual(data["UiSettings"]["ColorScheme"], "Axiom")
 
     def test_end_keeps_a_symlink_and_backs_up(self):
         real = Path(self.tmp) / "dotfiles" / "kitty.conf"
@@ -755,6 +884,7 @@ bindsym $mod+h focus left
 bindsym --locked XF86AudioRaiseVolume exec $ipc audio volumeUp
 bindsym $mod+space exec $ipc appLauncher toggle
 bindsym $mod+1 exec $ipc workspaces nth 1 go
+bindsym --release $mod+Ctrl+r exec '/opt/axiom/scripts/restart.sh'
 bindsym $mod+x layout tabbed
 bindsym --border $mod+button2 kill
 bindcode $mod+49 exec thing
@@ -775,6 +905,7 @@ mode "resize" {
         # Repeats only where axiom's action does (or a raw command as sway had it)
         self.assertEqual(by_key["SUPER + Q"], {"key": "SUPER + Q", "action": "closeWindow"})
         self.assertTrue(by_key["XF86AudioRaiseVolume"]["repeating"])
+        self.assertEqual(by_key["SUPER + CTRL + R"]["action"], "restartShell")
         self.assertEqual(by_key["SUPER + Return"], {"key": "SUPER + Return", "action": "exec", "argument": "foot"})
         self.assertEqual(by_key["SUPER + H"]["action"], "focusDir")
         self.assertEqual(by_key["XF86AudioRaiseVolume"]["action"], "volumeUp")
@@ -1686,7 +1817,7 @@ class GreeterInstall(unittest.TestCase):
         self.original = ('[terminal]\nvt = 1\n\n[default_session]\n# the greeter\n'
                          f'command = "agreety --cmd /bin/sh"\nuser = "{self.user}"\n')
         self.config.write_text(self.original)
-        for name in ["greetd", "agreety"]:
+        for name in ["greetd", "agreety", "sway"]:
             program = self.root / "usr/bin" / name
             program.parent.mkdir(parents=True, exist_ok=True)
             program.write_text("#!/bin/sh\n")
@@ -1761,6 +1892,21 @@ class GreeterInstall(unittest.TestCase):
         time.sleep(1.1)
         self.assertEqual(self.run_script("hash", source="local"), local)
 
+    def test_compositor_the_login_screen_runs_in(self):
+        """sway, else Hyprland (start-hyprland), as greeter-session.sh picks;
+        Install refuses with neither, which would only ever show agreety."""
+        self.assertEqual(self.run_script("check")["compositor"], "sway")
+        (self.root / "usr/bin/sway").unlink()
+        hyprland = self.root / "usr/local/bin/start-hyprland"
+        hyprland.parent.mkdir(parents=True)
+        hyprland.write_text("#!/bin/sh\n")
+        hyprland.chmod(0o755)
+        self.assertEqual(self.run_script("check")["compositor"], "hyprland")
+        hyprland.unlink()
+        self.assertEqual(self.run_script("check")["compositor"], "")
+        self.assertIn("neither sway nor Hyprland", self.run_script("install", ok=False)["error"])
+        self.assertEqual(self.config.read_text(), self.original)
+
     def test_check_as_root(self):
         """As root (pkexec, CI) check runs nothing as another user: its third
         argument is the source, never a user name."""
@@ -1784,7 +1930,7 @@ class GreeterInstall(unittest.TestCase):
         self.assertEqual(self.run_script("check")["url"], "https://example.org/me/axiom.git")
 
     def package(self, version="1.2.0-1"):
-        """A packaged axiom at /usr/share/axiom, with the marker a package writes."""
+        """A packaged axiom at /usr/share/axiom, as its PKGBUILD lays it out."""
         package = self.root / "usr/share/axiom"
         for name in ["greeter.qml", "shell.qml", "scripts/greeter/greeter-session.sh", "scripts/greeter/hyprland.lua"]:
             (package / name).parent.mkdir(parents=True, exist_ok=True)
@@ -1983,6 +2129,68 @@ class GreeterInstall(unittest.TestCase):
     def test_refuses_unknown_source_and_channel(self):
         self.assertIn("unknown source", self.run_script("install", ok=False, source="svn")["error"])
         self.assertIn("unknown channel", self.run_script("install", ok=False, channel="beta")["error"])
+
+
+
+class GreeterSession(unittest.TestCase):
+    """greeter-session.sh picking the greeter's compositor: sway, else
+    Hyprland (also when sway can't start), else agreety. Run with a PATH of
+    stand-ins only, so the real compositors are never found."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.bin = self.tmp / "bin"
+        self.bin.mkdir()
+        self.calls = self.tmp / "calls"
+        for tool in ["dirname", "readlink", "rm"]:
+            (self.bin / tool).symlink_to(shutil.which(tool))
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def fake(self, name, code=0):
+        program = self.bin / name
+        program.write_text(f'#!/bin/sh\necho "{name} $*" >>"{self.calls}"\nexit {code}\n')
+        program.chmod(0o755)
+
+    def run_session(self):
+        env = {"PATH": str(self.bin), "XDG_RUNTIME_DIR": str(self.tmp)}
+        subprocess.run(["/bin/sh", str(SCRIPTS / "greeter/greeter-session.sh")], env=env,
+                       capture_output=True, text=True, timeout=10)
+        return [line.split()[0] for line in self.calls.read_text().splitlines()] if self.calls.exists() else []
+
+    def test_sway_first(self):
+        self.fake("sway")
+        self.fake("start-hyprland")
+        self.fake("agreety")
+        self.assertEqual(self.run_session(), ["sway"])
+        self.assertIn("sway.conf", self.calls.read_text())
+
+    def test_hyprland_when_sway_cant_start(self):
+        self.fake("sway", 1)
+        self.fake("start-hyprland")
+        self.fake("agreety")
+        self.assertEqual(self.run_session(), ["sway", "start-hyprland"])
+
+    def test_hyprland_without_sway(self):
+        self.fake("start-hyprland")
+        self.fake("agreety")
+        self.assertEqual(self.run_session(), ["start-hyprland"])
+
+    def test_agreety_when_nothing_starts(self):
+        self.fake("sway", 1)
+        self.fake("agreety")
+        self.assertEqual(self.run_session(), ["sway", "agreety"])
+
+    def test_agreety_when_the_greeter_failed_twice(self):
+        # The greeter's `shell` leaves the marker, then sway exits cleanly
+        marker = self.tmp / "axiom-greeter-failed"
+        program = self.bin / "sway"
+        program.write_text(f'#!/bin/sh\necho "sway $*" >>"{self.calls}"\n: >"{marker}"\nexit 0\n')
+        program.chmod(0o755)
+        self.fake("start-hyprland")
+        self.fake("agreety")
+        self.assertEqual(self.run_session(), ["sway", "agreety"])
 
 
 class SwayConfigText(unittest.TestCase):
@@ -2318,6 +2526,97 @@ class CursorTheme(unittest.TestCase):
         env = {**os.environ, "HOME": str(self.home), "XDG_DATA_HOME": str(self.data), "XDG_DATA_DIRS": str(self.system)}
         done = subprocess.run([sys.executable, str(SCRIPTS / "cursor_theme.py"), "Old"], env=env, capture_output=True, text=True)
         self.assertEqual(done.returncode, 1)
+
+
+class RestartScript(unittest.TestCase):
+    """restart.sh with a stubbed qs whose instances are sleeps: it ends every
+    one and starts one, and a restart fired while one runs does nothing."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        self.addCleanup(self.end_all)
+        self.stubs = self.tmp / "stubs"
+        self.stubs.mkdir()
+        self.state = self.tmp / "pids"
+        self.state.touch()
+        qs = self.stubs / "qs"
+        # list: the live pids as qs list -j does; anything else is a launch
+        # (-n: not while one runs), started detached so it's reaped. A
+        # zombie isn't live (qs drops an instance once it quits): CI's
+        # container reaps no orphans, so a killed instance stays one
+        qs.write_text(f"""#!/bin/sh
+state="{self.state}"
+live() {{
+  s=$(cat "/proc/$1/stat" 2>/dev/null) || return 1
+  case "${{s##*) }}" in Z*) return 1 ;; esac
+}}
+if [ "$1" = list ]; then
+  echo "["
+  while read -r pid; do live "$pid" && echo "{{\\"pid\\": $pid}},"; done < "$state"
+  echo "]"
+  exit 0
+fi
+while read -r pid; do live "$pid" && exit 0; done < "$state"
+echo launch >> "{self.tmp}/launches"
+sleep 300 > /dev/null 2>&1 &
+echo $! >> "$state"
+""")
+        qs.chmod(qs.stat().st_mode | stat.S_IEXEC)
+        self.env = dict(os.environ, PATH=f"{self.stubs}:{os.environ['PATH']}",
+                        XDG_RUNTIME_DIR=str(self.tmp), WAYLAND_DISPLAY="wayland-test")
+
+    def end_all(self):
+        for pid in self.state.read_text().split():
+            try:
+                os.kill(int(pid), 9)
+            except ProcessLookupError:
+                pass
+
+    def start_instance(self, ignore_term=False):
+        command = "trap '' TERM; while :; do sleep 1; done" if ignore_term else "sleep 300"
+        pid = subprocess.run(["sh", "-c", f"sh -c \"{command}\" > /dev/null 2>&1 & echo $!"],
+                             capture_output=True, text=True, check=True).stdout.strip()
+        with self.state.open("a") as f:
+            f.write(pid + "\n")
+        return int(pid)
+
+    def alive(self):
+        alive = []
+        for pid in self.state.read_text().split():
+            try:
+                stat = Path(f"/proc/{pid}/stat").read_text()
+            except OSError:
+                continue
+            if not stat.rsplit(") ", 1)[1].startswith("Z"):
+                alive.append(int(pid))
+        return alive
+
+    def restart(self):
+        return subprocess.Popen(["bash", str(SCRIPTS / "restart.sh")], env=self.env,
+                                stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+
+    def test_ends_every_instance(self):
+        old = [self.start_instance(), self.start_instance(), self.start_instance(ignore_term=True)]
+        done = self.restart()
+        _, err = done.communicate(timeout=30)
+        self.assertEqual(done.returncode, 0, err)
+        alive = self.alive()
+        self.assertEqual(len(alive), 1)
+        self.assertNotIn(alive[0], old)
+
+    def test_none_running(self):
+        done = self.restart()
+        done.communicate(timeout=30)
+        self.assertEqual(len(self.alive()), 1)
+
+    def test_twice_at_once(self):
+        self.start_instance(ignore_term=True)
+        first, second = self.restart(), self.restart()
+        first.communicate(timeout=30)
+        second.communicate(timeout=30)
+        self.assertEqual(len(self.alive()), 1)
+        self.assertEqual((self.tmp / "launches").read_text().count("launch"), 1)
 
 
 class PickPath(unittest.TestCase):

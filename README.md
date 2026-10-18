@@ -152,9 +152,9 @@ axiom talks to the compositor through one layer, so the bar, the overlay, the la
 | Scrolling strips | any monitor | every monitor | |
 | Blur behind the shell | ✓ | | with SwayFX |
 | Live window previews | ✓ | | |
-| The login screen | ✓ | ✓¹ | ✓¹ |
+| The login screen | ✓¹ | ✓¹ | ✓¹ |
 
-<sub>¹ The login screen always runs in a Hyprland of its own, so it needs Hyprland installed.</sub>
+<sub>¹ The login screen runs in a compositor of its own, whatever compositor you use: sway, or Hyprland when sway isn't installed.</sub>
 
 Your config moves between them as it is. Log in to another compositor and your bars, pages, menus, theme and keybinds are already there; whatever only one compositor understands waits quietly in the config until you're back on it. Settings a compositor can't use are left out of the settings page rather than shown and ignored. Running something else? The bar, launcher, notifications and most of the shell still work on any Wayland compositor with layer-shell; only the compositor-specific parts go missing.
 
@@ -201,19 +201,21 @@ By default axiom runs *detached*: it applies its keybinds and settings at runtim
 
 ## Contributing
 
-Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) for a bug or an idea, or fork the repository and open a pull request against `main`. CI runs the same checks as `scripts/check_all.sh`.
+Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) and pick the form that fits (a bug, a feature, a bar widget or module, an app to theme, a compositor or distribution, a translation), or fork the repository and open a pull request against `main`. CI runs the same checks as `scripts/check_all.sh`.
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers setting up, the workflow, and where in the docs to start. There's no build step: `qs` interprets the QML and hot-reloads on save.
+
+**Looking to help?** axiom is built and tested on one machine, so people running Hyprland, sway or niri on other hardware, packagers (`axiom-shell` for the AUR, COPR and Nix) and translators are especially welcome: see [Help wanted](https://github.com/orgs/axiom-dotfiles/discussions/67), the [translations tracker](https://github.com/axiom-dotfiles/axiom/issues/66) and the [good first issues](https://github.com/axiom-dotfiles/axiom/labels/good%20first%20issue).
 
 ## Roadmap
 
 - **Other Wayland compositors**, beyond Hyprland, sway and niri
-- **Blur behind the shell on niri**
 - **More widgets** for bars and overlay pages
 - **More styles** for bars, widgets and menus
 - **More translations**
 - **Performance Improvements**
-- **An AUR package**
+- **Community Config Library and Showcase**
+- **Packages**: `axiom-shell` and `axiom-shell-git` for the AUR and COPR, and Nix. The AUR packages are ready but wait on AUR account registration reopening ([#76](https://github.com/axiom-dotfiles/axiom/issues/76))
 
 ## Acknowledgments
 

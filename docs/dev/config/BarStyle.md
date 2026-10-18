@@ -32,7 +32,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-group="Bar widgets", x-beside=true, x-showIf={"widgetStyle":"underline"}
   - read: `BarStyle.values` (whole), `barConfig.lineSide` · in: `components/bar/WidgetBackground.qml`, `components/bar/widgets/workspaces/CellUnderline.qml`, `config/Bar.qml`
 - **`BarStyle.widgetShape`** · string = "rounded" · enum rounded|capsule|slant|arrow
-  - Shape: Rounded follows the widget corner radius. Slanted and arrow widgets take a little more room for their points.
+  - Shape: Rounded follows the widget corner radius. Capsule always gives fully round pill ends, whatever the radius. Slanted and arrow widgets take a little more room for their points.
   - x-group="Bar widgets", x-showIf={"widgetStyle":["filled","tinted","outline"]}
   - read: `BarStyle.values` (whole), `barConfig.widgetShape` · in: `components/bar/WidgetGroup.qml`, `config/Bar.qml`
 - **`BarStyle.widgetGrouping`** · string = "separate" · enum separate|merged|powerline
@@ -53,19 +53,19 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `BarStyle.values` (whole), `barConfig.widgetTextColor` · in: `config/Bar.qml`
 - **`BarStyle.separatorStyle`** · string = "none" · enum none|line|dot|slash|chevron
   - Separators: Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing.
-  - x-group="Bar accents"
+  - x-group="Bar accents", x-showIf={"anyOf":[{"widgetGrouping":{"not":"powerline"}},{"widgetStyle":["und…
   - read: `BarStyle.values` (whole), `barConfig.separatorStyle` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
 - **`BarStyle.separatorColor`** · string = "base03"
   - Separator color
-  - x-group="Bar accents", x-options="colors", x-showIf={"separatorStyle":{"not":"none"}}
+  - x-group="Bar accents", x-options="colors", x-showIf={"anyOf":[{"widgetGrouping":{"not":"powerline"}},{"widgetStyle":["und…
   - read: `BarStyle.values` (whole), `barConfig.separatorColor` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
 - **`BarStyle.separatorThickness`** · integer = 2 · 1–6 · px
   - Separator thickness
-  - x-group="Bar accents", x-control="stepper", x-showIf={"separatorStyle":{"not":"none"}}
+  - x-group="Bar accents", x-control="stepper", x-showIf={"anyOf":[{"widgetGrouping":{"not":"powerline"}},{"widgetStyle":["und…
   - read: `BarStyle.values` (whole), `barConfig.separatorThickness` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
 - **`BarStyle.separatorGap`** · integer = 2 · 0–24 · px
   - Separator margin: Room between a separator and the widgets on either side of it.
-  - x-group="Bar accents", x-control="stepper", x-showIf={"separatorStyle":{"not":"none"}}
+  - x-group="Bar accents", x-control="stepper", x-showIf={"anyOf":[{"widgetGrouping":{"not":"powerline"}},{"widgetStyle":["und…
   - read: `BarStyle.values` (whole), `barConfig.separatorGap` · in: `config/Bar.qml`
 - **`BarStyle.accentLine`** · string = "none" · enum none|inner|outer
   - Accent line: A line along the bar's edge toward the windows (inner) or the screen edge (outer); on pills, along each pill.

@@ -8,7 +8,7 @@
 1. `config/json/config.schema.json` → root `properties.<Section>`: an object with `x-category`, `title`, `description`, `additionalProperties: false`, `properties` (each with a `default`), optionally `x-order`.
 2. `config/<Section>.qml`, or `config/<Section>Config.qml` when `<Section>` is also a type name (a bar widget, module, view or Quickshell type), as with `BatteryConfig`, `OSDConfig`, `LauncherConfig`.
 3. The service and UI that use it.
-4. `config/i18n/*.json` via `scripts/check_i18n.py --fill`.
+4. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template.
 
 ## Skeleton
 ```json
@@ -54,7 +54,6 @@ QtObject {
    - Write one `readonly property` per key that is used, as `_c.<key>`. No `??` fallbacks.
 3. **Use it:** services read it to act; UI binds to it.
 4. **Hand-built settings UI:** only if the generated form can't express it. Add `x-card: "<Name>"` (`components/views/settings/<Name>Card.qml`) or `x-intro`. Check the file exists, since `check_structure` doesn't.
-5. Run `scripts/check_i18n.py --fill`.
 
 ## Gotchas
 - **Sections unknown to the schema are pruned on load**, with a warning. A key missing from the schema vanishes from the user's config on the next save.

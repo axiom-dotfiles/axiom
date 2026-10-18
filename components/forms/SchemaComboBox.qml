@@ -21,6 +21,10 @@ ColumnLayout {
   function optionLabel(value) {
     return root.optionLabels?.[value] ?? I18n.tr(value);
   }
+  // A swatch shows its color's name unless it's labelled (Auto, the default)
+  function swatchLabel(value) {
+    return root.swatches && value && !root.optionLabels?.[value] ? value : root.optionLabel(value);
+  }
 
   readonly property color _currentColor: root.swatches && root.currentValue ? Theme.resolveColor(root.currentValue) : Theme.backgroundAlt
   readonly property color _currentTextColor: root.swatches && root.currentValue ? Utils.getContrastColor(root._currentColor) : Theme.foreground
@@ -50,7 +54,7 @@ ColumnLayout {
       spacing: 0
 
       StyledText {
-        text: root.swatches && root.currentValue ? root.currentValue : root.optionLabel(root.currentValue)
+        text: root.swatchLabel(root.currentValue)
         textColor: root._currentTextColor
         Layout.fillWidth: true
         elide: Text.ElideRight
@@ -120,7 +124,7 @@ ColumnLayout {
           anchors.fill: parent
           anchors.leftMargin: Widget.padding
           anchors.rightMargin: Widget.padding
-          text: root.swatches && optionDelegate.modelData ? optionDelegate.modelData : root.optionLabel(optionDelegate.modelData)
+          text: root.swatchLabel(optionDelegate.modelData)
           textColor: root.swatches ? Utils.getContrastColor(optionDelegate.swatchColor) : Theme.foreground
           verticalAlignment: Text.AlignVCenter
           elide: Text.ElideRight
