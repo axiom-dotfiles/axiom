@@ -11,8 +11,9 @@ import qs.config
 // `item` is read again only when that item moves itself, so the box is
 // mapped here, again whenever `moving` changes: whatever else moves it
 // (a parent sliding, a transform), and as it scales. Empty while there's
-// no box, it's hidden, or it's faded under the blur threshold (`opacity`:
-// as the compositor's alpha threshold leaves out where it has one).
+// no box, it's hidden, or its fill is drawn under the blur threshold
+// (`alpha` × `opacity`: the pixel's alpha, as Hyprland's ignore_alpha
+// compares it).
 Region {
   id: root
 
@@ -22,6 +23,8 @@ Region {
   // How opaque it's drawn now (a fade), and under what it isn't blurred:
   // the blur threshold, or nearly nothing for a dim (a backdrop)
   property real opacity: 1
+  // The fill's own alpha: the surface opacity, or a dim's color
+  property real alpha: Appearance.surfaceAlpha
   property real threshold: Appearance.blurThreshold
 
   radius: (root.target as Rectangle)?.radius ?? 0
@@ -29,7 +32,7 @@ Region {
   readonly property rect _at: {
     void root.moving;
     const b = root.target;
-    if (!b || !b.visible || b.width <= 0 || b.height <= 0 || root.opacity < root.threshold)
+    if (!b || !b.visible || b.width <= 0 || b.height <= 0 || root.alpha * root.opacity < root.threshold)
       return Qt.rect(0, 0, 0, 0);
     // (each read so a change maps it again)
     void [b.x, b.y, b.scale];

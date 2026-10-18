@@ -121,6 +121,7 @@ PanelWindow {
     id: dimBlur
     target: dim
     opacity: dim.opacity
+    alpha: dim.color.a
     threshold: 0.01
   }
 

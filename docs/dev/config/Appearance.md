@@ -105,7 +105,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.screenMargin` (int): The frame can't be thinner than its own outline (a narrower one would draw the stroke over the screen edge); without a frame it's just a gap
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/FloatingPopout.qml`, `components/surfaces/border/RoundedBorders.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`
 - `Appearance.surfaceAlpha` (real): --- Translucency --- How solid the shell's surfaces are (0.6–1).
-  - in: `shell/BlurBackingWindow.qml`
+  - in: `components/reusable/BoxBlurRegion.qml`, `shell/BlurBackingWindow.qml`
 - `Appearance.compositorBlurs` (bool): Whether the compositor blurs behind axiom's surfaces (CompositorManager.supports.blur), handed over by CompositorManager: a reader reads no service, and buildi…
   - in: only inside the reader
 - `Appearance.translucent` (bool)

@@ -84,6 +84,7 @@ PanelWindow {
     target: fill
     moving: slideOffset.y
     opacity: fill.opacity
+    alpha: fill.color.a
     threshold: 0.01
   }
 
