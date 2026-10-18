@@ -13,7 +13,9 @@ import qs.components.reusable
  * with each setup's thumbnail. Search and tag chips narrow the grid; a
  * tile opens its details (the full screenshot, what it needs, its
  * wallpaper's license) with Apply, which asks for a second click, saves
- * the current setup as "before-<id>" and takes the look only.
+ * the current setup as "before-<id>" and takes the look only. The
+ * catalog's text is someone else's, so it shows as plain text (`about` as
+ * Markdown CommunityCatalog made inert) and only web links open.
  */
 FieldGroup {
   id: root
@@ -33,6 +35,7 @@ FieldGroup {
   Component.onCompleted: CommunitySetupsManager.open()
   onSelectedChanged: {
     root.armed = "";
+    useWallpaper.checked = false;
     if (root.selected !== "")
       CommunitySetupsManager.fetchScreenshot(root.selected);
   }
@@ -144,6 +147,7 @@ FieldGroup {
 
             StyledText {
               text: details.setup?.title ?? ""
+              textFormat: Text.PlainText
               font.bold: true
               textSize: Appearance.fontSize + 2
               elide: Text.ElideRight
@@ -152,6 +156,7 @@ FieldGroup {
 
             StyledText {
               text: I18n.tr("by {0}", details.setup?.author ?? "")
+              textFormat: Text.PlainText
               opacity: 0.7
               Layout.fillWidth: true
             }
@@ -174,6 +179,7 @@ FieldGroup {
 
         StyledText {
           text: details.setup?.description ?? ""
+          textFormat: Text.PlainText
           wrapMode: Text.WordWrap
           Layout.fillWidth: true
         }
@@ -185,7 +191,10 @@ FieldGroup {
           opacity: 0.8
           wrapMode: Text.WordWrap
           Layout.fillWidth: true
-          onLinkActivated: link => Qt.openUrlExternally(link)
+          onLinkActivated: link => {
+            if (/^https?:\/\//.test(link))
+              Qt.openUrlExternally(link);
+          }
         }
 
         // What it was tried on and what it needs
@@ -199,13 +208,12 @@ FieldGroup {
             delegate: StatusChip {
               required property string modelData
               color: Theme.success
-              // I18n.tr("Tested on hyprland") I18n.tr("Tested on niri") I18n.tr("Tested on sway")
-              text: I18n.tr("Tested on " + modelData)
+              text: I18n.tr("Tested on {0}", CompositorManager.nameOf(modelData))
             }
           }
 
           StatusChip {
-            shown: details.setup !== null && details.setup.theme.startsWith("community/")
+            shown: details.setup?.files.theme !== undefined
             color: Theme.accent
             text: I18n.tr("Brings its own palette")
           }
@@ -224,7 +232,7 @@ FieldGroup {
         }
 
         RowLayout {
-          visible: details.setup?.wallpaper !== null && details.setup?.wallpaper !== undefined
+          visible: (details.setup?.wallpaper ?? null) !== null
           Layout.fillWidth: true
           spacing: Widget.spacing
 
@@ -245,6 +253,7 @@ FieldGroup {
             StyledText {
               readonly property var wallpaper: details.setup?.wallpaper ?? null
               text: wallpaper ? I18n.tr("License: {0} · Source: {1}", wallpaper.license, wallpaper.source) + (wallpaper.credit ? " · " + wallpaper.credit : "") : ""
+              textFormat: Text.PlainText
               opacity: 0.6
               textSize: Appearance.fontSize - 2
               elide: Text.ElideRight
@@ -320,6 +329,7 @@ FieldGroup {
               StyledText {
                 Layout.fillWidth: true
                 text: tile.modelData.title
+                textFormat: Text.PlainText
                 font.bold: true
                 elide: Text.ElideRight
               }
@@ -334,6 +344,7 @@ FieldGroup {
             StyledText {
               Layout.fillWidth: true
               text: tile.modelData.compatible ? I18n.tr("by {0}", tile.modelData.author) : I18n.tr("by {0} · needs a newer axiom", tile.modelData.author)
+              textFormat: Text.PlainText
               opacity: 0.6
               textSize: Appearance.fontSize - 2
               elide: Text.ElideRight
@@ -375,7 +386,7 @@ FieldGroup {
         text: I18n.tr("Export and submit…")
         onClicked: {
           SavedConfigsManager.exportConfig(false);
-          Qt.openUrlExternally(CommunitySetupsManager.submitUrl(SavedConfigsManager.active || "", ""));
+          Qt.openUrlExternally(CommunitySetupsManager.submitUrl(SavedConfigsManager.active));
         }
       }
     }

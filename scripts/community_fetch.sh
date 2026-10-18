@@ -8,7 +8,8 @@
 #   community_fetch.sh URL DEST SHA256|- [URL DEST SHA256|- ...]
 #
 # Prints one line per file, "ok DEST" or "fail DEST REASON", and exits 1
-# if any failed. Files are capped at 20 MB; only http(s) is fetched.
+# if any failed. Files are capped at 20 MB; only http(s) is fetched, and
+# redirected to.
 set -uo pipefail
 
 if [ $# -eq 0 ] || [ $(($# % 3)) -ne 0 ]; then
@@ -30,7 +31,7 @@ while [ $# -gt 0 ]; do
     continue
   fi
   part="$dest.part"
-  if ! error=$(curl --fail --silent --show-error --location --proto =https,http --max-time 60 --max-filesize 20971520 -o "$part" -- "$url" 2>&1); then
+  if ! error=$(curl --fail --silent --show-error --location --proto =https,http --proto-redir =https,http --max-time 60 --max-filesize 20971520 -o "$part" -- "$url" 2>&1); then
     rm -f "$part"
     echo "fail $dest ${error//$'\n'/ }"
     status=1

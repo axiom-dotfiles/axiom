@@ -3210,10 +3210,6 @@
     "No setups match.": "",
     "by {0}": "",
     "View on GitHub": "",
-    "Tested on hyprland": "",
-    "Tested on niri": "",
-    "Tested on sway": "",
-    "Tested on ": "",
     "Brings its own palette": "",
     "Font not installed: {0}": "",
     "Needs a newer axiom": "",
@@ -3244,6 +3240,7 @@
     "Browse community setups": "",
     "Community setups": "",
     "Catalog": "",
-    "Downloads (album art, Claude usage, community setups)": ""
+    "Downloads (album art, Claude usage, community setups)": "",
+    "Tested on {0}": ""
   }
 }

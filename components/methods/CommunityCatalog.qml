@@ -69,7 +69,7 @@ QtObject {
       "title": text(entry.title) || entry.id,
       "author": text(entry.author),
       "description": text(entry.description),
-      "about": text(entry.about),
+      "about": root._inertMarkdown(text(entry.about)),
       "tags": strings(entry.tags),
       "tested": strings(entry.tested).filter(name => root._compositors.includes(name)),
       "fonts": strings(entry.fonts),
@@ -113,11 +113,6 @@ QtObject {
     return match ? match[1].toLowerCase() : "";
   }
 
-  // The Appearance.theme name a setup's bundled palette is installed as
-  function themeName(id) {
-    return "community/" + id;
-  }
-
   // The setups matching every word of `text` (in the title, author,
   // description, tags or theme) and having every tag of `tags`, best
   // matches first (newest first between equals)
@@ -158,6 +153,12 @@ QtObject {
   function missingFonts(setup, families) {
     const installed = families.map(family => family.toLowerCase());
     return setup.fonts.filter(font => !installed.includes(font.toLowerCase()));
+  }
+
+  // Markdown from the catalog, made safe to render: raw HTML shows as
+  // text and an image becomes a link, so showing it loads nothing
+  function _inertMarkdown(text) {
+    return text.replace(/</g, "&lt;").replace(/!\[/g, "[");
   }
 
   function _isObject(value) {

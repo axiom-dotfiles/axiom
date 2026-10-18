@@ -139,6 +139,13 @@ TestCase {
     compare(setup.page, "");
   }
 
+  function test_parse_makes_about_inert() {
+    const setup = CommunityCatalog.parse(index([entry("m", {
+        "about": "**Tips** ![pic](https://track.example/p.png) <img src=\"https://track.example/q.png\"> [site](https://example.com)"
+      })]), 69)[0];
+    compare(setup.about, "**Tips** [pic](https://track.example/p.png) &lt;img src=\"https://track.example/q.png\"> [site](https://example.com)", "no image or HTML is left to load");
+  }
+
   function test_file_url() {
     compare(CommunityCatalog.fileUrl("https://raw.example/catalog/index.json", file("a", "thumb.webp")), "https://raw.example/catalog/setups/a/thumb.webp");
   }
@@ -168,6 +175,5 @@ TestCase {
     compare(CommunityCatalog.tags(setups), ["dark", "glass", "pills"]);
     compare(CommunityCatalog.missingFonts(setups[0], ["inter", "Noto Sans"]), []);
     compare(CommunityCatalog.missingFonts(setups[0], ["Noto Sans"]), ["Inter"]);
-    compare(CommunityCatalog.themeName("a"), "community/a");
   }
 }
