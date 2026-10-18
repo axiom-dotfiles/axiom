@@ -259,10 +259,23 @@ QtObject {
     return `floating_modifier ${f.mod} ${f.inverse ? "inverse" : "normal"}`;
   }
 
-  // Every complete bind's line (for a file, or with `runtime` to send now),
-  // then the floating modifier
+  // A tap's press bound to nothing, so sway keeps the press: an input
+  // method (fcitx5) sends the keys sway passes it back through a virtual
+  // keyboard of its own, which sway matches binds on too, and that one
+  // never sees the key between the press and the release (sway kept it),
+  // so it fires the tap after every combo and a second time after a tap
+  function _tapPressLine(k) {
+    return `bindsym --no-warn --no-repeat ${k.spec} nop`;
+  }
+
+  // Every complete bind's line (a tap's with _tapPressLine; for a file, or
+  // with `runtime` to send now), then the floating modifier
   function bindLines(binds, ctx, runtime) {
-    const lines = (binds ?? []).map(bind => bindLine(bind, ctx, runtime)).filter(line => line !== "");
+    const lines = [].concat(...(binds ?? []).map(bind => {
+      const line = bindLine(bind, ctx, runtime);
+      const k = key(bind.key);
+      return line === "" ? [] : k.tap ? [line, _tapPressLine(k)] : [line];
+    }));
     const floating = floatingModifier(binds);
     return floating !== "" ? lines.concat([floating]) : lines;
   }
@@ -278,10 +291,13 @@ QtObject {
 
   // The commands taking `binds`' lines back out (as bindLines bound them)
   function unbindLines(binds, ctx) {
-    return (binds ?? []).map(bind => {
+    return [].concat(...(binds ?? []).map(bind => {
       const k = key(bind.key);
-      return k && bindLine(bind, ctx) !== "" ? [`un${k.command}`].concat(_conflictFlags(bind, k), [k.spec]).join(" ") : "";
-    }).filter(line => line !== "");
+      if (!k || bindLine(bind, ctx) === "")
+        return [];
+      const line = [`un${k.command}`].concat(_conflictFlags(bind, k), [k.spec]).join(" ");
+      return k.tap ? [line, `unbindsym ${k.spec}`] : [line];
+    }));
   }
 
   // --- The window look and the input ---

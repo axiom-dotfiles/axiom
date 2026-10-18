@@ -131,7 +131,20 @@ TestCase {
         "key": "Super_L",
         "action": "launcher"
       }
-    ], ctx), ["unbindsym --release Super_L"]);
+    ], ctx), ["unbindsym --release Super_L", "unbindsym Super_L"]);
+  }
+
+  // A tap's press is bound to nothing, so an input method's virtual
+  // keyboard never sees it (and fires the tap after Super+Tab)
+  function test_tapKeepsItsPress() {
+    const lines = SwayConf.bindLines([
+      {
+        "key": "Super_L",
+        "action": "launcher"
+      }
+    ], ctx);
+    compare(lines.length, 2);
+    compare(lines[1], "bindsym --no-warn --no-repeat Super_L nop");
   }
 
   function test_switcherAndSpecialAreAxiomsOwn() {
