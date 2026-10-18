@@ -63,7 +63,7 @@ axiom ships the setups from the README in `examples/`. Apply one from **Settings
 ### Translations
 
 - Pick a language in **Settings → General → Language**.
-- To add a language, create `config/i18n/<code>.json` (see `ja.json`). It shows up in the dropdown right away.
+- To add a language, copy the empty template `config/i18n/template/language.json` to `config/i18n/<code>.json`, set `_meta.name` and `_meta.locale`, and translate the strings. It shows up in the dropdown right away.
 - Missing strings fall back to English. `scripts/check_i18n.py` reports what's missing.
 
 ## Troubleshooting

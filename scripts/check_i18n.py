@@ -15,6 +15,12 @@ Keys come from:
                                         (--fill and --prune write it too)
   scripts/check_i18n.py --untranslated  UI-looking string literals not wrapped in I18n.tr()
 
+It also keeps config/i18n/template/language.json, the empty dictionary a
+new language starts from: every key with an empty translation, sorted, and
+_meta holding English's date formats. --fill, --prune and --format rewrite
+it; a plain run fails when it's stale. It sits in a subfolder so neither
+the shell's language list nor this script's per-language pass sees it.
+
 An empty or missing entry falls back to English at runtime, so a partly
 translated file is always safe to ship.
 
@@ -30,7 +36,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 I18N = ROOT / "config" / "i18n"
+TEMPLATE = I18N / "template" / "language.json"
 SCHEMA = ROOT / "config" / "json" / "config.schema.json"
+I18N_QML = ROOT / "config" / "I18n.qml"
 QML_DIRS = ["components", "shell", "services", "config"]
 SKIP = []
 
@@ -202,6 +210,17 @@ def untranslated():
                     yield f"{rel}:{line_no}: dynamic tr() without declared keys: {code.strip()[:90]}"
 
 
+def english_formats():
+    """English's named date formats: I18n.qml's _formats object."""
+    block = re.search(r"_formats: \(\{(.*?)\}\)", I18N_QML.read_text(), re.S).group(1)
+    return dict(re.findall(r'"(\w+)":\s*"((?:[^"\\]|\\.)*)"', block))
+
+
+def template(keys):
+    return {"_meta": {"name": "", "locale": "", "formats": english_formats()},
+            "strings": {k: "" for k in sorted(keys)}}
+
+
 def canonical(data):
     return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
 
@@ -246,6 +265,17 @@ def main():
             print("  format   not in the canonical format (2-space indent): run with --format")
             status |= 1
         status |= 1 if missing else 0
+
+    expected = canonical(template(keys))
+    current = TEMPLATE.read_text(encoding="utf-8") if TEMPLATE.exists() else None
+    if current != expected:
+        if {"--fill", "--prune", "--format"} & set(sys.argv):
+            TEMPLATE.parent.mkdir(exist_ok=True)
+            write_atomic(TEMPLATE, expected)
+            print(f"{TEMPLATE.relative_to(ROOT)}: rewritten")
+        else:
+            print(f"{TEMPLATE.relative_to(ROOT)}: stale: run with --fill")
+            status |= 1
     return status
 
 

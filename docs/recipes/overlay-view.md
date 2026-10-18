@@ -13,7 +13,7 @@
    - `tests/tst_Config.qml`: a `test_v<N>_adds_the_<x>_page_once` case;
    - `services/LauncherCommands.qml`: a way to open it (below);
    - `docs/usage.md`: the **Pages** row of the launcher command table.
-4. `config/i18n/*.json` via `scripts/check_i18n.py --fill`.
+4. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template.
 
 ## Skeleton
 ```qml

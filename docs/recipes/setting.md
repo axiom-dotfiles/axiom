@@ -8,7 +8,7 @@
 1. `config/json/config.schema.json` → `properties.<Section>.properties.<key>`: the setting, with a `default`. Add the key to the section's `x-order` if it has one.
 2. `config/<Section>.qml` or `config/<Section>Config.qml` (find it in the table in `docs/dev/config/README.md`): one `readonly property <type> <name>: _c.<key>`.
 3. The consumer (service or UI) reads `<Reader>.<name>`, never `ConfigManager.config`.
-4. `config/i18n/*.json`: run `scripts/check_i18n.py --fill` (the title and description are translation keys).
+4. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template (the title and description are translation keys).
 
 ## Skeleton
 ```json
@@ -34,7 +34,6 @@
 4. Pick annotations from [schema-annotations](../dev/core/schema-annotations.md), e.g. `x-showIf`, `x-unit`, `x-options`, `x-control`, `x-beside`, `x-applyOnSave`. Prefer an annotation to special-casing in QML.
 5. Add the reader property: plain `_c.<key>`, no `??` fallback (the default is always filled). A derived value is its own property next to it, e.g. `wallpaperPath: Paths.expandHome(_c.wallpaperFolder)`.
 6. Use it from the consumer.
-7. Run `scripts/check_i18n.py --fill`.
 
 ## Gotchas
 - **`x-scope`:** a key inside a `look`-scoped section that names a monitor, path, account or command needs `"x-scope": "machine"` or `"personal"`. Otherwise examples, imports and exports carry it to other PCs.

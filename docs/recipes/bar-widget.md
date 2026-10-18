@@ -7,7 +7,7 @@
 ## Files to touch
 1. `components/bar/widgets/<Type>.qml`: the widget. The file name is the type const.
 2. `config/json/config.schema.json`: a `<Type>Widget` entry in `definitions`, and `{ "$ref": "#/definitions/<Type>Widget" }` appended to `definitions.BarWidget.oneOf`.
-3. `config/i18n/*.json`: via `scripts/check_i18n.py --fill` (the title, descriptions and the type's `description`, which is its library label).
+3. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template (the title, descriptions and the type's `description`, which is its library label, are keys).
 4. If it opens a popout of its own: `components/content/<Name>.qml` ([bar-popout](bar-popout.md)).
 5. If it needs data that's polled: the service's `acquire`/`release` ([service](service.md)).
 
@@ -74,7 +74,7 @@ Without a popout of its own, `showPopout` is `"title": "Menu popout", "default":
 2. Write `components/bar/widgets/<Type>.qml` with its purpose comment above the root.
 3. Read every setting as `properties.<key>` (always present: defaults are filled at load).
 4. Polled data: a request built from `properties` only (copy `Updates.qml`'s `updatesRequest`), acquired in `Component.onCompleted` and on its change, released in `onDestruction`.
-5. Run `scripts/check_i18n.py --fill`, then verify.
+5. Verify.
 
 ## Gotchas
 - `BarWidgetHost` handles `popoutMenu` itself (an edge menu instead of the popout): the widget's own `PopoutAnchor` is gated by `EdgeMenusConfig.opensOwnPopout(root.properties)`, never by `properties.showPopout` alone.

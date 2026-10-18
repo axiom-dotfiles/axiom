@@ -70,7 +70,7 @@ All run in CI; `scripts/dev/verify.sh --all` (= `scripts/check_all.sh`) runs eve
 - `scripts/check_structure.py` doesn't check `x-card`/`x-intro` files: check those exist yourself. Run it after adding, renaming or moving QML files.
 - `scripts/run_tests.sh [Name…]` (`tests/tst_<Name>.qml`; schema defaults and `ConfigMigration` are `tst_Config`): add a case when changing a methods helper or a migration step.
 - `scripts/check_qmllint.py` fails on warnings not in `scripts/qmllint-baseline.json`. Fix new warnings; `--update-baseline` only for Quickshell type-info gaps, or when it reports baselined warnings gone.
-- `scripts/check_i18n.py --fill` after changing user-visible text or a schema title/description, then translate the empty entries it added; `--prune` drops entries no longer used. It writes the files atomically in their one format (2-space JSON); edit them some other way and it reports `format` (`--format` fixes it).
+- Translation files keep themselves up to date: the pre-commit hook runs `scripts/check_i18n.py --fill` on what's committed, adding each new key (from `I18n.tr()` or a schema title/description) empty to every `config/i18n/<code>.json` and to `config/i18n/template/language.json`, the empty dictionary a new language starts from (generated: never edit it by hand). Don't run `--fill` yourself or translate unasked; empty entries show in English. `--prune` drops entries no longer used. The checker writes the files atomically in their one format (2-space JSON); edit them some other way and it reports `format` (`--format` fixes it). It writes the files atomically in their one format (2-space JSON); edit them some other way and it reports `format` (`--format` fixes it).
 - `scripts/check_docs.py` fails on a hand-written doc citing a path or `Singleton.member` that's gone (fix the doc with the code), and on a schema `x-*` annotation missing from `docs/dev/core/schema-annotations.md`.
 - `scripts/check_packages.py` fails when install.sh's package table and `Packages.packages` disagree: a new dependency goes in both (`docs/dev/packaging.md`).
 - `docs/dev/config/` and `docs/dev/generated/` come from `scripts/gen_docs.py` (verify.sh and the pre-commit hook rebuild them; CI fails when stale; verify.sh warns when the hook isn't set up: `git config core.hooksPath .githooks`). Never edit them by hand.
@@ -150,7 +150,7 @@ Dependencies point one way:
 - English source text, inline: `I18n.tr("Text")`, with placeholders for values (`I18n.tr("{0} updates", count)`), never template-string sentences.
 - Dates through `I18n.formatDate(date, I18n.dateFormat("longDate" | …))`, never `Qt.formatDateTime`.
 - Schema forms translate their own titles, descriptions and options. Keys chosen at runtime are declared in a comment as `I18n.tr("…")` so the checker sees them.
-- A language is `config/i18n/<code>.json`. Logs, validation errors and migration notes stay English.
+- A language is `config/i18n/<code>.json`, started from a copy of `config/i18n/template/language.json`. Logs, validation errors and migration notes stay English.
 
 ## UI conventions
 

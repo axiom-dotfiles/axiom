@@ -7,7 +7,7 @@
 ## Files to touch
 1. `services/LauncherCommands.qml`: an entry in `list`, in its group (`// --- Session ---`, `// --- Surfaces ---`, …).
 2. `docs/usage.md`: the launcher command table (its group's row).
-3. `config/i18n/*.json` via `scripts/check_i18n.py --fill`.
+3. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template.
 
 ## Skeleton
 ```qml

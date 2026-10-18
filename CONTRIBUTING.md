@@ -22,7 +22,7 @@ Each form adds its kind's label plus `triage`, which a maintainer swaps for `nee
 
 Questions, help with setting up, and ideas not ready to be a request go in [Discussions](https://github.com/axiom-dotfiles/axiom/discussions). Want to build something big? Open its request first, so we can agree on the shape before you build it.
 
-**Want to translate?** Copy `config/i18n/ja.json` to `config/i18n/<code>.json` and fill it in. `scripts/check_i18n.py` lists what's missing. It shows up under **Settings → General → Language** right away.
+**Want to translate?** Copy `config/i18n/template/language.json` to `config/i18n/<code>.json` (`de.json`), fill in `_meta.name` (the language's own name, `Deutsch`) and `_meta.locale` (`de_DE`), adjust the date formats, and translate the strings. Anything left empty shows in English, so a partial translation is fine to send. `scripts/check_i18n.py` lists what's missing. It shows up under **Settings → General → Language** right away.
 
 ### GitHub issues and `docs/dev/issues.md`
 
@@ -37,7 +37,7 @@ axiom has no build step: Quickshell runs the QML as it is and reloads a file the
    git clone https://github.com/<you>/axiom.git ~/.config/quickshell/axiom
    ```
    (Already running axiom from a clone? Use that one, and add your fork as a remote.)
-2. Turn on the pre-commit hook, which keeps the generated docs up to date:
+2. Turn on the pre-commit hook, which keeps the generated docs and the translation files up to date (new text goes into every language, empty, and into the template a new language starts from):
    ```bash
    git config core.hooksPath .githooks
    ```
