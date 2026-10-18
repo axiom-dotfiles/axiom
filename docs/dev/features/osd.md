@@ -7,7 +7,7 @@
 The volume, microphone and brightness on-screen displays. Each OSD is a configurable `EdgePopout` holding one or more bars.
 
 ### Config (`OSD` section, `OSDConfig`)
-- **Section keys:** `enabled`, `scrollToChange`, `scrollStep`, `osds`.
+- **Section keys:** `scrollToChange`, `scrollStep`, `osds` (each OSD has its own `enabled`; the section-wide one went in config v69).
   - `OSDConfig.scrollStep` is the level change per wheel notch (0–1). It is 0 when scrolling is off.
 - **`osds`:** an array of `definitions/OSDEntry`. Each entry has:
   - `id`, `name`, `enabled`;

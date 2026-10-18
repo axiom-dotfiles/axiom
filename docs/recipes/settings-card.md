@@ -6,6 +6,7 @@
 
 ## The three annotations
 - `x-card: "<Name>"` on a section: loads `components/views/settings/<Name>Card.qml` as the section's first card (`SettingsContent` adds the `Card` suffix).
+- `x-cardTitle: "<Title>"` with it (required): the card's title, which `SettingsContent` passes in as `title` and the sidebar lists; the card's QML sets none. Set `x-cardWide: true` when it holds a list or a form that needs the room.
 - `x-cardFolds: true` with it: the card folds like the generated cards and is given `foldKey` (`"<Section>:<Name>"`).
 - `x-intro: "<Name>"` on a section or an object property: loads `components/views/settings/<Name>.qml` at the top of that group's card, above its fields; it hides while its `shown` (if it declares one) is false.
 
@@ -27,7 +28,6 @@ import qs.components.reusable
 FieldGroup {
   id: root
 
-  title: I18n.tr("Foo")
   description: FooManager.available ? "" : I18n.tr("Foo isn't installed.")
   headerExtras: StyledTextButton {
     text: I18n.tr("Check again")
@@ -44,7 +44,6 @@ FoldingCard {
   // The settings group key it folds under, from SettingsContent
   property string foldKey
 
-  title: I18n.tr("Foo")
   collapsed: SettingsManager.isCollapsed(root.foldKey)
   onToggled: SettingsManager.setCollapsed(root.foldKey, !root.collapsed)
 }

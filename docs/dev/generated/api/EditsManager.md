@@ -23,6 +23,7 @@ The editors' unsaved edits, by overlay page: which pages hold a dirty draft (the
 - `releaseTyping(field)`
 - `commitTyping()`: Before a save: the typed text commits (dropped if it isn't valid yet)
 - `discardTyping()`
+- `discardTypingIn(item)`: Drops the typed text only if its box is inside `item` (one card's Discard)
 - `isUnsaved(type)`
 - `saveAll()`: Each save merges onto the latest config, so they don't undo each other.
 - `discardAll()`

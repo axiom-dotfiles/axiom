@@ -18,8 +18,8 @@ The schema is the single source of truth for config: shape, `default`s (there is
 ### Placement
 - `x-settings: false`: hides a key from the settings page (edited elsewhere, or UI-owned state).
 - `x-category` (on a top-level section): names its sidebar category.
-- `x-categories` (root, `[{ name, icon, page }]`): orders the categories and gives their icons (`SchemaLayout.categories`). A category left out comes last, with a generic icon.
-  - `page` is a hand-built part shown after the category's cards (`views/settings/<page>.qml`), so a category can have no sections. Example: Maintenance's `SavedConfigsSection`; see [Saved configs and sharing](saved-configs-sharing.md).
+- `x-categories` (root, `[{ name, icon, card, cardTitle }]`): orders the categories and gives their icons (`SchemaLayout.categories`). A category left out comes last, with a generic icon.
+  - `card` is a hand-built card of the category's own (`views/settings/<card>Card.qml`), always wide, after its sections' cards; `cardTitle` titles it, on the card and in the sidebar. A category with one can have no sections. Example: Maintenance's `SavedConfigsCard`; see [Saved configs and sharing](saved-configs-sharing.md).
 - `x-links` (on a section): page types it links to (`Themes`, `Layouts`, or a view type). The link buttons take the page's label and icon from `OverlayConfig.viewLabel` / `viewIcon`.
 - `x-order` (on an object): the keys shown first, in order. This applies to its form, or to its settings cards, whose order is their first field's.
 - `x-group`: puts a field on a card of that name. One section or object can make several cards.
@@ -34,6 +34,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
 ### Hand-built parts
 - `x-card: "<Name>"` (section): adds `views/settings/<Name>Card.qml` as its first card.
   - `x-cardFolds: true`: it folds like the generated cards and joins Fold all, getting its group key `<Section>:<Name>` as `foldKey`.
+  - `x-cardTitle`: its title, on the card and in the sidebar (the card's QML sets none). Every `x-card` has one.
   - `x-cardWide: true`: it spans both columns (the calendar accounts, chat API keys, the Dock and OSD lists).
   - `check_structure.py` does not verify the file exists: a typo only shows in `scripts/log.sh`.
 - `x-intro: "<Name>"`: puts `views/settings/<Name>.qml` at the top of the section's own card, above its fields (NightLight's `NightLightStatus`).

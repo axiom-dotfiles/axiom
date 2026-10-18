@@ -108,6 +108,16 @@ QtObject {
     root._typingField?.discardTyped();
   }
 
+  // Drops the typed text only if its box is inside `item` (one card's
+  // Discard)
+  function discardTypingIn(item) {
+    for (let each = root._typingField; each; each = each.parent)
+      if (each === item) {
+        root._typingField.discardTyped();
+        return;
+      }
+  }
+
   function isUnsaved(type) {
     return root.unsaved.includes(type);
   }

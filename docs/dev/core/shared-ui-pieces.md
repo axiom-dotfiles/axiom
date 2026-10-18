@@ -56,7 +56,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 - `DragChip`: a carryable icon + name pill.
 - `views/layouts/EntryListTarget`: a list of rows that reorders its own carried rows.
 - `InspectorHeader`: icon well, name, place, actions, divider.
-- `content/base/SaveResetActions`: an editor's Save/Reset pair. `compact` drops to icons, as `CardHeader` does when its row is too narrow. Items placed in a `CardHeader` sit just after its title.
+- `content/base/SaveResetActions`: an editor's Save/Discard pair, both shown only with unsaved edits or typed text. `compact` drops to icons, as `CardHeader` does when its row is too narrow. Items placed in a `CardHeader` sit just after its title.
 
 ### Forms (`forms/`)
 - `SchemaField`: one schema row, any type. It picks `SchemaSwitch`, `SchemaNumberField` (slider or stepper), `SchemaComboBox`, `SchemaTextField` (commits on Enter, focus loss or a suggestion; a Browse button with `x-control: "folder"`) or `SchemaObjectArray` (a list of `SchemaArrayItem`s): use `SchemaField`, not those, unless you need one alone.

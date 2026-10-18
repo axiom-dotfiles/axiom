@@ -121,11 +121,11 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 ## components/content/base/
 
 - `Card.qml`: Base for overlay modules (what BaseWidget is for bar modules): the card box filling its slot.
-- `CardHeader.qml`: Title row of a TitledCard, with Save (shown while `dirty`) and Reset buttons for whichever service owns the panel's pending edits.
+- `CardHeader.qml`: Title row of a TitledCard, with Save and Discard (shown while `dirty`) buttons for whichever service owns the panel's pending edits.
 - `Panel.qml`: Content that lays out as a column and can be shown by either host: a bar popout (sized to its content, with the popout's box) or an overlay card (`embedded`: fills the slot, with the card's box).
-- `SaveResetActions.qml`: Save (shown while `dirty`, or while a box in this window holds typed text: EditsManager.typingField) and Reset for whichever service owns a page's pending edits.
+- `SaveResetActions.qml`: Save and Discard (both shown while `dirty`, or while a box in this window holds typed text: EditsManager.typingField) for whichever service owns a page's pending edits.
 - `SlotContext.qml`: What Card and Panel derive from their slot, in one place: its size in grid units (four to a card), shape, whether it's compact, bare, and the padding content lays out within
-- `TitledCard.qml`: A titled, scrolling panel card (settings, theme, bar editor panels): header with optional Save/Reset, divider, optional fixed extras (e.g. a tab strip), then the scrolling body that children go into.
+- `TitledCard.qml`: A titled, scrolling panel card (settings, theme, bar editor panels): header with optional Save/Discard, divider, optional fixed extras (e.g. a tab strip), then the scrolling body that children go into.
 
 ## components/content/parts/
 
@@ -564,11 +564,11 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `OSDListCard.qml`: The OSD section's first card (its `x-card`): the OSDs as tabs, one shown at a time: where it sits (a screen picker with presets), a Show button, and its settings and bars (EntryListCard).
 - `OnboardingCard.qml`: The General section's first card (the section's `x-card`): the first-time setup (OnboardingManager), to run again
 - `PolkitStatusCard.qml`: The Polkit section's first card (its `x-card`): whether axiom is the session's polkit agent, and which other agents it stopped
-- `SavedConfigsSection.qml`: Settings page, Maintenance (the category's `page`): save the config's look, layout, keybinds, apps and wallpapers under a name, and restore or delete saved ones.
+- `SavedConfigsCard.qml`: Settings page, Maintenance (the category's `card`, wide): save the config's look, layout, keybinds, apps and wallpapers under a name, and restore or delete saved ones.
 - `ScreenSpotPicker.qml`: A small screen showing where something sits (`spot`, 0-1 from the top left), with `presets` to click: dots that each apply their values.
 - `SelfUpdateStatusCard.qml`: The Updates category's first card (the section's `x-card`): the installed and newest release, what's new, and Check / Update
-- `SettingsContent.qml`: Settings page, right: the selected category's groups as cards in two newspaper columns (wide ones across both), split by their measured heights so both end together (then its hand-built `page`, if any), or every setting…
-- `SettingsField.qml`: One settings row: the SchemaField, with a dot while it has an unsaved edit and a button that puts it back to the schema default, and under a field with `x-hookup` (theme integrations) the IntegrationHookup panel
+- `SettingsContent.qml`: Settings page, right: the selected category's groups as cards in two newspaper columns (wide ones across both), split by their measured heights so both end together or every setting matching the search, under its catego…
+- `SettingsField.qml`: One settings row: the SchemaField, with a dot while it has an unsaved edit (clicking it discards just that edit) and a button that puts it back to the schema default, and under a field with `x-hookup` (theme integration…
 - `SettingsGroupCard.qml`: i18n: keys from the schema (titles, descriptions) One group of settings (a section's own fields, or one nested object) as a card: title, help text, then its rows.
 - `SettingsSidebar.qml`: i18n: keys from the schema (category names, card titles) Settings page, left: search and the category list; the selected category also lists its cards, and clicking one scrolls the page to it.
 - `TranslucencyStatus.qml`: The top of the Translucency card (its `x-intro`): a warning that it's experimental, and while the surfaces blur, the blur they get: the compositor's one (CompositorManager.blur, as in effect), set by the window look's b…

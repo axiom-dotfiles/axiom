@@ -11,9 +11,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 ### `OSD`
 
-- **`OSD.enabled`** · boolean = true
-  - Enabled: Show the OSDs when one of their bars changes.
-  - read: `OSDConfig.enabled` · in: `shell/OSD.qml`
 - **`OSD.scrollToChange`** · boolean = true
   - Scroll to change: Scrolling over a bar raises or lowers its level.
   - read: `OSDConfig.scrollStep` (computed) · in: `components/surfaces/osd/OSDBar.qml`
@@ -38,7 +35,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match · in: `components/surfaces/osd/OSDTriggers.qml`, `config/OSDConfig.qml`, `shell/OSD.qml`
 - **`OSD.osds[].enabled`** · boolean = true
   - Enabled
-  - read: entry field, name match · in: `config/OSDConfig.qml`, `shell/OSD.qml`
+  - read: entry field, name match · in: `config/OSDConfig.qml`
 - **`OSD.osds[].monitors`** · string = "general" · enum general|primary|focused|all|monitor
   - Monitors: Where the OSD appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once; a specific monitor is the one picked below.
   - read: entry field, name match · in: `components/surfaces/osd/OSDTriggers.qml`, `shell/OSD.qml`
@@ -104,8 +101,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 Every public member of `OSDConfig`, with the files that use it.
 
-- `OSDConfig.enabled` (bool)
-  - in: `shell/OSD.qml`
 - `OSDConfig.scrollStep` (real): Level change per wheel notch (0-1); 0 when scrolling is off
   - in: `components/surfaces/osd/OSDBar.qml`
 - `OSDConfig.osds` (var)

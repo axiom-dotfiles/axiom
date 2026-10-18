@@ -2145,6 +2145,68 @@ TestCase {
     compare([fresh.Lockscreen.layout.blurWallpaper, fresh.Greeter.layout.blurWallpaper], [true, true]);
   }
 
+  function test_v69_dock_and_osd_enabled_per_entry() {
+    const shown = config => [config.Dock.docks.map(dock => dock.enabled), config.OSD.osds.map(osd => osd.enabled)];
+    const off = load({
+      "version": 68,
+      "Dock": {
+        "enabled": false,
+        "docks": [
+          {
+            "id": "a"
+          },
+          {
+            "id": "b",
+            "enabled": false
+          }
+        ]
+      },
+      "OSD": {
+        "enabled": false
+      }
+    });
+    compare(shown(off.config), [[false, false], [false]], "an Enabled that was off turns every entry off");
+    compare("enabled" in off.config.Dock, false);
+    compare("enabled" in off.config.OSD, false);
+    compare(off.removed, []);
+    compare(errors(off.config), []);
+
+    const on = load({
+      "version": 68,
+      "Dock": {
+        "enabled": true
+      },
+      "OSD": {
+        "enabled": true,
+        "osds": [
+          {
+            "id": "a",
+            "enabled": false
+          },
+          {
+            "id": "b"
+          }
+        ]
+      }
+    });
+    compare(shown(on.config), [[true], [false, true]], "on, entries keep their own; docks on without a list get the old default dock, on");
+
+    const unset = load({
+      "version": 68,
+      "Dock": {
+        "docks": [
+          {
+            "id": "a"
+          }
+        ]
+      }
+    });
+    compare(shown(unset.config), [[false], [true]], "unset, docks were off and OSDs on");
+    compare(shown(load({
+      "version": 69
+    }).config), [[false], [true]], "a new config's dock starts off");
+  }
+
   function test_v68_shared_widget_settings_move_to_sections() {
     const accounts = [
       {

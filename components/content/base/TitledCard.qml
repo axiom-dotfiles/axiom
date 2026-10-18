@@ -6,7 +6,7 @@ import qs.config
 import qs.components.reusable
 
 // A titled, scrolling panel card (settings, theme, bar editor panels):
-// header with optional Save/Reset, divider, optional fixed extras (e.g. a
+// header with optional Save/Discard, divider, optional fixed extras (e.g. a
 // tab strip), then the scrolling body that children go into.
 Card {
   id: root

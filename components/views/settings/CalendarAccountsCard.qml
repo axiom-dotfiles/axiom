@@ -41,7 +41,6 @@ FoldingCard {
   property bool _alive: true
   Component.onDestruction: root._alive = false
 
-  title: I18n.tr("Accounts")
   description: CalendarManager.missingModule ? CalendarManager.missingText(CalendarManager.missingModule) : CalendarManager.available ? "" : I18n.tr("The calendar helper couldn't run (it needs python3).")
   collapsed: SettingsManager.isCollapsed(root.foldKey)
   onToggled: SettingsManager.setCollapsed(root.foldKey, !root.collapsed)

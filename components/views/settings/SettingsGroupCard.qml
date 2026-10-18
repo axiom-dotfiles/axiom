@@ -3,11 +3,13 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.services
+import qs.components.reusable
 
 // i18n: keys from the schema (titles, descriptions)
 // One group of settings (a section's own fields, or one nested object) as
 // a card: title, help text, then its rows. Clicking the header folds it
 // (remembered by SettingsManager); search results are always unfolded.
+// With unsaved edits, Discard drops just those.
 FoldingCard {
   id: root
 
@@ -23,9 +25,23 @@ FoldingCard {
   section: root.showSection && root.group.section !== root.group.title ? I18n.tr(root.group.section) : ""
   foldable: !root.showSection
   collapsed: !root.showSection && SettingsManager.isCollapsed(root.group.key)
-  // Folded with unsaved edits inside: marked, so they aren't forgotten
+  // Unsaved edits inside: Discard shows, and folded the dot, so they
+  // aren't forgotten
   marked: root.group.rows.some(row => SettingsManager.hasChangesUnder(row.path.join(".")))
   onToggled: SettingsManager.setCollapsed(root.group.key, !root.collapsed)
+
+  // Discard: only this card's unsaved edits (and text typed in it), the
+  // rest of the page's kept
+  headerExtras: StyledTextButton {
+    visible: root.foldable && root.marked
+    Layout.preferredHeight: Widget.height - 4
+    text: I18n.tr("Discard")
+    iconText: "undo"
+    onClicked: {
+      EditsManager.discardTypingIn(root);
+      SettingsManager.discard(root.group.rows.filter(row => row.kind !== "group").map(row => row.path));
+    }
+  }
 
   // The section's `x-intro` (settings/<name>.qml): status and actions
   // above the fields, gone while its `shown` (if it has one) is false

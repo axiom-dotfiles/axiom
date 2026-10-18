@@ -115,7 +115,7 @@ One editor, one grid, for everything made of modules: your **overlay pages**, yo
 - Click a module to edit its options in the inspector, which also has steppers for its exact size.
 - Edge menus are drawn against their screen edge. The desktop and the lock and login screens are a screen-sized grid, with an optional double grid for finer placement.
 - **Desktop widgets:** modules on your desktop, under your windows, fitted inside the bars and border so they line up with your tiled windows. They sit straight on the wallpaper (or in frosted cards) and take clicks, while the empty desktop is clicked through. One layout can cover all monitors, the primary monitor, or a monitor of its own (by name, so a laptop's screen keeps its layout when you dock and undock).
-- Every change shows live on your desktop (or on screen, for the lock and login screens, with **Show on screen**). **Save** keeps it, **Reset** throws it away.
+- Every change shows live on your desktop (or on screen, for the lock and login screens, with **Show on screen**). **Save** keeps it, **Discard** throws it away.
 - Each page and menu lists what opens it, and adds a bar button or a keybind for it.
 
 ## Edge menus

@@ -10,7 +10,7 @@ The settings, bar, layouts, keybinds and monitors editors share one shape; a new
 - The manager owns a `ConfigDraft` of its config path.
 - Mutate `draft.local` in place, then `changed()`. It re-clones next tick so bindings see it; `isDirty` is a JSON compare.
 - Structural editors show unsaved edits live through `ConfigManager.setPreview`.
-- Save merges onto the latest config (`commit`, which may refuse: the draft stays dirty). Reset reloads.
+- Save merges onto the latest config (`commit`, which may refuse: the draft stays dirty). Discard (shown only while dirty) reloads.
 - Typed text in a text or number box reaches the draft only on Enter, focus loss or Save, but shows Save at once: the box holds `EditsManager.typingField`, `SaveResetActions` (and `saveAll()` / `discardAll()`) commit or drop it first. Half-typed commands and paths never reach the preview.
 - `ensureLoaded()` on page open reloads only a clean draft.
 
@@ -25,7 +25,7 @@ The settings, bar, layouts, keybinds and monitors editors share one shape; a new
   1. A list of `ListEntryRow`s (icon, name, badges, unsaved dot from `…Changed(index)`, `RowAction`s) and an `AddEntryButton`.
   2. The selected entry's fields: `FieldGroup`s of `SchemaPropertiesForm`, grouped by `x-group`.
   3. "Can't save yet" (`IssueList`) when `problems` block Save.
-- Save/Reset are page-wide, so they sit top-right like Settings: on the right-hand top card (`SectionsBoard`'s header, or `GridCanvas`'s through `LayoutsEditorLayout`). The left panel has `showActions: false`.
+- Save/Discard are page-wide, so they sit top-right like Settings: on the right-hand top card (`SectionsBoard`'s header, or `GridCanvas`'s through `LayoutsEditorLayout`). The left panel has `showActions: false`.
 
 ### Unsaved reminders (`EditsManager`)
 - Drafts survive leaving a page or closing the overlay (bar and edge menu edits stay live through previews), so nothing blocks closing.

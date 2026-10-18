@@ -1,13 +1,13 @@
 # Saved configs, examples, import and export
 
-> **Files:** `services/SavedConfigsManager.qml`, `components/methods/ConfigExamples.qml`, `components/views/settings/SavedConfigsSection.qml`, `services/ConfigManager.qml`, `services/FilePickerManager.qml`, `examples/*.json`
+> **Files:** `services/SavedConfigsManager.qml`, `components/methods/ConfigExamples.qml`, `components/views/settings/SavedConfigsCard.qml`, `services/ConfigManager.qml`, `services/FilePickerManager.qml`, `examples/*.json`
 > **Config:** whole config, filtered by `x-scope`; snapshots in `~/.config/axiom/saved/`; `~/.local/state/axiom/ui/savedconfigs.json`
 > **Related:** [Schema annotations](schema-annotations.md), [Config manager](config-manager.md), [Launcher](../features/launcher.md) (`/config` save/restore), [Shell manager](shell-manager-targeting.md)
 
 Snapshots of the config, the shipped example setups, and sharing a config through export/import. All of them carry only what `x-scope` says (snapshots also the `x-snapshot` wallpaper setup), so loading one never changes another machine setting, and never an `x-takeover` one. Tests: `tst_ConfigExamples`.
 
 ### Where it shows
-- The Maintenance category's page `SavedConfigsSection` (its `x-categories` `page`).
+- The Maintenance category's own card `SavedConfigsCard` (its `x-categories` `card`, wide, last).
 - It shows `SavedConfigsManager`'s snapshots in `~/.config/axiom/saved/`.
 - Below them: sharing (Share: Export, Import…) and the example setups in `examples/` (`SavedConfigsManager.examples`).
 - The launcher's `/config` can also save and restore snapshots: see [Launcher](../features/launcher.md).

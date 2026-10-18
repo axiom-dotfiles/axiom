@@ -64,7 +64,6 @@ FieldGroup {
     return SelfUpdateManager.ahead ? I18n.tr("{0} + development ({1})", tag, commit) : tag;
   }
 
-  title: I18n.tr("Update status")
   headerExtras: [
     StatusChip {
       text: root.statusLabel

@@ -9,7 +9,6 @@ import qs.components.reusable
 FieldGroup {
   id: root
 
-  title: I18n.tr("First-time setup")
   description: I18n.tr("Walks through the compositor setup, monitors, apps and keys, workspaces, the look and integrations again.")
   headerExtras: StyledTextButton {
     text: I18n.tr("Run setup")

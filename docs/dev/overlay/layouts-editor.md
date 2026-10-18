@@ -27,7 +27,7 @@ One page that edits overlay pages, edge menus, the desktop, the lock screen and 
 - `editTarget` falls back to `"page"` when its row hides.
 - Entry points: the launcher's `/layouts` and `/menus`, `ipc call edgeMenu edit`.
 - Each target is an `EditTarget`: `PageTarget`, `MenuTarget`, and `DesktopTarget` / `LockscreenTarget` / `GreeterTarget` on `ScreenLayoutTarget` (all in `views/layouts/`). It carries the editor, modules, title, icon, screen box, fit line, …, and `Layouts.qml` binds the canvas and inspector to it.
-- Save/Reset on the canvas save or reset all five drafts, and `EditsManager` lists the page as unsaved when any is dirty.
+- Save/Discard on the canvas save or discard all five drafts, and `EditsManager` lists the page as unsaved when any is dirty.
 
 ### Layout of the page
 - `LayoutsPanel` on the left; on the right `GridCanvas` above `EditorInspector`, placed by `LayoutsEditorLayout`; a `GridDragLayer` covering it all.

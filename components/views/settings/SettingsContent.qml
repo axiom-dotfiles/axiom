@@ -10,8 +10,7 @@ import qs.components.content.base
 // Settings page, right: the selected category's groups as cards in two
 // newspaper columns (wide ones across both), split by their measured
 // heights so both end together
-// (then its hand-built `page`, if any), or every setting matching the
-// search, under its category's name. Acts as the `form` for its SchemaField
+// or every setting matching the search, under its category's name. Acts as the `form` for its SchemaField
 // rows.
 Item {
   id: root
@@ -23,8 +22,6 @@ Item {
   readonly property var schema: ConfigManager.configSchema
   readonly property string query: SettingsManager.query.trim().toLowerCase()
   readonly property bool searching: query !== ""
-  // The category's hand-built part (settings/<page>.qml), after its cards
-  readonly property string page: root.searching ? "" : root.category?.page ?? ""
 
   signal edited(var path, var value)
   onEdited: (path, value) => SettingsManager.setValue(path, value)
@@ -40,7 +37,7 @@ Item {
   }
 
   function _groupsOf(category) {
-    return [].concat(...(category?.sections ?? []).map(section => SchemaLayout.groups(root.schema, section)));
+    return SchemaLayout.categoryGroups(root.schema, category);
   }
 
   // Matches English and the translation, so either can be typed
@@ -48,13 +45,18 @@ Item {
     return !!text && (text.toLowerCase().includes(root.query) || I18n.tr(text).toLowerCase().includes(root.query));
   }
 
+  // Whether an `x-showIf`-style condition holds, its plain keys being
+  // siblings under `parent` (a key path)
+  function conditionHolds(condition, parent) {
+    return SchemaLayout.showIfHolds(condition, key => key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : root.valueAt(parent.concat(key)));
+  }
+
   // A card from an object with `x-showIf` (e.g. managed-only settings), or
   // one whose every row is hidden by its own `x-showIf` (an `x-group` card)
   function _groupShown(group) {
-    const valueIn = parent => key => key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : root.valueAt(parent.concat(key));
-    if (!SchemaLayout.showIfHolds(group.showIf, valueIn(group.showIfParent)))
+    if (!root.conditionHolds(group.showIf, group.showIfParent))
       return false;
-    return group.kind !== "rows" || group.rows.length === 0 || group.rows.some(row => row.kind === "group" || SchemaLayout.showIfHolds(row.schema?.["x-showIf"], valueIn(row.path.slice(0, -1))));
+    return group.kind !== "rows" || group.rows.length === 0 || group.rows.some(row => row.kind === "group" || root.conditionHolds(row.schema?.["x-showIf"], row.path.slice(0, -1)));
   }
 
   function _rowMatches(row) {
@@ -372,10 +374,14 @@ Item {
                 Component.onCompleted: {
                   if (!root.searching)
                     root._cards[card.modelData.key] = card;
+                  // Its title from the schema (`x-cardTitle`, or the
+                  // category's `cardTitle`), as the sidebar names it
                   if (card.modelData.kind === "card")
-                    card.setSource(Qt.resolvedUrl(card.modelData.card + "Card.qml"), card.modelData.folds ? {
+                    card.setSource(Qt.resolvedUrl(card.modelData.card + "Card.qml"), Object.assign({
+                      "title": I18n.tr(card.modelData.title)
+                    }, card.modelData.folds ? {
                       "foldKey": card.modelData.key
-                    } : {});
+                    } : {}));
                   else
                     card.sourceComponent = rowsCard;
                   block.setHeight(card.index, card.implicitHeight);
@@ -433,14 +439,6 @@ Item {
             }
           }
         }
-      }
-
-      // The category's hand-built part (Maintenance's saved configurations)
-      Loader {
-        active: root.page !== ""
-        visible: active
-        Layout.fillWidth: true
-        source: active ? Qt.resolvedUrl(root.page + ".qml") : ""
       }
     }
   }

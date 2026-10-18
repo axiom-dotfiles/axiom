@@ -35,6 +35,8 @@ The settings page's working copy of the config. Edits are applied live (in memor
 - `loadConfig()`
 - `ensureLoaded()`: Loads the draft unless it holds unsaved edits (the page is rebuilt whenever the overlay reopens)
 - `setValue(path, value)`: Sets one value by path (e.g. ["Appearance", "shape", "radius"]) and applies it live.
+- `setValues(entries)`: Sets several values ([{ path, value }]), applied live in one go
+- `discard(paths)`: Puts the settings at these key paths back as saved (one card's Discard)
 - `setDraftValue(path, value)`: Sets one value in the draft only (a text field being typed in), so it shows as unsaved; setValue applies it
 - `schemaAt(path)`: The schema of the setting at a key path
 - `optionsFor(fieldSchema)`: The choices for a string setting (`enum` or `x-options`), else null

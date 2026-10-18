@@ -12,7 +12,7 @@ How the schema becomes the settings page: layout, cards, folding, sidebar and se
 - Only this page builds its own rows. Flat objects (array items, widget/module options, a bar's fields) render through `forms/SchemaPropertiesForm`.
 - An `array` of objects renders as an add/remove/reorder list (`SchemaObjectArray`, items `SchemaArrayItem`).
 - Text and number boxes (`forms/SchemaTextField`, `SchemaNumberField`'s value box) show their edit as unsaved on the first keystroke and apply it only on Enter (Ctrl+Enter when multiline), focus loss, teardown or Save; a suggestion click or a folder picked with Browse (`x-control: "folder"`, [File picker](file-picker.md)) commits at once. Each live apply re-applies the whole config (~35 ms of JS before layout), and half-typed values had side effects: a font re-shaped every text, a notes folder ran `find` on `/`, a widget's label command ran per keystroke.
-  - Every page: the box holding typed text registers with `EditsManager.holdTyping`, which shows Save in its window (`SaveResetActions`); Save commits it first (`EditsManager.commitTyping`), Reset drops it.
+  - Every page: the box holding typed text registers with `EditsManager.holdTyping`, which shows Save and Discard in its window (`SaveResetActions`); Save commits it first (`EditsManager.commitTyping`), Discard drops it.
   - This page also puts each keystroke in its draft (`valueTyped` → the form's `typed` → `SettingsManager.setDraftValue`), so the card's unsaved dot shows too; `_merged` diffs afresh, since Save's commit lands in place.
 
 ### Cards
@@ -27,12 +27,17 @@ How the schema becomes the settings page: layout, cards, folding, sidebar and se
 - Both sit on `FoldingCard`: a fold header (section line, heading, unsaved dot, chevron, `headerExtras`) and a `FoldingColumn` body.
 - Status cards (Hyprland, Idle, self-update, chat providers, onboarding) are `FieldGroup`s with a `StatusChip` in `headerExtras`.
 
+### Discarding
+- Three sizes: the page header's Discard (every unsaved edit, `SettingsManager.resetChanges`), a generated card's Discard (shown while it has any: its rows only), and a field's unsaved dot (click it: that edit only). The last two go through `SettingsManager.discard(paths)`, dropping text typed in that card or field (`EditsManager.discardTypingIn`). The list cards (docks, OSDs, calendar accounts) have only the page's.
+- A field's small reset button is different: it sets the schema default (an edit, which Discard undoes).
+
 ### Folding
 - Clicking a card's header folds it (`SettingsManager.collapsed`, by group key, saved to `~/.local/state/axiom/ui/settings.json`). Search results never fold.
 
 ### Columns
 - Cards fill two newspaper columns in order: the first k on the left, the rest on the right. `methods/ColumnSplit` picks k from the cards' measured heights so both columns end as close together as they can.
 - A wide card (`x-cardWide` on a hand-built card, `x-wide` on a field of a generated one: [Schema annotations](schema-annotations.md)) spans both columns and cuts the cards into runs, each split on its own; it starts below the taller column of the run before it (`ColumnSplit.runs` / `splits` / `place`).
+  - Wide cards ahead of every narrow card stay at the top; any later one goes to the bottom (`SchemaLayout.categoryGroups`), so a wide card never cuts the columns partway down. The sidebar lists the cards in that order.
   - A narrow card alone in its run (between wide ones, or a category's only card) spans both columns too, rather than leave half the page empty.
 - Cards follow their heights live (a folding card moves the ones below it), but the splits only change while a block is settling: after it's built (a new category or search), resized, or after Fold all. They are fixed once no height has changed for 150 ms (a literal: `animNormal` is 0 with motion off, which would fix them before cards load), so folding one card never moves cards across columns.
 

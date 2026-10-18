@@ -15,7 +15,7 @@ import qs.components.surfaces.osd
 // settings updates it in place instead of rebuilding every OSD.
 Scope {
   Variants {
-    model: OSDConfig.enabled ? OSDConfig.shownIds : []
+    model: OSDConfig.shownIds
 
     delegate: Scope {
       id: entry
