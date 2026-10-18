@@ -37,6 +37,13 @@ Singleton {
   // I18n.tr("Focus") I18n.tr("Short break") I18n.tr("Long break")
   readonly property string phaseLabel: I18n.tr(root.phase === "short" ? "Short break" : root.phase === "long" ? "Long break" : "Focus")
 
+  // The time left as of this moment, for a reader holding no acquire
+  // (the launcher, IPC): `remainingText` follows `now`, which ticks only
+  // while something has acquired it
+  function remainingTextNow() {
+    return PomodoroCycle.format(PomodoroCycle.remaining(root._state, Date.now(), PomodoroConfig.settings));
+  }
+
   function acquire(owner) {
     root._registry.acquire(owner, true);
     root.now = Date.now();
@@ -148,9 +155,12 @@ Singleton {
   }
 
   // The phase ran out: notify (unless it ended long ago, with axiom not
-  // running) and go on
+  // running) and go on. Once per end: a second call queued by another
+  // _arm before the first ran finds the phase already moved on
   function _finish(late) {
     const was = root._state;
+    if (!was.running || was.endsAt > Date.now())
+      return;
     const next = PomodoroCycle.advance(was, Date.now(), PomodoroConfig.settings, root._autoStart());
     root._set(next);
     if (!PomodoroConfig.notify || late)
@@ -245,8 +255,7 @@ Singleton {
 
     // "<phase> <mm:ss> running|paused|stopped"
     function status(): string {
-      root.now = Date.now();
-      return `${root.phase} ${root.remainingText} ${root.running ? "running" : root.idle ? "stopped" : "paused"}`;
+      return `${root.phase} ${root.remainingTextNow()} ${root.running ? "running" : root.idle ? "stopped" : "paused"}`;
     }
   }
 }

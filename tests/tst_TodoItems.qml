@@ -31,6 +31,18 @@ TestCase {
     compare([TodoItems.find(reopened, "b").done, TodoItems.find(reopened, "b").completed], [false, 0]);
   }
 
+  // Nothing changing hands back the same list, so the manager writes nothing
+  function test_no_change_is_the_same_list() {
+    const items = TodoItems.toggle(list(), "b", 500);
+    verify(TodoItems.toggle(items, "b", 900, true) === items, "already done");
+    verify(TodoItems.toggle(items, "zz", 900) === items, "unknown uid");
+    verify(TodoItems.rename(items, "a", TodoItems.find(items, "a").summary) === items, "same summary");
+    verify(TodoItems.rename(items, "zz", "x") === items, "rename unknown");
+    verify(TodoItems.remove(items, "zz") === items, "remove unknown");
+    const open = list();
+    verify(TodoItems.clearCompleted(open) === open, "nothing done");
+  }
+
   function test_rename_remove_move() {
     let items = TodoItems.rename(list(), "a", " Write more tests ");
     compare(TodoItems.find(items, "a").summary, "Write more tests");

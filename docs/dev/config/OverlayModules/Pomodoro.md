@@ -2,7 +2,7 @@
 # OverlayModules: Pomodoro
 
 > **File:** `components/content/Pomodoro.qml` · **Schema:** `definitions.PomodoroOverlayModule` · **Label:** Pomodoro timer
-> **Annotations:** x-icon="timer", x-libraryGroup="Tools", x-defaultSize=[4,4]
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="timer", x-libraryGroup="Tools", x-defaultSize=[4,4]
 
 Settings are read as `properties.<key>`.
 

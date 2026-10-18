@@ -19,8 +19,12 @@ import qs.components.content.parts
 Panel {
   id: root
 
-  // Which shows: as configured, else whichever is going (the timer first)
-  property string mode: {
+  // Which shows: the switch's pick, else as configured, else whichever is
+  // going (the timer first)
+  property string picked: ""
+  readonly property string mode: {
+    if (root.picked !== "")
+      return root.picked;
     const wanted = root.properties.mode ?? "auto";
     if (wanted !== "auto")
       return wanted;
@@ -57,12 +61,12 @@ Panel {
     SegmentButton {
       text: I18n.tr("Timer")
       active: root.timerMode
-      onClicked: root.mode = "timer"
+      onClicked: root.picked = "timer"
     }
     SegmentButton {
       text: I18n.tr("Stopwatch")
       active: !root.timerMode
-      onClicked: root.mode = "stopwatch"
+      onClicked: root.picked = "stopwatch"
     }
   }
 

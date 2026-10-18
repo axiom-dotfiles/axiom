@@ -32,6 +32,17 @@ Singleton {
   readonly property var laps: StopwatchClock.lapRows(root._stopwatch)
   property real now: Date.now()
 
+  // The times as of this moment, for a reader holding no acquire (the
+  // launcher, IPC): `timerText` and `elapsedText` follow `now`, which ticks
+  // only while something has acquired it
+  function timerTextNow() {
+    return StopwatchClock.format(StopwatchClock.remaining(root._timer, Date.now()), false, true);
+  }
+
+  function elapsedTextNow() {
+    return StopwatchClock.format(StopwatchClock.elapsed(root._stopwatch, Date.now()), false, false);
+  }
+
   // `interval`: ms between updates of `now` this owner wants
   function acquire(owner, interval) {
     root._registry.acquire(owner, interval ?? 1000);
@@ -156,8 +167,11 @@ Singleton {
   }
 
   // The timer ran out: back to idle (its duration kept), and notify unless
-  // it ended long ago, with axiom not running
+  // it ended long ago, with axiom not running. Once per end: a second call
+  // queued by another _arm before the first ran finds the timer idle
   function _finish(late) {
+    if (!root._timer.running || root._timer.endsAt > Date.now())
+      return;
     const label = root._timer.label;
     const duration = root._timer.duration;
     root._setTimer(StopwatchClock.resetTimer(root._timer));
@@ -243,9 +257,8 @@ Singleton {
 
     // "timer <mm:ss> running|paused|stopped, stopwatch <mm:ss> …"
     function status(): string {
-      root.now = Date.now();
       const state = (running, idle) => running ? "running" : idle ? "stopped" : "paused";
-      return `timer ${root.timerText} ${state(root.timerRunning, root.timerIdle)}, stopwatch ${root.elapsedText} ${state(root.stopwatchRunning, root.stopwatchIdle)}`;
+      return `timer ${root.timerTextNow()} ${state(root.timerRunning, root.timerIdle)}, stopwatch ${root.elapsedTextNow()} ${state(root.stopwatchRunning, root.stopwatchIdle)}`;
     }
   }
 }

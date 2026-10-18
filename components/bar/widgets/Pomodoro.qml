@@ -18,6 +18,8 @@ BarIconWidget {
 
   icon: PomodoroManager.isBreak ? "coffee" : "timer"
   text: PomodoroManager.remainingText
+  // Ticking: sized by its digit count, not by each second's digits
+  steadyDigits: true
   showText: !PomodoroManager.idle
   accentColor: Theme.resolveColor(PomodoroManager.idle ? properties.idleColor : PomodoroManager.isBreak ? properties.breakColor : properties.workColor)
   // Paused part way: faded

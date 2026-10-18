@@ -419,8 +419,7 @@ QtObject {
       usage: "[start | pause | skip | stop]",
       description: () => I18n.tr("Start or pause the pomodoro timer"),
       available: () => !Paths.greeter,
-      status: () => PomodoroManager.idle ? "" : PomodoroManager.phaseLabel + " · " + PomodoroManager.remainingText,
-      // I18n.tr("start") I18n.tr("pause") I18n.tr("skip") I18n.tr("stop")
+      status: () => PomodoroManager.idle ? "" : PomodoroManager.phaseLabel + " · " + PomodoroManager.remainingTextNow(),
       options: () => ["start", "pause", "skip", "stop"].map(word => ({
               title: word,
               value: word
@@ -447,14 +446,16 @@ QtObject {
       usage: "<10m | 1h30m | 1:30> [label] | pause | reset",
       description: () => I18n.tr("Set a one-off timer"),
       available: () => !Paths.greeter,
-      status: () => StopwatchManager.timerIdle ? "" : StopwatchManager.timerText,
-      // I18n.tr("pause") I18n.tr("reset")
+      status: () => StopwatchManager.timerIdle ? "" : StopwatchManager.timerTextNow(),
       options: arg => root._timer(arg),
       run: (arg, value) => {
         const word = (value?.word ?? arg ?? "").trim().toLowerCase();
-        if (word === "pause")
-          StopwatchManager.toggleTimer();
-        else if (word === "reset")
+        // Pause and resume only a set timer (toggling an idle one would
+        // start its last duration again)
+        if (word === "pause" || word === "resume") {
+          if (!StopwatchManager.timerIdle)
+            StopwatchManager.toggleTimer();
+        } else if (word === "reset")
           StopwatchManager.resetTimer();
         else
           return StopwatchManager.startTimerText(value?.text ?? arg) ? undefined : false;
@@ -468,8 +469,7 @@ QtObject {
       usage: "[start | pause | lap | reset]",
       description: () => I18n.tr("Start, pause or lap the stopwatch"),
       available: () => !Paths.greeter,
-      status: () => StopwatchManager.stopwatchIdle ? "" : StopwatchManager.elapsedText,
-      // I18n.tr("start") I18n.tr("pause") I18n.tr("lap") I18n.tr("reset")
+      status: () => StopwatchManager.stopwatchIdle ? "" : StopwatchManager.elapsedTextNow(),
       options: () => ["start", "pause", "lap", "reset"].map(word => ({
               title: word,
               value: word
@@ -480,7 +480,7 @@ QtObject {
           StopwatchManager.lap();
         else if (word === "reset")
           StopwatchManager.resetStopwatch();
-        else if ((word === "start") !== StopwatchManager.stopwatchRunning || word === "")
+        else if (word === "start" ? !StopwatchManager.stopwatchRunning : word === "pause" ? StopwatchManager.stopwatchRunning : word === "")
           StopwatchManager.toggleStopwatch();
         return false;
       }
@@ -876,7 +876,6 @@ QtObject {
       }));
   }
 
-  // The event /event would add, as a row to check before Enter
   // With text, a row adding it; then the open todos matching it, each
   // ticked off when picked
   function _todo(arg) {
@@ -929,13 +928,13 @@ QtObject {
       });
     if (!StopwatchManager.timerIdle)
       rows.push({
-        title: StopwatchManager.timerRunning ? I18n.tr("pause") : I18n.tr("resume"),
+        title: StopwatchManager.timerRunning ? "pause" : "resume",
         glyph: StopwatchManager.timerRunning ? "pause" : "play_arrow",
         value: {
-          word: "pause"
+          word: StopwatchManager.timerRunning ? "pause" : "resume"
         }
       }, {
-        title: I18n.tr("reset"),
+        title: "reset",
         glyph: "stop",
         value: {
           word: "reset"
@@ -944,6 +943,7 @@ QtObject {
     return rows;
   }
 
+  // The event /event would add, as a row to check before Enter
   function _event(arg) {
     const parsed = CalendarManager.parseQuickAdd(arg);
     if (!parsed)

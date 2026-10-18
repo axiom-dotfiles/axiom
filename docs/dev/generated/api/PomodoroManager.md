@@ -23,6 +23,7 @@ The pomodoro timer: one for every widget and module, run here so it keeps time w
 
 ### Functions
 
+- `remainingTextNow()`: The time left as of this moment, for a reader holding no acquire (the launcher, IPC): `remainingText` follows `now`, which ticks only while something has acquired it
 - `acquire(owner)`
 - `release(owner)`
 - `start()`

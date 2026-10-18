@@ -365,14 +365,21 @@ FoldingCard {
         textFormat: Text.PlainText
         elide: Text.ElideRight
       }
-      // A local calendar's name is the user's to change
+      // A local calendar's name is the user's to change. Pushed in (the row
+      // shows another calendar when one above it is removed), never while
+      // being typed in
       StyledTextEntry {
         id: nameField
+        readonly property string saved: calendarRow.calendar.name ?? ""
         visible: root.isLocal
         Layout.fillWidth: true
         Layout.preferredHeight: Widget.height - 6
         placeholderText: I18n.tr("Name")
-        Component.onCompleted: text = calendarRow.calendar.name ?? ""
+        Component.onCompleted: text = saved
+        onSavedChanged: {
+          if (!nameField.input.activeFocus)
+            nameField.text = nameField.saved;
+        }
         onTextEdited: root.setCalendar(calendarRow.calendar.href, {
           "name": nameField.text
         })

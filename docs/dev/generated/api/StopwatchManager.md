@@ -23,6 +23,8 @@ One one-off timer and one stopwatch, for every Stopwatch widget and module, both
 
 ### Functions
 
+- `timerTextNow()`: The times as of this moment, for a reader holding no acquire (the launcher, IPC): `timerText` and `elapsedText` follow `now`, which ticks only while something has acquired it
+- `elapsedTextNow()`
 - `acquire(owner, interval)`: `interval`: ms between updates of `now` this owner wants
 - `release(owner)`
 - `startTimerText(text)`: Starts a timer from text ("10m", "1h30m tea", "1:30"); false when it doesn't start with a duration

@@ -103,11 +103,6 @@ QtObject {
 
   // "mm:ss", or "h:mm:ss" from an hour, rounding up so 0:00 is the end
   function format(ms) {
-    const total = Math.max(0, Math.ceil(ms / 1000));
-    const h = Math.floor(total / 3600);
-    const m = Math.floor(total % 3600 / 60);
-    const s = total % 60;
-    const pad = n => (n < 10 ? "0" : "") + n;
-    return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+    return StopwatchClock.format(ms, false, true);
   }
 }

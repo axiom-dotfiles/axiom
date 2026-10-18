@@ -7,7 +7,8 @@ import qs.components.methods
 // The todo list: one list for every widget and module, kept in
 // $XDG_DATA_HOME/axiom/todo.json ({ version, items }: TodoItems' shape),
 // written atomically and watched, so an edit made elsewhere shows at once.
-// Never read or written in the greeter.
+// While the file can't be read (a hand edit half done), nothing is written
+// over it. Never read or written in the greeter.
 //
 //   qs -c axiom ipc call todo add "Buy milk"
 QtObject {
@@ -22,14 +23,11 @@ QtObject {
   // What a list shows (TodoItems.shown, with Todo.showCompleted)
   readonly property var shownItems: TodoItems.shown(root._items, TodoConfig.showCompleted)
 
-  // Adds an open item; its uid, or "" for an empty text
+  // Adds an open item; its uid, or "" for an empty text (or a list that
+  // can't be written now)
   function add(text) {
     const uid = root._newUid();
-    const next = TodoItems.add(root._items, text, Date.now(), uid);
-    if (next === root._items)
-      return "";
-    root._set(next);
-    return uid;
+    return root._set(TodoItems.add(root._items, text, Date.now(), uid)) ? uid : "";
   }
 
   // Done ↔ open (`done` given: sets it)
@@ -62,6 +60,8 @@ QtObject {
 
   property var _items: []
   property bool _loaded: false
+  // The file holds something that isn't a list: left alone until fixed
+  property bool _unreadable: false
   property bool _retried: false
   property int _serial: 0
 
@@ -70,13 +70,24 @@ QtObject {
     return Date.now().toString(36) + "-" + Math.floor(Math.random() * 0xffffff).toString(36) + "-" + root._serial;
   }
 
+  // Shows and writes `items`; false when nothing changed or it can't be
+  // written
   function _set(items) {
     if (Paths.greeter || !root._loaded || items === root._items)
-      return;
+      return false;
+    if (root._unreadable) {
+      console.warn("[TodoManager] Not saving over", root.path, "until it's valid JSON again");
+      return false;
+    }
     root._items = items;
+    root._write();
+    return true;
+  }
+
+  function _write() {
     root._view.setText(JSON.stringify({
       "version": 1,
-      "items": items
+      "items": root._items
     }, null, 2) + "\n");
   }
 
@@ -84,8 +95,10 @@ QtObject {
     try {
       const data = JSON.parse(text);
       root._items = TodoItems.normalize(data?.items);
+      root._unreadable = false;
     } catch (e) {
-      console.warn("[TodoManager] Couldn't read", root.path + ":", e.message, "(keeping the list shown)");
+      root._unreadable = true;
+      console.warn("[TodoManager] Couldn't read", root.path + ":", e.message, "(keeping the list shown, and not saving over it)");
     }
     root._loaded = true;
   }
@@ -110,10 +123,7 @@ QtObject {
       root._retried = true;
       CommandManager.run(["mkdir", "-p", "--", Paths.userDataPath], code => {
         if (code === 0)
-          root._view.setText(JSON.stringify({
-            "version": 1,
-            "items": root._items
-          }, null, 2) + "\n");
+          root._write();
       });
     }
   }

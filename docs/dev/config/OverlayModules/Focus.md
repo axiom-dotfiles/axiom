@@ -2,7 +2,7 @@
 # OverlayModules: Focus
 
 > **File:** `components/content/Focus.qml` · **Schema:** `definitions.FocusOverlayModule` · **Label:** Focus
-> **Annotations:** x-icon="center_focus_strong", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[8,8], x-minSize=[4,6]
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="center_focus_strong", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[8,8], x-minSize=[4,6]
 
 Settings are read as `properties.<key>`.
 

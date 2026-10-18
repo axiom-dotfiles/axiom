@@ -24,6 +24,8 @@ BarIconWidget {
 
   icon: root.showsTimer ? "hourglass_top" : "timer"
   text: root.showsTimer ? StopwatchManager.timerText : StopwatchManager.elapsedText
+  // Ticking: sized by its digit count, not by each second's digits
+  steadyDigits: true
   showText: root.showsTimer || root.showsStopwatch
   accentColor: Theme.resolveColor(root.showsTimer ? properties.timerColor : root.showsStopwatch ? properties.stopwatchColor : properties.idleColor)
   // Paused: faded

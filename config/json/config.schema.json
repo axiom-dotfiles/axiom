@@ -4234,6 +4234,7 @@
     "ClockCalendarOverlayModule": {
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
+      "x-keyboard": false,
       "x-icon": "calendar_clock",
       "x-libraryGroup": "Time & weather",
       "required": ["type"],
@@ -4400,6 +4401,7 @@
     },
     "StopwatchOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "timer_play",
       "x-libraryGroup": "Tools",
       "x-keyboard": true,
@@ -4420,6 +4422,7 @@
     },
     "TodoOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "checklist",
       "x-libraryGroup": "Tools",
       "x-keyboard": true,
@@ -4440,6 +4443,7 @@
     },
     "PomodoroOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "timer",
       "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 4],
@@ -4459,6 +4463,7 @@
     },
     "FocusOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "center_focus_strong",
       "x-libraryGroup": "Tools",
       "x-keyboard": true,

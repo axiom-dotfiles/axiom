@@ -19,6 +19,9 @@ running anything:
   - no reader falls back with `??` on its section (`_c.key ?? x`): every
     default is filled at load, so the fallback is dead and hides a missing
     schema default
+  - every overlay module goes on the desktop too (`x-hosts`), and one that
+    takes typing (a text field in it or its parts) says so (`x-keyboard`,
+    false when it deliberately stays read-only there)
 and warns about files in the loaded directories that nothing registers or
 uses.
 
@@ -104,6 +107,30 @@ def main():
             group = target.get("x-libraryGroup")
             if group not in library_groups:
                 errors.append(f"{definition} {name}: x-libraryGroup {group!r} isn't one of the schema's x-libraryGroups")
+
+    # Modules on overlay pages go on the desktop too: `x-hosts` leaving out
+    # "desktop" while listing "overlay" is how new modules once missed it.
+    # One with a text field (in its file or a content part it uses) must
+    # say whether the desktop hands it the keyboard: `x-keyboard`
+    content_parts = {f.stem: f.read_text() for f in (ROOT / "components/content/parts").rglob("*.qml")}
+    typing = re.compile(r"\b(?:StyledTextEntry|StyledTextArea|TextInput|TextEdit|TextArea|TextField)\s*\{|wantsKeyboardFocus:\s*true")
+
+    def with_parts(text, seen):
+        for part, body in content_parts.items():
+            if part not in seen and re.search(rf"\b{part}\s*\{{", text):
+                seen.add(part)
+                text += with_parts(body, seen)
+        return text
+    for option in schema["definitions"]["OverlayModule"]["oneOf"]:
+        name = option.get("$ref", "").split("/")[-1]
+        target = schema["definitions"].get(name, option)
+        const = target["properties"]["type"]["const"]
+        hosts = target.get("x-hosts", ["overlay", "edgeMenu", "desktop"])
+        if "overlay" in hosts and "desktop" not in hosts:
+            errors.append(f"OverlayModule {const}: x-hosts lists overlay but not desktop (every module goes on the desktop)")
+        source = ROOT / POPOUT_DIR / f"{const}.qml"
+        if "desktop" in hosts and "x-keyboard" not in target and source.exists() and typing.search(with_parts(source.read_text(), set())):
+            errors.append(f"OverlayModule {const}: has a text field but no x-keyboard (true so the desktop hands it the keyboard, false to keep it read-only there)")
 
     # Hand-built settings parts: x-card loads views/settings/<Name>Card.qml,
     # x-intro views/settings/<Name>.qml (by URL, so a typo only shows in the log)

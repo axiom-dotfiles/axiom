@@ -49,31 +49,33 @@ QtObject {
     ]));
   }
 
-  // Done ↔ open; `done` given sets it instead
+  // Done ↔ open; `done` given sets it instead. `list` itself when nothing
+  // changes (an unknown uid, already in that state)
   function toggle(list, uid, now, done) {
-    return list.map(item => {
-      if (item.uid !== uid)
-        return item;
-      const next = done === undefined ? !item.done : done === true;
-      return Object.assign({}, item, {
+    const item = root.find(list, uid);
+    const next = item ? (done === undefined ? !item.done : done === true) : false;
+    if (!item || next === item.done)
+      return list;
+    return list.map(entry => entry.uid !== uid ? entry : Object.assign({}, entry, {
         "done": next,
-        "completed": next ? (item.done ? item.completed : now) : 0
-      });
-    });
+        "completed": next ? now : 0
+      }));
   }
 
-  // A new summary; an empty one leaves the item as it was
+  // A new summary; an empty one, the same one or an unknown uid leaves
+  // `list` itself
   function rename(list, uid, summary) {
     const text = String(summary ?? "").trim();
-    if (text === "")
+    const item = root.find(list, uid);
+    if (text === "" || !item || item.summary === text)
       return list;
-    return list.map(item => item.uid === uid ? Object.assign({}, item, {
+    return list.map(entry => entry.uid === uid ? Object.assign({}, entry, {
         "summary": text
-      }) : item);
+      }) : entry);
   }
 
   function remove(list, uid) {
-    return root._renumber(list.filter(item => item.uid !== uid));
+    return root.find(list, uid) ? root._renumber(list.filter(item => item.uid !== uid)) : list;
   }
 
   // Moves an item to `index` in the whole list (clamped)
@@ -88,7 +90,7 @@ QtObject {
   }
 
   function clearCompleted(list) {
-    return root._renumber(list.filter(item => !item.done));
+    return list.some(item => item.done) ? root._renumber(list.filter(item => !item.done)) : list;
   }
 
   // What a list shows: the open items in order, then (with `showCompleted`)

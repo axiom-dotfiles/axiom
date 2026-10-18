@@ -3,7 +3,7 @@
 
 > **File:** `services/TodoManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The todo list: one list for every widget and module, kept in $XDG_DATA_HOME/axiom/todo.json ({ version, items }: TodoItems' shape), written atomically and watched, so an edit made elsewhere shows at once. Never read or written in the greeter. qs -c axiom ipc call todo add "Buy milk"
+The todo list: one list for every widget and module, kept in $XDG_DATA_HOME/axiom/todo.json ({ version, items }: TodoItems' shape), written atomically and watched, so an edit made elsewhere shows at once. While the file can't be read (a hand edit half done), nothing is written over it. Never read or written in the greeter. qs -c axiom ipc call todo add "Buy milk"
 
 ### Properties
 
@@ -15,7 +15,7 @@ The todo list: one list for every widget and module, kept in $XDG_DATA_HOME/axio
 
 ### Functions
 
-- `add(text)`: Adds an open item; its uid, or "" for an empty text
+- `add(text)`: Adds an open item; its uid, or "" for an empty text (or a list that can't be written now)
 - `toggle(uid, done)`: Done ↔ open (`done` given: sets it)
 - `rename(uid, text)`
 - `remove(uid)`
