@@ -81,7 +81,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `EmojiPicker.qml`: Emoji to copy (EmojiManager, as the launcher's ";" does): a search field, Unicode's groups as tabs and a grid, most used first until you search or pick a group.
 - `Favourites.qml`: App launcher buttons.
 - `Greeting.qml`: A line of text, as big as its slot allows: resizing the module resizes the text. {name} is the display name, {user} the user name and {greeting} good morning, afternoon or evening; empty text says hey to the display nam…
-- `KeyboardLayout.qml`: The greeter's keyboard layout (x-hosts: greeter only): the active one, and a click switches to the next (the layouts the greeter's Hyprland has: Input's while its keyboard part is on, else its own).
+- `KeyboardLayout.qml`: The greeter's keyboard layout (x-hosts: greeter only): the active one, and a click switches to the next (the layouts the greeter's compositor has: Input's while its keyboard part is on, else its own).
 - `Login.qml`: The greeter's login box (x-hosts: greeter only; x-required, so every greeter layout has one): who logs in and their password.
 - `Network.qml`: The primary connection (name, IP, wifi signal), live throughput with a graph, and Tailscale's state when it's installed.
 - `NightLightControls.qml`: The night light (NightLightManager): on or off, how warm (right is warmer) and how dim, and its schedule.

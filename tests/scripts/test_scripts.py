@@ -2062,6 +2062,68 @@ class GreeterInstall(unittest.TestCase):
         self.assertIn("unknown channel", self.run_script("install", ok=False, channel="beta")["error"])
 
 
+
+class GreeterSession(unittest.TestCase):
+    """greeter-session.sh picking the greeter's compositor: sway, else
+    Hyprland (also when sway can't start), else agreety. Run with a PATH of
+    stand-ins only, so the real compositors are never found."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.bin = self.tmp / "bin"
+        self.bin.mkdir()
+        self.calls = self.tmp / "calls"
+        for tool in ["dirname", "readlink", "rm"]:
+            (self.bin / tool).symlink_to(shutil.which(tool))
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def fake(self, name, code=0):
+        program = self.bin / name
+        program.write_text(f'#!/bin/sh\necho "{name} $*" >>"{self.calls}"\nexit {code}\n')
+        program.chmod(0o755)
+
+    def run_session(self):
+        env = {"PATH": str(self.bin), "XDG_RUNTIME_DIR": str(self.tmp)}
+        subprocess.run(["/bin/sh", str(SCRIPTS / "greeter/greeter-session.sh")], env=env,
+                       capture_output=True, text=True, timeout=10)
+        return [line.split()[0] for line in self.calls.read_text().splitlines()] if self.calls.exists() else []
+
+    def test_sway_first(self):
+        self.fake("sway")
+        self.fake("start-hyprland")
+        self.fake("agreety")
+        self.assertEqual(self.run_session(), ["sway"])
+        self.assertIn("sway.conf", self.calls.read_text())
+
+    def test_hyprland_when_sway_cant_start(self):
+        self.fake("sway", 1)
+        self.fake("start-hyprland")
+        self.fake("agreety")
+        self.assertEqual(self.run_session(), ["sway", "start-hyprland"])
+
+    def test_hyprland_without_sway(self):
+        self.fake("start-hyprland")
+        self.fake("agreety")
+        self.assertEqual(self.run_session(), ["start-hyprland"])
+
+    def test_agreety_when_nothing_starts(self):
+        self.fake("sway", 1)
+        self.fake("agreety")
+        self.assertEqual(self.run_session(), ["sway", "agreety"])
+
+    def test_agreety_when_the_greeter_failed_twice(self):
+        # The greeter's `shell` leaves the marker, then sway exits cleanly
+        marker = self.tmp / "axiom-greeter-failed"
+        program = self.bin / "sway"
+        program.write_text(f'#!/bin/sh\necho "sway $*" >>"{self.calls}"\n: >"{marker}"\nexit 0\n')
+        program.chmod(0o755)
+        self.fake("start-hyprland")
+        self.fake("agreety")
+        self.assertEqual(self.run_session(), ["sway", "agreety"])
+
+
 class SwayConfigText(unittest.TestCase):
     """sway_config_text.py: the main config with its includes put in, on a
     scratch config (--config), skipping axiom's own module."""

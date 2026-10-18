@@ -18,6 +18,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### The greeter on sway can't use a cursor theme's companion
+- **Where:** `services/GreetdManager.qml` (`_applyCompositor`), `services/CursorThemeManager.qml`
+- **What:** On sway the greeter sets `seat * xcursor_theme` to the theme's own name: the `axiom-cursor-<theme>` companion a theme like Oxygen needs for the standard cursor names lives in the user's `$XDG_DATA_HOME/icons`, which greetd's user can't read. Such a theme shows the default theme's arrow at the login screen. Copying the companion into the bundle (as the wallpapers are) and pointing the greeter's `XCURSOR_PATH` at it would fix it.
+- **Size:** small
+- **Found:** 2026-10-18, while moving the greeter to sway
+
 ### sway may run a `--release` bind twice while an input method runs (unconfirmed)
 - **Where:** `components/methods/SwayConf.qml` (binds with `release`: `restartShell`, the Super_L launcher bind)
 - **What:** Restarting axiom with its bind on sway started several axioms (reported 2026-10-18; `scripts/restart.sh` and `InstanceManager` now keep it to one). A likely trigger, read from sway 1.11's `handle_key_event` but not reproduced: the key press of a `--release` bind isn't handled, so it goes to the input method's keyboard grab (fcitx5 runs in that session), which sends keys it doesn't use back through its virtual keyboard. sway then holds the bind on that keyboard too, but the release went only to the real one, so the virtual keyboard's next key release runs the bind again (a reload in between leaves sway holding a freed bind). Hyprland has no such path. To confirm: on sway with fcitx5, `swaymsg -t subscribe '["binding"]'` while pressing Super+Ctrl+R once, then typing; then without fcitx5. If confirmed, the Super_L launcher toggle would double up too.
@@ -233,12 +239,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** niri's nested (winit) backend stops its event loop while its window isn't shown on the host (another workspace): its IPC times out and the axiom inside it hangs waiting on it, so a `qs ipc` call never returns. Keep the nested window visible while testing; it carries on once shown again.
 - **Size:** trivial
 - **Found:** 2026-10-17, while testing the niri backend
-
-### The greeter runs its own Hyprland session
-- **Where:** `scripts/greeter/greeter-session.sh`, `services/GreetdManager.qml` (`_applyHyprland`)
-- **What:** The greeter runs its own Hyprland session (`start-hyprland`, `hyprctl dispatch exit`), whatever compositor the user's session uses. Decide whether it keeps Hyprland or moves to cage/sway. (The onboarding's binds table and Welcome copy no longer assume Hyprland.)
-- **Size:** small
-- **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
 ### Two exclusive-focus surfaces at once without a native grab
 - **Where:** `services/FocusGrab.qml` (`exclusive`), `components/hosts/overlay/OverlayPanel.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/EdgePopout.qml`

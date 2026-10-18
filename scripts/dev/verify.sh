@@ -94,7 +94,7 @@ for f in "${changed[@]}"; do
   scripts/merge_hypr_binds.py | scripts/hypr_binds.lua) script_tests+=(MergeHyprBinds ClaimHyprland) ;;
   scripts/generate_theme.py) script_tests+=(GenerateTheme) ;;
   scripts/calendar_sync.py) script_tests+=(CalendarSync) ;;
-  scripts/greeter/*) script_tests+=(GreeterInstall) ;;
+  scripts/greeter/*) script_tests+=(GreeterInstall GreeterSession) ;;
   scripts/pick_path.py) script_tests+=(PickPath) ;;
   scripts/restart.sh) script_tests+=(RestartScript) ;;
   scripts/sway_config_text.py) script_tests+=(SwayConfigText) ;;

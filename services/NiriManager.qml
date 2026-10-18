@@ -58,7 +58,8 @@ Singleton {
   // Whether niri's last config load failed (it keeps the config before)
   readonly property bool lastLoadFailed: _state.configFailed
   // Writes axiom's layer into niri's config (CompositorConfigManager)
-  readonly property var configWriter: NiriConfigWriter
+  // None in the greeter, which writes no config
+  readonly property var configWriter: Paths.greeter ? null : NiriConfigWriter
   // Whether `supports` is final: once the user's binds are read, so axiom's
   // layer never binds a key their config does (NiriConfigWriter)
   readonly property bool ready: NiriConfigWriter.userBindsRead

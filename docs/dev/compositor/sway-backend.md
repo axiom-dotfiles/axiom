@@ -93,4 +93,4 @@ The [config modes](config-modes.md) on sway; the text comes from the pure `SwayC
 - **Layer stacking.** With no `layerOrder`, `LayerManager` maps the stacked surfaces in `LayerStack` order ([layer arrangement](layer-arrangement.md)); checked in nested sway for a solid and a floating-pills bar against the border, and an integrated edge menu.
 - **Workspace blocks.** `workspace number N` creates N on the focused output, and the facade focuses the output first. Checked on two nested outputs (`swaymsg create_output`); the perMonitor and grid blocks and a live remap still need a look.
 - **Focus follows the mouse.** In nested sway the pointer over the nested window refocuses the output under it after a command; read state with that in mind.
-- **The greeter** stays a Hyprland session (`issues.md`).
+- **The greeter** runs on its own sway when sway is installed (`greeter-session.sh`, [greeter runtime](../features/greeter-runtime.md)): `GreetdManager` applies the monitors and input there through `CompositorManager.applyOutputs` / `applyInput`.

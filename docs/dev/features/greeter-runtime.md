@@ -1,6 +1,6 @@
 # Greeter: runtime (bundle, session, greeter mode, login)
 
-> **Files:** `greeter.qml`, `shell/Greeter.qml`, `shell/GreeterPreview.qml`, `components/surfaces/greeter/GreeterSurface.qml`, `components/surfaces/greeter/GreeterWindow.qml`, `components/surfaces/greeter/GreeterPreviewWindow.qml`, `services/GreetdManager.qml`, `services/GreeterManager.qml`, `components/methods/GreeterBundle.qml`, `components/methods/GreeterUsers.qml`, `components/methods/GreeterSessions.qml`, `components/content/Login.qml`, `components/content/Session.qml`, `components/content/KeyboardLayout.qml`, `components/content/Power.qml`, `components/content/parts/LoginField.qml`, `scripts/greeter/greeter-session.sh`, `scripts/greeter/hyprland.lua`
+> **Files:** `greeter.qml`, `shell/Greeter.qml`, `shell/GreeterPreview.qml`, `components/surfaces/greeter/GreeterSurface.qml`, `components/surfaces/greeter/GreeterWindow.qml`, `components/surfaces/greeter/GreeterPreviewWindow.qml`, `services/GreetdManager.qml`, `services/GreeterManager.qml`, `components/methods/GreeterBundle.qml`, `components/methods/GreeterUsers.qml`, `components/methods/GreeterSessions.qml`, `components/content/Login.qml`, `components/content/Session.qml`, `components/content/KeyboardLayout.qml`, `components/content/Power.qml`, `components/content/parts/LoginField.qml`, `scripts/greeter/greeter-session.sh`, `scripts/greeter/sway.conf`, `scripts/greeter/hyprland.lua`
 > **Config:** `Greeter.*` (reader `GreeterConfig`), plus the sections exported in the bundle
 > **Related:** [Greeter install](greeter-install.md), [Lockscreen](lockscreen.md), [Themes](../theming/themes.md), [Config manager](../core/config-manager.md), [Monitors](../hyprland/monitors.md), [Schema annotations](../core/schema-annotations.md)
 
@@ -27,13 +27,16 @@ This doc covers what runs at the login screen and the data it reads: the bundle 
 - Changing the login screen therefore needs no root. Only code changes need Update.
 
 ### Running it (session script)
-- `greeter-session.sh`, greetd's command, starts `start-hyprland` on `scripts/greeter/hyprland.lua` (logo off, numlock on, no animations).
-- That Lua's start hook runs `greeter-session.sh shell`, which runs `AXIOM_GREETER=1 qs -p <copy>/greeter.qml`.
+- `greeter-session.sh`, greetd's command, starts the greeter's own compositor, whichever one the user logs in to:
+  - **sway** when installed, on `scripts/greeter/sway.conf` (no binds, no bar, no XWayland, numlock on; `--unsupported-gpu` when `/sys/module/nvidia` exists). Plain sway is enough: the greeter blurs nothing ([Surfaces](#surfaces-and-modules)).
+  - **Hyprland** (`start-hyprland` on `scripts/greeter/hyprland.lua`: logo off, numlock on, no animations) when sway isn't installed, or exited non-zero without the failure marker (it couldn't start).
+  - sway's own stderr goes to the greeter's `state/compositor.log`.
+- Each one's start (sway's `exec`, the Lua's start hook) runs `greeter-session.sh shell`, which runs `AXIOM_GREETER=1 qs -p <copy>/greeter.qml`, its stderr in the greeter's `state/greeter.log` (emptied at each start; greetd's user's runtime dir, where qs keeps its own logs, goes with the greeter's session). Both are greetd's user's: `sudo` to read them.
   - `<copy>` is the install folder, or for a packaged axiom the folder its `.greeter-source` names (`package /usr/share/axiom`).
   - It exports `AXIOM_GREETER_FALLBACK`, the install folder's `fallback/`, which `ConfigManager` and `Paths.greeterFallbackUrl` read (without it, `fallback/` beside the code).
   - If that fails, it runs once more with `AXIOM_GREETER_SAFE=1`; qs exits non-zero on a broken load.
-  - Then `hyprctl dispatch 'hl.dsp.exit()'`.
-- **Fallback:** if qs failed twice, or there is no Hyprland, the session runs `agreety --cmd '${SHELL:-/bin/sh}'`, so a login is always possible.
+  - Then it ends the compositor: `swaymsg exit` under sway (`$SWAYSOCK`), else `hyprctl dispatch 'hl.dsp.exit()'`.
+- **Fallback:** if qs failed twice, or neither compositor starts, the session runs `agreety --cmd '${SHELL:-/bin/sh}'`, so a login is always possible.
   - The failure marker lives in `$XDG_RUNTIME_DIR`, else the greeter's `state/`, never in `/tmp`.
   - The command is quoted so the session's own `sh` expands it to the login shell of whoever logs in.
 
@@ -51,13 +54,14 @@ This doc covers what runs at the login screen and the data it reads: the bundle 
   - It generates, links and runs nothing.
 - **State:** `Paths.statePath` / `userStatePath` point at the greeter's `state/`.
 - **Startup:** singletons are lazy, so nothing else from the session starts.
+- **No config writer:** each backend's `configWriter` is null in greeter mode, and `CompositorConfigManager.writer` too, so nothing writes or sends axiom's compositor layer (binds, look, rules) to the greeter's compositor, or, from a greeter run in a session, to the session's. Building the writer there also went past Qt's creation depth under sway (`Component creation is recursing`).
 - (Rule: in greeter mode nothing writes config, generates or runs integrations; AGENTS.md › Greeter.)
 
 ### GreetdManager
 Built on `Quickshell.Services.Greetd`.
 - **Users:** `users` comes from `methods/GreeterUsers`: `/etc/passwd` within `/etc/login.defs`' UID range, login shells only.
 - **Sessions:** `sessions` comes from `methods/GreeterSessions`: `wayland-sessions/*.desktop` in each data dir (`Paths.dataSearchDirs`: `$XDG_DATA_HOME`, then `$XDG_DATA_DIRS`; the first file of a name wins, as `GreeterSessions.files` picks), with Exec split per the desktop entry spec and field codes dropped.
-- **Selecting a user:** `selectUser(name)`. A typed name not in the list is still tried. Selecting loads the user's last session.
+- **Selecting a user:** `selectUser(name)`. A typed name not in the list is still tried. Selecting loads the user's last session, even before the sessions are listed (the remembered user is selected at start, while `find` still runs): `selectedSession` falls back to the first while that id isn't among them.
 - **Logging in:**
   - `submit(response)` creates the session, with the password pending for greetd's first question.
   - Later questions (an OTP) become `prompt` / `promptEcho`.
@@ -68,9 +72,9 @@ Built on `Quickshell.Services.Greetd`.
   - `power(action)` through `systemctl`.
   - Keyboard layouts through `CompositorManager.withKeyboard` and `cycleKeyboardLayout`.
   - `avatarOf(name)` from AccountsService's icons.
-- **At start** (but not when windowed):
-  - it evals `HyprLua.greeterLua`: the profiles' `monitorsLua`, plus one `hl.config` of the `x-greeter` input options whose parts are on;
-  - it sets the cursor while the cursor part is on with a theme (`HyprlandManager.setCursor`).
+- **At start** (but not when windowed), `_applyCompositor`:
+  - on Hyprland it evals `HyprLua.greeterLua`: the profiles' `monitorsLua` (which picks the profile again on each hotplug), plus one `hl.config` of the `x-greeter` input options whose parts are on; and it sets the cursor while the cursor part is on with a theme (`HyprlandManager.setCursor`);
+  - elsewhere (sway) it applies the saved profile for the outputs connected at start (`MonitorLayout.savedRules` → `CompositorManager.applyOutputs`), and the input options and cursor through `CompositorManager.applyInput` (sway's live `input` / `seat` commands, `SwayConf.inputLines`).
 
 ### Surfaces and modules
 - **`surfaces/greeter/GreeterSurface`** is a `ScreenLayoutView`, the same view the lock screen uses ([lockscreen.md](lockscreen.md#layout)).
@@ -84,6 +88,7 @@ Built on `Quickshell.Services.Greetd`.
   - `Session`: in a slot shorter than its card, just the field, with no card.
   - `Power`: restart and shut down ask twice. It is also on the lock screen.
   - `KeyboardLayout`.
+- **Solid:** in greeter mode `Appearance.compositorBlurs` is false (`CompositorManager`), so every surface is opaque and nothing frosts; `GreeterSurface` also sets `frost: false`, so the layouts editor's preview isn't frosted either, though its cards keep the session's translucency (`Appearance.fill` is global). The wallpaper still follows `Lockscreen.blurWallpaper` (Qt's own blur, needing nothing of the compositor).
 - **Display modules** that list `greeter` in `x-hosts`: ClockCalendar, Greeting, Weather, Battery, Network, Palette, ColorSwatch.
 - **Inert outside the greeter:** every greeter module is inert unless `host.kind === "greeter" && !host.preview && Paths.greeter`, so the user's session never talks to greetd.
 - **Host filtering:** `ScreenLayoutView` draws only modules whose `x-hosts` list the host's `kind`.

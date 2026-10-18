@@ -91,11 +91,13 @@ Singleton {
   readonly property var builtInBinds: root.backend?.builtInBinds ?? ({})
 
   // Appearance's surfaces are translucent only where the compositor blurs
-  // behind them (Appearance.compositorBlurs: readers don't read services)
+  // behind them (Appearance.compositorBlurs: readers don't read services).
+  // Never at the login screen: its compositor runs no blur rules, and the
+  // greeter draws solid, unfrosted cards (a SwayFX there blurs nothing)
   property Binding _appearanceBlur: Binding {
     target: Appearance
     property: "compositorBlurs"
-    value: root.supports.blur === true
+    value: root.supports.blur === true && !Paths.greeter
   }
 
   // --- State (contract.md › Shapes) ---
@@ -253,6 +255,14 @@ Singleton {
   }
 
   // --- Session, input, cursor ---
+
+  // Sets the input options and cursor now (`input`: CompositorLayer.input's,
+  // `inputSchema`: Input's), for a compositor running no config of axiom's
+  // (the greeter's). Sway's backend only: Hyprland's greeter sends its own
+  // Lua (GreetdManager), and niri takes input from its config file alone
+  function applyInput(input, inputSchema) {
+    root.backend?.applyInput?.(input, inputSchema);
+  }
 
   // Calls back with the main keyboard's layouts ({ layouts, index,
   // keymap }), or null

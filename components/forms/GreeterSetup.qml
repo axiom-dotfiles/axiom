@@ -58,7 +58,7 @@ ColumnLayout {
     }
 
     Repeater {
-      model: [I18n.tr("Copies axiom's code (from where Code from below says) to /usr/share/axiom-greeter, for greetd's user to run (your home folder is private to you)."), I18n.tr("Makes /var/lib/axiom-greeter, with a folder of yours that axiom keeps the login screen's look and layout in: changing them later needs no password."), I18n.tr("Backs up /etc/greetd/config.toml, then changes only its default_session command, to start axiom's login screen in a Hyprland of its own.")]
+      model: [I18n.tr("Copies axiom's code (from where Code from below says) to /usr/share/axiom-greeter, for greetd's user to run (your home folder is private to you)."), I18n.tr("Makes /var/lib/axiom-greeter, with a folder of yours that axiom keeps the login screen's look and layout in: changing them later needs no password."), I18n.tr("Backs up /etc/greetd/config.toml, then changes only its default_session command, to start axiom's login screen in a compositor of its own (sway, else Hyprland).")]
 
       delegate: StyledText {
         required property string modelData

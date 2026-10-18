@@ -67,8 +67,9 @@ Written by `HyprLua.blurLua` (HyprlandConfigWriter's `_blurLua`, `M.blur()` in t
 - While the blur window backs surfaces, an edge popout slides out only once its window's origin is known (`LayerOrigin.settled`), so its first frames never fill and shadow themselves beside backed ones.
 
 ### Lock screen and greeter
+- The greeter is never translucent: in greeter mode `Appearance.compositorBlurs` is false, so its surfaces are solid and nothing frosts ([greeter runtime](../features/greeter-runtime.md)).
 - No compositor blur reaches a session-lock surface, so `ScreenLayoutView` frosts its own background under the modules while the shell blurs (`frosted`):
   - the backdrop is blurred at about Hyprland's strength (`hyprBlur`);
-  - the lock surface reads it from `CompositorManager.blur`; the greeter leaves it at Hyprland's defaults;
+  - the lock surface reads it from `CompositorManager.blur`;
   - masked by the modules at the blur threshold.
 - Not when the wallpaper is blurred already.

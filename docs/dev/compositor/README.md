@@ -24,7 +24,7 @@ How axiom reaches the compositor it runs under. Read this before anything that r
 ### Capabilities
 - `CompositorManager.supports` maps each capability to true or false. The keys are listed in [contract.md › Capabilities](contract.md#capabilities). A backend lists what it does; anything it doesn't list is false.
 - `AXIOM_COMPOSITOR_OFF=focusGrab,blur` turns capabilities off, so a fallback can be tried on a compositor that has the real thing.
-- **Gate a compositor-specific feature on a capability, not on `kind`.** Only code that is Hyprland's by nature checks `kind === "hyprland"` (the greeter's Hyprland session, the onboarding's Hyprland check).
+- **Gate a compositor-specific feature on a capability, not on `kind`.** Only code that is Hyprland's by nature checks `kind === "hyprland"` (the greeter's Hyprland branch, the onboarding's Hyprland check).
 
 ### Hyprland-only features
 - These talk to `HyprlandManager` directly (`runLua`, `withBinds`, `setCursor`), each gated on its capability. The Keybinds and Monitors pages don't: they go through `CompositorManager` (`withBinds`, `captureKeys`, `withOutputDetails`, `applyOutputs`).

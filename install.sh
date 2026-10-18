@@ -99,7 +99,7 @@ FEATURES=(
   "X11 apps under sway (Steam, games, older apps)|Xwayland|sway"
   "Power profiles|powerprofilesctl|"
   "Browse buttons for folders and importing configs (the desktop's file picker)|xdg-desktop-portal-gtk py:gi|"
-  "Axiom as the login screen (set up later from Settings → Login screen; it runs in a Hyprland of its own)|greetd agreety hyprland|"
+  "Axiom as the login screen (set up later from Settings → Login screen; it runs in a sway of its own)|greetd agreety sway|"
 )
 MIN_QS=0.3.2
 MIN_HYPRLAND=0.55.0

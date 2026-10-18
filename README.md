@@ -152,9 +152,9 @@ axiom talks to the compositor through one layer, so the bar, the overlay, the la
 | Scrolling strips | any monitor | every monitor | |
 | Blur behind the shell | ✓ | | with SwayFX |
 | Live window previews | ✓ | | |
-| The login screen | ✓ | ✓¹ | ✓¹ |
+| The login screen | ✓¹ | ✓¹ | ✓¹ |
 
-<sub>¹ The login screen always runs in a Hyprland of its own, so it needs Hyprland installed.</sub>
+<sub>¹ The login screen runs in a compositor of its own, whichever one you log in to: sway, or Hyprland when sway isn't installed.</sub>
 
 Your config moves between them as it is. Log in to another compositor and your bars, pages, menus, theme and keybinds are already there; whatever only one compositor understands waits quietly in the config until you're back on it. Settings a compositor can't use are left out of the settings page rather than shown and ignored. Running something else? The bar, launcher, notifications and most of the shell still work on any Wayland compositor with layer-shell; only the compositor-specific parts go missing.
 

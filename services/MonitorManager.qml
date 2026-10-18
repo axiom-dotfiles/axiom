@@ -444,10 +444,9 @@ QtObject {
   function _applySavedProfile() {
     if (root.pending)
       return;
-    const saved = MonitorsConfig.profiles;
-    const index = MonitorLayout.matchProfile(saved, root.enabledOutputs);
-    if (index >= 0)
-      CompositorManager.applyOutputs(saved[index].outputs.filter(rule => root.monitorFor(rule) !== null), root.outputs);
+    const rules = MonitorLayout.savedRules(MonitorsConfig.profiles, root.outputs);
+    if (rules.length > 0)
+      CompositorManager.applyOutputs(rules, root.outputs);
   }
 
   // Read as soon as the compositor is known to have monitors: created early

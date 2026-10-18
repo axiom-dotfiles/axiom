@@ -118,7 +118,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-niriSkip`: a value written as nothing (niri's own default stays), e.g. `"default"` or `0`.
 - Details: [niri backend](../compositor/niri-backend.md).
 
-- `x-greeter: true` on an `Input` option: the greeter's Hyprland takes it (`methods/GreeterBundle`). See [Greeter install](../features/greeter-install.md).
+- `x-greeter: true` on an `Input` option: the greeter's compositor takes it (`methods/GreeterBundle`). See [Greeter install](../features/greeter-install.md).
 - Details: [Hyprland config modes](../hyprland/config-modes.md), [Window look](../compositor/window-look.md).
 
 ### Theme integrations
