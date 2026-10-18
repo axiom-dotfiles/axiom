@@ -8,10 +8,11 @@ A gallery of setups other people shared at [axiom-dotfiles/community-setups](htt
 
 ### The other repo
 - `setups/<id>/` holds `setup.json` (title, author, tags, tested compositors, fonts, a wallpaper's license), `config.json` (an Export), a screenshot, and optionally `theme.json` and a wallpaper.
-- Its CI checks each setup against axiom's `main` (a fresh clone every run): the config is migrated by axiom's own `ConfigMigration` (qmltestrunner on axiom's pure QML), then only `look`-scope keys are admitted (a walk of the schema's `x-scope` mirroring `ConfigExamples.pick`). No personal values (commands, apps, keybinds), no machine values, no `x-takeover` settings, no secrets. The nightly run opens a `needs-update` issue when an axiom change breaks one.
+- Its CI checks a setup when it's posted or changed, against axiom's `main` that day (a fresh clone), and never again: the config is migrated by axiom's own `ConfigMigration` (qmltestrunner on axiom's pure QML), then only `look`-scope keys are admitted (a walk of the schema's `x-scope` mirroring `ConfigExamples.pick`). No personal values (commands, apps, keybinds), no machine values, no `x-takeover` settings, no secrets.
+- So the catalog holds configs of many versions: an older one is migrated when it's applied (`SavedConfigsManager._load`), like any import, and only one newer than this axiom is refused (`compatible`). Migrations must keep handling every old version.
 - After a merge it publishes the `catalog` branch: `index.json` (format 1) plus each setup's files and a 640px `thumb.webp`. Each file is listed as `{ path, sha256, size }`, relative to the index. That branch's README is the gallery.
 - Submissions come as pull requests, or as an issue form a workflow turns into one. A pull request may change only its author's setups: the author is checked as the base branch has it, too.
-- So a change to `x-scope` or the theme format here changes what that repo accepts on its next run: check its nightly after one.
+- A change to `x-scope` or the theme format here changes what that repo accepts from its next submission on; setups already there aren't checked again.
 
 ### Reading the catalog (`CommunityCatalog`, pure)
 - `parse(index, currentVersion)`: the setups, newest first, or null for another `format`.
