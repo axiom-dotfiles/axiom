@@ -36,12 +36,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-17, while reviewing the shadow-on-or-off change
 
-### Night light's tool is chosen in two places
-- **Where:** `components/views/settings/NightLightStatus.qml` (`wanted`), `services/DependencyManager.qml` (`tools`: `compositors`), `services/NightLightManager.qml` (`tool`)
-- **What:** "hyprsunset on Hyprland, wlsunset elsewhere" is worked out by `NightLightManager.tool`, again by `NightLightStatus.wanted` for its install hint, and a third time as `DependencyManager.tools`' rows. `NightLightManager` could expose the tool it wants, for both to read.
-- **Size:** trivial
-- **Found:** 2026-10-17, while reviewing the distro-support branch for merge
-
 ### niri's overview drop moves a window's whole column
 - **Where:** `services/NiriManager.qml` (`placeWindow`)
 - **What:** Dropped beside or into another column on its own workspace (`reinsert`), a window is moved with `MoveColumnToIndex`, which moves the focused column: a window sharing its column with others takes them along. A drop onto another workspace moves only the window (`MoveWindowToWorkspace` by id). Expelling it from its column first (`ExpelWindowFromColumn`, which shifts the column indexes) would fix it; needs trying in `scripts/dev/nested.sh niri`.
@@ -78,12 +72,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
-### Corner rounding is greyed out on plain sway with no note
-- **Where:** `components/forms/SchemaField.qml` (`disabledNote`)
-- **What:** `WindowLook.rounding` needs `/$supports.windowRounding` (SwayFX only), but the note is suppressed for a row shown by a sibling switch, and `shape` itself isn't greyed, so nothing says why. Suppress the note only when the sibling is blocked by the same key.
-- **Size:** trivial
-- **Found:** 2026-10-16, while auditing the sway branch for merge
-
 ### SwayFX remaps the chrome on a fresh qs start
 - **Where:** `services/SwayManager.qml` (`surfacesReady`), `shell/BlurBacking.qml`
 - **What:** `surfacesReady` is always true, so bars, border and docks map at once, while the held blur window (order 9) and the shadow window beside it (`axiom-shadows`, order 8) wait for `supports.blur`, known only from the `get_version` reply. Mapped after them, they make LayerManager map each lower-ordered window again. Hot reloads keep the variant, so only a fresh start does it. Waiting for `ready` would fix it, but hides the chrome until sway answers.
@@ -94,18 +82,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Where:** `shell/BlurBacking.qml`, `shell/BlurBackingWindow.qml`
 - **What:** The blur window changes `stackLayer` while a fullscreen window shows; LayerManager keeps its place in the order. If SwayFX puts a window that changed layer on top of its new layer, then after fullscreen ends it draws over the bars. Needs a look in `scripts/dev/nested.sh sway` with SwayFX.
 - **Size:** small
-- **Found:** 2026-10-16, while auditing the sway branch for merge
-
-### Hyprland's key capture watchdog can end a later capture
-- **Where:** `services/HyprlandManager.qml` (`captureKeys`)
-- **What:** Each capture enters the one `axiom_record` submap with a 30 s `hl.timer` leaving it; a second capture within those 30 s is cut short by the first's timer. Sway's got a mode name per capture (796b16e); Hyprland's needs the same or a timer handle it removes.
-- **Size:** trivial
-- **Found:** 2026-10-16, while auditing the sway branch for merge
-
-### Monitor VRR offers Hyprland's modes on sway
-- **Where:** `components/views/monitors/MonitorInspector.qml`, `components/methods/SwayConf.qml` (`outputCommand`)
-- **What:** VRR offers Off/On/Fullscreen only/Fullscreen games and video; sway has on or off, so the fullscreen ones turn adaptive sync on everywhere. A capability (`monitorVrrModes`) would offer only Off/On without it.
-- **Size:** trivial
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
 ### A fullscreen window re-sends the whole live layer
@@ -246,12 +222,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** trivial
 - **Found:** 2026-10-16, while auditing the layer-placement branch
 
-### Python bytecode is written into the repo
-- **Where:** `scripts/bind_merge_common.py`, `scripts/niri_kdl.py`
-- **What:** Scripts that import a sibling module (the bind mergers, the niri config scripts) leave `__pycache__/` in `scripts/`, which a packaged (read-only) install can't write. Set `PYTHONDONTWRITEBYTECODE=1` where the shell runs python. Blocks packaging, not the XDG move.
-- **Size:** small
-- **Found:** 2026-10-15, while moving config and state to the XDG folders
-
 ### Hyprland starts axiom by its repo path, and self-update assumes git
 - **Where:** `services/HyprlandConfigWriter.qml` (`shellCommand`), `services/SelfUpdateManager.qml`, `scripts/greeter/greeter_install.sh`
 - **What:** `shellCommand` is `qs -p '<repo>'`, which a package would want as `qs -c axiom` or an `axiom` launcher. Self-update and the greeter installer work on `Paths.axiomPath` as a git clone. A package manager owns updates, so these should hide or switch when there is no `.git`. Blocks packaging, not the XDG move.
@@ -263,12 +233,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** After moving an install over, `config/user/`, `config/state/` and `config/themes/generated/` are left in place (with `MOVED.md`) so a rollback still finds them. Once rolling back past the move is no longer supported, delete them (or offer to), and drop the legacy layout code.
 - **Size:** small
 - **Found:** 2026-10-15, while moving config and state to the XDG folders
-
-### Disk usage shifts onto the wrong path when one is missing
-- **Where:** `services/SystemManager.qml` (`_df`)
-- **What:** `df` is run once for every requested path and its output lines are matched to the paths by position. A path that doesn't exist (a `diskPath` typed wrong, an unmounted drive) gets no line, only an error on stderr, so every path after it shows the next path's usage and the last one shows none. Run `df` per path, or add `--output=target` and match lines to paths by that.
-- **Size:** small
-- **Found:** 2026-10-15, while auditing the folder picker commit
 
 ### Text input warnings when the desktop takes the keyboard
 - **Where:** `components/surfaces/desktop/DesktopWindow.qml` (`WlrLayershell.keyboardFocus`)
@@ -299,15 +263,3 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** Opening bar popouts on a floating-pills bar logs binding loops, dozens per session: `property "_wall"` (PillBarJoin, created at EdgePlacement.qml:345), `property "joinReach"` (EdgePlacement), `property "surfaceX"` / `property "surfaceY"` (BarPopouts' window), `property "_spec"` (AttachedSurface) and `property "place"` / `property "alignedBoxStart"` (SubPopout). They're in every qs instance's log back to 2026-10-13, before the corner-priority change. The values settle (no visible glitch reported), but a loop can leave a stale value for a frame and buries real warnings. Likely one cycle: the placement reads the pill's join reach, which reads the placement's wall. (`_surfaceFromEdge`'s loop is gone: it now comes from the layout's `attachAt`, not the drawn surface.) Not reproduced on 2026-10-16 (popouts from a floating-pills bar, and one joining a perpendicular pill bar, on Hyprland and in nested sway): it may have gone with later placement changes. Delete this entry if it doesn't come back.
 - **Size:** needs a plan
 - **Found:** 2026-10-14, while reviewing verify.sh output for the agent-setup changes
-
-### Schema root `description` duplicates the annotation docs
-- **Where:** `config/json/config.schema.json` (root `description`)
-- **What:** A 3 KB description restates the `x-*` annotations and is already incomplete (no `x-control`, `x-hypr*` or `x-scope`). The complete list is `docs/dev/core/schema-annotations.md`. Trim it to one line pointing there.
-- **Size:** trivial
-- **Found:** 2026-10-13, while splitting architecture.md
-
-### `Compositor.requiredSettings` has no developer doc
-- **Where:** `config/HyprlandConfig.qml` (`requiredSettings`), `docs/dev/hyprland/config-modes.md`
-- **What:** It's in the schema and the generated reference (`docs/dev/config/Hyprland.md`), but no hand-written doc explains what it does. Add a section to `config-modes.md`. (`wallpaperDaemon` moved to `Appearance.wallpaperDaemon`, covered in `wallpaper-and-schedules.md`.)
-- **Size:** trivial
-- **Found:** 2026-10-13, while splitting architecture.md

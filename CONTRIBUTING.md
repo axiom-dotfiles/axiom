@@ -28,6 +28,15 @@ Questions and help with setting up go in [Discussions › Q&A](https://github.co
 
 **Found a security problem?** Don't open an issue: report it privately as [SECURITY.md](SECURITY.md) describes.
 
+## Help wanted
+
+axiom is built and tested on one machine with one GPU, so some help goes further than code. [Help wanted](https://github.com/orgs/axiom-dotfiles/discussions/67) has the details. In short:
+
+- **Compositor testers**: people who use Hyprland, sway/SwayFX or niri every day on other hardware and setups (other GPUs, several monitors, scaling, laptops), and report what breaks.
+- **Packagers**: `axiom-shell` and `axiom-shell-git` for the AUR and Fedora COPR, and `axiom-shell` for Nix. [docs/dev/packaging.md](docs/dev/packaging.md) lists the dependencies.
+- **Translators**: see the [translations tracker](https://github.com/axiom-dotfiles/axiom/issues/66).
+- **First contributions**: issues labelled [good first issue](https://github.com/axiom-dotfiles/axiom/labels/good%20first%20issue) are small and name the files to look at. [help wanted](https://github.com/axiom-dotfiles/axiom/labels/help%20wanted) ones are bigger or need a particular setup to test.
+
 ## Setting up
 
 axiom has no build step: Quickshell runs the QML as it is and reloads a file the moment you save it.

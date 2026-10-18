@@ -205,6 +205,8 @@ Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axi
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers setting up, the workflow, and where in the docs to start. There's no build step: `qs` interprets the QML and hot-reloads on save.
 
+**Looking to help?** axiom is built and tested on one machine, so people running Hyprland, sway or niri on other hardware, packagers (`axiom-shell` for the AUR, COPR and Nix) and translators are especially welcome: see [Help wanted](https://github.com/orgs/axiom-dotfiles/discussions/67), the [translations tracker](https://github.com/axiom-dotfiles/axiom/issues/66) and the [good first issues](https://github.com/axiom-dotfiles/axiom/labels/good%20first%20issue).
+
 ## Roadmap
 
 - **Other Wayland compositors**, beyond Hyprland, sway and niri
@@ -213,7 +215,7 @@ Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axi
 - **More styles** for bars, widgets and menus
 - **More translations**
 - **Performance Improvements**
-- **An AUR package**
+- **Packages**: `axiom-shell` and `axiom-shell-git` for the AUR and COPR, and Nix
 
 ## Acknowledgments
 
