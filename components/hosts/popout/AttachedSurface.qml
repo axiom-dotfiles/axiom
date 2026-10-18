@@ -208,7 +208,8 @@ Item {
   property real hiddenBehind: 0
   // How far it has slid behind that edge (none once out)
   readonly property real slid: Math.abs(slideContainer.slideX) + Math.abs(slideContainer.slideY)
-  readonly property real _hidden: root.slid + root.hiddenBehind
+  // ...and in all: what context along its slide follows (PillBarJoin)
+  readonly property real hiddenNow: root.slid + root.hiddenBehind
   // How far in from the surface's end the fillet shows at the edge, with
   // `hidden` of the surface still behind it (see SurfaceOutline._outline: a line along
   // the edge at v = half to sideU - R, an arc of radius R up to the wall)
@@ -229,10 +230,10 @@ Item {
   // frame or so after this one, so a stub of stroke showed under each
   // fillet as it landed. Within a stroke of the edge the fillet's own
   // stroke lies over the one it opens, so opening it early shows nothing.
-  readonly property real _filletHidden: Math.max(0, root._hidden - root.strokeWidth)
+  readonly property real _filletHidden: Math.max(0, root.hiddenNow - root.strokeWidth)
   readonly property real coverStart: root._filletIn(root.startMargin, root._filletHidden)
   // (nothing once it's all behind the edge)
-  readonly property real coverLength: root._hidden >= root.depth ? 0 : root.alongLength - root.coverStart - root._filletIn(root.endMargin, root._filletHidden)
+  readonly property real coverLength: root.hiddenNow >= root.depth ? 0 : root.alongLength - root.coverStart - root._filletIn(root.endMargin, root._filletHidden)
   // How much of that is the fillet curving up into each wall from the
   // attach edge (0 at a joined, flush or straight end): what it covers
   // shows round its curve, not across its square (a solid bar's shadow)
@@ -344,8 +345,8 @@ Item {
   readonly property real joinFillet: root._straightJoinStart ? 0 : root.filletRadius
   readonly property real joinFilletEnd: root._straightJoinEnd ? 0 : root.filletRadius
   // ...as much of it as is out past its edge now (none while it's behind)
-  readonly property real joinShown: Math.max(0, root.joinCover - root._hidden)
-  readonly property real joinShownEnd: Math.max(0, root.joinCoverEnd - root._hidden)
+  readonly property real joinShown: Math.max(0, root.joinCover - root.hiddenNow)
+  readonly property real joinShownEnd: Math.max(0, root.joinCoverEnd - root.hiddenNow)
 
   // The content box in this item's coordinates, at rest (not slid). On
   // every side but the attach edge it coincides with the outer edge of
@@ -428,7 +429,7 @@ Item {
         // it is on the surface still behind its edge: there the band let a
         // line of this shadow through over the stroke, beside its wall,
         // doubling the shadow of what it grows from)
-        const band = root.straight ? [] : [root._rectFrom(-reach, v, root.alongLength + reach * 2, reach + root._back + root.strokeWidth + root._hidden)];
+        const band = root.straight ? [] : [root._rectFrom(-reach, v, root.alongLength + reach * 2, reach + root._back + root.strokeWidth + root.hiddenNow)];
         // A straight joined end's far wall runs on into the stroke it
         // joins (its first stroke's width of the end lies over that
         // stroke): what it joins casts beside the wall up to its outer

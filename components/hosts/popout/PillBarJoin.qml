@@ -8,7 +8,7 @@ import qs.components.methods
 
 // A surface's end joining a pill bar on a perpendicular screen edge: its
 // end sits on that bar's far stroke, and the bar's pill at this edge's end
-// runs out along the surface (BarContainer.setEndReach: the end pill
+// runs out along the surface (BarContainer.setRequest's endReach: the end pill
 // stretched, or a stub grown where the bar has none there). Where the
 // bar's own pill already runs on past the surface's wall (`filleted`),
 // the end curves into its far stroke with a fillet, as into a solid bar's
@@ -18,9 +18,8 @@ import qs.components.methods
 // border, or on the bare edge without it, alike.
 //
 // It follows the surface along its slide (`hidden`): the pill runs out
-// with the surface's far wall as it slides out along it, a stroke ahead
-// (the bar commits a frame or so after the surface's window), and back
-// with it as it slides away, so the two never part; its far stroke opens
+// with the surface's far wall as it slides out along it, and back with
+// it as it slides away, so the two never part; its far stroke opens
 // only where the surface has come. Whether it fillets is decided from
 // where the wall rests.
 PillStretch {
@@ -60,9 +59,8 @@ PillStretch {
   }
   // ...at rest, which decides whether it fillets
   readonly property var _wall: root._wallAt(root.joinReach)
-  // ...and as drawn, sliding: what the pill and its opening follow, a
-  // stroke ahead, never past where it rests
-  readonly property var _drawnWall: root._wallAt(Math.min(root.joinReach, root.joinReach - root.hidden + Appearance.borderWidth))
+  // ...and as drawn, sliding: what the pill and its opening follow
+  readonly property var _drawnWall: root._wallAt(root.joinReach - root.hidden)
   // Whether one of the bar's own pills shows past the wall near enough to
   // be carried on past a fillet: the end then curves into it rather than
   // squaring a stub at the wall (EdgeAttach.pillJoinFilleted)

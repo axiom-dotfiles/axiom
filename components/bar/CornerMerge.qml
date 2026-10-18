@@ -7,7 +7,7 @@ import qs.components.hosts.popout
 
 // One end of a pill bar that makes way for a pill bar at its corner
 // (BarEnds "pillBar"), with its end pill joined there: that bar's end pill
-// (grown if the bar has none there, BarContainer.setEndReach) runs on past
+// (grown if the bar has none there, BarContainer.setRequest) runs on past
 // this pill's join fillet, straight off its own end, its far stroke left
 // open where this pill joins it, so the two read as one with a single
 // concave corner, as against a solid bar.

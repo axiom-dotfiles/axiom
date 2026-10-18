@@ -381,11 +381,12 @@ QtObject {
    *   strokeFrom, strokeTo (off a pill: how far the stroke runs)
    * Returns { fillet, stretch (the parent's pill stretched for it, or
    * null), at (where along the edge that stretch reaches for it) }.
-   * Where a pill already shows past the wall (its own, or a neighbour a
-   * stretch to the wall would merge into), it's carried on past the
-   * fillet and its corner, as a bar popout's pillGrows does: a wall
-   * running straight into a pill that carries on past it met it at a
-   * bare right angle. Otherwise the pill runs to the wall and squares.
+   * Where a pill shows past the wall and starts within the fillet, its
+   * corner and `merge` of it (its own, or a neighbour), it's carried on
+   * past the fillet and its corner, by the rule a pill bar's joined end
+   * follows (EdgeAttach.pillJoinFilleted): a wall running straight into a
+   * pill that carries on past it met it at a bare right angle. Otherwise
+   * the pill runs to the wall and squares.
    */
   function submenuJoin(p) {
     const before = !!p.before, wall = p.wall, need = p.radius * 2;
@@ -397,18 +398,17 @@ QtObject {
         "stretch": null,
         "at": null
       };
-    const rect = {
-      "start": own.start,
-      "length": own.end - own.start
-    };
-    const others = (p.pills ?? []).filter((q, i) => i !== own.index);
-    const reach = EdgeAttach._islandReach(others, rect, wall, before, p.merge ?? 0);
-    // Something shows past the wall's outer edge
-    const edge = p.stroke / 2 + 0.5;
-    const past = sign * (reach - wall) > edge;
+    // Its own as the box stretches it, beside the others at rest
+    const pills = (p.pills ?? []).filter((q, i) => i !== own.index).concat([
+      {
+        "start": own.start,
+        "length": own.end - own.start
+      }
+    ]);
+    const carried = EdgeAttach.pillJoinFilleted(pills, wall, !before, p.radius, p.merge ?? 0, p.stroke);
     const grown = wall + sign * need;
     const limit = before ? p.stretchFrom : p.stretchTo;
-    const fillet = past && sign * (limit - grown) >= 0;
+    const fillet = carried && sign * (limit - grown) >= 0;
     const at = fillet ? grown : before ? Math.max(wall, limit) : Math.min(wall, limit);
     const start = before ? Math.min(own.start, at) : own.start;
     const end = before ? own.end : Math.max(own.end, at);

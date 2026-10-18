@@ -10,10 +10,10 @@ import qs.services
 
 // One screen's screenshot picker: the screen frozen (one ScreencopyView
 // frame, or grim's picture of it where Quickshell can't capture it
-// safely: ScreenshotManager.grimFrames), dimmed except for what a click or release would capture, with
-// the window under the cursor highlighted. `region`: drag a region, or
-// click for the window under the cursor (the whole screen where there's
-// none), Enter for the screen. `window`: click a window. Esc or
+// safely: ScreenshotManager.grimFrames), dimmed except for what a click
+// or release would capture, with the window under the cursor highlighted.
+// `region`: drag a region, or click for the window under the cursor (the
+// whole screen where there's none), Enter for the screen. `window`: click a window. Esc or
 // right-click cancels; Shift on release, or E, opens it in the annotator.
 // An immediate `screen` capture shows the same frame with nothing over it
 // and grabs as soon as it arrives. The capture is cropped from the frame

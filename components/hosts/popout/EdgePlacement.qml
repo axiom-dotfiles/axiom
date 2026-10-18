@@ -271,20 +271,26 @@ QtObject {
   // Its pill stretch
   readonly property var stretch: root.place.stretch
   // A joined submenu's, as its outer wall is drawn: it slides out along
-  // the stroke, and the pill runs out with it, a stroke ahead (the bar
-  // commits a frame or so after it), never past where it rests nor back
-  // inside what the box's own stretch covers
+  // the stroke, and the pill runs out with it, never past where it rests
+  // nor back inside what the box's own stretch covers. Its `box` is the
+  // two boxes together, from the submenu's wall at rest
+  // (BarLayout.flushEnds)
   readonly property var _submenuReach: {
     const j = root.submenuJoin;
     const own = root._ownPill;
     if (!j?.stretch || j.at === null || !own)
       return null;
     const before = root.submenu?.openToLeft ?? false;
-    const tip = j.at + (before ? 1 : -1) * ((root.submenu?.hidden ?? 0) - Appearance.borderWidth);
+    const tip = j.at + (before ? 1 : -1) * (root.submenu?.hidden ?? 0);
     return Object.assign({}, j.stretch, before ? {
-      "start": Math.min(own.start, Math.max(j.at, tip))
+      "start": Math.min(own.start, tip)
     } : {
-      "end": Math.max(own.end, Math.min(j.at, tip))
+      "end": Math.max(own.end, tip)
+    }, {
+      "box": {
+        "start": Math.min(root.place.start, j.at),
+        "end": Math.max(root.place.end, j.at)
+      }
     });
   }
 
@@ -321,8 +327,9 @@ QtObject {
   readonly property real _surfaceFromEdge: root.attachAt - root.backfill
   readonly property real joinReach: root._surfaceFromEdge + (root.attachedSurface?.joinWall ?? 0)
   // How much of the surface is still behind its edge as it slides: what a
-  // pill bar joined at an end follows it along by (PillBarJoin.hidden)
-  readonly property real _surfaceHidden: root.attachedSurface ? root.attachedSurface.slid + root.attachedSurface.hiddenBehind : 0
+  // pill bar joined at an end follows it along by (PillBarJoin.hidden,
+  // AttachedSurface.hiddenNow)
+  readonly property real _surfaceHidden: root.attachedSurface?.hiddenNow ?? 0
   function _edgeSpan(start, end) {
     return {
       "screen": root.screen?.name ?? "",
@@ -411,13 +418,30 @@ QtObject {
       "end": end + root._toBar
     };
   }
+  // A stretch (with its surface's `box`) in the bar's coordinates, with
+  // the pill it stands on at rest (`pill`: BarLayout.pillIndex finds it
+  // again should the bar's pills change before it's sent anew)
+  function _toBarStretch(stretch) {
+    const pill = root.place.pill;
+    return Object.assign({}, stretch, root._toBarSpan(stretch.start, stretch.end), {
+      "box": root._toBarSpan(stretch.box.start, stretch.box.end),
+      "pill": pill ? {
+        "start": pill.start + root._toBar,
+        "length": pill.length
+      } : null
+    });
+  }
   property PillStretch _stretch: PillStretch {
     container: root.container
     owner: root.owner
     open: root.open
-    stretch: root.showing && root.stretch ? Object.assign({}, root.stretch, root._toBarSpan(root.stretch.start, root.stretch.end), {
-      "covered": root._covers
-    }) : null
+    stretch: root.showing && root.stretch ? root._toBarStretch(Object.assign({}, root.stretch, {
+      "box": {
+        "start": root.place.start,
+        "end": root.place.end
+      }
+    })) : null
+    covered: root._covers
     opening: root.showing && root.onPill && Appearance.translucent ? root._toBarSpan(root._coverStart, root._coverEnd) : null
   }
   // Whether the surface is out over the stroke it stands on (none of it
@@ -428,7 +452,7 @@ QtObject {
     container: root.container
     owner: root.owner + ":submenu"
     tracks: true
-    stretch: root.showing && root._submenuReach ? Object.assign({}, root._submenuReach, root._toBarSpan(root._submenuReach.start, root._submenuReach.end)) : null
+    stretch: root.showing && root._submenuReach ? root._toBarStretch(root._submenuReach) : null
     opening: root.showing && root.onPill && Appearance.translucent && root.submenuSpan ? root._toBarSpan(root.submenuSpan.start, root.submenuSpan.end) : null
   }
 }

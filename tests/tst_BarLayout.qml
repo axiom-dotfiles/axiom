@@ -579,6 +579,183 @@ TestCase {
     ], 1000)[0].joinEnd);
   }
 
+  function test_pillIndex() {
+    const rects = [
+      {
+        "start": 0,
+        "length": 20
+      },
+      {
+        "start": 100,
+        "length": 200
+      }
+    ];
+    // Its pill where it says: its index
+    compare(BarLayout.pillIndex(rects, {
+      "index": 1,
+      "pill": {
+        "start": 100,
+        "length": 200
+      }
+    }), 1);
+    // No pill carried: its index as given
+    compare(BarLayout.pillIndex(rects, {
+      "index": 0
+    }), 0);
+    // A stub came at the start since it was sent: found where it was
+    compare(BarLayout.pillIndex(rects, {
+      "index": 0,
+      "pill": {
+        "start": 100,
+        "length": 200
+      }
+    }), 1);
+    // ...and a stub went: found again, or -1 where nothing's there
+    compare(BarLayout.pillIndex([rects[1]], {
+      "index": 1,
+      "pill": {
+        "start": 100,
+        "length": 200
+      }
+    }), 0);
+    compare(BarLayout.pillIndex([rects[1]], {
+      "index": 1,
+      "pill": {
+        "start": 400,
+        "length": 50
+      }
+    }), -1);
+    compare(BarLayout.pillIndex([], {
+      "index": 0
+    }), -1);
+  }
+
+  function test_onPills() {
+    const rects = [
+      {
+        "start": 0,
+        "length": 20
+      },
+      {
+        "start": 100,
+        "length": 200
+      }
+    ];
+    const moved = BarLayout.onPills(rects, [
+      {
+        "index": 0,
+        "start": 80,
+        "end": 300,
+        "pill": {
+          "start": 100,
+          "length": 200
+        }
+      },
+      {
+        "index": 0,
+        "start": 0,
+        "end": 400,
+        "pill": {
+          "start": 500,
+          "length": 50
+        }
+      }
+    ]);
+    compare(moved.length, 1, "its pill gone: left out");
+    compare(moved[0].index, 1);
+    compare(moved[0].start, 80);
+  }
+
+  function test_flushEnds() {
+    const g = {
+      "reach": 10,
+      "across": 40,
+      "inner": 30,
+      "near": true
+    };
+    const shapes = [
+      {
+        "start": 100,
+        "length": 200,
+        "squareStart": true,
+        "squareEnd": false
+      }
+    ];
+    const st = {
+      "index": 0,
+      "start": 100,
+      "end": 300,
+      "squareStart": true
+    };
+    // No box: as far as the stretch reaches in, capped by the reach
+    const wide = BarLayout.flushEnds([st], shapes, g);
+    compare(wide.length, 1);
+    compare(wide[0].source, {
+      "along": 100,
+      "length": 20,
+      "from": 30,
+      "deep": 10
+    });
+    compare(wide[0].holes[0], {
+      "along": 90,
+      "length": 10,
+      "from": 30,
+      "deep": 20
+    }, "beside the wall, from the inner edge out past the far side");
+    compare(wide[0].holes[1].along, 100);
+    compare(wide[0].holes[1].length, 30, "under the surface, as far as the run-on's shadow spreads");
+    // A narrow box: nothing past its far wall
+    const narrow = BarLayout.flushEnds([Object.assign({}, st, {
+        "box": {
+          "start": 100,
+          "end": 115
+        }
+      })], shapes, g);
+    compare(narrow[0].source.length, 15);
+    compare(narrow[0].holes[1].length, 15);
+    // Not while its surface is all behind its edge, nor where it isn't
+    // drawn squared there
+    compare(BarLayout.flushEnds([Object.assign({}, st, {
+        "covered": false
+      })], shapes, g).length, 0);
+    compare(BarLayout.flushEnds([st], [Object.assign({}, shapes[0], {
+        "squareStart": false
+      })], g).length, 0);
+    // An end, on a bar on the far side (right or bottom): mirrored
+    const far = BarLayout.flushEnds([
+      {
+        "index": 0,
+        "start": 100,
+        "end": 300,
+        "squareEnd": true
+      }
+    ], [
+      {
+        "start": 100,
+        "length": 200,
+        "squareEnd": true
+      }
+    ], {
+      "reach": 10,
+      "across": 40,
+      "inner": 10,
+      "near": false
+    });
+    compare(far[0].source, {
+      "along": 280,
+      "length": 20,
+      "from": 0,
+      "deep": 10
+    });
+    compare(far[0].holes[0], {
+      "along": 300,
+      "length": 10,
+      "from": -10,
+      "deep": 20
+    });
+    compare(far[0].holes[1].along, 270);
+  }
+
   function test_endReaches_on_a_bar_with_no_pills() {
     const r = BarLayout.endReaches([], [
       {

@@ -37,7 +37,7 @@ Every popout host can open one submenu beside its box. This doc covers how the s
 - **Keeping the parent up:** it keeps the parent open while it's open (`PopoutWrapperBase.childOpen`, from its `submenuHost`).
 - **Closing with the pointer off the parent:** this takes the parent with it (`ownHovered`).
 - **Its context first:** a submenu longer than the parent's side stretches the parent's box past its end (`parentStretch`). That stretch grows out first (`SubmenuHost`'s progress, animFast), and the submenu slides out only once it has (`SubmenuHost.contextReady`, read by its surface's `active`). Closing mirrors it: the submenu slides away, then the box draws back. A stretch changing while it's out (gliding to a sibling's submenu) glides there. See [Choreography](edge-attach.md#choreography).
-- **Its pill reach follows it:** the pill or island stretched along under a joined submenu runs out with its outer wall as it slides (`SubmenuHost.hidden`), a stroke ahead, and back with it.
+- **Its pill reach follows it:** the pill or island stretched along under a joined submenu runs out with its outer wall as it slides (`SubmenuHost.hidden`), and back with it.
 - **Tray cascade:** a submenu that closes with the pointer off both the tray menu and its icon (the pointer left, or an entry was picked) closes the menu at once (`content/SystemTray`). This is a cascade, not the menu's own dismiss delay after it.
 
 ### Position
@@ -70,7 +70,7 @@ Every popout host can open one submenu beside its box. This doc covers how the s
 - **`SubPopout.parentStretch`** is `{ top, bottom, squareTop, squareBottom, joined, wall }` (`wall`: its outer wall at rest, x in the parent's window, while joined at the bar side).
   - `BarPopouts` draws it: `shownStretchTop`/`Bottom`, the corner flags, and the window keeping room for it as it does for its box.
 - **Meeting a pill, the way a bar popout does** (`SurfaceContext.submenuJoin`, tested in `tst_SurfaceContext`; read back as `SubPopout.joinFillets`):
-  - **Something shows past its wall:** the parent's own pill or island, or a neighbour a stretch to the wall would come within `pillMerge` of. Its outer fillet then curves into the stroke, and the parent's pill is carried on past the fillet and its corner (merging into that neighbour), as a bar popout's `pillGrows` does. A wall running straight into a pill that carried on past it met it at a bare right angle.
+  - **Something shows past its wall:** the parent's own pill or island, or a neighbour starting within the fillet, its corner and `pillMerge` of the wall: the rule a pill bar's joined end follows (`EdgeAttach.pillJoinFilleted`). Its outer fillet then curves into the stroke, and the parent's pill is carried on past the fillet and its corner (merging into that neighbour), as a bar popout's `pillGrows` does. A wall running straight into a pill that carried on past it met it at a bare right angle.
   - **Otherwise** its wall runs straight up (`straightJoins`) into the pill or island, which is stretched to the wall and squared there.
   - Short of room to grow (past where islands may reach, or the strokes at the edge's ends), it runs straight, at that limit.
   - Off a pill (the border's or a solid bar's stroke), it fillets where that stroke runs on past its fillet and corner.

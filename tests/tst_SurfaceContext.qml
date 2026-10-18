@@ -593,6 +593,16 @@ TestCase {
       row("within merge of the neighbour", {
         "wall": 690
       }, true, 718, false),
+      // Further than the merge, but within the fillet, its corner and the
+      // merge: carried on, as a pill bar's joined end is
+      // (EdgeAttach.pillJoinFilleted)
+      row("within the fillet and merge of the neighbour", {
+        "wall": 670
+      }, true, 698, false),
+      // ...and just past that: straight
+      row("past the fillet and merge of the neighbour", {
+        "wall": 655
+      }, false, 655, true),
       // Near the neighbour's far end: carried on past it for the fillet
       row("past most of the neighbour", {
         "wall": 890

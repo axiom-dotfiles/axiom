@@ -86,7 +86,7 @@ Rectangle {
   // stretched onto it and join it. On a floating bar, its islands
   // (BarLayout.islandRects): one along it, or one per group.
   // Pills asked to reach an end run there, or a stub grows there for them
-  // (BarLayout.endReaches, setEndReach).
+  // (BarLayout.endReaches, setRequest).
   readonly property var pillRects: {
     if (islands)
       return BarLayout.islandRects(root._spans, root.barConfig.islandGap, root.barConfig.pillMerge, root.islandFrom, root.islandEnd, !root.barConfig.islandPills);
@@ -166,7 +166,7 @@ Rectangle {
   property var _stretches: ({})
   property var _endReaches: ({})
   property var _openings: ({})
-  readonly property var _stretchList: Object.keys(root._stretches).map(k => root._stretches[k]).concat(root.pills ? root._endReach.stretches : [])
+  readonly property var _stretchList: BarLayout.onPills(root.pillRects, Object.keys(root._stretches).map(k => root._stretches[k])).concat(root.pills ? root._endReach.stretches : [])
   readonly property var _endReachList: Object.keys(root._endReaches).map(k => root._endReaches[k])
   readonly property var _openingList: Object.keys(root._openings).map(k => root._openings[k])
   // `map` with `owner`'s entry set to `value` (or with null cleared), or
@@ -456,50 +456,21 @@ Rectangle {
     };
   }
   // The pill and island ends squared for a surface whose wall runs on
-  // from them past their inner edge (a popout flush to the end, a submenu
-  // joined straight into it, a popout on the perpendicular edge an end
-  // reach runs it on to), from the stretches. Each casts
-  // as if that wall ran on (`source`, a copy of the end past the inner edge
-  // in the shadow's source, wide: a thin strip's blur is much weaker), and
-  // is cut past the inner edge beside it, where the surface's shadow, cast
-  // the same way from its side (AttachedSurface), takes over: both at full
-  // strength where they meet, with no step. It's cut under the surface too
-  // (`holes`), as far as the run-on's shadow spreads (the surface casts
-  // there), or it glows round the run-on while the surface slides. All
-  // only while the surface is out over the stroke (the stretch's
-  // `covered`): squared before it slid out, the pill's own wall lost its
-  // shadow.
+  // from them past the inner edge, its shadow run on with it
+  // (BarLayout.flushEnds)
   readonly property var _flushEnds: {
-    const reach = root.barConfig.shadowSize * 2;
-    const extent = root.barConfig.extent;
     const across = root.isVertical ? root.width : root.height;
     const near = root.barConfig.left || root.barConfig.top;
-    const inner = near ? extent : across - extent;
-    const rect = (along, length, from, deep) => root.isVertical ? Qt.rect(from, along, deep, length) : Qt.rect(along, from, length, deep);
-    // From the inner edge out, past the bar's far side
-    const outward = (along, length) => rect(along, length, near ? inner : -reach, near ? across - inner + reach : inner + reach);
-    // `span`: how far the surface reaches in from the end
-    const end = (at, atStart, span) => {
-      const length = Math.min(span, reach * 2), under = Math.min(span, length + reach);
-      return {
-        "source": rect(atStart ? at : at - length, length, near ? inner : inner - reach, reach),
-        "holes": [outward(atStart ? at - reach : at, reach), outward(atStart ? at : at - under, under)]
-      };
-    };
-    // ...where the pill or island is drawn ending there, squared
-    const drawn = (at, atStart) => root.pillShapes.some(r => (atStart ? r.squareStart : r.squareEnd) && Math.abs((atStart ? r.start : r.start + r.length) - at) <= 1);
-    const ends = [];
-    // (an end reach too: a pill run on from the bar's end to a surface on
-    // the perpendicular edge, whose wall carries on from its squared end)
-    root._stretchList.forEach(st => {
-      if (st.covered === false)
-        return;
-      if (st.squareStart && drawn(st.start, true))
-        ends.push(end(st.start, true, st.end - st.start));
-      if (st.squareEnd && drawn(st.end, false))
-        ends.push(end(st.end, false, st.end - st.start));
-    });
-    return ends;
+    const rect = a => root.isVertical ? Qt.rect(a.from, a.along, a.deep, a.length) : Qt.rect(a.along, a.from, a.length, a.deep);
+    return BarLayout.flushEnds(root._stretchList, root.pillShapes, {
+      "reach": root.barConfig.shadowSize * 2,
+      "across": across,
+      "inner": near ? root.barConfig.extent : across - root.barConfig.extent,
+      "near": near
+    }).map(e => ({
+          "source": rect(e.source),
+          "holes": e.holes.map(rect)
+        }));
   }
   // The bar an end makes way for (`other`, its container: a solid bar, or
   // a pill bar its end pill merges into), from its inner edge on: a shadow

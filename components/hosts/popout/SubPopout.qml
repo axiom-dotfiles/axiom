@@ -481,11 +481,12 @@ Item {
   onScreenChanged: ShellManager.registerGrabPartner(submenuPopup, outer.screen?.name)
   Component.onDestruction: ShellManager.unregisterGrabPartner(submenuPopup)
 
-  // What PopoutAnchor and the parent use of the inner PopoutWrapperBase;
-  // the content is handed that one itself (`wrapper`)
   // How much of it is still behind its parent's side as it slides
   // (AttachedSurface.slid): the pill reach under a joined one follows it
   readonly property real hidden: surface.slid
+
+  // What PopoutAnchor and the parent use of the inner PopoutWrapperBase;
+  // the content is handed that one itself (`wrapper`)
   readonly property alias occupied: root.occupied
   readonly property alias isOpen: root.isOpen
   readonly property alias currentData: root.currentData
