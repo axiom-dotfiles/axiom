@@ -214,7 +214,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.iconFamily` (string): Icons are Material Symbols names drawn in this font (StyledIcon), so they don't depend on the text font
   - in: `components/content/TopProcesses.qml`, `components/reusable/StyledIcon.qml`, `components/surfaces/onboarding/pages/ChecksPage.qml`, `services/DependencyManager.qml`
 - `Appearance.borderRadius` (int): --- Shape ---
-  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/EdgeSurface.qml` (+16 more)
+  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/EdgeSurface.qml`, `components/hosts/popout/FloatingPopout.qml` (+14 more)
 - `Appearance.connectorGap` (int): The gap a surface growing out of an edge keeps between its box and that edge, which its fillets curve across (AttachedSurface, EdgeAttach)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/SubPopout.qml`
 - `Appearance.borderWidth` (int)

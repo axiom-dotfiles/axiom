@@ -6,7 +6,8 @@ import qs.config
 
 // One box as a blur region (BackgroundEffect.blurRegion, where the
 // compositor blurs only what a window asks: supports.blurRegion), in its
-// window's coordinates, its corners rounded by `radius`. A Region's own
+// window's coordinates, its corners rounded as the box's (a Rectangle's
+// `radius`; set `radius` for another). A Region's own
 // `item` is read again only when that item moves itself, so the box is
 // mapped here, again whenever `moving` changes: whatever else moves it
 // (a parent sliding, a transform), and as it scales. Empty while there's
@@ -22,6 +23,8 @@ Region {
   // the blur threshold, or nearly nothing for a dim (a backdrop)
   property real opacity: 1
   property real threshold: Appearance.blurThreshold
+
+  radius: (root.target as Rectangle)?.radius ?? 0
 
   readonly property rect _at: {
     void root.moving;

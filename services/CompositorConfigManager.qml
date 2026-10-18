@@ -101,7 +101,7 @@ Singleton {
   // The window look and the input that are on, for a file (`forFile`) or
   // for now: { look (CompositorLayer.look), surfaces ({ blur,
   // throughWindows, backdrops, threshold }: CompositorLayer.surfaceBlur's),
-  // input (CompositorLayer.input), surfacesBlur }
+  // input (CompositorLayer.input) }
   function spec(forFile) {
     const surfacesBlur = _surfacesBlur(forFile);
     return {
@@ -128,8 +128,7 @@ Singleton {
         "backdrops": Appearance.blurBackdrops,
         "threshold": Appearance.blurThreshold
       },
-      "input": CompositorLayer.input(InputConfig.input, CursorThemeManager.xcursorTheme),
-      "surfacesBlur": surfacesBlur
+      "input": CompositorLayer.input(InputConfig.input, CursorThemeManager.xcursorTheme)
     };
   }
 

@@ -41,7 +41,6 @@ PanelWindow {
     id: cardBlur
     target: card
     opacity: card.opacity
-    radius: Appearance.borderRadius
   }
 
   Rectangle {

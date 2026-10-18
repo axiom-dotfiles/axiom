@@ -12,18 +12,24 @@ Region {
   id: root
 
   property var pieces: []
+  // How many there are: the model follows only this, so pieces moving
+  // re-evaluate no model
+  readonly property int _count: root.pieces.length
 
   regions: pieceRegions.instances
 
   property Variants _pieces: Variants {
     id: pieceRegions
-    model: root.pieces.map((_, i) => i)
+    model: Array.from({
+      "length": root._count
+    }, (_, i) => i)
 
     delegate: Region {
       id: piece
       required property int modelData
       readonly property var spec: root.pieces[piece.modelData] ?? null
       readonly property var cuts: piece.spec?.cuts ?? []
+      readonly property int cutCount: piece.cuts.length
       x: piece.spec?.x ?? 0
       y: piece.spec?.y ?? 0
       width: piece.spec?.width ?? 0
@@ -36,7 +42,9 @@ Region {
 
       property Variants _cuts: Variants {
         id: cutRegions
-        model: piece.cuts.map((_, i) => i)
+        model: Array.from({
+          "length": piece.cutCount
+        }, (_, i) => i)
 
         delegate: Region {
           id: cut

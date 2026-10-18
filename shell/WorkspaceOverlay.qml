@@ -128,7 +128,6 @@ Scope {
         id: overviewBlur
         target: overview
         opacity: content.opacity
-        radius: Appearance.borderRadius
       }
 
       Item {

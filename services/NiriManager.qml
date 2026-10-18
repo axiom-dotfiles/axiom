@@ -46,7 +46,8 @@ Singleton {
   // (niri_config.py info), its offset as the size (NiriConf.lookNodes
   // writes the window look's size as the offset), niri's defaults until
   // read
-  property var blur: ({
+  readonly property var blur: root._blur
+  property var _blur: ({
       "enabled": true,
       "size": 3,
       "passes": 3
@@ -491,8 +492,8 @@ Singleton {
           "size": Number(info.blur?.offset) || 0,
           "passes": Number(info.blur?.passes) || 0
         };
-        if (JSON.stringify(blur) !== JSON.stringify(root.blur))
-          root.blur = blur;
+        if (JSON.stringify(blur) !== JSON.stringify(root._blur))
+          root._blur = blur;
       } catch (e) {}
     });
   }

@@ -145,13 +145,11 @@ ReservedAreaWindow {
       target: overlayPages.box
       moving: [slideTranslate.y, overlayPages.x, overlayPages.y, overlayPages.width, overlayPages.height]
       opacity: slideContainer.opacity
-      radius: Appearance.borderRadius
     }
     BoxBlurRegion {
       target: navigator
       moving: slideTranslate.y
       opacity: slideContainer.opacity
-      radius: Appearance.borderRadius
     }
   }
 
