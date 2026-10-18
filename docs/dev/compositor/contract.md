@@ -68,6 +68,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `blurThreshold` | the blur leaves pixels under `Appearance.blurThreshold` out (Hyprland's `ignore_alpha`), so the blur window casts the chrome's shadows itself, under it (`Appearance.shadowAlphaMax`). Without it (SwayFX, whose `blur_ignore_transparent` leaves out only clear pixels) windows of their own that aren't blurred cast them (`axiom-shadows`, `axiom-shadows-overlay`; `shell/BlurBacking.qml`) |
 | `cursorPos`, `cursorWarp` | `withCursorPos`, `warpCursorToLayer` |
 | `windowGeometry` | window positions and sizes are real: without it the screenshot's window mode is left out (`ScreenshotManager.kinds`; a `window` request takes a region) and no window obscures a dock (`DockManager.obscured`) unless `windowCover`. The overview still draws windows where they say they are |
+| `outputCapture` | Quickshell captures an output safely (the compositor has ext-image-copy-capture): the screenshot picker's frozen frame is a `ScreencopyView`. Without it (niri, wlr-screencopy only, whose capture in Quickshell crashes the shell: [issues](../issues.md)) grim takes it (`ScreenshotManager.grimFrames`) |
 | `windowCover` | without `windowGeometry`, windows carry a `cover` (niri's tiled ones), which obscures a dock (`DockManager.obscured`) |
 | `workspaceSlide` | `travel` legs slide |
 | `windowBorders`, `windowShape`, `windowGaps`, `windowBlur`, `windowOpacity` | the `WindowLook` parts shown and applied |

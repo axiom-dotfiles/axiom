@@ -25,6 +25,7 @@ pkgbase = axiom-shell-git
 	optdepends = pacman-contrib: package update checks
 	optdepends = wl-clipboard: copying screenshots, the launcher calculator and emoji, clipboard history
 	optdepends = wf-recorder: screen recording
+	optdepends = grim: screenshots (niri)
 	optdepends = satty: annotating screenshots
 	optdepends = libqalculate: launcher calculator
 	optdepends = wtype: typing emoji from the launcher

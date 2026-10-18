@@ -32,6 +32,7 @@ optdepends=(
   'pacman-contrib: package update checks'
   'wl-clipboard: copying screenshots, the launcher calculator and emoji, clipboard history'
   'wf-recorder: screen recording'
+  'grim: screenshots (niri)'
   'satty: annotating screenshots'
   'libqalculate: launcher calculator'
   'wtype: typing emoji from the launcher'

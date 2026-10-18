@@ -8,8 +8,9 @@ import qs.config
 
 // Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`,
 // launcher `/screenshot`, the Screenshot card), taken natively: while
-// `picking`, shell/Screenshot shows a frozen frame (ScreencopyView) on each
-// screen, where a region is dragged or a window clicked (`region`), or a
+// `picking`, shell/Screenshot shows a frozen frame (ScreencopyView, or
+// grim's picture where Quickshell can't capture safely: `grimFrames`) on
+// each screen, where a region is dragged or a window clicked (`region`), or a
 // window clicked (`window`), and crops it at the screen's own resolution.
 // `screen` captures the focused monitor at once. The picture is saved in
 // `folder` (the Screenshots section), or only to a scratch file
@@ -32,8 +33,8 @@ QtObject {
 
   // The picker is open (or an immediate capture is running)
   property bool picking: false
-  // Picking, or waiting for the launcher to close first
-  readonly property bool busy: root.picking || root._delay.running
+  // Picking, or waiting for the launcher to close first (or for grim)
+  readonly property bool busy: root.picking || root._delay.running || root._grim.running
   // { kind, screen: the screen an immediate `screen` capture takes }
   property var request: null
   // Keep nothing on disk, only copy (saved in Paths.statePath screenshot.json)
@@ -77,6 +78,17 @@ QtObject {
   readonly property string _scratchDir: Paths.runtimePath.replace(/\/$/, "")
 
   readonly property var _state: StateManager.createStateHandler("screenshot")
+
+  // The picker's frozen frames are grim's pictures, taken just before it
+  // opens, not Quickshell's own capture (ScreencopyView): where the
+  // compositor has no capture Quickshell does safely (CompositorManager.
+  // supports.outputCapture). niri has only wlr-screencopy, and Quickshell's
+  // capture through it crashes the shell once a surface then unmaps
+  // (docs/dev/issues.md).
+  readonly property bool grimFrames: CompositorManager.supports.outputCapture !== true
+  // { screen name: picture path } while picking with grimFrames
+  readonly property var frames: root._frames
+  property var _frames: ({})
 
   // The kinds take() offers: "window" only where the compositor knows
   // where windows are (CompositorManager.supports.windowGeometry)
@@ -322,9 +334,68 @@ QtObject {
         "kind": kind,
         "screen": CompositorManager.focusedOutput
       };
+      if (root.grimFrames) {
+        root._grabFrames();
+        return;
+      }
       root.picking = true;
       root._watchdog.restart();
     }
+  }
+
+  // grim's picture of each screen the picker shows (only the captured one
+  // for an immediate `screen` shot), at the screen's own scale, then the
+  // picker. PPM: quick to write and to read back
+  function _grabFrames() {
+    const stamp = Date.now();
+    const frames = {};
+    const args = [];
+    General.outputs.filter(s => root.request.kind !== "screen" || s.name === root.request.screen).forEach(s => {
+      const path = `${root._scratchDir}/frame-${s.name}-${stamp}.ppm`;
+      frames[s.name] = path;
+      args.push(s.name, String(s.devicePixelRatio), path);
+    });
+    root._pendingFrames = frames;
+    root._grim.command = ["sh", "-c", 'command -v grim >/dev/null || exit 127; while [ $# -gt 0 ]; do grim -t ppm -s "$2" -o "$1" "$3" || exit 1; shift 3; done', "sh"].concat(args);
+    root._grim.running = true;
+  }
+  property var _pendingFrames: ({})
+
+  property Process _grim: Process {
+    stderr: StdioCollector {
+      id: grimErrors
+    }
+    onExited: code => {
+      const frames = root._pendingFrames;
+      root._pendingFrames = {};
+      // Cancelled meanwhile
+      if (!root.request) {
+        root._dropFrames(frames);
+        return;
+      }
+      if (code !== 0) {
+        root._dropFrames(frames);
+        root.fail(code === 127 ? I18n.tr("Screenshots here need grim.") : I18n.tr("grim couldn't take a picture of the screen: {0}", grimErrors.text.trim()));
+        return;
+      }
+      root._frames = frames;
+      root.picking = true;
+      root._watchdog.restart();
+    }
+  }
+
+  function _dropFrames(frames) {
+    const paths = Object.keys(frames).map(name => frames[name]);
+    if (paths.length > 0)
+      Quickshell.execDetached(["rm", "-f"].concat(paths));
+  }
+
+  // Gone with the picker
+  onPickingChanged: {
+    if (root.picking || Object.keys(root._frames).length === 0)
+      return;
+    root._dropFrames(root._frames);
+    root._frames = {};
   }
 
   // Called by a picker when its frame is in. A picker keeps waiting on the
@@ -476,7 +547,7 @@ QtObject {
     const saved = root._state.load({});
     root.copyOnly = saved.copyOnly === true;
     root.recordAudio = ["system", "mic"].includes(saved.recordAudio) ? saved.recordAudio : "none";
-    DependencyManager.check(["satty", "swappy", "wf-recorder"]);
+    DependencyManager.check(["satty", "swappy", "wf-recorder"].concat(root.grimFrames ? ["grim"] : []));
     root._probe.running = true;
     NotificationManager.registerHandler(_desktopEntry, () => {
       if (root._lastPath !== "")

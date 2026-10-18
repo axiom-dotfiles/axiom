@@ -4,7 +4,7 @@
 > **Config:** `Screenshots` (`folder`, `recordingFolder`; reader `config/Screenshots.qml`); the picker's choices persist in `~/.local/state/axiom/ui/screenshot.json`
 > **Related:** [Keybinds](../hyprland/keybinds.md), [Chat](chat.md) (region attachments), [Utility modules](../overlay/utility-modules.md)
 
-Screenshots and wf-recorder recordings, both in `ScreenshotManager`, with one picker surface for both. Grim and slurp are not used.
+Screenshots and wf-recorder recordings, both in `ScreenshotManager`, with one picker surface for both. Slurp is not used; grim only takes the picker's frame under niri (below).
 
 Name clash: `KeybindManager.startRecording(index)` is the key recorder on the Keybinds page. It has nothing to do with screen recording.
 
@@ -17,7 +17,7 @@ Name clash: `KeybindManager.startRecording(index)` is the key recorder on the Ke
 
 ### The picker
 - While `picking`, `shell/Screenshot` shows `surfaces/screenshot/ScreenshotPickerWindow`:
-  - one frozen `ScreencopyView` frame per screen;
+  - one frozen frame per screen: a `ScreencopyView`, or grim's picture (below);
   - layer rule `axiom-screenshot` with `no_anim`;
   - the window under the cursor is highlighted from the start (`CompositorManager.withCursorPos`).
 - Kinds:
@@ -25,6 +25,16 @@ Name clash: `KeybindManager.startRecording(index)` is the key recorder on the Ke
   - **`window`:** click a window.
   - **`screen`:** grabs at once, on one screen.
 - **Cropping:** a `ShaderEffectSource` + `grabToImage`, at the buffer's resolution.
+
+### The frame from grim (niri)
+- **When:** `ScreenshotManager.grimFrames`, on wherever the backend leaves out `CompositorManager.supports.outputCapture` (niri; sway and Hyprland keep the `ScreencopyView`).
+- **Why:** niri 26.04 has only wlr-screencopy, and Quickshell's capture through it binds a `wl_output` of its own that Qt takes for a screen. The shell then crashes the next time a surface leaves or enters an output, at once with a popout open (it unmaps as the picker opens). The upstream bug and its trace are in [issues](../issues.md) › *Quickshell's wlr screencopy crashes the shell on niri*.
+- **How:**
+  - `_grabFrames` runs grim before the picker opens: one picture per screen the picker shows (only the captured one for `screen`), `grim -t ppm -s <devicePixelRatio> -o <screen>`, into `Paths.runtimePath`. The picker opens once grim exits; `busy` covers the wait.
+  - Each picker shows its screen's picture (`ScreenshotManager.frames`) as an `Image`; `frozen`, the crop and `frameArrived()` work as with the `ScreencopyView`, whose `captureSource` stays null.
+  - The pictures are removed when the picker closes, or when it's cancelled while grim runs.
+- **Without grim:** the screenshot fails with a notification (`Screenshots here need grim.`). grim is an optional dependency for niri (install.sh, `Packages`, the AUR optdepends, the onboarding's checks).
+- **Remove it** when Quickshell's wlr screencopy no longer binds its own `wl_output`: then niri can declare `outputCapture`, or the key can go.
 
 ### After a capture
 - **Saving:** to `folder`: `Screenshots.folder`, else `<Pictures>/Screenshots` (`xdg-user-dir PICTURES`). With `copyOnly` it is only a runtime file.

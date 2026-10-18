@@ -475,7 +475,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 ## components/surfaces/screenshot/
 
-- `ScreenshotPickerWindow.qml`: One screen's screenshot picker: the screen frozen (one ScreencopyView frame), dimmed except for what a click or release would capture, with the window under the cursor highlighted.
+- `ScreenshotPickerWindow.qml`: One screen's screenshot picker: the screen frozen (one ScreencopyView frame, or grim's picture of it where Quickshell can't capture it safely: ScreenshotManager.grimFrames), dimmed except for what a click or release wou…
 
 ## components/surfaces/switcher/
 
@@ -679,7 +679,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `RuntimeLayer.qml`: Axiom's layer applied at runtime, for a compositor's config writer: the detached mode, and the fallback of the file modes while their file isn't loaded (docs/dev/compositor/config-modes.md).
 - `SavedConfigsManager.qml`: Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/saved/.
 - `ScreenLayoutEditor.qml`: The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lock screen's, LockManager.editor, or the greeter's, GreeterManager.editor): its modules on a bounded grid, edited through `layout`, its own …
-- `ScreenshotManager.qml`: Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shell/Screenshot shows a frozen frame (ScreencopyView) on each s…
+- `ScreenshotManager.qml`: Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shell/Screenshot shows a frozen frame (ScreencopyView, or grim's…
 - `SecretsManager.qml`: Secrets, which never go in config.json: chat API keys (scope `provider`) and calendar account passwords (scope `calendar`).
 - `SelfUpdateManager.qml`: Updates axiom itself (not packages: that's UpdatesManager).
 - `SettingsManager.qml`: The settings page's working copy of the config.

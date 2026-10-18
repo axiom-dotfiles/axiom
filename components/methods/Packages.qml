@@ -208,6 +208,10 @@ QtObject {
         "arch": "wf-recorder",
         "fedora": "wf-recorder"
       },
+      "grim": {
+        "arch": "grim",
+        "fedora": "grim"
+      },
       "satty": {
         "arch": "satty",
         "fedora": {

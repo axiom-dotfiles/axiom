@@ -48,6 +48,7 @@ Singleton {
       "cursorPos": true,
       "cursorWarp": true,
       "windowGeometry": true,
+      "outputCapture": true,
       "workspaceSlide": true,
       "windowBorders": true,
       "windowShape": true,
