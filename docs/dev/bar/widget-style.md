@@ -49,7 +49,7 @@ The base classes bar widgets extend, where their sizes come from, and how their 
 ### Which color fields show
 - A widget's color fields show in the bar editor's inspector only in the bar looks where they draw something.
   - Their `x-showIf` reads the look of the selected bar through `$bar.<key>` keys. The values come from `Bar.lookContext`: `lookOf`, with grouping counted only for boxed styles.
-  - `tst_Config` checks that each such key names a `BarStyle` field.
+  - `tst_SchemaLayout` (`test_real_schema_showIf_targets_exist`) checks that each such key names a `BarStyle` field, in a bar widget's options only.
 - **The widget's own color** (`backgroundColor` titled "Color", and its state colors). It is the fill when filled, the tint or outline when tinted or outlined, the line when underlined, and the icon when merged or under colored icons.
   - Hidden under Plain text.
   - A widget with no icon (Time, the tray's box) shows it only when boxed and not merged, or when underlined.

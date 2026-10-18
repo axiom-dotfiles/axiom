@@ -1454,25 +1454,6 @@ TestCase {
     compare(look.sort(), Object.keys(shared).sort());
   }
 
-  // A bar widget option's `$bar.<key>` condition reads the bar's look
-  // (Bar.lookContext), so it names a BarStyle field
-  function test_bar_widget_conditions_name_bar_style_keys() {
-    const shared = schema.properties.BarStyle.properties;
-    const keysOf = condition => [].concat(...Object.keys(condition ?? {}).map(key => key === "anyOf" ? [].concat(...condition.anyOf.map(keysOf)) : [key]));
-    let checked = 0;
-    for (const name of Object.keys(schema.definitions).filter(name => name.endsWith("Widget"))) {
-      const options = schema.definitions[name].properties?.properties?.properties ?? {};
-      for (const key of Object.keys(options)) {
-        for (const used of keysOf(options[key]["x-showIf"]).filter(used => used.startsWith("$"))) {
-          verify(used.startsWith("$bar."), name + "." + key + ": " + used);
-          verify(shared[used.slice(5)] !== undefined, name + "." + key + ": " + used);
-          checked++;
-        }
-      }
-    }
-    verify(checked > 0);
-  }
-
   function test_v36_primary_bar_monitors_become_primary() {
     const loaded = load({
       "version": 35,

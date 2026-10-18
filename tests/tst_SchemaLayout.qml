@@ -517,6 +517,13 @@ TestCase {
           // The running compositor's, not the config's (SettingsManager.configValueAt)
           if (target.startsWith("/$"))
             continue;
+          // The look of the bar a widget sits on (Bar.lookContext): only
+          // a bar widget's options have it, and it names a BarStyle field
+          if (target.startsWith("$")) {
+            if (!/^\w+Widget\.properties$/.test(where) || !target.startsWith("$bar.") || !(target.slice(5) in schema.properties.BarStyle.properties))
+              bad.push(`${where}.${key}: ${target}`);
+            continue;
+          }
           if (target.startsWith("/")) {
             const path = target.slice(1).split(".");
             let s = schema;
