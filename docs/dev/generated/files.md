@@ -365,7 +365,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `StyledTabButton.qml`: One tab of a StyledTabBar: only its label, the bar drawing the current tab's highlight, which slides between its tabs
 - `StyledText.qml`: Text in the shell's font, size and foreground color; optionally turned for a vertical bar.
 - `StyledTextArea.qml`: A multi-line text field in a StyledContainer, optionally growing with its text.
-- `StyledTextButton.qml`: A button with a text label and an optional Material Symbols icon, with hover and press colors.
+- `StyledTextButton.qml`: A button with a text label and an optional Material Symbols icon, with hover and press colors and an optional tooltip.
 - `StyledTextEntry.qml`: A single-line text field in a StyledContainer.
 - `StyledToolTip.qml`: Hover tooltip in a popup window of its own, so it isn't clipped by the small layer windows (bars, popouts) buttons live in.
 - `StyledVolumeBar.qml`: A volume bar (vertical or horizontal) with its icon, mute and optional percentage: drag, click or scroll to set it.

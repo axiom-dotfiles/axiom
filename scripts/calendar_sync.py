@@ -884,17 +884,18 @@ def exclude_occurrence(cal, rid, tz):
 
 
 def _find_account(req):
+    """The writable account an edit is for: (kind, dav), dav None for "local"."""
     account = next((a for a in req.get("accounts", []) if a["id"] == req["account"]), None)
     if account is None:
         raise Failure("notFound", "Unknown account")
     kind = account.get("kind", "caldav")
     if kind == "local":
-        return account, None
+        return kind, None
     if kind != "caldav":
         raise Failure("readOnly", "Subscriptions are read-only")
     if not account.get("password"):
         raise Failure("noPassword", "No password saved for this account")
-    return account, Dav(account.get("username", ""), account.get("password", ""))
+    return kind, Dav(account.get("username", ""), account.get("password", ""))
 
 
 def _cached_object(req):
@@ -906,9 +907,9 @@ def _cached_object(req):
     return obj
 
 
-def _put(dav, href, cal, etag, data_dir=None):
-    if dav is None:
-        return _put_local(data_dir, href, cal, etag)
+def _put(req, kind, dav, href, cal, etag):
+    if kind == "local":
+        return _put_local(req.get("dataDir"), href, cal, etag)
     headers = {"Content-Type": "text/calendar; charset=utf-8"}
     if etag:
         headers["If-Match"] = etag
@@ -937,13 +938,13 @@ def _resync(req, result):
 
 def run_save(req):
     import icalendar
-    _, dav = _find_account(req)
+    kind, dav = _find_account(req)
     tz = local_zone()
     event = req["event"]
     if not req.get("href"):
         cal, uid = build_new(event, tz)
         href = req["calendar"].rstrip("/") + "/" + uid + ".ics"
-        _put(dav, href, cal, None, req.get("dataDir"))
+        _put(req, kind, dav, href, cal, None)
         return _resync(req, {"ok": True, "href": href})
     obj = _cached_object(req)
     cal = icalendar.Calendar.from_ical(obj["ics"])
@@ -951,21 +952,21 @@ def run_save(req):
         apply_occurrence(cal, event, req["rid"], tz)
     else:
         apply_series(cal, event, tz)
-    _put(dav, req["href"], cal, req.get("etag") or obj.get("etag"), req.get("dataDir"))
+    _put(req, kind, dav, req["href"], cal, req.get("etag") or obj.get("etag"))
     return _resync(req, {"ok": True, "href": req["href"]})
 
 
 def run_delete(req):
     import icalendar
-    _, dav = _find_account(req)
+    kind, dav = _find_account(req)
     etag = req.get("etag")
     if req.get("scope") == "occurrence" and req.get("rid"):
         obj = _cached_object(req)
         cal = icalendar.Calendar.from_ical(obj["ics"])
         if exclude_occurrence(cal, req["rid"], local_zone()):
-            _put(dav, req["href"], cal, etag or obj.get("etag"), req.get("dataDir"))
+            _put(req, kind, dav, req["href"], cal, etag or obj.get("etag"))
             return _resync(req, {"ok": True})
-    if dav is None:
+    if kind == "local":
         _delete_local(req.get("dataDir"), req["href"], etag)
         return _resync(req, {"ok": True})
     headers = {"If-Match": etag} if etag else {}

@@ -364,9 +364,11 @@ FoldingCard {
         textFormat: Text.PlainText
         elide: Text.ElideRight
       }
-      // A local calendar's name is the user's to change. Pushed in (the row
-      // shows another calendar when one above it is removed), never while
-      // being typed in
+      // A local calendar's name is the user's to change, committed like
+      // every settings text field: on Enter, focus loss or the page's Save
+      // (EditsManager.holdTyping shows Save while typed). Pushed in (the
+      // row shows another calendar when one above it is removed), never
+      // while being typed in
       StyledTextEntry {
         id: nameField
         readonly property string saved: calendarRow.calendar.name ?? ""
@@ -377,13 +379,33 @@ FoldingCard {
         // One line, cut off rather than wrapped in a narrow field
         input.wrapMode: TextInput.NoWrap
         Component.onCompleted: text = saved
+        Component.onDestruction: nameField.commitTyped()
         onSavedChanged: {
-          if (!nameField.input.activeFocus)
+          if (!nameField.typed)
             nameField.text = nameField.saved;
         }
-        onTextEdited: root.setCalendar(calendarRow.calendar.href, {
-          "name": nameField.text
-        })
+        onTextEdited: EditsManager.holdTyping(nameField, nameField.Window.window)
+        onAccepted: nameField.commitTyped()
+        input.onActiveFocusChanged: {
+          if (!nameField.input.activeFocus)
+            nameField.commitTyped();
+        }
+
+        // The typed name (an empty one puts the saved name back)
+        function commitTyped() {
+          const name = nameField.text.trim();
+          if (nameField.typed && name !== "" && name !== nameField.saved)
+            root.setCalendar(calendarRow.calendar.href, {
+              "name": name
+            });
+          nameField.discardTyped();
+        }
+
+        function discardTyped() {
+          nameField.typed = false;
+          nameField.text = nameField.saved;
+          EditsManager.releaseTyping(nameField);
+        }
       }
       StatusChip {
         shown: calendarRow.calendar.readOnly ?? false
@@ -419,6 +441,7 @@ FoldingCard {
         iconText: "delete"
         text: root.confirmDrop === calendarRow.calendar.href ? I18n.tr("Click again to remove (its files stay)") : ""
         hoverColor: Theme.error
+        tooltipText: root.confirmDrop === calendarRow.calendar.href ? "" : I18n.tr("Remove this calendar")
         onClicked: root.dropLocal(calendarRow.calendar.href)
       }
     }
