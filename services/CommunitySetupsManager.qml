@@ -10,7 +10,8 @@ import qs.components.methods
 // opened, never before, and the setups' thumbnails and screenshots into
 // the cache; applies one through SavedConfigsManager.applyShared (its
 // look only, after a "before-<id>" backup), first installing its palette
-// as the theme "community/<id>" and, when asked, its wallpaper. Every
+// as the theme "community/<id>" and, when asked, its wallpaper, then saves
+// the result as the saved config "community-<id>", the active one. Every
 // download goes through scripts/community_fetch.sh and is checked against
 // the catalog's sha256. Nothing here runs in the greeter.
 QtObject {
@@ -29,10 +30,12 @@ QtObject {
   readonly property var screenshots: _screenshots
   // The setup being downloaded and applied, "" for none
   readonly property string applying: _applying
-  // The setup last applied from here (kept in state), "" for none
-  readonly property string applied: _appliedId
+  // The setup whose saved config ("community-<id>") is the active one,
+  // unchanged, "" for none: switching to another or changing the look
+  // ends it
+  readonly property string applied: SavedConfigsManager.active.startsWith(_snapshotPrefix) && !SavedConfigsManager.modified ? SavedConfigsManager.active.slice(_snapshotPrefix.length) : ""
   // What happened last, for the gallery
-  property string status: ""
+  readonly property string status: _status
 
   // Reads the cached catalog and refreshes it once per session: the
   // gallery calls this when it's shown
@@ -53,7 +56,7 @@ QtObject {
     if (!root.enabled || root._indexFetch.running)
       return;
     root._fetched = true;
-    root.status = "";
+    root._status = "";
     root._indexFetch.command = [root._fetchScript, CommunitySetups.indexUrl, root._indexFile, "-"];
     root._indexFetch.running = true;
   }
@@ -77,11 +80,16 @@ QtObject {
     return root._fontFamilies === null ? [] : CommunityCatalog.missingFonts(setup, root._fontFamilies);
   }
 
-  // Downloads a setup's full screenshot (into `screenshots`)
+  // Downloads a setup's full screenshot (into `screenshots`); asked for
+  // during another's download, it follows that one
   function fetchScreenshot(id) {
     const setup = root.setup(id);
-    if (!setup || root._screenshots[id] || root._screenshotFetch.running)
+    if (!setup || root._screenshots[id])
       return;
+    if (root._screenshotFetch.running) {
+      root._screenshotNext = id;
+      return;
+    }
     const dest = root._setupDir(id) + "screenshot" + CommunityCatalog.extension(setup.files.screenshot);
     root._screenshotId = id;
     root._screenshotDest = dest;
@@ -96,7 +104,7 @@ QtObject {
     if (!root.enabled || !setup || root._applying !== "")
       return;
     if (!setup.compatible) {
-      root.status = I18n.tr("\"{0}\" needs a newer axiom", setup.title);
+      root._status = I18n.tr("\"{0}\" needs a newer axiom", setup.title);
       return;
     }
     const files = setup.files;
@@ -107,18 +115,16 @@ QtObject {
     if (wallpaper)
       args.push(root._url(files.wallpaper), wallpaper, files.wallpaper.sha256);
     root._applying = id;
-    root._pendingWallpaper = "";
-    root.status = I18n.tr("Downloading \"{0}\"…", setup.title);
     root._applyWallpaper = wallpaper;
+    root._status = I18n.tr("Downloading \"{0}\"…", setup.title);
     root._applyFetch.command = args;
     root._applyFetch.running = true;
   }
 
-  // The issue form that submits a setup, with its title and description
-  // filled in (attachments can't be)
-  function submitUrl(title, description) {
-    const query = ["template=01-submit-setup.yml", "title=" + encodeURIComponent("Setup: " + title), "description=" + encodeURIComponent(description)];
-    return "https://github.com/axiom-dotfiles/community-setups/issues/new?" + query.join("&");
+  // The issue form that submits a setup, its title filled in (attachments
+  // can't be)
+  function submitUrl(title) {
+    return "https://github.com/axiom-dotfiles/community-setups/issues/new?template=01-submit-setup.yml&title=" + encodeURIComponent("Setup: " + title);
   }
 
   // -- Private --
@@ -129,21 +135,23 @@ QtObject {
   property var _thumbs: ({})
   property var _screenshots: ({})
   property string _applying: ""
-  property string _appliedId: ""
-  // The wallpaper to set once SavedConfigsManager has applied the setup
-  property string _pendingWallpaper: ""
+  property string _status: ""
   property var _fontFamilies: null
-  // The screenshot being downloaded (its setup and file), and the
-  // wallpaper file the setup being applied downloads ("" for none)
+  // A newer catalog came while the thumbnails were downloading: once more
+  // after that run
+  property bool _thumbsAgain: false
+  // The screenshot being downloaded (its setup and file), and the one
+  // asked for meanwhile ("" for none)
   property string _screenshotId: ""
   property string _screenshotDest: ""
+  property string _screenshotNext: ""
+  // The wallpaper file the setup being applied downloads, set once
+  // SavedConfigsManager has applied it ("" for none)
   property string _applyWallpaper: ""
 
   readonly property string _fetchScript: Paths.scriptsPath + "community_fetch.sh"
   readonly property string _indexFile: Paths.communityCachePath + "index.json"
-  readonly property var _state: StateManager.createStateHandler("communitysetups")
-
-  Component.onCompleted: root._appliedId = root._state.load({}).applied ?? ""
+  readonly property string _snapshotPrefix: "community-"
 
   function _setupDir(id) {
     return Paths.communityCachePath + "setups/" + id + "/";
@@ -151,6 +159,10 @@ QtObject {
 
   function _themeFile(id) {
     return Paths.communityThemesPath + id + ".json";
+  }
+
+  function _thumbFile(setup) {
+    return Paths.communityCachePath + "thumbs/" + setup.id + CommunityCatalog.extension(setup.files.thumb);
   }
 
   function _wallpaperFile(setup) {
@@ -174,7 +186,7 @@ QtObject {
     }
     if (setups === null) {
       if (!cached)
-        root.status = I18n.tr("The catalog isn't one this axiom can read. Update axiom.");
+        root._status = I18n.tr("The catalog isn't one this axiom can read. Update axiom.");
       return false;
     }
     root._setups = setups;
@@ -185,11 +197,15 @@ QtObject {
 
   // Thumbnails not downloaded yet (the script keeps the cached ones)
   function _fetchThumbs() {
-    if (root._thumbFetch.running || root._setups.length === 0)
+    if (root._thumbFetch.running) {
+      root._thumbsAgain = true;
+      return;
+    }
+    if (root._setups.length === 0)
       return;
     const args = [root._fetchScript];
     for (const setup of root._setups)
-      args.push(root._url(setup.files.thumb), Paths.communityCachePath + "thumbs/" + setup.id + ".webp", setup.files.thumb.sha256);
+      args.push(root._url(setup.files.thumb), root._thumbFile(setup), setup.files.thumb.sha256);
     root._thumbFetch.command = args;
     root._thumbFetch.running = true;
   }
@@ -209,20 +225,17 @@ QtObject {
   function _finishApply(ok, output) {
     const id = root._applying;
     const setup = root.setup(id);
-    const wallpaper = root._applyWallpaper;
     if (!ok || !setup) {
       root._applying = "";
-      root.status = I18n.tr("\"{0}\" could not be downloaded", setup?.title ?? id);
+      root._status = I18n.tr("\"{0}\" could not be downloaded", setup?.title ?? id);
       console.warn("[CommunitySetupsManager] Download failed:", root._failures(output).join("; "));
       return;
     }
     if (setup.files.theme)
       ThemeManager.reloadCommunityThemes();
-    root._pendingWallpaper = wallpaper ? "file://" + wallpaper : "";
     if (!SavedConfigsManager.applyShared(id, root._setupDir(id) + "config.json", setup.title)) {
       root._applying = "";
-      root._pendingWallpaper = "";
-      root.status = SavedConfigsManager.status;
+      root._status = SavedConfigsManager.status;
     }
   }
 
@@ -245,15 +258,14 @@ QtObject {
       if (name !== root._applying || name === "")
         return;
       const setup = root.setup(name);
-      if (root._pendingWallpaper)
-        root._setWallpaper(root._pendingWallpaper);
-      root._pendingWallpaper = "";
+      if (root._applyWallpaper)
+        root._setWallpaper("file://" + root._applyWallpaper);
       root._applying = "";
-      root._appliedId = name;
-      root._state.save({
-        "applied": name
-      });
-      root.status = SavedConfigsManager.status;
+      root._status = SavedConfigsManager.status;
+      // Its own saved config, so the saved configs list shows it as current
+      // (with Overwrite, and a dot once changed) like any other. Later: this
+      // runs inside the backup's write, through the same FileView
+      Qt.callLater(SavedConfigsManager.save, root._snapshotPrefix + name);
       console.log("[CommunitySetupsManager] Applied", name, setup?.title ?? "");
     }
 
@@ -261,8 +273,7 @@ QtObject {
       if (name !== root._applying || name === "")
         return;
       root._applying = "";
-      root._pendingWallpaper = "";
-      root.status = SavedConfigsManager.status;
+      root._status = SavedConfigsManager.status;
     }
   }
 
@@ -277,7 +288,7 @@ QtObject {
           return;
         }
         console.warn("[CommunitySetupsManager] Could not download the catalog:", root._failures(text).join("; ") || "community_fetch.sh failed");
-        root.status = root._loaded ? I18n.tr("Offline: showing the setups from last time") : I18n.tr("The catalog could not be downloaded");
+        root._status = root._loaded ? I18n.tr("Offline: showing the setups from last time") : I18n.tr("The catalog could not be downloaded");
       }
     }
   }
@@ -288,11 +299,15 @@ QtObject {
         const ok = root._okDests(text);
         const thumbs = {};
         for (const setup of root._setups) {
-          const dest = Paths.communityCachePath + "thumbs/" + setup.id + ".webp";
+          const dest = root._thumbFile(setup);
           if (ok[dest])
             thumbs[setup.id] = "file://" + dest;
         }
         root._thumbs = thumbs;
+        if (root._thumbsAgain) {
+          root._thumbsAgain = false;
+          root._fetchThumbs();
+        }
       }
     }
   }
@@ -300,11 +315,15 @@ QtObject {
   property Process _screenshotFetch: Process {
     stdout: StdioCollector {
       onStreamFinished: {
-        if (!root._okDests(text)[root._screenshotDest])
-          return;
-        const screenshots = Object.assign({}, root._screenshots);
-        screenshots[root._screenshotId] = "file://" + root._screenshotDest;
-        root._screenshots = screenshots;
+        if (root._okDests(text)[root._screenshotDest]) {
+          const screenshots = Object.assign({}, root._screenshots);
+          screenshots[root._screenshotId] = "file://" + root._screenshotDest;
+          root._screenshots = screenshots;
+        }
+        const next = root._screenshotNext;
+        root._screenshotNext = "";
+        if (next !== "")
+          root.fetchScreenshot(next);
       }
     }
   }

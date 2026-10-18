@@ -3,7 +3,7 @@
 
 > **File:** `services/CommunitySetupsManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The community setups gallery (github.com/axiom-dotfiles/community-setups): downloads the catalog (CommunitySetups.indexUrl) when the gallery is opened, never before, and the setups' thumbnails and screenshots into the cache; applies one through SavedConfigsManager.applyShared (its look only, after a "before-<id>" backup), first installing its palette as the theme "community/<id>" and, when asked, its wallpaper. Every download goes through scripts/community_fetch.sh and is checked against the catalog's sha256. Nothing here runs in the greeter.
+The community setups gallery (github.com/axiom-dotfiles/community-setups): downloads the catalog (CommunitySetups.indexUrl) when the gallery is opened, never before, and the setups' thumbnails and screenshots into the cache; applies one through SavedConfigsManager.applyShared (its look only, after a "before-<id>" backup), first installing its palette as the theme "community/<id>" and, when asked, its wallpaper, then saves the result as the saved config "community-<id>", the active one. Every download goes through scripts/community_fetch.sh and is checked against the catalog's sha256. Nothing here runs in the greeter.
 
 ### Properties
 
@@ -14,8 +14,8 @@ The community setups gallery (github.com/axiom-dotfiles/community-setups): downl
 - `thumbs` (readonly var): { id: file URL } of the thumbnails downloaded so far
 - `screenshots` (readonly var): { id: file URL } of the full screenshots downloaded (fetchScreenshot)
 - `applying` (readonly string): The setup being downloaded and applied, "" for none
-- `applied` (readonly string): The setup last applied from here (kept in state), "" for none
-- `status` (string): What happened last, for the gallery
+- `applied` (readonly string): The setup whose saved config ("community-<id>") is the active one, unchanged, "" for none: switching to another or changing the look ends it
+- `status` (readonly string): What happened last, for the gallery
 
 ### Functions
 
@@ -25,6 +25,6 @@ The community setups gallery (github.com/axiom-dotfiles/community-setups): downl
 - `search(text, tags)`: The setups matching `text` and every tag of `tags`
 - `tags()`: Every tag the setups use, the most used first
 - `missingFonts(setup)`: The setup's fonts that aren't installed (known once the gallery opened)
-- `fetchScreenshot(id)`: Downloads a setup's full screenshot (into `screenshots`)
+- `fetchScreenshot(id)`: Downloads a setup's full screenshot (into `screenshots`); asked for during another's download, it follows that one
 - `apply(id, withWallpaper)`: Downloads a setup and applies it: its palette is installed first, its wallpaper (with `withWallpaper`) set once the config is
-- `submitUrl(title, description)`: The issue form that submits a setup, with its title and description filled in (attachments can't be)
+- `submitUrl(title)`: The issue form that submits a setup, its title filled in (attachments can't be)
