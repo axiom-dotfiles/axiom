@@ -66,6 +66,7 @@ qs -c axiom ipc call <target> <function>
 | `calendar` | `open`, `newEvent`, `sync`, `add <text>` (as `/event`) |
 | `todo` | `add <text>`, `toggle <text>`, `list`, `count`, `clearCompleted` |
 | `pomodoro` | `start`, `pause`, `toggle`, `skip`, `stop`, `reset`, `status` |
+| `stopwatch` | `timer <duration [label]>`, `toggleTimer`, `resetTimer`, `toggle`, `lap`, `reset`, `status` |
 | `audio` | `volumeUp`, `volumeDown`, `toggleMute`, `toggleMicMute` |
 | `media` | `playPause`, `next`, `previous`, `stop` |
 | `popouts` | `list` (debugging: every open popout's claim and footprint) |
@@ -116,7 +117,7 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | **Look** | `/theme <name>` `/dark` `/light` `/mode` `/wallpaper <file\|Random>` `/nextwallpaper` `/generate` `/nightlight` |
 | **Audio and media** | `/volume <n\|+n\|-n>` `/mute` `/mic` `/output <device>` `/input <device>` `/play` `/next` `/prev` |
 | **Connectivity** | `/wifi [on\|off]` `/bluetooth [on\|off]` `/connect <device>` |
-| **Calendar and notes** | `/event <when> <title>` `/notes [text]` `/todo [text]` `/pomodoro [start\|pause\|skip\|stop]` |
+| **Calendar and notes** | `/event <when> <title>` `/notes [text]` `/todo [text]` `/pomodoro [start\|pause\|skip\|stop]` `/timer <duration> [label]` `/stopwatch [start\|pause\|lap\|reset]` |
 | **Searches** | `/calc` `/run` `/web` `/clipboard` `/emoji` `/chat [conversation]` |
 | **Shell** | `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/config example <name>` `/update` `/welcome` `/reload` `/help` |
 | **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/screenshot <region\|window\|screen>` `/record` |

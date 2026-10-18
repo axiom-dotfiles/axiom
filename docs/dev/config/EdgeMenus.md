@@ -145,9 +145,9 @@ Every public member of `EdgeMenusConfig`, with the files that use it.
 - `EdgeMenusConfig.menusOpenedBy(widget)`: The ids of the menus a bar widget entry opens, as configured (gone or disabled alike): its menu popout, then a Button's click menu
   - in: `services/EdgeMenuManager.qml`, `services/OverlayManager.qml`
 - `EdgeMenusConfig.opensOwnPopout(properties)`: A bar widget with a popout of its own opens it: on, and no menu opened in its place
-  - in: `components/bar/widgets/AudioLevelWidget.qml`, `components/bar/widgets/Bluetooth.qml`, `components/bar/widgets/ClaudeUsage.qml`, `components/bar/widgets/Media.qml`, `components/bar/widgets/Network.qml`, `components/bar/widgets/NextEvent.qml`, `components/bar/widgets/Notifications.qml`, `components/bar/widgets/Pomodoro.qml`, `components/bar/widgets/SystemStats.qml`, `components/bar/widgets/Time.qml` (+5 more)
+  - in: `components/bar/widgets/AudioLevelWidget.qml`, `components/bar/widgets/Bluetooth.qml`, `components/bar/widgets/ClaudeUsage.qml`, `components/bar/widgets/Media.qml`, `components/bar/widgets/Network.qml`, `components/bar/widgets/NextEvent.qml`, `components/bar/widgets/Notifications.qml`, `components/bar/widgets/Pomodoro.qml`, `components/bar/widgets/Stopwatch.qml`, `components/bar/widgets/SystemStats.qml` (+6 more)
 - `EdgeMenusConfig.menuWithModule(type)`: The first enabled menu holding a module of `type`, else null
-  - in: `services/ChatManager.qml`, `services/LauncherCommands.qml`, `services/PomodoroManager.qml`
+  - in: `services/ChatManager.qml`, `services/LauncherCommands.qml`, `services/PomodoroManager.qml`, `services/StopwatchManager.qml`
 - `EdgeMenusConfig.screenFor(menu)`: The menu's named screen, else the primary monitor
   - in: `components/content/parts/MenuSubmenu.qml`, `components/surfaces/edgemenu/EdgeMenu.qml`, `components/views/layouts/MenuTarget.qml`, `services/EdgeMenuManager.qml`
 - `EdgeMenusConfig.edgeOf(menu)`: The menu's edge as a Bar.Location

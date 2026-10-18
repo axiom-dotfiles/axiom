@@ -168,7 +168,7 @@ Singleton {
       body += "\n" + task;
     NotificationManager.sendNotification("axiom", summary, body, {
       "desktopEntry": root._desktopEntry,
-      "icon": "alarm"
+      "icon": "appointment-soon"
     });
   }
 

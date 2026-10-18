@@ -32,3 +32,4 @@ Every `BarWidget` type, one page each: its file, annotations, and its own settin
 | [Bluetooth](BarWidgets/Bluetooth.md) | Bluetooth | x-icon="bluetooth", x-libraryGroup="Network & devices" |
 | [Todo](BarWidgets/Todo.md) | Todo list | x-icon="checklist", x-libraryGroup="Tools" |
 | [Pomodoro](BarWidgets/Pomodoro.md) | Pomodoro timer | x-icon="timer", x-libraryGroup="Tools" |
+| [Stopwatch](BarWidgets/Stopwatch.md) | Timer & stopwatch | x-icon="timer_play", x-libraryGroup="Tools" |

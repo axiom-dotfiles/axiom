@@ -79,6 +79,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [SettingsManager](api/SettingsManager.md): The settings page's working copy of the config.
 - [ShellManager](api/ShellManager.md): Shell manager manages global options and signals
 - [StateManager](api/StateManager.md): Small JSON state files in Paths.statePath: createStateHandler(name) gives a shared save/load handler per name.
+- [StopwatchManager](api/StopwatchManager.md): One one-off timer and one stopwatch, for every Stopwatch widget and module, both able to run at once.
 - [SwayConfigWriter](api/SwayConfigWriter.md): ~/.config/sway/user/* after it (ConfigTakeover) The file modes write the monitor profile for what's connected (a sway reload resets the outputs to what the con…
 - [SwayIpcManager](api/SwayIpcManager.md): Requests to sway that want a reply, through swaymsg: what Quickshell.I3 doesn't cover (its I3.dispatch runs a command with no reply, and it has no window tree,…
 - [SwayManager](api/SwayManager.md): CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/compositor/sway-backend.md): sway's state as the compositor-neutral shapes (Sway…
@@ -134,6 +135,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [Screenshots](api/Screenshots.md): Reader for the Screenshots section: where screenshots and recordings are saved (ScreenshotManager resolves the empty defaults)
 - [SelfUpdate](api/SelfUpdate.md): Reader for the SelfUpdate section (see SelfUpdateManager).
 - [SessionConfig](api/SessionConfig.md): Reader for the Session section: what starts with the compositor while axiom manages its config ({ recommendedEnv, env, autostart }).
+- [StopwatchConfig](api/StopwatchConfig.md): Reader for the Stopwatch section: the one-off timer's presets and whether its end notifies (see StopwatchManager).
 - [SwayConfig](api/SwayConfig.md): Reader for the Sway section: sway's own options in the managed config (SwayConfigWriter; each field by its x-sway annotation).
 - [Theme](api/Theme.md): The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - [ThemeIntegrations](api/ThemeIntegrations.md): Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().

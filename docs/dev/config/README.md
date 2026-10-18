@@ -38,6 +38,7 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [ClaudeUsage](ClaudeUsage.md) | `ClaudeUsageConfig` (`config/ClaudeUsageConfig.qml`) | Modules |
 | [Updates](Updates.md) | `UpdatesConfig` (`config/UpdatesConfig.qml`) | Modules |
 | [Todo](Todo.md) | `TodoConfig` (`config/TodoConfig.qml`) | Modules |
+| [Stopwatch](Stopwatch.md) | `StopwatchConfig` (`config/StopwatchConfig.qml`) | Modules |
 | [Pomodoro](Pomodoro.md) | `PomodoroConfig` (`config/PomodoroConfig.qml`) | Modules |
 | [OSD](OSD.md) | `OSDConfig` (`config/OSDConfig.qml`) | Dock & OSD |
 | [Dock](Dock.md) | `DockConfig` (`config/DockConfig.qml`) | Dock & OSD |
@@ -54,6 +55,6 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 
 Loaded-by-name types:
 
-- [BarWidgets](BarWidgets.md): 25 `BarWidget` types, files in `components/bar/widgets/`
-- [OverlayModules](OverlayModules.md): 46 `OverlayModule` types, files in `components/content/`
+- [BarWidgets](BarWidgets.md): 26 `BarWidget` types, files in `components/bar/widgets/`
+- [OverlayModules](OverlayModules.md): 47 `OverlayModule` types, files in `components/content/`
 - [OverlayViews](OverlayViews.md): 7 `OverlayView` types, files in `components/views/`

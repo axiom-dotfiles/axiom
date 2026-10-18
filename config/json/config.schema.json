@@ -1791,6 +1791,20 @@
       }
     },
 
+    "Stopwatch": {
+      "type": "object",
+      "x-category": "Modules",
+      "x-scope": "personal",
+      "title": "Timer and stopwatch",
+      "description": "The one-off timer and the stopwatch every Stopwatch widget and module shows.",
+      "additionalProperties": false,
+      "x-order": ["presets", "notify"],
+      "properties": {
+        "presets": { "type": "array", "title": "Timer presets", "default": ["1m", "5m", "10m", "25m"], "items": { "type": "string" }, "description": "One-click timers, comma-separated: 5m, 1h30m, 90s, or 10m tea for a label." },
+        "notify": { "type": "boolean", "title": "Notify", "default": true, "description": "A notification when a timer ends." }
+      }
+    },
+
     "Pomodoro": {
       "type": "object",
       "x-category": "Modules",
@@ -3600,7 +3614,8 @@
         { "$ref": "#/definitions/SubmenuOverlayModule" },
         { "$ref": "#/definitions/TodoOverlayModule" },
         { "$ref": "#/definitions/PomodoroOverlayModule" },
-        { "$ref": "#/definitions/FocusOverlayModule" }
+        { "$ref": "#/definitions/FocusOverlayModule" },
+        { "$ref": "#/definitions/StopwatchOverlayModule" }
       ]
     },
     "ThemePickerOverlayModule": {
@@ -4383,6 +4398,26 @@
         "type": { "const": "Chat", "description": "AI chat" }
       }
     },
+    "StopwatchOverlayModule": {
+      "type": "object",
+      "x-icon": "timer_play",
+      "x-libraryGroup": "Tools",
+      "x-keyboard": true,
+      "x-defaultSize": [4, 6],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Stopwatch", "description": "Timer & stopwatch" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": { "type": "string", "title": "Opens on", "default": "auto", "enum": ["auto", "timer", "stopwatch"], "x-enumLabels": { "auto": "Whichever is running", "timer": "Timer", "stopwatch": "Stopwatch" } }
+          }
+        }
+      }
+    },
     "TodoOverlayModule": {
       "type": "object",
       "x-icon": "checklist",
@@ -4561,7 +4596,8 @@
         { "$ref": "#/definitions/MicrophoneWidget" },
         { "$ref": "#/definitions/BluetoothWidget" },
         { "$ref": "#/definitions/TodoWidget" },
-        { "$ref": "#/definitions/PomodoroWidget" }
+        { "$ref": "#/definitions/PomodoroWidget" },
+        { "$ref": "#/definitions/StopwatchWidget" }
       ]
     },
     "WindowWidget": {
@@ -4889,6 +4925,31 @@
             "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
             "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
             "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
+          }
+        }
+      }
+    },
+    "StopwatchWidget": {
+      "type": "object",
+      "x-icon": "timer_play",
+      "x-libraryGroup": "Tools",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Stopwatch", "description": "Timer & stopwatch" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "hideWhenIdle": { "type": "boolean", "title": "Hide when stopped", "default": false, "description": "Show only while the timer or stopwatch runs or is paused (start one from the launcher's /timer or /stopwatch, or a module)." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "The timer and stopwatch, to set and start, when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
+            "timerColor": { "type": "string", "title": "Timer color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "stopwatchColor": { "type": "string", "title": "Stopwatch color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "idleColor": { "type": "string", "title": "Stopped color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }

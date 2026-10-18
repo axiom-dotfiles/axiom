@@ -53,3 +53,4 @@ Every `OverlayModule` type, one page each: its file, annotations, and its own se
 | [Todo](OverlayModules/Todo.md) | Todo list | x-icon="checklist", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6] |
 | [Pomodoro](OverlayModules/Pomodoro.md) | Pomodoro timer | x-icon="timer", x-libraryGroup="Tools", x-defaultSize=[4,4] |
 | [Focus](OverlayModules/Focus.md) | Focus | x-icon="center_focus_strong", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[8,8], x-minSize=[4,6] |
+| [Stopwatch](OverlayModules/Stopwatch.md) | Timer & stopwatch | x-icon="timer_play", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6] |

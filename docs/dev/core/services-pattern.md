@@ -27,6 +27,7 @@ How `services/` is built: one singleton per domain, owning state and side effect
   - `CalendarManager`: `acquire(owner)` with no request; its interval is the Calendar section's. See [Calendar](../features/calendar.md).
   - `WeatherManager`: takes no request (its settings are global).
   - `ClaudeUsageManager`: `{ accounts, intervalMinutes }`, both from the `ClaudeUsage` section.
+  - `StopwatchManager`: `acquire(owner, interval)`, `now` ticking at the shortest interval asked while the timer or stopwatch runs; the timer's end runs with no consumers.
   - `PomodoroManager`: `acquire(owner)` with no request, for its once-a-second `now`; the phase's end runs with no consumers (created from `_services`). See [Todo and pomodoro](../features/todo-pomodoro.md).
   - `TailscaleManager`: `available`, `backendState`/`connected`, `tailnetName`, `ip`.
   - `CommandManager`: `outputs[command]`, shared by identical commands (e.g. a Button's label).

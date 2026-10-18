@@ -855,7 +855,7 @@ TestCase {
   // Every Auto color field of the schema goes Auto in the v41 migration
   // (widgets added since start Auto: no saved config can have them older)
   function test_v41_covers_every_auto_color() {
-    const addedSince = ["NextEvent", "Todo", "Pomodoro"];
+    const addedSince = ["NextEvent", "Todo", "Pomodoro", "Stopwatch"];
     schema.definitions.BarWidget.oneOf.forEach(ref => {
       const def = schema.definitions[ref.$ref.replace("#/definitions/", "")];
       if (addedSince.includes(def.properties.type.const))

@@ -173,6 +173,17 @@ Every `IpcHandler`: call with `qs -c axiom ipc call <target> <function> [args]`.
 - `update(): void`
 - `open(): void`
 
+## stopwatch
+
+`services/StopwatchManager.qml` · enabled: `!Paths.greeter`
+- `timer(text: string): bool`
+- `toggleTimer(): void`
+- `resetTimer(): void`
+- `toggle(): void`
+- `lap(): void`
+- `reset(): void`
+- `status(): string`
+
 ## todo
 
 `services/TodoManager.qml` · enabled: `!Paths.greeter`

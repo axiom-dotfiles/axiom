@@ -40,6 +40,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `Privacy.qml`: Mic / screen share / camera indicators, derived from active Pipewire links (no polling).
 - `ScreenRecord.qml`: A screen recording in progress (ScreenshotManager): a red dot and the time recorded; a click stops it.
 - `Separator.qml`: Layout helper for the bar: a divider (a line, dot, slash or chevron) or plain space, taking exactly `size` px along the bar.
+- `Stopwatch.qml`: The one-off timer and the stopwatch (StopwatchManager): the timer's time left while it's set, else the stopwatch's time while it's going.
 - `SystemStats.qml`: CPU / memory / temperature / GPU / disk readouts from SystemManager, one icon + value segment per enabled metric.
 - `SystemTray.qml`: The status notifier items, one icon each, in a row (or column, on a vertical bar).
 - `Tailscale.qml`: The Tailscale bar widget: connected or not, and the tailnet's name, from TailscaleManager (acquired at the widget's interval); a click notifies it.
@@ -99,6 +100,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ScreenRecord.qml`: Screen recording (ScreenshotManager, with wf-recorder): record a region (picked as for a screenshot) or the whole focused screen (the overlay closes first), with the system's sound (with pactl), the microphone or none; …
 - `Screenshot.qml`: Screenshots through ScreenshotManager (region, active window or the focused screen), saved to the Screenshots section's folder and copied to the clipboard.
 - `Session.qml`: The greeter's session picker (x-hosts: greeter only): which desktop the login starts (Wayland sessions; the user's last one to begin with).
+- `Stopwatch.qml`: The one-off timer and the stopwatch (StopwatchManager), one at a time under a Timer / Stopwatch switch: the Stopwatch widget's popout, or an overlay card.
 - `Submenu.qml`: A row that opens another edge menu (`menu`) beside the one it's in, in that menu's submenu (EdgePopout.submenu, content/parts/MenuSubmenu): on hover, or on a click with openOnHover off.
 - `SystemGraphs.qml`: Live graphs of system metrics: the current value over a minute of history per metric.
 - `SystemTray.qml`: A tray item's menu.
@@ -299,6 +301,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `Search.qml`: Pure helpers for searching lists by typed text: the launcher's fuzzy score, frecency from a { count, last } use record (Utils.recordUse) and whether text reads as math for the calculator.
 - `ShellInstances.qml`: Which axiom instances on a display keep running (InstanceManager): the newest, by launch time and then pid, so every instance decides the same.
 - `ShownLook.qml`: What the look shows at the moment, from what the user chose (config) and what changes on its own (runtime state ThemeManager keeps: the rotation's wallpapers, the theme schedule's variant).
+- `StopwatchClock.qml`: The one-off timer's and the stopwatch's rules, for StopwatchManager.
 - `SurfaceContext.qml`: What a surface growing out of a screen edge touches, and every rule that follows from it, for each kind of surface alike: bar popouts, edge popouts (OSDs, floating edge menus, the attached launcher), docks and submenus.
 - `SurfaceOutline.qml`: The outline of a surface that grows out of an edge (AttachedSurface): a content box joined to the attach edge by two concave fillets, or a plain box held off it.
 - `SwayConf.qml`: Sway's config and command text from axiom's settings (SwayManager, SwayConfigWriter), as HyprLua/HyprConfigLua are for Hyprland: each bind's `bindsym`, the window look and input as sway commands, the included file, outp…
@@ -674,6 +677,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SettingsManager.qml`: The settings page's working copy of the config.
 - `ShellManager.qml`: Shell manager manages global options and signals
 - `StateManager.qml`: Small JSON state files in Paths.statePath: createStateHandler(name) gives a shared save/load handler per name.
+- `StopwatchManager.qml`: One one-off timer and one stopwatch, for every Stopwatch widget and module, both able to run at once.
 - `SwayConfigWriter.qml`: ~/.config/sway/user/* after it (ConfigTakeover) The file modes write the monitor profile for what's connected (a sway reload resets the outputs to what the config says); MonitorManager applies it at runtime too, at star…
 - `SwayIpcManager.qml`: Requests to sway that want a reply, through swaymsg: what Quickshell.I3 doesn't cover (its I3.dispatch runs a command with no reply, and it has no window tree, inputs or outputs in full).
 - `SwayManager.qml`: CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/compositor/sway-backend.md): sway's state as the compositor-neutral shapes (SwayState), and the primitives CompositorManager builds on.
@@ -729,6 +733,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `Screenshots.qml`: Reader for the Screenshots section: where screenshots and recordings are saved (ScreenshotManager resolves the empty defaults)
 - `SelfUpdate.qml`: Reader for the SelfUpdate section (see SelfUpdateManager).
 - `SessionConfig.qml`: Reader for the Session section: what starts with the compositor while axiom manages its config ({ recommendedEnv, env, autostart }).
+- `StopwatchConfig.qml`: Reader for the Stopwatch section: the one-off timer's presets and whether its end notifies (see StopwatchManager).
 - `SwayConfig.qml`: Reader for the Sway section: sway's own options in the managed config (SwayConfigWriter; each field by its x-sway annotation).
 - `Theme.qml`: The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - `ThemeIntegrations.qml`: Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().

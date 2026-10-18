@@ -127,11 +127,11 @@ See **[all the features](docs/features.md)**, with screenshots of every surface.
 
 One repository and one config for the whole desktop:
 
-- **Edge menus** built from 39 modules (media, mixer, system graphs, weather, calendar, notes, todos, AI chat, clipboard, quick actions and more), sliding out of any edge, over your windows or beside them. Build anything with them: a sidebar, a control center, a dynamic island.
+- **Edge menus** built from 40 modules (media, mixer, system graphs, weather, calendar, notes, todos, AI chat, clipboard, quick actions and more), sliding out of any edge, over your windows or beside them. Build anything with them: a sidebar, a control center, a dynamic island.
 - **Overlay** pages from the same modules, full screen.
 - **Desktop widgets** from the same modules, under your windows, per monitor.
 - **Lock screen** and **login screen** (greetd), laid out from the same modules too.
-- **Bars** with 25 widget types, in any style. Their popouts grow out of the bar or the screen border.
+- **Bars** with 26 widget types, in any style. Their popouts grow out of the bar or the screen border.
 - **Workspaces** as a line, a grid per monitor or scrolling strips, plus an overview and **Alt+Tab switcher**.
 - **Your compositor, set from the UI:** keybinds, monitors, input, the window look (borders, gaps, rounding, blur, shadows), and optionally the whole config file.
 - **Calendar** from CalDAV accounts, `.ics` feeds and calendars kept on your computer, with an editor, reminders and quick add (`/event fri 3pm Dentist`).
@@ -139,7 +139,7 @@ One repository and one config for the whole desktop:
 - **Launcher** for apps, windows, math, the clipboard, emoji and `/` commands for the whole shell.
 - **Docks** on any edge with pinning and magnification, **OSDs**, notifications, a **polkit** prompt and a power menu.
 - **AI chat** (Claude, OpenAI, Gemini or Ollama) in a page, a menu or the launcher.
-- A **monitor** layout editor, notes, a todo list and pomodoro timer, screenshots and recording, night light, idle, translations, a first-run setup, and **saved configs** you can export, share and import.
+- A **monitor** layout editor, notes, a todo list, a pomodoro timer, a timer and stopwatch, screenshots and recording, night light, idle, translations, a first-run setup, and **saved configs** you can export, share and import.
 
 ## Compositors
 

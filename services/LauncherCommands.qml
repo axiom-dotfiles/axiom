@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 
 import qs.config
+import qs.components.methods
 
 /*
  * The launcher's slash commands, one per shell feature. LauncherManager
@@ -413,7 +414,7 @@ QtObject {
     },
     {
       name: "pomodoro",
-      aliases: ["timer", "focus"],
+      aliases: ["focus"],
       glyph: "timer",
       usage: "[start | pause | skip | stop]",
       description: () => I18n.tr("Start or pause the pomodoro timer"),
@@ -436,6 +437,51 @@ QtObject {
           PomodoroManager.stop();
         else
           PomodoroManager.toggle();
+        return false;
+      }
+    },
+    {
+      name: "timer",
+      aliases: ["countdown"],
+      glyph: "hourglass_top",
+      usage: "<10m | 1h30m | 1:30> [label] | pause | reset",
+      description: () => I18n.tr("Set a one-off timer"),
+      available: () => !Paths.greeter,
+      status: () => StopwatchManager.timerIdle ? "" : StopwatchManager.timerText,
+      // I18n.tr("pause") I18n.tr("reset")
+      options: arg => root._timer(arg),
+      run: (arg, value) => {
+        const word = (value?.word ?? arg ?? "").trim().toLowerCase();
+        if (word === "pause")
+          StopwatchManager.toggleTimer();
+        else if (word === "reset")
+          StopwatchManager.resetTimer();
+        else
+          return StopwatchManager.startTimerText(value?.text ?? arg) ? undefined : false;
+        return false;
+      }
+    },
+    {
+      name: "stopwatch",
+      aliases: ["sw"],
+      glyph: "timer",
+      usage: "[start | pause | lap | reset]",
+      description: () => I18n.tr("Start, pause or lap the stopwatch"),
+      available: () => !Paths.greeter,
+      status: () => StopwatchManager.stopwatchIdle ? "" : StopwatchManager.elapsedText,
+      // I18n.tr("start") I18n.tr("pause") I18n.tr("lap") I18n.tr("reset")
+      options: () => ["start", "pause", "lap", "reset"].map(word => ({
+              title: word,
+              value: word
+            })),
+      run: (arg, value) => {
+        const word = (value ?? arg ?? "").trim().toLowerCase();
+        if (word === "lap")
+          StopwatchManager.lap();
+        else if (word === "reset")
+          StopwatchManager.resetStopwatch();
+        else if ((word === "start") !== StopwatchManager.stopwatchRunning || word === "")
+          StopwatchManager.toggleStopwatch();
         return false;
       }
     },
@@ -854,6 +900,48 @@ QtObject {
           matched: true,
           value: item
         })));
+  }
+
+  // A row starting the typed timer (or saying what to type), then pause and
+  // reset while one is set
+  function _timer(arg) {
+    const parsed = StopwatchClock.parse(arg);
+    const rows = [];
+    if (parsed.ms > 0)
+      rows.push({
+        title: I18n.tr("Start a {0} timer", StopwatchClock.format(parsed.ms, false, true)),
+        subtitle: parsed.label,
+        glyph: "hourglass_top",
+        matched: true,
+        value: {
+          text: arg
+        }
+      });
+    else if (arg.trim() === "")
+      rows.push({
+        title: I18n.tr("How long"),
+        subtitle: I18n.tr("10m, 1h30m, 90s or 1:30, then a label if you like"),
+        glyph: "hourglass_top",
+        matched: true,
+        value: {
+          text: ""
+        }
+      });
+    if (!StopwatchManager.timerIdle)
+      rows.push({
+        title: StopwatchManager.timerRunning ? I18n.tr("pause") : I18n.tr("resume"),
+        glyph: StopwatchManager.timerRunning ? "pause" : "play_arrow",
+        value: {
+          word: "pause"
+        }
+      }, {
+        title: I18n.tr("reset"),
+        glyph: "stop",
+        value: {
+          word: "reset"
+        }
+      });
+    return rows;
   }
 
   function _event(arg) {
