@@ -604,7 +604,7 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
     verify(on[0].includes("blur_popups = true, ignore_alpha = 0.5, xray = true, enabled = true"), "the wallpaper alone by default");
     verify(!/[(|](bar|border)[|)]/.test(on[0]), "the chrome is drawn by the blur window");
     verify(on[1].includes('name = "axiom-blur-popups"') && on[1].includes("(bar|"), "the chrome's popups (tooltips, menus)");
-    verify(on[1].includes("blur_popups = true, ignore_alpha = 0.5, enabled = true") && !on[1].includes("blur = true"), "its popups alone");
+    verify(on[1].includes("blur_popups = true, ignore_alpha = 0.5, xray = false, enabled = true") && !on[1].includes("blur = true"), "its popups alone, never xray");
     verify(on[2].includes('"^axiom-(backdrop|polkit)$"'));
     verify(on[2].includes("enabled = false"), "backdrops only when asked");
     verify(on[3].includes('name = "axiom-blur-no-anim"') && on[3].includes("(bar|") && on[3].includes("|edge-popout|") && on[3].includes("no_anim = true, enabled = true"), "the backed chrome isn't animated by Hyprland");

@@ -141,7 +141,9 @@ QtObject {
         "xray": xray
       }), row("axiom-blur-popups", LayerStack.blurChrome, on, {
         "popups": true,
-        "threshold": threshold
+        "threshold": threshold,
+        // Hyprland never blurs a popup with xray; niri is told the same
+        "xray": false
       }), row("axiom-blur-backdrops", LayerStack.blurBackdrops, on && surfaces?.backdrops === true, {
         "blur": true,
         "threshold": 0.01,

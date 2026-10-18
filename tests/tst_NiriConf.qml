@@ -348,7 +348,8 @@ window-rule {
     verify(!on.includes("blur true"), "what blurs is the shell's regions, never a rule's whole rectangle");
     verify(on.includes('match namespace="^axiom-(blur-backing-overlay)$"') && on.includes("xray false"), "the blur window over the overlay blurs the overlay");
     verify(!on.includes("backdrop|polkit"), "backdrops only when asked");
-    verify(!/[(|](bar|border|popout)[|)]/.test(on), "the chrome is drawn by the blur window");
+    const chrome = on.split("layer-rule").find(rule => /[(|]bar[|)]/.test(rule));
+    verify(chrome && chrome.includes("xray false") && !/[(|]border[|)]/.test(on), "the chrome's popups (tooltips, menus) never xray, as Hyprland's; the chrome itself is drawn by the blur window");
     const through = nodes({
       "throughWindows": true,
       "backdrops": true

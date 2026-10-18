@@ -420,14 +420,15 @@ QtObject {
 
   /**
    * The blur behind axiom's surfaces (CompositorLayer.surfaceBlur) as
-   * niri's layer rules, while they blur: whether each blurs the wallpaper
-   * alone (xray). Not what blurs: a rule blurs a layer's whole rectangle,
+   * niri's layer rules, while they or their popups blur: whether each
+   * blurs the wallpaper alone (xray; never for the chrome's popups, as
+   * Hyprland). Not what blurs: a rule blurs a layer's whole rectangle,
    * so the shell sends each window's shape instead
    * (BackgroundEffect.blurRegion, supports.blurRegion), and pausing it
    * never touches the file.
    */
   function surfaceBlurNodes(surfaces) {
-    return CompositorLayer.surfaceBlur(surfaces).filter(rule => rule.on && rule.blur && rule.xray !== null).map(rule => node("layer-rule", [], {}, [node("match", [], {
+    return CompositorLayer.surfaceBlur(surfaces).filter(rule => rule.on && (rule.blur || rule.popups) && rule.xray !== null).map(rule => node("layer-rule", [], {}, [node("match", [], {
           "namespace": `^axiom-(${rule.namespaces.join("|")})$`
         }), node("background-effect", [], {}, [node("xray", [rule.xray])])]));
   }
