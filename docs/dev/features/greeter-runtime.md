@@ -12,7 +12,7 @@ This doc covers what runs at the login screen and the data it reads: the bundle 
 
 ### The bundle
 - `GreeterBundle.exportConfig` (pure) builds the bundle from:
-  - the `Greeter`, `Appearance`, `General`, `Weather` and `Lockscreen` sections;
+  - the `Greeter`, `Appearance`, `Widget` (so its controls are sized and rounded as on the desktop), `General`, `Weather` and `Lockscreen` sections;
   - `Compositor.mode` and `Monitors.profiles`;
   - the `Input` options marked `x-greeter` (the part switches, keyboard, mouse, touchpad, cursor);
   - `theme.json` (`ThemeManager.currentTheme`);

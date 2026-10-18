@@ -62,6 +62,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
   - Others: `"languages"`, `"edgeMenus"`, `"overlayPages"`, `"notes"`, `"timezones"`, `"calendars"`, `"chatProviders"`, `"chatPresets"`, `"cursorThemes"` (`SettingsManager.optionsFor`).
 - `x-emptyLabel`: offers or renames the empty value under that label.
   - On a color: automatic (a bar's `widgetTextColor`).
+  - A color without it lists its `default` first, labelled as the default, so an override can be undone.
   - On `"screens"`: renames empty where it means something else, as in `General.primaryMonitor` itself.
 - `x-allScreens`: adds All monitors (`"*"`) to a `"screens"` picker.
 - `x-enumLabels` (`{ value: label }`): labels shown instead of raw enum values in dropdowns.

@@ -11,7 +11,7 @@ QtObject {
   id: root
 
   // The sections exported whole
-  readonly property var sections: ["Greeter", "Appearance", "General", "Weather"]
+  readonly property var sections: ["Greeter", "Appearance", "Widget", "General", "Weather"]
 
   // The bundle for `config`: its sections, the wallpapers renamed through
   // `wallpaperUrls` ({ the user's url: the bundle's copy }; a wallpaper

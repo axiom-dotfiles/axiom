@@ -85,10 +85,14 @@ Loader {
     const labels = Object.assign({}, fieldSchema["x-enumLabels"] ?? {});
     if (fieldSchema["x-emptyLabel"])
       labels[""] = fieldSchema["x-emptyLabel"];
-    return Object.keys(labels).reduce((out, value) => {
+    const out = Object.keys(labels).reduce((out, value) => {
       out[value] = I18n.tr(labels[value]);
       return out;
     }, {});
+    // A color without Auto marks its default, listed first
+    if (root.isColor && !fieldSchema["x-emptyLabel"] && fieldSchema.default)
+      out[fieldSchema.default] = I18n.tr("{0} (default)", fieldSchema.default);
+    return out;
   }
 
   // A sibling key of this row's path (or a `/`-rooted config path, or a

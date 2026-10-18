@@ -3091,6 +3091,7 @@
     "Playing color": "再生中の色",
     "Active color": "アクティブ時の色",
     "Backs up /etc/greetd/config.toml, then changes only its default_session command, to start axiom's login screen in a compositor of its own (sway, else Hyprland).": "/etc/greetd/config.toml をバックアップしてから、default_session の command だけを変更し、専用のコンポジター（sway、なければ Hyprland）で axiom のログイン画面を起動するようにします。",
-    "Each monitor's wallpaper, or a plain color.": "各モニターの壁紙、または単色です。"
+    "Each monitor's wallpaper, or a plain color.": "各モニターの壁紙、または単色です。",
+    "{0} (default)": "{0}（デフォルト）"
   }
 }
