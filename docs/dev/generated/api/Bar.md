@@ -9,6 +9,7 @@ Reader for the Bars section and the bar look helpers: derived layout values (enr
 
 - `sectionNames` (readonly var): The bar's sections, start to end
 - `autoColorFields` (readonly var): Each widget type's Auto color fields: { type: { key: role } }
+- `boxedStyles` (readonly var): The widget styles that draw each widget on a box of its own: only they have shapes and grouping
 - `lookGroups` (readonly var): A bar's look groups (its override flag and the fields it covers, the flag's `x-group` in the Bar definition): each is the BarStyle section's unless the bar overrides it reads: Bars[].overrideWidgetSt…
 - `savedBars` (readonly var): The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings
 - `widgetLayoutSchema` (readonly var): A widget's `layout` overrides (size, minSize, priority), for the bar editor's inspector

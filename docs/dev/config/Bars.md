@@ -226,6 +226,8 @@ Every public member of `Bar`, with the files that use it.
   - in: `components/hosts/popout/EdgePlacement.qml`, `components/methods/SurfaceContext.qml`
 - `Bar.reservedZone(barConfig, gapsOut)`: The exclusive zone a bar sets (BarPanel), given Hyprland's gaps_out on its edge.
   - in: `components/bar/BarPanel.qml`, `services/BarManager.qml`
+- `Bar.boxedStyles` (var): The widget styles that draw each widget on a box of its own: only they have shapes and grouping
+  - in: only inside the reader
 - `Bar.lookGroups` (var): A bar's look groups (its override flag and the fields it covers, the flag's `x-group` in the Bar definition): each is the BarStyle section's unless the bar ove…
   - in: only inside the reader
 - `Bar.lookOf(barConfig)`: A bar entry with its look filled from BarStyle where it doesn't override it

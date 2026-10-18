@@ -75,7 +75,7 @@ QtObject {
     const islandDepth = Appearance.borderWidth + padding + widgetSize + padding + Appearance.borderWidth;
     const borderShadowed = solid && Appearance.screenBorder && barConfig.reserveSpace;
     // Shapes and grouping are for widgets drawn on a background
-    const boxed = ["filled", "tinted", "outline"].includes(look.widgetStyle);
+    const boxed = Bar.boxedStyles.includes(look.widgetStyle);
     const grouping = boxed ? look.widgetGrouping : "separate";
 
     const vertical = loc === Bar.Left || loc === Bar.Right;
@@ -360,6 +360,10 @@ QtObject {
     return Math.max(0, (Appearance.screenBorder ? barConfig.extent - Appearance.screenMargin + Appearance.borderWidth : barConfig.extent) - trim);
   }
 
+  // The widget styles that draw each widget on a box of its own: only they
+  // have shapes and grouping
+  readonly property var boxedStyles: ["filled", "tinted", "outline"]
+
   // A bar's look groups (its override flag and the fields it covers, the
   // flag's `x-group` in the Bar definition): each is the BarStyle
   // section's unless the bar overrides it
@@ -385,7 +389,7 @@ QtObject {
   // (as enrichBarConfig)
   function lookContext(barConfig) {
     const look = Bar.lookOf(barConfig ?? {});
-    if (!["filled", "tinted", "outline"].includes(look.widgetStyle))
+    if (!Bar.boxedStyles.includes(look.widgetStyle))
       look.widgetGrouping = "separate";
     return Object.keys(BarStyle.values).reduce((context, key) => {
       context["$bar." + key] = look[key];
