@@ -35,7 +35,7 @@ What each end of a bar meets and whether surfaces may join it there, how two pil
 - Two pill bars merge at their corner.
 - The end of the bar that makes way (the one on the screen's longer edge) is `pillBar`: joinable and not held. Its window reaches `borderWidth` back onto the other bar's far stroke.
   - Its end pill joins there with a fillet, as into a solid bar's stroke.
-- It pushes the other bar a request (`bar/CornerMerge`, through `BarContainer.setEndReach`) to run its end pill (or a stub) straight off its end, past that fillet.
+- It pushes the other bar a request (`bar/CornerMerge`, an `endReach` through `BarContainer.setRequest`) to run its end pill (or a stub) straight off its end, past that fillet.
   - That end is `straight`: no fillet into the border.
   - Its far stroke is opened from where the fillet meets it, and its shadow follows round the fillet. That is where the fillet's stroke ends (`CornerMerge._filletTip`): its centre line, half a stroke in from the pill's far edge, on whole pixels (`SurfaceContext.opening`). Open any further and a row of the corner shows through.
 - The result is one stroke and one concave corner, as solid bars make.
@@ -46,9 +46,10 @@ What each end of a bar meets and whether surfaces may join it there, how two pil
 - Each pill is an `AttachedSurface` growing out of the bar's outer edge, covering the border stroke (`barConfig.overlap`).
 - Widgets sit `overlap + pillPad` in from that edge.
 - A pill at an end of the bar joins the perpendicular edge (`joinStart`/`joinEnd`): it sits flush on that edge's stroke, whose far corner meets it with a fillet.
-- **End reach requests.** Surfaces joining the bar from the perpendicular edge ask for a pill at an end with `setEndReach(owner, { atStart, to, straight })`, keyed by owner.
+- **End reach requests.** Surfaces joining the bar from the perpendicular edge ask for a pill at an end with an `endReach` (`{ atStart, to, straight }`) in `setRequest(owner, …)`, keyed by owner.
   - `BarLayout.endReaches` stretches the end pill there.
-  - Or it adds a `pillConnector`-long stub joined at that end and stretches that. `pillRects` holds the stub as a pill like any other.
+  - Or it adds a stub joined at that end, up to `pillConnector` long but never past the reach asked (so it grows from the corner with a request following a sliding surface), and stretches that. `pillRects` holds the stub as a pill like any other.
+  - A request reaching nowhere past the end asks nothing.
 - In pill mode the bar window is `borderRadius` thicker than `extent`, for that fillet, and masked to the bar itself.
 - Floating bars take `-borderWidth` margins on both ends too, so bar-window 0 along the bar is the perpendicular stroke's outer edge.
 - Floating bars and bar popouts on pill bars: see [Pill and floating bars](../popouts/pill-and-floating-bars.md). Surfaces held off an edge: see [Held off an edge](../popouts/held-off-edge.md).

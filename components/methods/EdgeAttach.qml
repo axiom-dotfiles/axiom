@@ -158,26 +158,20 @@ QtObject {
     };
   }
 
-  // A surface's pill (or island) stretch `own` (place's `stretch`, null for
-  // none) reaching on to `at` along the bar too, for a submenu joined to
-  // the stroke the surface grows from whose outer wall runs straight up
-  // into it (null `at`: `own`, unchanged): stretched there and squared,
-  // for the wall to run into, any end `own` squared kept square. `pill` is
-  // the one it stands on.
-  function reachStretch(own, pill, at) {
-    if (!pill || at === null || at === undefined)
-      return own;
-    const start = own ? own.start : pill.start;
-    const end = own ? own.end : pill.start + pill.length;
-    return {
-      "index": pill.index,
-      "start": Math.min(start, at),
-      "end": Math.max(end, at),
-      "squareStart": at < start || (own?.squareStart ?? false),
-      "squareEnd": at > end || (own?.squareEnd ?? false),
-      "joinStart": own?.joinStart ?? false,
-      "joinEnd": own?.joinEnd ?? false
-    };
+  // A pill (or island) stretch `target` ({ start, end, ... }) as drawn
+  // `progress` (0..1) of the way out from the pill's own span `rest`
+  // ({ start, length }), its flags kept: a surface's pill grows out to
+  // carry it, and draws back after it, at the pace the surface sets
+  // (PillStretch). Null with nothing grown (none, or progress 0).
+  function progressStretch(rest, target, progress) {
+    if (!target || !rest || progress <= 0)
+      return null;
+    const p = Math.min(1, progress);
+    const restEnd = rest.start + rest.length;
+    return Object.assign({}, target, {
+      "start": rest.start - Math.max(0, rest.start - target.start) * p,
+      "end": restEnd + Math.max(0, target.end - restEnd) * p
+    });
   }
 
   /**

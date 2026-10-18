@@ -32,17 +32,12 @@ Item {
 
   // The host's EdgePlacement, and how far its coordinates are from its
   // window's along the edge: what the submenu meets on the box's side
-  // (SubmenuSide) follows from it. The stroke the box grows from reaches
-  // (x in the window) as far as its pill or island as the box stretches
-  // it, else the perpendicular strokes.
+  // (SubmenuSide) follows from it
   required property var geometry
   property real windowShift: 0
   // (read null-safe: the first evaluation, as the host is built, may
   // come before its placement's)
   readonly property var _place: root.geometry?.place ?? null
-  readonly property var _pill: root.geometry?.onPill ? (root._place?.stretch ?? root._place?.pill ?? null) : null
-  readonly property real _strokeFrom: root._pill ? root._pill.start : (root.geometry?.strokeFrom ?? 0)
-  readonly property real _strokeTo: root._pill ? (root._pill.end ?? root._pill.start + root._pill.length) : (root.geometry?.strokeTo ?? 0)
 
   readonly property int edge: root.geometry.edge
   readonly property bool vertical: root.edge === Bar.Left || root.edge === Bar.Right
@@ -52,8 +47,6 @@ Item {
     straight: root.geometry.straight
     attachLine: root.edge === Bar.Bottom ? root.popupSurface.y + root.popupSurface.height - root.popupSurface.backfill : root.popupSurface.y + root.popupSurface.backfill
     backfill: root.popupSurface.backfill
-    strokeFrom: root._strokeFrom + root.windowShift
-    strokeTo: root._strokeTo + root.windowShift
     joinStart: root._place?.joinStart ?? false
     joinEnd: root._place?.joinEnd ?? false
     boxCentreX: root.boxRect.x + root.boxRect.width / 2
@@ -80,19 +73,38 @@ Item {
   }
 
   // What an open submenu asks of the box (SubPopout.parentStretch: { top,
-  // bottom, squareTop, squareBottom, joined, joinReach }), along y in both
+  // bottom, squareTop, squareBottom, joined, wall }), along y in both
   // orientations: submenus open to the left or right. It reaches past the
   // box's top or bottom to carry one longer than its side, and squares its
   // corner where one runs flush to its end, as a pill does for a popout.
+  // It grows out before the submenu slides out (`contextReady`), and
+  // draws back once it has gone, as a pill does for a popout; a stretch
+  // changing while it's out (gliding to a sibling's submenu) glides there.
   readonly property var stretch: root.wrapper.occupied ? sub.parentStretch : null
-  property real shownStretchTop: root.stretch?.top ?? 0
-  property real shownStretchBottom: root.stretch?.bottom ?? 0
-  Glide on shownStretchTop {
+  property real _progress: root.stretch ? 1 : 0
+  Glide on _progress {
     enabled: root.animate
   }
-  Glide on shownStretchBottom {
-    enabled: root.animate
+  property real _top: 0
+  property real _bottom: 0
+  Glide on _top {
+    enabled: root.animate && root._progress >= 1
   }
+  Glide on _bottom {
+    enabled: root.animate && root._progress >= 1
+  }
+  function _take() {
+    if (!root.stretch)
+      return;
+    root._top = root.stretch.top;
+    root._bottom = root.stretch.bottom;
+  }
+  onStretchChanged: root._take()
+  readonly property real shownStretchTop: root._top * root._progress
+  readonly property real shownStretchBottom: root._bottom * root._progress
+  // Whether the box has grown out as far as the submenu asks: it slides
+  // out only then (SubPopout)
+  readonly property bool contextReady: !root.stretch || (root.stretch.top <= 0 && root.stretch.bottom <= 0) || root._progress >= 1
   // Across a top or bottom edge's box (along a side edge's, the box
   // reaches past its content's ends instead): as asked, and as drawn
   readonly property real stretchAcross: root.vertical ? 0 : (root.stretch?.top ?? 0) + (root.stretch?.bottom ?? 0)
@@ -121,10 +133,14 @@ Item {
   }
 
   // ...and for the host's EdgePlacement, in its coordinates along the
-  // edge: where a joined submenu's outer wall runs straight up into the
-  // pill or island the box stands on (EdgeAttach.reachStretch), and the
-  // stretch of that stroke it covers beside the box
-  readonly property var joinReach: root.stretch?.joinReach != null ? root.stretch.joinReach - root.windowShift : null
+  // edge: where a joined submenu's outer wall rests, which decides how it
+  // meets the stroke there (EdgePlacement.submenuJoin, back here as
+  // `join`), and the stretch of that stroke it covers beside the box
+  readonly property var wall: root.stretch?.wall != null ? root.stretch.wall - root.windowShift : null
+  // ...how much of it is still behind the box's side as it slides, which
+  // the pill reach under it follows
+  readonly property real hidden: sub.hidden
+  readonly property var join: root.geometry?.submenuJoin ?? null
   readonly property var joinSpan: root.submenuJoinSpan ? {
     "start": root.submenuJoinSpan.start - root.windowShift,
     "end": root.submenuJoinSpan.end - root.windowShift

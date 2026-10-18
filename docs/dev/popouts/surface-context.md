@@ -30,6 +30,7 @@ Every surface that grows out of a screen edge asks one pure helper what each of 
   - `detached`: the one rule for a box of its own. It is detached when held, past a transparent bar, or on a floating bar showing no islands.
   - `shadow`: how it casts its shadow, taken from what it grows out of. See [Shadows](shadows.md).
   - `opening`: a stroke opening on whole pixels.
+  - `submenuJoin`: how a submenu joined at its parent's bar side meets the stroke there, fillet or straight, and the parent's pill stretched for it. See [Submenus](submenus.md#what-the-submenu-hands-back).
 
 ### One placement for every host
 - `SurfaceContext.frame(p)` gives a surface's ends and the room it has along its edge before its box is known:
@@ -51,7 +52,8 @@ Every surface that grows out of a screen edge asks one pure helper what each of 
 - **Coordinates:** it converts to its host's coordinates. `alongStart` is where the host's along-axis 0 sits on screen.
 - **Side effects it owns:**
   - its `PillStretch`es, `PillBarJoin`s and `StrokeOpening`s
-  - `joinReach`, taken from its surface and window origin
+  - `joinReach`, taken from its surface and window origin, and `_surfaceHidden`, what a pill bar joined at an end follows the surface along its slide by
+  - for a joined submenu, how it meets the stroke (`submenuJoin`, from `SurfaceContext.submenuJoin`) and its pill reach (`_submenuReach`)
   - for a joined submenu, its reach and covered stroke, taken from the host's `SubmenuHost` (`submenu`)
 - **What hosts give it:**
   - the box: `centre`, `aligned`, `contentLength`

@@ -53,7 +53,7 @@ How the chrome's translucent surfaces share one blurred backing window, how thei
 
 ### Strokes left open under backed surfaces
 - Where a surface's fill used to hide a stroke it's joined over, the stroke is left open:
-  - a pill's or island's far stroke under a popout (`PillStretch.opening` → `BarContainer.setOpening`);
+  - a pill's or island's far stroke under a popout (`PillStretch.opening` → `BarContainer.setRequest`);
   - a popout's side under a submenu (`BarPopouts.submenuHole`, `AttachedSurface.strokeHoles`), drawn through `reusable/HoledItem`;
   - a dock joined to the border opens it as edge popouts do.
 - An opening spans only what's drawn over it (`AttachedSurface.coverStart`/`coverLength`):
@@ -85,7 +85,7 @@ How the chrome's translucent surfaces share one blurred backing window, how thei
 - Bar popouts merged into the bar, or on a solid bar's inner edge, do the same.
 
 ### Border off: the solid bar's inner stroke
-- With the border off, a solid bar draws its own inner stroke, left open through its `BarContainer.openings`. This holds opaque or not, as the windows' stacking isn't the bar's.
+- With the border off, a solid bar draws its own inner stroke, left open through the openings in its `BarContainer.setRequest`s. This holds opaque or not, as the windows' stacking isn't the bar's.
 - Bar popouts set their openings directly.
 - Edge popouts and docks (and bar popouts' joined ends) route the same screen-px spans through `hosts/popout/StrokeOpening`:
   - the stretch they stand on, a joined submenu's, and their joined ends' with their fillet;

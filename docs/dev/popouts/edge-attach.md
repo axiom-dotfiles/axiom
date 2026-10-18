@@ -35,7 +35,7 @@
     - past where islands may reach (`islandFrom`/`islandTo`).
 - **With `pillJoins` (`EdgePlacement`):** a box on a pill bar that `joins` a perpendicular edge joins it from whichever pill it grows out of. Examples are a floating edge menu or a dock running the whole edge.
   - That pill's stretch reaches to the bar's end (`pillFrom`/`pillTo`) and carries `joinStart`/`joinEnd`.
-  - So the pill joins the edge too once it gets there (`BarContainer._shownStretches`), rather than ending in a squared cap across the bar.
+  - So the pill joins the edge too once it gets there (`BarLayout.shownStretches`), rather than ending in a squared cap across the bar.
 - **Merging stretched pills:** `BarLayout.stretchIslands` merges them in order of where they start, because a stretch may reach back over the pills before its own.
 
 ### Walls
@@ -64,24 +64,29 @@
 - **How far:** either move is less than a fillet's room.
 
 ### Pill stretch
-- **Handing the stretch to the bar:** a surface standing on a pill or island does this through `hosts/popout/PillStretch`.
-  - It is owner-keyed: `BarContainer.setStretch(owner, stretch)`. Any number can be active at once.
-  - They are combined per pill by `BarLayout.stretchOf`.
-- **Drawing it:** the bar animates how far each pill reaches past its own ends (`BarContainer` `reaches`, `_shownStretches`).
-  - Pills and islands grow out and draw back.
-  - Their position follows the layout at once.
+- **Handing the stretch to the bar:** a surface standing on or joining a bar does this through `hosts/popout/PillStretch`.
+  - It is owner-keyed: `BarContainer.setRequest(owner, { stretch, opening, endReach })`. Any number can be active at once.
+  - The bar keeps each part in a map of its own, so a stretch changing never re-runs what reads the end reaches (`pillRects`).
+  - Stretches are combined per pill by `BarLayout.stretchOf`, and shown by `BarLayout.shownStretches`.
+- **The owner sets the pace; the bar draws what it's sent, as sent.** The bar animates none of it, so a surface and the pill it stands on can't drift apart.
+  - A `PillStretch` animates its own `progress` (animFast) and sends its stretch that far out from the pill's own span (`EdgeAttach.progressStretch`).
+  - A stretch changing while it's out (a switch in place, a resize) glides there.
+  - With `tracks`, the stretch follows its surface along a slide by itself and is sent as given.
+  - Pushes go at the end of the pass (`Qt.callLater`): what one sends reshapes the pills it reads.
+  - The pills' position follows the layout at once.
 
-### The pill grows first
-- **Opening waits for the pill:** a surface slides out only once its pill reaches as far as its stretch asks.
-  - The readiness flag is `PillStretch.ready`, from `BarContainer.carries(stretch)` as drawn.
-  - The host sets `open`, and readiness is judged a turn of the event loop later, because a host's stretch comes in with its content.
-- **Closing mirrors it:** the box slides away first, then the stretch is taken off and the pill draws back.
-- **Readiness holds while open:** once ready it holds while the surface stays open, so a switch in place or a resize never pulls the box back.
-- **Who waits:**
-  - bar popouts, on `surface.active`
-  - edge popouts, on `EdgePlacement.stretchReady`
-  - docks, on `shown`
-- **No stretch, no wait.**
+### Choreography
+How the context a surface needs (a pill to stand on, a pill reaching along a joined end) moves with the surface itself. Decisions (whether an end fillets, which pill it lands on) are made from where things rest, never from what's drawn.
+- **Context across the slide grows first, then the surface slides.** Closing mirrors it: the box slides away, then the context draws back.
+  - **Own pill or island widening** for a bar popout, edge popout or dock: the surface slides out only once `PillStretch.ready` (its `progress` has reached 1).
+    - The host sets `open`, and readiness is judged a turn of the event loop later, because a host's stretch comes in with its content.
+    - Once ready it holds while the surface stays open, so a switch in place or a resize never pulls the box back.
+    - Who waits: bar popouts, on `surface.active`; edge popouts, on `EdgePlacement.stretchReady`; docks, on `shown`. No stretch, no wait.
+  - **A parent box stretching past its end** for a submenu longer than its side: see [Submenus › Lifetime](submenus.md#lifetime).
+- **Context along the slide follows the surface.** Its tip moves with the surface's drawn far wall, a stroke ahead (the bar commits a frame or so after the surface's window, as `AttachedSurface._filletHidden` allows for), never past where it rests. Nothing waits for it.
+  - **A perpendicular pill bar's end pill** under a joined end (`PillBarJoin`, from `EdgePlacement._surfaceHidden`). Its far stroke opens only as far as the surface has come.
+  - **The pill reach under a submenu** joined at its parent's bar side (`EdgePlacement._submenuReach`, from `SubmenuHost.hidden`).
+  - A stub grown at the bar's end for one is never longer than the reach asked (`BarLayout.endReaches`), so it grows from the corner.
 
 ### EdgePlacement
 - **Every host reaches EdgeAttach through `hosts/popout/EdgePlacement`.** It reports what's on the edge.

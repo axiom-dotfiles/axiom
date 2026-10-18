@@ -489,6 +489,96 @@ TestCase {
     verify(drawn[2].joinEnd);
   }
 
+  function test_endReaches_stub_grows_with_the_request() {
+    // A request following a surface still sliding out reaches less than
+    // a stub: the stub is no longer than it, growing from the corner
+    const rects = [
+      {
+        "start": 400,
+        "length": 200,
+        "joinStart": false,
+        "joinEnd": false
+      }
+    ];
+    const r = BarLayout.endReaches(rects, [
+      {
+        "atStart": true,
+        "to": 6
+      },
+      {
+        "atStart": false,
+        "to": 990
+      }
+    ], 1000, 12, 20);
+    compare(r.rects.length, 3);
+    compare(r.rects[0].length, 6);
+    compare(r.rects[2].start, 990);
+    compare(r.rects[2].length, 10);
+    // Reaching nowhere past the end, it asks nothing
+    const none = BarLayout.endReaches(rects, [
+      {
+        "atStart": true,
+        "to": 0
+      },
+      {
+        "atStart": false,
+        "to": 1000
+      }
+    ], 1000, 12, 20);
+    compare(none.rects.length, 1);
+    compare(none.stretches.length, 0);
+  }
+
+  function test_shownStretches() {
+    const rects = [
+      {
+        "start": 0,
+        "length": 100
+      },
+      {
+        "start": 400,
+        "length": 200
+      }
+    ];
+    // Nothing past a pill's ends and nothing squared: nothing shown
+    compare(BarLayout.shownStretches(rects, [
+      {
+        "index": 1,
+        "start": 420,
+        "end": 580
+      }
+    ], 1000).length, 0);
+    const shown = BarLayout.shownStretches(rects, [
+      {
+        "index": 1,
+        "start": 380,
+        "end": 650,
+        "squareEnd": true
+      },
+      {
+        "index": 0,
+        "start": 0,
+        "end": 140,
+        "joinStart": true
+      }
+    ], 1000);
+    compare(shown.length, 2);
+    compare(shown[0].index, 0);
+    verify(shown[0].joinStart, "joined once it reaches the end");
+    compare(shown[1].start, 380);
+    compare(shown[1].end, 650);
+    verify(shown[1].squareEnd);
+    // Joining an end it hasn't reached yet: not joined
+    verify(!BarLayout.shownStretches(rects, [
+      {
+        "index": 1,
+        "start": 380,
+        "end": 980,
+        "joinEnd": true
+      }
+    ], 1000)[0].joinEnd);
+  }
+
   function test_endReaches_on_a_bar_with_no_pills() {
     const r = BarLayout.endReaches([], [
       {

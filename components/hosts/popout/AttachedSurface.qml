@@ -235,7 +235,8 @@ Item {
     "flushEndThrough": root.flushEndThrough,
     "straightJoins": root.straightJoins,
     "straightJoinStart": root.straightJoinStart,
-    "straightJoinEnd": root.straightJoinEnd
+    "straightJoinEnd": root.straightJoinEnd,
+    "joinBackfill": root.joinBackfill
   })
   readonly property var _natural: SurfaceOutline.metrics(root._baseSpec)
   readonly property var _m: SurfaceOutline.withBoxStart(root._spec, SurfaceOutline.metrics(root._spec), root.boxStart)
@@ -338,7 +339,8 @@ Item {
     containerHeight: root.height
     containerWidth: root.width
     enableFade: false
-    overflow: root.shadowReach
+    // (and the row past a joined end, joinBackfill, which it covers)
+    overflow: Math.max(root.shadowReach, root.joinBackfill)
 
     // The shadow the outline casts, only outside it (none shows
     // through a translucent fill), from a copy of it filled (its own fill
@@ -490,6 +492,26 @@ Item {
       width: area.width
       height: area.height
       color: root._fill
+    }
+    // ...with a straight join's far wall running on through it
+    // (SurfaceOutline's joinThroughStart/End)
+    Rectangle {
+      readonly property rect area: root._rectFrom(-root._m.joinThroughStart, root._m.farV - root._m.half, root._m.joinThroughStart, root.strokeWidth)
+      visible: !root.detached && root._m.joinThroughStart > 0
+      x: area.x
+      y: area.y
+      width: area.width
+      height: area.height
+      color: root._stroke
+    }
+    Rectangle {
+      readonly property rect area: root._rectFrom(root.alongLength, root._m.farV - root._m.half, root._m.joinThroughEnd, root.strokeWidth)
+      visible: !root.detached && root._m.joinThroughEnd > 0
+      x: area.x
+      y: area.y
+      width: area.width
+      height: area.height
+      color: root._stroke
     }
 
     // Content box: same placement the old bordered Rectangle had, so

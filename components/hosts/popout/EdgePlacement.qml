@@ -74,12 +74,11 @@ QtObject {
   // popout switching in place) lags its place by: its openings follow it
   property real drawnSurfaceStart: root.place.surfaceStart
   // The host's SubmenuHost, if it has one: where a joined submenu's outer
-  // wall runs straight up into the pill or island it stands on, which
-  // reaches on to it (EdgeAttach.reachStretch), and where it covers the
-  // stroke it stands on beside the box ({ start, end }, left open there
-  // too while the surface's openings show); else null
+  // wall rests (how it meets the stroke there is submenuJoin), and where
+  // it covers the stroke it stands on beside the box ({ start, end }, left
+  // open there too while the surface's openings show); else null
   property var submenu: null
-  readonly property var reach: root.submenu?.joinReach ?? null
+  readonly property var submenuWall: root.submenu?.wall ?? null
   readonly property var submenuSpan: root.opens ? (root.submenu?.joinSpan ?? null) : null
 
   // Its pill stretch: a key unique per surface on a bar, and whether it
@@ -241,9 +240,53 @@ QtObject {
   readonly property real barOuter: root._layout.barOuter
   // On a pill's far stroke the surface covers that stroke's inner fringe
   readonly property int backfill: root._layout.backfill
-  // Its pill stretch, reaching on to a joined submenu's wall (kept between
-  // the strokes at the edge's ends)
-  readonly property var stretch: EdgeAttach.reachStretch(root.place.stretch, root.onPill ? root.place.pill : null, root.reach === null ? null : Math.max(root._fromScreen(root._layout.stretchFrom), Math.min(root.reach, root._fromScreen(root._layout.stretchTo))))
+  // How a joined submenu meets the stroke the box grows from, from where
+  // its outer wall rests (SurfaceContext.submenuJoin): its fillet curving
+  // in, or its wall running straight up into it, and the box's pill or
+  // island stretched for it (kept between the strokes at the edge's ends,
+  // or within where islands may reach)
+  readonly property var _ownPill: {
+    if (!root.onPill)
+      return null;
+    const p = root.place.stretch ?? root.place.pill;
+    return p ? Object.assign({}, p, {
+      "end": p.end ?? p.start + p.length
+    }) : null;
+  }
+  readonly property var submenuJoin: root.submenuWall === null ? null : SurfaceContext.submenuJoin({
+    "wall": root.submenuWall,
+    "before": root.submenu?.openToLeft ?? false,
+    "radius": Appearance.borderRadius,
+    "stroke": Appearance.borderWidth,
+    "merge": root.barConfig?.pillMerge ?? 0,
+    "own": root._ownPill,
+    "pills": root.onPill ? (root.container?.pillRects ?? []).map(p => Object.assign({}, p, {
+        "start": p.start - root._toBar
+      })) : [],
+    "stretchFrom": root._fromScreen(root._layout.stretchFrom),
+    "stretchTo": root._fromScreen(root._layout.stretchTo),
+    "strokeFrom": root.strokeFrom,
+    "strokeTo": root.strokeTo
+  })
+  // Its pill stretch
+  readonly property var stretch: root.place.stretch
+  // A joined submenu's, as its outer wall is drawn: it slides out along
+  // the stroke, and the pill runs out with it, a stroke ahead (the bar
+  // commits a frame or so after it), never past where it rests nor back
+  // inside what the box's own stretch covers
+  readonly property var _submenuReach: {
+    const j = root.submenuJoin;
+    const own = root._ownPill;
+    if (!j?.stretch || j.at === null || !own)
+      return null;
+    const before = root.submenu?.openToLeft ?? false;
+    const tip = j.at + (before ? 1 : -1) * ((root.submenu?.hidden ?? 0) - Appearance.borderWidth);
+    return Object.assign({}, j.stretch, before ? {
+      "start": Math.min(own.start, Math.max(j.at, tip))
+    } : {
+      "end": Math.max(own.end, Math.min(j.at, tip))
+    });
+  }
 
   // --- Its shadow (SurfaceContext.shadow) ---
   // What it grows out of: its bar (pills, islands, a merged box's outer
@@ -277,6 +320,9 @@ QtObject {
   // decided from and flipped it back.
   readonly property real _surfaceFromEdge: root.attachAt - root.backfill
   readonly property real joinReach: root._surfaceFromEdge + (root.attachedSurface?.joinWall ?? 0)
+  // How much of the surface is still behind its edge as it slides: what a
+  // pill bar joined at an end follows it along by (PillBarJoin.hidden)
+  readonly property real _surfaceHidden: root.attachedSurface ? root.attachedSurface.slid + root.attachedSurface.hiddenBehind : 0
   function _edgeSpan(start, end) {
     return {
       "screen": root.screen?.name ?? "",
@@ -342,6 +388,7 @@ QtObject {
     joined: root.place.joinStart && root.startEnd.sink === "pillBar"
     showing: root.showing
     joinReach: root.joinReach
+    hidden: root._surfaceHidden
   }
   property PillBarJoin _endPill: PillBarJoin {
     screen: root.screen
@@ -352,6 +399,7 @@ QtObject {
     joined: root.place.joinEnd && root.endEnd.sink === "pillBar"
     showing: root.showing
     joinReach: root.joinReach
+    hidden: root._surfaceHidden
   }
 
   // The pill (or island) stretched to carry the box's fillets while it
@@ -373,6 +421,8 @@ QtObject {
   property PillStretch _submenuStretch: PillStretch {
     container: root.container
     owner: root.owner + ":submenu"
+    tracks: true
+    stretch: root.showing && root._submenuReach ? Object.assign({}, root._submenuReach, root._toBarSpan(root._submenuReach.start, root._submenuReach.end)) : null
     opening: root.showing && root.onPill && Appearance.translucent && root.submenuSpan ? root._toBarSpan(root.submenuSpan.start, root.submenuSpan.end) : null
   }
 }

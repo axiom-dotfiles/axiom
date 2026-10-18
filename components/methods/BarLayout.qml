@@ -288,6 +288,33 @@ QtObject {
     return root._mergeSpans(grown, merge).map(m => rect(m.start, m.end));
   }
 
+  // The stretches as drawn on `rects` (the pills along a bar `length`
+  // long): one per pill reaching past its ends or squared, { index,
+  // start, end, squareStart, squareEnd, joinStart, joinEnd }, the
+  // stretches on it combined (stretchOf). One stretched on to an end to
+  // join the edge there joins it once it's reached it.
+  function shownStretches(rects, stretches, length) {
+    const shown = [];
+    (rects ?? []).forEach((rect, i) => {
+      const target = root.stretchOf(stretches, i);
+      if (!target)
+        return;
+      const start = Math.min(rect.start, target.start), end = Math.max(rect.start + rect.length, target.end);
+      if (start >= rect.start && end <= rect.start + rect.length && !target.squareStart && !target.squareEnd)
+        return;
+      shown.push({
+        "index": i,
+        "start": start,
+        "end": end,
+        "squareStart": target.squareStart,
+        "squareEnd": target.squareEnd,
+        "joinStart": target.joinStart && start <= 0.5,
+        "joinEnd": target.joinEnd && end >= length - 0.5
+      });
+    });
+    return shown;
+  }
+
   // The stretches on pill `index` (each { index, start, end, squareStart,
   // squareEnd, joinStart, joinEnd }: one per surface standing on it) as
   // one, or null. An end is squared (or joins the perpendicular edge) when
@@ -346,15 +373,18 @@ QtObject {
   // the edge there (straight: flush off it, with no fillet into it, the
   // surface joining it drawing the corner instead). The end pill is
   // stretched there when it joins that end or comes within `merge` of
-  // `to`; otherwise a `stub` long pill is added at the end and stretched.
-  // `square`: the pill's corner at `to` is square, where a surface's wall
-  // runs straight into it (when that request reaches furthest).
+  // `to`; otherwise a pill up to `stub` long (no further than `to`, so it
+  // grows from the corner with a request following a surface sliding
+  // out) is added at the end and stretched. A request reaching nowhere
+  // past the end asks nothing. `square`: the pill's corner at `to` is
+  // square, where a surface's wall runs straight into it (when that
+  // request reaches furthest).
   // -> { rects (pills with any stubs, in order), stretches (as stretchOf
   // takes them, indices into rects), straightStart, straightEnd }.
   function endReaches(rects, requests, length, merge, stub) {
     const out = rects.slice();
     const stretches = [];
-    const at = atStart => (requests ?? []).filter(r => r && r.atStart === atStart);
+    const at = atStart => (requests ?? []).filter(r => r && r.atStart === atStart && (atStart ? r.to > 0.5 : r.to < length - 0.5));
     const starts = at(true), ends = at(false);
     if (starts.length > 0) {
       const to = Math.max(...starts.map(r => r.to));
@@ -362,7 +392,7 @@ QtObject {
       if (!first || !first.joinStart && first.start > to + merge)
         out.unshift({
           "start": 0,
-          "length": Math.min(stub, length),
+          "length": Math.min(stub, length, to),
           "joinStart": true,
           "joinEnd": false
         });
@@ -372,8 +402,8 @@ QtObject {
       const last = out[out.length - 1];
       if (!last || !last.joinEnd && last.start + last.length < to - merge)
         out.push({
-          "start": Math.max(0, length - stub),
-          "length": Math.min(stub, length),
+          "start": Math.max(0, length - stub, to),
+          "length": Math.min(stub, length, length - to),
           "joinStart": false,
           "joinEnd": true
         });

@@ -16,6 +16,13 @@ import qs.components.methods
 // stub) runs only to the surface's far wall and squares there, the wall
 // running straight up into it (the host joins it straight). Inside the
 // border, or on the bare edge without it, alike.
+//
+// It follows the surface along its slide (`hidden`): the pill runs out
+// with the surface's far wall as it slides out along it, a stroke ahead
+// (the bar commits a frame or so after the surface's window), and back
+// with it as it slides away, so the two never part; its far stroke opens
+// only where the surface has come. Whether it fillets is decided from
+// where the wall rests.
 PillStretch {
   id: root
 
@@ -28,8 +35,10 @@ PillStretch {
   property bool showing: false
   // How far in from the surface's screen edge its joined end reaches the
   // pill bar's far stroke at its far wall (AttachedSurface.joinWall from
-  // that edge)
+  // that edge), at rest; and how much of the surface is still behind its
+  // edge, sliding (AttachedSurface.slid and hiddenBehind)
   property real joinReach: 0
+  property real hidden: 0
 
   readonly property var _panel: ShellManager.barOn(root.screen?.name ?? "", root.side)
   // A pill bar showing there, with no integrated menu's strip on that edge
@@ -40,22 +49,27 @@ PillStretch {
   readonly property bool _atStart: root.edge === Bar.Left || root.edge === Bar.Top
   readonly property bool _vertical: root.edge === Bar.Left || root.edge === Bar.Right
   readonly property real _radius: Appearance.borderRadius
-  // Where the surface's far wall meets that bar (its coordinates); null
-  // while the surface doesn't show
-  readonly property var _wall: {
+  // Where the surface's far wall meets that bar (its coordinates) at
+  // `reach` from the surface's edge; null while the surface doesn't show
+  function _wallAt(reach) {
     const origin = root._panel?.container?.blurOrigin;
     if (!origin || !root.showing || !root.joined || !root.available)
       return null;
     const span = (root._vertical ? root.screen?.width : root.screen?.height) ?? 0;
-    return (root._atStart ? root.joinReach : span - root.joinReach) - (root._vertical ? origin.x : origin.y);
+    return (root._atStart ? reach : span - reach) - (root._vertical ? origin.x : origin.y);
   }
+  // ...at rest, which decides whether it fillets
+  readonly property var _wall: root._wallAt(root.joinReach)
+  // ...and as drawn, sliding: what the pill and its opening follow, a
+  // stroke ahead, never past where it rests
+  readonly property var _drawnWall: root._wallAt(Math.min(root.joinReach, root.joinReach - root.hidden + Appearance.borderWidth))
   // Whether one of the bar's own pills shows past the wall near enough to
   // be carried on past a fillet: the end then curves into it rather than
   // squaring a stub at the wall (EdgeAttach.pillJoinFilleted)
   readonly property bool filleted: root._wall !== null && EdgeAttach.pillJoinFilleted(root._panel.container.sectionPills, root._wall, root._atStart, root._radius, root._panel.barConfig.pillMerge ?? 0, Appearance.borderWidth)
-  // Where the joined end covers that bar's far stroke to: the fillet's
-  // tip, or the wall
-  readonly property var _reach: root._wall === null ? null : !root.filleted ? root._wall : root._atStart ? root._wall + root._radius : root._wall - root._radius
+  // Where the joined end covers that bar's far stroke to, as drawn: the
+  // fillet's tip, or the wall
+  readonly property var _reach: root._drawnWall === null ? null : !root.filleted ? root._drawnWall : root._atStart ? root._drawnWall + root._radius : root._drawnWall - root._radius
 
   container: root.joined && root.available ? (root._panel?.container ?? null) : null
   // Filleted, past the fillet by the pill's own corner; else out to the
