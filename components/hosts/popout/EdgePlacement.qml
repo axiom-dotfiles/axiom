@@ -271,7 +271,8 @@ QtObject {
   // Its pill stretch
   readonly property var stretch: root.place.stretch
   // A joined submenu's, as its outer wall is drawn: it slides out along
-  // the stroke, and the pill runs out with it, never past where it rests
+  // the stroke, and the pill runs out with it (`_slideLead` ahead), never
+  // past where it rests
   // nor back inside what the box's own stretch covers. Its `box` is the
   // two boxes together, from the submenu's wall at rest
   // (BarLayout.flushEnds)
@@ -281,7 +282,7 @@ QtObject {
     if (!j?.stretch || j.at === null || !own)
       return null;
     const before = root.submenu?.openToLeft ?? false;
-    const tip = j.at + (before ? 1 : -1) * (root.submenu?.hidden ?? 0);
+    const tip = j.at + (before ? 1 : -1) * Math.max(0, (root.submenu?.hidden ?? 0) - root._slideLead);
     return Object.assign({}, j.stretch, before ? {
       "start": Math.min(own.start, tip)
     } : {
@@ -326,10 +327,15 @@ QtObject {
   // decided from and flipped it back.
   readonly property real _surfaceFromEdge: root.attachAt - root.backfill
   readonly property real joinReach: root._surfaceFromEdge + (root.attachedSurface?.joinWall ?? 0)
-  // How much of the surface is still behind its edge as it slides: what a
-  // pill bar joined at an end follows it along by (PillBarJoin.hidden,
-  // AttachedSurface.hiddenNow)
-  readonly property real _surfaceHidden: root.attachedSurface?.hiddenNow ?? 0
+  // How far context along a slide (a pill bar's end pill under a joined
+  // end, a joined submenu's pill reach) leads its surface's wall: a stroke
+  // where another window's change may show a frame or so after the
+  // surface's (no supports.layerFrameSync), else none, the two moving as one
+  readonly property real _slideLead: CompositorManager.supports.layerFrameSync === true ? 0 : Appearance.borderWidth
+  // How much of the surface is still behind its edge as it slides, less
+  // that lead: what a pill bar joined at an end follows it along by
+  // (PillBarJoin.hidden, AttachedSurface.hiddenNow)
+  readonly property real _surfaceHidden: Math.max(0, (root.attachedSurface?.hiddenNow ?? 0) - root._slideLead)
   function _edgeSpan(start, end) {
     return {
       "screen": root.screen?.name ?? "",

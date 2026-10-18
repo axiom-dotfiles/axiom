@@ -35,7 +35,7 @@ PillStretch {
   // How far in from the surface's screen edge its joined end reaches the
   // pill bar's far stroke at its far wall (AttachedSurface.joinWall from
   // that edge), at rest; and how much of the surface is still behind its
-  // edge, sliding (AttachedSurface.slid and hiddenBehind)
+  // edge, sliding, less the lead it keeps (EdgePlacement._slideLead)
   property real joinReach: 0
   property real hidden: 0
 

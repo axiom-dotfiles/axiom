@@ -70,6 +70,7 @@ Singleton {
     "switcher": true,
     "windowGeometry": true,
     "outputCapture": true,
+    "layerFrameSync": true,
     "windowBorders": true,
     "windowShape": true,
     "windowGaps": true,
