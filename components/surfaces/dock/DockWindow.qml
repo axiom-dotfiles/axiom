@@ -442,7 +442,14 @@ Scope {
     }
     onReservedChanged: panelWindow._publishZone()
     onZoneKeyChanged: panelWindow._publishZone()
-    Component.onCompleted: panelWindow._publishZone()
+    Component.onCompleted: {
+      panelWindow._publishZone();
+      // The preview's blur region, attached only where the compositor
+      // blurs regions (attached at all, it claims the window's blur, and
+      // Hyprland's layer rules no longer blur it)
+      if (CompositorManager.supports.blurRegion === true)
+        BackgroundEffect.blurRegion = Qt.binding(() => root.preview && BlurManager.regions ? previewBlur : null);
+    }
     Component.onDestruction: {
       const old = panelWindow._zoneSet;
       if (old)
@@ -488,8 +495,7 @@ Scope {
     }
 
     // A preview fills and blurs itself: where the compositor blurs only
-    // what a window asks, its shape as drawn
-    BackgroundEffect.blurRegion: root.preview && BlurManager.regions ? previewBlur : null
+    // what a window asks, its shape as drawn (attached in onCompleted)
     BlurRegion {
       id: previewBlur
       pieces: root.preview && BlurManager.regions ? SurfaceOutline.placeRegion(surface.blurPieces(), surface.x, surface.y, null) : []

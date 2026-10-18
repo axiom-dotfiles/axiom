@@ -105,7 +105,10 @@ PopoutWrapperBase {
 
     // Where the compositor blurs only what a window asks: the box, as it
     // scales open
-    BackgroundEffect.blurRegion: BlurManager.regions && !BlurManager.opaqueOn(root.screen) ? boxBlur : null
+    // (attached only there: attached at all, it claims the window's blur, and
+    // Hyprland's layer rules no longer blur it)
+    Component.onCompleted: if (CompositorManager.supports.blurRegion === true)
+      BackgroundEffect.blurRegion = Qt.binding(() => BlurManager.regions && !BlurManager.opaqueOn(root.screen) ? boxBlur : null)
     BoxBlurRegion {
       id: boxBlur
       target: box

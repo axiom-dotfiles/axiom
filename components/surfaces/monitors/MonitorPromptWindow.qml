@@ -33,7 +33,10 @@ PanelWindow {
   Component.onDestruction: ShellManager.unregisterModal(root)
 
   // Where the compositor blurs only what a window asks: the card
-  BackgroundEffect.blurRegion: BlurManager.regions ? cardBlur : null
+  // (attached only there: attached at all, it claims the window's blur, and
+  // Hyprland's layer rules no longer blur it)
+  Component.onCompleted: if (CompositorManager.supports.blurRegion === true)
+    BackgroundEffect.blurRegion = Qt.binding(() => BlurManager.regions ? cardBlur : null)
   BoxBlurRegion {
     id: cardBlur
     target: card

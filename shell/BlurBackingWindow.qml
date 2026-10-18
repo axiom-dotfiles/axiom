@@ -120,7 +120,10 @@ PanelWindow {
     return SurfaceOutline.placeRegion(pieces, shape.x, shape.y, clip);
   }
 
-  BackgroundEffect.blurRegion: backing.regionBlur ? blurRegion : null
+  // (attached only there: attached at all, it claims the window's blur, and
+  // Hyprland's layer rules no longer blur it)
+  Component.onCompleted: if (CompositorManager.supports.blurRegion === true)
+    BackgroundEffect.blurRegion = Qt.binding(() => backing.regionBlur ? blurRegion : null)
   BlurRegion {
     id: blurRegion
     pieces: backing.regionPieces

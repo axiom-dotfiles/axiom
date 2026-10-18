@@ -75,7 +75,10 @@ PanelWindow {
 
   // Where the compositor blurs only what a window asks: the dim, as it
   // slides, while backdrops blur (LayerStack.blurBackdrops)
-  BackgroundEffect.blurRegion: BlurManager.backdropRegions ? fillBlur : null
+  // (attached only there: attached at all, it claims the window's blur, and
+  // Hyprland's layer rules no longer blur it)
+  Component.onCompleted: if (CompositorManager.supports.blurRegion === true)
+    BackgroundEffect.blurRegion = Qt.binding(() => BlurManager.backdropRegions ? fillBlur : null)
   BoxBlurRegion {
     id: fillBlur
     target: fill

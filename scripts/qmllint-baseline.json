@@ -34,9 +34,6 @@
     "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
     "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
   },
-  "components/hosts/overlay/OverlayPanel.qml": {
-    "missing-type: No type found for property \"blurRegion\". This may be due to a missing import statement or incomplete qmltypes files.": 1
-  },
   "components/hosts/overlay/OverlaySlot.qml": {
     "missing-property: Member \"expander\" not found on type (component in components/hosts/overlay/OverlaySlot.qml)::item with type QObject": 1,
     "missing-property: Member \"growHeight\" not found on type \"QObject\"": 1,
@@ -69,9 +66,6 @@
     "unqualified: unknown grouped property scope margins.": 1,
     "unresolved-type: Type margins is used but it is not resolved": 1
   },
-  "components/hosts/popout/FloatingPopout.qml": {
-    "missing-type: No type found for property \"blurRegion\". This may be due to a missing import statement or incomplete qmltypes files.": 1
-  },
   "components/hosts/popout/PopoutWrapperBase.qml": {
     "missing-property: Member \"autoDismiss\" not found on type \"QQuickItem\"": 1,
     "missing-property: Member \"dismissDelay\" not found on type \"QQuickItem\"": 1,
@@ -92,23 +86,17 @@
     "unqualified: Unqualified access": 4
   },
   "components/reusable/StyledToolTip.qml": {
-    "missing-type: No type found for property \"blurRegion\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
     "missing-type: No type found for property \"edges\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
     "missing-type: No type found for property \"gravity\". This may be due to a missing import statement or incomplete qmltypes files.": 1
-  },
-  "components/surfaces/backdrop/ScreenBackdrop.qml": {
-    "missing-type: No type found for property \"blurRegion\". This may be due to a missing import statement or incomplete qmltypes files.": 1
   },
   "components/surfaces/border/RoundedBorders.qml": {
     "unresolved-type: Type margins is used but it is not resolved": 1
   },
   "components/surfaces/dock/DockMenu.qml": {
-    "missing-type: No type found for property \"blurRegion\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
     "missing-type: No type found for property \"edges\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
     "missing-type: No type found for property \"gravity\". This may be due to a missing import statement or incomplete qmltypes files.": 1
   },
   "components/surfaces/dock/DockWindow.qml": {
-    "missing-type: No type found for property \"blurRegion\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
     "unqualified: unknown grouped property scope margins.": 1,
     "unresolved-type: Type margins is used but it is not resolved": 1
   },
@@ -116,18 +104,8 @@
     "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
     "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
   },
-  "components/surfaces/monitors/MonitorPromptWindow.qml": {
-    "missing-type: No type found for property \"blurRegion\". This may be due to a missing import statement or incomplete qmltypes files.": 1
-  },
   "components/surfaces/notifications/NotificationToast.qml": {
-    "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
-    "missing-type: No type found for property \"blurRegion\". This may be due to a missing import statement or incomplete qmltypes files.": 1
-  },
-  "components/surfaces/polkit/PolkitWindow.qml": {
-    "missing-type: No type found for property \"blurRegion\". This may be due to a missing import statement or incomplete qmltypes files.": 1
-  },
-  "components/surfaces/powermenu/PowerMenuWindow.qml": {
-    "missing-type: No type found for property \"blurRegion\". This may be due to a missing import statement or incomplete qmltypes files.": 1
+    "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1
   },
   "services/BluetoothManager.qml": {
     "unresolved-type: Type \"BluetoothAdapter\" of property \"defaultAdapter\" not found. This is likely due to a missing dependency entry or a type not being exposed declaratively.": 1
@@ -151,14 +129,8 @@
     "missing-property: Member \"running\" not found on type \"QObject\"": 1,
     "missing-property: Member \"running\" not found on type call to method objectAt, returning QObject": 1
   },
-  "shell/BlurBackingWindow.qml": {
-    "missing-type: No type found for property \"blurRegion\". This may be due to a missing import statement or incomplete qmltypes files.": 1
-  },
   "shell/Notifications.qml": {
     "unqualified: unknown grouped property scope margins.": 1,
     "unresolved-type: Type margins is used but it is not resolved": 1
-  },
-  "shell/WorkspaceOverlay.qml": {
-    "missing-type: No type found for property \"blurRegion\". This may be due to a missing import statement or incomplete qmltypes files.": 1
   }
 }

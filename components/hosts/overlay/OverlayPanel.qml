@@ -134,7 +134,10 @@ ReservedAreaWindow {
 
   // Where the compositor blurs only what a window asks: the page's box and
   // the navigator, as they slide and resize
-  BackgroundEffect.blurRegion: BlurManager.regions ? boxesBlur : null
+  // (attached only there: attached at all, it claims the window's blur, and
+  // Hyprland's layer rules no longer blur it)
+  Component.onCompleted: if (CompositorManager.supports.blurRegion === true)
+    BackgroundEffect.blurRegion = Qt.binding(() => BlurManager.regions ? boxesBlur : null)
   Region {
     id: boxesBlur
 

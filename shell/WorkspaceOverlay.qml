@@ -120,7 +120,10 @@ Scope {
 
       // Where the compositor blurs only what a window asks: the overview's
       // panel
-      BackgroundEffect.blurRegion: BlurManager.regions ? overviewBlur : null
+      // (attached only there: attached at all, it claims the window's blur, and
+      // Hyprland's layer rules no longer blur it)
+      Component.onCompleted: if (CompositorManager.supports.blurRegion === true)
+        BackgroundEffect.blurRegion = Qt.binding(() => BlurManager.regions ? overviewBlur : null)
       BoxBlurRegion {
         id: overviewBlur
         target: overview

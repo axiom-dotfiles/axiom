@@ -58,6 +58,11 @@ PopupWindow {
   Component.onCompleted: {
     shown = true;
     slideIn.start();
+    // Its blur region, attached only where the compositor blurs regions
+    // (attached at all, it claims the window's blur, and Hyprland's layer
+    // rules no longer blur it)
+    if (CompositorManager.supports.blurRegion === true)
+      BackgroundEffect.blurRegion = Qt.binding(() => BlurManager.regions && !content.solid ? cardBlur : null);
   }
 
   // Only hides the toast — the notification stays tracked so it's still
@@ -144,8 +149,7 @@ PopupWindow {
   }
 
   // Where the compositor blurs only what a window asks: the card, as it
-  // slides, fades and is dragged
-  BackgroundEffect.blurRegion: BlurManager.regions && !content.solid ? cardBlur : null
+  // slides, fades and is dragged (attached in onCompleted)
   BoxBlurRegion {
     id: cardBlur
     target: content

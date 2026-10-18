@@ -41,7 +41,10 @@ PopupWindow {
 
   // Where the compositor blurs only what a window asks: the box, as
   // Hyprland blurs layers' popups
-  BackgroundEffect.blurRegion: BlurManager.regions && !box.solid ? boxBlur : null
+  // (attached only there: attached at all, it claims the window's blur, and
+  // Hyprland's layer rules no longer blur it)
+  Component.onCompleted: if (CompositorManager.supports.blurRegion === true)
+    BackgroundEffect.blurRegion = Qt.binding(() => BlurManager.regions && !box.solid ? boxBlur : null)
   BoxBlurRegion {
     id: boxBlur
     target: box
