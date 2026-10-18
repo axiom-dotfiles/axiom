@@ -9,19 +9,27 @@ QtObject {
 
   // `themes`: [{ name, label, variant, paired, preview }]. Returns one family
   // { label, dark, light, darkPreview, lightPreview, shared, generated,
-  // community } per dark theme and per light theme no dark names, sorted by
-  // label. A dark joins the light its `paired` names. A light names one dark
-  // back: that pair is the family's main one, labelled by the words their
-  // names share ("Tokyo Night" + "Tokyo Day" = "Tokyo"); every other dark
-  // naming it shares it (`shared`) and keeps its own label ("Tokyo Storm").
+  // community } per dark theme and per light theme no dark joins, sorted by
+  // label. A light names one dark back: that pair is the family's main one,
+  // labelled by the words their names share ("Tokyo Night" + "Tokyo Day" =
+  // "Tokyo"); every other dark naming it shares it (`shared`) and keeps its
+  // own label ("Tokyo Storm"). A dark naming a light that names no dark
+  // back as its pair stays a theme on its own, as does that light.
   function build(themes, generated, community = false) {
     const byName = themes.reduce((map, theme) => {
       map[theme.name] = theme;
       return map;
     }, {});
-    const lightOf = theme => {
+    const named = (theme, variant) => {
       const pair = byName[theme.paired];
-      return theme.variant === "dark" && pair && pair.variant === "light" ? pair : null;
+      return pair && pair.variant === variant ? pair : null;
+    };
+    // The light a dark joins: the one it names, while that light's own
+    // dark names it back
+    const lightOf = theme => {
+      const light = theme.variant === "dark" ? named(theme, "light") : null;
+      const main = light ? named(light, "dark") : null;
+      return main && main.paired === light.name ? light : null;
     };
     const claimed = {};
     const families = [];

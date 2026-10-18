@@ -59,15 +59,23 @@ QtObject {
   // out)
   readonly property bool modified: active !== "" && _baseline !== null && !Utils.deepEqual(ConfigExamples.snapshot(ConfigManager.config, ConfigManager.configSchema), _baseline)
 
+  // The shared setup the active saved config was saved from, unchanged
+  // since (`_example.source`, written by the apply): "" for one the user
+  // saved, or saved over
+  readonly property string activeSource: active !== "" ? _activeSource : ""
+
   property string _active: ""
+  property string _activeSource: ""
   // The snapshot parts of the active saved config as it loads (migrated,
   // defaults filled)
   property var _baseline: null
   // The config being written by save(), the new baseline once it's saved
   // (dropped once it's written or fails)
   property var _saving: null
-  // The status to show once save() has written, "" for "Saved"
+  // The status to show once save() has written, "" for "Saved", and the
+  // shared setup it's saved from ("" for none)
   property string _savedStatus: ""
+  property string _savedSource: ""
   // An imported file awaiting confirmation: { name, title, description,
   // path, config, hasPersonal } (config loaded: migrated, defaults filled;
   // hasPersonal: the file holds keybinds, apps or commands), or null
@@ -111,8 +119,9 @@ QtObject {
 
   // Saves the running config's snapshot parts (including unsaved settings
   // edits) under `name`, replacing any existing snapshot of that name.
-  // `savedStatus`: the status once it's written, in place of "Saved".
-  function save(name, savedStatus = "") {
+  // `savedStatus`: the status once it's written, in place of "Saved";
+  // `source`: the shared setup it holds as applied (activeSource).
+  function save(name, savedStatus = "", source = "") {
     const fileName = sanitize(name);
     if (fileName === "") {
       root.status = I18n.tr("Enter a name to save as");
@@ -122,6 +131,7 @@ QtObject {
     // 128 KiB (the folder was made at startup)
     _writer.name = fileName;
     root._savedStatus = savedStatus;
+    root._savedSource = source;
     root._saving = Utils.clone(ConfigManager.config);
     // Through an empty path first: a FileView skips setText of the text it
     // last read or wrote (no `saved`), which would leave an apply waiting
@@ -136,6 +146,8 @@ QtObject {
       },
       "version": ConfigMigration.currentVersion
     };
+    if (source !== "")
+      header._example.source = source;
     const saved = Object.assign({}, header, ConfigExamples.sparse(ConfigExamples.snapshot(root._saving, schema), schema));
     _writer.setText(JSON.stringify(saved, null, 2) + "\n");
   }
@@ -172,7 +184,8 @@ QtObject {
     root._restoring = {
       name: name,
       path: path,
-      config: config
+      config: config,
+      source: root._sourceOf(parsed)
     };
     if (paths.length === 0) {
       root._finishRestore([]);
@@ -193,7 +206,7 @@ QtObject {
       root.status = I18n.tr("\"{0}\" is not a valid config", pending.name);
       return;
     }
-    root._setActive(pending.name, ConfigManager.config);
+    root._setActive(pending.name, ConfigManager.config, pending.source);
     SettingsManager.loadConfig();
     root.status = I18n.tr("Restored \"{0}\"", pending.name);
     console.log("[SavedConfigsManager] Restored", pending.path);
@@ -381,7 +394,7 @@ QtObject {
     root.applied(pending.name);
     // Later: this runs inside the backup's write, through the same FileView
     if (pending.snapshot !== "")
-      Qt.callLater(root.save, pending.snapshot, I18n.tr("Applied \"{0}\" as \"{1}\". The previous configuration is saved as \"{2}\".", pending.name, sanitize(pending.snapshot), "before-" + pending.name));
+      Qt.callLater(root.save, pending.snapshot, I18n.tr("Applied \"{0}\" as \"{1}\". The previous configuration is saved as \"{2}\".", pending.name, sanitize(pending.snapshot), "before-" + pending.name), pending.name);
   }
 
   // The parsed example (with its _example header), or null
@@ -401,9 +414,11 @@ QtObject {
     _run(["rm", "-f", "--", savedDir + name + ".json"], I18n.tr("Deleted \"{0}\"", name), I18n.tr("Failed to delete \"{0}\"", name), name);
   }
 
-  // `baseline`: the config as saved, or undefined to read it from the file
-  function _setActive(name, baseline) {
+  // `baseline`: the config as saved, or undefined to read it (and the
+  // source) from the file
+  function _setActive(name, baseline, source = "") {
     root._active = name;
+    root._activeSource = source;
     root._state.save({
       "active": name
     });
@@ -411,6 +426,12 @@ QtObject {
       root._loadBaseline();
     else
       root._baseline = baseline === null ? null : ConfigExamples.snapshot(baseline, ConfigManager.configSchema);
+  }
+
+  // A saved file's `_example.source`, or ""
+  function _sourceOf(parsed) {
+    const source = parsed?._example?.source;
+    return typeof source === "string" ? source : "";
   }
 
   function _loadBaseline() {
@@ -421,7 +442,9 @@ QtObject {
     if (!content)
       return;
     try {
-      const config = root._load(JSON.parse(content));
+      const parsed = JSON.parse(content);
+      root._activeSource = root._sourceOf(parsed);
+      const config = root._load(parsed);
       root._baseline = config ? ConfigExamples.snapshot(config, ConfigManager.configSchema) : null;
     } catch (e) {
       console.warn("[SavedConfigsManager] Could not parse the active saved config", root._active + ":", e);
@@ -465,7 +488,7 @@ QtObject {
     atomicWrites: true
     printErrors: false
     onSaved: {
-      root._setActive(name, root._saving);
+      root._setActive(name, root._saving, root._savedSource);
       root._saving = null;
       root.status = root._savedStatus || I18n.tr("Saved \"{0}\"", name);
       console.log("[SavedConfigsManager]", root.status);

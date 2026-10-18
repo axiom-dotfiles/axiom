@@ -14,6 +14,7 @@ Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/save
 - `status` (string): Last save/restore/delete outcome, for the settings UI
 - `active` (readonly string): The saved config the running one was last saved as or restored from, "" for none (or once its file is gone): the one the settings UI offers to overwrite.
 - `modified` (readonly bool): Whether the running config's snapshot parts differ from the active saved one's (machine settings, which restoring doesn't change, are left out)
+- `activeSource` (readonly string): The shared setup the active saved config was saved from, unchanged since (`_example.source`, written by the apply): "" for one the user saved, or saved over
 - `importing` (var): An imported file awaiting confirmation: { name, title, description, path, config, hasPersonal } (config loaded: migrated, defaults filled; hasPersonal: the file holds keybinds, apps or commands), or …
 - `picking` (readonly bool): The file picker is open
 
@@ -26,7 +27,7 @@ Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/save
 
 - `sanitize(name)`
 - `exists(name)`
-- `save(name, savedStatus = "")`: Saves the running config's snapshot parts (including unsaved settings edits) under `name`, replacing any existing snapshot of that name.
+- `save(name, savedStatus = "", source = "")`: Saves the running config's snapshot parts (including unsaved settings edits) under `name`, replacing any existing snapshot of that name.
 - `restore(name)`
 - `restoreDefaults()`: Applies the schema defaults like an example (the look and personal parts; machine settings stay), after saving the running config as "before-defaults".
 - `applyExample(name)`: Saves the running config as "before-<name>", then applies the example (in _writer's onSaved, so a failed backup applies nothing)

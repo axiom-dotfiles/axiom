@@ -1,6 +1,6 @@
 # Community setups
 
-> **Files:** `services/CommunitySetupsManager.qml`, `components/methods/CommunityCatalog.qml`, `scripts/community_fetch.sh`, `config/CommunitySetups.qml`, `components/views/settings/CommunitySetupsCard.qml`, `services/SavedConfigsManager.qml`
+> **Files:** `services/CommunitySetupsManager.qml`, `services/CommunityFetch.qml`, `components/methods/CommunityCatalog.qml`, `scripts/community_fetch.sh`, `config/CommunitySetups.qml`, `components/views/settings/CommunitySetupsCard.qml`, `services/SavedConfigsManager.qml`
 > **Config:** `CommunitySetups.*` (reader `CommunitySetups`); an applied setup becomes the saved config `community-<id>`
 > **Related:** [Saved configs and sharing](../core/saved-configs-sharing.md), [Themes](../theming/themes.md), [Launcher](launcher.md), [Config manager](../core/config-manager.md) (where files live)
 
@@ -38,7 +38,8 @@ A gallery of setups other people shared at [axiom-dotfiles/community-setups](htt
 3. Hands the config to `SavedConfigsManager.applyShared(id, path, title)`: the same checks as Import (a `version`, not newer than this axiom), then `_backupThenApply` with personal parts **off**. So the running config is saved as `before-<id>`, only the look is taken (`ConfigExamples.apply`), and `x-takeover` settings are kept (`ConfigManager.restoreConfig`). Even a setup that got past the repo's CI can't bring a command.
 4. On `SavedConfigsManager.applied(id)`, sets the wallpaper (with `withWallpaper`) on every monitor as the fixed one, `wallpaperMode` `fixed`, in one `ConfigManager.commit`. On `applyFailed(id)` it stops.
 5. `SavedConfigsManager` then saves the result (wallpaper included) as the snapshot `community-<id>`, the active one, as it does for examples and imports ([saved configs](../core/saved-configs-sharing.md)).
-- `applied` is derived, not stored: the id while `community-<id>` is `SavedConfigsManager.active` and not `modified`. Restoring another snapshot, applying anything else or changing the look clears that setup's **Applied** chip.
+- `applied` is derived, not stored: the id while `community-<id>` is `SavedConfigsManager.active`, saved by the apply (`activeSource`, its `_example.source`) and not `modified`. Restoring another snapshot, applying anything else, changing the look or saving over it clears that setup's **Applied** chip; a snapshot the user names `community-<id>` never shows it.
+- Every download is a `CommunityFetch` (`launch(args)`, then `done(output)`). A script that can't start ends with no output, which counts as a failure, so an apply never stays under way.
 
 ### Where it shows
 - **Settings → Maintenance**: `CommunitySetupsCard` is the `CommunitySetups` section's `x-card` (wide). It has a search field, tag chips (`SegmentButton`s in a Flow) and a `TileFlow` of thumbnails. A tile opens the details: the full screenshot (`fetchScreenshot`; the thumbnail until then), about, chips for tested compositors / its own palette / missing fonts / a newer axiom, the wallpaper's license with an "Also use its wallpaper" switch (off), and Apply (a second click confirms). **Export and submit…** exports the look (personal off) and opens the submission issue form (`submitUrl`: its title prefilled from the active saved config; attachments can't be).

@@ -17,7 +17,8 @@ How the active theme is loaded, how themes are grouped into dark/light families,
 - `themeFamilies`: one entry `{ label, dark, light, shared, generated, community }` per theme, built by `methods/ThemeFamilies` (`tests/tst_ThemeFamilies.qml`).
 - A dark/light pair (each file's `paired` naming the other) is one theme, labelled by the words their names share.
 - A family's extra darks (Catppuccin Frappé and Macchiato, Tokyo Storm and Moon, Ayu Mirage, Rosé Pine Moon, Kanagawa Dragon, Nordfox/Carbonfox/Terafox) name its light in `paired` while the light names the main dark back. Each is a family of its own, keeping its name, that shares the light (`shared: true`), as upstream does: those schemes ship one light. No light themes are invented for them.
-- `currentFamily`: the family of the active theme. A shared light belongs to the family it was picked from (`lightFrom` in the look state, saved by `applyFamily` / `setLightMode`), else to its main family, so Light then Dark goes back to the dark you started from.
+- `currentFamily`: the family of the active theme. A shared light belongs to the family it was picked from (`lightFrom` in the look state, saved by `applyFamily` / `setLightMode`), else to its main family, so Light then Dark goes back to the dark you started from. `Appearance.theme` changing any other way (a restored or applied config, the settings field) forgets it.
+- A dark naming a light that doesn't name a dark back (half a pair) joins no family: both stay themes of their own.
 - `applyFamily(family)` picks the variant for the current mode.
 - `setLightMode(bool)` switches the current theme's variant by hand (config). The schedule uses `followSchedule(bool)` (runtime only). `Appearance.darkMode` follows the shown theme.
 

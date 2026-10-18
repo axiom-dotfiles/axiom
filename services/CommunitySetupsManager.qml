@@ -30,10 +30,13 @@ QtObject {
   readonly property var screenshots: _screenshots
   // The setup being downloaded and applied, "" for none
   readonly property string applying: _applying
-  // The setup whose saved config ("community-<id>") is the active one,
-  // unchanged, "" for none: switching to another or changing the look
-  // ends it
-  readonly property string applied: SavedConfigsManager.active.startsWith(_snapshotPrefix) && !SavedConfigsManager.modified ? SavedConfigsManager.active.slice(_snapshotPrefix.length) : ""
+  // The setup whose saved config ("community-<id>", saved by the apply,
+  // SavedConfigsManager.activeSource) is the active one, unchanged, "" for
+  // none: switching to another, changing the look or saving over it ends it
+  readonly property string applied: {
+    const source = SavedConfigsManager.activeSource;
+    return source !== "" && SavedConfigsManager.active === _snapshotPrefix + source && !SavedConfigsManager.modified ? source : "";
+  }
   // What happened last, for the gallery
   readonly property string status: _status
 
@@ -57,8 +60,7 @@ QtObject {
       return;
     root._fetched = true;
     root._status = "";
-    root._indexFetch.command = [root._fetchScript, CommunitySetups.indexUrl, root._indexFile, "-"];
-    root._indexFetch.running = true;
+    root._indexFetch.launch([root._fetchScript, CommunitySetups.indexUrl, root._indexFile, "-"]);
   }
 
   function setup(id) {
@@ -93,8 +95,7 @@ QtObject {
     const dest = root._setupDir(id) + "screenshot" + CommunityCatalog.extension(setup.files.screenshot);
     root._screenshotId = id;
     root._screenshotDest = dest;
-    root._screenshotFetch.command = [root._fetchScript, root._url(setup.files.screenshot), dest, setup.files.screenshot.sha256];
-    root._screenshotFetch.running = true;
+    root._screenshotFetch.launch([root._fetchScript, root._url(setup.files.screenshot), dest, setup.files.screenshot.sha256]);
   }
 
   // Downloads a setup and applies it: its palette is installed first, its
@@ -117,8 +118,7 @@ QtObject {
     root._applying = id;
     root._applyWallpaper = wallpaper;
     root._status = I18n.tr("Downloading \"{0}\"…", setup.title);
-    root._applyFetch.command = args;
-    root._applyFetch.running = true;
+    root._applyFetch.launch(args);
   }
 
   // The issue form that submits a setup, its title filled in (attachments
@@ -206,8 +206,7 @@ QtObject {
     const args = [root._fetchScript];
     for (const setup of root._setups)
       args.push(root._url(setup.files.thumb), root._thumbFile(setup), setup.files.thumb.sha256);
-    root._thumbFetch.command = args;
-    root._thumbFetch.running = true;
+    root._thumbFetch.launch(args);
   }
 
   // The script's "ok DEST" lines, as { dest: true }
@@ -273,61 +272,52 @@ QtObject {
     }
   }
 
-  // Results are read from the script's lines, once its output ends (a
-  // script that couldn't run prints none, which counts as a failure)
-  property Process _indexFetch: Process {
-    stdout: StdioCollector {
-      onStreamFinished: {
-        if (root._okDests(text)[root._indexFile]) {
-          if (root._readIndex(false))
-            console.log("[CommunitySetupsManager] Catalog:", root._setups.length, "setups");
-          return;
-        }
-        console.warn("[CommunitySetupsManager] Could not download the catalog:", root._failures(text).join("; ") || "community_fetch.sh failed");
-        root._status = root._loaded ? I18n.tr("Offline: showing the setups from last time") : I18n.tr("The catalog could not be downloaded");
+  // Each a CommunityFetch: its `done` hands over the script's lines
+  property CommunityFetch _indexFetch: CommunityFetch {
+    onDone: output => {
+      if (root._okDests(output)[root._indexFile]) {
+        if (root._readIndex(false))
+          console.log("[CommunitySetupsManager] Catalog:", root._setups.length, "setups");
+        return;
+      }
+      console.warn("[CommunitySetupsManager] Could not download the catalog:", root._failures(output).join("; ") || "community_fetch.sh failed");
+      root._status = root._loaded ? I18n.tr("Offline: showing the setups from last time") : I18n.tr("The catalog could not be downloaded");
+    }
+  }
+
+  property CommunityFetch _thumbFetch: CommunityFetch {
+    onDone: output => {
+      const ok = root._okDests(output);
+      const thumbs = {};
+      for (const setup of root._setups) {
+        const dest = root._thumbFile(setup);
+        if (ok[dest])
+          thumbs[setup.id] = "file://" + dest;
+      }
+      root._thumbs = thumbs;
+      if (root._thumbsAgain) {
+        root._thumbsAgain = false;
+        root._fetchThumbs();
       }
     }
   }
 
-  property Process _thumbFetch: Process {
-    stdout: StdioCollector {
-      onStreamFinished: {
-        const ok = root._okDests(text);
-        const thumbs = {};
-        for (const setup of root._setups) {
-          const dest = root._thumbFile(setup);
-          if (ok[dest])
-            thumbs[setup.id] = "file://" + dest;
-        }
-        root._thumbs = thumbs;
-        if (root._thumbsAgain) {
-          root._thumbsAgain = false;
-          root._fetchThumbs();
-        }
+  property CommunityFetch _screenshotFetch: CommunityFetch {
+    onDone: output => {
+      if (root._okDests(output)[root._screenshotDest]) {
+        const screenshots = Object.assign({}, root._screenshots);
+        screenshots[root._screenshotId] = "file://" + root._screenshotDest;
+        root._screenshots = screenshots;
       }
+      const next = root._screenshotNext;
+      root._screenshotNext = "";
+      if (next !== "")
+        root.fetchScreenshot(next);
     }
   }
 
-  property Process _screenshotFetch: Process {
-    stdout: StdioCollector {
-      onStreamFinished: {
-        if (root._okDests(text)[root._screenshotDest]) {
-          const screenshots = Object.assign({}, root._screenshots);
-          screenshots[root._screenshotId] = "file://" + root._screenshotDest;
-          root._screenshots = screenshots;
-        }
-        const next = root._screenshotNext;
-        root._screenshotNext = "";
-        if (next !== "")
-          root.fetchScreenshot(next);
-      }
-    }
-  }
-
-  property Process _applyFetch: Process {
-    stdout: StdioCollector {
-      onStreamFinished: root._finishApply(text.trim() !== "" && root._failures(text).length === 0, text)
-    }
+  property CommunityFetch _applyFetch: CommunityFetch {
+    onDone: output => root._finishApply(output.trim() !== "" && root._failures(output).length === 0, output)
   }
 
   property IpcHandler _ipc: IpcHandler {

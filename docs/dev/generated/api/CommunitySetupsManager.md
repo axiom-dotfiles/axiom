@@ -14,7 +14,7 @@ The community setups gallery (github.com/axiom-dotfiles/community-setups): downl
 - `thumbs` (readonly var): { id: file URL } of the thumbnails downloaded so far
 - `screenshots` (readonly var): { id: file URL } of the full screenshots downloaded (fetchScreenshot)
 - `applying` (readonly string): The setup being downloaded and applied, "" for none
-- `applied` (readonly string): The setup whose saved config ("community-<id>") is the active one, unchanged, "" for none: switching to another or changing the look ends it
+- `applied` (readonly string): The setup whose saved config ("community-<id>", saved by the apply, SavedConfigsManager.activeSource) is the active one, unchanged, "" for none: switching to another, changing the look or saving over…
 - `status` (readonly string): What happened last, for the gallery
 
 ### Functions

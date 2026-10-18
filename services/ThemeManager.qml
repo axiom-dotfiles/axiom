@@ -338,10 +338,26 @@ QtObject {
   // Picking a family's light remembers its dark, so a light several
   // families share stays in the one it was picked from
   function _rememberFamily(family, target) {
+    root._picked = target;
     if (target === family.light && family.dark && (root._look.lightFrom ?? "") !== family.dark)
       root._saveLook({
         "lightFrom": family.dark
       });
+  }
+
+  // The theme the last pick set (_rememberFamily). Appearance.theme
+  // changing to any other (a restored or applied config, the settings
+  // field) forgets lightFrom, which only that pick's light belongs to.
+  property string _picked: ""
+  property Connections _themeChange: Connections {
+    target: Appearance
+
+    function onThemeChanged() {
+      if (Appearance.theme !== root._picked && root._look.lightFrom)
+        root._saveLook({
+          "lightFrom": null
+        });
+    }
   }
 
   function _saveLook(changes) {
@@ -727,6 +743,19 @@ QtObject {
     showDirs: false
     onStatusChanged: if (status === FolderListModel.Ready && count > 0) {
       root._communityThemes = root._readThemes(root._communityThemeLoader, "community/");
+      root._rebuildFamilies();
+    }
+    // Its last palette deleted, the count drops to 0 with no Ready after
+    // it; a rescan drops it to 0 too, just before the rows come back
+    onCountChanged: if (count === 0 && root._communityThemes.length > 0)
+      root._communityEmptied.restart()
+  }
+
+  // An emptied community folder, believed once it stays empty
+  property Timer _communityEmptied: Timer {
+    interval: 1000
+    onTriggered: if (root._communityThemeLoader.count === 0 && root._communityThemes.length > 0) {
+      root._communityThemes = [];
       root._rebuildFamilies();
     }
   }

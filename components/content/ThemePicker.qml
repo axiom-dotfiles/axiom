@@ -11,7 +11,8 @@ import qs.components.content.base
 // The theme list: one tile per theme (a dark/light pair is one theme), in
 // folding groups (built-in, imported, generated), each painted in its own
 // colors, plus the Dark/Light switch that picks the variant and Auto, which
-// switches it by time of day (WallpaperManager). Themes apply immediately, so there's nothing to save.
+// switches it by time of day (WallpaperManager). Themes apply immediately,
+// so there's nothing to save.
 // Compact, the current theme's name; a click switches Dark/Light.
 TitledCard {
   id: root

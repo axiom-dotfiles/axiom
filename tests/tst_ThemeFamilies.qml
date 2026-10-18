@@ -41,6 +41,14 @@ TestCase {
     compare(families.every(family => family.generated), true);
   }
 
+  function test_halfPair() {
+    const families = ThemeFamilies.build([theme("f-dark", "Foo Dark", "dark", "f-light"), theme("f-light", "Foo Light", "light", "")], false);
+    compare(families.map(family => family.label), ["Foo Dark", "Foo Light"], "a light naming no dark back joins none");
+    compare(families.every(family => !family.shared), true);
+    const unanswered = ThemeFamilies.build([theme("g-dark", "Goo Dark", "dark", "g-light"), theme("g-light", "Goo Light", "light", "g-other"), theme("g-other", "Goo Other", "dark", "")], false);
+    compare(unanswered.length, 3, "nor does one whose dark doesn't name it");
+  }
+
   function test_current() {
     const families = ThemeFamilies.build(tokyo, false);
     compare(ThemeFamilies.current(families, "tokyo-storm", "").label, "Tokyo Storm");

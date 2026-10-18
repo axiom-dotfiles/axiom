@@ -333,8 +333,9 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `DropdownSurface.qml`: The box of something that drops down over other content (a picker, a list opened from a header): bordered, rounded, with a shadow while `floating`
 - `FieldGroup.qml`: A titled group of fields, as on the settings page (editor inspectors)
 - `FlatIconButton.qml`: A flat icon button (no fill until hovered) of a fixed square size that doesn't stretch in layouts, so every button in a row shares one size and centre line (the chat's and notes' toolbars)
+- `FoldHeader.qml`: A fold's clickable header (FoldingCard, FoldingSection): a SectionHeading with its description only while unfolded, an optional line above it, the unsaved-edits dot while folded with `marked`, and a chevron.
 - `FoldingColumn.qml`: A column that folds open and shut: its height runs between its content's and nothing, clipped on the way, its content fading with it, and it hides once shut.
-- `FoldingSection.qml`: A SectionHeading with a chevron over a FoldingColumn: clicking the heading emits `toggled`, and the body folds shut while `collapsed`.
+- `FoldingSection.qml`: A FoldHeader over a FoldingColumn: clicking the heading emits `toggled`, and the body folds shut while `collapsed`.
 - `FrameNudge.qml`: An invisible pixel that flips for a few frames after burst(), so its window draws (and commits) again and the last frame shown is the right one.
 - `Glide.qml`: The shell's eased change to a number: `Glide on width {}` is `Behavior on width { NumberAnimation { duration: Appearance.animFast; easing.type: Appearance.easing } }`.
 - `HoledItem.qml`: Draws its children with `holes` (rects in its coordinates) cut out: a stroke left open where something joined to it carries on over it.
@@ -623,6 +624,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ClaudeUsageManager.qml`: Claude plan usage (the numbers Claude Code's /usage shows) for one or more Claude Code accounts, each a CLAUDE_CONFIG_DIR.
 - `ClipboardManager.qml`: The clipboard history the launcher searches (":" or /clipboard), while Launcher.clipboard is on.
 - `CommandManager.qml`: Shell commands polled for their output (e.g. a bar Button's label), shared by every widget asking for the same command: each distinct command runs once per interval (the shortest asked for), only while something has acq…
+- `CommunityFetch.qml`: One run of scripts/community_fetch.sh, for CommunitySetupsManager: its output is handed to `done` once it ends.
 - `CommunitySetupsManager.qml`: The community setups gallery (github.com/axiom-dotfiles/community-setups): downloads the catalog (CommunitySetups.indexUrl) when the gallery is opened, never before, and the setups' thumbnails and screenshots into the c…
 - `CompositorConfigManager.qml`: Sets the compositor up for axiom (the Compositor section's mode, CompositorConfig.mode), through its backend's config writer (CompositorManager.backend.configWriter, docs/dev/compositor/ config-modes.md).
 - `CompositorManager.qml`: The running compositor, for the rest of axiom: its windows, outputs and workspaces in shapes that don't depend on it, what it supports, and every workspace switch and window focus (docs/dev/compositor/README.md).

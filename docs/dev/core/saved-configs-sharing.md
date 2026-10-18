@@ -42,7 +42,7 @@ Walks a value along the schema.
   2. Save the running config as `before-<name>`.
   3. Once that is written, restore `ConfigExamples.apply`.
   4. `applied(name)` is signalled, or `applyFailed(name)` if the backup or the restore failed (`status` says why).
-  5. The result is saved as its own snapshot and made active: `example-<name>`, `import-<title>`, or the shared file's (`community-<id>`), deferred out of the backup's write so `applied` handlers can change the config first. The saved configs list then shows it as Current, with Overwrite and the unsaved dot; the prefixes keep it from replacing one of the user's snapshots. Restore defaults saves none.
+  5. The result is saved as its own snapshot and made active: `example-<name>`, `import-<title>`, or the shared file's (`community-<id>`), deferred out of the backup's write so `applied` handlers can change the config first. The saved configs list then shows it as Current, with Overwrite and the unsaved dot; the prefixes keep it from replacing one of the user's snapshots. Its `_example.source` names what was applied, which `activeSource` gives while it's the active one ("" once the user saves over it, or for one they saved). Restore defaults saves none.
 - An import or shared file is checked first (`_readShared`): it needs a `version`, and one from a newer axiom is refused.
 - `browseImport()` opens the desktop's file picker for a JSON file ([File picker](file-picker.md)).
   - The chosen file becomes `importing`, with title and description from its `_example` header, for the page's confirm row. The row's switch for personal parts starts off.
