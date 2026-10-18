@@ -62,6 +62,7 @@ qs -c axiom ipc call <target> <function>
 | `greeter` | `open` (its settings), `preview` (the login screen's layout, on screen) |
 | `notifications` | `clear`, `toggleDnd` |
 | `selfUpdate` | `check`, `update`, `open` |
+| `community` | `refresh`, `list` (each setup's id and title), `apply <id>` (without its wallpaper) |
 | `chat` | `open`, `newChat`, `ask <text>`, `settings` |
 | `calendar` | `open`, `newEvent`, `sync`, `add <text>` (as `/event`) |
 | `todo` | `add <text>`, `toggle <text>`, `list`, `count`, `clearCompleted` |

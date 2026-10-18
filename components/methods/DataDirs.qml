@@ -18,9 +18,11 @@ QtObject {
   }
 
   // The XDG layout for `env` ({ HOME, XDG_CONFIG_HOME, XDG_STATE_HOME,
-  // XDG_DATA_HOME }): { config, state, ui, data, notes, generatedThemes }.
-  // `state` is axiom's own state folder (secrets, chats, generated configs),
-  // `ui` the small JSON state files, `notes` the default notes folder
+  // XDG_DATA_HOME, XDG_CACHE_HOME }): { config, state, ui, data, notes,
+  // generatedThemes, communityThemes, cache }. `state` is axiom's own state
+  // folder (secrets, chats, generated configs), `ui` the small JSON state
+  // files, `notes` the default notes folder, `communityThemes` the palettes
+  // community setups bring, `cache` what can be downloaded again
   function xdg(env) {
     const config = root._base(env, "XDG_CONFIG_HOME", ".config") + "/axiom/";
     const state = root._base(env, "XDG_STATE_HOME", ".local/state") + "/axiom/";
@@ -31,13 +33,15 @@ QtObject {
       "ui": state + "ui/",
       "data": data,
       "notes": data + "notes/",
-      "generatedThemes": state + "themes/"
+      "generatedThemes": state + "themes/",
+      "communityThemes": data + "themes/",
+      "cache": root._base(env, "XDG_CACHE_HOME", ".cache") + "/axiom/"
     };
   }
 
   // The layout from before the move, the same shape as xdg(): config,
   // UI state, notes and generated themes inside the repo at `shellDir`
-  // (state and data were already XDG)
+  // (state, data, community themes and the cache came after, always XDG)
   function legacy(env, shellDir) {
     const repo = String(shellDir).replace(/\/*$/, "/");
     const current = root.xdg(env);
@@ -47,7 +51,9 @@ QtObject {
       "ui": repo + "config/state/",
       "data": current.data,
       "notes": repo + "config/state/notes/",
-      "generatedThemes": repo + "config/themes/generated/"
+      "generatedThemes": repo + "config/themes/generated/",
+      "communityThemes": current.communityThemes,
+      "cache": current.cache
     };
   }
 

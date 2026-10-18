@@ -46,6 +46,13 @@ Every `IpcHandler`: call with `qs -c axiom ipc call <target> <function> [args]`.
 - `ask(text: string): void`
 - `settings(): void`
 
+## community
+
+`services/CommunitySetupsManager.qml` · enabled: `root.enabled`
+- `refresh(): void`
+- `list(): string`
+- `apply(id: string): void`
+
 ## dock
 
 `services/DockManager.qml`

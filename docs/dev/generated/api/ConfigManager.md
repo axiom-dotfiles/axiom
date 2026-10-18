@@ -12,7 +12,7 @@ ConfigManager handles loading, saving, and monitoring the configuration file
 - `takeoverPaths` (readonly var): The `x-takeover` settings' paths ([key, …]), which loading a config never changes (ConfigExamples.keepTakeovers)
 - `configDir` (readonly string)
 - `configFile` (readonly string)
-- `dataDirs` (readonly var): Where axiom keeps what it writes (DataDirs: config, state, ui, data, notes, generatedThemes), read by Paths.
+- `dataDirs` (readonly var): Where axiom keeps what it writes (DataDirs: config, state, ui, data, notes, generatedThemes, communityThemes, cache), read by Paths.
 - `legacyLayout` (readonly bool): The repo's config/user/ holds a config.json not yet copied over (no DataDirs.movedMarker beside it).
 - `xdgDirs` (readonly var): Both layouts, for DataMigrationManager's copy
 - `legacyDirs` (readonly var)

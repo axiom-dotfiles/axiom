@@ -66,7 +66,8 @@ Singleton {
   // to install on this distribution (Packages) is left out.
   // I18n.tr("Calculator in the launcher") I18n.tr("Brightness of a laptop screen")
   // I18n.tr("Brightness of external monitors") I18n.tr("Copying to the clipboard")
-  // I18n.tr("Reading JSON (theme integrations)") I18n.tr("Pending package updates")
+  // I18n.tr("Reading JSON (theme integrations)") I18n.tr("Downloads (album art, Claude usage, community setups)")
+  // I18n.tr("Pending package updates")
   // I18n.tr("Chat API keys in the keyring") I18n.tr("Moving notes to the trash")
   // I18n.tr("Theme generation, theme integrations and keybinds")
   // I18n.tr("Notifications from axiom itself, with their buttons")
@@ -99,6 +100,10 @@ Singleton {
     {
       "command": "jq",
       "purpose": "Reading JSON (theme integrations)"
+    },
+    {
+      "command": "curl",
+      "purpose": "Downloads (album art, Claude usage, community setups)"
     },
     {
       "command": "checkupdates",

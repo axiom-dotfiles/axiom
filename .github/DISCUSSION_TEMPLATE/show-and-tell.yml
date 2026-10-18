@@ -19,4 +19,4 @@ body:
     id: export
     attributes:
       label: Your config, to try
-      description: Optional. **Settings → Maintenance → Share → Export** writes your look and layout to a file holding only what differs from the defaults, never your monitors, wallpapers, accounts or paths. Attach that file (or paste it in), and others can load it with **Import…**.
+      description: Optional. **Settings → Maintenance → Share → Export** writes your look and layout to a file holding only what differs from the defaults, never your monitors, wallpapers, accounts or paths. Attach that file (or paste it in), and others can load it with **Import…**. To make it one click for everyone, submit it to [community-setups](https://github.com/axiom-dotfiles/community-setups) too.

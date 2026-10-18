@@ -42,66 +42,15 @@ StyledContainer {
       Layout.fillWidth: true
       spacing: Widget.spacing
 
-      Item {
-        Layout.fillWidth: true
+      FoldHeader {
         Layout.alignment: Qt.AlignTop
-        implicitHeight: header.implicitHeight
-
-        MouseArea {
-          id: headerArea
-          anchors.fill: parent
-          enabled: root.foldable
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: root.toggled()
-        }
-
-        RowLayout {
-          id: header
-          anchors.left: parent.left
-          anchors.right: parent.right
-          spacing: Widget.spacing
-
-          ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 2
-
-            StyledText {
-              visible: root.section !== ""
-              text: root.section
-              opacity: 0.6
-              textSize: Appearance.fontSize - 2
-              Layout.fillWidth: true
-            }
-
-            SectionHeading {
-              title: root.title
-              description: root.collapsed ? "" : root.description
-            }
-          }
-
-          UnsavedDot {
-            shown: root.collapsed && root.marked
-            Layout.alignment: Qt.AlignTop
-            Layout.topMargin: Appearance.fontSize / 2
-          }
-
-          StyledIcon {
-            visible: root.foldable
-            text: "expand_more"
-            textColor: headerArea.containsMouse ? Theme.accent : Theme.foregroundAlt
-            textSize: Appearance.fontSize + 4
-            rotation: root.collapsed ? -90 : 0
-            Layout.alignment: Qt.AlignTop
-
-            Behavior on rotation {
-              NumberAnimation {
-                duration: Appearance.animNormal
-                easing.type: Easing.OutCubic
-              }
-            }
-          }
-        }
+        title: root.title
+        description: root.description
+        section: root.section
+        collapsed: root.collapsed
+        foldable: root.foldable
+        marked: root.marked
+        onToggled: root.toggled()
       }
 
       // Only as wide as what's in it (a layout fills by default, which

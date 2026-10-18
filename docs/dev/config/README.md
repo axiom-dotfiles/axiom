@@ -49,6 +49,7 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [WorkspaceOverlay](WorkspaceOverlay.md) | `WorkspaceOverlayConfig` (`config/WorkspaceOverlayConfig.qml`) | Workspaces |
 | [WindowSwitcher](WindowSwitcher.md) | `WindowSwitcherConfig` (`config/WindowSwitcherConfig.qml`) | Workspaces |
 | [SelfUpdate](SelfUpdate.md) | `SelfUpdate` (`config/SelfUpdate.qml`) | Maintenance |
+| [CommunitySetups](CommunitySetups.md) | `CommunitySetups` (`config/CommunitySetups.qml`) | Maintenance |
 | [Bars](Bars.md) | `Bar` (`config/Bar.qml`) |  |
 | [EdgeMenus](EdgeMenus.md) | `EdgeMenusConfig` (`config/EdgeMenusConfig.qml`) |  |
 | [Desktop](Desktop.md) | `DesktopConfig` (`config/DesktopConfig.qml`) |  |

@@ -20,7 +20,9 @@ The repo (`Paths.axiomPath`) is read-only to the shell: a package installs it wh
 | `StateManager` files (launcher, look, editors, onboarding, settings, clipboard pins, …) | `$XDG_STATE_HOME/axiom/ui/` (0700) | `statePath` |
 | Secrets, chats, notification history, calendar cache, generated hypridle/Hyprland configs, integration outputs | `$XDG_STATE_HOME/axiom/` | `userStatePath` |
 | Themes generated from the wallpaper (`generated/<name>`) | `$XDG_STATE_HOME/axiom/themes/` | `generatedThemesPath`, `themeFile(name)` |
+| Palettes community setups brought (`community/<id>`) | `$XDG_DATA_HOME/axiom/themes/` | `communityThemesPath`, `themeFile(name)` |
 | The default notes folder | `$XDG_DATA_HOME/axiom/notes/` | `defaultNotesPath` |
+| What can be downloaded again (the [community setups](../features/community-setups.md) catalog, thumbnails, screenshots) | `$XDG_CACHE_HOME/axiom/` | `communityCachePath` (`community/`) |
 
 - Files under `userStatePath` keep their names: users' own configs point at several (the Hyprland include, the fzf/nvim/ncspot outputs).
 - The greeter has its own folders (`Paths.greeterDir`) and reads none of these.

@@ -8,10 +8,11 @@ import qs.components.forms
 import qs.components.content.parts
 import qs.components.content.base
 
-// The theme list: one tile per theme (a dark/light pair is one theme),
-// stock and generated, each painted in its own colors, plus the Dark/Light
-// switch that picks the variant and Auto, which switches it by time of day
-// (WallpaperManager). Themes apply immediately, so there's nothing to save.
+// The theme list: one tile per theme (a dark/light pair is one theme), in
+// folding groups (built-in, imported, generated), each painted in its own
+// colors, plus the Dark/Light switch that picks the variant and Auto, which
+// switches it by time of day (WallpaperManager). Themes apply immediately,
+// so there's nothing to save.
 // Compact, the current theme's name; a click switches Dark/Light.
 TitledCard {
   id: root
@@ -19,9 +20,35 @@ TitledCard {
   readonly property var family: ThemeManager.currentFamily
   readonly property bool hasDark: !!root.family?.dark
   readonly property bool hasLight: !!root.family?.light
-  // Rebuilt only when the theme folders are rescanned
-  readonly property var stockFamilies: ThemeManager.themeFamilies.filter(family => !family.generated)
-  readonly property var generatedFamilies: ThemeManager.themeFamilies.filter(family => family.generated)
+  // The theme list's groups: shipped with axiom, brought by community
+  // setups, made from the wallpaper. Rebuilt only when the theme folders
+  // are rescanned.
+  readonly property var groups: {
+    const families = ThemeManager.themeFamilies;
+    return [
+      {
+        "key": "builtin",
+        "title": I18n.tr("Built-in Themes"),
+        "description": "",
+        "empty": "",
+        "families": families.filter(family => !family.generated && !family.community)
+      },
+      {
+        "key": "imported",
+        "title": I18n.tr("Imported Themes"),
+        "description": I18n.tr("Brought by community setups you've applied."),
+        "empty": I18n.tr("None yet. Themes that come with a community setup show here."),
+        "families": families.filter(family => family.community)
+      },
+      {
+        "key": "generated",
+        "title": I18n.tr("Generated Themes"),
+        "description": I18n.tr("Made from your wallpaper when you pick one."),
+        "empty": I18n.tr("None yet"),
+        "families": families.filter(family => family.generated)
+      }
+    ];
+  }
   // As many tiles across as fit
   readonly property int tileColumns: Math.max(1, Math.floor((root.width - Widget.padding * 2) / (Appearance.fontSize * 13)))
 
@@ -186,52 +213,38 @@ TitledCard {
     }
   }
 
-  ColumnLayout {
-    Layout.fillWidth: true
-    spacing: Widget.spacing
+  // One folding group per source, each fold remembered (ThemeManager)
+  Repeater {
+    model: root.groups
 
-    SectionHeading {
-      title: I18n.tr("Themes")
-    }
+    delegate: FoldingSection {
+      id: group
+      required property var modelData
 
-    GridLayout {
-      Layout.fillWidth: true
-      columns: root.tileColumns
-      columnSpacing: Widget.spacing
-      rowSpacing: Widget.spacing
+      title: modelData.title
+      description: modelData.key === "generated" && ThemeManager.isGenerating ? I18n.tr("Generating from the wallpaper...") : modelData.description
+      collapsed: ThemeManager.foldedGroups.includes(modelData.key)
+      onToggled: ThemeManager.toggleGroup(modelData.key)
 
-      Repeater {
-        model: root.stockFamilies
-        delegate: ThemeTile {}
+      GridLayout {
+        Layout.fillWidth: true
+        columns: root.tileColumns
+        columnSpacing: Widget.spacing
+        rowSpacing: Widget.spacing
+
+        Repeater {
+          model: group.modelData.families
+          delegate: ThemeTile {}
+        }
       }
-    }
-  }
 
-  ColumnLayout {
-    Layout.fillWidth: true
-    spacing: Widget.spacing
-
-    SectionHeading {
-      title: I18n.tr("Generated Themes")
-      description: ThemeManager.isGenerating ? I18n.tr("Generating from the wallpaper...") : I18n.tr("Made from your wallpaper when you pick one.")
-    }
-
-    GridLayout {
-      Layout.fillWidth: true
-      columns: root.tileColumns
-      columnSpacing: Widget.spacing
-      rowSpacing: Widget.spacing
-
-      Repeater {
-        model: root.generatedFamilies
-        delegate: ThemeTile {}
+      StyledText {
+        visible: group.modelData.families.length === 0
+        Layout.fillWidth: true
+        text: group.modelData.empty
+        opacity: 0.6
+        wrapMode: Text.WordWrap
       }
-    }
-
-    StyledText {
-      visible: root.generatedFamilies.length === 0
-      text: I18n.tr("None yet")
-      opacity: 0.6
     }
   }
 }

@@ -14,14 +14,20 @@ Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/save
 - `status` (string): Last save/restore/delete outcome, for the settings UI
 - `active` (readonly string): The saved config the running one was last saved as or restored from, "" for none (or once its file is gone): the one the settings UI offers to overwrite.
 - `modified` (readonly bool): Whether the running config's snapshot parts differ from the active saved one's (machine settings, which restoring doesn't change, are left out)
+- `activeSource` (readonly string): The shared setup the active saved config was saved from, unchanged since (`_example.source`, written by the apply): "" for one the user saved, or saved over
 - `importing` (var): An imported file awaiting confirmation: { name, title, description, path, config, hasPersonal } (config loaded: migrated, defaults filled; hasPersonal: the file holds keybinds, apps or commands), or …
 - `picking` (readonly bool): The file picker is open
+
+### Signals
+
+- `applied(string name)`: An example, import or shared setup was applied as `name` (its backup is "before-<name>"), or failed to be (status says why).
+- `applyFailed(string name)`
 
 ### Functions
 
 - `sanitize(name)`
 - `exists(name)`
-- `save(name)`: Saves the running config's snapshot parts (including unsaved settings edits) under `name`, replacing any existing snapshot of that name.
+- `save(name, savedStatus = "", source = "")`: Saves the running config's snapshot parts (including unsaved settings edits) under `name`, replacing any existing snapshot of that name.
 - `restore(name)`
 - `restoreDefaults()`: Applies the schema defaults like an example (the look and personal parts; machine settings stay), after saving the running config as "before-defaults".
 - `applyExample(name)`: Saves the running config as "before-<name>", then applies the example (in _writer's onSaved, so a failed backup applies nothing)
@@ -29,5 +35,6 @@ Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/save
 - `openImport(path)`: Loads a shared file (an export, an example, or a whole config.json of any version) as `importing`, for the settings page to confirm
 - `confirmImport(personal)`: Applies `importing` (its personal parts too when `personal`: keybinds, apps, commands), after saving the running config as "before-<name>"
 - `cancelImport()`
+- `applyShared(name, path, title, snapshot)`: Applies a shared file at `path` straight away, its look only (never keybinds, apps or commands), after saving the running config as "before-<name>", then saves the result as `snapshot`: a community s…
 - `exportConfig(personal)`: Writes the running config's look (and personal parts, when `personal`) to ~/axiom-<name>-<date>-<time>.json, holding only what differs from the defaults: a file to share, in the format examples and i…
 - `remove(name)`

@@ -104,7 +104,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `Submenu.qml`: A row that opens another edge menu (`menu`) beside the one it's in, in that menu's submenu (EdgePopout.submenu, content/parts/MenuSubmenu): on hover, or on a click with openOnHover off.
 - `SystemGraphs.qml`: Live graphs of system metrics: the current value over a minute of history per metric.
 - `SystemTray.qml`: A tray item's menu.
-- `ThemePicker.qml`: The theme list: one tile per theme (a dark/light pair is one theme), stock and generated, each painted in its own colors, plus the Dark/Light switch that picks the variant and Auto, which switches it by time of day (Wal…
+- `ThemePicker.qml`: The theme list: one tile per theme (a dark/light pair is one theme), in folding groups (built-in, imported, generated), each painted in its own colors, plus the Dark/Light switch that picks the variant and Auto, which s…
 - `Todo.qml`: The todo list (TodoManager): the Todo widget's popout, or an overlay card.
 - `TopProcesses.qml`: The busiest processes, with a kill button on hover.
 - `Updates.qml`: Pending updates, repo and AUR listed separately (from UpdatesManager).
@@ -265,6 +265,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ChatProtocol.qml`: The chat providers' wire formats, as pure functions: ChatManager builds a request with request(), ChatRequest sends it with curl and feeds every streamed event to parse().
 - `ColorTemperature.qml`: The color of light at a temperature in Kelvin (Tanner Helland's fit to blackbody colors), for showing what a night light setting looks like.
 - `ColumnSplit.qml`: Splits an ordered list of cards into two newspaper columns (the first k on the left, the rest on the right) so both end as close together as they can, from the cards' heights.
+- `CommunityCatalog.qml`: The community setups catalog (github.com/axiom-dotfiles/community-setups, its `catalog` branch): reading its index.json, searching it, and where each file comes from and goes.
 - `CompositorKind.qml`: Which compositor axiom runs under, from the environment (CompositorManager.kind).
 - `CompositorLayer.qml`: What axiom asks of the compositor, decided once in a neutral shape that every backend's config writer turns into its own text (Hyprland's Lua, sway's commands).
 - `ConfigExamples.qml`: Sharing a config.
@@ -307,6 +308,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SurfaceOutline.qml`: The outline of a surface that grows out of an edge (AttachedSurface): a content box joined to the attach edge by two concave fillets, or a plain box held off it.
 - `SwayConf.qml`: Sway's config and command text from axiom's settings (SwayManager, SwayConfigWriter), as HyprLua/HyprConfigLua are for Hyprland: each bind's `bindsym`, the window look and input as sway commands, the included file, outp…
 - `SwayState.qml`: Sway's IPC replies (SwayManager) as the shapes the rest of the shell reads, which don't depend on the compositor (docs/dev/compositor/contract.md), as HyprState is for Hyprland.
+- `ThemeFamilies.qml`: Groups themes into the families the theme list shows (a dark/light pair is one theme) and finds the family a theme name belongs to, for ThemeManager.
 - `TimeZones.qml`: Pure helpers for clocks in another time zone.
 - `TodoItems.qml`: The todo list's items and every change to them, for TodoManager: each returns a new list and leaves its input alone.
 - `Utils.qml`: Pure helpers: deep copies and comparison, free ids, usage counts, curl config values, text width and truncation, colors, calendar grids, byte sizes and rates.
@@ -331,7 +333,9 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `DropdownSurface.qml`: The box of something that drops down over other content (a picker, a list opened from a header): bordered, rounded, with a shadow while `floating`
 - `FieldGroup.qml`: A titled group of fields, as on the settings page (editor inspectors)
 - `FlatIconButton.qml`: A flat icon button (no fill until hovered) of a fixed square size that doesn't stretch in layouts, so every button in a row shares one size and centre line (the chat's and notes' toolbars)
+- `FoldHeader.qml`: A fold's clickable header (FoldingCard, FoldingSection): a SectionHeading with its description only while unfolded, an optional line above it, the unsaved-edits dot while folded with `marked`, and a chevron.
 - `FoldingColumn.qml`: A column that folds open and shut: its height runs between its content's and nothing, clipped on the way, its content fading with it, and it hides once shut.
+- `FoldingSection.qml`: A FoldHeader over a FoldingColumn: clicking the heading emits `toggled`, and the body folds shut while `collapsed`.
 - `FrameNudge.qml`: An invisible pixel that flips for a few frames after burst(), so its window draws (and commits) again and the last frame shown is the right one.
 - `Glide.qml`: The shell's eased change to a number: `Glide on width {}` is `Behavior on width { NumberAnimation { duration: Appearance.animFast; easing.type: Appearance.easing } }`.
 - `HoledItem.qml`: Draws its children with `holes` (rects in its coordinates) cut out: a stroke left open where something joined to it carries on over it.
@@ -554,6 +558,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 - `CalendarAccountsCard.qml`: The Calendar section's first card (its `x-card`): the accounts as tabs, one shown at a time: its address and username, its password (to the keyring, or the secrets file without one: never the settings draft or config.js…
 - `ChatProvidersCard.qml`: The Chat category's first card (the section's `x-card`): each provider's API key (where it comes from, and a field to store one: in the keyring, or the secrets file without one), a connection test, and fetching its mode…
+- `CommunitySetupsCard.qml`: Settings page, Maintenance › Community setups (the section's `x-card`, wide): the gallery of setups shared at axiom-dotfiles/community-setups.
 - `CompositorStatusCard.qml`: The Compositor section's first card (its `x-card`): whether the mode is in effect and what it needs, and, while a new mode waits for Save (`x-applyOnSave`), what saving will do
 - `DockListCard.qml`: The Dock section's first card (its `x-card`): the docks as tabs, one shown at a time: where it sits (a screen picker with presets), Show, its pinned apps (with a search to add more) and its settings (EntryListCard).
 - `EntryListCard.qml`: A section's list of entries as one card (the Dock and OSD `x-card`s): the entries as tabs, one shown at a time: where it sits (a screen picker with `presets`), Show, Duplicate and Delete, then `entryContent` and its set…
@@ -619,6 +624,8 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ClaudeUsageManager.qml`: Claude plan usage (the numbers Claude Code's /usage shows) for one or more Claude Code accounts, each a CLAUDE_CONFIG_DIR.
 - `ClipboardManager.qml`: The clipboard history the launcher searches (":" or /clipboard), while Launcher.clipboard is on.
 - `CommandManager.qml`: Shell commands polled for their output (e.g. a bar Button's label), shared by every widget asking for the same command: each distinct command runs once per interval (the shortest asked for), only while something has acq…
+- `CommunityFetch.qml`: One run of scripts/community_fetch.sh, for CommunitySetupsManager: its output is handed to `done` once it ends.
+- `CommunitySetupsManager.qml`: The community setups gallery (github.com/axiom-dotfiles/community-setups): downloads the catalog (CommunitySetups.indexUrl) when the gallery is opened, never before, and the setups' thumbnails and screenshots into the c…
 - `CompositorConfigManager.qml`: Sets the compositor up for axiom (the Compositor section's mode, CompositorConfig.mode), through its backend's config writer (CompositorManager.backend.configWriter, docs/dev/compositor/ config-modes.md).
 - `CompositorManager.qml`: The running compositor, for the rest of axiom: its windows, outputs and workspaces in shapes that don't depend on it, what it supports, and every workspace switch and window focus (docs/dev/compositor/README.md).
 - `ConfigDraft.qml`: A working copy of one config section for an editor (settings, bar, overlay, edge menu, keybind and monitor editors).
@@ -705,6 +712,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `CalendarConfig.qml`: Reader for the Calendar section (see CalendarManager).
 - `ChatConfig.qml`: Reader for the Chat section.
 - `ClaudeUsageConfig.qml`: Reader for the ClaudeUsage section: the Claude Code logins every Claude usage widget reports on (see ClaudeUsageManager).
+- `CommunitySetups.qml`: Reader for the CommunitySetups section: whether the community setups gallery is on, and where its catalog is (CommunitySetupsManager)
 - `CompositorConfig.qml`: Reader for the Compositor section: how axiom sets the compositor up (CompositorConfigManager)
 - `DesktopConfig.qml`: Reader for the Desktop section: overlay modules on the desktop, under the windows.
 - `DockConfig.qml`: Reader for the Dock section: any number of docks, each with its own place, pinned apps and behaviour (DockEntry in the schema).

@@ -34,14 +34,19 @@ QtObject {
     showDirs: false
   }
   // One entry per theme, a dark/light pair being one theme:
-  // [{ label, dark, light, darkPreview, lightPreview, generated }], where
-  // dark/light are Appearance.theme names ("" for a variant the theme doesn't
-  // have) and the previews are that variant's _preview (or null). Stock
-  // themes first.
+  // [{ label, dark, light, darkPreview, lightPreview, shared, generated,
+  // community }] (ThemeFamilies.build), where dark/light are Appearance.theme
+  // names ("" for a variant the theme doesn't have) and the previews are that
+  // variant's _preview (or null). A family's extra darks (Tokyo Storm) are
+  // families of their own sharing its light. Stock themes first, then
+  // community setups' palettes, then generated ones.
   readonly property var themeFamilies: _families
-  // The family Appearance.theme belongs to, or null
-  readonly property var currentFamily: themeFamilies.find(family => family.dark === Appearance.theme || family.light === Appearance.theme) ?? null
+  // The family Appearance.theme belongs to, or null; a shared light's is
+  // the family it was switched to from
+  readonly property var currentFamily: ThemeFamilies.current(themeFamilies, Appearance.theme, root._look.lightFrom ?? "")
   readonly property bool isGenerating: generationProcess.running
+  // The theme list's groups ("builtin", "imported", "generated") folded shut
+  readonly property var foldedGroups: root._look.foldedGroups ?? []
 
   // The active theme's JSON ({ name, variant, paired, colors, semantic }),
   // read through config/Theme
@@ -99,7 +104,9 @@ QtObject {
 
   // A family's variant for the current light/dark mode, or the one it has
   function applyFamily(family) {
-    applyTheme(Appearance.darkMode ? (family.dark || family.light) : (family.light || family.dark));
+    const target = Appearance.darkMode ? (family.dark || family.light) : (family.light || family.dark);
+    root._rememberFamily(family, target);
+    applyTheme(target);
   }
 
   // Sets the wallpaper, then generates themes from it
@@ -242,7 +249,16 @@ QtObject {
       console.log("[ThemeManager] No", light ? "light" : "dark", "variant of", Appearance.theme);
       return;
     }
+    root._rememberFamily(currentFamily, target);
     applyTheme(target);
+  }
+
+  // Folds a theme list group shut, or open again
+  function toggleGroup(group) {
+    const folded = root.foldedGroups.includes(group) ? root.foldedGroups.filter(name => name !== group) : root.foldedGroups.concat([group]);
+    root._saveLook({
+      "foldedGroups": folded
+    });
   }
 
   function toggleDarkMode() {
@@ -318,6 +334,31 @@ QtObject {
   // told) }. The greeter keeps none.
   readonly property var _lookState: StateManager.createStateHandler("look")
   property var _look: Paths.greeter ? ({}) : root._lookState.load({})
+
+  // Picking a family's light remembers its dark, so a light several
+  // families share stays in the one it was picked from
+  function _rememberFamily(family, target) {
+    root._picked = target;
+    if (target === family.light && family.dark && (root._look.lightFrom ?? "") !== family.dark)
+      root._saveLook({
+        "lightFrom": family.dark
+      });
+  }
+
+  // The theme the last pick set (_rememberFamily). Appearance.theme
+  // changing to any other (a restored or applied config, the settings
+  // field) forgets lightFrom, which only that pick's light belongs to.
+  property string _picked: ""
+  property Connections _themeChange: Connections {
+    target: Appearance
+
+    function onThemeChanged() {
+      if (Appearance.theme !== root._picked && root._look.lightFrom)
+        root._saveLook({
+          "lightFrom": null
+        });
+    }
+  }
 
   function _saveLook(changes) {
     if (Paths.greeter)
@@ -467,12 +508,14 @@ QtObject {
   // --- Paths and Models ---
   readonly property string _themesPath: "file://" + Paths.themePath
   readonly property string _generatedThemesPath: "file://" + Paths.generatedThemesPath
+  readonly property string _communityThemesPath: "file://" + Paths.communityThemesPath
   readonly property string _pythonScriptPath: Paths.scriptsPath + "generate_theme.py"
 
   // Each folder's themes, [{ name, label, variant, paired }], combined
-  // into _families once either folder has been scanned
+  // into _families once any folder has been scanned
   property var _stockThemes: []
   property var _generatedThemes: []
+  property var _communityThemes: []
   property var _families: []
 
   // --- Integration processes ---
@@ -607,16 +650,27 @@ QtObject {
 
   // --- Theme List Loading ---
 
-  // Rescans both theme folders; each rebuilds the families when it's read
+  // Rescans the theme folders; each rebuilds the families when it's read
   function _reloadAllThemes() {
     _defaultThemeLoader.folder = "";
     _generatedThemeLoader.folder = "";
+    _communityThemeLoader.folder = "";
     _defaultThemeLoader.folder = _themesPath;
     _generatedThemeLoader.folder = _generatedThemesPath;
+    _communityThemeLoader.folder = _communityThemesPath;
+  }
+
+  // Rescans the community setups' palettes, after one is installed
+  // (CommunitySetupsManager)
+  function reloadCommunityThemes() {
+    _communityThemeLoader.folder = "";
+    _communityThemeLoader.folder = _communityThemesPath;
   }
 
   // A scanned folder's themes, parsed for their name, variant and pair.
-  // `prefix` makes each name what Appearance.theme calls it.
+  // `prefix` makes each name what Appearance.theme calls it. A community
+  // palette is one theme on its own: its `paired` names a stock theme,
+  // never one beside it.
   function _readThemes(loader, prefix) {
     const themes = [];
     for (let i = 0; i < loader.count; i++) {
@@ -629,7 +683,7 @@ QtObject {
           "name": prefix + loader.get(i, "fileBaseName"),
           "label": json.name || loader.get(i, "fileBaseName"),
           "variant": json.variant === "light" ? "light" : "dark",
-          "paired": json.paired ? prefix + json.paired : "",
+          "paired": json.paired && prefix !== "community/" ? prefix + json.paired : "",
           "preview": root._preview(json)
         });
       } catch (e) {
@@ -654,49 +708,8 @@ QtObject {
     };
   }
 
-  // Groups themes with the pair they name, when that pair names them back
-  // with the other variant. A pair is labelled by the words its themes'
-  // names share ("Tokyo Night" + "Tokyo Day" = "Tokyo").
-  function _buildFamilies(themes, generated) {
-    const byName = themes.reduce((map, theme) => {
-      map[theme.name] = theme;
-      return map;
-    }, {});
-    const seen = {};
-    const families = [];
-    for (const theme of themes) {
-      if (seen[theme.name])
-        continue;
-      seen[theme.name] = true;
-      const pair = byName[theme.paired];
-      const paired = pair && !seen[pair.name] && pair.paired === theme.name && pair.variant !== theme.variant;
-      if (paired)
-        seen[pair.name] = true;
-      const dark = theme.variant === "dark" ? theme : (paired ? pair : null);
-      const light = theme.variant === "light" ? theme : (paired ? pair : null);
-      families.push({
-        "label": paired ? _commonLabel(dark.label, light.label) : theme.label,
-        "dark": dark?.name ?? "",
-        "light": light?.name ?? "",
-        "darkPreview": dark?.preview ?? null,
-        "lightPreview": light?.preview ?? null,
-        "generated": generated
-      });
-    }
-    return families.sort((a, b) => a.label.localeCompare(b.label));
-  }
-
-  function _commonLabel(a, b) {
-    const wordsA = a.split(" ");
-    const wordsB = b.split(" ");
-    let n = 0;
-    while (n < wordsA.length && n < wordsB.length && wordsA[n] === wordsB[n])
-      n++;
-    return n > 0 ? wordsA.slice(0, n).join(" ") : a;
-  }
-
   function _rebuildFamilies() {
-    root._families = _buildFamilies(root._stockThemes, false).concat(_buildFamilies(root._generatedThemes, true));
+    root._families = ThemeFamilies.build(root._stockThemes, false).concat(ThemeFamilies.build(root._communityThemes, false, true), ThemeFamilies.build(root._generatedThemes, true));
     console.log("[ThemeManager] Themes:", root._families.map(family => family.label).join(", "));
   }
 
@@ -722,6 +735,28 @@ QtObject {
       // them with every style's, and removes them, so this happens once
       if (root.wallpaper && root._generatedThemes.some(theme => theme.name.startsWith("generated/pywal-")))
         root.generateThemesFromWallpaper(root.wallpaper);
+    }
+  }
+
+  property FolderListModel _communityThemeLoader: FolderListModel {
+    nameFilters: ["*.json"]
+    showDirs: false
+    onStatusChanged: if (status === FolderListModel.Ready && count > 0) {
+      root._communityThemes = root._readThemes(root._communityThemeLoader, "community/");
+      root._rebuildFamilies();
+    }
+    // Its last palette deleted, the count drops to 0 with no Ready after
+    // it; a rescan drops it to 0 too, just before the rows come back
+    onCountChanged: if (count === 0 && root._communityThemes.length > 0)
+      root._communityEmptied.restart()
+  }
+
+  // An emptied community folder, believed once it stays empty
+  property Timer _communityEmptied: Timer {
+    interval: 1000
+    onTriggered: if (root._communityThemeLoader.count === 0 && root._communityThemes.length > 0) {
+      root._communityThemes = [];
+      root._rebuildFamilies();
     }
   }
 }

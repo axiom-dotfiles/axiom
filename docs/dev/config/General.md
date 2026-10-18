@@ -37,7 +37,7 @@ Every public member of `General`, with the files that use it.
 - `General.monitors` (string): "primary" | "focused" | "all": where the power menu (and the overlay, launcher and OSD, unless their own `monitors` says otherwise) appear: the primary monitor…
   - in: `components/methods/ConfigMigration.qml`, `services/ShellManager.qml`
 - `General.outputs` (var): The connected monitors: Quickshell.screens without the stand-ins shown while none is (Qt's nameless placeholder, Hyprland's headless FALLBACK).
-  - in: `components/bar/BarPanel.qml`, `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/MonitorsPage.qml`, `config/Bar.qml`, `services/BarManager.qml`, `services/BlurManager.qml`, `services/BrightnessManager.qml`, `services/CompositorManager.qml`, `services/DesktopManager.qml`, `services/LayerManager.qml` (+16 more)
+  - in: `components/bar/BarPanel.qml`, `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/MonitorsPage.qml`, `config/Bar.qml`, `services/BarManager.qml`, `services/BlurManager.qml`, `services/BrightnessManager.qml`, `services/CommunitySetupsManager.qml`, `services/CompositorManager.qml`, `services/DesktopManager.qml` (+17 more)
 - `General.screens` (var): The screens they're built on
   - in: only inside the reader
 - `General.screensNamed(name)`: The screen named `name` (as a one-screen list), else the primary monitor, else the first screen

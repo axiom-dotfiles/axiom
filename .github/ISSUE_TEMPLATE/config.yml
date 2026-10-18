@@ -6,6 +6,9 @@ contact_links:
   - name: Ideas to talk over
     url: https://github.com/axiom-dotfiles/axiom/discussions/categories/ideas
     about: Not sure what it should look like yet? Shape it in Discussions, then open a request.
+  - name: Share your setup in the gallery
+    url: https://github.com/axiom-dotfiles/community-setups/issues/new?template=01-submit-setup.yml
+    about: Submit your look to community-setups, where anyone can apply it from Settings → Maintenance → Community setups.
   - name: Show your setup
     url: https://github.com/axiom-dotfiles/axiom/discussions/categories/show-and-tell
     about: Share your bars, pages and themes.

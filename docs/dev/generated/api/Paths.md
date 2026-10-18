@@ -22,6 +22,8 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 - `userDataPath` (readonly string): $XDG_DATA_HOME/axiom/: what the user made (the default notes folder)
 - `defaultNotesPath` (readonly string)
 - `generatedThemesPath` (readonly string): Themes generated from the wallpaper ("generated/<name>")
+- `communityThemesPath` (readonly string): Palettes community setups brought ("community/<id>"), $XDG_DATA_HOME/axiom/themes/
+- `communityCachePath` (readonly string): The community setups catalog and its downloads, $XDG_CACHE_HOME/axiom/community/
 - `hyprlandPath` (readonly string): Hyprland's config folder ($XDG_CONFIG_HOME/hypr/, where Hyprland looks)
 - `swayPath` (readonly string): Sway's config folder ($XDG_CONFIG_HOME/sway/, as sway looks there first)
 - `niriPath` (readonly string): niri's config folder ($XDG_CONFIG_HOME/niri/, where niri looks)
@@ -36,6 +38,6 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 
 ### Functions
 
-- `themeFile(name)`: A theme's JSON file, by its Appearance.theme name: "generated/<name>" from generatedThemesPath, the rest from the bundled themes
+- `themeFile(name)`: A theme's JSON file, by its Appearance.theme name: "generated/<name>" from generatedThemesPath, "community/<id>" from communityThemesPath, the rest from the bundled themes
 - `expandHome(path)`: A path from config or the user: trimmed, a leading ~ as home, no trailing slash ("~/Pictures/" -> "/home/<user>/Pictures")
 - `shortenHome(path)`: A path to show: home as ~ ("/home/<user>/x" -> "~/x")

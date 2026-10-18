@@ -46,6 +46,10 @@ QtObject {
   readonly property string defaultNotesPath: ConfigManager.dataDirs.notes
   // Themes generated from the wallpaper ("generated/<name>")
   readonly property string generatedThemesPath: ConfigManager.dataDirs.generatedThemes
+  // Palettes community setups brought ("community/<id>"), $XDG_DATA_HOME/axiom/themes/
+  readonly property string communityThemesPath: ConfigManager.dataDirs.communityThemes
+  // The community setups catalog and its downloads, $XDG_CACHE_HOME/axiom/community/
+  readonly property string communityCachePath: ConfigManager.dataDirs.cache + "community/"
 
   // Hyprland's config folder ($XDG_CONFIG_HOME/hypr/, where Hyprland looks)
   readonly property string hyprlandPath: (Quickshell.env("XDG_CONFIG_HOME") || root.homeDirectory + ".config").replace(/\/$/, "") + "/hypr/"
@@ -85,10 +89,13 @@ QtObject {
   readonly property string greeterFallbackUrl: Quickshell.env("AXIOM_GREETER_FALLBACK") ? "file://" + Quickshell.env("AXIOM_GREETER_FALLBACK") : Qt.resolvedUrl("../fallback/")
 
   // A theme's JSON file, by its Appearance.theme name: "generated/<name>"
-  // from generatedThemesPath, the rest from the bundled themes
+  // from generatedThemesPath, "community/<id>" from communityThemesPath,
+  // the rest from the bundled themes
   function themeFile(name) {
-    const generated = String(name).match(/^generated\/(.+)$/);
-    return generated ? root.generatedThemesPath + generated[1] + ".json" : root.themePath + name + ".json";
+    const prefixed = String(name).match(/^(generated|community)\/(.+)$/);
+    if (!prefixed)
+      return root.themePath + name + ".json";
+    return (prefixed[1] === "generated" ? root.generatedThemesPath : root.communityThemesPath) + prefixed[2] + ".json";
   }
 
   // A path from config or the user: trimmed, a leading ~ as home, no
