@@ -8,9 +8,10 @@ ThemeManager owns the active theme's data (loaded from its file, watched, with d
 ### Properties
 
 - `wallpaperModel` (readonly FolderListModel): ========================================================================= Public Models & State =========================================================================
-- `themeFamilies` (readonly var): One entry per theme, a dark/light pair being one theme: [{ label, dark, light, darkPreview, lightPreview, generated, community }], where dark/light are Appearance.theme names ("" for a variant the th…
-- `currentFamily` (readonly var): The family Appearance.theme belongs to, or null
+- `themeFamilies` (readonly var): One entry per theme, a dark/light pair being one theme: [{ label, dark, light, darkPreview, lightPreview, shared, generated, community }] (ThemeFamilies.build), where dark/light are Appearance.theme …
+- `currentFamily` (readonly var): The family Appearance.theme belongs to, or null; a shared light's is the family it was switched to from
 - `isGenerating` (readonly bool)
+- `foldedGroups` (readonly var): The theme list's groups ("builtin", "imported", "generated") folded shut
 - `currentTheme` (readonly var): The active theme's JSON ({ name, variant, paired, colors, semantic }), read through config/Theme
 - `activeTheme` (readonly string): The theme showing: Appearance.theme, or the variant the light/dark schedule last switched it to.
 - `shownWallpapers` (readonly var): The wallpapers showing ({ wallpaper, wallpapers }): the fixed ones, the rotation's or the light/dark ones, by Appearance.wallpaperMode
@@ -39,6 +40,7 @@ ThemeManager owns the active theme's data (loaded from its file, watched, with d
 - `generateThemesFromWallpaper(wallpaperUrl)`
 - `followSchedule(light)`: Shows the current theme's light (or dark) variant for the light/dark schedule, leaving the chosen one in the config
 - `setLightMode(light)`: Switches to the current theme's light (or dark) variant, if it has one
+- `toggleGroup(group)`: Folds a theme list group shut, or open again
 - `toggleDarkMode()`
 - `themeIntegrations(themeName = root.activeTheme, keys = [])`: Runs the enabled integrations (scripts/theme_<key>.sh, one per ThemeIntegrations switch) for a theme; `keys` limits it to those (none: all of them)
 - `integrationTitle(key)`: An integration's name (its schema title, untranslated)

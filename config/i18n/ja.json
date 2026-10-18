@@ -3242,6 +3242,10 @@
     "Catalog": "",
     "Downloads (album art, Claude usage, community setups)": "",
     "Tested on {0}": "",
-    "Applied \"{0}\" as \"{1}\". The previous configuration is saved as \"{2}\".": ""
+    "Applied \"{0}\" as \"{1}\". The previous configuration is saved as \"{2}\".": "",
+    "Built-in Themes": "",
+    "Imported Themes": "",
+    "Brought by community setups you've applied.": "",
+    "None yet. Themes that come with a community setup show here.": ""
   }
 }

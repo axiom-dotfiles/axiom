@@ -97,7 +97,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 - **Frame nudge** (`reusable/FrameNudge`): `burst()` makes its window draw and commit a few more frames. For where Hyprland keeps showing a layer's frame from before a change (a bar's stretches, the blur window's shapes).
 - **Backdrop** (`reusable/BackdropRequest`): a full-screen surface's dim background (overlay, overview, launcher, power menu, onboarding), under the bars and the border. It's drawn by the screen's one backdrop window (`surfaces/backdrop/ScreenBackdrop`, built by `shell/Backdrops`), which shows the request that showed last there (`BackdropManager`).
 - **Surface group** (`reusable/SurfaceGroup`): keeps a surface's instances on every monitor in step when its `monitors` mode is `all`.
-- **Folding** (`reusable/FoldingColumn`): a column whose height animates open and shut on `open` (not when built), clipped, its content fading with it, with paddings that fold too. `shown` stays true until fully shut, so content can be held until then.
+- **Folding** (`reusable/FoldingColumn`): a column whose height animates open and shut on `open` (not when built), clipped, its content fading with it, with paddings that fold too. `shown` stays true until fully shut, so content can be held until then. `reusable/FoldingSection` puts a clickable `SectionHeading` and chevron over one, for a folding section inside a card (the theme list's groups); `FoldingCard` is the card version.
 
 ### Blur and joins
 - `reusable/CornerPiece`: a concave "inverted corner" filled up to a quarter circle, with its two edges stroked.

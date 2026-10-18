@@ -34,14 +34,19 @@ QtObject {
     showDirs: false
   }
   // One entry per theme, a dark/light pair being one theme:
-  // [{ label, dark, light, darkPreview, lightPreview, generated, community }], where
-  // dark/light are Appearance.theme names ("" for a variant the theme doesn't
-  // have) and the previews are that variant's _preview (or null). Stock
-  // themes first, then community setups' palettes, then generated ones.
+  // [{ label, dark, light, darkPreview, lightPreview, shared, generated,
+  // community }] (ThemeFamilies.build), where dark/light are Appearance.theme
+  // names ("" for a variant the theme doesn't have) and the previews are that
+  // variant's _preview (or null). A family's extra darks (Tokyo Storm) are
+  // families of their own sharing its light. Stock themes first, then
+  // community setups' palettes, then generated ones.
   readonly property var themeFamilies: _families
-  // The family Appearance.theme belongs to, or null
-  readonly property var currentFamily: themeFamilies.find(family => family.dark === Appearance.theme || family.light === Appearance.theme) ?? null
+  // The family Appearance.theme belongs to, or null; a shared light's is
+  // the family it was switched to from
+  readonly property var currentFamily: ThemeFamilies.current(themeFamilies, Appearance.theme, root._look.lightFrom ?? "")
   readonly property bool isGenerating: generationProcess.running
+  // The theme list's groups ("builtin", "imported", "generated") folded shut
+  readonly property var foldedGroups: root._look.foldedGroups ?? []
 
   // The active theme's JSON ({ name, variant, paired, colors, semantic }),
   // read through config/Theme
@@ -99,7 +104,9 @@ QtObject {
 
   // A family's variant for the current light/dark mode, or the one it has
   function applyFamily(family) {
-    applyTheme(Appearance.darkMode ? (family.dark || family.light) : (family.light || family.dark));
+    const target = Appearance.darkMode ? (family.dark || family.light) : (family.light || family.dark);
+    root._rememberFamily(family, target);
+    applyTheme(target);
   }
 
   // Sets the wallpaper, then generates themes from it
@@ -242,7 +249,16 @@ QtObject {
       console.log("[ThemeManager] No", light ? "light" : "dark", "variant of", Appearance.theme);
       return;
     }
+    root._rememberFamily(currentFamily, target);
     applyTheme(target);
+  }
+
+  // Folds a theme list group shut, or open again
+  function toggleGroup(group) {
+    const folded = root.foldedGroups.includes(group) ? root.foldedGroups.filter(name => name !== group) : root.foldedGroups.concat([group]);
+    root._saveLook({
+      "foldedGroups": folded
+    });
   }
 
   function toggleDarkMode() {
@@ -318,6 +334,15 @@ QtObject {
   // told) }. The greeter keeps none.
   readonly property var _lookState: StateManager.createStateHandler("look")
   property var _look: Paths.greeter ? ({}) : root._lookState.load({})
+
+  // Picking a family's light remembers its dark, so a light several
+  // families share stays in the one it was picked from
+  function _rememberFamily(family, target) {
+    if (target === family.light && family.dark && (root._look.lightFrom ?? "") !== family.dark)
+      root._saveLook({
+        "lightFrom": family.dark
+      });
+  }
 
   function _saveLook(changes) {
     if (Paths.greeter)
@@ -667,50 +692,8 @@ QtObject {
     };
   }
 
-  // Groups themes with the pair they name, when that pair names them back
-  // with the other variant. A pair is labelled by the words its themes'
-  // names share ("Tokyo Night" + "Tokyo Day" = "Tokyo").
-  function _buildFamilies(themes, generated, community = false) {
-    const byName = themes.reduce((map, theme) => {
-      map[theme.name] = theme;
-      return map;
-    }, {});
-    const seen = {};
-    const families = [];
-    for (const theme of themes) {
-      if (seen[theme.name])
-        continue;
-      seen[theme.name] = true;
-      const pair = byName[theme.paired];
-      const paired = pair && !seen[pair.name] && pair.paired === theme.name && pair.variant !== theme.variant;
-      if (paired)
-        seen[pair.name] = true;
-      const dark = theme.variant === "dark" ? theme : (paired ? pair : null);
-      const light = theme.variant === "light" ? theme : (paired ? pair : null);
-      families.push({
-        "label": paired ? _commonLabel(dark.label, light.label) : theme.label,
-        "dark": dark?.name ?? "",
-        "light": light?.name ?? "",
-        "darkPreview": dark?.preview ?? null,
-        "lightPreview": light?.preview ?? null,
-        "generated": generated,
-        "community": community
-      });
-    }
-    return families.sort((a, b) => a.label.localeCompare(b.label));
-  }
-
-  function _commonLabel(a, b) {
-    const wordsA = a.split(" ");
-    const wordsB = b.split(" ");
-    let n = 0;
-    while (n < wordsA.length && n < wordsB.length && wordsA[n] === wordsB[n])
-      n++;
-    return n > 0 ? wordsA.slice(0, n).join(" ") : a;
-  }
-
   function _rebuildFamilies() {
-    root._families = _buildFamilies(root._stockThemes, false).concat(_buildFamilies(root._communityThemes, false, true), _buildFamilies(root._generatedThemes, true));
+    root._families = ThemeFamilies.build(root._stockThemes, false).concat(ThemeFamilies.build(root._communityThemes, false, true), ThemeFamilies.build(root._generatedThemes, true));
     console.log("[ThemeManager] Themes:", root._families.map(family => family.label).join(", "));
   }
 

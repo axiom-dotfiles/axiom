@@ -104,7 +104,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `Submenu.qml`: A row that opens another edge menu (`menu`) beside the one it's in, in that menu's submenu (EdgePopout.submenu, content/parts/MenuSubmenu): on hover, or on a click with openOnHover off.
 - `SystemGraphs.qml`: Live graphs of system metrics: the current value over a minute of history per metric.
 - `SystemTray.qml`: A tray item's menu.
-- `ThemePicker.qml`: The theme list: one tile per theme (a dark/light pair is one theme), stock and generated, each painted in its own colors, plus the Dark/Light switch that picks the variant and Auto, which switches it by time of day (Wal…
+- `ThemePicker.qml`: The theme list: one tile per theme (a dark/light pair is one theme), in folding groups (built-in, imported, generated), each painted in its own colors, plus the Dark/Light switch that picks the variant and Auto, which s…
 - `Todo.qml`: The todo list (TodoManager): the Todo widget's popout, or an overlay card.
 - `TopProcesses.qml`: The busiest processes, with a kill button on hover.
 - `Updates.qml`: Pending updates, repo and AUR listed separately (from UpdatesManager).
@@ -308,6 +308,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SurfaceOutline.qml`: The outline of a surface that grows out of an edge (AttachedSurface): a content box joined to the attach edge by two concave fillets, or a plain box held off it.
 - `SwayConf.qml`: Sway's config and command text from axiom's settings (SwayManager, SwayConfigWriter), as HyprLua/HyprConfigLua are for Hyprland: each bind's `bindsym`, the window look and input as sway commands, the included file, outp…
 - `SwayState.qml`: Sway's IPC replies (SwayManager) as the shapes the rest of the shell reads, which don't depend on the compositor (docs/dev/compositor/contract.md), as HyprState is for Hyprland.
+- `ThemeFamilies.qml`: Groups themes into the families the theme list shows (a dark/light pair is one theme) and finds the family a theme name belongs to, for ThemeManager.
 - `TimeZones.qml`: Pure helpers for clocks in another time zone.
 - `TodoItems.qml`: The todo list's items and every change to them, for TodoManager: each returns a new list and leaves its input alone.
 - `Utils.qml`: Pure helpers: deep copies and comparison, free ids, usage counts, curl config values, text width and truncation, colors, calendar grids, byte sizes and rates.
@@ -333,6 +334,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `FieldGroup.qml`: A titled group of fields, as on the settings page (editor inspectors)
 - `FlatIconButton.qml`: A flat icon button (no fill until hovered) of a fixed square size that doesn't stretch in layouts, so every button in a row shares one size and centre line (the chat's and notes' toolbars)
 - `FoldingColumn.qml`: A column that folds open and shut: its height runs between its content's and nothing, clipped on the way, its content fading with it, and it hides once shut.
+- `FoldingSection.qml`: A SectionHeading with a chevron over a FoldingColumn: clicking the heading emits `toggled`, and the body folds shut while `collapsed`.
 - `FrameNudge.qml`: An invisible pixel that flips for a few frames after burst(), so its window draws (and commits) again and the last frame shown is the right one.
 - `Glide.qml`: The shell's eased change to a number: `Glide on width {}` is `Behavior on width { NumberAnimation { duration: Appearance.animFast; easing.type: Appearance.easing } }`.
 - `HoledItem.qml`: Draws its children with `holes` (rects in its coordinates) cut out: a stroke left open where something joined to it carries on over it.
