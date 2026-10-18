@@ -48,9 +48,13 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-group="Grid"
   - read: `GreeterConfig.layout` (whole) · in: `components/surfaces/greeter/GreeterSurface.qml`
 - **`Greeter.layout.background`** · string = "wallpaper" · enum wallpaper|color
-  - Background: Each monitor's wallpaper (blurred when Blur wallpaper is on), or a plain color.
+  - Background: Each monitor's wallpaper, or a plain color.
   - x-group="Background"
   - read: `GreeterConfig.layout` (whole) · in: `components/surfaces/greeter/GreeterSurface.qml`
+- **`Greeter.layout.blurWallpaper`** · boolean = true
+  - Blur wallpaper
+  - x-group="Background", x-showIf={"background":"wallpaper"}
+  - read: `GreeterConfig.layout` (whole) · in: `config/GreeterConfig.qml`
 - **`Greeter.layout.backgroundColor`** · string = "base00"
   - Color
   - x-group="Background", x-options="colors", x-showIf={"background":"color"}

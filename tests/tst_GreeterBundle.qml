@@ -45,7 +45,7 @@ TestCase {
 
   function test_export_takes_only_its_sections() {
     const bundle = GreeterBundle.exportConfig(config("detached"), inputSchema, copies);
-    compare(Object.keys(bundle).sort(), ["Appearance", "Compositor", "General", "Greeter", "Input", "Lockscreen", "Monitors", "Weather", "version"]);
+    compare(Object.keys(bundle).sort(), ["Appearance", "Compositor", "General", "Greeter", "Input", "Monitors", "Weather", "version"]);
     compare(bundle.Monitors.profiles[0].name, "desk");
     compare(bundle.Hyprland, undefined);
     compare(bundle.Compositor.mode, "detached");

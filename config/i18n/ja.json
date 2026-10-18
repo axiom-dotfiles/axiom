@@ -2056,7 +2056,6 @@
     "layout": "レイアウト",
     "Centre": "中央",
     "Shown in the empty field. Empty says Enter password...": "空の入力欄に表示されます。空の場合は「パスワードを入力…」と表示します。",
-    "Blur the wallpaper behind the lock screen.": "ロック画面の背後の壁紙をぼかします。",
     "Show what the login checks say under the field: prompts, failures and errors.": "ログイン確認からのメッセージ（入力要求、失敗、エラー）を入力欄の下に表示します。",
     "The background only": "背景のみ",
     "The same modules, without the password": "同じモジュール（パスワード欄なし）",
@@ -2072,7 +2071,6 @@
     "Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9).": "横方向のグリッドユニット数です。グリッドは各モニターいっぱいに引き伸ばされるので、画面の比率に合わせてください（16:9 なら 16 × 9）。",
     "What the built-in locker shows, edited on the Layouts page: its modules on a grid of columns × rows units, fitted to each monitor.": "内蔵ロッカーに表示する内容で、レイアウトページで編集します。列 × 行ユニットのグリッドに並べたモジュールを各モニターに合わせて表示します。",
     "Darken the background so the modules stand out.": "モジュールが目立つように背景を暗くします。",
-    "Each monitor's wallpaper (blurred when Blur wallpaper is on), or a plain color.": "各モニターの壁紙（「壁紙をぼかす」がオンならぼかしあり）、または単色です。",
     "Move left": "左へ移動",
     "Move right": "右へ移動",
     "Centred": "中央",
@@ -3092,6 +3090,7 @@
     "Off color": "オフ時の色",
     "Playing color": "再生中の色",
     "Active color": "アクティブ時の色",
-    "Backs up /etc/greetd/config.toml, then changes only its default_session command, to start axiom's login screen in a compositor of its own (sway, else Hyprland).": "/etc/greetd/config.toml をバックアップしてから、default_session の command だけを変更し、専用のコンポジター（sway、なければ Hyprland）で axiom のログイン画面を起動するようにします。"
+    "Backs up /etc/greetd/config.toml, then changes only its default_session command, to start axiom's login screen in a compositor of its own (sway, else Hyprland).": "/etc/greetd/config.toml をバックアップしてから、default_session の command だけを変更し、専用のコンポジター（sway、なければ Hyprland）で axiom のログイン画面を起動するようにします。",
+    "Each monitor's wallpaper, or a plain color.": "各モニターの壁紙、または単色です。"
   }
 }

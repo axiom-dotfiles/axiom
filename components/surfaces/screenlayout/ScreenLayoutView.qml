@@ -36,7 +36,8 @@ Item {
   readonly property bool wantsKeyboard: root.shownModules.some(module => OverlayConfig.moduleInfo(module.type)?.keyboard === true)
   // Its wallpaper, when the background is "wallpaper"
   property string wallpaper: ""
-  property bool blurWallpaper: true
+  // The layout's, unless the host says otherwise (the desktop never blurs)
+  property bool blurWallpaper: root.layout?.blurWallpaper ?? true
   // "wallpaper" | "color" (the layout's, else the wallpaper)
   readonly property string background: root.layout?.background ?? "wallpaper"
   // Whether the background is drawn (else it's only what modules frost)

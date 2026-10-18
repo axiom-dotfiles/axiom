@@ -88,7 +88,7 @@ Built on `Quickshell.Services.Greetd`.
   - `Session`: in a slot shorter than its card, just the field, with no card.
   - `Power`: restart and shut down ask twice. It is also on the lock screen.
   - `KeyboardLayout`.
-- **Solid:** in greeter mode `Appearance.compositorBlurs` is false (`CompositorManager`), so every surface is opaque and nothing frosts; `GreeterSurface` also sets `frost: false`, so the layouts editor's preview isn't frosted either, though its cards keep the session's translucency (`Appearance.fill` is global). The wallpaper still follows `Lockscreen.blurWallpaper` (Qt's own blur, needing nothing of the compositor).
+- **Solid:** in greeter mode `Appearance.compositorBlurs` is false (`CompositorManager`), so every surface is opaque and nothing frosts; `GreeterSurface` also sets `frost: false`, so the layouts editor's preview isn't frosted either, though its cards keep the session's translucency (`Appearance.fill` is global). The wallpaper still follows `Greeter.layout.blurWallpaper` (Qt's own blur, needing nothing of the compositor).
 - **Display modules** that list `greeter` in `x-hosts`: ClockCalendar, Greeting, Weather, Battery, Network, Palette, ColorSwatch.
 - **Inert outside the greeter:** every greeter module is inert unless `host.kind === "greeter" && !host.preview && Paths.greeter`, so the user's session never talks to greetd.
 - **Host filtering:** `ScreenLayoutView` draws only modules whose `x-hosts` list the host's `kind`.

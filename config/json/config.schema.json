@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 66,
+      "default": 67,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -61,14 +61,6 @@
           "default": "loginctl lock-session",
           "description": "What axiom's lock buttons run when the locker is your own.",
           "x-showIf": { "mode": "none" }
-        },
-        "blurWallpaper": {
-          "x-scope": "look",
-          "type": "boolean",
-          "title": "Blur wallpaper",
-          "default": true,
-          "description": "Blur the wallpaper behind the lock screen.",
-          "x-showIf": { "mode": { "not": "none" } }
         },
         "layout": {
           "x-scope": "look",
@@ -2262,7 +2254,7 @@
       "description": "A screen of overlay modules on a bounded grid of columns × rows units, fitted to each monitor: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).",
       "type": "object",
       "additionalProperties": false,
-      "x-order": ["columns", "rows", "fineGrid", "otherScreens", "background", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
+      "x-order": ["columns", "rows", "fineGrid", "otherScreens", "background", "blurWallpaper", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
       "properties": {
         "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9)." },
         "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
@@ -2283,8 +2275,9 @@
           "enum": ["wallpaper", "color"],
           "x-enumLabels": { "wallpaper": "Wallpaper", "color": "Color" },
           "default": "wallpaper",
-          "description": "Each monitor's wallpaper (blurred when Blur wallpaper is on), or a plain color."
+          "description": "Each monitor's wallpaper, or a plain color."
         },
+        "blurWallpaper": { "x-group": "Background", "type": "boolean", "title": "Blur wallpaper", "default": true, "x-showIf": { "background": "wallpaper" } },
         "backgroundColor": { "x-group": "Background", "type": "string", "title": "Color", "x-options": "colors", "default": "base00", "x-showIf": { "background": "color" } },
         "dim": { "x-group": "Background", "type": "integer", "title": "Dim", "default": 40, "minimum": 0, "maximum": 100, "x-unit": "%", "x-control": "slider", "description": "Darken the background so the modules stand out." },
         "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": true, "description": "Draw each module's card box. Off shows modules straight on the background. The password field and the greeting have their own switches." },

@@ -2090,12 +2090,10 @@ TestCase {
     const migrated = load({
       "version": 64,
       "Lockscreen": {
-        "mode": "hyprlock",
-        "blurWallpaper": false
+        "mode": "hyprlock"
       }
     });
     compare(migrated.config.Lockscreen.mode, "quickshell");
-    compare(migrated.config.Lockscreen.blurWallpaper, false);
     compare(migrated.removed, []);
     compare(errors(migrated.config), []);
     compare(load({
@@ -2134,5 +2132,35 @@ TestCase {
     compare(config.Bars.map(bar => bar.shadow), [true, false, false]);
     compare(migrated.removed, []);
     compare(errors(config), []);
+  }
+
+  function test_v67_blur_wallpaper_is_per_layout() {
+    const migrated = load({
+      "version": 66,
+      "Lockscreen": {
+        "blurWallpaper": false,
+        "layout": {
+          "modules": []
+        }
+      },
+      "Greeter": {
+        "layout": {
+          "modules": []
+        }
+      }
+    });
+    const config = migrated.config;
+    compare(config.Lockscreen.blurWallpaper, undefined);
+    compare([config.Lockscreen.layout.blurWallpaper, config.Greeter.layout.blurWallpaper], [false, false]);
+    compare(migrated.removed, []);
+    compare(errors(config), []);
+    // Without the old key, each layout keeps the default
+    const fresh = load({
+      "version": 66,
+      "Lockscreen": {
+        "mode": "quickshell"
+      }
+    }).config;
+    compare([fresh.Lockscreen.layout.blurWallpaper, fresh.Greeter.layout.blurWallpaper], [true, true]);
   }
 }
