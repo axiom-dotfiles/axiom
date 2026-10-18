@@ -24,12 +24,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-18, while moving the greeter to sway
 
-### sway may run a `--release` bind twice while an input method runs (unconfirmed)
-- **Where:** `components/methods/SwayConf.qml` (binds with `release`: `restartShell`, the Super_L launcher bind)
-- **What:** Restarting axiom with its bind on sway started several axioms (reported 2026-10-18; `scripts/restart.sh` and `InstanceManager` now keep it to one). A likely trigger, read from sway 1.11's `handle_key_event` but not reproduced: the key press of a `--release` bind isn't handled, so it goes to the input method's keyboard grab (fcitx5 runs in that session), which sends keys it doesn't use back through its virtual keyboard. sway then holds the bind on that keyboard too, but the release went only to the real one, so the virtual keyboard's next key release runs the bind again (a reload in between leaves sway holding a freed bind). Hyprland has no such path. To confirm: on sway with fcitx5, `swaymsg -t subscribe '["binding"]'` while pressing Super+Ctrl+R once, then typing; then without fcitx5. If confirmed, the Super_L launcher toggle would double up too.
-- **Size:** needs a plan
-- **Found:** 2026-10-18, while making the restart bind end every axiom
-
 ### install.sh still installs the rest of a feature whose COPR was declined
 - **Where:** `install.sh` (the declined-COPR loop after the COPR prompts)
 - **What:** Declining a COPR on Fedora marks each feature with a package from it as skipped, but drops only that COPR's packages: the feature's other packages stay in the one `dnf install`. Declining `nett00n/hyprland` while setting up niri skips the login screen's feature yet still installs `greetd`. Rebuilding `packages` from the features left (and the required keys) after the prompts would fix it; test with `--dry-run` in a `fedora:latest` container.
