@@ -2547,7 +2547,10 @@ class RestartScript(unittest.TestCase):
         # container reaps no orphans, so a killed instance stays one
         qs.write_text(f"""#!/bin/sh
 state="{self.state}"
-live() {{ s=$(cat "/proc/$1/stat" 2>/dev/null) && [ "${{s##*) }}" = "${{s##*) Z}}" ]; }}
+live() {{
+  s=$(cat "/proc/$1/stat" 2>/dev/null) || return 1
+  case "${{s##*) }}" in Z*) return 1 ;; esac
+}}
 if [ "$1" = list ]; then
   echo "["
   while read -r pid; do live "$pid" && echo "{{\\"pid\\": $pid}},"; done < "$state"
