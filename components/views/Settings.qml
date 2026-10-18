@@ -11,7 +11,11 @@ import qs.components.views.settings
 BaseView {
   id: root
 
-  readonly property var categories: SchemaLayout.categories(ConfigManager.configSchema, SettingsManager.showIfValue)
+  // Through a string, so it only notifies when the categories actually
+  // change: sections' `x-showIf` read the config (`/Compositor.mode`), and
+  // new objects on every edit would rebuild every card (a flash per edit)
+  readonly property string _categoriesKey: JSON.stringify(SchemaLayout.categories(ConfigManager.configSchema, SettingsManager.showIfValue))
+  readonly property var categories: JSON.parse(_categoriesKey)
   readonly property var category: categories.find(c => c.name === SettingsManager.category) ?? categories[0]
 
   Component.onCompleted: SettingsManager.ensureLoaded()
