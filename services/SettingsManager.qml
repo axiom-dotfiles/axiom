@@ -164,6 +164,13 @@ QtObject {
     draft.changed();
   }
 
+  // Sets one value in the draft only (a text field being typed in), so
+  // it shows as unsaved; setValue applies it
+  function setDraftValue(path, value) {
+    _setAt(draft.local, path, value);
+    draft.changed();
+  }
+
   // The schema of the setting at a key path
   function schemaAt(path) {
     let node = ConfigManager.configSchema;

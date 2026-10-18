@@ -27,6 +27,9 @@ Item {
 
   signal edited(var path, var value)
   onEdited: (path, value) => SettingsManager.setValue(path, value)
+  // A text field's keystroke: unsaved at once, applied on its commit
+  signal typed(var path, var value)
+  onTyped: (path, value) => SettingsManager.setDraftValue(path, value)
 
   function valueAt(path) {
     let value = SettingsManager.localConfig;

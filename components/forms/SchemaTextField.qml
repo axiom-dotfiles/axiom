@@ -23,13 +23,16 @@ ColumnLayout {
   property string browse: ""
 
   // What was typed, once it matches `pattern`: on Enter (Ctrl+Enter in a
-  // multiline field), as the field loses focus or is torn down, never per
-  // keystroke (each commit re-applies the whole config live, and a font or
-  // a folder applied half-typed made typing crawl). A picked suggestion
-  // commits at once. Only an edit in the field emits it: never a value
-  // pushed in (a selection switched, an editor reopened), which would be
-  // written back onto whatever the form edits by then.
+  // multiline field), as the field loses focus or is torn down. A picked
+  // suggestion commits at once. Only an edit in the field emits it: never a
+  // value pushed in (a selection switched, an editor reopened), which would
+  // be written back onto whatever the form edits by then.
   signal valueEdited(string value)
+  // Every keystroke's text, once it matches `pattern`, so the edit shows
+  // as unsaved at once. The settings page only puts it in its draft:
+  // applied live per keystroke, a font or a folder applied half-typed
+  // made typing crawl (a notes folder ran `find` on `/`)
+  signal valueTyped(string value)
 
   // Typed since the last commit or value pushed in
   property bool _typed: false
@@ -65,6 +68,12 @@ ColumnLayout {
     }
   }
 
+  function _type() {
+    root._typed = true;
+    if (root.pattern === null || new RegExp(root.pattern).test(root._text))
+      root.valueTyped(root._text);
+  }
+
   // Commits what was typed, if anything was
   function _commitTyped() {
     if (root._typed)
@@ -96,7 +105,7 @@ ColumnLayout {
       Layout.preferredHeight: Widget.height
       text: root.currentConfigValue
 
-      onTextEdited: root._typed = true
+      onTextEdited: root._type()
       onAccepted: root._commitTyped()
       // Commits on leaving; half-typed text that never matched shows the
       // value again
@@ -137,7 +146,7 @@ ColumnLayout {
     newlineOnEnter: true
     text: root.currentConfigValue
 
-    onTextEdited: root._typed = true
+    onTextEdited: root._type()
     onAccepted: root._commitTyped()
     input.onActiveFocusChanged: {
       if (textArea.input.activeFocus)

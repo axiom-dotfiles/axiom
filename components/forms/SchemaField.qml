@@ -151,6 +151,22 @@ Loader {
       root.form.edited(root.row.path, value);
   }
 
+  // A text field's keystroke: a form with `typed` (the settings page)
+  // holds it as unsaved without applying it, any other takes it as an edit
+  function type(value) {
+    if (root.form && typeof root.form.typed === "function")
+      root.form.typed(root.row.path, value);
+    else
+      root.commit(value);
+  }
+
+  // A text field's commit (Enter, focus loss): always passed on, since
+  // `typed` may have put the value in already
+  function commitTyped(value) {
+    if (root.form)
+      root.form.edited(root.row.path, value);
+  }
+
   // Array rows: every edit commits a modified copy of the whole array
   function _arrayCopy() {
     return Utils.clone(root.current ?? []);
@@ -389,7 +405,8 @@ Loader {
       pattern: root.fieldSchema.pattern ?? null
       suggestions: SettingsManager.suggestionsFor(root.fieldSchema)
       currentConfigValue: root.current ?? ""
-      onValueEdited: value => root.commit(value)
+      onValueTyped: value => root.type(value)
+      onValueEdited: value => root.commitTyped(value)
     }
   }
 
@@ -442,7 +459,11 @@ Loader {
       suggestions: SettingsManager.suggestionsFor(root.fieldSchema)
       commaList: true
       currentConfigValue: (root.current ?? []).join(", ")
-      onValueEdited: value => root.commit(value.split(",").map(v => v.trim()).filter(v => v !== ""))
+      function listOf(value) {
+        return value.split(",").map(v => v.trim()).filter(v => v !== "");
+      }
+      onValueTyped: value => root.type(listOf(value))
+      onValueEdited: value => root.commitTyped(listOf(value))
     }
   }
 }
