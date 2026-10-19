@@ -2971,7 +2971,6 @@
     "Adding…": "追加中…",
     "Your {0} stays yours: a line at its end loads axiom's keybinds, borders and input.": "{0} はそのままです：末尾の 1 行が axiom のキーバインド、枠線、入力設定を読み込みます。",
     "{0} makes and removes workspaces itself: each monitor has one column of them, with an empty one at the end. The layout below doesn't apply; up and down step through the column, left and right go to the next monitor.": "{0} はワークスペースを自動で作成・削除します。各モニターに 1 列ずつあり、末尾は常に空のワークスペースです。下のレイアウトは適用されません。上下で列内を移動し、左右で隣のモニターに移動します。",
-    "niri blurs windows, but not behind the shell's surfaces yet.": "niri はウィンドウをぼかせますが、シェルのサーフェスの背後はまだぼかせません。",
     "{0} does this itself, on this combo": "{0} がこの組み合わせで自ら行います",
     "{0} only does this on {1}": "{0} では {1} でのみ動作します",
     "Workspaces with WASD": "WASD でワークスペース移動",

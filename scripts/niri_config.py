@@ -11,7 +11,9 @@ Usage: niri_config.py <command> [--config PATH] [--skip PATH]... [--skip-header 
              keycode, submap, description }), a later one on a key winning
   info       what NiriManager follows: { gaps, struts: { top, right,
              bottom, left }, layouts ("us,de", or ""), modKey (what Mod
-             stands for, as axiom names it: "SUPER") }
+             stands for, as axiom names it: "SUPER"), blur: { enabled,
+             passes, offset } (niri's blur strength; off with its `off`
+             flag) }
 
 The config is --config, else the one the niri $NIRI_SOCKET names started
 with (niri_kdl.main_config). --skip leaves files out (axiom's own
@@ -28,9 +30,17 @@ import niri_kdl
 
 def info(files):
     gaps, struts, layouts = 16, {"top": 0, "right": 0, "bottom": 0, "left": 0}, ""
+    blur = {"enabled": True, "passes": 3, "offset": 3}
     for _, nodes in files:
         for node in nodes:
-            if node.name == "layout":
+            if node.name == "blur":
+                if node.child("off"):
+                    blur["enabled"] = False
+                for key in ("passes", "offset"):
+                    found = node.child(key)
+                    if found and found.args:
+                        blur[key] = found.args[0]
+            elif node.name == "layout":
                 found = node.child("gaps")
                 if found and found.args:
                     gaps = found.args[0]
@@ -44,7 +54,7 @@ def info(files):
                 if layout and layout.args:
                     layouts = str(layout.args[0])
     mod = niri_kdl.mod_key(files, niri_kdl.running_nested())
-    return {"gaps": gaps, "struts": struts, "layouts": layouts,
+    return {"gaps": gaps, "struts": struts, "layouts": layouts, "blur": blur,
             "modKey": niri_kdl.MOD_NAMES.get(mod.lower(), mod.upper())}
 
 

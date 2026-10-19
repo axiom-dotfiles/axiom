@@ -80,7 +80,7 @@ TestCase {
     compare(lines.length, LayerStack.layers.length);
     verify(lines.includes('hl.layer_rule({ name = "axiom-bar-pill", match = { namespace = "^axiom-bar-pill$" }, order = -1 })'));
     verify(lines.includes('hl.layer_rule({ name = "axiom-desktop", match = { namespace = "^axiom-desktop$" }, no_anim = true })'), "no order, no animation");
-    verify(HyprLua.blurChrome.includes("bar-floating-long") && HyprLua.blurBacked.includes("bar-pill"), "blur lists take every bar");
+    verify(LayerStack.blurChrome.includes("bar-floating-long") && LayerStack.blurBacked.includes("bar-pill"), "blur lists take every bar");
   }
 
   function test_value() {
@@ -595,7 +595,7 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
         "threshold": 0.5
       }, opts));
     const on = lines({
-      "on": true
+      "blur": true
     });
     compare(on.length, 5, "the layer rules alone: the strength is Hyprland's");
     verify(on.every(line => line.startsWith("hl.layer_rule")));
@@ -604,22 +604,22 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
     verify(on[0].includes("blur_popups = true, ignore_alpha = 0.5, xray = true, enabled = true"), "the wallpaper alone by default");
     verify(!/[(|](bar|border)[|)]/.test(on[0]), "the chrome is drawn by the blur window");
     verify(on[1].includes('name = "axiom-blur-popups"') && on[1].includes("(bar|"), "the chrome's popups (tooltips, menus)");
-    verify(on[1].includes("blur_popups = true, ignore_alpha = 0.5, enabled = true") && !on[1].includes("blur = true"), "its popups alone");
+    verify(on[1].includes("blur_popups = true, ignore_alpha = 0.5, xray = false, enabled = true") && !on[1].includes("blur = true"), "its popups alone, never xray");
     verify(on[2].includes('"^axiom-(backdrop|polkit)$"'));
     verify(on[2].includes("enabled = false"), "backdrops only when asked");
     verify(on[3].includes('name = "axiom-blur-no-anim"') && on[3].includes("(bar|") && on[3].includes("|edge-popout|") && on[3].includes("no_anim = true, enabled = true"), "the backed chrome isn't animated by Hyprland");
     verify(!/[(|](launcher|overlay|backdrop)[|)]/.test(on[3]), "surfaces blurring themselves keep their animations");
     verify(on[4].includes('"^axiom-(blur-backing-overlay)$"') && on[4].includes("blur = true, ignore_alpha = 0.5, xray = false, enabled = true"), "the blur window over the overlay blurs the overlay, never the wallpaper");
     verify(lines({
-      "on": true,
+      "blur": true,
       "throughWindows": false
     })[4].includes("xray = false"));
     verify(lines({
-      "on": true,
+      "blur": true,
       "backdrops": true
     })[2].includes("enabled = true"));
     const through = lines({
-      "on": true,
+      "blur": true,
       "throughWindows": true,
       "backdrops": true
     });
@@ -627,7 +627,7 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
     verify(through[2].includes("xray = false"));
     // Taken back by redefining the rules, never dropped
     const off = lines({
-      "on": false,
+      "blur": false,
       "backdrops": true
     });
     compare(off.length, 5);

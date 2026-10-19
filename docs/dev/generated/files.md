@@ -322,6 +322,8 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `AddEntryButton.qml`: An outlined full-width button under a list that adds to it ("New bar", "New page")
 - `BackdropRequest.qml`: A full-screen surface's dim background on its screen, shown while `shown`: drawn by that screen's backdrop window (ScreenBackdrop, through BackdropManager), under the bars and the border.
 - `BaseWidget.qml`: Rounded background box for bar modules.
+- `BlurRegion.qml`: A window's blur region (BackgroundEffect.blurRegion, where the compositor blurs only what a window asks: supports.blurRegion), from `pieces` in the window's coordinates (SurfaceOutline.blurRegion, placed by placeRegion)…
+- `BoxBlurRegion.qml`: One box as a blur region (BackgroundEffect.blurRegion, where the compositor blurs only what a window asks: supports.blurRegion), in its window's coordinates, its corners rounded as the box's (a Rectangle's `radius`; set…
 - `CodeLine.qml`: Text to paste somewhere (a config line, a command), in a monospace box with a Copy button
 - `ColorGlide.qml`: The shell's eased change to a color: `ColorGlide on color {}` is `Behavior on color { ColorAnimation { duration: Appearance.animFast; easing.type: Appearance.easing } }`.
 - `CornerPiece.qml`: Concave "inverted corner" piece: fills the corner (isLeft/isTop) of its box with fillColor up to a quarter-circle, and strokes the two box edges leading away from that corner joined by the arc.

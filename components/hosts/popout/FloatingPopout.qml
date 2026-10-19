@@ -103,6 +103,18 @@ PopoutWrapperBase {
       item: root.closeOnClickOutside ? surfaceWindow.contentItem : box
     }
 
+    // Where the compositor blurs only what a window asks: the box, as it
+    // scales open
+    // (attached only there: attached at all, it claims the window's blur, and
+    // Hyprland's layer rules no longer blur it)
+    Component.onCompleted: if (CompositorManager.supports.blurRegion === true)
+      BackgroundEffect.blurRegion = Qt.binding(() => BlurManager.regions ? boxBlur : null)
+    BoxBlurRegion {
+      id: boxBlur
+      target: box
+      opacity: box.opacity
+    }
+
     FocusGrab {
       id: focusGrab
       windows: [surfaceWindow].concat(root.grabWindows, ShellManager.modalWindows)

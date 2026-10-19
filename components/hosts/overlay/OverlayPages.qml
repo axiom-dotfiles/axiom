@@ -140,6 +140,9 @@ Item {
     return shown.filter(view => !OverlayConfig.isTool(view.viewConfig.type)).concat(shown.filter(view => OverlayConfig.isTool(view.viewConfig.type)));
   }
 
+  // The box the pages are drawn in (the overlay's blur region)
+  readonly property Item box: mainContentBox
+
   // The box grows and shrinks about its centre to the page's size as the
   // pages change. Centred, not anchored to the sides, which would override
   // the animated width (and snap the box's edges to the new page's).

@@ -8,7 +8,7 @@ How axiom sets the compositor up, the same on every compositor with `supports.co
 
 ### The layer
 - One layer covers: the binds (`Keybinds.binds`), the required settings (`Compositor.requiredSettings`), the [window look](window-look.md), the input (`Input`), the blur behind axiom's surfaces, the monitor profiles (`Monitors.profiles`) and the strips. In managed mode the writer adds `Session`, the shared options (`WindowBehaviour`: focus and the cursor, each field by its `x-hypr`/`x-sway`) and the compositor's own (the `Hyprland`, `Sway` or `Niri` section).
-- What the look and the input ask for is decided once, by `CompositorLayer.look` / `.input` (`spec(forFile)`: `{ look, input, surfacesBlur }`), and the writer turns that into text.
+- What the look and the input ask for is decided once, by `CompositorLayer.look` / `.input` (`spec(forFile)`: `{ look, surfaces, input }`, `surfaces` for `CompositorLayer.surfaceBlur`), and the writer turns that into text.
 - `mode` picks how the layer gets to the compositor:
   - **detached**: evaluated at runtime (`writer.runtimeApply()`), again after every config reload, which drops it
   - **included**: written to a module (`writer.moduleText(spec)` → `includePath`) the user's config loads (`includeLines`)

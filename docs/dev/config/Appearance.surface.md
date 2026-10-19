@@ -15,4 +15,4 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Appearance.surface.opacity`** · integer = 100 · 60–100 · %
   - Surface opacity: How solid the shell's surfaces are: bars, the screen border, popouts, menus and panels (not your apps' windows: Compositor → Window look → Window opacity). 100 is fully solid. A translucent surface needs the compositor to blur behind it (Compositor → Window look → Blur).
   - x-enabledIf={"/$supports.blur":true}
-  - read: `Appearance.surfaceAlpha` (computed) · in: `shell/BlurBackingWindow.qml`
+  - read: `Appearance.surfaceAlpha` (computed) · in: `components/reusable/BoxBlurRegion.qml`, `shell/BlurBackingWindow.qml`

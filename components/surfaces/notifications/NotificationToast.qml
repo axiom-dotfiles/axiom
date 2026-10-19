@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Notifications
+import Quickshell.Wayland
 
 import qs.config
 import qs.services
@@ -57,6 +58,11 @@ PopupWindow {
   Component.onCompleted: {
     shown = true;
     slideIn.start();
+    // Its blur region, attached only where the compositor blurs regions
+    // (attached at all, it claims the window's blur, and Hyprland's layer
+    // rules no longer blur it)
+    if (CompositorManager.supports.blurRegion === true)
+      BackgroundEffect.blurRegion = Qt.binding(() => BlurManager.regions ? cardBlur : null);
   }
 
   // Only hides the toast — the notification stays tracked so it's still
@@ -140,6 +146,15 @@ PopupWindow {
     interval: root.duration
     running: !root.neverExpires && root.visible && !dragArea.containsMouse
     onTriggered: root.dismiss()
+  }
+
+  // Where the compositor blurs only what a window asks: the card, as it
+  // slides, fades and is dragged (attached in onCompleted)
+  BoxBlurRegion {
+    id: cardBlur
+    target: content
+    moving: [card.y, dragShift.x]
+    opacity: card.opacity
   }
 
   Item {

@@ -231,4 +231,24 @@ TestCase {
     compare(CompositorLayer.input(values, "axiom-cursor").cursor.xcursor, "axiom-cursor", "or the companion theme filling in its names");
     compare(CompositorLayer.input(values, "axiom-cursor").cursor.theme, "Bibata");
   }
+
+  function test_surfaceBlur() {
+    const rules = CompositorLayer.surfaceBlur({
+      "blur": true,
+      "threshold": 0.5,
+      "backdrops": false
+    });
+    compare(rules.map(rule => rule.name), ["axiom-blur", "axiom-blur-popups", "axiom-blur-backdrops", "axiom-blur-no-anim", "axiom-blur-over-overlay"]);
+    const by = name => rules.find(rule => rule.name === name);
+    verify(by("axiom-blur").blur && by("axiom-blur").popups && by("axiom-blur").xray === true && by("axiom-blur").threshold === 0.5);
+    verify(!by("axiom-blur-popups").blur && by("axiom-blur-popups").popups && by("axiom-blur-popups").xray === false, "the chrome's popups alone, never xray (as Hyprland)");
+    verify(!by("axiom-blur-backdrops").on && by("axiom-blur-backdrops").threshold === 0.01, "backdrops only when asked, at every alpha");
+    verify(by("axiom-blur-no-anim").noAnim && !by("axiom-blur-no-anim").blur);
+    verify(by("axiom-blur-over-overlay").xray === false, "the overlay under it is what blurs");
+    verify(CompositorLayer.surfaceBlur({
+      "blur": true,
+      "throughWindows": true
+    }).every(rule => rule.xray !== true), "through windows: no xray anywhere");
+    verify(CompositorLayer.surfaceBlur(null).every(rule => !rule.on && (rule.threshold === null || rule.threshold === 0.01)));
+  }
 }

@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 
@@ -131,6 +132,27 @@ ReservedAreaWindow {
     }
   }
 
+  // Where the compositor blurs only what a window asks: the page's box and
+  // the navigator, as they slide and resize
+  // (attached only there: attached at all, it claims the window's blur, and
+  // Hyprland's layer rules no longer blur it)
+  Component.onCompleted: if (CompositorManager.supports.blurRegion === true)
+    BackgroundEffect.blurRegion = Qt.binding(() => BlurManager.regions ? boxesBlur : null)
+  Region {
+    id: boxesBlur
+
+    BoxBlurRegion {
+      target: overlayPages.box
+      moving: [slideTranslate.y, overlayPages.x, overlayPages.y, overlayPages.width, overlayPages.height]
+      opacity: slideContainer.opacity
+    }
+    BoxBlurRegion {
+      target: navigator
+      moving: slideTranslate.y
+      opacity: slideContainer.opacity
+    }
+  }
+
   Item {
     id: slideContainer
     anchors.fill: parent
@@ -148,6 +170,7 @@ ReservedAreaWindow {
     }
 
     transform: Translate {
+      id: slideTranslate
       y: root.slideOffset
       Behavior on y {
         NumberAnimation {

@@ -32,6 +32,12 @@ QtObject {
   // The surfaces leave their fill to the blur window: blurring, and its
   // windows built (BlurBacking waits for the layer rules, as the chrome does)
   readonly property bool backing: root.active && CompositorManager.surfacesReady
+  // Whether a surface that blurs itself (LayerStack.blurSurfaces, the
+  // chrome's popups) asks the compositor to blur behind its box now, where
+  // it blurs only what a window asks (supports.blurRegion: no layer rule
+  // decides there), and a backdrop behind all of it (blurBackdrops)
+  readonly property bool regions: root.active && CompositorManager.supports.blurRegion === true
+  readonly property bool backdropRegions: root.regions && Appearance.blurBackdrops
 
   function _name(screen) {
     return typeof screen === "string" ? screen : screen?.name ?? "";

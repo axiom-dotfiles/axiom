@@ -337,6 +337,32 @@ window-rule {
     verify(text.includes("background-effect {\n        blur true\n        xray false\n    }"), text);
   }
 
+  function test_surfaceBlur() {
+    const nodes = surfaces => NiriConf.serialize(NiriConf.surfaceBlurNodes(Object.assign({
+        "blur": true,
+        "threshold": 0.5
+      }, surfaces)));
+    const on = nodes({});
+    verify(on.includes('match namespace="^axiom-(blur-backing|dock-preview|overlay|'), on);
+    verify(on.includes("background-effect {\n        xray true\n    }"), "the wallpaper alone by default");
+    verify(!on.includes("blur true"), "what blurs is the shell's regions, never a rule's whole rectangle");
+    verify(on.includes('match namespace="^axiom-(blur-backing-overlay)$"') && on.includes("xray false"), "the blur window over the overlay blurs the overlay");
+    verify(!on.includes("backdrop|polkit"), "backdrops only when asked");
+    const chrome = on.split("layer-rule").find(rule => /[(|]bar[|)]/.test(rule));
+    verify(chrome && chrome.includes("xray false") && !/[(|]border[|)]/.test(on), "the chrome's popups (tooltips, menus) never xray, as Hyprland's; the chrome itself is drawn by the blur window");
+    const through = nodes({
+      "throughWindows": true,
+      "backdrops": true
+    });
+    verify(through.includes('"^axiom-(backdrop|polkit)$"'), through);
+    verify(!through.includes("xray true"), "through windows: never xray");
+    compare(NiriConf.surfaceBlurNodes({
+      "blur": false
+    }), [], "nothing while the surfaces don't blur");
+    const written = files.write("tests/.out/surface_blur.niri.kdl", through + "\n");
+    tryVerify(() => written.done, 2000);
+  }
+
   function test_input() {
     const values = {
       "keyboard": true,

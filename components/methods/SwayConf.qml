@@ -366,9 +366,8 @@ QtObject {
    *            inactive); one matching axiom's as
    *            CompositorLayer.gaussianShadow fits it
    *   dim      default_dim_inactive
-   * and per axiom layer (LayerStack.blurSurfaces, blurBackdrops,
-   * blurOverOverlay) its layer_effects, on or off, its transparent pixels
-   * left out.
+   * and per axiom layer blurring itself (CompositorLayer.surfaceBlur) its
+   * layer_effects, on or off, its transparent pixels left out.
    */
   function fxLines(look, surfaces) {
     const lines = [];
@@ -389,10 +388,10 @@ QtObject {
     }
     if (look?.dim)
       lines.push(`default_dim_inactive ${clamp(look.dim.strength, 0, 100) / 100}`);
-    const layer = (names, on, xray) => names.map(name => `layer_effects ${quote("axiom-" + name)} ${quote(`blur ${toggle(on)}; blur_xray ${toggle(xray)}; blur_ignore_transparent enable`)}`);
-    const blur = surfaces?.blur === true;
-    const xray = surfaces?.throughWindows !== true;
-    return lines.concat(layer(LayerStack.blurSurfaces, blur, xray), layer(LayerStack.blurBackdrops, blur && surfaces?.backdrops === true, xray), layer(LayerStack.blurOverOverlay, blur, false));
+    // The rules whose layers blur themselves: SwayFX can't blur a layer's
+    // popups alone, nor leave a layer unanimated
+    const layers = CompositorLayer.surfaceBlur(surfaces).filter(rule => rule.blur);
+    return lines.concat(...layers.map(rule => rule.namespaces.map(name => `layer_effects ${quote("axiom-" + name)} ${quote(`blur ${toggle(rule.on)}; blur_xray ${toggle(rule.xray)}; blur_ignore_transparent enable`)}`)));
   }
 
   // A field's value as its x-sway command takes it, or null to leave it

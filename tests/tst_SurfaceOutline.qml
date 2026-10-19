@@ -263,4 +263,118 @@ TestCase {
     // The stroke still runs to the stroke it meets
     verify(SurfaceOutline.strokePath(s, m, w, h).trim().endsWith((w - 1) + " " + v));
   }
+
+  // The blur region: the fill out to the stroke's outer edge, rounded
+  // where the outline is, the fillets' circles cut out of their squares
+  function test_blurRegion_attached_top() {
+    const s = spec({});
+    const m = SurfaceOutline.metrics(s);
+    const pieces = SurfaceOutline.blurRegion(s, m, 254, 128, 0, 0);
+    compare(pieces.length, 3);
+    const box = pieces[0];
+    compare([box.x, box.y, box.width, box.height], [27, 0, 200, 100], "out to the far stroke's outer edge");
+    compare([box.topLeft, box.topRight, box.bottomLeft, box.bottomRight], [0, 0, 28, 28], "the far corners, as the stroke's outer edge rounds them");
+    const start = pieces[1];
+    compare([start.x, start.y, start.width, start.height], [0, 0, 27, 29]);
+    compare(start.cuts.length, 1);
+    compare([start.cuts[0].x, start.cuts[0].y, start.cuts[0].width, start.cuts[0].height], [-27, 2, 54, 54], "the circle beyond the fillet's arc");
+    verify(start.cuts[0].ellipse);
+    compare([pieces[2].x, pieces[2].cuts[0].x], [227, 227]);
+  }
+
+  function test_blurRegion_bottom_is_mirrored() {
+    const s = spec({
+      "edge": SurfaceOutline.bottom
+    });
+    const pieces = SurfaceOutline.blurRegion(s, SurfaceOutline.metrics(s), 254, 128, 0, 0);
+    const box = pieces[0];
+    compare([box.x, box.y, box.width, box.height], [27, 28, 200, 100]);
+    compare([box.topLeft, box.topRight, box.bottomLeft, box.bottomRight], [28, 28, 0, 0]);
+    compare([pieces[1].y, pieces[1].cuts[0].y], [99, 72]);
+  }
+
+  function test_blurRegion_left_edge_far_corners_right() {
+    const s = spec({
+      "edge": SurfaceOutline.left
+    });
+    const box = SurfaceOutline.blurRegion(s, SurfaceOutline.metrics(s), 128, 254, 0, 0)[0];
+    compare([box.x, box.y, box.width, box.height], [0, 27, 100, 200]);
+    compare([box.topLeft, box.topRight, box.bottomLeft, box.bottomRight], [0, 28, 0, 28]);
+  }
+
+  function test_blurRegion_slid_is_cut_to_the_item() {
+    const s = spec({});
+    const pieces = SurfaceOutline.blurRegion(s, SurfaceOutline.metrics(s), 254, 128, 0, -80);
+    compare(pieces.length, 1, "the fillets are behind the edge");
+    compare([pieces[0].y, pieces[0].height], [0, 20]);
+    compare(pieces[0].bottomLeft, 10, "a corner no bigger than what shows");
+  }
+
+  function test_blurRegion_joined_and_detached() {
+    const joined = spec({
+      "joinStart": true,
+      "backfill": 3
+    });
+    const jm = SurfaceOutline.metrics(joined);
+    const pieces = SurfaceOutline.blurRegion(joined, jm, jm.alongLength, jm.depth, 0, 0);
+    compare([pieces[0].x, pieces[0].bottomLeft, pieces[0].bottomRight], [0, 0, 28], "the joined end runs on, square");
+    const fillet = pieces.find(p => p.y === 3 + 99 && p.x === 0);
+    verify(fillet !== undefined, JSON.stringify(pieces));
+    compare([fillet.width, fillet.height, fillet.cuts[0].x, fillet.cuts[0].y], [29, 28, 2, 103]);
+    const detached = spec({
+      "detached": true,
+      "detachedOffset": 10
+    });
+    const dm = SurfaceOutline.metrics(detached);
+    const size = SurfaceOutline.size(detached, dm);
+    const box = SurfaceOutline.blurRegion(detached, dm, size.width, size.height, 0, 0, {
+      "start": 6,
+      "end": 0
+    });
+    compare(box.length, 1);
+    const rect = SurfaceOutline.boxRect(detached, dm, size.width, size.height);
+    compare([box[0].x, box[0].y, box[0].width, box[0].height], [rect.x, rect.y, rect.width, rect.height]);
+    compare([box[0].topLeft, box[0].topRight, box[0].bottomLeft, box[0].bottomRight], [6, 0, 28, 28]);
+  }
+
+  function test_placeRegion() {
+    const placed = SurfaceOutline.placeRegion([
+      {
+        "x": 0.5,
+        "y": 0,
+        "width": 10,
+        "height": 10,
+        "topLeft": 8,
+        "cuts": [
+          {
+            "x": 1,
+            "y": 1,
+            "width": 4,
+            "height": 4,
+            "ellipse": true
+          }
+        ]
+      }
+    ], 100, 50, {
+      "x": 100,
+      "y": 50,
+      "width": 6,
+      "height": 100
+    });
+    compare([placed[0].x, placed[0].y, placed[0].width, placed[0].height, placed[0].topLeft], [100, 50, 6, 10, 3]);
+    compare([placed[0].cuts[0].x, placed[0].cuts[0].y], [101, 51]);
+    compare(SurfaceOutline.placeRegion([
+      {
+        "x": 0,
+        "y": 0,
+        "width": 4,
+        "height": 4
+      }
+    ], 0, 0, {
+      "x": 10,
+      "y": 10,
+      "width": 4,
+      "height": 4
+    }), [], "nothing past the clip");
+  }
 }

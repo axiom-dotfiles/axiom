@@ -105,7 +105,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.screenMargin` (int): The frame can't be thinner than its own outline (a narrower one would draw the stroke over the screen edge); without a frame it's just a gap
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/FloatingPopout.qml`, `components/surfaces/border/RoundedBorders.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`
 - `Appearance.surfaceAlpha` (real): --- Translucency --- How solid the shell's surfaces are (0.6–1).
-  - in: `shell/BlurBackingWindow.qml`
+  - in: `components/reusable/BoxBlurRegion.qml`, `shell/BlurBackingWindow.qml`
 - `Appearance.compositorBlurs` (bool): Whether the compositor blurs behind axiom's surfaces (CompositorManager.supports.blur), handed over by CompositorManager: a reader reads no service, and buildi…
   - in: only inside the reader
 - `Appearance.translucent` (bool)
@@ -113,13 +113,13 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.blur` (bool)
   - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/settings/TranslucencyStatus.qml`, `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - `Appearance.blurBackdrops` (bool)
-  - in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`
+  - in: `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - `Appearance.blurThroughWindows` (bool): Blurring what's under each surface, windows included, rather than the wallpaper alone (xray), which every surface shares
-  - in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`
+  - in: `services/CompositorConfigManager.qml`
 - `Appearance.blurPauseFullscreen` (bool): Nothing blurs while a fullscreen window is open (BlurManager.active)
   - in: `services/BlurManager.qml`
 - `Appearance.blurThreshold` (real)
-  - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `services/HyprlandConfigWriter.qml`
+  - in: `components/reusable/BoxBlurRegion.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `services/CompositorConfigManager.qml`
 - `Appearance.shadowAlphaMax` (real): A shadow's darkest alpha while blurring: under the threshold, so its halo isn't blurred (the blur window casts the chrome's, and Hyprland blurs the chrome's po…
   - in: `config/Bar.qml`
 - `Appearance.fill(color)`: A surface fill (a theme color, or a name or "#hex" as Theme.resolveColor gives one) at the surface opacity
