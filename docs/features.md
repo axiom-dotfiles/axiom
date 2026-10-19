@@ -59,7 +59,7 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
 - **Widget colors** default to **Auto**: the bar gives neighbouring widgets different accents and keeps the contrast readable. Pick a theme color for any of them instead.
 - A bar can override the shared widget style, accents, shadow, font size and corner radius.
 - Floating bars and pills have their own gap, and nearby pills can merge into one.
-- **Translucency** (**Settings → Look & Feel → Translucency**): one opacity for every surface (bars, the screen border, popouts, menus, panels), down to 60%, with the compositor blurring behind it (Hyprland, SwayFX). The blur is the compositor's own: set it from axiom under **Settings → Compositor → Window look → Blur** (size, passes, noise, …, and whether windows blur too), where window opacity lives as well, and both travel with exported and imported configs. The backdrops behind the overlay, launcher and power menu can frost the whole screen.
+- **Translucency** (**Settings → Look & Feel → Translucency**): one opacity for every surface (bars, the screen border, popouts, menus, panels), down to 60%, with the compositor blurring behind it (Hyprland, niri, SwayFX). The blur is the compositor's own: set it from axiom under **Settings → Compositor → Window look → Blur** (size, passes, noise, …, and whether windows blur too), where window opacity lives as well, and both travel with exported and imported configs. The backdrops behind the overlay, launcher and power menu can frost the whole screen.
 
 ## Overlay
 

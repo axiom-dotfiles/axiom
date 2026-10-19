@@ -152,7 +152,7 @@ axiom talks to the compositor through one layer, so the bar, the overlay, the la
 | Keybinds, monitors, input, window look | ✓ | ✓ | ✓ |
 | Workspace grid per monitor | ✓ | (niri's own workspaces) | ✓ |
 | Scrolling strips | any monitor | every monitor | |
-| Blur behind the shell | ✓ | | with SwayFX |
+| Blur behind the shell | ✓ | ✓ | with SwayFX |
 | Live window previews | ✓ | | |
 | The login screen | ✓¹ | ✓¹ | ✓¹ |
 
