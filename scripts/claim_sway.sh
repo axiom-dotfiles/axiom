@@ -42,11 +42,13 @@
 #                notours  config isn't axiom's (or is missing): nothing
 #                         written
 #                blocked:link, blocked:git:<repo>  as above, nothing written
-#                restored:<from>:<n>  done: config is what claim set aside
-#                         again (user/<name>, the newest adopted, its axiom
-#                         lines enabled again, or else the newest
-#                         config.axiom-backup-*); <n> files in user/ it
-#                         doesn't include (0 when it includes them)
+#                restored:<from>:<n>  done: config is what the last claim
+#                         set aside again (user/<name>, its axiom lines
+#                         enabled again, or else its config.axiom-backup-*,
+#                         as <dir>/.axiom-claimed names them; with no such
+#                         record, from a claim before it was kept, the
+#                         newest of each); <n> files in user/ it doesn't
+#                         include (0 when it includes them)
 #                written  done: nothing was set aside, so config is
 #                         <fallback> (the user's, including user/)
 
@@ -143,9 +145,26 @@ newest_backup() {
   find "$dir" -maxdepth 1 -name 'config.axiom-backup-*' -printf '%f\n' 2>/dev/null | sort | tail -n 1
 }
 
+# What the last claim set aside, for release: an older claim's dated backup
+# stays beside the config, and isn't what a later claim found there
+record=$dir/.axiom-claimed
+set_aside() {
+  printf 'previous=%s\nbackup=%s\n' "$1" "$2" >"$record"
+}
+recorded() {
+  sed -n "s/^$1=//p" "$record"
+}
+
 if [[ "$action" == "release" ]]; then
-  previous=$(newest_previous)
-  backup=$(newest_backup)
+  if [[ -f "$record" ]]; then
+    previous=$(recorded previous)
+    backup=$(recorded backup)
+    [[ -f "$dir/user/$previous" ]] || previous=
+    [[ -f "$dir/$backup" ]] || backup=
+  else
+    previous=$(newest_previous)
+    backup=$(newest_backup)
+  fi
   staged=$(mktemp "$dir/.config.XXXXXX") || exit 1
   trap 'rm -f "$staged"' EXIT
   if [[ -n "$previous" ]]; then
@@ -157,9 +176,11 @@ if [[ "$action" == "release" ]]; then
     from=$backup
   else
     printf '%s\n' "$fallback" >"$staged" && chmod 644 "$staged" && mv "$staged" "$file" || exit 1
+    rm -f "$record"
     echo written
     exit 0
   fi
+  rm -f "$record"
   left=0
   grep -qE '^[[:space:]]*include .*/user/\*' "$file" ||
     left=$(find -H "$dir/user" -maxdepth 1 -type f 2>/dev/null | wc -l)
@@ -184,6 +205,7 @@ mkdir -p "$dir/user" || exit 1
 if [[ -f "$file" ]]; then
   backup="$file.axiom-backup-$(date +%Y%m%d-%H%M%S)"
   if is_released; then
+    set_aside "" "" || exit 1
     echo replaced
     exit 0
   fi
@@ -200,15 +222,16 @@ if [[ -f "$file" ]]; then
     fi
   fi
   if is_stock; then
-    cp -p "$file" "$backup" || exit 1
+    cp -p "$file" "$backup" && set_aside "" "${backup##*/}" || exit 1
     echo replaced
     exit 0
   fi
   name=00-previous.conf
   [[ -e "$dir/user/$name" ]] && name=00-previous-$(date +%Y%m%d-%H%M%S).conf
-  cp -p "$file" "$backup" && cp -p "$file" "$dir/user/$name" || exit 1
+  cp -p "$file" "$backup" && cp -p "$file" "$dir/user/$name" && set_aside "$name" "${backup##*/}" || exit 1
   adopt_lines "$dir/user/$name"
   echo "adopted:$name"
   exit 0
 fi
+set_aside "" "" || exit 1
 echo created

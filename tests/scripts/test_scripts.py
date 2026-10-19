@@ -858,6 +858,21 @@ class ClaimSway(unittest.TestCase):
         self.assertEqual((self.sway / "config").read_text(), self.FALLBACK + "\n")
         self.assertEqual(self.claim("check"), "released")
 
+    def test_release_ignores_an_older_claims_backup(self):
+        # An earlier claim's dated backup stays beside the config; a claim
+        # that found no config set nothing aside, so release writes the
+        # fallback rather than bring that old config back
+        (self.sway / "config").write_text("bindsym Mod4+x exec foo\n")
+        self.assertEqual(self.claim("claim"), "adopted:00-previous.conf")
+        (self.sway / "config").write_text(self.HEADER + " (managed)\n")
+        self.assertTrue(self.claim("release").startswith("restored:user/00-previous.conf:"))
+        (self.sway / "config").unlink()
+        self.assertEqual(self.claim("claim"), "created")
+        (self.sway / "config").write_text(self.HEADER + " (managed)\n")
+        self.assertEqual(self.claim("release"), "written")
+        self.assertEqual((self.sway / "config").read_text(), self.FALLBACK + "\n")
+        self.assertEqual(len(list(self.sway.glob("config.axiom-backup-*"))), 1)
+
     def test_blocked(self):
         target = self.tmp / "elsewhere"
         target.mkdir()
@@ -919,6 +934,14 @@ mode "resize" {
         # A mode's binds aren't seen; sway options axiom binds lack stay
         self.assertNotIn("H", by_key)
         self.assertEqual([(k["key"], k["reason"]) for k in found["kept"]], [("$mod+button2".replace("$mod", "Mod4"), "options")])
+
+    def test_block_binds_stay(self):
+        # Commenting one line out of a `bindsym { … }` block would leave the
+        # rest of it there: those binds stay, and say why
+        self.file.write_text("set $mod Mod4\nbindsym --release {\n    $mod+x exec foo\n}\nmode \"m\" {\n    bindsym {\n        h kill\n    }\n}\nbindsym $mod+q kill\n")
+        found = self.run_script("extract", str(self.tmp))
+        self.assertEqual([b["key"] for b in found["binds"]], ["SUPER + Q"])
+        self.assertEqual([(k["key"], k["line"], k["reason"]) for k in found["kept"]], [("Mod4+x", 3, "block")])
 
     def test_exec_read_as_sway_runs_it(self):
         """An exec's text is what sway hands the shell (checked against sway

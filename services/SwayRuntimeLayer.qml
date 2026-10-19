@@ -38,7 +38,7 @@ RuntimeLayer {
     // command, so a bind it refuses would take the look with it
     for (const lines of [unbind, SwayConf.bindLines(binds, root.bindCtx, true)]) {
       if (lines.length > 0)
-        SwayManager.runCommands(lines);
+        root._sendEach(lines);
     }
     // Sway sends no event for a gap change: the windows are read again
     SwayManager.runCommands(root.lookLines(), () => SwayManager.refresh());
@@ -50,4 +50,14 @@ RuntimeLayer {
       SwayManager.runCommands(unbind);
   }
   onReloaded: persisted.unbindJson = "[]"
+
+  // Runs `lines` as one command list; if sway refused one (an unknown key
+  // ends the list there, dropping every line after it), each again alone.
+  // Binding a key again is harmless (--no-warn).
+  function _sendEach(lines) {
+    SwayManager.runCommands(lines, ok => {
+      if (!ok && lines.length > 1)
+        lines.forEach(line => SwayManager.runCommands([line]));
+    });
+  }
 }

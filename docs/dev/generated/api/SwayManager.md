@@ -19,6 +19,7 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `displayName` (readonly string)
 - `surfacesReady` (readonly bool): Sway doesn't stack layers by axiom's order: LayerManager maps them in order itself, from the start
 - `travelingTo` (readonly int): Sway has no slides
+- `splitWidthMultiplier` (readonly real): Sway doesn't pick a split by the window's shape
 - `blur` (readonly var): SwayFX's blur ({ enabled, size, passes }), as the window look set it (setLiveLook), else its config's; plain sway has none
 - `supports` (readonly var): What sway does (CompositorManager.supports): SwayFX adds the blur, rounded corners, shadows and dimming.
 
