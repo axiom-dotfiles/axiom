@@ -1,7 +1,7 @@
 ---
 name: review-branch
 description: Thorough review of everything the current branch changes against main (bugs, regressions, dead or repeated code, simplification, illogical choices, axiom rule breaks, stale docs). Use when the user says "review the branch", "review my changes", "code review", "is this branch ready", or runs /review-branch with a short description of what the branch is for.
-argument-hint: "<what the branch is for> [base:<ref>] [fix] [deep]"
+argument-hint: "<what the branch is for> [--base <ref>] [--fix] [--deep]"
 ---
 
 # Branch review
@@ -9,10 +9,12 @@ argument-hint: "<what the branch is for> [base:<ref>] [fix] [deep]"
 You are the lead reviewer of an axiom branch. The maintainer wants it merged only when it is correct, as simple as it can be, and follows every rule in `AGENTS.md`. Your job is to find what is actually wrong, prove it, and say exactly how to fix it. A review that pads the list with guesses is worse than a short one: the maintainer has to check each item.
 
 Arguments: `$ARGUMENTS`
-- Free text is the author's description of what the branch is for. It is a claim to check, not a fact.
-- `base:<ref>` reviews against `<ref>` instead of `main`.
-- `fix` applies the confirmed findings after the report (Phase 5). Without it the review changes no code.
-- `deep` uses reviewer and verifier agents (Phase 2b), for a large or risky branch. Several times the tokens: only when asked.
+- Free text is the author's description of what the branch is for. It is a claim to check, not a fact. Words in it ("fix the popout", "deep blur") are never flags: only the `--` forms below are.
+- `--base <ref>` reviews against `<ref>` instead of `main`.
+- `--fix` applies the confirmed findings after the report (Phase 4). Without it the review changes no code.
+- `--deep` uses reviewer and verifier agents (Phase 2b), for a large or risky branch. Several times the tokens: only when asked.
+
+Uncommitted edits under `.claude/` (skills, settings) are tooling, not the branch: leave them out unless the branch's commits touch them.
 
 ## Token budget
 
@@ -48,7 +50,7 @@ Then verify each candidate before it goes in the report: try to prove it false (
 
 **One helper agent at most**, and only for a question that needs a lot of reading you'd otherwise do yourself (e.g. "does anything still depend on X's old behaviour across these 15 callers?"). Give it the exact question, the files, and "answer in under 300 words with `path:line` evidence; change no files".
 
-## Phase 2b: deep (only with `deep`)
+## Phase 2b: deep (only with `--deep`)
 
 Instead of Phase 2's single pass: launch one `general-purpose` Agent per lens from `lenses.md` in a single message (the "Every reviewer" contract + that lens + paths to `brief.md` and the output file `findings-<lens>.md`), and do the claims check yourself while they run. Merge and dedupe by root cause, then launch verifier agents (about six findings each, grouped by file) told to refute each finding and answer `CONFIRMED` / `PLAUSIBLE` / `REFUTED` with evidence, changing no files. Stay under ten agents.
 
@@ -84,8 +86,8 @@ Each finding:
 
 If `report.prev.md` exists, add a line under the verdict: which earlier findings are now fixed, which still stand.
 
-Adding the pre-existing problems to `docs/dev/issues.md` (its format is at its top; check it doesn't already have them) is the only edit a review makes without `fix`. Say that you did it.
+Adding the pre-existing problems to `docs/dev/issues.md` (its format is at its top; check it doesn't already have them) is the only edit a review makes without `--fix`. Say that you did it.
 
-## Phase 4: fix (only with `fix`)
+## Phase 4: fix (only with `--fix`)
 
 Apply the Blockers, Major and Cleanups findings, smallest change each, following the repo rules (recipes, shared pieces, docs updated with the code). Skip a finding whose fix needs a decision from the maintainer and list it. Then `scripts/dev/verify.sh` until `verify ok`, read the log section and the docs it lists. Don't commit. Report what changed per finding, and anything that turned out different once you were in the code.
