@@ -50,6 +50,8 @@ Then go down the risk ranking: for each file in the deep set, read its risky par
 
 **One helper agent at most**, for a question that needs a lot of reading (e.g. "do all 40 users of X use it as the docs say?"): give it the exact question and files, ask for under 300 words with `path:line` evidence, no edits.
 
+To settle a finding against a real compositor (does sway accept this line, does niri send that event), use a nested one through `scripts/dev/nested.sh <sway|niri|hyprland>` (scratch folders, its own socket), never the live session and never one you start by hand.
+
 ### Phase 3b: deep (only with `--deep`)
 
 Split the deep set into chunks of ≤ ~5k lines along the docs' boundaries; one `general-purpose` Agent per chunk, all in one message, each given "Every reviewer" from `../review-branch/lenses.md`, this `lenses.md`, `contract.md`, its file list and output path. Do the seams and parity/collection table yourself meanwhile. Then verifier agents (about six findings each) told to refute each finding: `CONFIRMED` / `PLAUSIBLE` / `REFUTED` with evidence, no edits. Under ten agents in all.
@@ -60,11 +62,10 @@ Try to prove each candidate false before it goes in the report: is the path reac
 
 ## Phase 5: report
 
-Print it and write `.claude/reviews/<system>.md` (`:` and `/` in the name become `_`), replacing the previous one:
+Print the report and save it to `$SCRATCH/review-system/report.md`:
 
 ```
-# System review: <system>
-reviewed: <git rev-parse --short HEAD> <date>  (full | incremental since <sha>)
+# System review: <system>  (full | incremental since <sha>)
 
 **Verdict:** <one or two sentences: the state of the system, the biggest problem>
 **Since last review:** <fixed / still open / new, when incremental>
@@ -84,12 +85,40 @@ reviewed: <git rev-parse --short HEAD> <date>  (full | incremental since <sha>)
 ## Coverage
 Read deeply: <files> · Outlined: <files> · Skipped: <files, why>
 
-## Open findings
-- <n>. <claim> `path:line`   (the list the next review rechecks)
+## Outside the system
+<problems found in other systems' files>
 ```
 
-The reviews file is meant to be committed: say so, don't commit it yourself. With `--record`, add the Blockers, Major and Cleanups to `docs/dev/issues.md` in its format (check for duplicates first; `Found:` "while reviewing the <system> system"). Problems found outside the system: list them at the end of the report and, with `--record`, record them too.
+With `--record`, add the Blockers, Major and Cleanups to `docs/dev/issues.md` in its format (`Found:` "while reviewing the <system> system"). Problems outside the system go in `issues.md` whatever the flags, as `AGENTS.md` asks. Either way, grep `issues.md` for the files and the problem first: never add an entry that's already there.
 
 ## Phase 6: fix (only with `--fix`)
 
-Fix the confirmed findings, smallest change each, following the repo rules and recipes; skip and list any that need the maintainer's decision. Then `scripts/dev/verify.sh` until `verify ok`, read the log section and the docs it lists; remove any `issues.md` entry the fix closes. Update the reviews file's Open findings. Don't commit.
+Fix the confirmed findings, smallest change each, following the repo rules and recipes; skip and list any that need the maintainer's decision. Then `scripts/dev/verify.sh` until `verify ok`, read the log section and the docs it lists; remove any `issues.md` entry the fix closes. Don't commit.
+
+## Phase 7: the reviews file
+
+Last, write `.claude/reviews/<system>.md` (`:` and `/` in the name become `_`), replacing the previous one. It is what the next review starts from, not a copy of the report: **only what is still true**. A fixed finding leaves it (git history has the fix); one that is still open stays in full, so the next review can recheck it without this one.
+
+```
+# <system>
+reviewed: <short sha of the code reviewed> <date>  (full | incremental since <sha>)
+
+<the verdict, rewritten for the state after any fixes>
+
+## Open findings
+### <n>. <claim>  `path:line`
+<the finding as in the report, with its Fix>
+(or "None.")
+
+## Contract
+<from the report: what holds, so the next review needn't re-derive it>
+
+## Coverage
+<from the report>
+
+## History
+- <date> <full | incremental>: <n> findings; <fixed in <sha> | recorded in issues.md | left open: numbers>
+  (one line per review; keep the earlier lines)
+```
+
+`reviewed:` stays the commit the review read, even after `--fix`: the next incremental review then rereads the fixes too. The file is meant to be committed: say so, and leave committing to the user unless they asked for it.

@@ -35,19 +35,28 @@ RuntimeLayer {
     const unbind = JSON.parse(persisted.unbindJson);
     persisted.unbindJson = JSON.stringify(SwayConf.unbindLines(binds, root.bindCtx));
     // Sent apart, in order: sway stops a command list at an invalid
-    // command, so a bind it refuses would take the look with it
-    for (const lines of [unbind, SwayConf.bindLines(binds, root.bindCtx, true)]) {
-      if (lines.length > 0)
-        SwayManager.runCommands(lines);
-    }
+    // command, so a bind it refuses would take the look with it. Each list
+    // waits for the one before, so its lines sent again alone can't
+    // unbind what the next list binds.
     // Sway sends no event for a gap change: the windows are read again
-    SwayManager.runCommands(root.lookLines(), () => SwayManager.refresh());
+    root._sendEach(unbind, () => root._sendEach(SwayConf.bindLines(binds, root.bindCtx, true), () => SwayManager.runCommands(root.lookLines(), () => SwayManager.refresh())));
   }
   takeOut: () => {
     const unbind = JSON.parse(persisted.unbindJson);
     persisted.unbindJson = "[]";
-    if (unbind.length > 0)
-      SwayManager.runCommands(unbind);
+    root._sendEach(unbind);
   }
   onReloaded: persisted.unbindJson = "[]"
+
+  // Runs `lines` as one command list; if sway refused one (an unknown key
+  // ends the list there, dropping every line after it), each again alone.
+  // Binding a key again is harmless (--no-warn). Then calls `then`, so what
+  // it sends next goes after those.
+  function _sendEach(lines, then) {
+    SwayManager.runCommands(lines, ok => {
+      if (!ok && lines.length > 1)
+        lines.forEach(line => SwayManager.runCommands([line]));
+      then?.();
+    });
+  }
 }

@@ -2917,6 +2917,7 @@
     "it isn't one of your files in user/": "",
     "it isn't the only call on its line": "",
     "it runs a Lua function": "",
+    "it's inside a bindsym { } block": "",
     "it's kept in {0}, which the file uses": "",
     "it's made in a shared module": "",
     "it's part of a larger statement": "",

@@ -57,6 +57,8 @@ Singleton {
   readonly property bool surfacesReady: true
   // Sway has no slides
   readonly property int travelingTo: -1
+  // Sway doesn't pick a split by the window's shape
+  readonly property real splitWidthMultiplier: 1
   // SwayFX's blur ({ enabled, size, passes }), as the window look set it
   // (setLiveLook), else its config's; plain sway has none
   readonly property var blur: _liveBlur ?? _configBlur
@@ -430,6 +432,8 @@ Singleton {
   // The outputs' names when last read, to tell a hotplug from another
   // output change
   property string _outputNames: ""
+  // Whether they were read yet (a start with no output reads "" too)
+  property bool _outputsRead: false
 
   // Windows focused since axiom started, most recent first, as JSON
   // (survives a reload of the shell, as sway's own focus stacks don't say
@@ -545,8 +549,9 @@ Singleton {
       if (!Array.isArray(outputs))
         return;
       const names = outputs.map(o => o.name).sort().join(",");
-      const changed = root._outputNames !== "" && names !== root._outputNames;
+      const changed = root._outputsRead && names !== root._outputNames;
       root._outputNames = names;
+      root._outputsRead = true;
       if (changed)
         root.outputsHotplugged();
     });

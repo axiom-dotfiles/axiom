@@ -151,10 +151,11 @@ QtObject {
     case "windowSwitcher":
     case "windowSwitcherReverse":
       return `nop axiom switcher step ${BindActions.switcherSteps[action]}`;
+    // One word sway won't split or unquote (`a;b` would run `b`)
     case "toggleSpecial":
-      return /^\S+$/.test(argument) ? "nop axiom special toggle " + argument : "";
+      return /^[^\s;,"']+$/.test(argument) ? "nop axiom special toggle " + argument : "";
     case "moveToSpecial":
-      return /^\S+$/.test(argument) ? "nop axiom special move " + argument : "";
+      return /^[^\s;,"']+$/.test(argument) ? "nop axiom special move " + argument : "";
     // Run by sway, not over IPC, so it works when the shell is stuck
     case "restartShell":
       return _exec(ctx.restartCommand);
@@ -625,7 +626,9 @@ include ${quote(userDir + "/*")}
    * includes in, scripts/sway_config_text.py), as BindKeys' entries: {
    * modmask, key, keycode, submap ("" outside a mode), description (its
    * command) }. $variables are put in as they're set; line continuations
-   * joined; `mode "name" { … }` blocks give their submap. A bind that can't
+   * joined; `mode "name" { … }` blocks give their submap, `bindsym { … }`
+   * blocks their lines' command; lines in any other block (`bar { … }`)
+   * aren't binds. A bind that can't
    * be read (an unknown modifier) is left out.
    */
   function configBinds(text) {
@@ -650,11 +653,21 @@ include ${quote(userDir + "/*")}
       line = expand(line);
       if (line.endsWith("{")) {
         const mode = /^mode\s+(?:--pango_markup\s+)?("?)(.+?)\1\s*\{$/.exec(line);
-        blocks.push(mode ? mode[2] : "");
+        // `bindsym [--flags] { … }`: sway puts it before each line inside
+        const binds = /^((?:bindsym|bindcode)(?:\s+--\S+)*)\s*\{$/.exec(line);
+        blocks.push({
+          "mode": mode ? mode[2] : "",
+          "prefix": binds ? binds[1] + " " : "",
+          // Not a key's: a `bar { bindsym button4 … }` is a click on swaybar
+          "skip": !mode && !binds
+        });
         continue;
       }
+      if (blocks.some(block => block.skip))
+        continue;
+      line = (blocks.length > 0 ? blocks[blocks.length - 1].prefix : "") + line;
       const inline = /^mode\s+(?:--pango_markup\s+)?("([^"]+)"|(\S+))\s+((?:bindsym|bindcode)\s.*)$/.exec(line);
-      const submap = inline ? (inline[2] ?? inline[3]) : blocks.filter(name => name !== "").pop() ?? "";
+      const submap = inline ? (inline[2] ?? inline[3]) : blocks.map(block => block.mode).filter(name => name !== "").pop() ?? "";
       const bind = /^(bindsym|bindcode)\s+(.*)$/.exec(inline ? inline[4] : line);
       if (!bind)
         continue;

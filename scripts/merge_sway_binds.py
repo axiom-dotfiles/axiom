@@ -29,7 +29,9 @@ same UserBindMerge runs either.
       A line that changed since extract is left (reason `changed`).
 
 Reason codes: options (sway options axiom binds don't have: detail),
-key (its key can't be read), continued (a line continued with \\).
+key (its key can't be read), continued (a line continued with \\), block
+(inside a `bindsym { … }` block, which commenting one line out of would
+leave half there).
 """
 import json
 import re
@@ -193,7 +195,8 @@ def extract(sway, only):
     for path in user_files(sway, only):
         if in_git(path):
             result["tracked"].append(str(path))
-        depth = 0
+        # The open blocks: whether each is a bindsym/bindcode one
+        blocks = []
         lines = path.read_text(errors="replace").splitlines()
         for number, raw in enumerate(lines, 1):
             line = raw.strip()
@@ -204,13 +207,17 @@ def extract(sway, only):
                 variables[var.group(1)] = expand(var.group(2), variables).strip()
                 continue
             if line.endswith("{"):
-                depth += 1
+                blocks.append(re.match(r"(bindsym|bindcode)(\s+--\S+)*\s*\{$", line) is not None)
                 continue
             if line == "}":
-                depth = max(0, depth - 1)
+                blocks = blocks[:-1]
+                continue
+            if blocks and all(blocks):
+                combo = expand(line, variables).split()[0]
+                result["kept"].append({"file": str(path), "line": number, "key": combo, "reason": "block", "detail": ""})
                 continue
             bind = re.match(r"(bindsym|bindcode)\s+(.*)$", line)
-            if not bind or depth > 0:
+            if not bind or blocks:
                 continue
             parts = re.match(r"((?:--\S+\s+)*)(\S*)\s*(.*)$", expand(bind.group(2), variables))
             flags = parts.group(1).split()

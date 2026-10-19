@@ -197,6 +197,12 @@ TestCase {
       "action": "moveToSpecial",
       "argument": "magic"
     }, ctx), "nop axiom special move magic");
+    for (const name of ["a;b", "a,b", "a\"b"])
+      compare(SwayConf.command({
+        "key": "SUPER + V",
+        "action": "toggleSpecial",
+        "argument": name
+      }, ctx), "", "a name sway would split or unquote: " + name);
   }
 
   function test_whatSwayCantDo() {
@@ -484,6 +490,29 @@ bindsym $mod+space exec $ipc appLauncher toggle`;
   }
 
   // The user's binds are what the runtime layer skips (BindKeys)
+  function test_configBindsBlocks() {
+    const text = `bindsym --release {
+    Mod4+x exec foo
+    Mod4+y kill
+}
+mode "resize" {
+    bindsym {
+        h resize shrink width 10px
+    }
+}
+input type:keyboard {
+    xkb_layout us
+}
+bar {
+    bindsym button4 workspace prev
+    colors {
+        background #000000
+    }
+}`;
+
+    compare(SwayConf.configBinds(text).map(entry => [entry.modmask, entry.key, entry.submap, entry.description]), [[64, "x", "", "exec foo"], [64, "y", "", "kill"], [0, "h", "resize", "resize shrink width 10px"]], "a bindsym block's lines are its binds, a bar's clicks aren't binds");
+  }
+
   function test_configBindsAgainstAxioms() {
     const entries = SwayConf.configBinds("set $mod Mod4\nbindsym $mod+q kill\nbindsym $mod+button4 focus left\nbindcode Mod4+49 nop");
     const plan = BindKeys.runtimeBinds([

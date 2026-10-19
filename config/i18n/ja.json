@@ -3247,6 +3247,7 @@
     "Brought by community setups you've applied.": "",
     "None yet. Themes that come with a community setup show here.": "",
     "Screenshots here need grim.": "",
-    "grim couldn't take a picture of the screen: {0}": ""
+    "grim couldn't take a picture of the screen: {0}": "",
+    "it's inside a bindsym { } block": ""
   }
 }

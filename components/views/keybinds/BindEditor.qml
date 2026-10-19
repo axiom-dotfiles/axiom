@@ -48,6 +48,8 @@ ColumnLayout {
       return I18n.tr("the file wouldn't parse without it ({0})", entry.detail);
     case "continued":
       return I18n.tr("it goes on over several lines");
+    case "block":
+      return I18n.tr("it's inside a bindsym { } block");
     case "crashed":
       return I18n.tr("the merge script failed ({0})", entry.detail);
     }
