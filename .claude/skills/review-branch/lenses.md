@@ -1,14 +1,15 @@
 # Review lenses
 
-Prompts for the reviewer agents of `SKILL.md`. Each agent gets "Every reviewer" plus one lens.
+The checklist the lead reviewer walks through in `SKILL.md`, one lens at a time. In `deep` mode each lens is also a reviewer agent's prompt: "Every reviewer" plus one lens.
 
 ## Every reviewer
 
-You are reviewing one angle of an axiom branch (a Quickshell/QML desktop shell for Hyprland, sway and niri). Read `brief.md` first, then `AGENTS.md`, then your lens below.
+You are reviewing one angle of an axiom branch (a Quickshell/QML desktop shell for Hyprland, sway and niri). `AGENTS.md` is already in your context (CLAUDE.md imports it): don't read it again. Read `brief.md`, then your lens below.
 
 How to work:
-- **The diff is where to start, not what to read.** For every changed hunk, open the whole file, read the whole function or component around it, and grep for its callers and users (`grep -rn '<name>' --include='*.qml' --include='*.py' --include='*.sh' --include='*.json' .`). Files loaded by name don't show up as imports: bar widgets (`type`), content (`popoutName`, module `type`), views, settings cards (`x-card`, `x-intro`), IPC targets, schema `x-*` annotations.
-- Read the `docs/dev/` docs and local `AGENTS.md` files the brief lists for your files before judging them: a choice that looks odd may be documented, and a documented rule may be what the change breaks.
+- **The diff is where to start; read only what a judgement needs.** For a hunk that changes behaviour, read the enclosing function or component (`grep -n` for its bounds, then `sed -n 'a,bp'`; a whole file only when it's under ~150 lines or is the heart of the change), and grep for its callers (`grep -rn '<name>' --include='*.qml' --include='*.py' --include='*.sh' --include='*.json' . | head -30`). Files loaded by name don't show up as imports: bar widgets (`type`), content (`popoutName`, module `type`), views, settings cards (`x-card`, `x-intro`), IPC targets, schema `x-*` annotations.
+- Docs and local `AGENTS.md` files the brief lists: `grep -n '^###'` for the outline, then read only the section about your code. A choice that looks odd may be documented there, and a documented rule may be what the change breaks.
+- Stop reading once a finding is proven or ruled out; never re-read a file you already have.
 - Only lines the branch adds or changes, or behaviour it changes, are findings. Something already wrong before the branch goes under "Pre-existing" at the end of your file.
 - **Every finding must be provable from the code.** Give the file and line, the concrete scenario (state, input, compositor, sequence) and what goes wrong. If you can't name the scenario, it isn't a finding; if it depends on runtime behaviour you can't trace, say what would settle it and mark it `PLAUSIBLE`.
 - No style points the tooling already enforces (qmlformat, qmllint, check_structure, check_i18n, check_docs). No "consider adding a comment / test / error handling" without a failure it would prevent. No restating the code.

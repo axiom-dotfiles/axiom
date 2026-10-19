@@ -1,7 +1,7 @@
 ---
 name: review-branch
-description: Thorough review of everything the current branch changes against main (bugs, regressions, dead or repeated code, simplification, illogical choices, axiom rule breaks, stale docs), with parallel reviewers and an adversarial verification pass. Use when the user says "review the branch", "review my changes", "code review", "is this branch ready", or runs /review-branch with a short description of what the branch is for.
-argument-hint: "<what the branch is for> [base:<ref>] [fix] [quick]"
+description: Thorough review of everything the current branch changes against main (bugs, regressions, dead or repeated code, simplification, illogical choices, axiom rule breaks, stale docs). Use when the user says "review the branch", "review my changes", "code review", "is this branch ready", or runs /review-branch with a short description of what the branch is for.
+argument-hint: "<what the branch is for> [base:<ref>] [fix] [deep]"
 ---
 
 # Branch review
@@ -12,50 +12,47 @@ Arguments: `$ARGUMENTS`
 - Free text is the author's description of what the branch is for. It is a claim to check, not a fact.
 - `base:<ref>` reviews against `<ref>` instead of `main`.
 - `fix` applies the confirmed findings after the report (Phase 5). Without it the review changes no code.
-- `quick` skips the verification agents (Phase 3): you verify the findings yourself.
+- `deep` uses reviewer and verifier agents (Phase 2b), for a large or risky branch. Several times the tokens: only when asked.
+
+## Token budget
+
+A normal review stays **under ~150k tokens in all**, so it is done by you alone, in this context. What costs tokens is reading: spend it on the code where bugs live, not on what tools already checked or what you already have.
+- `AGENTS.md` is already in your context. Never read it, a doc, or a file twice.
+- Command output goes to a file in `$SCRATCH/review/`; read only the part you need (`grep`, `tail`, `sed -n`).
+- Diffs at `-U3`, per file. Skip generated files entirely (`docs/dev/config/`, `docs/dev/generated/`, `config/i18n/`, `config/themes/template/`) and lock-step boilerplate; skim tests for what they assert.
+- Context around a hunk: the enclosing function (`grep -n` its bounds, `sed -n`), callers via `grep -rn … | head -30`. A whole file only when it's small or is the heart of the change.
+- Docs: outline first (`grep -n '^###'`), then the one relevant section.
+- If you notice you're past ~100k with risky hunks still unread, prioritise them and say in the report what you skimmed.
 
 ## Phase 0: scope and brief
 
-Work in `$SCRATCH/review/` (`$SCRATCH` = this session's scratchpad directory). If a `report.md` from an earlier run is there, move it to `report.prev.md`: Phase 4 says which of its findings are gone.
+Work in `$SCRATCH/review/` (`$SCRATCH` = this session's scratchpad directory). If a `report.md` from an earlier run is there, move it to `report.prev.md`.
 
-1. `mb=$(git merge-base <base> HEAD)`. The review covers `git diff $mb` (committed **and** uncommitted work) plus untracked files (`git ls-files -o --exclude-standard`). Save the diff to `diff.patch` (`git diff --no-color -U10 $mb`, then each untracked file appended with `git diff --no-color --no-index /dev/null <file>`), and the changed paths to `files.txt`. Nothing changed: say so and stop.
-2. Read `git log --format='%h %s%n%b' $mb..HEAD`, `git diff --stat $mb`, and the whole diff yourself. You are the one who must understand the branch end to end; reviewers go deep on one angle each.
-3. Write `brief.md` (reviewers read it first):
-   - **Intent**: the description from the arguments, the commit messages, and what the diff shows. Where they disagree, say so.
-   - **Claims**: every concrete thing the branch says it does ("fix X", "support Y on niri", an `issues.md` entry added or removed). Each one gets checked.
-   - **Changes by area**: grouped by layer (methods, config/schema, services, UI, scripts, docs, tests), one line each.
-   - **Docs to read**: the `docs/dev/` docs whose `Files:` header lists a changed file (`grep -rln '<path>' docs/dev --include='*.md' | grep -v generated/`), the local `AGENTS.md` of every touched directory, and `docs/dev/issues.md` entries touching the same files.
-   - **Compositors**: whether the change reaches Hyprland, sway or niri paths, and which `CompositorManager.supports` keys it reads or adds.
-   - **Size**: changed lines and files.
-4. Start the mechanical checks in the background (Phase 1) and move on.
+1. `mb=$(git merge-base <base> HEAD)`. The review covers `git diff $mb` (committed **and** uncommitted work) plus untracked files (`git ls-files -o --exclude-standard`). Nothing changed: say so and stop.
+2. `git log --format='%h %s%n%b' $mb..HEAD` and `git diff --stat $mb`. From these, rank the changed files by risk: logic in services, methods, geometry, compositor backends, schema/migrations and scripts first; plain UI wiring next; docs, tests and mechanical renames last.
+3. Write a short `brief.md` (ten lines or so, for you and any agent): the **intent** (arguments + commits; where they disagree, say so), the **claims** (every "fix X", "support Y", `issues.md` entry added or removed: each gets checked), the **compositors** touched and `CompositorManager.supports` keys read or added, and the **docs** for the changed files (`grep -rln '<path>' docs/dev --include='*.md' | grep -v generated/` and the touched dirs' `AGENTS.md`).
 
 ## Phase 1: mechanical checks (background)
 
-`git status --porcelain > status.before`, then in one background Bash: `scripts/check_all.sh --no-docs; python3 scripts/gen_docs.py --check; python3 scripts/check_doc_drift.py`, output to `checks.log`. When it finishes, `git status --porcelain` again: a check that rewrote a file is itself a finding (unformatted QML, stale generated docs); restore nothing, report it.
+`git status --porcelain > status.before`, then one background Bash: `{ scripts/check_all.sh --no-docs; python3 scripts/gen_docs.py --check; python3 scripts/check_doc_drift.py; } > checks.log 2>&1`. When it finishes read only `grep -nE 'failed|FAIL|error|Error|stale|drift' checks.log | head -40` and `tail -5 checks.log`; compare `git status --porcelain` to `status.before` (a check that rewrote a file is a finding). Also `scripts/log.sh > log.txt` and read the lines not marked `(known: …)` (`grep -v known log.txt | tail -30`): a warning naming a changed file, or one the change could cause, is a finding. The shell may not have reloaded the latest state; say so rather than guess.
 
-Also read `scripts/log.sh` (the live shell, which runs this checkout): every `WARN`/`ERROR` not marked `(known: …)` that names a changed file, or that the change could plausibly cause, is a finding. The shell may not have reloaded the latest state; say so rather than guess.
+Every failing check is a blocker. Don't spend reading on what the checks cover (format, lint, structure, i18n keys, generated docs).
 
-Every failing check is a finding at blocker level. Don't send reviewers after what these checks already catch (format, lint baseline, structure, i18n keys, generated docs): they report what the checks can't.
+## Phase 2: review
 
-## Phase 2: lens reviewers (parallel)
+Read `lenses.md` (next to this file) once. Then go through the files in risk order, one `git diff -U3 $mb -- <file>` at a time, and judge each behaviour-changing hunk through all five lenses at once (bugs, regressions, cleanup, rules, design), reading context as the budget allows. Keep candidate findings in `findings.md` as you go (one line each: `path:line`, claim, lens, what would prove it).
 
-Read `lenses.md` (next to this file). Launch one `general-purpose` Agent per lens **in a single message** so they run together. Each prompt is: the "Every reviewer" contract from `lenses.md`, then that lens's section, then the paths to `brief.md`, `diff.patch` and `files.txt`, and the output file to write (`findings-<lens>.md`).
+Check every **claim** from the brief against the code: a "fix" that doesn't fix, or fixes a symptom one caller over, is the most valuable finding there is.
 
-When the diff is over ~2500 changed lines or 40 files, split the `bugs` lens by area (e.g. services+methods / UI / scripts), each reviewer getting its own file list. Stay under ten agents in all.
+Then verify each candidate before it goes in the report: try to prove it false (is the path reachable, is it handled elsewhere, does the "dead" code have a caller loaded by name, does AGENTS.md actually state the rule, does the simpler version keep every behaviour). Drop what fails; mark `PLAUSIBLE` what only running the shell can settle, keeping those only at major or above.
 
-While they run, do your own pass: check every **Claim** from the brief against the code. A "fix" that doesn't fix, or fixes a symptom one caller over, is the most valuable finding there is.
+**One helper agent at most**, and only for a question that needs a lot of reading you'd otherwise do yourself (e.g. "does anything still depend on X's old behaviour across these 15 callers?"). Give it the exact question, the files, and "answer in under 300 words with `path:line` evidence; change no files".
 
-## Phase 3: verify
+## Phase 2b: deep (only with `deep`)
 
-Merge the reviewers' findings with yours. Dedupe by root cause (two lenses reporting one cause = one finding citing both angles). Drop anything on lines the branch didn't change unless the branch made it wrong (a caller it broke, a doc it made false); those pre-existing ones go to Phase 4's last section.
+Instead of Phase 2's single pass: launch one `general-purpose` Agent per lens from `lenses.md` in a single message (the "Every reviewer" contract + that lens + paths to `brief.md` and the output file `findings-<lens>.md`), and do the claims check yourself while they run. Merge and dedupe by root cause, then launch verifier agents (about six findings each, grouped by file) told to refute each finding and answer `CONFIRMED` / `PLAUSIBLE` / `REFUTED` with evidence, changing no files. Stay under ten agents.
 
-Then every finding gets checked by someone who didn't raise it. Launch `general-purpose` verifier agents in one message, about six findings each, grouped by file, with this brief:
-
-> You are checking another reviewer's findings on an axiom branch, and you expect some to be wrong. For each one, read the cited code, the whole function and its callers, and the docs it relies on, and try to prove it false: is the path actually reachable, is it handled elsewhere, does the "dead" code have a caller grep misses (loaded by name from a string, `x-card`, `popoutName`, `type`-dispatched files, IPC, schema), is the "rule" one AGENTS.md actually states, does the simpler version keep every behaviour? Answer per finding: `CONFIRMED` (you traced it: give the evidence), `PLAUSIBLE` (can't be settled without running the shell: say what would settle it), or `REFUTED` (say why). Correct the severity, line or fix if they're off. Change no files.
-
-With `quick`, do this yourself instead. Drop `REFUTED`. Keep `PLAUSIBLE` only at major or above, marked as such.
-
-## Phase 4: report
+## Phase 3: report
 
 Write `report.md` and print it. Order by severity, then file. Nothing in it the maintainer can't act on.
 
@@ -74,10 +71,9 @@ Each finding:
 ### <n>. <claim in a few words>  `path/File.qml:123`
 <what is wrong, and the concrete scenario: the input, state or compositor, what happens, what should>
 **Fix:** <the change, as code when it's short>
-<!-- lens(es), verdict -->
 
 ## Checked and fine
-<a few lines: risky things you looked at and found sound, so the maintainer knows what was covered>
+<a few lines: risky things you looked at and found sound, and anything you only skimmed>
 
 ## Questions for the author
 <only where the intent can't be read from the code and the answer changes a finding>
@@ -90,6 +86,6 @@ If `report.prev.md` exists, add a line under the verdict: which earlier findings
 
 Adding the pre-existing problems to `docs/dev/issues.md` (its format is at its top; check it doesn't already have them) is the only edit a review makes without `fix`. Say that you did it.
 
-## Phase 5: fix (only with `fix`)
+## Phase 4: fix (only with `fix`)
 
 Apply the Blockers, Major and Cleanups findings, smallest change each, following the repo rules (recipes, shared pieces, docs updated with the code). Skip a finding whose fix needs a decision from the maintainer and list it. Then `scripts/dev/verify.sh` until `verify ok`, read the log section and the docs it lists. Don't commit. Report what changed per finding, and anything that turned out different once you were in the code.
