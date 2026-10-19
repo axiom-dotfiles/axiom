@@ -1,0 +1,223 @@
+# Systems
+
+The systems `/review-system` knows. `scope.py` reads this file: each `## <name>` entry's **Docs** (under `docs/dev/`, globs allowed) give the code through their `> **Files:**` headers; **Extra** adds files no doc lists (globs allowed); **Mode** is `files` (default), `collection` (many files of one kind: compare them against their rules and each other, read the odd ones out) or `parity` (compare the backends member by member). **Checks** are what's most worth verifying here, beyond the lenses. Anything not listed: `feature:<name>` (`docs/dev/features/<name>.md`), `doc:<path>`, `files:<glob>`.
+
+## compositor
+Scope: the neutral compositor layer: the contract, `supports`, layers and their order, config modes, window look.
+Docs: compositor/README.md compositor/contract.md compositor/config-modes.md compositor/layer-arrangement.md compositor/window-look.md
+Extra: components/methods/CompositorKind.qml
+Checks:
+- Every consumer goes through `CompositorManager` (neutral shapes, `goToWorkspace`/`focusWindow`); no backend object leaks out of it.
+- Every `supports.<key>` read anywhere is one each backend sets (true or false), and every gated feature reads a key rather than a compositor name.
+- Nothing writes compositor config unless `supports.configModes`; leaving `included`/`managed` gives the config back.
+- Layer order only from `LayerStack.layers`; bars and the border never over fullscreen, nothing maps a Top window in response to fullscreen (a recurring regression).
+Seams: every feature reading windows, outputs, workspaces or `supports`.
+
+## hyprland
+Scope: the Hyprland backend: services, Lua, config writer, binds merge, claim, monitors, workspaces, switcher, strips, managed takeover.
+Docs: hyprland/*.md
+Extra: scripts/claim_hyprland.sh scripts/merge_hypr_binds.py scripts/hypr_binds.lua
+Checks:
+- Only the `Hyprland*` services import `Quickshell.Hyprland` or send `hl.*` Lua.
+- The writer's output is the same as what the runtime layer applies (one table, two renderers), and it never touches the user's own files outside its module.
+- Bind merge round-trips: `remove` gives back exactly what was there.
+- Special workspaces and fullscreen: layers stay under fullscreen windows.
+Seams: CompositorManager; OnboardingManager and GreetdManager (the Hyprland-only features).
+
+## sway
+Scope: the sway / SwayFX backend: IPC, state parsing, config writer, claim, binds merge.
+Docs: compositor/sway-backend.md
+Extra: scripts/claim_sway.sh scripts/merge_sway_binds.py scripts/sway_config_text.py
+Checks:
+- Every contract member behaves as the Hyprland one does, or is a declared `supports` gap.
+- SwayFX-only features (blur, shadows, corners) are gated on detecting SwayFX, not assumed.
+- IPC reconnects after sway reloads; events don't double-subscribe across QML reloads.
+Seams: CompositorManager.
+
+## niri
+Scope: the niri backend: IPC event stream, state parsing, KDL config writer, claim, binds merge.
+Docs: compositor/niri-backend.md
+Extra: scripts/claim_niri.sh scripts/merge_niri_binds.py scripts/niri_config.py scripts/niri_kdl.py
+Checks:
+- The event stream recovers when niri restarts or the socket drops; state rebuilt, not patched.
+- KDL is written and parsed by one module, round-trips the user's own nodes untouched, and is never loaded into the live session from a test.
+- Every contract member behaves as the Hyprland one does, or is a declared `supports` gap; known niri gaps (no `layerFrameSync`, no `outputCapture`) are gated, not special-cased by name.
+Seams: CompositorManager.
+
+## compositor-parity
+Scope: the three backends compared: same contract, same semantics, same edge cases.
+Mode: parity
+Docs: compositor/contract.md compositor/sway-backend.md compositor/niri-backend.md hyprland/config-modes.md hyprland/bind-merge.md
+Extra: services/HyprlandManager.qml services/SwayManager.qml services/NiriManager.qml services/HyprlandConfigWriter.qml services/SwayConfigWriter.qml services/NiriConfigWriter.qml services/HyprlandRuntimeLayer.qml services/SwayRuntimeLayer.qml scripts/claim_*.sh scripts/merge_*_binds.py
+Checks:
+- Build a table: each contract member and `supports` key × backend. Every cell is implemented the same way, or the difference is a declared `supports` key, or it's a finding.
+- Same inputs → same outputs: workspace numbering and naming, focus order, output names and scale, window shapes (class/app id, title, workspace, floating, fullscreen).
+- Writers: same settings produce the equivalent config in each; claim and merge scripts share behaviour through `bind_merge_common.py` rather than three copies.
+- Runtime layers: same layer rules applied, same reaction to fullscreen.
+Seams: everything gated on `supports`.
+
+## popouts
+Scope: every surface growing out of an edge: bar popouts, edge popouts, submenus, placement, claims, shadows.
+Docs: popouts/*.md
+Checks:
+- Geometry only from `SurfaceContext`/`EdgeAttach`; no host works out a rule itself (grep hosts for `vertical`, `location`, edge math).
+- Every popout holds a `PopoutClaim`; an open popout never moves.
+- Shadows only through `OutsideShadow`.
+- Each `SurfaceContext` rule has a `tst_SurfaceContext` row.
+Seams: bar widgets (`PopoutAnchor`), edge menus, OSD, dock, launcher.
+
+## bar
+Scope: the bar window, container, sections, pills, ends and corners, bar editor.
+Docs: bar/*.md
+Extra: components/bar/StandaloneBar.qml
+Checks:
+- Which bar owns a corner and what each end meets is only `BarEnds` (`ends`); no host re-derives it.
+- Geometry animates what's drawn, never what's measured.
+- Bars never draw over fullscreen; a namespace change remakes the window.
+- Every bar position (four edges, vertical, pill, transparent, several bars, border off) has a path.
+Seams: widgets, popouts, the screen border.
+
+## bar-widgets
+Scope: every bar widget type, against the widget rules.
+Mode: collection
+Docs: bar/widget-style.md bar/composition.md
+Extra: components/bar/widgets/*.qml
+Checks:
+- Sized from `barConfig`, never `Widget.*`; ticking labels set `steadyDigits`.
+- Polled data: request from `properties` only, acquire/release paired.
+- Popout through `PopoutAnchor` with `EdgeMenusConfig.opensOwnPopout`.
+- Each has its schema `oneOf` entry with the required fields; color fields shown only where they apply.
+- Odd ones out: a widget doing what a base class or shared piece already does.
+Seams: BarContainer, the schema.
+
+## overlay
+Scope: overlay pages, the module grid, grow/expand, the Layouts editor.
+Docs: overlay/pages-and-grid.md overlay/grid-canvas.md overlay/grow-expand.md overlay/layouts-editor.md
+Checks:
+- Placement only from `GridPlacement`; the editor edits a `ConfigDraft` with selection through `select*()`.
+- Only the current page and its neighbours exist, only while the overlay is open.
+- Repeater models from config or counts, never live values.
+Seams: modules, views, edge menus, desktop.
+
+## modules
+Scope: every overlay module (content type), against the module rules.
+Mode: collection
+Docs: overlay/writing-modules.md overlay/content-roots.md overlay/utility-modules.md
+Extra: components/content/*.qml
+Checks:
+- Root is `Card` or `Panel`; min sizes set and `compactContent` below them.
+- Acquire in `onCompleted`, release in `onDestruction`; lasting state in a service.
+- `x-hosts` lists overlay, edgeMenu, desktop; `lockscreen` only for modules that launch, dispatch and write nothing and show nothing private; greeter modules inert outside the real greeter.
+- Text fields set `x-keyboard`.
+- Odd ones out: a module drawing what a part in `content/parts/` or `reusable/` already draws.
+Seams: overlay pages, edge menus, desktop, lockscreen, greeter, bar popouts.
+
+## edge-menus
+Scope: edge menus, their hosts, editing and submenus.
+Docs: edge-menus/*.md
+Checks:
+- Placement and claims go through the popout system, not their own rules.
+- The editor follows the editors pattern.
+Seams: bar widgets' `popoutMenu`, popouts.
+
+## config
+Scope: config loading, readers, schema and annotations, migrations, drafts and previews, the settings page, saved configs, i18n.
+Docs: core/config-manager.md core/config-readers.md core/schema-annotations.md core/editors-pattern.md core/settings-page.md core/saved-configs-sharing.md core/i18n.md
+Extra: components/methods/ConfigMigration.qml components/methods/LibraryOrder.qml
+Checks:
+- Readers have no `??` default fallbacks (only `previews.X ?? config.X`), read only owners and each other.
+- No write path except `ConfigManager`/`SettingsManager`; an invalid file never replaces the running config.
+- Migrations are idempotent, each has a `tst_Config` case, schema and `currentVersion` agree.
+- `x-scope` and `x-takeover` right on every setting that names a monitor, path, account or command, or takes something over.
+- Schema keys no reader or UI uses (dead settings), reader members nothing reads.
+Seams: every reader user; every editor.
+
+## services-core
+Scope: the services pattern, ConsumerRegistry, commands, state and files, shell targeting, file picker.
+Docs: core/services-pattern.md core/shell-manager-targeting.md core/file-picker.md
+Extra: services/ConsumerRegistry.qml services/StateManager.qml services/FileManager.qml services/ShellManager.qml components/methods/KeyboardLayouts.qml services/KeyboardLayoutManager.qml
+Checks:
+- Every polled service uses `acquire`/`release` with the Timer gated on `_registry.active`; requests from config only.
+- Persisted state written atomically, under XDG paths, never under `Paths.axiomPath`.
+- Only `ShellManager.isTarget` answers shortcuts, IPC and OSD; IPC handlers enabled on the target instance only.
+Seams: every service.
+
+## ui-kit
+Scope: the shared UI pieces: reusable controls, forms, content parts, motion.
+Docs: core/shared-ui-pieces.md
+Extra: components/reusable/*.qml components/forms/*.qml components/content/parts/*.qml components/methods/IconResolver.qml
+Mode: collection
+Checks:
+- Pieces nothing uses, and pieces two of which do the same job.
+- Durations from `Appearance.anim*` with `Appearance.easing`; looping animations gated on `Appearance.animations`; radii rule.
+- The `StyledTextEntry` write-back contract held by every user.
+Seams: all UI.
+
+## theming
+Scope: themes, ThemeManager, wallpaper and schedules, night light.
+Docs: theming/themes.md theming/wallpaper-and-schedules.md theming/night-light.md
+Extra: components/methods/ColorTemperature.qml
+Checks:
+- Missing theme keys filled from `theme-defaults.json`; config colour names through `Theme.resolveColor`.
+- Generated files under XDG paths, written atomically.
+- Schedules survive reloads and don't double-fire.
+Seams: every colour user; theme integrations.
+
+## theme-integrations
+Scope: every app theme integration, against the recipe.
+Mode: collection
+Docs: theming/theme-integrations.md
+Extra: scripts/theme_*.sh scripts/integration_hookup.py scripts/lib/theme_env.sh
+Checks:
+- Each writes only its own `axiom.*` file; only `integration_hookup.py` edits a user's config, on the user's click.
+- Each follows the recipe shape (`usage_or_help`, `require_cmds`, `load_theme`, `render_template`), has a `FORMATS` test entry and a schema switch with `x-hookup`.
+- Odd ones out: one reimplementing what `theme_env.sh` does.
+Seams: ThemeManager, the settings page.
+
+## blur
+Scope: translucency and compositor blur: blur regions, backing windows, openings, shadows; on all three backends.
+Mode: parity
+Docs: theming/translucency-blur.md theming/blur-window-openings.md popouts/shadows.md
+Checks:
+- One rule table (`CompositorLayer.surfaceBlur`) rendered by each backend; no backend-specific list kept by hand.
+- Every self-blurring surface sends its region where `supports.blurRegion`, and its shape matches what's drawn (radii, joins, cut-outs).
+- Pausing for fullscreen and translucency off both stop blur on every backend.
+Seams: every translucent surface.
+
+## security
+Scope: the lock screen, idle, polkit, auth, secrets.
+Docs: features/lockscreen.md features/idle.md features/polkit.md core/secrets.md
+Checks:
+- Only `LockManager.lock()` locks; only PAM success unlocks; no IPC path unlocks.
+- What the lock screen shows and lets you do: modules with `lockscreen` in `x-hosts` launch, dispatch and write nothing and show nothing private.
+- Secrets never in argv, config.json or logs; passwords cleared after use.
+- A reload while locked keeps the session locked (known issue on niri: check its status).
+Seams: idle, the power menu, the lock screen modules.
+
+## greeter
+Scope: the greeter runtime and its installer.
+Docs: features/greeter-install.md features/greeter-runtime.md
+Checks:
+- The greeter reads only the exported bundle (data, never code).
+- Every side effect reachable in greeter mode checks `Paths.greeter`.
+- The installer is safe to rerun and to undo, and is only tested on a scratch root.
+Seams: config export, the lock screen modules (greeter host).
+
+## launcher
+Scope: the launcher, its providers and slash commands.
+Docs: features/launcher.md features/launcher-providers.md
+Checks:
+- One row shape for every provider.
+- `/config` can never edit `Bars` or `Overlay.views`.
+- Commands follow the `LauncherCommands` entry shape; every tool page has a `_page` entry.
+Seams: tool pages, clipboard, emoji, calculator.
+
+## packaging
+Scope: install, packages, self-update, onboarding, and the dev checks and guard.
+Docs: packaging.md features/self-update.md features/onboarding.md testing.md
+Extra: install.sh scripts/check_*.py scripts/dev/*.sh scripts/dev/*.py .claude/hooks/guard.py .githooks/pre-commit scripts/lib/qt_paths.sh
+Checks:
+- install.sh's package table, `Packages.packages` and the PKGBUILDs agree.
+- Self-update never applies on a dirty or live repo without the user.
+- The guard covers every rule in AGENTS.md › "Never, while testing", with a test each.
+Seams: CI, the AUR.
