@@ -627,7 +627,8 @@ include ${quote(userDir + "/*")}
    * modmask, key, keycode, submap ("" outside a mode), description (its
    * command) }. $variables are put in as they're set; line continuations
    * joined; `mode "name" { … }` blocks give their submap, `bindsym { … }`
-   * blocks their lines' command. A bind that can't
+   * blocks their lines' command; lines in any other block (`bar { … }`)
+   * aren't binds. A bind that can't
    * be read (an unknown modifier) is left out.
    */
   function configBinds(text) {
@@ -656,10 +657,14 @@ include ${quote(userDir + "/*")}
         const binds = /^((?:bindsym|bindcode)(?:\s+--\S+)*)\s*\{$/.exec(line);
         blocks.push({
           "mode": mode ? mode[2] : "",
-          "prefix": binds ? binds[1] + " " : ""
+          "prefix": binds ? binds[1] + " " : "",
+          // Not a key's: a `bar { bindsym button4 … }` is a click on swaybar
+          "skip": !mode && !binds
         });
         continue;
       }
+      if (blocks.some(block => block.skip))
+        continue;
       line = (blocks.length > 0 ? blocks[blocks.length - 1].prefix : "") + line;
       const inline = /^mode\s+(?:--pango_markup\s+)?("([^"]+)"|(\S+))\s+((?:bindsym|bindcode)\s.*)$/.exec(line);
       const submap = inline ? (inline[2] ?? inline[3]) : blocks.map(block => block.mode).filter(name => name !== "").pop() ?? "";
