@@ -24,12 +24,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-19, while reviewing the sway system
 
-### Hyprland's and niri's claim release can restore an older claim's backup
-- **Where:** `scripts/claim_hyprland.sh` (`newest_backup`), `scripts/claim_niri.sh` (`newest_backup`)
-- **What:** Release falls back to the newest dated backup beside the config, whichever claim made it, so after claim (adopt) → release → the config deleted → claim (`created`) → release, it brings back the first claim's config instead of writing the fallback. Reproduced for `claim_sway.sh`, which now records what each claim set aside (`.axiom-claimed`); the other two share its release logic but weren't run through it.
-- **Size:** small
-- **Found:** 2026-10-19, while reviewing the sway system
-
 ### The calendar doc's Files header leaves out its page
 - **Where:** `docs/dev/features/calendar.md` (its `Files:` header), `components/views/CalendarPage.qml`
 - **What:** `CalendarPage.qml` is the only code file no doc's `Files:` header lists (`.claude/skills/review-system/scope.py --orphans`), though `calendar.md` describes it in its text. So `check_doc_drift.py` never flags the doc when the page changes, and a review of the calendar feature doesn't see the page.
