@@ -12,3 +12,10 @@ Settings are read as `properties.<key>`.
 - **`showUndescribed`** · boolean = false
   - Show undescribed binds: Binds without a description, listed by their dispatcher.
   - in: `components/content/Cheatsheet.qml`
+- **`view`** · string = "list" · enum list|keyboard
+  - View: The binds by section, or a keyboard showing what each key does under the modifiers below.
+  - in: `components/content/Cheatsheet.qml`
+- **`mods`** · array<string> = ["SUPER"]
+  - Keyboard modifiers: The modifiers held on the keyboard view.
+  - x-showIf={"view":"keyboard"}
+  - in: `components/content/Cheatsheet.qml`

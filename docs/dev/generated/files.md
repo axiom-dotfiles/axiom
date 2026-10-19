@@ -138,11 +138,15 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `FigureValue.qml`: A bold value with its unit beside it, on one baseline (StatFigure, CompactFigure)
 - `FocusKeeper.qml`: Keeps the keyboard on a field (the lock screen's password, the greeter's login box): whenever focus leaves it, `reclaim` fires on the next tick.
 - `ItemRow.qml`: One entry in a module's list (clipboard clips, calculator answers, recordings): an icon or a rounded thumbnail, a title and a muted subtitle, and buttons on the right (children), faint until the row is hovered so showin…
-- `KeyCap.qml`: One key (or modifier) of a keybind, drawn as a small keycap
-- `KeybindRow.qml`: One action: its label on the left, its key combos on the right, alternatives separated by a slash
-- `KeybindSection.qml`: One section of keybinds as a card: its title, then a row per action
+- `KeyCap.qml`: One key (or modifier) of a keybind, drawn as a small keycap: its text, or an icon before it
+- `KeyCluster.qml`: A folded direction set's keys in one keycap, spaced (H J K L)
+- `KeybindRow.qml`: One action of the keybinds reference: its key combos on the left (alternatives separated by a slash; a folded direction set as one keycap), and on the right a warning where it holds the key of an axiom bind that was ski…
+- `KeybindSection.qml`: One section of the keybinds reference as a card: its icon and title, then its rows grouped by modifiers (BindRows.byModifiers), each group under its modifiers, with the keys in one aligned column
+- `KeyboardMap.qml`: A US keyboard (KeyMap.rows, then KeyMap.extras), each key coloured and labelled through hooks: the editor's key map of free keys and the keybinds reference's keyboard.
+- `KeyboardReference.qml`: The keybinds reference as a keyboard: under the modifiers picked (`mods`), each key shows what it does (KeyMap.labels), coloured by whose bind it is.
 - `LoginField.qml`: The greeter's login box: who logs in (a list of the system's users to pick from or type over, or typed only) and the password, with greetd's messages under it.
 - `MenuSubmenu.qml`: An edge menu's modules in another menu's submenu (SubPopout, loaded as "parts/MenuSubmenu" by a Submenu module), on a grid at the card size of the menu it opens from, scaled by this one's moduleScale.
+- `ModifierCap.qml`: A combo's modifiers in one keycap: as glyphs (Super as an icon, ⌃ ⌥ ⇧), or as words with `glyphs` off
 - `ModuleHeader.qml`: Icon + title row at the top of a module; children go on the right
 - `PasswordField.qml`: The lock screen's password field: what the Password module draws, and LockSurface's own when no Password module shows.
 - `PomodoroDial.qml`: The pomodoro timer (PomodoroManager), for the Pomodoro popout and module and the Focus module: a ring with the time left and the phase, a dot per session until the long break, stop / start-pause / skip, and (with `showT…
@@ -261,6 +265,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BindActions.qml`: What each keybind action (the schema's Keybinds.binds[].action) is, independent of the compositor: its IPC call into axiom, default label, section on the Keybinds page, calls, starting flags and whether it takes an argu…
 - `BindGroups.qml`: The Keybinds editor's list: axiom's binds grouped by section, and in a section, numbered runs (SUPER + 1 … SUPER + 0 going to workspaces 1–10) folded into one row.
 - `BindKeys.qml`: Binds against what the compositor reports (CompositorManager.withBinds entries: { modmask, key, keycode, description, submap }, the modifiers as X11 mask bits, as Hyprland's `hyprctl binds -j` lists them and SwayConf re…
+- `BindRows.qml`: The Keybinds reference's rows (KeybindManager.keybindings): numbered runs and direction sets folded into one row each, and a section's rows grouped by their modifiers.
 - `CalendarEvents.qml`: Pure helpers for calendar events (see CalendarManager): day keys, which days an event covers, a day's events in order, dots, what's next, reminders due, editing drafts and the launcher's quick add.
 - `ChatMarkdown.qml`: Splits a chat reply into what the chat draws separately: Markdown prose (a TextEdit in MarkdownText) and fenced code blocks (a box of their own, with a copy button).
 - `ChatProtocol.qml`: The chat providers' wire formats, as pure functions: ChatManager builds a request with request(), ChatRequest sends it with curl and feeds every streamed event to parse().

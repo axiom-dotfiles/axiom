@@ -76,6 +76,44 @@ QtObject {
     return result;
   }
 
+  /**
+   * What each key does with `mods` held, from the reference's rows
+   * (KeybindManager.keybindings): { [key]: { label, action, source, ids } },
+   * keys as `rows`/`extras` name them, only those bound. `source` is
+   * "axiom", "user" or "both" (the row holds binds of each).
+   */
+  function labels(sections, mods, keys) {
+    const rowById = {};
+    for (const section of sections ?? [])
+      for (const row of section.binds)
+        for (const id of row.ids ?? [])
+          if (rowById[id] === undefined)
+            rowById[id] = row;
+    const result = {};
+    for (const key of keys ?? root.allKeys) {
+      const id = BindKeys.keyId(KeyNames.join(mods ?? [], key));
+      const row = rowById[id];
+      if (row)
+        result[key] = {
+          "label": row.label,
+          "action": row.action ?? "",
+          "source": row.axiom && row.user ? "both" : row.axiom ? "axiom" : "user",
+          "ids": [id]
+        };
+    }
+    return result;
+  }
+
+  // A key's label on the map ("bracketleft" -> "[", "XF86AudioMute" ->
+  // "Mute"), matched case-insensitively, or "" for a key it doesn't show
+  function labelOf(key) {
+    return root._labels[String(key ?? "").toLowerCase()] ?? "";
+  }
+  readonly property var _labels: [].concat(...root.rows).concat(root.extras).filter(k => k.key !== "").reduce((labels, k) => {
+    labels[k.key.toLowerCase()] = k.label;
+    return labels;
+  }, {})
+
   // Every bindable key the map shows
   readonly property var allKeys: [].concat(...root.rows.map(row => row.filter(k => k.key !== "").map(k => k.key))).concat(root.extras.map(k => k.key))
 }

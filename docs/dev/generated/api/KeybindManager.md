@@ -7,16 +7,20 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 
 ### Properties
 
-- `keybindings` (readonly var): [{ title, undescribed, binds: [{ label, combos: [{ mods: ["SUPER", "SHIFT"], keys: ["H", "←"] }], axiom, user }] }] `title` is "" for binds with no section (shown as "Other"); `undescribed` marks the…
+- `keybindings` (readonly var): [{ title, undescribed, binds: [{ label, combos: [{ mods: ["SUPER", "SHIFT"], keys: ["H", "←"] }], axiom, user, ids, action, overrides }] }] `title` is "" for binds with no section (shown as "Other");…
 - `count` (int): How many binds the compositor reported
-- `query` (string): The Keybinds page's search and filter chips (KeybindFilter), here so they survive the page reloading: section keys (KeybindFilter.sectionKey), modifier names, sources ("axiom" | "user")
-- `sectionFilter` (var)
+- `query` (string): The Keybinds page's search and filter chips (KeybindFilter), here so they survive the page reloading: modifier names, sources ("axiom" | "user")
 - `modFilter` (var)
 - `sourceFilter` (var)
 - `filtering` (readonly bool)
-- `sectionOptions` (readonly var): The chips: [{ key, title, undescribed, count }] per section, and the modifiers the binds use, in _modifiers order
-- `modOptions` (readonly var)
+- `modOptions` (readonly var): The modifier chips: the modifiers the binds use, in _modifiers order
 - `editing` (bool): The Keybinds page shows the editor instead of the list
+- `refView` (readonly string): How it's shown, remembered: "list" | "keyboard", "comfortable" | "compact", and modifiers as glyphs (⇧ ⌃ ⌥) or words
+- `refDensity` (readonly string)
+- `refGlyphs` (readonly bool)
+- `refFolded` (readonly var): Folded modifier groups, by "<section key>|<mods>" (refGroupKey)
+- `lookupIndex` (readonly int): A combo pressed to look up what it does ("SUPER + Q"), or "": recorded like a bind's key, into lookupIndex
+- `lookupCombo` (string)
 - `editQuery` (string): The editor's search, here so it survives the page reloading.
 - `editSectionFilter` (var): The editor's chips: sections, modifier names, and only binds with issues
 - `editModFilter` (var)
@@ -55,11 +59,18 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 
 ### Functions
 
-- `toggleFilter(group, value)`: group: "section" | "mod" | "source", or the editor's "editSection" | "editMod"
+- `toggleFilter(group, value)`: group: "mod" | "source", or the editor's "editSection" | "editMod"
 - `clearFilters()`
 - `clearEditFilters()`
+- `setRefView(value)`
+- `setRefDensity(value)`
+- `setRefGlyphs(value)`
+- `refGroupKey(section, mods)`
+- `toggleRefFold(key)`
 - `selectBind(index)`
+- `editBind(index)`: Opens the editor on a bind (a click on its row in the reference)
 - `toggleRun(key)`
+- `sectionIcon(title)`: Material Symbols per reference section, by title ("" is Other)
 - `actionIcon(action)`
 - `argumentKind(action)`: What an action's free-text argument is, for its placeholder
 - `needsArgument(action)`
@@ -81,6 +92,8 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `setPaused(indices, on)`: Pauses or resumes binds (a section's, a run's, one)
 - `setField(index, field, value)`
 - `toggleKeyMapMod(mod)`
+- `bindLabel(bind)`: A bind's label: its own (less a "Section:" prefix), else its action's
+- `bindIndexFor(ids)`: The first of the editor's binds (not paused) on one of `ids` (a reference row's keys), or -1
 - `hasIssue(found)`: Whether a bind's `issues` hold an error or warning, not only notes
 - `removeUserConflicts()`: Removes every bind on a key the user's compositor config binds too (until Save, like any edit).
 - `mergeUserBinds()`

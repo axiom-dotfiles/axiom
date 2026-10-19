@@ -6,6 +6,8 @@
 
 Keybinds are edited on the overlay's **Keybinds** page: the binds by section on the left, the selected one in full on the right. Search, filter by section or modifier, record a key by pressing it, and drag a bind to reorder it. With nothing selected, the right side is a key map of which keys are free under the modifiers you pick: click a free key to bind it. A bind's switch pauses it (kept in the list, but not bound), and a section's switch pauses all of it. **Presets** shows what each set of binds would add or replace before you apply it; a removal or preset can be undone until you save.
 
+**All binds** is the quick reference: every bind your compositor has, axiom's and your own, by section and grouped under their modifiers (click a group to fold it), with direction and number sets folded into one row. Press a combo in **Look up a combo** to see what it does, or bind it if nothing does. **Keyboard** shows the same binds on a keyboard under the modifiers you pick. Click one of axiom's binds in either to edit it. The Cheatsheet module shows the reference on any page, as a list or a keyboard.
+
 A bind can run:
 - any IPC action below
 - a window action (focus, move, resize, close, fullscreen, floating, special workspaces, mouse drag)

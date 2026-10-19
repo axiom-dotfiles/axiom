@@ -5,6 +5,7 @@ import qs.config
 import qs.services
 import qs.components.methods
 import qs.components.reusable
+import qs.components.content.parts
 
 // The Keybinds editor's key map, shown while no bind is selected: a
 // keyboard (KeyMap) under the modifiers picked, each key coloured by who
@@ -14,16 +15,18 @@ ColumnLayout {
   id: root
 
   readonly property var occupancy: KeyMap.occupancy(KeybindManager.binds, KeybindManager.userKeyCounts, KeybindManager.keyMapMods)
-  // One key unit, the main block being 15 wide
-  readonly property real unit: (root.width - Widget.spacing / 2 * 14) / 15
 
   spacing: Widget.spacing * 1.5
 
-  function pick(key) {
-    const held = root.occupancy[key] ?? {
+  function held(key) {
+    return root.occupancy[key] ?? {
       "source": "free",
       "index": -1
     };
+  }
+
+  function pick(key) {
+    const held = root.held(key);
     if (held.index >= 0)
       KeybindManager.selectBind(held.index);
     else if (held.source === "free")
@@ -67,82 +70,12 @@ ColumnLayout {
     }
   }
 
-  component KeyButton: Rectangle {
-    id: keyButton
-
-    required property var entry
-    readonly property var held: root.occupancy[keyButton.entry.key] ?? {
-      "source": "free",
-      "index": -1
-    }
-    readonly property bool blank: keyButton.entry.key === ""
-    readonly property bool clickable: !keyButton.blank && keyButton.held.source !== "user"
-
-    implicitHeight: Math.round(Widget.height * 0.9)
-    radius: Widget.radius / 2
-    color: keyButton.blank ? "transparent" : root.fill(keyButton.held.source)
-    border.width: keyArea.containsMouse && keyButton.clickable ? 1 : 0
-    border.color: Theme.foreground
-
-    StyledText {
-      anchors.centerIn: parent
-      width: parent.width - 4
-      horizontalAlignment: Text.AlignHCenter
-      text: keyButton.entry.label
-      textColor: keyButton.held.source === "axiom" || keyButton.held.source === "both" ? Theme.background : Theme.foreground
-      opacity: keyButton.blank ? 0.3 : 1
-      textSize: Appearance.fontSize - 2
-      elide: Text.ElideRight
-    }
-
-    MouseArea {
-      id: keyArea
-      anchors.fill: parent
-      enabled: keyButton.clickable
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-      onClicked: root.pick(keyButton.entry.key)
-    }
-  }
-
-  ColumnLayout {
+  KeyboardMap {
     Layout.fillWidth: true
-    spacing: Widget.spacing / 2
-
-    Repeater {
-      model: KeyMap.rows
-
-      delegate: Row {
-        id: keyRow
-        required property var modelData
-        spacing: Widget.spacing / 2
-
-        Repeater {
-          model: keyRow.modelData
-
-          delegate: KeyButton {
-            required property var modelData
-            entry: modelData
-            width: root.unit * modelData.width + Widget.spacing / 2 * (modelData.width - 1)
-          }
-        }
-      }
-    }
-  }
-
-  Flow {
-    Layout.fillWidth: true
-    spacing: Widget.spacing / 2
-
-    Repeater {
-      model: KeyMap.extras
-
-      delegate: KeyButton {
-        required property var modelData
-        entry: modelData
-        width: root.unit * 1.6
-      }
-    }
+    fillOf: key => root.fill(root.held(key).source)
+    inkOf: key => root.held(key).source === "axiom" || root.held(key).source === "both" ? Theme.background : Theme.foreground
+    clickableOf: key => root.held(key).source !== "user"
+    onClicked: key => root.pick(key)
   }
 
   // What the colours mean

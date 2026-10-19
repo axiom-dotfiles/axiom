@@ -14,8 +14,9 @@ import qs.components.content.parts
 // its own (the Keybinds page's filters are left alone). `sections` keeps to
 // some sections (by title); undescribed binds show only with
 // `showUndescribed`. A short card runs the first binds along one row;
-// compact, the count.
-// properties: { sections, showUndescribed }
+// compact, the count. `view` "keyboard" shows a keyboard under `mods`
+// instead. A click on one of axiom's binds opens it in the Keybinds editor.
+// properties: { sections, showUndescribed, view, mods }
 Panel {
   id: root
 
@@ -29,9 +30,15 @@ Panel {
   // The binds of every section, for the strip
   readonly property var allBinds: [].concat(...root.sections.map(section => section.binds))
 
+  readonly property bool keyboard: root.properties.view === "keyboard"
   // One row: binds side by side
-  readonly property bool strip: root.embedded && root.innerHeight < Appearance.fontSize * 6
-  readonly property bool showSearch: !root.strip && (!root.embedded || root.innerHeight >= Appearance.fontSize * 10)
+  readonly property bool strip: !root.keyboard && root.embedded && root.innerHeight < Appearance.fontSize * 6
+  readonly property bool showSearch: !root.keyboard && !root.strip && (!root.embedded || root.innerHeight >= Appearance.fontSize * 10)
+
+  function edit(bindIndex) {
+    KeybindManager.editBind(bindIndex);
+    ShellManager.openOverlayPage("Keybinds");
+  }
 
   implicitWidth: Appearance.fontSize * 30
   fullMinWidth: Appearance.fontSize * 14
@@ -76,9 +83,18 @@ Panel {
     }
   }
 
+  KeyboardReference {
+    visible: root.keyboard
+    Layout.fillWidth: true
+    sections: root.sections
+    mods: root.properties.mods
+    showMods: false
+    onEditRequested: bindIndex => root.edit(bindIndex)
+  }
+
   // Nothing (that matches)
   Item {
-    visible: !root.strip && root.sections.length === 0
+    visible: !root.keyboard && !root.strip && root.sections.length === 0
     Layout.fillWidth: true
     Layout.fillHeight: true
     Layout.preferredHeight: root.embedded ? -1 : Appearance.fontSize * 8
@@ -94,7 +110,7 @@ Panel {
   // The sections in columns, scrolling
   Flickable {
     id: flick
-    visible: !root.strip && root.sections.length > 0
+    visible: !root.keyboard && !root.strip && root.sections.length > 0
     Layout.fillWidth: true
     Layout.fillHeight: root.embedded
     Layout.preferredHeight: root.embedded ? -1 : Math.min(columnsRow.implicitHeight, Appearance.fontSize * 30)
@@ -124,6 +140,7 @@ Panel {
             delegate: KeybindSection {
               required property var modelData
               section: modelData
+              onEditRequested: bindIndex => root.edit(bindIndex)
             }
           }
         }
@@ -145,6 +162,7 @@ Panel {
       KeybindRow {
         required property int index
         bind: root.allBinds[index]
+        onEditRequested: bindIndex => root.edit(bindIndex)
         width: Math.min(implicitWidth, root.innerWidth)
       }
     }

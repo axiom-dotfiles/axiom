@@ -42,10 +42,7 @@ StyledContainer {
       return BindActions.defaultLabel(Object.assign({}, root.bind, {
         "argument": BindGroups.runNumbers(KeybindManager.binds, root.indices)
       }));
-    const own = String(root.bind.description ?? "").trim();
-    if (own !== "")
-      return BindActions.hasOwnSection(own) ? own.slice(own.indexOf(":") + 1).trim() : own;
-    return BindActions.defaultLabel(root.bind) || (KeybindManager.actionLabels[root.bind.action] ?? "");
+    return KeybindManager.bindLabel(root.bind);
   }
   readonly property string actionLabel: KeybindManager.actionLabels[root.bind.action] ?? String(root.bind.action ?? "")
 

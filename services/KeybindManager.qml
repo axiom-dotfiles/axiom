@@ -18,31 +18,26 @@ import qs.components.methods
 QtObject {
   id: root
 
-  // [{ title, undescribed, binds: [{ label, combos: [{ mods: ["SUPER", "SHIFT"], keys: ["H", "←"] }], axiom, user }] }]
+  // [{ title, undescribed, binds: [{ label, combos: [{ mods: ["SUPER", "SHIFT"], keys: ["H", "←"] }], axiom, user, ids, action, overrides }] }]
   // `title` is "" for binds with no section (shown as "Other"); `undescribed`
   // marks the section of binds without a description (label ""). A row's
   // `axiom` / `user` say whether any of its binds are axiom's own (applied
-  // from Keybinds.binds) / from the user's compositor config.
-  readonly property var keybindings: root._buildKeybindings(root._entries, root._axiomIds)
+  // from Keybinds.binds) / from the user's compositor config; `ids` are its
+  // keys (BindKeys.keyId), `action` the first axiom bind's action and
+  // `overrides` the label of an axiom bind skipped because the row holds
+  // its key. Numbered runs and direction sets are folded (BindRows).
+  readonly property var keybindings: root._buildKeybindings(root._entries, root._axiomIds, root._skippedLabels)
   // How many binds the compositor reported
   property int count: 0
   // The Keybinds page's search and filter chips (KeybindFilter), here so
-  // they survive the page reloading: section keys (KeybindFilter.sectionKey),
-  // modifier names, sources ("axiom" | "user")
+  // they survive the page reloading: modifier names, sources ("axiom" |
+  // "user")
   property string query: ""
-  property var sectionFilter: []
   property var modFilter: []
   property var sourceFilter: []
-  readonly property bool filtering: sectionFilter.length > 0 || modFilter.length > 0 || sourceFilter.length > 0
+  readonly property bool filtering: modFilter.length > 0 || sourceFilter.length > 0
 
-  // The chips: [{ key, title, undescribed, count }] per section, and the
-  // modifiers the binds use, in _modifiers order
-  readonly property var sectionOptions: root.keybindings.filter(section => section.binds.length > 0).map(section => ({
-        "key": KeybindFilter.sectionKey(section),
-        "title": section.title,
-        "undescribed": section.undescribed,
-        "count": section.binds.length
-      }))
+  // The modifier chips: the modifiers the binds use, in _modifiers order
   readonly property var modOptions: {
     const used = {};
     for (const section of root.keybindings)
@@ -53,7 +48,7 @@ QtObject {
     return root._modifiers.map(m => m.name).filter(name => used[name]);
   }
 
-  // group: "section" | "mod" | "source", or the editor's "editSection" |
+  // group: "mod" | "source", or the editor's "editSection" |
   // "editMod"
   function toggleFilter(group, value) {
     const name = group + "Filter";
@@ -62,7 +57,6 @@ QtObject {
   }
 
   function clearFilters() {
-    root.sectionFilter = [];
     root.modFilter = [];
     root.sourceFilter = [];
   }
@@ -74,6 +68,67 @@ QtObject {
   }
   // The Keybinds page shows the editor instead of the list
   property bool editing: false
+
+  // --- The reference (the page's list, the Cheatsheet) ---
+
+  // How it's shown, remembered: "list" | "keyboard", "comfortable" |
+  // "compact", and modifiers as glyphs (⇧ ⌃ ⌥) or words
+  readonly property string refView: root._refView
+  readonly property string refDensity: root._refDensity
+  readonly property bool refGlyphs: root._refGlyphs
+  property string _refView: "list"
+  property string _refDensity: "comfortable"
+  property bool _refGlyphs: true
+  // Folded modifier groups, by "<section key>|<mods>" (refGroupKey)
+  readonly property var refFolded: root._refFolded
+  property var _refFolded: []
+  readonly property var _refState: StateManager.createStateHandler("keybindsReference")
+
+  function setRefView(value) {
+    root._refView = value === "keyboard" ? "keyboard" : "list";
+    root._saveRefState();
+  }
+
+  function setRefDensity(value) {
+    root._refDensity = value === "compact" ? "compact" : "comfortable";
+    root._saveRefState();
+  }
+
+  function setRefGlyphs(value) {
+    root._refGlyphs = value === true;
+    root._saveRefState();
+  }
+
+  function refGroupKey(section, mods) {
+    return KeybindFilter.sectionKey(section) + "|" + mods.join("+");
+  }
+
+  function toggleRefFold(key) {
+    root._refFolded = root._refFolded.includes(key) ? root._refFolded.filter(k => k !== key) : root._refFolded.concat([key]);
+    root._saveRefState();
+  }
+
+  function _saveRefState() {
+    root._refState.save({
+      "view": root._refView,
+      "density": root._refDensity,
+      "glyphs": root._refGlyphs,
+      "folded": root._refFolded
+    });
+  }
+
+  function _loadRefState() {
+    const saved = root._refState.load({});
+    root._refView = saved.view === "keyboard" ? "keyboard" : "list";
+    root._refDensity = saved.density === "compact" ? "compact" : "comfortable";
+    root._refGlyphs = saved.glyphs !== false;
+    root._refFolded = Array.isArray(saved.folded) ? saved.folded : [];
+  }
+
+  // A combo pressed to look up what it does ("SUPER + Q"), or "": recorded
+  // like a bind's key, into lookupIndex
+  readonly property int lookupIndex: -2
+  property string lookupCombo: ""
 
   // --- The editor ---
 
@@ -103,6 +158,12 @@ QtObject {
 
   // Asks the list to unfold and scroll to a bind
   signal revealRequested(int index)
+
+  // Opens the editor on a bind (a click on its row in the reference)
+  function editBind(index) {
+    root.editing = true;
+    root.selectBind(index);
+  }
 
   // Numbered runs shown bind by bind (BindGroups.runKey of their first
   // bind -> true), for this session
@@ -137,6 +198,21 @@ QtObject {
   // I18n.tr("Axiom") I18n.tr("Apps") I18n.tr("Media") I18n.tr("Window")
   // I18n.tr("Workspace") I18n.tr("Special") I18n.tr("Custom")
   readonly property var actionSections: ["Axiom", "Apps", "Media", "Window", "Workspace", "Special", "Custom"]
+
+  // Material Symbols per reference section, by title ("" is Other)
+  function sectionIcon(title) {
+    return root._sectionIcons[title] ?? "keyboard";
+  }
+  readonly property var _sectionIcons: ({
+      "Axiom": "dashboard",
+      "Apps": "apps",
+      "Media": "music_note",
+      "Window": "select_window",
+      "Workspace": "grid_view",
+      "Special": "star",
+      "Custom": "tune",
+      "": "more_horiz"
+    })
 
   // Material Symbols per action (the picker and its button)
   readonly property var _actionIcons: ({
@@ -606,13 +682,39 @@ QtObject {
     return KeybindsConfig.activeBinds.filter(bind => CompositorConfigManager.isComplete(bind) && !skipped.includes(BindKeys.keyId(bind.key)));
   }
 
-  // Their keys, by BindKeys.keyId: { "64:return": true }
+  // Their keys, by BindKeys.keyId: { "64:return": bind }
   readonly property var _axiomIds: root._appliedBinds.reduce((ids, bind) => {
     const id = BindKeys.keyId(bind.key);
     if (id !== "")
-      ids[id] = true;
+      ids[id] = bind;
     return ids;
   }, {})
+
+  // The saved axiom binds skipped because the user's config holds their
+  // key, their labels by key: { "64:q": "Close window" }
+  readonly property var _skippedLabels: {
+    const skipped = CompositorConfigManager.skippedKeys.map(key => BindKeys.keyId(key));
+    return KeybindsConfig.activeBinds.reduce((labels, bind) => {
+      const id = BindKeys.keyId(bind.key);
+      if (id !== "" && skipped.includes(id) && labels[id] === undefined)
+        labels[id] = root.bindLabel(bind);
+      return labels;
+    }, {});
+  }
+
+  // A bind's label: its own (less a "Section:" prefix), else its action's
+  function bindLabel(bind) {
+    const own = String(bind?.description ?? "").trim();
+    if (own !== "")
+      return BindActions.hasOwnSection(own) ? own.slice(own.indexOf(":") + 1).trim() : own;
+    return BindActions.defaultLabel(bind) || (root.actionLabels[bind?.action] ?? "");
+  }
+
+  // The first of the editor's binds (not paused) on one of `ids` (a
+  // reference row's keys), or -1
+  function bindIndexFor(ids) {
+    return root.binds.findIndex(bind => !bind.paused && (ids ?? []).includes(BindKeys.keyId(bind.key)));
+  }
 
   // Per bind: [{ level: "error" | "warning" | "info", text }]; only errors
   // and warnings are issues (issueCount, the issues filter, a row's border)
@@ -945,14 +1047,16 @@ QtObject {
   function startRecording(index) {
     if (root.recordingIndex === index)
       return;
-    if (root.recordingIndex < 0)
+    if (root.recordingIndex === -1)
       CompositorManager.captureKeys(true);
     root.recordingIndex = index;
     _recordTimeout.restart();
   }
 
   function finishRecording(combo) {
-    if (root.recordingIndex >= 0) {
+    if (root.recordingIndex === root.lookupIndex)
+      root.lookupCombo = combo;
+    else if (root.recordingIndex >= 0) {
       setField(root.recordingIndex, "key", combo);
       if (KeyNames.tapModifier(combo) !== "")
         setField(root.recordingIndex, "release", true);
@@ -961,7 +1065,7 @@ QtObject {
   }
 
   function stopRecording() {
-    if (root.recordingIndex < 0)
+    if (root.recordingIndex === -1)
       return;
     root.recordingIndex = -1;
     _recordTimeout.stop();
@@ -1067,7 +1171,7 @@ QtObject {
     onTriggered: root.refresh()
   }
 
-  function _buildKeybindings(entries, axiomIds) {
+  function _buildKeybindings(entries, axiomIds, skippedLabels) {
     const sections = [];
     const sectionByTitle = {};
     const rowByKey = {};
@@ -1108,8 +1212,10 @@ QtObject {
       const mods = root._decodeMods(entry.modmask);
       const key = root._formatKey(entry.key);
       const rowKey = `${section.title}\u0000${label}`;
+      const id = BindKeys.entryId(entry);
       // Axiom's runtime binds are never in a submap
-      const isAxiom = !entry.submap && !!axiomIds[BindKeys.entryId(entry)];
+      const axiomBind = entry.submap ? undefined : axiomIds[id];
+      const isAxiom = !!axiomBind;
 
       // Undescribed binds each get their own row, since they share an empty label.
       // Alternatives with the same modifiers share a combo: Super + H / ←.
@@ -1117,6 +1223,9 @@ QtObject {
       if (row) {
         row.axiom = row.axiom || isAxiom;
         row.user = row.user || !isAxiom;
+        row.ids.push(id);
+        row.action = row.action || (axiomBind?.action ?? "");
+        row.overrides = row.overrides || (isAxiom ? "" : skippedLabels[id] ?? "");
         const combo = row.combos.find(c => c.mods.join("+") === mods.join("+"));
         if (!combo)
           row.combos.push({
@@ -1136,7 +1245,10 @@ QtObject {
           }
         ],
         axiom: isAxiom,
-        user: !isAxiom
+        user: !isAxiom,
+        ids: [id],
+        action: axiomBind?.action ?? "",
+        overrides: isAxiom ? "" : skippedLabels[id] ?? ""
       };
       if (label)
         rowByKey[rowKey] = newRow;
@@ -1146,60 +1258,8 @@ QtObject {
     if (undescribed)
       sections.push(undescribed);
     for (const section of sections)
-      section.binds = root._collapseNumbered(section.binds);
+      section.binds = BindRows.collapseDirections(BindRows.collapseNumbered(section.binds));
     return sections;
-  }
-
-  // Rows like "Go to workspace 1" … "Go to workspace 5", each bound to its
-  // own number key with the same modifiers, become one "Go to workspace" row
-  // with the key "1–5" (or "1 2 4" when the numbers have gaps).
-  function _collapseNumbered(binds) {
-    const runs = {};
-    for (const row of binds) {
-      const match = row.label.match(/^(.*\S)\s+(\d+)$/);
-      const combo = row.combos[0];
-      // Workspace 10 is usually on the 0 key
-      if (!match || row.combos.length !== 1 || combo.keys.length !== 1 || (combo.keys[0] !== match[2] && !(match[2] === "10" && combo.keys[0] === "0")))
-        continue;
-      const runKey = `${match[1]}\u0000${combo.mods.join("+")}`;
-      if (!runs[runKey])
-        runs[runKey] = {
-          label: match[1],
-          mods: combo.mods,
-          rows: [],
-          numbers: []
-        };
-      runs[runKey].rows.push(row);
-      runs[runKey].numbers.push(parseInt(match[2]));
-    }
-
-    const result = [];
-    const placed = {};
-    for (const row of binds) {
-      const runKey = Object.keys(runs).find(k => runs[k].rows.length > 1 && runs[k].rows.includes(row));
-      if (runKey === undefined) {
-        result.push(row);
-        continue;
-      }
-      if (placed[runKey])
-        continue;
-      placed[runKey] = true;
-      const run = runs[runKey];
-      const numbers = run.numbers.slice().sort((a, b) => a - b);
-      const contiguous = numbers.every((n, i) => i === 0 || n === numbers[i - 1] + 1);
-      result.push({
-        label: run.label,
-        combos: [
-          {
-            mods: run.mods,
-            keys: contiguous ? [`${numbers[0]}–${numbers[numbers.length - 1]}`] : numbers.map(String)
-          }
-        ],
-        axiom: run.rows.some(r => r.axiom),
-        user: run.rows.some(r => r.user)
-      });
-    }
-    return result;
   }
 
   function _decodeMods(modmask) {
@@ -1220,8 +1280,12 @@ QtObject {
   function _formatKey(key) {
     if (root._keyNames[key.toLowerCase()] !== undefined)
       return root._keyNames[key.toLowerCase()];
+    const mapped = KeyMap.labelOf(key);
+    if (mapped !== "")
+      return mapped;
+    // XF86AudioPause -> Pause, XF86MonBrightnessUp -> Brightness Up
     if (key.startsWith("XF86"))
-      return Utils.spaceWords(key.slice(4));
+      return Utils.spaceWords(key.slice(4).replace(/^(Audio|Mon)(?=[A-Z])/, ""));
     if (key.length === 1)
       return key.toUpperCase();
     return key.charAt(0).toUpperCase() + key.slice(1);
@@ -1240,5 +1304,8 @@ QtObject {
   // CompositorManager.supports is filled in, and a refresh then does nothing
   readonly property bool _canRead: CompositorManager.supports.bindMerge === true
   on_CanReadChanged: refresh()
-  Component.onCompleted: refresh()
+  Component.onCompleted: {
+    _loadRefState();
+    refresh();
+  }
 }

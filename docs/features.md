@@ -179,7 +179,7 @@ Then:
 ## Your compositor
 
 axiom runs on Hyprland, niri and sway, and sets up the compositor from the same settings on each (**Settings → Compositor**):
-- **Keybinds** on their own page, with presets, a key recorder, and warnings for keys your own config already uses.
+- **Keybinds** on their own page, with presets, a key recorder, and warnings for keys your own config already uses, plus a reference of every bind as a list or a keyboard, where you can press a combo to see what it does.
 - **Monitors** arranged by dragging (see [the rest](#the-rest)).
 - **Window look:** theme-colored borders, rounding, gaps, shadows, dimming, opacity and blur, as far as the compositor supports them. **Match axiom's shape** keeps windows in step with axiom's own shape.
 - **Input:** keyboard layouts and repeat, mouse and touchpad, and the cursor theme.

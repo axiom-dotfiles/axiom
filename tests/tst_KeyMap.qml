@@ -70,4 +70,43 @@ TestCase {
     compare(map.a.source, "axiom");
     compare(map.a.index, 1);
   }
+
+  function test_labelOf() {
+    compare(KeyMap.labelOf("bracketleft"), "[");
+    compare(KeyMap.labelOf("XF86AudioRaiseVolume"), "Vol +");
+    compare(KeyMap.labelOf("return"), "Enter", "any case");
+    compare(KeyMap.labelOf("XF86Launch1"), "");
+  }
+
+  function test_labels() {
+    const sections = [
+      {
+        "title": "Apps",
+        "binds": [
+          {
+            "label": "Terminal",
+            "combos": [],
+            "axiom": true,
+            "user": false,
+            "ids": ["64:return"],
+            "action": "terminal"
+          },
+          {
+            "label": "Browser",
+            "combos": [],
+            "axiom": false,
+            "user": true,
+            "ids": ["65:b"],
+            "action": ""
+          }
+        ]
+      }
+    ];
+    const plain = KeyMap.labels(sections, ["SUPER"]);
+    compare(plain["Return"].label, "Terminal");
+    compare(plain["Return"].source, "axiom");
+    compare(plain["Return"].action, "terminal");
+    verify(plain["b"] === undefined, "needs SHIFT too");
+    compare(KeyMap.labels(sections, ["SUPER", "SHIFT"])["b"].source, "user");
+  }
 }

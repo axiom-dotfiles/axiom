@@ -51,7 +51,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match · in: `components/views/keybinds/BindInspector.qml`, `components/views/keybinds/BindListRow.qml`, `components/views/keybinds/BindSection.qml`, `config/KeybindsConfig.qml`
 - **`Keybinds.binds[].description`** · string = ""
   - Description: Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write "Section: Label".
-  - read: entry field, name match · in: `components/views/keybinds/BindInspector.qml`, `components/views/keybinds/BindListRow.qml`, `components/views/keybinds/PresetSheet.qml`
+  - read: entry field, name match · in: `components/views/keybinds/BindInspector.qml`, `components/views/keybinds/PresetSheet.qml`
 
 ### Reader members
 

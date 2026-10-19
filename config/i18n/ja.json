@@ -3294,6 +3294,25 @@
     "{0}: added {1}": "",
     "Kept in the list but not bound.": "",
     "Scroll along the layout": "",
-    "scrollStep": ""
+    "scrollStep": "",
+    "Look up a combo": "",
+    "Show every bind": "",
+    "Comfortable rows": "",
+    "Compact rows": "",
+    "Modifiers as words": "",
+    "Modifiers as symbols": "",
+    "Nothing is bound to {0}": "",
+    "Bind it": "",
+    "Axiom's \"{0}\" is skipped: this bind holds its key": "",
+    "The modifiers held on the keyboard view.": "",
+    "The binds by section, or a keyboard showing what each key does under the modifiers below.": "",
+    "CTRL": "",
+    "View": "",
+    "Keyboard modifiers": "",
+    "keyboard": "",
+    "List": "",
+    "ALT": "",
+    "SHIFT": "",
+    "SUPER": ""
   }
 }

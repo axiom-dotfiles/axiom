@@ -1,61 +1,182 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import qs.config
-import qs.components.methods
+import qs.services
 import qs.components.reusable
 
-// One action: its label on the left, its key combos on the right,
-// alternatives separated by a slash
-RowLayout {
+// One action of the keybinds reference: its key combos on the left
+// (alternatives separated by a slash; a folded direction set as one
+// keycap), and on the right a warning where it holds the key of an axiom
+// bind that was skipped, its action's icon (a person for the user's own
+// binds) and its label. An axiom bind's row opens it in the editor.
+Item {
   id: root
 
-  // { label, combos: [{ mods: ["SUPER"], keys: ["H", "←"] }] } (KeybindManager)
+  // { label, combos: [{ mods, keys, cluster? }], axiom, user, ids, action,
+  // overrides } (KeybindManager.keybindings)
   required property var bind
+  // The modifiers its section's sub-group shows above it, left out of its
+  // first combo
+  property var groupMods: []
+  // The key column's width (the widest in the section), or -1 for its own
+  property real keyWidth: -1
+  readonly property real keyImplicitWidth: keys.implicitWidth
+  // The label column's width (the widest in the section, so the labels end
+  // against the card and the icons line up), or -1 to fill the row
+  property real labelWidth: -1
+  readonly property real labelImplicitWidth: label.implicitWidth
+
+  readonly property bool compact: KeybindManager.refDensity === "compact"
+  readonly property bool glyphs: KeybindManager.refGlyphs
+  readonly property int bindIndex: root.bind.axiom ? KeybindManager.bindIndexFor(root.bind.ids) : -1
+  readonly property bool editable: root.bindIndex >= 0
+
+  signal editRequested(int bindIndex)
 
   Layout.fillWidth: true
-  spacing: Widget.spacing * 2
+  implicitWidth: line.implicitWidth + Widget.padding
+  implicitHeight: line.implicitHeight + (root.compact ? 2 : Widget.spacing)
 
-  StyledText {
-    text: root.bind.label || I18n.tr("No description")
-    opacity: root.bind.label ? 1 : 0.5
-    elide: Text.ElideRight
-    Layout.fillWidth: true
+  Rectangle {
+    anchors.fill: parent
+    radius: Widget.radius / 2
+    color: Qt.alpha(Theme.backgroundHighlight, root.editable && area.containsMouse ? 0.6 : 0)
+
+    ColorGlide on color {
+      duration: Appearance.animFast
+    }
   }
 
-  Repeater {
-    model: root.bind.combos
+  MouseArea {
+    id: area
+    anchors.fill: parent
+    enabled: root.editable
+    hoverEnabled: true
+    cursorShape: Qt.PointingHandCursor
+    onClicked: root.editRequested(root.bindIndex)
+  }
 
-    delegate: RowLayout {
-      id: combo
-      required property var modelData
-      required property int index
+  RowLayout {
+    id: line
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.leftMargin: Widget.padding / 2
+    anchors.rightMargin: Widget.padding / 2
+    anchors.verticalCenter: parent.verticalCenter
+    spacing: Widget.spacing * 1.5
+
+    Row {
+      id: keys
+      Layout.preferredWidth: root.keyWidth >= 0 ? root.keyWidth : implicitWidth
       spacing: Widget.spacing / 2
 
-      StyledText {
-        visible: combo.index > 0
-        text: "/"
-        opacity: 0.4
-        Layout.rightMargin: Widget.spacing / 2
-      }
-
       Repeater {
-        model: combo.modelData.mods
+        model: root.bind.combos
 
-        delegate: KeyCap {
-          required property string modelData
-          text: KeyNames.modifierLabel(modelData)
-        }
-      }
+        delegate: Row {
+          id: combo
+          required property var modelData
+          required property int index
+          readonly property bool ownMods: combo.index > 0 || combo.modelData.mods.join("+") !== root.groupMods.join("+")
+          // A folded direction set's alternatives, else each key alone
+          readonly property var alternatives: combo.modelData.cluster ?? combo.modelData.keys.map(key => [key])
+          anchors.verticalCenter: parent?.verticalCenter
+          spacing: Widget.spacing / 2
 
-      Repeater {
-        model: combo.modelData.keys
+          Slash {
+            visible: combo.index > 0
+          }
 
-        delegate: KeyCap {
-          required property string modelData
-          text: modelData
+          ModifierCap {
+            visible: combo.ownMods && combo.modelData.mods.length > 0
+            anchors.verticalCenter: parent.verticalCenter
+            mods: combo.modelData.mods
+            glyphs: root.glyphs
+            compact: root.compact
+          }
+
+          Repeater {
+            model: combo.alternatives
+
+            delegate: Row {
+              id: alternative
+              required property var modelData
+              required property int index
+              anchors.verticalCenter: parent?.verticalCenter
+              spacing: Widget.spacing / 2
+
+              Slash {
+                visible: alternative.index > 0
+              }
+
+              KeyCap {
+                visible: alternative.modelData.length === 1
+                anchors.verticalCenter: parent.verticalCenter
+                text: alternative.modelData[0] ?? ""
+                compact: root.compact
+              }
+
+              KeyCluster {
+                visible: alternative.modelData.length > 1
+                anchors.verticalCenter: parent.verticalCenter
+                keys: alternative.modelData
+                compact: root.compact
+              }
+            }
+          }
         }
       }
     }
+
+    Item {
+      visible: root.labelWidth >= 0
+      Layout.fillWidth: true
+      Layout.minimumWidth: 0
+    }
+
+    StyledIcon {
+      id: warning
+      visible: root.bind.overrides !== ""
+      text: "warning"
+      textColor: Theme.warning
+      textSize: Appearance.fontSize - 1
+
+      HoverHandler {
+        id: warningHover
+      }
+
+      LazyLoader {
+        active: warningHover.hovered
+        StyledToolTip {
+          target: warning
+          text: I18n.tr("Axiom's \"{0}\" is skipped: this bind holds its key", root.bind.overrides)
+        }
+      }
+    }
+
+    StyledIcon {
+      text: root.bind.action ? KeybindManager.actionIcon(root.bind.action) : (root.bind.user ? "person" : "keyboard")
+      textColor: root.bind.action ? Theme.accent : Theme.foregroundAlt
+      textSize: Appearance.fontSize - 1
+      opacity: root.bind.action ? 1 : 0.6
+    }
+
+    StyledText {
+      id: label
+      text: root.bind.label || I18n.tr("No description")
+      opacity: root.bind.label ? 1 : 0.5
+      elide: Text.ElideRight
+      Layout.fillWidth: root.labelWidth < 0
+      Layout.preferredWidth: root.labelWidth < 0 ? -1 : root.labelWidth
+      Layout.minimumWidth: 0
+    }
+  }
+
+  component Slash: StyledText {
+    anchors.verticalCenter: parent.verticalCenter
+    text: "/"
+    opacity: 0.4
   }
 }

@@ -19,6 +19,9 @@ BaseView {
   id: root
 
   readonly property bool editing: KeybindManager.editing
+  readonly property bool keyboard: !root.editing && KeybindManager.refView === "keyboard"
+  // A combo pressed to look up, by its id ("" for none)
+  readonly property string lookupId: BindKeys.keyId(KeybindManager.lookupCombo)
   readonly property real inspectorWidth: root.sideWidth * 1.45
   // The list beside it: rows need little room, so three quarters of an
   // editor's width (narrower still where the screen has no room for both)
@@ -26,27 +29,33 @@ BaseView {
 
   Component.onCompleted: KeybindManager.ensureLoaded()
 
-  readonly property int columnCount: Math.max(1, Math.floor(root.cardPageWidth / (root.grid.unit * 0.8)))
+  readonly property int columnCount: Math.max(1, Math.floor((root.listWidth + root.inspectorWidth) / (root.grid.unit * 0.8)))
 
   readonly property string query: KeybindManager.query.trim()
 
   // From the binds, the search and the chips only, so nothing rebuilds
   // while it's shown
   readonly property var sections: KeybindFilter.filter(KeybindManager.keybindings, root.query, {
-    "sections": KeybindManager.sectionFilter,
     "mods": KeybindManager.modFilter,
-    "sources": KeybindManager.sourceFilter
+    "sources": KeybindManager.sourceFilter,
+    "ids": root.lookupId !== "" ? [root.lookupId] : null
   })
+  readonly property bool narrowed: root.query !== "" || KeybindManager.filtering || root.lookupId !== ""
+
+  // The shown sections' cards, by KeybindFilter.sectionKey, for the jump
+  // chips
+  property var _sectionItems: ({})
 
   readonly property int shownCount: root.sections.reduce((sum, section) => sum + section.binds.length, 0)
-  readonly property int totalCount: KeybindManager.sectionOptions.reduce((sum, option) => sum + option.count, 0)
+  readonly property int totalCount: KeybindManager.keybindings.reduce((sum, section) => sum + section.binds.length, 0)
 
   // Masonry: each section goes to the shortest column, by row count
   readonly property var columns: KeybindFilter.columns(root.sections, root.columnCount)
 
   Item {
     id: listSide
-    implicitWidth: root.editing ? root.listWidth : root.cardPageWidth
+    // The list alone takes the editor's whole width, so switching keeps it
+    implicitWidth: root.editing ? root.listWidth : root.listWidth + root.inspectorWidth + OverlayConfig.cardSpacing
     implicitHeight: root.pageHeight
 
     TitledCard {
@@ -61,28 +70,30 @@ BaseView {
 
           SegmentRow {
             Repeater {
-              // I18n.tr("All binds") I18n.tr("Edit axiom binds")
-              model: ["All binds", "Edit axiom binds"]
+              // I18n.tr("All binds") I18n.tr("Keyboard") I18n.tr("Edit axiom binds")
+              model: ["All binds", "Keyboard", "Edit axiom binds"]
 
               delegate: SegmentButton {
                 required property string modelData
                 required property int index
-                readonly property bool selected: root.editing === (index === 1)
+                readonly property bool selected: index === 2 ? root.editing : !root.editing && root.keyboard === (index === 1)
                 implicitHeight: Widget.height
-                text: I18n.tr(modelData) + (index === 1 && KeybindManager.isDirty ? "  •" : "")
+                text: I18n.tr(modelData) + (index === 2 && KeybindManager.isDirty ? "  •" : "")
                 active: selected
                 Layout.fillWidth: false
                 onClicked: {
-                  if (index === 0)
+                  if (index < 2) {
                     KeybindManager.stopRecording();
-                  KeybindManager.editing = index === 1;
+                    KeybindManager.setRefView(index === 1 ? "keyboard" : "list");
+                  }
+                  KeybindManager.editing = index === 2;
                 }
               }
             }
           }
 
           StyledTextEntry {
-            visible: !root.editing
+            visible: !root.editing && !root.keyboard
             Layout.fillWidth: true
             Layout.preferredHeight: Widget.height
             placeholderText: I18n.tr("Search keybinds")
@@ -124,23 +135,87 @@ BaseView {
             onClicked: KeybindManager.addAndStartRecording({})
           }
 
+          Item {
+            visible: root.keyboard
+            Layout.fillWidth: true
+          }
+
+          // Press a combo to see what it does
+          KeyRecorder {
+            visible: !root.editing && !root.keyboard
+            Layout.preferredWidth: root.grid.unit * 0.55
+            bindIndex: KeybindManager.lookupIndex
+            combo: KeybindManager.lookupCombo
+            placeholder: I18n.tr("Look up a combo")
+          }
+
+          StyledIconButton {
+            visible: !root.editing && KeybindManager.lookupCombo !== ""
+            Layout.fillWidth: false
+            Layout.fillHeight: false
+            Layout.preferredWidth: Widget.height
+            Layout.preferredHeight: Widget.height
+            iconText: "close"
+            tooltipText: I18n.tr("Show every bind")
+            onClicked: KeybindManager.lookupCombo = ""
+          }
+
+          StyledIconButton {
+            visible: !root.editing && !root.keyboard
+            Layout.fillWidth: false
+            Layout.fillHeight: false
+            Layout.preferredWidth: Widget.height
+            Layout.preferredHeight: Widget.height
+            iconText: KeybindManager.refDensity === "compact" ? "density_small" : "density_medium"
+            tooltipText: KeybindManager.refDensity === "compact" ? I18n.tr("Comfortable rows") : I18n.tr("Compact rows")
+            onClicked: KeybindManager.setRefDensity(KeybindManager.refDensity === "compact" ? "comfortable" : "compact")
+          }
+
+          StyledIconButton {
+            visible: !root.editing && !root.keyboard
+            Layout.fillWidth: false
+            Layout.fillHeight: false
+            Layout.preferredWidth: Widget.height
+            Layout.preferredHeight: Widget.height
+            iconText: "keyboard_command_key"
+            iconColor: KeybindManager.refGlyphs ? Theme.accent : Theme.foreground
+            tooltipText: KeybindManager.refGlyphs ? I18n.tr("Modifiers as words") : I18n.tr("Modifiers as symbols")
+            onClicked: KeybindManager.setRefGlyphs(!KeybindManager.refGlyphs)
+          }
+
           StyledText {
-            visible: !root.editing
-            text: root.query !== "" || KeybindManager.filtering ? I18n.tr("{0} of {1} binds", root.shownCount, root.totalCount) : I18n.tr("{0} binds", root.totalCount)
+            visible: !root.editing && !root.keyboard
+            text: root.narrowed ? I18n.tr("{0} of {1} binds", root.shownCount, root.totalCount) : I18n.tr("{0} binds", root.totalCount)
             opacity: 0.6
           }
         },
+        // Jump to a section
+        Flow {
+          visible: !root.editing && !root.keyboard && root.sections.length > 1
+          Layout.fillWidth: true
+          spacing: Widget.spacing
+
+          Repeater {
+            model: root.sections
+
+            delegate: StyledTextButton {
+              required property var modelData
+              readonly property string key: KeybindFilter.sectionKey(modelData)
+              implicitHeight: Widget.height
+              iconText: modelData.undescribed ? "help" : KeybindManager.sectionIcon(modelData.title)
+              text: (modelData.undescribed ? I18n.tr("Undescribed") : (modelData.title ? I18n.tr(modelData.title) : I18n.tr("Other"))) + "  " + modelData.binds.length
+              onClicked: {
+                const item = root._sectionItems[key];
+                if (item)
+                  listCard.scrollTo(item);
+              }
+            }
+          }
+        },
         FilterChips {
-          visible: !root.editing
+          visible: !root.editing && !root.keyboard
           Layout.fillWidth: true
           groups: [
-            {
-              "id": "section",
-              "options": KeybindManager.sectionOptions.map(option => ({
-                    "value": option.key,
-                    "label": (option.undescribed ? I18n.tr("Undescribed") : (option.title || I18n.tr("Other"))) + "  " + option.count
-                  }))
-            },
             {
               "id": "mod",
               "options": KeybindManager.modOptions.map(mod => ({
@@ -163,7 +238,6 @@ BaseView {
             }
           ]
           selection: ({
-              "section": KeybindManager.sectionFilter,
               "mod": KeybindManager.modFilter,
               "source": KeybindManager.sourceFilter
             })
@@ -225,15 +299,37 @@ BaseView {
       }
 
       StyledText {
-        visible: !root.editing && (root.query !== "" || KeybindManager.filtering) && root.sections.length === 0
-        text: root.query !== "" ? I18n.tr("No keybinds match \"{0}\"", root.query) : I18n.tr("No keybinds match the filters")
+        visible: !root.editing && !root.keyboard && root.narrowed && root.sections.length === 0
+        text: root.lookupId !== "" ? I18n.tr("Nothing is bound to {0}", KeybindManager.displayCombo(KeybindManager.lookupCombo)) : root.query !== "" ? I18n.tr("No keybinds match \"{0}\"", root.query) : I18n.tr("No keybinds match the filters")
         opacity: 0.6
         Layout.fillWidth: true
         Layout.topMargin: Widget.padding
       }
 
+      StyledTextButton {
+        visible: !root.editing && !root.keyboard && root.lookupId !== "" && root.sections.length === 0
+        implicitHeight: Widget.height
+        iconText: "add"
+        text: I18n.tr("Bind it")
+        onClicked: {
+          const combo = KeybindManager.lookupCombo;
+          KeybindManager.lookupCombo = "";
+          KeybindManager.editing = true;
+          KeybindManager.addBind({
+            "key": combo
+          });
+        }
+      }
+
+      KeyboardReference {
+        visible: root.keyboard
+        Layout.fillWidth: true
+        sections: KeybindManager.keybindings
+        onEditRequested: bindIndex => KeybindManager.editBind(bindIndex)
+      }
+
       RowLayout {
-        visible: !root.editing
+        visible: !root.editing && !root.keyboard
         Layout.fillWidth: true
         spacing: Widget.spacing * 2
 
@@ -252,8 +348,16 @@ BaseView {
               model: root.columns[column.index]
 
               delegate: KeybindSection {
+                id: sectionCard
                 required property var modelData
+                readonly property string key: KeybindFilter.sectionKey(modelData)
                 section: modelData
+                onEditRequested: bindIndex => KeybindManager.editBind(bindIndex)
+                Component.onCompleted: root._sectionItems[sectionCard.key] = sectionCard
+                Component.onDestruction: {
+                  if (root._sectionItems[sectionCard.key] === sectionCard)
+                    delete root._sectionItems[sectionCard.key];
+                }
               }
             }
           }
