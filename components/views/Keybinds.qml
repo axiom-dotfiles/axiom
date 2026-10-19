@@ -9,14 +9,17 @@ import qs.components.content.base
 import qs.components.content.parts
 import qs.components.views.keybinds
 
-// The keybinds page: Hyprland's binds by section, as cards in columns,
-// with a search over labels, sections and keys and toggle chips by section,
-// modifier and source (KeybindFilter); or the editor for axiom's own binds
-// (BindEditor)
+// The keybinds page: the compositor's binds by section, as cards in
+// columns, with a search over labels, sections and keys and toggle chips
+// by section, modifier and source (KeybindFilter); or the editor for
+// axiom's own binds: their list by section (BindEditor) beside an
+// inspector for the selected one (BindInspector), or with none selected,
+// the key map (KeyMapPanel)
 BaseView {
   id: root
 
   readonly property bool editing: KeybindManager.editing
+  readonly property real inspectorWidth: root.sideWidth * 1.3
 
   Component.onCompleted: KeybindManager.ensureLoaded()
 
@@ -39,15 +42,14 @@ BaseView {
   readonly property var columns: KeybindFilter.columns(root.sections, root.columnCount)
 
   Item {
-    implicitWidth: root.cardPageWidth
+    id: listSide
+    implicitWidth: root.editing ? root.editorWidth : root.cardPageWidth
     implicitHeight: root.pageHeight
 
     TitledCard {
+      id: listCard
       title: I18n.tr("Keybinds")
-      showActions: root.editing
-      dirty: KeybindManager.isDirty
-      onSave: KeybindManager.save()
-      onReset: KeybindManager.reset()
+      showActions: false
 
       headerExtras: [
         RowLayout {
@@ -85,9 +87,38 @@ BaseView {
             onTextChanged: KeybindManager.query = text
           }
 
-          Item {
+          StyledTextEntry {
+            id: editSearch
             visible: root.editing
             Layout.fillWidth: true
+            Layout.preferredHeight: Widget.height
+            placeholderText: I18n.tr("Search binds by key, action or label")
+            Component.onCompleted: input.text = KeybindManager.editQuery
+            onTextChanged: KeybindManager.editQuery = text
+            // Add bind clears the search
+            Connections {
+              target: KeybindManager
+              function onEditQueryChanged() {
+                if (editSearch.input.text !== KeybindManager.editQuery)
+                  editSearch.input.text = KeybindManager.editQuery;
+              }
+            }
+          }
+
+          StyledTextButton {
+            visible: root.editing
+            implicitHeight: Widget.height
+            iconText: "playlist_add"
+            text: I18n.tr("Presets")
+            onClicked: presetSheet.open()
+          }
+
+          StyledTextButton {
+            visible: root.editing
+            implicitHeight: Widget.height
+            iconText: "add"
+            text: I18n.tr("Add bind")
+            onClicked: KeybindManager.addAndStartRecording({})
           }
 
           StyledText {
@@ -136,6 +167,48 @@ BaseView {
           filtering: KeybindManager.filtering
           onToggled: (group, value) => KeybindManager.toggleFilter(group, value)
           onCleared: KeybindManager.clearFilters()
+        },
+        FilterChips {
+          visible: root.editing && KeybindManager.binds.length > 0
+          Layout.fillWidth: true
+          groups: [
+            {
+              "id": "editSection",
+              "options": KeybindManager.editSectionOptions.map(option => ({
+                    "value": option.key,
+                    "label": I18n.tr(option.title) + "  " + option.count
+                  }))
+            },
+            {
+              "id": "editMod",
+              "options": KeybindManager.editModOptions.map(mod => ({
+                    "value": mod,
+                    "label": KeyNames.modifierLabel(mod)
+                  }))
+            },
+            {
+              "id": "editIssues",
+              "options": KeybindManager.issueCount > 0 || KeybindManager.editIssuesOnly ? [
+                {
+                  "value": "issues",
+                  "label": I18n.tr("With issues") + "  " + KeybindManager.issueCount
+                }
+              ] : []
+            }
+          ]
+          selection: ({
+              "editSection": KeybindManager.editSectionFilter,
+              "editMod": KeybindManager.editModFilter,
+              "editIssues": KeybindManager.editIssuesOnly ? ["issues"] : []
+            })
+          filtering: KeybindManager.editFiltering
+          onToggled: (group, value) => {
+            if (group === "editIssues")
+              KeybindManager.editIssuesOnly = !KeybindManager.editIssuesOnly;
+            else
+              KeybindManager.toggleFilter(group, value);
+          }
+          onCleared: KeybindManager.clearEditFilters()
         }
       ]
 
@@ -143,7 +216,9 @@ BaseView {
         active: root.editing
         visible: active
         Layout.fillWidth: true
-        sourceComponent: BindEditor {}
+        sourceComponent: BindEditor {
+          scrollTo: item => listCard.scrollTo(item)
+        }
       }
 
       StyledText {
@@ -180,6 +255,44 @@ BaseView {
             }
           }
         }
+      }
+    }
+
+    PresetSheet {
+      id: presetSheet
+      width: listSide.width - Widget.padding * 4
+      height: listSide.height * 0.8
+      x: (listSide.width - width) / 2
+      y: (listSide.height - height) / 2
+    }
+  }
+
+  // The selected bind, or the key map; Save and Discard for the page
+  Item {
+    visible: root.editing
+    implicitWidth: root.inspectorWidth
+    implicitHeight: root.pageHeight
+
+    TitledCard {
+      title: KeybindManager.selectedIndex >= 0 ? I18n.tr("Bind") : I18n.tr("Key map")
+      showActions: true
+      dirty: KeybindManager.isDirty
+      onSave: KeybindManager.save()
+      onReset: KeybindManager.reset()
+
+      Repeater {
+        model: root.editing && KeybindManager.selectedIndex >= 0 ? [KeybindManager.selectedIndex] : []
+
+        delegate: BindInspector {
+          required property int modelData
+          bindIndex: modelData
+          Layout.fillWidth: true
+        }
+      }
+
+      KeyMapPanel {
+        visible: root.editing && KeybindManager.selectedIndex < 0
+        Layout.fillWidth: true
       }
     }
   }

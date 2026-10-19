@@ -87,4 +87,6 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `scratchpad` | a scratchpad (sway's), standing in for the special workspace in those binds |
 | `mouseBinds` | binds on mouse buttons (`mouseDrag`, `mouseResize`) |
 | `pseudoTile` | the `pseudo` bind |
+| `splitToggle` | the `toggleSplit` bind (Hyprland's dwindle layout: on its scrolling layout the bind gets an info note) |
+| `pin` | the `pin` bind (a floating window shown on every workspace) |
 | `windowGroups` | the `toggleGroup` bind |

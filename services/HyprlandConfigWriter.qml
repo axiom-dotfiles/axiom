@@ -125,7 +125,7 @@ Singleton {
       "header": _header,
       "includeLines": includeLines,
       "requiredSettings": CompositorConfig.requiredSettings,
-      "binds": HyprConfigLua.bindLines(KeybindsConfig.binds, _bindCtx),
+      "binds": HyprConfigLua.bindLines(KeybindsConfig.activeBinds, _bindCtx),
       "look": HyprLua.lookLua(spec.look, schema?.WindowLook),
       "input": HyprLua.inputLua(spec.input, schema?.Input),
       "blur": HyprLua.blurLua(spec.surfaces),

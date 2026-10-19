@@ -34,6 +34,7 @@ QtObject {
       "moveWindowStepSilent": ["workspaces step {0} moveSilent", "Send window {0}", "Workspace"],
       "moveWindowNth": ["workspaces nth {0} move", "Move window to workspace {0}", "Workspace"],
       "moveWindowNthSilent": ["workspaces nth {0} moveSilent", "Send window to workspace {0}", "Workspace"],
+      "scrollStep": ["workspaces scroll {0}", "Scroll {0}", "Workspace"],
       "volumeUp": ["audio volumeUp", "Volume up", "Media"],
       "volumeDown": ["audio volumeDown", "Volume down", "Media"],
       "toggleMute": ["audio toggleMute", "Mute", "Media"],
@@ -126,7 +127,9 @@ QtObject {
   // The compositor capabilities (CompositorManager.supports) an action
   // needs, any one of them; actions not listed work everywhere
   readonly property var needs: ({
+      "pin": ["pin"],
       "pseudo": ["pseudoTile"],
+      "toggleSplit": ["splitToggle"],
       "toggleGroup": ["windowGroups"],
       "stripSwapColumn": ["strips"],
       "stripWider": ["strips"],
@@ -228,6 +231,7 @@ QtObject {
       "workspaceNth": "workspace",
       "moveWindowNth": "workspace",
       "moveWindowNthSilent": "workspace",
+      "scrollStep": "direction",
       "focusDir": "direction",
       "moveWindowDir": "direction",
       "stripSwapColumn": "direction",

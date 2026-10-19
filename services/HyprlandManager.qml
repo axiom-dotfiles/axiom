@@ -74,6 +74,8 @@ Singleton {
       "namedSpecial": true,
       "mouseBinds": true,
       "pseudoTile": true,
+      "splitToggle": true,
+      "pin": true,
       "windowGroups": true,
       "outputProfiles": true
     })

@@ -4,7 +4,7 @@
 
 ## Keybinds
 
-Keybinds are edited on the overlay's **Keybinds** page. Filter by section or modifier, sort, search, and record a key by pressing it.
+Keybinds are edited on the overlay's **Keybinds** page: the binds by section on the left, the selected one in full on the right. Search, filter by section or modifier, record a key by pressing it, and drag a bind to reorder it. With nothing selected, the right side is a key map of which keys are free under the modifiers you pick: click a free key to bind it. A bind's switch pauses it (kept in the list, but not bound), and a section's switch pauses all of it. **Presets** shows what each set of binds would add or replace before you apply it; a removal or preset can be undone until you save.
 
 A bind can run:
 - any IPC action below
@@ -14,7 +14,7 @@ A bind can run:
 
 It can repeat while held, work while locked, or fire on release. A description like `Workspace: Switch left` puts the bind in its own section on the page.
 
-**Presets** add a set of binds in one click, skipping any key you already use:
+**Presets** add a set of binds in one click, skipping any key you already use (Southpaw, marked ⇄, rebinds its keys instead):
 
 | Preset | Binds |
 | --- | --- |
@@ -22,9 +22,10 @@ It can repeat while held, work while locked, or fire on release. A description l
 | Workspaces 1–N | <kbd>Super</kbd> + number goes to a workspace, with <kbd>Shift</kbd> it takes the window along |
 | Grid with WASD | <kbd>Super</kbd> + <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> moves around the grid, with <kbd>Shift</kbd> it takes the window along |
 | Grid with arrows / Previous and next | <kbd>Super</kbd> + <kbd>Ctrl</kbd> + arrows moves around the grid (or steps through workspaces), with <kbd>Shift</kbd> it takes the window along |
-| Window management | <kbd>Super</kbd> + <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> moves focus, with <kbd>Shift</kbd> the window, with <kbd>Alt</kbd> resizes it; close, fullscreen, floating and mouse drag |
+| Window management | <kbd>Super</kbd> + <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> moves focus, with <kbd>Shift</kbd> the window, with <kbd>Alt</kbd> resizes it; close, fullscreen, floating, mouse drag, and <kbd>Super</kbd> + scroll along the strip (or through the workspaces) |
+| Southpaw (grid or per-monitor workspaces) | <kbd>Super</kbd> + <kbd>W</kbd> / <kbd>S</kbd> up and down the workspaces, <kbd>H</kbd> / <kbd>L</kbd> left and right (the next monitor with per-monitor workspaces), <kbd>A</kbd> <kbd>D</kbd> <kbd>J</kbd> <kbd>K</kbd> move focus; with <kbd>Shift</kbd> the window goes along |
 | Window switcher | <kbd>Alt</kbd> + <kbd>Tab</kbd> steps through your windows, most recently used first, with <kbd>Shift</kbd> backwards; releasing <kbd>Alt</kbd> picks |
-| Strips (with a strip monitor) | <kbd>Super</kbd> + <kbd>[</kbd> / <kbd>]</kbd> swaps columns, <kbd>Super</kbd> + <kbd>=</kbd> / <kbd>-</kbd> steps the width, <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>F</kbd> fits the visible columns, <kbd>Super</kbd> + scroll moves focus along the strip |
+| Strips (with a strip monitor) | <kbd>Super</kbd> + <kbd>[</kbd> / <kbd>]</kbd> swaps columns, <kbd>Super</kbd> + <kbd>=</kbd> / <kbd>-</kbd> steps the width, <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>F</kbd> fits the visible columns, <kbd>Super</kbd> + scroll moves focus along the strip (the strip binds are also in the defaults) |
 | Media keys | Volume, mute, brightness and playback keys, through axiom so the OSD shows |
 
 The page only offers actions your compositor can do. In managed mode, **Merge** moves the binds from your own files in the compositor's `user/` folder onto this page.
@@ -48,7 +49,7 @@ qs -c axiom ipc call <target> <function>
 | `appLauncher` | `open`, `close`, `toggle`, `search <text>` |
 | `powermenu` | `open`, `close`, `toggle` |
 | `workspaceOverlay` | `open`, `hide`, `toggle` |
-| `workspaces` | `go <id>`, `move <id>`, `moveSilent <id>`, `left`, `right`, `up`, `down`, `step <direction> <mode>`, `nth <n> <mode>`, `reconcile` |
+| `workspaces` | `go <id>`, `move <id>`, `moveSilent <id>`, `left`, `right`, `up`, `down`, `step <direction> <mode>`, `scroll <direction>`, `nth <n> <mode>`, `reconcile` |
 | `windowSwitcher` | `next`, `previous`, `commit`, `cancel` (for scripts: the Alt+Tab bind doesn't need them) |
 | `idleInhibit` | `enable`, `disable`, `toggle`, `status` |
 | `nightLight` | `enable`, `disable`, `toggle`, `status` |

@@ -15,4 +15,6 @@ QtObject {
   // re-apply the binds.
   readonly property string _bindsJson: JSON.stringify(_c.binds)
   readonly property var binds: JSON.parse(_bindsJson)
+  // The binds to bind: all but the paused ones, which stay in the list
+  readonly property var activeBinds: binds.filter(bind => !bind.paused)
 }

@@ -73,5 +73,6 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 - `nthWorkspace(n, mode)`: The n-th workspace (1-based) of the current row in a grid or perMonitor layout, or workspace n in the standard layout (number keybinds)
 - `stripDirection(screenName)`: "horizontal" | "vertical" on a strip monitor (its name), else "", always "" where the compositor has no strips (a config from Hyprland may still list them), always "horizontal" where it has nothing e…
 - `stepStrip(direction, output)`: Scrolls the strip of an output's active workspace a column on (1) or back (-1).
+- `scrollStep(direction)`: A scroll bind's step (the scrollStep action): along the focused output's strip where it has one (focus follows), else to the workspace that way.
 - `workspaceBase(output)`: First workspace id an output (its name) shows: 1 in the standard layout, else its block's (grid/perMonitor, one block per output in a stable order — the primary first, then the rest by a description-…
 - `workspaceIds(output)`: The workspace ids an output (its name) shows, in order: the layout's, or the ones the compositor has where they're dynamic

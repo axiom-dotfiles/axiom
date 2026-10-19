@@ -554,6 +554,16 @@ Singleton {
       root.backend.scrollStrip(direction);
   }
 
+  // A scroll bind's step (the scrollStep action): along the focused
+  // output's strip where it has one (focus follows), else to the workspace
+  // that way. Right and down go forward.
+  function scrollStep(direction) {
+    if (root.stripDirection(root.focusedOutput) !== "")
+      root.stepStrip(direction === "right" || direction === "down" ? 1 : -1, root.focusedOutput);
+    else
+      root.stepWorkspace(direction, "go");
+  }
+
   // The last workspace gone to, for a moment: key presses can come faster
   // than the compositor reports the switch
   property var _lastGo: ({
@@ -718,6 +728,12 @@ Singleton {
     // direction: left, right, up or down
     function step(direction: string, mode: string): void {
       root.stepWorkspace(direction, mode);
+    }
+
+    // A column along the focused output's strip, else a workspace step
+    // (scrollStep); direction: left, right, up or down
+    function scroll(direction: string): void {
+      root.scrollStep(direction);
     }
 
     function left(): void {

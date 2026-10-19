@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 69
+  readonly property int currentVersion: 70
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -165,6 +165,8 @@ QtObject {
       result = _v67ToV68(result, changes);
     if (version < 69)
       result = _v68ToV69(result, changes);
+    if (version < 70)
+      result = _v69ToV70(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -677,8 +679,11 @@ QtObject {
 
   // A saved bind list gets these default binds, each only on a key it
   // doesn't use yet
-  function _addBinds(config, changes, added) {
-    const binds = config.Hyprland?.binds;
+  // Adds `added` to the binds of `section` (Hyprland's until v60, then
+  // Keybinds), skipping keys already bound
+  function _addBinds(config, changes, added, section) {
+    const key = section ?? "Hyprland";
+    const binds = config[key]?.binds;
     if (!Array.isArray(binds))
       return config;
     const used = new Set(binds.map(bind => BindKeys.keyId(bind?.key)));
@@ -688,7 +693,7 @@ QtObject {
         continue;
       binds.push(JSON.parse(JSON.stringify(bind)));
       used.add(id);
-      changes.push(`Hyprland.binds: added ${bind.key} (${bind.action})`);
+      changes.push(`${key}.binds: added ${bind.key} (${bind.action})`);
     }
     return config;
   }
@@ -2312,5 +2317,49 @@ QtObject {
       changes.push(`${each.key}.enabled -> ${each.key}.${each.list}[].enabled`);
     }
     return config;
+  }
+
+  // v70 added the strip binds, SUPER + scroll along the layout
+  // (scrollStep) and the media stop key to the default binds
+  function _v69ToV70(config, changes) {
+    return root._addBinds(config, changes, [
+      {
+        "key": "SUPER + mouse_down",
+        "action": "scrollStep",
+        "argument": "right"
+      },
+      {
+        "key": "SUPER + mouse_up",
+        "action": "scrollStep",
+        "argument": "left"
+      },
+      {
+        "key": "SUPER + bracketleft",
+        "action": "stripSwapColumn",
+        "argument": "left"
+      },
+      {
+        "key": "SUPER + bracketright",
+        "action": "stripSwapColumn",
+        "argument": "right"
+      },
+      {
+        "key": "SUPER + equal",
+        "action": "stripWider"
+      },
+      {
+        "key": "SUPER + minus",
+        "action": "stripNarrower"
+      },
+      {
+        "key": "SUPER + CTRL + F",
+        "action": "stripFit"
+      },
+      {
+        "key": "XF86AudioStop",
+        "action": "mediaStop",
+        "locked": true
+      }
+    ], "Keybinds");
   }
 }

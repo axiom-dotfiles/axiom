@@ -14,7 +14,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Workspaces.layout`** · string = "perMonitor" · enum standard|perMonitor|grid|scrolling
   - Layout: Standard: workspaces 1 to N, shared by every monitor. Per monitor: each monitor has its own 1 to N workspaces. Grid: each monitor has its own columns × rows workspaces. Scrolling, as on niri: each monitor has a column of workspaces, made as you fill them and removed once left empty, with an empty one at the end, and every monitor is a horizontal strip whose windows open side by side as columns. Its workspace numbers move as workspaces come and go, so workspace rules naming one don't stay with it. Where the compositor has no strips it works as per monitor. Per monitor, grid and scrolling assign monitors a stable order (the primary monitor first, then the rest by their monitor identity), so a hotplug or Hyprland restart can't reshuffle which monitor owns which ids.
   - x-enabledIf={"anyOf":[{"/$supports.dynamicWorkspaces":false},{"layout":"scrolling…, x-disabledNote=false, x-enumShowIf={"scrolling":{"/$supports.strips":true,"/$supports.stripsAlways":fals…
-  - read: `WorkspacesConfig.layout`, `WorkspacesConfig.grid` (computed), `WorkspacesConfig.perMonitorBlocks` (computed), `WorkspacesConfig.scrolling` (computed) · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorManager.qml`, `services/HyprlandManager.qml`
+  - read: `WorkspacesConfig.layout`, `WorkspacesConfig.grid` (computed), `WorkspacesConfig.perMonitorBlocks` (computed), `WorkspacesConfig.scrolling` (computed) · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `services/KeybindManager.qml`
 - **`Workspaces.count`** · integer = 10 · 1–30
   - Workspaces
   - x-control="stepper", x-enabledIf={"/$supports.dynamicWorkspaces":false}, x-disabledNote=false, x-showIf={"anyOf":[{"layout":["standard","perMonitor"]},{"layout":"scrolling",…
@@ -70,7 +70,7 @@ Every public member of `WorkspacesConfig`, with the files that use it.
 - `WorkspacesConfig.grid` (bool)
   - in: `services/CompositorManager.qml`
 - `WorkspacesConfig.scrolling` (bool)
-  - in: `services/HyprlandManager.qml`
+  - in: `services/HyprlandManager.qml`, `services/KeybindManager.qml`
 - `WorkspacesConfig.perMonitorBlocks` (bool): True when each monitor gets its own block of ids (grid or perMonitor) instead of sharing 1..count (standard).
   - in: `services/CompositorManager.qml`
 - `WorkspacesConfig.count` (int)

@@ -17,24 +17,30 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `sectionOptions` (readonly var): The chips: [{ key, title, undescribed, count }] per section, and the modifiers the binds use, in _modifiers order
 - `modOptions` (readonly var)
 - `editing` (bool): The Keybinds page shows the editor instead of the list
-- `editQuery` (string): The editor's search and sort ("manual" | "key" | "action" | "section"), here so they survive the page reloading.
-- `editSort` (string)
+- `editQuery` (string): The editor's search, here so it survives the page reloading.
 - `editSectionFilter` (var): The editor's chips: sections, modifier names, and only binds with issues
 - `editModFilter` (var)
 - `editIssuesOnly` (bool)
 - `editFiltering` (readonly bool)
-- `reorderable` (readonly bool)
+- `reorderable` (readonly bool): Rows can be dragged into another order only while every bind shows
+- `selectedIndex` (int): The bind the inspector edits, or -1 (the key map shows instead)
+- `selectedBind` (readonly var)
+- `expandedRuns` (var): Numbered runs shown bind by bind (BindGroups.runKey of their first bind -> true), for this session
 - `binds` (readonly var): [{ key, action, argument, description }]
 - `isDirty` (readonly alias)
 - `actions` (readonly var)
 - `actionLabels` (readonly var)
 - `actionSections` (readonly var): The action picker's categories, in tab order ("" is All).
 - `actionInfo` (readonly var): [{ action, label, section, icon }], one per action, in schema order The actions the running compositor can do (BindActions.needs); a saved bind with another keeps it, flagged in `issues`
-- `keylessFirst` (bool): In the sorted views, whether binds with no key go first (after the top Add button) rather than last (after the bottom one)
 - `editSectionOptions` (readonly var): The editor's chips: [{ key, title, count }] per section (actionSections order, then any others), and the modifiers its binds use
 - `editModOptions` (readonly var)
-- `visibleKey` (readonly string): The shown binds' indices, filtered by editQuery and the chips and sorted by editSort, joined: a string only notifies when it changes, so the rows survive edits that leave the order alone
+- `visibleKey` (readonly string): The shown binds' indices, filtered by editQuery and the chips, in the saved order, joined: a string only notifies when it changes, so the rows survive edits that leave the list alone
 - `visibleIndices` (readonly var)
+- `editLayout` (readonly var)
+- `undoText` (readonly string): What Undo would take back, or ""
+- `changedBinds` (readonly var): Per bind, whether it's new or differs from the bind it was when saved
+- `userKeyCounts` (readonly var)
+- `keyMapMods` (var): The modifiers the key map shows the keys under
 - `issues` (readonly var): Per bind: [{ level: "error" | "warning" | "info", text }]; only errors and warnings are issues (issueCount, the issues filter, a row's border)
 - `issueCount` (readonly int)
 - `userConflicts` (readonly var): The binds on keys the user's compositor config binds too
@@ -43,11 +49,17 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `presets` (readonly var): [{ id, title, description, binds }], for the current workspace layout.
 - `recordingIndex` (int): The bind whose key is being recorded, or -1
 
+### Signals
+
+- `revealRequested(int index)`: Asks the list to unfold and scroll to a bind
+
 ### Functions
 
 - `toggleFilter(group, value)`: group: "section" | "mod" | "source", or the editor's "editSection" | "editMod"
 - `clearFilters()`
 - `clearEditFilters()`
+- `selectBind(index)`
+- `toggleRun(key)`
 - `actionIcon(action)`
 - `argumentKind(action)`: What an action's free-text argument is, for its placeholder
 - `needsArgument(action)`
@@ -57,15 +69,23 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `ensureLoaded()`: Loads the draft unless it holds unsaved edits (the page is rebuilt whenever the overlay reopens)
 - `save()`
 - `reset()`
-- `addBind(bind, atTop)`: Adds a bind at the end, or at the start with atTop (the top Add button)
-- `addAndRecord(bind)`: Adds `bind` at the top, then opens the Keybinds page's editor recording its key (the layouts editor's Add a keybind)
+- `revertBind(index)`: Puts a bind back as it was saved, or removes it if it's new
+- `undo()`
+- `dismissUndo()`
+- `addBind(bind)`: Adds a bind at the end and selects it.
+- `addAndStartRecording(bind)`: Adds a bind and records its key
+- `addAndRecord(bind)`: Adds `bind`, then opens the Keybinds page's editor recording its key (the layouts editor's Add a keybind)
+- `duplicateBind(index)`: A copy of a bind after it, with no key yet, selected and recording
 - `removeBind(index)`
-- `moveBind(from, to)`
+- `moveBind(from, to)`: Moves a bind to `to` (its index after the move)
+- `setPaused(indices, on)`: Pauses or resumes binds (a section's, a run's, one)
 - `setField(index, field, value)`
+- `toggleKeyMapMod(mod)`
 - `hasIssue(found)`: Whether a bind's `issues` hold an error or warning, not only notes
 - `removeUserConflicts()`: Removes every bind on a key the user's compositor config binds too (until Save, like any edit).
 - `mergeUserBinds()`
-- `applyPreset(id)`: Adds a preset's binds, skipping keys the list already has.
+- `presetPlan(id)`: What a preset would do, bind by bind: [{ bind, id (its key's BindKeys.keyId), status, takenBy, chosen }].
+- `applyPreset(id, ids)`: Applies a preset's binds whose keys (BindKeys.keyId) are in `ids`: new ones at the end, taken ones in place of the bind on their key.
 - `startRecording(index)`: Meanwhile every key reaches the recorder instead of a bind (CompositorManager.captureKeys)
 - `finishRecording(combo)`
 - `stopRecording()`

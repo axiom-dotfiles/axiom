@@ -259,6 +259,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BarShapes.qml`: The shapes bar widget backgrounds take (Bars[].widgetShape, a slanted or arrow widget's or run's ends by Bars[].widgetEnds), alone or in runs (Bars[].widgetGrouping): which cap each end of a widget gets, how much room i…
 - `BarWidgetStyle.qml`: What a bar widget draws in, by its bar's widget style: { fill, stroke, indicator, text, icon }.
 - `BindActions.qml`: What each keybind action (the schema's Keybinds.binds[].action) is, independent of the compositor: its IPC call into axiom, default label, section on the Keybinds page, calls, starting flags and whether it takes an argu…
+- `BindGroups.qml`: The Keybinds editor's list: axiom's binds grouped by section, and in a section, numbered runs (SUPER + 1 … SUPER + 0 going to workspaces 1–10) folded into one row.
 - `BindKeys.qml`: Binds against what the compositor reports (CompositorManager.withBinds entries: { modmask, key, keycode, description, submap }, the modifiers as X11 mask bits, as Hyprland's `hyprctl binds -j` lists them and SwayConf re…
 - `CalendarEvents.qml`: Pure helpers for calendar events (see CalendarManager): day keys, which days an event covers, a day's events in order, dots, what's next, reminders due, editing drafts and the launcher's quick add.
 - `ChatMarkdown.qml`: Splits a chat reply into what the chat draws separately: Markdown prose (a TextEdit in MarkdownText) and fenced code blocks (a box of their own, with a copy button).
@@ -284,6 +285,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `HyprState.qml`: Hyprland's JSON replies (HyprlandManager) as the shapes the rest of the shell reads, which don't depend on the compositor: what another compositor's service would hand back too.
 - `HypridleConf.qml`: The hypridle config axiom runs hypridle with (HypridleManager), from the Idle section: a general block, then one listener per step whose timeout isn't 0 (dim, lock, screen off, suspend) in timeout order, then the user's…
 - `IconResolver.qml`: Resolves icon names for window classes: desktop entries first, then known substitutions, then name variants that exist in the icon theme.
+- `KeyMap.qml`: The Keybinds editor's key map: a US keyboard as rows of keys (by the names binds use, KeyNames), and which of them a set of modifiers leaves free, given axiom's binds and the user's own.
 - `KeyNames.qml`: Keys as Hyprland writes them ("SUPER + SHIFT + space"): turning a Qt key event into one (for recording a bind), and splitting one for display.
 - `KeybindFilter.qml`: The Keybinds page's filter over KeybindManager.keybindings: a search plus toggle chips in three groups (sections, modifiers, source).
 - `KeyboardLayouts.qml`: A keyboard's layouts as the shell shows them ({ layouts, index, keymap }, CompositorManager.withKeyboard), from the full names a compositor reports ("English (US)"): the same for every backend that only has those.
@@ -504,7 +506,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BaseView.qml`: The base of every overlay page (views/<type>.qml): its grid and viewConfig, and the page sizes hand-built pages lay out with.
 - `CalendarPage.qml`: The Calendar page: the month large, each day's events in it where they fit, and beside it the selected day's events (opening in the editor) over the calendars, which switch on and off here.
 - `Custom.qml`: A view assembled from config: its modules, each in its place on a grid of quarter cards (eighths with a double grid, `fineGrid`: laid out at its card size, OverlayConfig.pageUnit).
-- `Keybinds.qml`: The keybinds page: Hyprland's binds by section, as cards in columns, with a search over labels, sections and keys and toggle chips by section, modifier and source (KeybindFilter); or the editor for axiom's own binds (Bi…
+- `Keybinds.qml`: The keybinds page: the compositor's binds by section, as cards in columns, with a search over labels, sections and keys and toggle chips by section, modifier and source (KeybindFilter); or the editor for axiom's own bin…
 - `Layouts.qml`: The layouts editor: always the last page (pinned by OverlayPages; not part of config).
 - `Monitors.qml`: The monitors page: layout profiles (one per set of monitors, picked by what's connected), each a layout to drag monitors around in and the selected monitor's settings.
 - `Settings.qml`: The settings page, generated from the config schema: categories (in `x-categories` order) and search on the left, the selected category's groups in two columns on the right.
@@ -523,10 +525,14 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 ## components/views/keybinds/
 
 - `ActionPicker.qml`: A bind's action: a button showing it, opening a popup with a search and one scrolling list of actions under collapsible category headers (KeybindManager.actionInfo).
-- `BindEditor.qml`: The Keybinds page's editor for axiom's own binds (Keybinds.binds): presets, then one row per bind, with a search and a sort that only change what's shown.
-- `BindEditorRow.qml`: One of axiom's binds in the editor: key, action, argument and label on one line, its issues under it.
+- `BindEditor.qml`: The Keybinds page's list of axiom's own binds (Keybinds.binds), the body of its left card: what the last merge did, the binds' issues, the strip to undo the last removal or preset, then the binds by section (BindSection…
+- `BindInspector.qml`: The Keybinds editor's inspector for the selected bind (KeybindManager.selectedIndex): its key, action, argument and label, its flags in words, its issues, and Duplicate, Pause and Remove.
+- `BindListRow.qml`: One row of the Keybinds editor's list: a bind, or a numbered run of binds (BindGroups) folded into one.
+- `BindSection.qml`: A section of the Keybinds editor's list (KeybindManager.editLayout): a header to fold it (remembered, EditsManager.keybindsFolded), with its counts, the unsaved dot and a switch pausing or resuming all of it, over its r…
 - `FilterChips.qml`: The Keybinds page's toggle chips, in groups set apart by a short line, then Clear while any is on.
+- `KeyMapPanel.qml`: The Keybinds editor's key map, shown while no bind is selected: a keyboard (KeyMap) under the modifiers picked, each key coloured by who holds it (KeyMap.occupancy).
 - `KeyRecorder.qml`: A bind's key combo as keycaps; click to record a new one.
+- `PresetSheet.qml`: The Keybinds editor's presets, over the list: the presets on the left, on the right what the chosen one would do bind by bind (KeybindManager.presetPlan), each new or taken key with a checkbox, and Apply for the checked…
 
 ## components/views/layouts/
 

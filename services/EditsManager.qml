@@ -52,8 +52,11 @@ QtObject {
   // The bar editor draws a top or bottom bar's sections stacked down the
   // side of the page, as a side bar's, rather than across it
   readonly property bool barStacked: root._barStacked
+  // The Keybinds editor's folded sections, by section name
+  readonly property var keybindsFolded: root._keybindsFolded
   property bool _libraryGrouped: false
   property bool _barStacked: false
+  property var _keybindsFolded: []
   readonly property var _state: StateManager.createStateHandler("editors")
 
   function setLibraryGrouped(value) {
@@ -66,10 +69,18 @@ QtObject {
     root._saveState();
   }
 
+  function setKeybindsFolded(section, folded) {
+    if (root._keybindsFolded.includes(section) === folded)
+      return;
+    root._keybindsFolded = folded ? root._keybindsFolded.concat([section]) : root._keybindsFolded.filter(s => s !== section);
+    root._saveState();
+  }
+
   function _saveState() {
     root._state.save({
       "libraryGrouped": root._libraryGrouped,
-      "barStacked": root._barStacked
+      "barStacked": root._barStacked,
+      "keybindsFolded": root._keybindsFolded
     });
   }
 
@@ -77,6 +88,7 @@ QtObject {
     const saved = root._state.load({});
     root._libraryGrouped = saved.libraryGrouped === true;
     root._barStacked = saved.barStacked === true;
+    root._keybindsFolded = Array.isArray(saved.keybindsFolded) ? saved.keybindsFolded : [];
   }
 
   // The box holding typed text (var: callers use commitTyped() and

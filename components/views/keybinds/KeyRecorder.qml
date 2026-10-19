@@ -41,6 +41,11 @@ StyledContainer {
     if (root.recording)
       catcher.forceActiveFocus();
   }
+  // Recording may start before it's built (a bind added and recorded)
+  Component.onCompleted: {
+    if (root.recording)
+      catcher.forceActiveFocus();
+  }
   Component.onDestruction: {
     if (root.recording)
       KeybindManager.stopRecording();
