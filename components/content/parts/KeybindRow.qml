@@ -6,11 +6,11 @@ import qs.config
 import qs.services
 import qs.components.reusable
 
-// One action of the keybinds reference: its key combos on the left
+// One action of the keybinds reference, keys first: its key combos
 // (alternatives separated by a slash; a folded direction set as one
-// keycap), and on the right a warning where it holds the key of an axiom
-// bind that was skipped, its action's icon (a person for the user's own
-// binds) and its label. An axiom bind's row opens it in the editor.
+// keycap), its action's icon (a person for the user's own binds), its
+// label, and a warning where it holds the key of an axiom bind that was
+// skipped. An axiom bind's row opens it in the editor.
 Item {
   id: root
 
@@ -23,10 +23,6 @@ Item {
   // The key column's width (the widest in the section), or -1 for its own
   property real keyWidth: -1
   readonly property real keyImplicitWidth: keys.implicitWidth
-  // The label column's width (the widest in the section, so the labels end
-  // against the card and the icons line up), or -1 to fill the row
-  property real labelWidth: -1
-  readonly property real labelImplicitWidth: label.implicitWidth
 
   readonly property bool compact: KeybindManager.refDensity === "compact"
   readonly property bool glyphs: KeybindManager.refGlyphs
@@ -130,10 +126,18 @@ Item {
       }
     }
 
-    Item {
-      visible: root.labelWidth >= 0
+    StyledIcon {
+      text: root.bind.action ? KeybindManager.actionIcon(root.bind.action) : (root.bind.user ? "person" : "keyboard")
+      textColor: root.bind.action ? Theme.accent : Theme.foregroundAlt
+      textSize: Appearance.fontSize - 1
+      opacity: root.bind.action ? 1 : 0.6
+    }
+
+    StyledText {
+      text: root.bind.label || I18n.tr("No description")
+      opacity: root.bind.label ? 1 : 0.5
+      elide: Text.ElideRight
       Layout.fillWidth: true
-      Layout.minimumWidth: 0
     }
 
     StyledIcon {
@@ -154,23 +158,6 @@ Item {
           text: I18n.tr("Axiom's \"{0}\" is skipped: this bind holds its key", root.bind.overrides)
         }
       }
-    }
-
-    StyledIcon {
-      text: root.bind.action ? KeybindManager.actionIcon(root.bind.action) : (root.bind.user ? "person" : "keyboard")
-      textColor: root.bind.action ? Theme.accent : Theme.foregroundAlt
-      textSize: Appearance.fontSize - 1
-      opacity: root.bind.action ? 1 : 0.6
-    }
-
-    StyledText {
-      id: label
-      text: root.bind.label || I18n.tr("No description")
-      opacity: root.bind.label ? 1 : 0.5
-      elide: Text.ElideRight
-      Layout.fillWidth: root.labelWidth < 0
-      Layout.preferredWidth: root.labelWidth < 0 ? -1 : root.labelWidth
-      Layout.minimumWidth: 0
     }
   }
 

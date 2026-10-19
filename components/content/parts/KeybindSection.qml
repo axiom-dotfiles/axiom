@@ -26,24 +26,21 @@ StyledContainer {
           "mods": group.mods,
           "row": row
         })))))
-  // The rows' key and label widths by item index ([key, label]); each
-  // column takes the widest
-  property var _widths: ({})
-  readonly property real keyWidth: Object.keys(root._widths).reduce((widest, i) => Math.max(widest, root._widths[i][0]), 0)
-  readonly property real labelWidth: Object.keys(root._widths).reduce((widest, i) => Math.max(widest, root._widths[i][1]), 0)
+  // The rows' key widths by item index; the column takes the widest
+  property var _keyWidths: ({})
+  readonly property real keyWidth: Object.keys(root._keyWidths).reduce((widest, i) => Math.max(widest, root._keyWidths[i]), 0)
 
   signal editRequested(int bindIndex)
 
-  function _reportWidths(index, key, label) {
-    const old = root._widths[index];
-    if (old && old[0] === key && old[1] === label)
+  function _reportKeyWidth(index, width) {
+    if (root._keyWidths[index] === width)
       return;
-    const next = Object.assign({}, root._widths);
-    next[index] = [key, label];
-    root._widths = next;
+    const next = Object.assign({}, root._keyWidths);
+    next[index] = width;
+    root._keyWidths = next;
   }
 
-  onItemsChanged: root._widths = {}
+  onItemsChanged: root._keyWidths = {}
 
   Layout.fillWidth: true
   implicitHeight: column.implicitHeight + Widget.padding * 2
@@ -187,14 +184,10 @@ StyledContainer {
             })
           groupMods: item.modelData.mods
           keyWidth: root.keyWidth
-          labelWidth: root.labelWidth
-          function report() {
-            if (item.modelData.row)
-              root._reportWidths(item.index, keyImplicitWidth, labelImplicitWidth);
-          }
-          onKeyImplicitWidthChanged: report()
-          onLabelImplicitWidthChanged: report()
-          Component.onCompleted: report()
+          onKeyImplicitWidthChanged: if (item.modelData.row)
+            root._reportKeyWidth(item.index, keyImplicitWidth)
+          Component.onCompleted: if (item.modelData.row)
+            root._reportKeyWidth(item.index, keyImplicitWidth)
           onEditRequested: bindIndex => root.editRequested(bindIndex)
         }
       }
