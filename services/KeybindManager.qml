@@ -30,12 +30,13 @@ QtObject {
   // How many binds the compositor reported
   property int count: 0
   // The Keybinds page's search and filter chips (KeybindFilter), here so
-  // they survive the page reloading: modifier names, sources ("axiom" |
-  // "user")
+  // they survive the page reloading: section keys (KeybindFilter.sectionKey),
+  // modifier names, sources ("axiom" | "user")
   property string query: ""
+  property var sectionFilter: []
   property var modFilter: []
   property var sourceFilter: []
-  readonly property bool filtering: modFilter.length > 0 || sourceFilter.length > 0
+  readonly property bool filtering: sectionFilter.length > 0 || modFilter.length > 0 || sourceFilter.length > 0
 
   // The modifier chips: the modifiers the binds use, in _modifiers order
   readonly property var modOptions: {
@@ -48,7 +49,7 @@ QtObject {
     return root._modifiers.map(m => m.name).filter(name => used[name]);
   }
 
-  // group: "mod" | "source", or the editor's "editSection" |
+  // group: "section" | "mod" | "source", or the editor's "editSection" |
   // "editMod"
   function toggleFilter(group, value) {
     const name = group + "Filter";
@@ -57,6 +58,7 @@ QtObject {
   }
 
   function clearFilters() {
+    root.sectionFilter = [];
     root.modFilter = [];
     root.sourceFilter = [];
   }

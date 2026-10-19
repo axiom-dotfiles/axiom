@@ -9,7 +9,8 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 
 - `keybindings` (readonly var): [{ title, undescribed, binds: [{ label, combos: [{ mods: ["SUPER", "SHIFT"], keys: ["H", "←"] }], axiom, user, ids, action, overrides }] }] `title` is "" for binds with no section (shown as "Other");…
 - `count` (int): How many binds the compositor reported
-- `query` (string): The Keybinds page's search and filter chips (KeybindFilter), here so they survive the page reloading: modifier names, sources ("axiom" | "user")
+- `query` (string): The Keybinds page's search and filter chips (KeybindFilter), here so they survive the page reloading: section keys (KeybindFilter.sectionKey), modifier names, sources ("axiom" | "user")
+- `sectionFilter` (var)
 - `modFilter` (var)
 - `sourceFilter` (var)
 - `filtering` (readonly bool)
@@ -59,7 +60,7 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 
 ### Functions
 
-- `toggleFilter(group, value)`: group: "mod" | "source", or the editor's "editSection" | "editMod"
+- `toggleFilter(group, value)`: group: "section" | "mod" | "source", or the editor's "editSection" | "editMod"
 - `clearFilters()`
 - `clearEditFilters()`
 - `setRefView(value)`

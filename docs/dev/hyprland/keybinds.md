@@ -41,7 +41,7 @@ What a bind can do, and how the Keybinds page lists the compositor's binds and e
 ### The reference (All binds, Keyboard)
 - **All binds**: the sections in masonry columns (`KeybindFilter.columns`), each a `content/parts/KeybindSection`: its icon (`sectionIcon`), then its rows grouped by their first combo's modifiers (`BindRows.byModifiers`) under a header that folds the group (`refFolded`, `toggleRefFold`, by `refGroupKey`). Rows (`KeybindRow`) are keys first, in one column as wide as the section's widest, then the action's icon (a person for the user's own binds), the label eliding at the card's edge, and a warning when it `overrides` an axiom bind. A click on an axiom row opens it in the editor (`bindIndexFor(ids)`, `editBind`).
 - The page takes the editor's whole width (list + inspector), so switching tabs doesn't resize it.
-- Jump chips (one per shown section) scroll to a section; the modifier and source chips filter.
+- Section, modifier and source chips filter.
 - **Look up a combo**: a `KeyRecorder` recording into `lookupIndex` (-2) sets `lookupCombo` instead of a bind's key; the list then shows only rows on that key (`KeybindFilter.filter`'s `ids`), or offers Bind it when nothing holds it.
 - **Keyboard**: `content/parts/KeyboardReference` draws `KeyMap.labels(sections, mods)` on `KeyboardMap` (the same keyboard as the editor's key map, through hooks): each key's icon and label under `keyMapMods`, coloured by source.
 - Remembered per user (`StateManager` `keybindsReference`): `refView`, `refDensity` (compact rows), `refGlyphs` (⌃ ⌥ ⇧ and a Super icon, or words), `refFolded`.
@@ -69,7 +69,7 @@ What a bind can do, and how the Keybinds page lists the compositor's binds and e
 
 ### Filters
 - **List tab.**
-  - A search plus toggle chips: `query`, `modFilter`, `sourceFilter`, and the combo looked up (`lookupCombo`). They live in the manager so they survive the page.
+  - A search plus toggle chips: `query`, `sectionFilter`, `modFilter`, `sourceFilter`, and the combo looked up (`lookupCombo`). They live in the manager so they survive the page.
   - Changed with `toggleFilter(group, value)` and `clearFilters()`.
   - The chips come from `modOptions`, built from the binds, not from the filtered result.
   - Filtering is done by `components/methods/KeybindFilter`. Chips in one group are alternatives; the groups and the search all apply.

@@ -36,15 +36,12 @@ BaseView {
   // From the binds, the search and the chips only, so nothing rebuilds
   // while it's shown
   readonly property var sections: KeybindFilter.filter(KeybindManager.keybindings, root.query, {
+    "sections": KeybindManager.sectionFilter,
     "mods": KeybindManager.modFilter,
     "sources": KeybindManager.sourceFilter,
     "ids": root.lookupId !== "" ? [root.lookupId] : null
   })
   readonly property bool narrowed: root.query !== "" || KeybindManager.filtering || root.lookupId !== ""
-
-  // The shown sections' cards, by KeybindFilter.sectionKey, for the jump
-  // chips
-  property var _sectionItems: ({})
 
   readonly property int shownCount: root.sections.reduce((sum, section) => sum + section.binds.length, 0)
   readonly property int totalCount: KeybindManager.keybindings.reduce((sum, section) => sum + section.binds.length, 0)
@@ -189,33 +186,17 @@ BaseView {
             opacity: 0.6
           }
         },
-        // Jump to a section
-        Flow {
-          visible: !root.editing && !root.keyboard && root.sections.length > 1
-          Layout.fillWidth: true
-          spacing: Widget.spacing
-
-          Repeater {
-            model: root.sections
-
-            delegate: StyledTextButton {
-              required property var modelData
-              readonly property string key: KeybindFilter.sectionKey(modelData)
-              implicitHeight: Widget.height
-              iconText: modelData.undescribed ? "help" : KeybindManager.sectionIcon(modelData.title)
-              text: (modelData.undescribed ? I18n.tr("Undescribed") : (modelData.title ? I18n.tr(modelData.title) : I18n.tr("Other"))) + "  " + modelData.binds.length
-              onClicked: {
-                const item = root._sectionItems[key];
-                if (item)
-                  listCard.scrollTo(item);
-              }
-            }
-          }
-        },
         FilterChips {
           visible: !root.editing && !root.keyboard
           Layout.fillWidth: true
           groups: [
+            {
+              "id": "section",
+              "options": KeybindManager.keybindings.filter(section => section.binds.length > 0).map(section => ({
+                    "value": KeybindFilter.sectionKey(section),
+                    "label": (section.undescribed ? I18n.tr("Undescribed") : (section.title ? I18n.tr(section.title) : I18n.tr("Other"))) + "  " + section.binds.length
+                  }))
+            },
             {
               "id": "mod",
               "options": KeybindManager.modOptions.map(mod => ({
@@ -238,6 +219,7 @@ BaseView {
             }
           ]
           selection: ({
+              "section": KeybindManager.sectionFilter,
               "mod": KeybindManager.modFilter,
               "source": KeybindManager.sourceFilter
             })
@@ -348,16 +330,9 @@ BaseView {
               model: root.columns[column.index]
 
               delegate: KeybindSection {
-                id: sectionCard
                 required property var modelData
-                readonly property string key: KeybindFilter.sectionKey(modelData)
                 section: modelData
                 onEditRequested: bindIndex => KeybindManager.editBind(bindIndex)
-                Component.onCompleted: root._sectionItems[sectionCard.key] = sectionCard
-                Component.onDestruction: {
-                  if (root._sectionItems[sectionCard.key] === sectionCard)
-                    delete root._sectionItems[sectionCard.key];
-                }
               }
             }
           }
