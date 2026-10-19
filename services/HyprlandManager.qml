@@ -258,7 +258,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     // Those waiting get this read's answer: it started after they asked
     const waiting = _optionsWaiting;
     _optionsWaiting = [];
-    HyprlandIpcManager.jsonBatch(["getoption general:gaps_out", "getoption dwindle:split_width_multiplier", "getoption decoration:blur:enabled", "getoption decoration:blur:size", "getoption decoration:blur:passes", "animations"], replies => {
+    HyprlandIpcManager.jsonBatch(["getoption general:gaps_out", "getoption dwindle:split_width_multiplier", "getoption decoration:blur:enabled", "getoption decoration:blur:size", "getoption decoration:blur:passes", "getoption animations:enabled", "animations"], replies => {
       root._readingOptions = false;
       root._readOptions(replies);
       waiting.forEach(callback => callback());
@@ -280,7 +280,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     refreshOptions();
   }
 
-  function _readOptions([gaps, split, blurEnabled, blurSize, blurPasses, animations]) {
+  function _readOptions([gaps, split, blurEnabled, blurSize, blurPasses, animationsEnabled, animations]) {
     root.gapsOut = _gapSides(gaps) ?? root.gapsOut;
     const multiplier = Number(split?.float);
     if (multiplier > 0)
@@ -292,6 +292,8 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     };
     if (blur.size > 0 && blur.passes > 0 && JSON.stringify(blur) !== JSON.stringify(root.blur))
       root.blur = blur;
+    if (animationsEnabled)
+      root.animationsEnabled = animationsEnabled.int !== 0 && animationsEnabled.bool !== false;
     if (Array.isArray(animations))
       root.animations = animations;
   }
@@ -607,11 +609,15 @@ hl.dispatch(hl.dsp.submap("${_captureSubmap}"))`
   // Hyprland's animations (j/animations: [leaves, curves]), read with the
   // options; [] until read
   property var animations: []
+  // animations:enabled, Hyprland's switch for all of them
+  property bool animationsEnabled: true
   // Hyprland's own "workspaces" animation ({ speed, bezier, style }), put
   // back after each slide (global's speed and curve when it isn't set,
   // sliding by default); null when animations are off, so there's nothing
   // to slide with
   readonly property var _workspaceAnim: {
+    if (!animationsEnabled)
+      return null;
     const leaves = Array.isArray(animations[0]) ? animations[0] : [];
     const leaf = name => leaves.find(a => a.name === name);
     const own = leaf("workspaces");

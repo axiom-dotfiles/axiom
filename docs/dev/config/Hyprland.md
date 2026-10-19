@@ -61,7 +61,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Animations
   - x-group="Hyprland animations", x-hypr="animations.enabled", x-hyprAlways=true
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`
-- **`Hyprland.managed.animationPreset`** · string = "axiom" · enum hyprland|axiom|snappy|bouncy|lightning|custom
+- **`Hyprland.managed.animationPreset`** · string = "axiom" · enum hyprland|axiom|instant|snappy|bouncy|lightning|custom
   - Style: Follow axiom's motion uses Look & Feel → Motion's speed, and turns Hyprland's animations off with axiom's.
   - x-group="Hyprland animations", x-showIf={"animations":true}
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`

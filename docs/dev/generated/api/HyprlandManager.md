@@ -21,6 +21,7 @@ CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprl
 - `splitWidthMultiplier` (real): dwindle:split_width_multiplier: a box wider than tall times this splits side by side (placeWindow, and the overview's drop preview)
 - `blur` (var): Hyprland's blur as in effect, { enabled, size, passes } (its defaults until read): the one axiom's translucent surfaces blur with
 - `animations` (var): Hyprland's animations (j/animations: [leaves, curves]), read with the options; [] until read
+- `animationsEnabled` (bool): animations:enabled, Hyprland's switch for all of them
 - `surfacesReady` (readonly bool): Whether the layer rules are in Hyprland.
 
 ### Signals

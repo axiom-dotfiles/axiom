@@ -57,8 +57,10 @@ Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`
   - `animationPreset`, written after `axiom.setup()`:
     - `hyprland` writes nothing
     - `axiom` follows `Appearance.animFast/Normal/Slow` and turns animations off with motion
+    - `instant` turns them off (`animations:enabled`, as `axiom` does with motion off), as on sway
     - `snappy` / `bouncy` / `lightning`
     - `custom` comes from `curves`/`customAnimations`
+    - a set giving `global` but not `workspaces` gets a `workspaces` leaf like it (`animationSet`): `M.required()`'s explicit one, set before, would otherwise keep sliding, as an explicit leaf ignores its parent
   - `Session.env`: `CompositorLayer.sessionEnv` (as on sway): the recommended variables while `Session.recommendedEnv` is on, then the theme integrations' (`CompositorLayer.integrationEnv`: `QT_QPA_PLATFORMTHEME=qt5ct` while `ThemeIntegrations.qt` is on), then the cursor's `XCURSOR_*`, then the user's, which win over all of them
   - `Session.autostart`: written after axiom's in the start hook
   - the cursor (`Input.cursor`): `hyprctl setcursor` at start (its `XCURSOR_*` are in the environment above).

@@ -364,6 +364,39 @@ TestCase {
       "animations": true,
       "animationPreset": "hyprland"
     }, motion), "", "Hyprland's own");
+    compare(HyprConfigLua.animationsLua({
+      "animations": true,
+      "animationPreset": "instant"
+    }, motion), "", "instant: turned off in configLua");
+    verify(HyprConfigLua.animationsOff({
+      "animations": true,
+      "animationPreset": "instant"
+    }, motion));
+    verify(!HyprConfigLua.animationsOff({
+      "animations": true,
+      "animationPreset": "snappy"
+    }, motion));
+  }
+
+  function test_animationsGlobalReachesWorkspaces() {
+    const set = HyprConfigLua.animationSet({
+      "animationPreset": "custom",
+      "curves": [],
+      "customAnimations": [
+        {
+          "leaf": "global",
+          "enabled": false,
+          "durationMs": 100,
+          "curve": "",
+          "style": ""
+        }
+      ]
+    }, motion);
+    compare(set.leaves, [["global", 0, "default", ""], ["workspaces", 0, "default", "slide"]], "requiredLua's workspaces leaf doesn't outlive global");
+    const snappy = HyprConfigLua.animationSet({
+      "animationPreset": "snappy"
+    }, motion);
+    compare(snappy.leaves.filter(leaf => leaf[0] === "workspaces").length, 1, "a set's own workspaces leaf stays");
   }
 
   function test_customAnimations() {
