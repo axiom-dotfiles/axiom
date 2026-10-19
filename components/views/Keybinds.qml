@@ -19,7 +19,10 @@ BaseView {
   id: root
 
   readonly property bool editing: KeybindManager.editing
-  readonly property real inspectorWidth: root.sideWidth * 1.3
+  readonly property real inspectorWidth: root.sideWidth * 1.45
+  // The list beside it: rows need little room, so three quarters of an
+  // editor's width (narrower still where the screen has no room for both)
+  readonly property real listWidth: root.grid ? Math.max(root.grid.unit * 1.2, Math.min(root.editorWidth * 0.75, root.grid.availableWidth - root.inspectorWidth - OverlayConfig.cardSpacing * 3)) : 0
 
   Component.onCompleted: KeybindManager.ensureLoaded()
 
@@ -43,7 +46,7 @@ BaseView {
 
   Item {
     id: listSide
-    implicitWidth: root.editing ? root.editorWidth : root.cardPageWidth
+    implicitWidth: root.editing ? root.listWidth : root.cardPageWidth
     implicitHeight: root.pageHeight
 
     TitledCard {

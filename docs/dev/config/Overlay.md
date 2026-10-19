@@ -79,7 +79,7 @@ Every public member of `OverlayConfig`, with the files that use it.
 - `OverlayConfig.cardUnit` (int): Card grid layout (see GridPlacement for the geometry).
   - in: `services/EdgeMenuManager.qml`
 - `OverlayConfig.cardSpacing` (int)
-  - in: `components/content/ColorSwatch.qml`, `components/hosts/overlay/ModuleGrid.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/surfaces/greeter/GreeterPreviewWindow.qml`, `components/surfaces/lockscreen/LockPreviewWindow.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/surfaces/onboarding/pages/OnboardingPage.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/BarEditor.qml` (+4 more)
+  - in: `components/content/ColorSwatch.qml`, `components/hosts/overlay/ModuleGrid.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/surfaces/greeter/GreeterPreviewWindow.qml`, `components/surfaces/lockscreen/LockPreviewWindow.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/surfaces/onboarding/pages/OnboardingPage.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/BarEditor.qml` (+5 more)
 - `OverlayConfig.cardPadding` (int)
   - in: only inside the reader
 - `OverlayConfig.cardPad(compact, bare)`: The inner padding a module lays its content out within (Card/Panel `pad`): none when bare, less in a quarter slot

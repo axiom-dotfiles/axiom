@@ -117,7 +117,7 @@ StyledContainer {
 
     // The combo, as keycaps
     RowLayout {
-      Layout.preferredWidth: Math.max(Widget.height * 5, root.width * 0.18)
+      Layout.preferredWidth: Math.max(Widget.height * 6, root.width * 0.3)
       Layout.maximumWidth: Layout.preferredWidth
       spacing: Widget.spacing / 2
       clip: true
