@@ -550,7 +550,7 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "windowSwitcher", "windowSwitcherReverse", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "screenRecord", "exitSession", "exec", "pseudo", "toggleSplit", "stripSwapColumn", "stripWider", "stripNarrower", "stripFit", "raw"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "windowSwitcher", "windowSwitcherReverse", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "screenRecord", "exitSession", "exec", "pseudo", "toggleSplit", "stripSwapColumn", "stripWider", "stripNarrower", "stripFit", "stripConsume", "stripCenter", "raw"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
@@ -611,6 +611,8 @@
                   "stripWider": "Strip: widen column",
                   "stripNarrower": "Strip: narrow column",
                   "stripFit": "Strip: fit visible columns",
+                  "stripConsume": "Strip: join or leave a column",
+                  "stripCenter": "Strip: center column",
                   "raw": "Compositor command"
                 },
                 "default": "launcher"
@@ -2027,11 +2029,12 @@
         "layout": {
           "type": "string",
           "title": "Layout",
-          "x-enabledIf": { "/$supports.dynamicWorkspaces": false }, "x-disabledNote": false,
-          "enum": ["standard", "perMonitor", "grid"],
-          "x-enumLabels": { "standard": "Standard (1 to N)", "perMonitor": "Per monitor (1 to N)", "grid": "Grid per monitor" },
+          "x-enabledIf": { "anyOf": [{ "/$supports.dynamicWorkspaces": false }, { "layout": "scrolling", "/$supports.stripsAlways": false }] }, "x-disabledNote": false,
+          "enum": ["standard", "perMonitor", "grid", "scrolling"],
+          "x-enumLabels": { "standard": "Standard (1 to N)", "perMonitor": "Per monitor (1 to N)", "grid": "Grid per monitor", "scrolling": "Scrolling (niri style)" },
+          "x-enumShowIf": { "scrolling": { "/$supports.strips": true, "/$supports.stripsAlways": false } },
           "default": "perMonitor",
-          "description": "Standard: workspaces 1 to N, shared by every monitor. Per monitor: each monitor has its own 1 to N workspaces. Grid: each monitor has its own columns × rows workspaces. Per monitor and grid assign monitors a stable order (the primary monitor first, then the rest by their monitor identity), so a hotplug or Hyprland restart can't reshuffle which monitor owns which ids."
+          "description": "Standard: workspaces 1 to N, shared by every monitor. Per monitor: each monitor has its own 1 to N workspaces. Grid: each monitor has its own columns × rows workspaces. Scrolling, as on niri: each monitor has a column of workspaces, made as you fill them and removed once left empty, with an empty one at the end, and every monitor is a horizontal strip whose windows open side by side as columns. Its workspace numbers move as workspaces come and go, so workspace rules naming one don't stay with it. Where the compositor has no strips it works as per monitor. Per monitor, grid and scrolling assign monitors a stable order (the primary monitor first, then the rest by their monitor identity), so a hotplug or Hyprland restart can't reshuffle which monitor owns which ids."
         },
         "count": {
           "type": "integer",
@@ -2041,7 +2044,7 @@
           "default": 10,
           "minimum": 1,
           "maximum": 30,
-          "x-showIf": { "layout": ["standard", "perMonitor"] }
+          "x-showIf": { "anyOf": [{ "layout": ["standard", "perMonitor"] }, { "layout": "scrolling", "/$supports.strips": false }] }
         },
         "columns": {
           "type": "integer",
@@ -2073,15 +2076,15 @@
         "animate": {
           "type": "boolean",
           "title": "Directional slides",
-          "x-enabledIf": { "/$supports.dynamicWorkspaces": false }, "x-disabledNote": false,
+          "x-enabledIf": { "anyOf": [{ "/$supports.dynamicWorkspaces": false }, { "layout": "scrolling", "/$supports.workspaceSlide": true }] }, "x-disabledNote": false,
           "default": true,
-          "description": "Slide between workspaces whatever the compositor's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column."
+          "description": "Slide between workspaces whatever the compositor's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column; with scrolling, always vertically."
         },
         "strips": {
           "type": "array",
           "x-group": "Workspace strips",
           "title": "Strips",
-          "x-showIf": { "/$supports.strips": true, "/$supports.stripsAlways": false },
+          "x-showIf": { "layout": { "not": "scrolling" }, "/$supports.strips": true, "/$supports.stripsAlways": false },
           "default": [],
           "description": "Monitors whose windows sit side by side on a strip that scrolls (Hyprland's scrolling layout) instead of tiling. New windows open as a new column after the focused one.",
           "items": {
@@ -2094,8 +2097,8 @@
             }
           }
         },
-        "stripColumnWidth": { "type": "integer", "x-group": "Workspace strips", "title": "Column width", "x-unit": "%", "default": 50, "minimum": 10, "maximum": 100, "description": "A new column's share of the monitor.", "x-showIf": { "anyOf": [{ "strips": { "notEmpty": true }, "/$supports.strips": true }, { "/$supports.stripsAlways": true }] }, "x-hypr": "scrolling.column_width", "x-hyprScale": 0.01, "x-niri": "layout.default-column-width.proportion", "x-niriScale": 0.01, "x-niriValue": "float" },
-        "stripFollowFocus": { "type": "boolean", "x-group": "Workspace strips", "title": "Scroll to the focused window", "default": true, "x-showIf": { "strips": { "notEmpty": true }, "/$supports.strips": true, "/$supports.stripsAlways": false }, "x-hypr": "scrolling.follow_focus" }
+        "stripColumnWidth": { "type": "integer", "x-group": "Workspace strips", "title": "Column width", "x-unit": "%", "default": 50, "minimum": 10, "maximum": 100, "description": "A new column's share of the monitor.", "x-showIf": { "anyOf": [{ "strips": { "notEmpty": true }, "/$supports.strips": true }, { "layout": "scrolling", "/$supports.strips": true }, { "/$supports.stripsAlways": true }] }, "x-hypr": "scrolling.column_width", "x-hyprScale": 0.01, "x-niri": "layout.default-column-width.proportion", "x-niriScale": 0.01, "x-niriValue": "float" },
+        "stripFollowFocus": { "type": "boolean", "x-group": "Workspace strips", "title": "Scroll to the focused window", "default": true, "x-showIf": { "anyOf": [{ "strips": { "notEmpty": true } }, { "layout": "scrolling" }], "/$supports.strips": true, "/$supports.stripsAlways": false }, "x-hypr": "scrolling.follow_focus" }
       }
     },
 
@@ -4710,12 +4713,12 @@
             "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": true, "x-showIf": { "/$supports.dynamicWorkspaces": false }, "description": "Off: only workspaces with windows, plus the active one (in a grid, of the row shown). Down to one on a strip monitor, its windows show alone." },
             "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "x-showIf": { "/Workspaces.layout": "standard", "/$supports.dynamicWorkspaces": false }, "description": "Hide workspaces that are open on another monitor." },
             "labels": { "type": "string", "title": "Labels", "enum": ["numbers", "dots"], "x-enumLabels": { "numbers": "Numbers", "dots": "Dots" }, "default": "numbers", "description": "The workspace's number, on the bar and in the grid popout." },
-            "relativeNumbers": { "type": "boolean", "title": "Relative numbers", "default": false, "x-showIf": { "labels": "numbers", "anyOf": [{ "/Workspaces.layout": ["perMonitor", "grid"] }, { "/$supports.dynamicWorkspaces": true }] }, "description": "Number each monitor's workspaces from 1 (11 to 20 on the second monitor show as 1 to 10) instead of by their workspace id, on the bar and in the grid popout." },
+            "relativeNumbers": { "type": "boolean", "title": "Relative numbers", "default": false, "x-showIf": { "labels": "numbers", "anyOf": [{ "/Workspaces.layout": ["perMonitor", "grid", "scrolling"] }, { "/$supports.dynamicWorkspaces": true }] }, "description": "Number each monitor's workspaces from 1 (11 to 20 on the second monitor show as 1 to 10) instead of by their workspace id, on the bar and in the grid popout." },
             "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "x-showIf": { "/$supports.dynamicWorkspaces": false }, "description": "Show the largest window's icon on occupied workspaces (in a grid, on the bar and in the popout)." },
             "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "x-showIf": { "anyOf": [{ "/Workspaces.layout": ["standard", "grid"] }, { "/$supports.dynamicWorkspaces": true }] }, "description": "Make the active workspace twice as long." },
             "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "x-showIf": { "/Workspaces.layout": "grid", "/$supports.dynamicWorkspaces": false }, "description": "Show an arrow on the active workspace, pointing to where the shown row (or column) is in the grid." },
-            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }] }, "description": "In a grid, open the whole grid when hovered. Otherwise, on a strip monitor, open every workspace with its windows in strip order." },
-            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true, "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }] } },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }, { "/Workspaces.layout": "scrolling", "/$supports.strips": true }] }, "description": "In a grid, open the whole grid when hovered. Otherwise, on a strip monitor, open every workspace with its windows in strip order." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true, "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }, { "/Workspaces.layout": "scrolling", "/$supports.strips": true }] } },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
             "showBackground": { "type": "boolean", "title": "Background", "default": true, "description": "A box around the workspaces, in the bar's widget style. Off: the workspaces sit on the bar at the size of the widgets around them.", "x-showIf": { "$bar.widgetStyle": ["filled", "tinted", "outline"] } },

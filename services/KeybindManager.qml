@@ -150,6 +150,8 @@ QtObject {
       "stripWider": "width_wide",
       "stripNarrower": "width_normal",
       "stripFit": "fit_screen",
+      "stripConsume": "move_group",
+      "stripCenter": "vertical_align_center",
       "windowSwitcher": "tab",
       "windowSwitcherReverse": "tab",
       "mouseDrag": "drag_pan",
@@ -634,7 +636,15 @@ QtObject {
       "description": I18n.tr("SUPER + H J K L moves focus, with SHIFT the window, with ALT resizes it; close, fullscreen, floating and mouse drag"),
       "binds": [].concat(...vim.map(d => [root._workspaceBind("SUPER + " + d[0], "focusDir", d[1]), root._workspaceBind("SUPER + SHIFT + " + d[0], "moveWindowDir", d[1]), root._workspaceBind("SUPER + ALT + " + d[0], "resizeWindow", resize[d[0]])])).concat([root._workspaceBind("SUPER + C", "closeWindow", ""), root._workspaceBind("SUPER + F", "fullscreen", ""), root._workspaceBind("SUPER + Z", "toggleFloat", ""), root._workspaceBind("SUPER + mouse:272", "mouseDrag", ""), root._workspaceBind("SUPER + mouse:273", "mouseResize", "")])
     });
-    if (WorkspacesConfig.hasStrips)
+    // The scrolling layout's niri-style binds, in place of the strips' own
+    if (CompositorManager.dynamicByLayout)
+      list.push({
+        "id": "niri",
+        "title": I18n.tr("niri style"),
+        "description": I18n.tr("SUPER + U or I goes down or up the workspaces, with CTRL it takes the window along; SUPER + [ or ] takes the window into the column before or after, or out of its own; with SHIFT it swaps the column; SUPER + R or SHIFT + R steps the column's width; SUPER + CTRL + C centers it, SUPER + CTRL + F fits the visible columns; SUPER + scroll goes through the workspaces, with SHIFT along the strip"),
+        "binds": [root._workspaceBind("SUPER + U", "workspaceStep", "down"), root._workspaceBind("SUPER + I", "workspaceStep", "up"), root._workspaceBind("SUPER + CTRL + U", "moveWindowStep", "down"), root._workspaceBind("SUPER + CTRL + I", "moveWindowStep", "up"), root._workspaceBind("SUPER + bracketleft", "stripConsume", "left"), root._workspaceBind("SUPER + bracketright", "stripConsume", "right"), root._workspaceBind("SUPER + SHIFT + bracketleft", "stripSwapColumn", "left"), root._workspaceBind("SUPER + SHIFT + bracketright", "stripSwapColumn", "right"), root._workspaceBind("SUPER + R", "stripWider", ""), root._workspaceBind("SUPER + SHIFT + R", "stripNarrower", ""), root._workspaceBind("SUPER + CTRL + C", "stripCenter", ""), root._workspaceBind("SUPER + CTRL + F", "stripFit", ""), root._workspaceBind("SUPER + mouse_down", "workspaceStep", "down"), root._workspaceBind("SUPER + mouse_up", "workspaceStep", "up"), root._workspaceBind("SUPER + SHIFT + mouse_down", "focusDir", "right"), root._workspaceBind("SUPER + SHIFT + mouse_up", "focusDir", "left")]
+      });
+    else if (WorkspacesConfig.hasStrips)
       list.push({
         "id": "strips",
         "title": I18n.tr("Strips"),

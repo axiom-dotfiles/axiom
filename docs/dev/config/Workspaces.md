@@ -11,13 +11,13 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 ### `Workspaces`
 
-- **`Workspaces.layout`** · string = "perMonitor" · enum standard|perMonitor|grid
-  - Layout: Standard: workspaces 1 to N, shared by every monitor. Per monitor: each monitor has its own 1 to N workspaces. Grid: each monitor has its own columns × rows workspaces. Per monitor and grid assign monitors a stable order (the primary monitor first, then the rest by their monitor identity), so a hotplug or Hyprland restart can't reshuffle which monitor owns which ids.
-  - x-enabledIf={"/$supports.dynamicWorkspaces":false}, x-disabledNote=false
-  - read: `WorkspacesConfig.layout`, `WorkspacesConfig.grid` (computed), `WorkspacesConfig.perMonitorBlocks` (computed) · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorManager.qml`
+- **`Workspaces.layout`** · string = "perMonitor" · enum standard|perMonitor|grid|scrolling
+  - Layout: Standard: workspaces 1 to N, shared by every monitor. Per monitor: each monitor has its own 1 to N workspaces. Grid: each monitor has its own columns × rows workspaces. Scrolling, as on niri: each monitor has a column of workspaces, made as you fill them and removed once left empty, with an empty one at the end, and every monitor is a horizontal strip whose windows open side by side as columns. Its workspace numbers move as workspaces come and go, so workspace rules naming one don't stay with it. Where the compositor has no strips it works as per monitor. Per monitor, grid and scrolling assign monitors a stable order (the primary monitor first, then the rest by their monitor identity), so a hotplug or Hyprland restart can't reshuffle which monitor owns which ids.
+  - x-enabledIf={"anyOf":[{"/$supports.dynamicWorkspaces":false},{"layout":"scrolling…, x-disabledNote=false, x-enumShowIf={"scrolling":{"/$supports.strips":true,"/$supports.stripsAlways":fals…
+  - read: `WorkspacesConfig.layout`, `WorkspacesConfig.grid` (computed), `WorkspacesConfig.perMonitorBlocks` (computed), `WorkspacesConfig.scrolling` (computed) · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorManager.qml`, `services/HyprlandManager.qml`
 - **`Workspaces.count`** · integer = 10 · 1–30
   - Workspaces
-  - x-control="stepper", x-enabledIf={"/$supports.dynamicWorkspaces":false}, x-disabledNote=false, x-showIf={"layout":["standard","perMonitor"]}
+  - x-control="stepper", x-enabledIf={"/$supports.dynamicWorkspaces":false}, x-disabledNote=false, x-showIf={"anyOf":[{"layout":["standard","perMonitor"]},{"layout":"scrolling",…
   - read: `WorkspacesConfig.count` · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`
 - **`Workspaces.columns`** · integer = 5 · 1–10
   - Columns
@@ -31,12 +31,12 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Wrap around: Stepping past the last workspace (of a row or column in a grid) goes back to the first.
   - read: `WorkspacesConfig.wrap` · in: `services/CompositorManager.qml`
 - **`Workspaces.animate`** · boolean = true
-  - Directional slides: Slide between workspaces whatever the compositor's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column.
-  - x-enabledIf={"/$supports.dynamicWorkspaces":false}, x-disabledNote=false
+  - Directional slides: Slide between workspaces whatever the compositor's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column; with scrolling, always vertically.
+  - x-enabledIf={"anyOf":[{"/$supports.dynamicWorkspaces":false},{"layout":"scrolling…, x-disabledNote=false
   - read: `WorkspacesConfig.animate` · in: `services/CompositorManager.qml`
 - **`Workspaces.strips`** · array<object> = []
   - Strips: Monitors whose windows sit side by side on a strip that scrolls (Hyprland's scrolling layout) instead of tiling. New windows open as a new column after the focused one.
-  - x-group="Workspace strips", x-showIf={"/$supports.strips":true,"/$supports.stripsAlways":false}
+  - x-group="Workspace strips", x-showIf={"layout":{"not":"scrolling"},"/$supports.strips":true,"/$supports.st…
   - read: `WorkspacesConfig.strips` (part) · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/HyprlandConfigWriter.qml`
 
 ### `Workspaces.strips[]`
@@ -54,11 +54,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Workspaces.stripColumnWidth`** · integer = 50 · 10–100 · %
   - Column width: A new column's share of the monitor.
-  - x-group="Workspace strips", x-showIf={"anyOf":[{"strips":{"notEmpty":true},"/$supports.strips":true},{"/$s…, x-hypr="scrolling.column_width", x-hyprScale=0.01, x-niri="layout.default-column-width.proportion", x-niriScale=0.01, x-niriValue="float"
+  - x-group="Workspace strips", x-showIf={"anyOf":[{"strips":{"notEmpty":true},"/$supports.strips":true},{"lay…, x-hypr="scrolling.column_width", x-hyprScale=0.01, x-niri="layout.default-column-width.proportion", x-niriScale=0.01, x-niriValue="float"
   - read: `WorkspacesConfig.stripOptions` (computed), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`
 - **`Workspaces.stripFollowFocus`** · boolean = true
   - Scroll to the focused window
-  - x-group="Workspace strips", x-showIf={"strips":{"notEmpty":true},"/$supports.strips":true,"/$supports.stri…, x-hypr="scrolling.follow_focus"
+  - x-group="Workspace strips", x-showIf={"anyOf":[{"strips":{"notEmpty":true}},{"layout":"scrolling"}],"/$sup…, x-hypr="scrolling.follow_focus"
   - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`
 
 ### Reader members
@@ -69,6 +69,8 @@ Every public member of `WorkspacesConfig`, with the files that use it.
   - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`
 - `WorkspacesConfig.grid` (bool)
   - in: `services/CompositorManager.qml`
+- `WorkspacesConfig.scrolling` (bool)
+  - in: `services/HyprlandManager.qml`
 - `WorkspacesConfig.perMonitorBlocks` (bool): True when each monitor gets its own block of ids (grid or perMonitor) instead of sharing 1..count (standard).
   - in: `services/CompositorManager.qml`
 - `WorkspacesConfig.count` (int)

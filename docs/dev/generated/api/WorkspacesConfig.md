@@ -9,6 +9,7 @@ Reader for the Workspaces section: the workspace layout the bar widget, the over
 
 - `layout` (readonly string): Grid: each monitor owns columns × rows ids.
 - `grid` (readonly bool)
+- `scrolling` (readonly bool)
 - `perMonitorBlocks` (readonly bool): True when each monitor gets its own block of ids (grid or perMonitor) instead of sharing 1..count (standard).
 - `count` (readonly int)
 - `columns` (readonly int)

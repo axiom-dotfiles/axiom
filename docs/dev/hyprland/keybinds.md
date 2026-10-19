@@ -33,7 +33,7 @@ What a bind can do, and how the Keybinds page lists the compositor's binds and e
 - Each row carries `axiom`/`user`:
   - `axiom`: any of its binds is one of axiom's applied binds (`_axiomIds`, by `BindKeys.keyId`, never in a submap)
   - `user`: it is the user's own.
-- `presets` are built from the workspace layout: four-way steps in a grid and with dynamic workspaces (up and down the output's list, left and right to the next output), and number keys 1–10 there, as the compositor's list has no set size. `applyPreset` skips keys already in use.
+- `presets` are built from the workspace layout: four-way steps in a grid and with dynamic workspaces (up and down the output's list, left and right to the next output), and number keys 1–10 there, as the compositor's list has no set size. With strips, the Strips preset, or under the scrolling layout the niri one ([workspace strips](workspace-strips.md) › The scrolling layout). `applyPreset` skips keys already in use.
 
 ### Recording a key
 - `startRecording(index)` calls `CompositorManager.captureKeys(true)` (needs `keyCapture`), so bound combos reach `keybinds/KeyRecorder` instead of firing.

@@ -61,7 +61,8 @@ QtObject {
       return `hl.dsp.layout("togglesplit")`;
     // Strips (the scrolling layout): the column before (left, up) or after
     // (right, down) swaps with the focused one; widths step through
-    // scrolling.explicit_column_widths
+    // scrolling.explicit_column_widths; consuming takes the focused window
+    // into the column that way, or out of its own one into a new one
     case "stripSwapColumn":
       return `hl.dsp.layout(${_lua("swapcol " + (argument === "left" || argument === "up" ? "l" : "r"))})`;
     case "stripWider":
@@ -70,6 +71,10 @@ QtObject {
       return `hl.dsp.layout("colresize -conf")`;
     case "stripFit":
       return `hl.dsp.layout("fit visible")`;
+    case "stripConsume":
+      return `hl.dsp.layout(${_lua("consume_or_expel " + (argument === "left" || argument === "up" ? "prev" : "next"))})`;
+    case "stripCenter":
+      return `hl.dsp.layout("center")`;
     // Any dispatcher, as Lua (`hl.dsp.layout("swapsplit")`), compiled when
     // the bind is made so a mistake only leaves that bind doing nothing
     // instead of breaking the whole file (bindLua leaves out a raw command

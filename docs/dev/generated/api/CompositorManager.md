@@ -25,6 +25,7 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 - `focused` (readonly var): The focused output, or null
 - `perMonitorBlocks` (readonly bool): Whether each output has a block of ids of its own: the grid and perMonitor layouts, and every layout where the compositor's workspaces belong to an output (supports.outputWorkspaces: niri's), as the …
 - `dynamicWorkspaces` (readonly bool): Whether the compositor makes and removes workspaces itself, one list per output (supports.dynamicWorkspaces: niri's).
+- `dynamicByLayout` (readonly bool): Whether they're axiom's, kept so by the backend for the scrolling layout (Hyprland: WorkspacesConfig.scrolling), rather than the compositor's own (niri), where the layout doesn't apply at all
 - `workspaceGrid` (readonly bool): Whether the workspaces are laid out in a grid: the grid layout, where the compositor leaves the workspaces to axiom
 - `blockSize` (readonly int): How many ids each output's block holds: the layout's size, or the backend's own where its workspaces are dynamic
 

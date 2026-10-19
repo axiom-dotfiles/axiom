@@ -8,11 +8,12 @@ import qs.components.reusable
 // The top of the Workspaces card (the section's `x-intro`): where the
 // compositor makes its workspaces itself (CompositorManager.
 // dynamicWorkspaces), why the layout below is greyed out and what the
-// workspace keys do instead
+// workspace keys do instead. Not for the scrolling layout's, which are
+// axiom's (dynamicByLayout): the layout applies there
 ColumnLayout {
   id: root
 
-  readonly property bool shown: CompositorManager.dynamicWorkspaces
+  readonly property bool shown: CompositorManager.dynamicWorkspaces && !CompositorManager.dynamicByLayout
 
   spacing: Widget.spacing
 

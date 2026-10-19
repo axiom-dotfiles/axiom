@@ -272,6 +272,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ConfigMigration.qml`: Upgrades older config.json layouts to the current one (see config/json/config.schema.json).
 - `DataDirs.qml`: Where axiom keeps what it writes (XDG base directories), and where it kept it inside the repo before (the legacy layout, until moved over).
 - `DockLayout.qml`: Pure helpers for the dock: which apps it shows (pinned ones, then running ones), which window a click goes to, how big each icon is under the pointer, and whether a window covers it.
+- `DynamicWorkspaces.qml`: niri's workspaces for a compositor that only has ids (Hyprland, under the scrolling layout): each output's workspaces are its block's ids from the first, without gaps, with one empty one after the last.
 - `EdgeAttach.qml`: Where a box that grows out of a screen edge goes along it: bar popouts, edge popouts (the launcher, OSDs, floating edge menus) and anything else drawn with AttachedSurface.
 - `GreeterBundle.qml`: The greeter's config, both ways (GreeterManager writes it, ConfigManager reads it in the greeter).
 - `GreeterSessions.qml`: The sessions the greeter can start (GreetdManager): Wayland session desktop entries (wayland-sessions/*.desktop in each data dir), their Exec line split into the argv greetd launches, and the environment they start in.
@@ -580,7 +581,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SettingsGroupCard.qml`: i18n: keys from the schema (titles, descriptions) One group of settings (a section's own fields, or one nested object) as a card: title, help text, then its rows.
 - `SettingsSidebar.qml`: i18n: keys from the schema (category names, card titles) Settings page, left: search and the category list; the selected category also lists its cards, and clicking one scrolls the page to it.
 - `TranslucencyStatus.qml`: The top of the Translucency card (its `x-intro`): a warning that it's experimental, and while the surfaces blur, the blur they get: the compositor's one (CompositorManager.blur, as in effect), set by the window look's b…
-- `WorkspacesStatus.qml`: The top of the Workspaces card (the section's `x-intro`): where the compositor makes its workspaces itself (CompositorManager. dynamicWorkspaces), why the layout below is greyed out and what the workspace keys do instead
+- `WorkspacesStatus.qml`: The top of the Workspaces card (the section's `x-intro`): where the compositor makes its workspaces itself (CompositorManager. dynamicWorkspaces), why the layout below is greyed out and what the workspace keys do instea…
 
 ## shell/
 

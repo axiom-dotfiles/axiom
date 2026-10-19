@@ -18,6 +18,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### The scrolling layout's workspaces don't come back with their monitor
+- **Where:** `services/HyprlandManager.qml` (`dynamicByLayout`, `_compaction`), `components/methods/DynamicWorkspaces.qml`
+- **What:** niri keeps an unplugged monitor's workspaces and gives them back when it returns; under Hyprland's scrolling layout, Hyprland moves them to another monitor, where they're outside its block, so they drop out of its list (`DynamicWorkspaces.workspaces`) until `workspaces reconcile`. Workspaces the user's config makes persistent stay empty in the middle of the list, as compaction moves no workspace without windows. Neither is tried yet.
+- **Size:** needs a plan
+- **Found:** 2026-10-19, while adding the scrolling layout
+
 ### Hyprland's and niri's release can restore an older claim's backup
 - **Where:** `scripts/claim_hyprland.sh` (`newest_backup`), `scripts/claim_niri.sh` (`newest_backup`)
 - **What:** Release falls back to the newest dated `*.axiom-backup-*` beside the config, whichever claim made it. A claim that found no config (`created`) set nothing aside, yet its release brings back the backup an earlier claim left there. `claim_sway.sh` had the same bug, reproduced on scratch dirs (`ClaimSway.test_release_ignores_an_older_claims_backup`), and now records what each claim set aside (`.axiom-claimed`); the other two likely need the same record (not reproduced).

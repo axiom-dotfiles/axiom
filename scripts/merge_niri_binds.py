@@ -50,7 +50,7 @@ HARMLESS = {"repeat", "cooldown-ms", "hotkey-overlay-title", "allow-when-locked"
 # niri's actions that are an axiom action of their own
 SIMPLE = {"close-window": "closeWindow", "fullscreen-window": "fullscreen", "toggle-window-floating": "toggleFloat",
           "center-window": "centerWindow", "quit": "exitSession", "toggle-column-tabbed-display": "toggleGroup",
-          "expand-column-to-available-width": "stripFit"}
+          "expand-column-to-available-width": "stripFit", "center-column": "stripCenter"}
 # niri's actions taking a direction: (axiom action, direction)
 DIRECTIONAL = {
     "focus-column-left": ("focusDir", "left"), "focus-column-right": ("focusDir", "right"),
@@ -58,6 +58,8 @@ DIRECTIONAL = {
     "focus-window-up": ("focusDir", "up"), "focus-window-down": ("focusDir", "down"),
     "focus-window-or-monitor-up": ("focusDir", "up"), "focus-window-or-monitor-down": ("focusDir", "down"),
     "move-column-left": ("stripSwapColumn", "left"), "move-column-right": ("stripSwapColumn", "right"),
+    "consume-or-expel-window-left": ("stripConsume", "left"),
+    "consume-or-expel-window-right": ("stripConsume", "right"),
     "move-column-left-or-to-monitor-left": ("moveWindowDir", "left"),
     "move-column-right-or-to-monitor-right": ("moveWindowDir", "right"),
     "move-window-up": ("moveWindowDir", "up"), "move-window-down": ("moveWindowDir", "down"),

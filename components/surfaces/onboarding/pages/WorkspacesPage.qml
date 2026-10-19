@@ -10,7 +10,7 @@ import qs.components.forms
 // How workspaces are laid out (the Workspaces section), with a small
 // picture of two monitors in the chosen layout, then whether windows tile
 // or sit on strips (Workspaces.strips: every monitor here, one by one in
-// the list below). Where the compositor makes its workspaces itself
+// the list below), which the scrolling layout answers itself. Where the compositor makes its workspaces itself
 // (CompositorManager.dynamicWorkspaces) and only has strips (stripsAlways),
 // it says so instead of offering what doesn't apply.
 OnboardingPage {
@@ -21,7 +21,12 @@ OnboardingPage {
   // "custom" (strips per monitor, from the list below: no card selected)
   readonly property string strips: WorkspacesConfig.strips.length === 1 && WorkspacesConfig.strips[0].monitor === "*" ? WorkspacesConfig.strips[0].direction : WorkspacesConfig.hasStrips ? "custom" : ""
 
-  readonly property bool dynamic: CompositorManager.dynamicWorkspaces
+  // The compositor's own (niri), not the scrolling layout's
+  readonly property bool dynamic: CompositorManager.dynamicWorkspaces && !CompositorManager.dynamicByLayout
+  readonly property bool canScroll: CompositorManager.supports.strips === true && CompositorManager.supports.stripsAlways !== true
+  // Tiling or strips is asked only where the layout leaves it open: the
+  // scrolling layout is all strips, as is a compositor that only has them
+  readonly property bool asksWindows: CompositorManager.supports.stripsAlways !== true && !(root.layout === "scrolling" && root.canScroll)
 
   title: I18n.tr("Workspaces")
   intro: I18n.tr("Workspaces are the desktops you switch between with Super + a number. The bar, the overview and the keybinds all follow the layout you pick here.")
@@ -55,12 +60,20 @@ OnboardingPage {
         "icon": "grid_view",
         "title": I18n.tr("Grid"),
         "description": I18n.tr("Each monitor has a grid of workspaces, and you move up, down, left and right between them.")
+      },
+      {
+        "layout": "scrolling",
+        "icon": "view_carousel",
+        "title": I18n.tr("Scrolling (niri style)"),
+        "description": I18n.tr("As on niri: each monitor has a column of workspaces, made as you fill them, with an empty one at the end, and its windows open side by side on a strip that scrolls sideways to the focused one.")
       }
     ]
 
     delegate: OptionCard {
       required property var modelData
-      visible: !root.dynamic
+      // Scrolling needs strips, and is what a compositor that only has
+      // strips does already
+      visible: !root.dynamic && (modelData.layout !== "scrolling" || root.canScroll)
       icon: modelData.icon
       title: modelData.title
       description: modelData.description
@@ -85,8 +98,10 @@ OnboardingPage {
       delegate: Rectangle {
         id: monitor
         required property int index
-        readonly property int columns: root.layout === "grid" ? WorkspacesConfig.columns : Math.min(WorkspacesConfig.count, 5)
-        readonly property int rows: root.layout === "grid" ? WorkspacesConfig.rows : 1
+        // Scrolling: a column of workspaces, the last one empty
+        readonly property bool column: root.layout === "scrolling" && root.canScroll
+        readonly property int columns: root.layout === "grid" ? WorkspacesConfig.columns : column ? 1 : Math.min(WorkspacesConfig.count, 5)
+        readonly property int rows: root.layout === "grid" ? WorkspacesConfig.rows : column ? 3 : 1
         width: root.cardWidth * 0.36
         height: width * 0.6
         radius: Widget.radius / 2
@@ -132,7 +147,7 @@ OnboardingPage {
   }
 
   StyledText {
-    visible: CompositorManager.supports.stripsAlways !== true
+    visible: root.asksWindows
     Layout.topMargin: Widget.spacing
     text: I18n.tr("Windows")
     font.bold: true
@@ -162,8 +177,7 @@ OnboardingPage {
 
     delegate: OptionCard {
       required property var modelData
-      // Every monitor is a strip where the compositor has nothing else
-      visible: CompositorManager.supports.stripsAlways !== true
+      visible: root.asksWindows
       icon: modelData.icon
       title: modelData.title
       description: modelData.description
@@ -181,6 +195,7 @@ OnboardingPage {
   }
 
   SettingRows {
+    visible: root.asksWindows
     Layout.fillWidth: true
     paths: ["Workspaces.strips"]
   }
