@@ -15,8 +15,8 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Interface scale: Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Sizes set in px there (the launcher's width, a toast's, tiles, padding) grow with it. Higher is easier to read but fits less in each card and panel.
   - x-scope="personal", x-control="stepper"
   - read: `Widget.scale` (computed) · in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/Appearance.qml`
-- **`Widget.cardSize`** · integer = 100 · 50–100 · %
-  - Card size: How big module cards are, as a share of the screen: at 100 two cards fill its shorter side. The overlay, edge menus, desktop, lock screen and greeter all start from it, and each can be made bigger or smaller with its own Module size. Text stays the Interface scale's size on every screen.
+- **`Widget.cardSize`** · integer = 100 · 50–150 · %
+  - Card size: How big module cards are, as a share of the screen: at 100 two cards fill its shorter side. The overlay, edge menus, desktop, lock screen and greeter all start from it, and each can be made bigger or smaller with its own Module size. Text stays the Interface scale's size, so on a smaller screen a higher card size gives modules back their room. The overlay never grows past filling its screen.
   - x-scope="personal"
   - read: `Widget.cardSize` · in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/OverlayConfig.qml`
 - **`Widget.density`** · string = "normal" · enum compact|normal|roomy

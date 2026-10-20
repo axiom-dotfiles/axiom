@@ -1115,9 +1115,9 @@
           "title": "Card size",
           "default": 100,
           "minimum": 50,
-          "maximum": 100,
+          "maximum": 150,
           "x-unit": "%",
-          "description": "How big module cards are, as a share of the screen: at 100 two cards fill its shorter side. The overlay, edge menus, desktop, lock screen and greeter all start from it, and each can be made bigger or smaller with its own Module size. Text stays the Interface scale's size on every screen."
+          "description": "How big module cards are, as a share of the screen: at 100 two cards fill its shorter side. The overlay, edge menus, desktop, lock screen and greeter all start from it, and each can be made bigger or smaller with its own Module size. Text stays the Interface scale's size, so on a smaller screen a higher card size gives modules back their room. The overlay never grows past filling its screen."
         },
         "density": {
           "x-scope": "personal",
