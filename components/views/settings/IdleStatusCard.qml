@@ -107,7 +107,7 @@ FieldGroup {
     }
 
     StyledTextButton {
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       text: I18n.tr("Restart")
       onClicked: HypridleManager.restart()
     }

@@ -311,7 +311,7 @@ Loader {
           opacity: 0.8
         }
         SquareIconButton {
-          size: Widget.height - 6
+          size: Widget.height - Widget.px(6)
           iconText: "content_copy"
           tooltipText: I18n.tr("Copy")
           onClicked: ClipboardManager.copyText(String(root.current ?? ""))

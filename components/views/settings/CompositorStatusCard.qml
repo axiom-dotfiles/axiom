@@ -157,7 +157,7 @@ FieldGroup {
       spacing: Widget.spacing
 
       StyledTextButton {
-        implicitHeight: Widget.height - 4
+        implicitHeight: Widget.height - Widget.px(4)
         text: I18n.tr("Copy")
         onClicked: block.copyClicked()
       }
@@ -165,7 +165,7 @@ FieldGroup {
       StyledTextButton {
         visible: block.canAdd
         enabled: !block.adding && !block.added
-        implicitHeight: Widget.height - 4
+        implicitHeight: Widget.height - Widget.px(4)
         text: block.added ? I18n.tr("Added") : block.adding ? I18n.tr("Adding…") : I18n.tr("Add it for me")
         onClicked: block.addClicked()
       }
@@ -262,7 +262,7 @@ FieldGroup {
       }
 
       StyledTextButton {
-        implicitHeight: Widget.height - 4
+        implicitHeight: Widget.height - Widget.px(4)
         text: I18n.tr("Allow takeover")
         onClicked: CompositorConfigManager.allowTakeover()
       }
@@ -338,7 +338,7 @@ FieldGroup {
     }
 
     StyledTextButton {
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       text: I18n.tr("Open folder")
       onClicked: CompositorConfigManager.openConfigDir()
     }

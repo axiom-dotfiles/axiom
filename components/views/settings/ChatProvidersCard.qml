@@ -236,7 +236,7 @@ FieldGroup {
           }
 
           StyledTextButton {
-            implicitHeight: Widget.height - 4
+            implicitHeight: Widget.height - Widget.px(4)
             enabled: !row.result?.busy
             text: I18n.tr("Test")
             iconText: "network_check"
@@ -244,7 +244,7 @@ FieldGroup {
           }
 
           StyledTextButton {
-            implicitHeight: Widget.height - 4
+            implicitHeight: Widget.height - Widget.px(4)
             enabled: !row.result?.busy
             text: I18n.tr("Fetch models")
             iconText: "download"

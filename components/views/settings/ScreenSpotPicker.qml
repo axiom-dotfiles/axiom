@@ -61,7 +61,7 @@ Rectangle {
       MouseArea {
         id: presetArea
         anchors.fill: parent
-        anchors.margins: -4
+        anchors.margins: -Widget.px(4)
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: root.picked(preset.modelData.values)
@@ -80,8 +80,8 @@ Rectangle {
 
   // Where it is now
   Rectangle {
-    width: root.dot - 4
-    height: root.dot - 4
+    width: root.dot - Widget.px(4)
+    height: root.dot - Widget.px(4)
     radius: width / 2
     x: root.spot.x * (root.width - root.dot) + 2
     y: root.spot.y * (root.height - root.dot) + 2

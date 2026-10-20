@@ -195,14 +195,14 @@ ColumnLayout {
       }
 
       StyledTextButton {
-        implicitHeight: Widget.height - 4
+        implicitHeight: Widget.height - Widget.px(4)
         iconText: "undo"
         text: I18n.tr("Undo")
         onClicked: KeybindManager.undo()
       }
 
       SquareIconButton {
-        size: Widget.height - 4
+        size: Widget.height - Widget.px(4)
         iconText: "close"
         tooltipText: I18n.tr("Dismiss")
         backgroundColor: "transparent"

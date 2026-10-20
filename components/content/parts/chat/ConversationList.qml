@@ -138,7 +138,7 @@ DropdownSurface {
                     id: renameField
                     visible: item.editing
                     Layout.fillWidth: true
-                    Layout.preferredHeight: Widget.height - 6
+                    Layout.preferredHeight: Widget.height - Widget.px(6)
                     text: item.conversation.title ?? ""
                     onVisibleChanged: {
                       if (visible) {

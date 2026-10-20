@@ -120,8 +120,8 @@ EntryListCard {
           tooltipText: I18n.tr("Move up")
           enabled: pinnedRow.index > 0
           Layout.fillWidth: false
-          Layout.preferredWidth: Widget.height - 4
-          Layout.preferredHeight: Widget.height - 4
+          Layout.preferredWidth: Widget.height - Widget.px(4)
+          Layout.preferredHeight: Widget.height - Widget.px(4)
           onClicked: root.movePinned(pinnedRow.index, -1)
         }
 
@@ -130,8 +130,8 @@ EntryListCard {
           tooltipText: I18n.tr("Move down")
           enabled: pinnedRow.index < root.pinned.length - 1
           Layout.fillWidth: false
-          Layout.preferredWidth: Widget.height - 4
-          Layout.preferredHeight: Widget.height - 4
+          Layout.preferredWidth: Widget.height - Widget.px(4)
+          Layout.preferredHeight: Widget.height - Widget.px(4)
           onClicked: root.movePinned(pinnedRow.index, 1)
         }
 
@@ -140,8 +140,8 @@ EntryListCard {
           tooltipText: I18n.tr("Remove")
           hoverColor: Theme.error
           Layout.fillWidth: false
-          Layout.preferredWidth: Widget.height - 4
-          Layout.preferredHeight: Widget.height - 4
+          Layout.preferredWidth: Widget.height - Widget.px(4)
+          Layout.preferredHeight: Widget.height - Widget.px(4)
           onClicked: root.unpinAt(pinnedRow.index)
         }
       }
@@ -170,7 +170,7 @@ EntryListCard {
             "id": "",
             "name": ""
           }
-          implicitHeight: Widget.height - 4
+          implicitHeight: Widget.height - Widget.px(4)
           iconText: "add"
           text: result.app.name
           onClicked: {
@@ -197,8 +197,8 @@ EntryListCard {
     spacing: Widget.spacing
 
     Image {
-      Layout.preferredWidth: Widget.height - 8
-      Layout.preferredHeight: Widget.height - 8
+      Layout.preferredWidth: Widget.height - Widget.px(8)
+      Layout.preferredHeight: Widget.height - Widget.px(8)
       sourceSize: Qt.size(64, 64)
       source: row.iconSource
       asynchronous: true

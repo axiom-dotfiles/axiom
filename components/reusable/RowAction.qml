@@ -12,7 +12,7 @@ SquareIconButton {
   property bool lit: false
   property bool danger: false
 
-  size: Widget.height - 6
+  size: Widget.height - Widget.px(6)
   iconColor: root.row.selected ? Theme.background : (root.lit ? Theme.accent : Theme.foreground)
   backgroundColor: "transparent"
   hoverColor: root.danger ? Theme.error : (root.row.selected ? Qt.darker(Theme.accent, 1.15) : Theme.backgroundAlt)

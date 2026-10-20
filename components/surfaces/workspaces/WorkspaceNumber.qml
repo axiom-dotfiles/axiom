@@ -26,7 +26,7 @@ Rectangle {
   }
 
   width: Math.max(height, label.implicitWidth + Widget.padding)
-  height: label.implicitHeight + 4
+  height: label.implicitHeight + Widget.px(4)
   radius: height / 2
   color: root.current ? Theme.accent : Qt.alpha(Theme.background, 0.75)
 

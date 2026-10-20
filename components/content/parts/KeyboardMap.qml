@@ -58,12 +58,12 @@ ColumnLayout {
       readonly property bool corner: root.tall && (keyButton.does !== "" || keyButton.icon !== "")
       x: corner ? 4 : (parent.width - width) / 2
       y: corner ? 2 : (parent.height - height) / 2
-      width: corner ? implicitWidth : parent.width - 4
+      width: corner ? implicitWidth : parent.width - Widget.px(4)
       horizontalAlignment: Text.AlignHCenter
       text: keyButton.entry.label
       textColor: keyButton.ink
       opacity: keyButton.blank ? 0.3 : (corner ? 0.7 : 1)
-      textSize: Appearance.fontSize - (corner ? 3 : 2)
+      textSize: Appearance.fontSizeBy(corner ? -3 : -2)
       elide: Text.ElideRight
     }
 

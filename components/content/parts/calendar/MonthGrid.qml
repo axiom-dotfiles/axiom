@@ -245,7 +245,7 @@ Item {
               model: cell.dotKey ? cell.dotKey.split(",") : []
               Rectangle {
                 required property string modelData
-                width: Math.max(3, Appearance.fontSize * 0.28)
+                width: Math.max(Widget.px(3), Appearance.fontSize * 0.28)
                 height: width
                 radius: width / 2
                 color: cell.modelData.isToday && !root.titles ? Theme.background : modelData
@@ -280,7 +280,7 @@ Item {
                   x: 2
                   anchors.verticalCenter: parent.verticalCenter
                   width: Widget.px(3)
-                  height: parent.height - 4
+                  height: parent.height - Widget.px(4)
                   radius: 1.5
                   color: chip.calendarColor
                 }

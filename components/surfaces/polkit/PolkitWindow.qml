@@ -146,7 +146,7 @@ PanelWindow {
 
     visible: root.hasCard
     anchors.centerIn: parent
-    width: Math.min(Widget.px(480), root.width - 32)
+    width: Math.min(Widget.px(480), root.width - Widget.px(32))
     height: content.implicitHeight + root.pad * 2
     color: Appearance.fill(Theme.background)
     border.color: Theme.border

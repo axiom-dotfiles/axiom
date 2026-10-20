@@ -109,14 +109,14 @@ Panel {
         StyledTextButton {
           required property int index
           readonly property string preset: StopwatchConfig.presets[index] ?? ""
-          implicitHeight: Widget.height - 4
+          implicitHeight: Widget.height - Widget.px(4)
           text: preset
           onClicked: StopwatchManager.startTimerText(preset)
         }
       }
       StyledTextButton {
         visible: StopwatchManager.timer.duration > 0
-        implicitHeight: Widget.height - 4
+        implicitHeight: Widget.height - Widget.px(4)
         iconText: "replay"
         text: StopwatchClock.format(StopwatchManager.timer.duration, false, true)
         onClicked: StopwatchManager.toggleTimer()

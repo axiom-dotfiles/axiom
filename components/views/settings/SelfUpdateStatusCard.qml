@@ -167,14 +167,14 @@ FieldGroup {
     }
 
     StyledTextButton {
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       visible: !SelfUpdateManager.busy
       text: I18n.tr("Check now")
       onClicked: SelfUpdateManager.check()
     }
 
     StyledTextButton {
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       visible: SelfUpdateManager.available && !SelfUpdateManager.busy
       text: I18n.tr("Update to {0}", SelfUpdateManager.latest)
       backgroundColor: Theme.accent

@@ -15,7 +15,7 @@ Row {
   Rectangle {
     anchors.verticalCenter: parent.verticalCenter
     width: Math.max(height, keyText.implicitWidth + Widget.spacing * 2)
-    height: keyText.implicitHeight + 4
+    height: keyText.implicitHeight + Widget.px(4)
     radius: Widget.radius / 2
     color: Appearance.fill(Theme.backgroundAlt)
     border.color: Theme.border

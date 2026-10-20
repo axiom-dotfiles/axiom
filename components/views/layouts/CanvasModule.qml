@@ -97,7 +97,7 @@ Rectangle {
 
   Column {
     anchors.centerIn: parent
-    width: parent.width - 8
+    width: parent.width - Widget.px(8)
     spacing: 2
 
     StyledIcon {
@@ -161,7 +161,7 @@ Rectangle {
     x: (root.width - width) / 2
     y: root.small ? root.height + 4 : root.height - height - 6
     width: sizeText.implicitWidth + Widget.padding
-    height: sizeText.implicitHeight + 4
+    height: sizeText.implicitHeight + Widget.px(4)
     radius: height / 2
     color: Theme.accent
 
@@ -191,7 +191,7 @@ Rectangle {
       readonly property bool west: zone.modelData.includes("w")
       readonly property bool corner: zone.modelData.length === 2
       readonly property real edge: Math.max(3, Math.min(8, root.width / 5, root.height / 5))
-      readonly property real cornerSize: Math.max(5, Math.min(16, root.width / 4, root.height / 4))
+      readonly property real cornerSize: Math.max(Widget.px(5), Math.min(Widget.px(16), root.width / 4, root.height / 4))
       // Where the drag started, in the canvas, and the place then
       property point start: Qt.point(0, 0)
       property var startPlace: null
@@ -237,8 +237,8 @@ Rectangle {
       Rectangle {
         visible: zone.containsMouse || root.resizing === zone.modelData
         anchors.centerIn: parent
-        width: zone.corner ? Math.min(parent.width, 8) : zone.north || zone.south ? Math.min(parent.width, Appearance.fontSize * 2) : 3
-        height: zone.corner ? Math.min(parent.height, 8) : zone.east || zone.west ? Math.min(parent.height, Appearance.fontSize * 2) : 3
+        width: zone.corner ? Math.min(parent.width, Widget.px(8)) : zone.north || zone.south ? Math.min(parent.width, Appearance.fontSize * 2) : Widget.px(3)
+        height: zone.corner ? Math.min(parent.height, Widget.px(8)) : zone.east || zone.west ? Math.min(parent.height, Appearance.fontSize * 2) : Widget.px(3)
         radius: Math.min(width, height) / 2
         color: Theme.accent
       }

@@ -98,6 +98,21 @@ QtObject {
     modulesOf: () => root.localLayout?.modules ?? null
     scopeKey: root.host + ":" + root.scope
     onEdited: draft.changed()
+    // The layout's own settings (its Module size, grid, background, …)
+    // go with each snapshot, so undoing one puts back the places it moved
+    snapshotExtra: () => {
+      const layout = root.localLayout;
+      if (!layout)
+        return null;
+      const extra = {};
+      Object.keys(layout).filter(key => key !== "modules").forEach(key => extra[key] = layout[key]);
+      return extra;
+    }
+    restoreExtra: extra => {
+      const layout = root.localLayout;
+      if (layout && extra)
+        Object.keys(extra).forEach(key => layout[key] = Utils.clone(extra[key]));
+    }
   }
 
   // Why the draft can't be saved as is (empty = savable)
@@ -107,7 +122,7 @@ QtObject {
   // its nearest edge (OverlayConfig.screenArrangement, shrunk as far as
   // that needs), in the draft and in what it's compared with alike, so it
   // stays unchanged until edited
-  function rebase() {
+  function rebase(keepHistory) {
     if (!root.screen || !draft.local)
       return;
     const move = layout => {
@@ -132,7 +147,8 @@ QtObject {
     const moved = move(root.layoutOf(draft.local));
     move(root.layoutOf(draft.saved));
     if (moved) {
-      root.layout.clearHistory();
+      if (!keepHistory)
+        root.layout.clearHistory();
       draft.changed();
     }
   }
@@ -166,15 +182,18 @@ QtObject {
     const layout = root.localLayout;
     if (!layout || JSON.stringify(layout[key]) === JSON.stringify(value))
       return;
+    // One undo step with the places it moves (snapshotExtra)
+    root.layout.recordField(`layout:${key}`);
     if (key === "fineGrid") {
       (layout.modules ?? []).forEach(module => {
         if (module?.place)
           module.place = GridPlacement.scalePlace(module.place, value);
       });
-      // Older snapshots are on the other grid
-      root.layout.clearHistory();
     }
     layout[key] = value;
+    // A new Module size or grid moves the places onto this screen's grid
+    // now, inside that step, not later as an outside change would
+    root.rebase(true);
     draft.changed();
   }
 

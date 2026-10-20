@@ -333,7 +333,7 @@ Panel {
         StyledTextEntry {
           id: field
           Layout.fillWidth: true
-          Layout.preferredWidth: root.strip ? 3 : 1
+          Layout.preferredWidth: root.strip ? 3 : 1 // fixed px: layout weights, not sizes
           Layout.preferredHeight: Widget.height
           placeholderText: I18n.tr("e.g. 5 km to mi")
           input.wrapMode: Text.NoWrap

@@ -204,7 +204,7 @@ PanelWindow {
       id: card
 
       anchors.centerIn: parent
-      width: Math.min(tiles.implicitWidth + root.pad * 2, root.width - 32)
+      width: Math.min(tiles.implicitWidth + root.pad * 2, root.width - Widget.px(32))
       height: content.implicitHeight + root.pad * 2
       color: Appearance.fill(Theme.background)
       border.color: Theme.border

@@ -172,7 +172,7 @@ Item {
       Layout.preferredWidth: root.showPercent ? widest.advanceWidth : -1
       visible: text !== ""
       elide: Text.ElideRight
-      Layout.maximumWidth: root.showPercent ? Infinity : parent.width - 4
+      Layout.maximumWidth: root.showPercent ? Infinity : parent.width - Widget.px(4)
 
       TextMetrics {
         id: widest

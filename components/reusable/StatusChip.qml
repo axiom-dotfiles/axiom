@@ -10,7 +10,7 @@ PopInRectangle {
   property string text: ""
 
   implicitWidth: label.implicitWidth + Widget.padding * 2
-  implicitHeight: label.implicitHeight + 4
+  implicitHeight: label.implicitHeight + Widget.px(4)
   radius: height / 2
   color: Theme.foregroundAlt
 

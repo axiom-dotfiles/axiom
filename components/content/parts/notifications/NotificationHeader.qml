@@ -35,7 +35,7 @@ RowLayout {
   Rectangle {
     visible: NotificationManager.count > 0
     implicitWidth: Math.max(implicitHeight, countLabel.implicitWidth + Widget.px(12))
-    implicitHeight: countLabel.implicitHeight + 4
+    implicitHeight: countLabel.implicitHeight + Widget.px(4)
     radius: height / 2
     color: Theme.accent
 

@@ -121,7 +121,7 @@ OnboardingPage {
               required property int index
               // Shared ids: each monitor shows a different one of them
               readonly property bool active: index === (root.layout === "standard" ? monitor.index : 0)
-              width: Math.min((monitor.width - 16) / monitor.columns - Widget.spacing, (monitor.height - 16) / monitor.rows - Widget.spacing)
+              width: Math.min((monitor.width - Widget.px(16)) / monitor.columns - Widget.spacing, (monitor.height - Widget.px(16)) / monitor.rows - Widget.spacing)
               height: width
               radius: Widget.px(3)
               color: active ? Theme.accent : Theme.backgroundHighlight
@@ -130,7 +130,7 @@ OnboardingPage {
                 anchors.centerIn: parent
                 visible: root.layout !== "grid" && parent.width > Appearance.fontSize
                 text: String(parent.index + 1)
-                textSize: Math.max(8, parent.width * 0.45)
+                textSize: Math.max(Widget.px(8), parent.width * 0.45)
                 textColor: parent.active ? Theme.background : Theme.foreground
               }
             }

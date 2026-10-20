@@ -601,15 +601,21 @@ QtObject {
     });
   }
 
+  // Records an undo step before an edit to `field` (a module's property,
+  // or an owner's own setting kept in snapshotExtra); more edits to the
+  // same field (typing, a stepper) join it
+  function recordField(field) {
+    if (root._lastField === field)
+      return;
+    root._record(root._snapshot());
+    root._lastField = field;
+  }
+
   function updateModuleProperty(index, key, value) {
     const module = root.module(index);
     if (!module || JSON.stringify(module.properties?.[key]) === JSON.stringify(value))
       return;
-    const field = `${index}:${key}`;
-    if (root._lastField !== field) {
-      root._record(root._snapshot());
-      root._lastField = field;
-    }
+    root.recordField(`${index}:${key}`);
     if (!module.properties)
       module.properties = {};
     module.properties[key] = value;

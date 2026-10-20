@@ -74,7 +74,7 @@ RowLayout {
     signal clicked
 
     Layout.preferredWidth: root.compact ? Layout.preferredHeight : button.fullWidth
-    Layout.preferredHeight: Math.max(Widget.height - 4, buttonRow.implicitHeight + Widget.spacing * 2)
+    Layout.preferredHeight: Math.max(Widget.height - Widget.px(4), buttonRow.implicitHeight + Widget.spacing * 2)
     color: button.fillColor
     radius: Widget.radius
     border.color: button.strokeColor

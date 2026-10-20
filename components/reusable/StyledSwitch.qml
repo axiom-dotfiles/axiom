@@ -9,14 +9,14 @@ Switch {
 
   // -- Implementation --
   implicitWidth: Math.round(implicitHeight * 1.9)
-  implicitHeight: Widget.height - 4
+  implicitHeight: Widget.height - Widget.px(4)
 
   indicator: Rectangle {
     x: root.checked ? root.width - width - 2 : 2
     y: 2
-    width: root.height - 4
-    height: root.height - 4
-    radius: (root.height - 4) / 2
+    width: root.height - Widget.px(4)
+    height: root.height - Widget.px(4)
+    radius: (root.height - Widget.px(4)) / 2
     color: Theme.foreground
 
     Behavior on x {

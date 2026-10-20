@@ -337,7 +337,7 @@ DropdownSurface {
         readonly property bool confirming: root.confirming === path
 
         width: list.width
-        implicitHeight: Math.max(Widget.height - 4, rowLayout.implicitHeight + Widget.spacing / 2)
+        implicitHeight: Math.max(Widget.height - Widget.px(4), rowLayout.implicitHeight + Widget.spacing / 2)
         radius: Widget.radius / 2
         color: row.confirming ? Qt.alpha(Theme.error, 0.14) : row.isCurrent ? Qt.alpha(Theme.accent, 0.16) : rowHover.hovered ? Theme.backgroundHighlight : "transparent"
 
@@ -381,7 +381,7 @@ DropdownSurface {
           StyledTextEntry {
             visible: row.editing
             Layout.fillWidth: true
-            Layout.preferredHeight: Widget.height - 8
+            Layout.preferredHeight: Widget.height - Widget.px(8)
             text: row.fileIsDir ? row.fileName : NotesManager.titleOf(row.fileName)
             onVisibleChanged: {
               if (visible) {

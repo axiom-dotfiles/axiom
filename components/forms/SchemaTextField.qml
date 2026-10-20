@@ -187,7 +187,7 @@ ColumnLayout {
 
       delegate: StyledTextButton {
         required property string modelData
-        implicitHeight: Widget.height - 8
+        implicitHeight: Widget.height - Widget.px(8)
         text: modelData
         onClicked: {
           if (!root.commaList) {

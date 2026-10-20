@@ -210,7 +210,7 @@ StyledContainer {
 
     SquareIconButton {
       visible: !root.isRun
-      size: Widget.height - 6
+      size: Widget.height - Widget.px(6)
       iconText: "close"
       tooltipText: I18n.tr("Remove")
       iconColor: root.ink

@@ -25,8 +25,8 @@ ColumnLayout {
     spacing: Widget.spacing
 
     Rectangle {
-      Layout.preferredWidth: Widget.height + 4
-      Layout.preferredHeight: Widget.height + 4
+      Layout.preferredWidth: Widget.height + Widget.px(4)
+      Layout.preferredHeight: Widget.height + Widget.px(4)
       radius: Widget.radius
       color: root.filled ? Theme.accent : Theme.backgroundAlt
 

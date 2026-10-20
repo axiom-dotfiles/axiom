@@ -271,7 +271,7 @@ Panel {
       // Larger than the box, so the blur doesn't fade out at its edges
       CrossFade {
         anchors.fill: parent
-        anchors.margins: -48
+        anchors.margins: -Widget.px(48)
         value: root.artSource
         delegate: Image {
           required property var value

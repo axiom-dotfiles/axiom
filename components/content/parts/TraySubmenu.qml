@@ -31,7 +31,7 @@ Item {
     id: menuList
     anchors.fill: parent
     menu: root.menuItem
-    maxWidth: (root._window?.screen?.width ?? 2000) * 0.3
+    maxWidth: (root._window?.screen?.width ?? 2000) * 0.3 // fixed px: a stand-in screen width
     emptyText: I18n.tr("No submenu items")
 
     onItemClicked: root.wrapper.requestDismiss()

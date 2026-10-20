@@ -125,7 +125,7 @@ Rectangle {
         readonly property bool locked: BarManager.selectedBar()?.lockCenter ?? false
 
         visible: root.zone === "center"
-        size: Widget.height - 6
+        size: Widget.height - Widget.px(6)
         iconText: locked ? "lock" : "lock_open"
         iconSize: Appearance.fontSizeBy(-1)
         iconColor: locked ? Theme.background : Theme.foreground
@@ -136,7 +136,7 @@ Rectangle {
 
       SquareIconButton {
         id: addButton
-        size: Widget.height - 6
+        size: Widget.height - Widget.px(6)
         iconText: "add"
         backgroundColor: "transparent"
         tooltipText: I18n.tr("Add a widget")

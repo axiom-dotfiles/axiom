@@ -68,7 +68,7 @@ Item {
       MouseArea {
         id: dotArea
         anchors.fill: parent
-        anchors.margins: -4
+        anchors.margins: -Widget.px(4)
         enabled: root.changed
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor

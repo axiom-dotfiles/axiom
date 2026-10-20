@@ -32,7 +32,7 @@ The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lo
 
 ### Functions
 
-- `rebase()`: Moves the edited layout's places onto the screen's grid, each kept to its nearest edge (OverlayConfig.screenArrangement, shrunk as far as that needs), in the draft and in what it's compared with alik…
+- `rebase(keepHistory)`: Moves the edited layout's places onto the screen's grid, each kept to its nearest edge (OverlayConfig.screenArrangement, shrunk as far as that needs), in the draft and in what it's compared with alik…
 - `edit(change)`: Changes the draft in place (`change(local)`), as an edit
 - `ensureLoaded()`: Loads the draft unless it holds unsaved edits
 - `updateLayoutField(key, value)`: One of the layout's own fields (columns, background, …).
