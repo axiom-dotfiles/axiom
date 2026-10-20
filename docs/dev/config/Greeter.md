@@ -31,18 +31,18 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Greeter.layout`** · object
   - A screen of overlay modules on a bounded grid fitted to each monitor at the card size: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).
-- **`Greeter.layout.columns`** · integer = 16 · 1–64
+- **`Greeter.layout.columns`** · integer = 16 · 1–256
   - Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it.
   - x-settings=false
   - read: `GreeterConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/GreeterConfig.qml`
-- **`Greeter.layout.rows`** · integer = 9 · 1–64
+- **`Greeter.layout.rows`** · integer = 9 · 1–256
   - Grid units down of the grid the modules were last placed on.
   - x-settings=false
   - read: `GreeterConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/GreeterConfig.qml`
 - **`Greeter.layout.fineGrid`** · boolean = false
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
   - x-group="Grid"
-  - read: `GreeterConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/GreeterConfig.qml`
+  - read: `GreeterConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/GreeterConfig.qml`, `config/OverlayConfig.qml`
 - **`Greeter.layout.moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
   - x-group="Grid", x-control="stepper"

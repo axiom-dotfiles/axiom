@@ -38,7 +38,19 @@ QtObject {
   // or its fineUnit) scaled as the cards are, so a grid drawn at any size
   // is the layout's, scaled
   function gapOf(unit, fine) {
-    return root.cardSpacing * unit / (fine ? root.fineUnit(root.layoutUnit) : root.layoutUnit);
+    return root.cardSpacing * unit / root.layoutUnitOf(fine);
+  }
+
+  // The card size content lays out at on a grid, a double grid's (`fine`)
+  // or not
+  function layoutUnitOf(fine) {
+    return fine ? root.fineUnit(root.layoutUnit) : root.layoutUnit;
+  }
+
+  // A grid's own card size at card size `card` px: a double grid's
+  // (`fine`) units are split in two each way, its gaps scaled (gapOf)
+  function gridUnitOf(card, fine) {
+    return fine ? root.fineUnit(card, root.gapOf(card)) : Math.round(card);
   }
 
   // The card size of a double grid (`fineGrid`) at card size `unit`: two
@@ -637,8 +649,7 @@ QtObject {
   // (smaller than `unit` asked) }
   function screenArrangement(places, from, unit, width, height, margin, fine) {
     const scale = fine ? 2 : 1;
-    const drawnOf = card => fine ? root.fineUnit(card, root.gapOf(card)) : Math.round(card);
-    const asked = drawnOf(unit);
+    const asked = root.gridUnitOf(unit, fine);
     let card = unit;
     for (let step = 0; step < 40 && card > 4 * root.cardSpacing; step++) {
       const whole = root.screenLattice(card, width, height, margin, root.gapOf(card));
@@ -651,7 +662,7 @@ QtObject {
         return {
           "cols": lattice.cols,
           "rows": lattice.rows,
-          "unit": drawnOf(card),
+          "unit": root.gridUnitOf(card, fine),
           "gap": root.gapOf(card),
           "places": anchored,
           "shrunk": step > 0
@@ -660,19 +671,28 @@ QtObject {
         break;
       card *= 0.96;
     }
-    const reach = root.bounds((places ?? []).filter(place => place).map(place => ({
-          "place": place
-        })));
-    const cols = Math.max(from.cols, reach.cols, 1);
-    const rows = Math.max(from.rows, reach.rows, 1);
-    const fitted = Math.min(asked, root.latticeUnit(cols, rows, width, height, margin, fine));
+    const reach = root.layoutReach(places, from);
+    const fitted = Math.min(asked, root.latticeUnit(reach.cols, reach.rows, width, height, margin, fine));
     return {
-      "cols": cols,
-      "rows": rows,
+      "cols": reach.cols,
+      "rows": reach.rows,
       "unit": fitted,
       "gap": root.gapOf(fitted, fine),
       "places": places ?? [],
       "shrunk": fitted < asked
+    };
+  }
+
+  // The grid `places` (null for none) placed on a `from` grid ({ cols,
+  // rows }) take: `from`, or as far as they reach past it, at least one
+  // unit each way
+  function layoutReach(places, from) {
+    const reach = root.bounds((places ?? []).filter(place => place).map(place => ({
+          "place": place
+        })));
+    return {
+      "cols": Math.max(from.cols, reach.cols, 1),
+      "rows": Math.max(from.rows, reach.rows, 1)
     };
   }
 
@@ -742,11 +762,11 @@ QtObject {
     const sizes = root.trackSizes(bounds, unit);
     return sizes.width <= 0 ? 1 : Math.min(1, width / sizes.width, height / sizes.height);
   }
-  // What content laid out at card size `unit` is drawn at, on cards
-  // `drawn` px: 1 within 2 %, so it isn't resampled for nothing (an edge
-  // menu's modules; the overlay snaps its card size instead)
-  function zoomOf(drawn, unit) {
-    const zoom = unit > 0 ? drawn / unit : 1;
+  // What content laid out at the layout's card size (layoutUnitOf, a
+  // double grid's with `fine`) is drawn at, on cards `drawn` px: 1 within
+  // 2 %, so it isn't resampled for nothing
+  function zoomOf(drawn, fine) {
+    const zoom = drawn / root.layoutUnitOf(fine);
     return Math.abs(zoom - 1) < 0.02 ? 1 : zoom;
   }
 
@@ -760,13 +780,11 @@ QtObject {
     // A page two cards high is span(8) at the layout size, its gap scaled
     // with it like everything else on the page
     const fill = Math.min(height * root.layoutUnit / root.span(8, root.layoutUnit), width / cardsWide);
-    const unit = root.layoutUnit;
-    const drawn = Math.max(1, Math.round(fill * size / 100));
-    const snapped = Math.abs(drawn / unit - 1) < 0.02 ? unit : drawn;
+    const zoom = root.zoomOf(Math.max(1, Math.round(fill * size / 100)), false);
     return {
-      "drawn": snapped,
-      "unit": unit,
-      "zoom": snapped / unit
+      "drawn": Math.round(root.layoutUnit * zoom),
+      "unit": root.layoutUnit,
+      "zoom": zoom
     };
   }
 

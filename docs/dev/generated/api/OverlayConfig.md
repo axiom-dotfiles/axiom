@@ -48,7 +48,6 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 - `cardUnitOn(width, height)`: The card size (px) every module grid on a `width` × `height` screen starts from: what an overlay at the card size (Widget.cardSize, not the overlay's own Module size) would draw there with no bars, i…
 - `screenArrangement(layout, modules, screen, width, height)`: A screen layout's (a DesktopLayout's, the lock screen's, the greeter's) `modules` on `screen` in a `width` × `height` px room (its room inside the bars and border): the units that fit there at its ca…
 - `pageUnit(view, unit)`: The card size a Custom page's modules are laid out at on an overlay whose cards are `unit` px: a double grid's (fineGrid) has twice the units across (GridPlacement.fineUnit)
-- `span(n, unit)`
 - `slotShape(rect)`
 - `defaultSize(type)`: The size [w, h] a module is added at: its declared one, else a card.
 - `minSize(type)`: The least [w, h] a module dropped into a gap is shrunk to fit it: its declared one, else half its default size.

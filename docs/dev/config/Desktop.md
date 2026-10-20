@@ -21,18 +21,18 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - The monitor (connector name) a layout in Desktop.monitors is for.
   - x-scope="machine", x-monitorRef="drop", x-settings=false
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
-- **`Desktop.all.columns`** · integer = 16 · 1–64
+- **`Desktop.all.columns`** · integer = 16 · 1–256
   - Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it.
   - x-settings=false
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`
-- **`Desktop.all.rows`** · integer = 9 · 1–64
+- **`Desktop.all.rows`** · integer = 9 · 1–256
   - Grid units down of the grid the modules were last placed on.
   - x-settings=false
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`
 - **`Desktop.all.fineGrid`** · boolean = false
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
   - x-group="Grid"
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`
+  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`, `config/OverlayConfig.qml`
 - **`Desktop.all.moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
   - x-group="Grid", x-control="stepper"
@@ -58,18 +58,18 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - The monitor (connector name) a layout in Desktop.monitors is for.
   - x-scope="machine", x-monitorRef="drop", x-settings=false
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
-- **`Desktop.primary.columns`** · integer = 16 · 1–64
+- **`Desktop.primary.columns`** · integer = 16 · 1–256
   - Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it.
   - x-settings=false
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`
-- **`Desktop.primary.rows`** · integer = 9 · 1–64
+- **`Desktop.primary.rows`** · integer = 9 · 1–256
   - Grid units down of the grid the modules were last placed on.
   - x-settings=false
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`
 - **`Desktop.primary.fineGrid`** · boolean = false
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
   - x-group="Grid"
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`
+  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`, `config/OverlayConfig.qml`
 - **`Desktop.primary.moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
   - x-group="Grid", x-control="stepper"
@@ -102,18 +102,18 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - The monitor (connector name) a layout in Desktop.monitors is for.
   - x-scope="machine", x-monitorRef="drop", x-settings=false
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
-- **`Desktop.monitors[].columns`** · integer = 16 · 1–64
+- **`Desktop.monitors[].columns`** · integer = 16 · 1–256
   - Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it.
   - x-settings=false
   - read: entry field, name match, `// reads:` marker · in: `components/methods/GridPlacement.qml`
-- **`Desktop.monitors[].rows`** · integer = 9 · 1–64
+- **`Desktop.monitors[].rows`** · integer = 9 · 1–256
   - Grid units down of the grid the modules were last placed on.
   - x-settings=false
   - read: entry field, name match, `// reads:` marker · in: `components/methods/GridPlacement.qml`
 - **`Desktop.monitors[].fineGrid`** · boolean = false
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
   - x-group="Grid"
-  - read: entry field, name match, `// reads:` marker · in: `components/methods/GridPlacement.qml`
+  - read: entry field, name match, `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/OverlayConfig.qml`
 - **`Desktop.monitors[].moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
   - x-group="Grid", x-control="stepper"

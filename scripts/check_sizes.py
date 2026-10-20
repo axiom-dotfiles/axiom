@@ -9,9 +9,8 @@ same at every scale, so next to the text around it it comes out cramped at
 
   - a size property (one named …width, …height, …size, …spacing,
     …margin(s), …padding, …radius, …length or …thickness: width,
-    Layout.preferredHeight, anchors.leftMargin, textSize) set to a number
-    of 3 or more
-  - a `property int|real <size-ish name>: N` default of 3 or more
+    Layout.preferredHeight, anchors.leftMargin, textSize), or a
+    `property int|real` of that name, set to a number of 3 or more
 
 Left alone: components/bar/ (each bar sizes its own widgets),
 components/methods/ (pure helpers: sizes are handed in), hairlines
@@ -30,11 +29,10 @@ SKIP = ["components/bar/", "components/methods/"]
 
 SIZE_WORD = r"(?:[wW]idth|[hH]eight|[sS]ize|[sS]pacing|[mM]argins?|[pP]adding|[rR]adius|[lL]ength|[tT]hickness)"
 # width, Layout.preferredHeight, anchors.leftMargin, textSize, troughHeight, …
-SIZE_NAME = r"(?:[A-Za-z.]*" + SIZE_WORD + r")"
+SIZE_NAME = r"(?:[\w.]*" + SIZE_WORD + r")"
 NUMBER = r"(\d+(?:\.\d+)?)"
 # `name: 12` (an assignment) or `property int name: 12` (a default)
 ASSIGN = re.compile(r"^\s*(?:readonly\s+)?(?:property\s+(?:int|real)\s+)?(" + SIZE_NAME + r")\s*:\s*" + NUMBER + r"\s*(?://.*)?$")
-DEFAULT = re.compile(r"^\s*(?:readonly\s+)?property\s+(?:int|real)\s+(\w*" + SIZE_WORD + r")\s*:\s*" + NUMBER + r"\s*(?://.*)?$")
 MARK = "// fixed px:"
 
 
@@ -44,7 +42,7 @@ def find_literals(text):
     for n, line in enumerate(text.split("\n"), 1):
         if MARK in line or "border.width" in line:
             continue
-        m = DEFAULT.match(line) or ASSIGN.match(line)
+        m = ASSIGN.match(line)
         if m and float(m.group(2)) >= 3:
             found.append((n, m.group(1), m.group(2)))
     return found

@@ -232,18 +232,15 @@ ReservedAreaWindow {
       availableWidth: overlayPages.maxWidth - OverlayConfig.boxPadding * 2
       availableHeight: overlayPages.maxHeight - OverlayConfig.boxPadding * 2
 
-      // The room a page has before it's shrunk (OverlayPages.fitScale), in
-      // layout px: the layouts editor's "fits" line reads each screen's,
-      // and edge menus its drawn card size
-      readonly property real fitWidth: grid.roomWidth
-      readonly property real fitHeight: grid.roomHeight
-      readonly property string areaKey: [grid.fitWidth, grid.fitHeight, grid.unit, grid.drawnUnit].join(",")
+      readonly property string areaKey: [grid.roomWidth, grid.roomHeight, grid.unit].join(",")
       onAreaKeyChanged: report()
       Component.onCompleted: report()
       Component.onDestruction: OverlayManager.clearArea(root.screen?.name ?? "")
 
+      // The room a page has before it's shrunk (OverlayPages.fitScale), in
+      // layout px: the layouts editor's "fits" line reads each screen's
       function report() {
-        OverlayManager.reportArea(root.screen?.name ?? "", grid.fitWidth, grid.fitHeight, grid.unit, grid.drawnUnit);
+        OverlayManager.reportArea(root.screen?.name ?? "", grid.roomWidth, grid.roomHeight, grid.unit);
       }
     }
 

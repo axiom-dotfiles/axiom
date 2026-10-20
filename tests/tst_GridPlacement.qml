@@ -487,9 +487,26 @@ TestCase {
   }
 
   function test_zoomOf() {
-    compare(GridPlacement.zoomOf(472, 590), 0.8, "a menu at 80 %");
-    compare(GridPlacement.zoomOf(595, 590), 1, "within 2 %: as laid out");
-    compare(GridPlacement.zoomOf(500, 0), 1, "no layout size");
+    compare(GridPlacement.zoomOf(472, false), 0.8, "a menu at 80 %");
+    compare(GridPlacement.zoomOf(595, false), 1, "within 2 %: as laid out");
+    compare(GridPlacement.zoomOf(228, true), 0.8, "a double grid's, against its own layout size");
+    compare(GridPlacement.layoutUnitOf(true), GridPlacement.fineUnit(GridPlacement.layoutUnit));
+    compare(GridPlacement.gridUnitOf(472.4, false), 472);
+    compare(GridPlacement.gridUnitOf(590, true), 285, "a double grid's units at the layout size");
+    compare(GridPlacement.layoutReach([null,
+      {
+        "x": 14,
+        "y": 0,
+        "w": 4,
+        "h": 2
+      }
+    ], {
+      "cols": 16,
+      "rows": 9
+    }), {
+      "cols": 18,
+      "rows": 9
+    }, "as far as the modules reach past their grid");
   }
 
   // A grid drawn at other cards than the layout's, with gapOf's gaps, is

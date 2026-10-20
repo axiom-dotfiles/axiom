@@ -17,7 +17,7 @@ Menus that pop out of a screen edge, holding overlay modules. This doc lists an 
 - `length`:
   - `content`: as long as its modules;
   - `edge`: fitted to the whole edge. Its rows (columns on a top/bottom edge) grow or shrink evenly to take exactly the room (`GridPlacement.trackSizes` with `fit`, down to half a unit, scrolling only past that; `menuOnScreen` draws it the same in the editor). Modules go compact below their minimum.
-- `moduleScale`: % of its screen's overlay card size.
+- `moduleScale`: % of the card size on its screen (`OverlayConfig.cardUnitOn`, from `Widget.cardSize`; the overlay's own Module size doesn't apply).
 - `fineGrid`: each unit split in two each way.
   - `cardUnitOf` takes `GridPlacement.fineUnit`, so the places scaled keep their size exactly.
   - The editor's `GridEditor.sizeScale` doubles default sizes.

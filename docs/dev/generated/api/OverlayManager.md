@@ -16,7 +16,7 @@ OverlayManager holds the layouts editor's working copy of Overlay.views (the edi
 - `greeterEditable` (readonly bool): The login screen's, only once it's set up
 - `layout` (GridEditor)
 - `problems` (readonly var): Why the draft can't be saved as is (empty = savable)
-- `areas` (readonly var): { screenName: { width, height, unit, drawnUnit } }: the room each overlay has for a page and the card size its content lays out at, in layout px, and the card size it's drawn at (OverlayGrid), as its…
+- `areas` (readonly var): { screenName: { width, height, unit } }: the room each overlay has for a page and the card size its content lays out at, in layout px (OverlayGrid), as its OverlayPanel reports them
 
 ### Functions
 
@@ -31,7 +31,7 @@ OverlayManager holds the layouts editor's working copy of Overlay.views (the edi
 - `editGreeter()`
 - `editPages()`: The pages, or the menus, keeping what was selected in each
 - `editMenus()`
-- `reportArea(screenName, width, height, unit, drawnUnit)`
+- `reportArea(screenName, width, height, unit)`
 - `clearArea(screenName)`: A screen's overlay is gone (its screen was unplugged)
 - `fitOf(view)`: How much each screen's overlay shrinks a Custom page: [{ screen, scale }], 1 where it fits
 - `selectedView()`

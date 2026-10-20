@@ -65,14 +65,7 @@ QtObject {
   // The grid it's edited on there ({ cols, rows }): the layout's own
   // once rebased onto the screen, or as far as it reaches when its
   // modules don't fit there by their edges
-  readonly property var grid: {
-    const own = GridPlacement.screenGrid(root.localLayout);
-    const reach = GridPlacement.bounds(root.localLayout?.modules ?? []);
-    return {
-      "cols": Math.max(own.cols, reach.cols, 1),
-      "rows": Math.max(own.rows, reach.rows, 1)
-    };
-  }
+  readonly property var grid: GridPlacement.layoutReach((root.localLayout?.modules ?? []).map(module => module?.place ?? null), GridPlacement.screenGrid(root.localLayout))
   // The screen's own grid at the layout's card size, and its key: a
   // change (another screen, another card size, another layout) moves the
   // places onto it (rebase). Modules being moved don't change it, so the

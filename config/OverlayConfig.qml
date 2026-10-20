@@ -202,14 +202,25 @@ QtObject {
   // each way with fineGrid), each module kept to its nearest edge from the grid it was
   // placed on (`columns` × `rows`). GridPlacement.screenArrangement's
   // { cols, rows, unit, places, shrunk }, plus `zoom`, what content is
-  // drawn at on those cards
-  // reads: Desktop.*.moduleScale, Lockscreen.layout.moduleScale, Greeter.layout.moduleScale
+  // drawn at on those cards, and `margin`, the px left all round the grid
+  // reads: Desktop.*.moduleScale, Desktop.*.fineGrid, Lockscreen.layout.moduleScale, Lockscreen.layout.fineGrid, Greeter.layout.moduleScale, Greeter.layout.fineGrid
   function screenArrangement(layout, modules, screen, width, height) {
-    const card = cardUnitOn(screen?.width ?? width, screen?.height ?? height) * (layout?.moduleScale ?? 100) / 100;
-    const fine = layout?.fineGrid ?? false;
+    if (!layout)
+      return {
+        "cols": 0,
+        "rows": 0,
+        "unit": 0,
+        "gap": cardSpacing,
+        "places": [],
+        "shrunk": false,
+        "zoom": 1,
+        "margin": cardSpacing
+      };
+    const card = cardUnitOn(screen?.width ?? width, screen?.height ?? height) * layout.moduleScale / 100;
     const places = (modules ?? []).map(module => module?.place ?? null);
-    const arranged = GridPlacement.screenArrangement(places, GridPlacement.screenGrid(layout), card, width, height, cardSpacing, fine);
-    arranged.zoom = GridPlacement.zoomOf(arranged.unit, fine ? GridPlacement.fineUnit(GridPlacement.layoutUnit) : GridPlacement.layoutUnit);
+    const arranged = GridPlacement.screenArrangement(places, GridPlacement.screenGrid(layout), card, width, height, cardSpacing, layout.fineGrid);
+    arranged.zoom = GridPlacement.zoomOf(arranged.unit, layout.fineGrid);
+    arranged.margin = cardSpacing;
     return arranged;
   }
 
@@ -220,9 +231,6 @@ QtObject {
     return view?.fineGrid ? GridPlacement.fineUnit(unit) : unit;
   }
 
-  function span(n, unit) {
-    return GridPlacement.span(n, unit);
-  }
   function slotShape(rect) {
     return GridPlacement.slotShape(rect);
   }

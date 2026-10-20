@@ -110,7 +110,7 @@ Every public member of `OverlayConfig`, with the files that use it.
 - `OverlayConfig.pageWithModule(type)`: The page to open for a module type (what openOverlayPage takes): the named Custom page where it's biggest, "" when no page has it
   - in: `services/CalendarManager.qml`, `services/LauncherCommands.qml`, `services/ShellManager.qml`
 - `OverlayConfig.cardSpacing` (int): Card grid layout (see GridPlacement for the geometry).
-  - in: `components/content/ColorSwatch.qml`, `components/content/parts/MenuSubmenu.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/surfaces/greeter/GreeterPreviewWindow.qml`, `components/surfaces/lockscreen/LockPreviewWindow.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/surfaces/onboarding/pages/OnboardingPage.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/BarEditor.qml`, `components/views/BaseView.qml` (+4 more)
+  - in: `components/content/ColorSwatch.qml`, `components/content/parts/MenuSubmenu.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/surfaces/greeter/GreeterPreviewWindow.qml`, `components/surfaces/lockscreen/LockPreviewWindow.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/surfaces/onboarding/pages/OnboardingPage.qml`, `components/views/BarEditor.qml`, `components/views/BaseView.qml`, `components/views/CalendarPage.qml` (+3 more)
 - `OverlayConfig.cardPad(compact, bare)`: The inner padding a module lays its content out within (Card/Panel `pad`): none when bare, less in a quarter slot (Widget's density)
   - in: `components/content/base/SlotContext.qml`, `components/hosts/overlay/ExpandedModule.qml`
 - `OverlayConfig.boxPadding` (int): The overlay box's padding around a page (OverlayPages), at the Interface scale: the page inside it is scaled, the box isn't
@@ -129,8 +129,6 @@ Every public member of `OverlayConfig`, with the files that use it.
   - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `services/ScreenLayoutEditor.qml`
 - `OverlayConfig.pageUnit(view, unit)`: The card size a Custom page's modules are laid out at on an overlay whose cards are `unit` px: a double grid's (fineGrid) has twice the units across (GridPlace…
   - in: `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/Custom.qml`, `services/OverlayManager.qml`
-- `OverlayConfig.span(n, unit)`
-  - in: only inside the reader
 - `OverlayConfig.slotShape(rect)`
   - in: `components/content/base/SlotContext.qml`
 - `OverlayConfig.defaultSize(type)`: The size [w, h] a module is added at: its declared one, else a card.

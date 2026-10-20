@@ -169,10 +169,8 @@ QtObject {
       result = _v69ToV70(result, changes);
     if (version < 71)
       result = _v70ToV71(result, changes);
-    if (version < 72)
-      result = _v71ToV72(result, changes);
     if (version < 73)
-      result = _v72ToV73(result, changes);
+      result = _v71ToV73(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2371,27 +2369,14 @@ QtObject {
     return config;
   }
 
-  // v72 made Overlay.size a share of the screen the pages fill (50-100)
-  // instead of a share of a card capped at 500 px (50-150): the old 120
-  // filled about as much as the new 100, so sizes scale by that
-  function _v71ToV72(config, changes) {
-    const overlay = config.Overlay;
-    if (!overlay || typeof overlay !== "object" || typeof overlay.size !== "number")
-      return config;
-    const size = Math.max(50, Math.min(100, Math.round(overlay.size / 1.2)));
-    changes.push(`Overlay.size ${overlay.size} -> ${size} (now a share of the screen)`);
-    overlay.size = size;
-    return config;
-  }
-
   // v73 moved the module sizing out of Overlay into Widget, for every
-  // surface: Overlay.size -> Widget.cardSize, Overlay.contentScale (the
-  // text inside the overlay's cards) -> Widget.scale (text and controls
-  // everywhere); and Widget's control height, padding and spacing (px)
-  // became a density preset, the nearest one. A screen layout's content
-  // size (only ever in development builds) is dropped: its Module size
-  // scales cards and content together
-  function _v72ToV73(config, changes) {
+  // surface: Overlay.size -> Widget.cardSize (the old default 100 is the
+  // new one, so a config stored full and a sparse one agree), and
+  // Widget's control height, padding and spacing (px) became a density
+  // preset, the nearest one. Overlay.contentScale and a screen layout's
+  // contentScale (only ever in development builds, as v72) are dropped,
+  // the overlay's becoming Widget.scale
+  function _v71ToV73(config, changes) {
     const desktop = config.Desktop && typeof config.Desktop === "object" ? config.Desktop : {};
     const layouts = [desktop.all, desktop.primary, config.Lockscreen?.layout, config.Greeter?.layout].concat(Array.isArray(desktop.monitors) ? desktop.monitors : []);
     layouts.forEach(layout => {

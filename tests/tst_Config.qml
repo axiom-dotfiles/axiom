@@ -2181,37 +2181,30 @@ TestCase {
     }).config.Widget.density, "normal", "no Widget: the default");
   }
 
-  function test_v72_overlay_size_is_a_share_of_the_screen() {
-    compare(load({
-      "version": 71,
-      "Overlay": {
-        "size": 120
-      }
-    }).config.Widget.cardSize, 100, "the old 120 fills the screen");
-    compare(load({
-      "version": 71,
-      "Overlay": {
-        "size": 150
-      }
-    }).config.Widget.cardSize, 100, "capped at the new most");
-    compare(load({
-      "version": 71,
-      "Overlay": {
-        "size": 50
-      }
-    }).config.Widget.cardSize, 50, "kept at the new least");
+  function test_v73_overlay_size_becomes_the_card_size() {
+    const cardSize = overlay => load({
+        "version": 71,
+        "Overlay": overlay
+      }).config.Widget.cardSize;
+    compare(cardSize({
+      "size": 100
+    }), 100, "the old default is the new one");
+    compare(cardSize({}), 100, "a sparse file agrees with a full one");
+    compare(cardSize({
+      "size": 150
+    }), 100, "capped at the new most");
+    compare(cardSize({
+      "size": 50
+    }), 50, "kept at the new least");
     const migrated = load({
       "version": 71,
       "Overlay": {
         "size": 90
       }
     });
-    compare(migrated.config.Widget.cardSize, 75);
+    compare(migrated.config.Widget.cardSize, 90);
     compare(migrated.removed, []);
     compare(errors(migrated.config), []);
-    compare(load({
-      "version": 71
-    }).config.Widget.cardSize, 100, "no size: the default");
   }
 
   function test_v71_moves_pinned_apps_to_apps() {
