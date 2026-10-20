@@ -1,6 +1,6 @@
 pkgbase = axiom-shell
 	pkgdesc = A Quickshell desktop shell for Hyprland, sway and niri: bar, launcher, notifications, lock and login screens, overlay pages
-	pkgver = 1.1.10
+	pkgver = 1.1.11
 	pkgrel = 1
 	url = https://github.com/axiom-dotfiles/axiom
 	install = axiom-shell.install
@@ -8,6 +8,7 @@ pkgbase = axiom-shell
 	license = MIT
 	depends = quickshell>=0.3.2
 	depends = jq
+	depends = curl
 	depends = python
 	depends = ttf-material-symbols-variable
 	optdepends = hyprland: the compositor with every feature
@@ -39,7 +40,7 @@ pkgbase = axiom-shell
 	optdepends = python-gobject: browse buttons for folders and importing configs
 	optdepends = greetd: axiom as the login screen (set up from Settings → Login screen)
 	optdepends = greetd-agreety: axiom as the login screen (its text fallback)
-	source = axiom-shell-1.1.10.tar.gz::https://github.com/axiom-dotfiles/axiom/archive/refs/tags/v1.1.10.tar.gz
-	sha256sums = 7612994fc7b5615ff6007117e64efbb21b7b5a075e8a00be7ff44bfd70c4acd8
+	source = axiom-shell-1.1.11.tar.gz::https://github.com/axiom-dotfiles/axiom/archive/refs/tags/v1.1.11.tar.gz
+	sha256sums = 781e3419b4b3397ab5103a826fd4838f61299c951fc925987219db07574a3e6c
 
 pkgname = axiom-shell
