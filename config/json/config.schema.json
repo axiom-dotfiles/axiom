@@ -1107,7 +1107,7 @@
           "minimum": 75,
           "maximum": 150,
           "x-unit": "%",
-          "description": "Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Higher is easier to read but fits less in each card and panel."
+          "description": "Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Sizes set in px there (the launcher's width, a toast's, tiles, padding) grow with it. Higher is easier to read but fits less in each card and panel."
         },
         "cardSize": {
           "x-scope": "personal",
@@ -1918,7 +1918,7 @@
           "description": "Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "moduleScale": {
-          "x-scope": "personal",
+          "x-scope": "look",
           "x-group": "Size",
           "type": "integer",
           "x-control": "stepper",
@@ -2455,7 +2455,7 @@
         "columns": { "type": "integer", "x-settings": false, "default": 16, "minimum": 1, "maximum": 64, "description": "Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it." },
         "rows": { "type": "integer", "x-settings": false, "default": 9, "minimum": 1, "maximum": 64, "description": "Grid units down of the grid the modules were last placed on." },
         "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
-        "moduleScale": { "x-scope": "personal", "x-group": "Grid", "type": "integer", "x-control": "stepper", "title": "Module size", "default": 100, "minimum": 50, "maximum": 200, "x-unit": "%", "description": "Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds." },
+        "moduleScale": { "x-group": "Grid", "type": "integer", "x-control": "stepper", "title": "Module size", "default": 100, "minimum": 50, "maximum": 200, "x-unit": "%", "description": "Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds." },
         "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": false, "description": "Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper." },
         "modules": {
           "type": "array",
@@ -2474,7 +2474,7 @@
         "columns": { "type": "integer", "x-settings": false, "default": 16, "minimum": 1, "maximum": 64, "description": "Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it." },
         "rows": { "type": "integer", "x-settings": false, "default": 9, "minimum": 1, "maximum": 64, "description": "Grid units down of the grid the modules were last placed on." },
         "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
-        "moduleScale": { "x-scope": "personal", "x-group": "Grid", "type": "integer", "x-control": "stepper", "title": "Module size", "default": 100, "minimum": 50, "maximum": 200, "x-unit": "%", "description": "Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds." },
+        "moduleScale": { "x-group": "Grid", "type": "integer", "x-control": "stepper", "title": "Module size", "default": 100, "minimum": 50, "maximum": 200, "x-unit": "%", "description": "Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds." },
         "otherScreens": {
           "x-group": "Grid",
           "type": "string",
@@ -2861,7 +2861,6 @@
           "x-showIf": { "mode": "floating", "length": "content" }
         },
         "moduleScale": {
-          "x-scope": "personal",
           "x-group": "Placement",
           "type": "integer",
           "x-control": "stepper",

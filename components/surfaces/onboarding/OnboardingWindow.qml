@@ -23,7 +23,7 @@ ReservedAreaWindow {
   // fitScale): a page wider than the screen shrinks as a whole
   readonly property real overlayFit: {
     const first = OverlayConfig.views.find(view => !OverlayConfig.isTool(view.type));
-    return GridPlacement.fitScale(GridPlacement.bounds(first?.modules), overlayGrid.roomWidth, (pageArea.height - OverlayConfig.cardSpacing * 4) / overlayGrid.zoom, OverlayConfig.pageUnit(first, overlayGrid.unit));
+    return GridPlacement.fitScale(GridPlacement.bounds(first?.modules), overlayGrid.roomWidth, overlayGrid.roomHeight, OverlayConfig.pageUnit(first, overlayGrid.unit));
   }
 
   // Esc (or Skip setup) asks first
@@ -86,8 +86,8 @@ ReservedAreaWindow {
     // This screen's card size, worked out as the overlay's is
     OverlayGrid {
       id: overlayGrid
-      availableWidth: pageArea.width - OverlayConfig.cardSpacing * 4
-      availableHeight: pageArea.height - OverlayConfig.cardSpacing * 2 - OverlayConfig.fillGap * 2
+      availableWidth: pageArea.width - OverlayConfig.cardSpacing * 2 - OverlayConfig.boxPadding * 2
+      availableHeight: pageArea.height - OverlayConfig.cardSpacing * 2 - OverlayConfig.boxPadding * 2
     }
 
     StepBar {

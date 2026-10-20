@@ -76,21 +76,21 @@ QtObject {
   // Space between the menu's box and its modules: its own, else (-1) the
   // popouts'
   function paddingOf(menu) {
-    return menu.padding >= 0 ? menu.padding : PopoutsConfig.padding;
+    return menu.padding >= 0 ? Widget.px(menu.padding) : PopoutsConfig.padding;
   }
 
   // The menu's length along its edge, from config alone (for the hover
   // strip before the menu has ever been loaded): its modules' grid at
-  // card size `unit` (EdgeMenuManager.cardUnitOf), as EdgeMenuBody lays
-  // it out, plus its padding
-  function lengthOf(menu, vertical, unit) {
-    return root.gridLengthOf(menu, vertical, unit) + root.paddingOf(menu) * 2;
+  // card size `unit` and `gap` px between cards (EdgeMenuManager.cardUnitOf
+  // and gapOf), as EdgeMenuBody lays it out, plus its padding
+  function lengthOf(menu, vertical, unit, gap) {
+    return root.gridLengthOf(menu, vertical, unit, gap) + root.paddingOf(menu) * 2;
   }
 
   // The menu's modules' grid along its edge, unstretched, at card size
-  // `unit`
-  function gridLengthOf(menu, vertical, unit) {
-    const sizes = GridPlacement.trackSizes(GridPlacement.bounds(menu.modules), unit);
+  // `unit`, `gap` px between cards
+  function gridLengthOf(menu, vertical, unit, gap) {
+    const sizes = GridPlacement.trackSizes(GridPlacement.bounds(menu.modules), unit, null, gap);
     return vertical ? sizes.height : sizes.width;
   }
 }

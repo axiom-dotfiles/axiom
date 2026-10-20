@@ -54,7 +54,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match · in: `components/surfaces/edgemenu/FloatingEdgeMenu.qml`
 - **`EdgeMenus[].moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the menu's modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them.
-  - x-scope="personal", x-group="Placement", x-control="stepper"
+  - x-group="Placement", x-control="stepper"
   - read: `EdgeMenusConfig.menus` (whole) · in: `services/EdgeMenuManager.qml`
 - **`EdgeMenus[].fineGrid`** · boolean = false
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
@@ -156,7 +156,7 @@ Every public member of `EdgeMenusConfig`, with the files that use it.
   - in: `components/surfaces/edgemenu/FloatingEdgeMenu.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`
 - `EdgeMenusConfig.paddingOf(menu)`: Space between the menu's box and its modules: its own, else (-1) the popouts'
   - in: `components/surfaces/edgemenu/FloatingEdgeMenu.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `services/EdgeMenuManager.qml`
-- `EdgeMenusConfig.lengthOf(menu, vertical, unit)`: The menu's length along its edge, from config alone (for the hover strip before the menu has ever been loaded): its modules' grid at card size `unit` (EdgeMenu…
+- `EdgeMenusConfig.lengthOf(menu, vertical, unit, gap)`: The menu's length along its edge, from config alone (for the hover strip before the menu has ever been loaded): its modules' grid at card size `unit` and `gap`…
   - in: `components/surfaces/edgemenu/EdgeMenuSync.qml`, `components/views/layouts/MenuTarget.qml`
-- `EdgeMenusConfig.gridLengthOf(menu, vertical, unit)`: The menu's modules' grid along its edge, unstretched, at card size `unit`
+- `EdgeMenusConfig.gridLengthOf(menu, vertical, unit, gap)`: The menu's modules' grid along its edge, unstretched, at card size `unit`, `gap` px between cards
   - in: `components/surfaces/edgemenu/FloatingEdgeMenu.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`

@@ -67,7 +67,8 @@ Item {
   // The rows `px` takes, at least one
   function rowsFor(px) {
     const unit = root._placedSizes.unitH;
-    return Math.max(1, Math.ceil((px + GridPlacement.cardSpacing) / (unit + GridPlacement.cardSpacing)));
+    const gap = root._placedSizes.gap;
+    return Math.max(1, Math.ceil((px + gap) / (unit + gap)));
   }
 
   property var _pendingGrowth: ({})
@@ -208,7 +209,7 @@ Item {
     request: root.expanded
     host: root.host
     slotRect: [0, 0, root.bounds.cols, root.bounds.rows]
-    inset: OverlayConfig.cardSpacing
+    inset: root.grid.gap
     zoom: root.zoom
     onClosed: root.expanded = null
   }

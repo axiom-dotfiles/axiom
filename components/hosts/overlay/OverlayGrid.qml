@@ -19,6 +19,9 @@ QtObject {
   // A card size of its own (an edge menu's, a screen layout's), used
   // as is, undrawn, instead of what fits; 0 fits the space
   property int fixedUnit: 0
+  // The px between its cards: the layout's, or with a card size of its
+  // own the layout's scaled to it (GridPlacement.gapOf), set by its host
+  property real gap: GridPlacement.cardSpacing
 
   readonly property var _layout: root.fixedUnit > 0 ? null : OverlayConfig.layoutFor(root.availableWidth, root.availableHeight)
   // The card size content lays out at, and the one it's drawn at
@@ -30,12 +33,12 @@ QtObject {
   readonly property real roomHeight: root.availableHeight / root.zoom
 
   function span(n) {
-    return OverlayConfig.span(n, root.unit);
+    return GridPlacement.span(n, root.unit, root.gap);
   }
 
   // One grid unit across and down, and the whole grid, for modules
   // reaching `bounds` (see GridPlacement.trackSizes)
   function sizes(bounds, stretch) {
-    return GridPlacement.trackSizes(bounds, root.unit, stretch);
+    return GridPlacement.trackSizes(bounds, root.unit, stretch, root.gap);
   }
 }

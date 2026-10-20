@@ -192,6 +192,7 @@ Item {
       zoom: root.arrangement.zoom
       grid: OverlayGrid {
         fixedUnit: root.arrangement.unit
+        gap: root.arrangement.gap
       }
     }
   }

@@ -19,9 +19,9 @@ QtObject {
   readonly property real distance: _c.distance / 100
   // Search field under the results
   readonly property bool reverse: _c.reverse
-  readonly property int width: _c.width
+  readonly property int width: Widget.px(_c.width)
   readonly property int maxResults: _c.maxResults
-  readonly property int iconSize: _c.iconSize
+  readonly property int iconSize: Widget.px(_c.iconSize)
   // Dim the screen behind it
   readonly property bool showBackdrop: _c.showBackdrop
   // 0-1 opacity of the backdrop

@@ -168,9 +168,9 @@ QtObject {
   function cardPad(compact, bare) {
     return bare ? 0 : compact ? Widget.cardPadding * 0.75 : Widget.cardPadding * 1.5;
   }
-  // The room left between a page filling the screen and the edges of its
-  // area (the bars on one side, the page switcher on the other)
-  readonly property int fillGap: 16
+  // The overlay box's padding around a page (OverlayPages), at the
+  // Interface scale: the page inside it is scaled, the box isn't
+  readonly property int boxPadding: Widget.px(cardSpacing)
   // The page switcher's height (OverlayPageNavigator), and the room it
   // takes off the pages' area with the gaps around it (OverlayPanel)
   readonly property int navigatorHeight: Math.round(Widget.height * 1.5)
@@ -179,7 +179,7 @@ QtObject {
   // fits a 16:9 screen
   readonly property real fitCardsWide: 4.25
   // The overlay's cards for `width` × `height` px of room (the page area
-  // less the fill gap and the box's padding): { drawn, unit, zoom }, see
+  // less its margin and the box's padding): { drawn, unit, zoom }, see
   // GridPlacement.overlayLayout
   function layoutFor(width, height) {
     return GridPlacement.overlayLayout(width, height, size, fitCardsWide);
@@ -187,11 +187,12 @@ QtObject {
   // The card size (px) every module grid on a `width` × `height` screen
   // starts from: what an overlay at the card size (Widget.cardSize, not
   // the overlay's own Module size) would draw there with no bars, its
-  // room less the page switcher, the fill gap and the box's padding. The
+  // room less the page switcher, the page area's margin and the box's
+  // padding. The
   // edge menus, the desktop, the lock screen and the greeter scale it by
   // their own Module size, so they agree whether an overlay is open or not
   function cardUnitOn(width, height) {
-    return GridPlacement.overlayLayout(width - cardSpacing * 4, height - navigatorRoom - fillGap * 2 - cardSpacing * 2, Widget.cardSize, fitCardsWide).drawn;
+    return GridPlacement.overlayLayout(width - cardSpacing * 2 - boxPadding * 2, height - navigatorRoom - cardSpacing * 2 - boxPadding * 2, Widget.cardSize, fitCardsWide).drawn;
   }
 
   // A screen layout's (a DesktopLayout's, the lock screen's, the

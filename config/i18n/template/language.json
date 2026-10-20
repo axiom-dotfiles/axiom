@@ -2164,7 +2164,7 @@
     "Shrunk to {0}% on {1}": "",
     "Shut down": "",
     "Size": "",
-    "Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Higher is easier to read but fits less in each card and panel.": "",
+    "Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Sizes set in px there (the launcher's width, a toast's, tiles, padding) grow with it. Higher is easier to read but fits less in each card and panel.": "",
     "Size of the icon right under the pointer.": "",
     "Size of the menu's modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them.": "",
     "Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.": "",

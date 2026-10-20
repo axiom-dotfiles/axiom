@@ -15,7 +15,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `OverlayConfig.monitors` · in: `components/hosts/overlay/OverlayPanel.qml`, `shell/Overlay.qml`
 - **`Overlay.moduleScale`** · integer = 100 · 50–150 · %
   - Module size: Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content grow and shrink with them. The overlay never grows past filling its screen.
-  - x-scope="personal", x-group="Size", x-control="stepper"
+  - x-scope="look", x-group="Size", x-control="stepper"
   - read: `OverlayConfig.moduleScale` · in: `config/OverlayConfig.qml`
 - **`Overlay.navigator`** · string = "bottom" · enum bottom|top
   - Position: The screen edge the page switcher sits on.
@@ -110,18 +110,18 @@ Every public member of `OverlayConfig`, with the files that use it.
 - `OverlayConfig.pageWithModule(type)`: The page to open for a module type (what openOverlayPage takes): the named Custom page where it's biggest, "" when no page has it
   - in: `services/CalendarManager.qml`, `services/LauncherCommands.qml`, `services/ShellManager.qml`
 - `OverlayConfig.cardSpacing` (int): Card grid layout (see GridPlacement for the geometry).
-  - in: `components/content/ColorSwatch.qml`, `components/hosts/overlay/ModuleGrid.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/surfaces/greeter/GreeterPreviewWindow.qml`, `components/surfaces/lockscreen/LockPreviewWindow.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/surfaces/onboarding/pages/OnboardingPage.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/BarEditor.qml` (+5 more)
+  - in: `components/content/ColorSwatch.qml`, `components/content/parts/MenuSubmenu.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/surfaces/greeter/GreeterPreviewWindow.qml`, `components/surfaces/lockscreen/LockPreviewWindow.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/surfaces/onboarding/pages/OnboardingPage.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/BarEditor.qml`, `components/views/BaseView.qml` (+4 more)
 - `OverlayConfig.cardPad(compact, bare)`: The inner padding a module lays its content out within (Card/Panel `pad`): none when bare, less in a quarter slot (Widget's density)
   - in: `components/content/base/SlotContext.qml`, `components/hosts/overlay/ExpandedModule.qml`
-- `OverlayConfig.fillGap` (int): The room left between a page filling the screen and the edges of its area (the bars on one side, the page switcher on the other)
-  - in: `components/hosts/overlay/OverlayPanel.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`
+- `OverlayConfig.boxPadding` (int): The overlay box's padding around a page (OverlayPages), at the Interface scale: the page inside it is scaled, the box isn't
+  - in: `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`
 - `OverlayConfig.navigatorHeight` (int): The page switcher's height (OverlayPageNavigator), and the room it takes off the pages' area with the gaps around it (OverlayPanel)
   - in: `components/hosts/overlay/OverlayPageNavigator.qml`
 - `OverlayConfig.navigatorRoom` (int)
   - in: `components/hosts/overlay/OverlayPanel.qml`
 - `OverlayConfig.fitCardsWide` (real): At most this many cards fit across, so a page four cards wide still fits a 16:9 screen
   - in: only inside the reader
-- `OverlayConfig.layoutFor(width, height)`: The overlay's cards for `width` × `height` px of room (the page area less the fill gap and the box's padding): { drawn, unit, zoom }, see GridPlacement.overlay…
+- `OverlayConfig.layoutFor(width, height)`: The overlay's cards for `width` × `height` px of room (the page area less its margin and the box's padding): { drawn, unit, zoom }, see GridPlacement.overlayLa…
   - in: `components/hosts/overlay/OverlayGrid.qml`
 - `OverlayConfig.cardUnitOn(width, height)`: The card size (px) every module grid on a `width` × `height` screen starts from: what an overlay at the card size (Widget.cardSize, not the overlay's own Modul…
   - in: `services/EdgeMenuManager.qml`
@@ -130,7 +130,7 @@ Every public member of `OverlayConfig`, with the files that use it.
 - `OverlayConfig.pageUnit(view, unit)`: The card size a Custom page's modules are laid out at on an overlay whose cards are `unit` px: a double grid's (fineGrid) has twice the units across (GridPlace…
   - in: `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/Custom.qml`, `services/OverlayManager.qml`
 - `OverlayConfig.span(n, unit)`
-  - in: `components/hosts/overlay/OverlayGrid.qml`
+  - in: only inside the reader
 - `OverlayConfig.slotShape(rect)`
   - in: `components/content/base/SlotContext.qml`
 - `OverlayConfig.defaultSize(type)`: The size [w, h] a module is added at: its declared one, else a card.

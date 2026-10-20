@@ -224,18 +224,19 @@ ReservedAreaWindow {
       }
     }
 
-    // This screen's card size: what fills the space the pages get, less
-    // the fill gap at both ends (the box's padding is in maxWidth/Height)
+    // This screen's card size: what fills the space the pages get
+    // (maxWidth/Height: the page area less its margin) inside the box's
+    // padding, so a page two cards high fills it unshrunk
     OverlayGrid {
       id: grid
-      availableWidth: overlayPages.maxWidth - OverlayConfig.cardSpacing * 2
-      availableHeight: overlayPages.maxHeight - OverlayConfig.fillGap * 2
+      availableWidth: overlayPages.maxWidth - OverlayConfig.boxPadding * 2
+      availableHeight: overlayPages.maxHeight - OverlayConfig.boxPadding * 2
 
       // The room a page has before it's shrunk (OverlayPages.fitScale), in
       // layout px: the layouts editor's "fits" line reads each screen's,
       // and edge menus its drawn card size
-      readonly property real fitWidth: (overlayPages.maxWidth - OverlayConfig.cardSpacing * 2) / grid.zoom
-      readonly property real fitHeight: (overlayPages.maxHeight - OverlayConfig.cardSpacing * 2) / grid.zoom
+      readonly property real fitWidth: grid.roomWidth
+      readonly property real fitHeight: grid.roomHeight
       readonly property string areaKey: [grid.fitWidth, grid.fitHeight, grid.unit, grid.drawnUnit].join(",")
       onAreaKeyChanged: report()
       Component.onCompleted: report()

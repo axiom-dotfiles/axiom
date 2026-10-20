@@ -10,6 +10,6 @@ QtObject {
   // all | monitor | workspace (DockLayout.inScope's scopes)
   readonly property string scope: _c.scope
   readonly property bool previews: _c.previews
-  readonly property int tileSize: _c.tileSize
+  readonly property int tileSize: Widget.px(_c.tileSize)
   readonly property int showDelay: _c.showDelay
 }

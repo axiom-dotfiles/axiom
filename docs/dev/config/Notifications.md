@@ -62,7 +62,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Notifications.width`** · integer = 360 · 240–600 · px
   - Toast width: Width of each toast.
   - x-scope="look", x-group="Toasts"
-  - read: `NotificationsConfig.width` · in: `shell/Notifications.qml`
+  - read: `NotificationsConfig.width` (computed) · in: `shell/Notifications.qml`
 - **`Notifications.quietFullscreen`** · boolean = true
   - Quiet over fullscreen: Show no toasts on a monitor whose workspace has a fullscreen window. Critical ones still show, and everything still goes to the history.
   - x-group="Toasts"

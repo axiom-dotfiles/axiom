@@ -24,7 +24,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Popouts.padding`** · integer = 16 · 0–64 · px
   - Padding: Space between a popout's box and its content: bar popouts, OSDs, and edge menus that don't set their own.
   - x-control="stepper"
-  - read: `PopoutsConfig.padding` · in: `components/content/base/Panel.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePopout.qml`, `components/hosts/popout/FloatingPopout.qml`, `config/EdgeMenusConfig.qml`
+  - read: `PopoutsConfig.padding` (computed) · in: `components/content/base/Panel.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePopout.qml`, `components/hosts/popout/FloatingPopout.qml`, `config/EdgeMenusConfig.qml`
 
 ### Reader members
 

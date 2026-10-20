@@ -88,8 +88,8 @@ Item {
     }
   }
 
-  implicitWidth: currentViewWidth * contentZoom + OverlayConfig.cardSpacing * 2
-  implicitHeight: currentViewHeight * contentZoom + OverlayConfig.cardSpacing * 2
+  implicitWidth: currentViewWidth * contentZoom + OverlayConfig.boxPadding * 2
+  implicitHeight: currentViewHeight * contentZoom + OverlayConfig.boxPadding * 2
 
   // Store current view dimensions to avoid binding loops
   property real currentViewWidth: root.currentPage ? root.currentPage.implicitWidth : 0
@@ -100,7 +100,7 @@ Item {
   // cards high). Item.scale doesn't feed back into implicit sizes, so no
   // binding loop.
   readonly property real fitScale: {
-    const room = OverlayConfig.cardSpacing * 2;
+    const room = OverlayConfig.boxPadding * 2;
     const width = root.currentViewWidth * root.grid.zoom;
     const height = root.currentViewHeight * root.grid.zoom;
     const scaleW = width > 0 && root.maxWidth > room ? (root.maxWidth - room) / width : 1;

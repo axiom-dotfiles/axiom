@@ -37,6 +37,7 @@ Item {
   OverlayGrid {
     id: overlayGrid
     fixedUnit: root.menu ? EdgeMenuManager.cardUnitOf(root.menu, root.parentMenu ? EdgeMenusConfig.screenFor(root.parentMenu) : null) : 0
+    gap: root.menu ? EdgeMenuManager.gapOf(root.menu, root.parentMenu ? EdgeMenusConfig.screenFor(root.parentMenu) : null) : OverlayConfig.cardSpacing
   }
 
   readonly property bool empty: root.modules.length === 0

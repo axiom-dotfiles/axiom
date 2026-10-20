@@ -12,7 +12,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 ### `Widget`
 
 - **`Widget.scale`** · integer = 100 · 75–150 · %
-  - Interface scale: Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Higher is easier to read but fits less in each card and panel.
+  - Interface scale: Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Sizes set in px there (the launcher's width, a toast's, tiles, padding) grow with it. Higher is easier to read but fits less in each card and panel.
   - x-scope="personal", x-control="stepper"
   - read: `Widget.scale` (computed) · in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/Appearance.qml`
 - **`Widget.cardSize`** · integer = 100 · 50–100 · %
@@ -56,6 +56,6 @@ Every public member of `Widget`, with the files that use it.
 - `Widget.smallPadding` (int): Inner margins of rows, fields and dropdowns
   - in: `components/content/parts/TrayMenuItem.qml`, `components/reusable/StyledComboEntry.qml`, `components/reusable/StyledTextButton.qml`, `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/launcher/LauncherRow.qml`, `components/surfaces/screenshot/ScreenshotPickerWindow.qml`, `components/surfaces/workspaces/WindowPreview.qml`, `components/views/barEditor/LayoutOverrideField.qml`, `components/views/barEditor/WidgetInspector.qml`, `components/views/layouts/MenuOpening.qml` (+1 more)
 - `Widget.px(n: real): int`: A size that isn't a control's, padding or gap (a panel's width, an avatar, a dot) at the Interface scale.
-  - in: `components/content/AudioMixer.qml`, `components/content/BluetoothDevices.qml`, `components/content/Calculator.qml`, `components/content/Chat.qml`, `components/content/ClaudeUsage.qml`, `components/content/ClipboardHistory.qml`, `components/content/ClockCalendar.qml`, `components/content/Disks.qml`, `components/content/EmojiPicker.qml`, `components/content/Greeting.qml` (+65 more)
+  - in: `components/content/AudioMixer.qml`, `components/content/BluetoothDevices.qml`, `components/content/Calculator.qml`, `components/content/Chat.qml`, `components/content/ClaudeUsage.qml`, `components/content/ClipboardHistory.qml`, `components/content/ClockCalendar.qml`, `components/content/Disks.qml`, `components/content/EmojiPicker.qml`, `components/content/Greeting.qml` (+72 more)
 - `Widget.radius` (int): Corners of what sits inside something (cards, controls, rows, bar widgets); outer edges use Appearance.borderRadius
   - in: `components/content/AudioMixer.qml`, `components/content/Calculator.qml`, `components/content/Chat.qml`, `components/content/EmojiPicker.qml`, `components/content/Favourites.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Palette.qml`, `components/content/Password.qml` (+75 more)

@@ -3348,7 +3348,6 @@
     "Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content grow and shrink with them. The overlay never grows past filling its screen.": "",
     "Interface scale": "",
     "Card size": "",
-    "Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Higher is easier to read but fits less in each card and panel.": "",
     "Density": "",
     "How big module cards are: at 100 two cards fill the overlay's height. The overlay, edge menus, desktop, lock screen and greeter all start from it, and each can be made bigger or smaller with its own Module size. It looks the same on every resolution.": "",
     "Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it.": "",
@@ -3360,6 +3359,7 @@
     "Normal": "",
     "How tightly controls, padding and gaps are packed in panels and cards.": "",
     "Grid units down of the grid the modules were last placed on.": "",
-    "Compact": ""
+    "Compact": "",
+    "Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Sizes set in px there (the launcher's width, a toast's, tiles, padding) grow with it. Higher is easier to read but fits less in each card and panel.": ""
   }
 }

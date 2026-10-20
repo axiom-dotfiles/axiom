@@ -37,6 +37,7 @@ Item {
   OverlayGrid {
     id: overlayGrid
     fixedUnit: EdgeMenuManager.cardUnitOf(root.menu)
+    gap: EdgeMenuManager.gapOf(root.menu)
   }
 
   // Whether the menu takes its whole edge
