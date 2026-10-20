@@ -2421,8 +2421,14 @@ QtObject {
   // row down, so the clock in its corner no longer shares an edge with
   // the Greeting: modules sharing one move as a group on another screen
   // shape (GridPlacement.touchingGroups), and the clock left its corner
-  // with them. Only a layout still exactly the old default moves
+  // with them. Only a layout still exactly the old default moves. And
+  // the overlay's Module size tops out at 100 (the card size grows it)
   function _v73ToV74(config, changes) {
+    const overlay = config.Overlay;
+    if (overlay && typeof overlay.moduleScale === "number" && overlay.moduleScale > 100) {
+      changes.push(`Overlay.moduleScale ${overlay.moduleScale} -> 100`);
+      overlay.moduleScale = 100;
+    }
     const modules = config.Greeter?.layout?.modules;
     if (!Array.isArray(modules))
       return config;

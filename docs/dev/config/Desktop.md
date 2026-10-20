@@ -117,7 +117,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Desktop.monitors[].moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
   - x-group="Grid", x-control="stepper"
-  - read: entry field, name match repo-wide, `// reads:` marker · in: `config/OverlayConfig.qml`, `services/EdgeMenuManager.qml`
+  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/ConfigMigration.qml`, `config/OverlayConfig.qml`, `services/EdgeMenuManager.qml`
 - **`Desktop.monitors[].moduleBorders`** · boolean = false
   - Module borders: Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper.
   - x-group="Style"

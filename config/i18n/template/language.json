@@ -2168,7 +2168,7 @@
     "Size of the icon right under the pointer.": "",
     "Size of the menu's modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them.": "",
     "Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.": "",
-    "Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content grow and shrink with them. The overlay never grows past filling its screen.": "",
+    "Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content shrink with them. For bigger cards, raise the card size.": "",
     "Size of the result icons.": "",
     "Size of tray icons (px).": "",
     "Sizing": "",

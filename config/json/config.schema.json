@@ -1925,9 +1925,9 @@
           "title": "Module size",
           "default": 100,
           "minimum": 50,
-          "maximum": 150,
+          "maximum": 100,
           "x-unit": "%",
-          "description": "Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content grow and shrink with them. The overlay never grows past filling its screen."
+          "description": "Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content shrink with them. For bigger cards, raise the card size."
         },
         "navigator": {
           "x-scope": "look",

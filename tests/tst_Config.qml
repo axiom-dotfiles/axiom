@@ -2139,6 +2139,12 @@ TestCase {
     const edited = JSON.parse(JSON.stringify(old));
     edited[1].place.x = 3;
     compare(greeter(edited), [0, 1, 3, 6, 8, 8], "an edited layout stays");
+    compare(load({
+      "version": 73,
+      "Overlay": {
+        "moduleScale": 140
+      }
+    }).config.Overlay.moduleScale, 100, "the overlay's Module size capped at 100");
   }
 
   function test_v73_moves_sizing_into_widget() {

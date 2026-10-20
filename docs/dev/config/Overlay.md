@@ -13,8 +13,8 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Monitors: Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
   - x-scope="look"
   - read: `OverlayConfig.monitors` · in: `components/hosts/overlay/OverlayPanel.qml`, `shell/Overlay.qml`
-- **`Overlay.moduleScale`** · integer = 100 · 50–150 · %
-  - Module size: Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content grow and shrink with them. The overlay never grows past filling its screen.
+- **`Overlay.moduleScale`** · integer = 100 · 50–100 · %
+  - Module size: Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content shrink with them. For bigger cards, raise the card size.
   - x-scope="look", x-group="Size", x-control="stepper"
   - read: `OverlayConfig.moduleScale` · in: `config/OverlayConfig.qml`
 - **`Overlay.navigator`** · string = "bottom" · enum bottom|top
