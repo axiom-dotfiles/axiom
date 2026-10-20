@@ -60,6 +60,10 @@ How surfaces meet the three non-solid bar backgrounds. Solid bars, the border, c
   - **Stretching:** the pill under it (otherwise the nearest) stretches, animated, to carry it, joining neighbours within `pillMerge`.
   - **Flush ends:** the pill squares its far corner where the box runs flush into its end (`AttachedSurface.startCornerRadius`/`endCornerRadius`, animated).
   - **Perpendicular joins:** at a pill that joins the perpendicular edge, the box joins that edge too.
+- **Between pills:** a surface centred between pills or islands (`EdgeAttach.place`'s `between` mode) that keeps more than `pillMerge` and two fillets' room from each grows from the bar's outer edge instead, over the bar's reserved area, as on a bare stretch of a solid edge.
+  - It grows out of the border's stroke (opened under it), or straight off a bare screen edge.
+  - Its content starts at that edge (`attachClearance` 0, unlike `merged`), so a dock there sits in the bar's empty room.
+  - It stretches no pill. Too close to a pill, it grows out of the nearest one as above.
 - **`BarContainer.pillShapes`** is the pills (or islands) as drawn: stretched and merged.
 - **Merged boxes:** only a pill bar showing no pills leaves a box to grow from its outer edge (`EdgePlacement.merged`). That box is as deep as the pills would be.
 - **Flush wall through the backfill:** a flush wall runs on through the surface's backfill, covering the end of the stroke it continues. The backfill leaves that spot open, and the glow used to show through it as a seam.

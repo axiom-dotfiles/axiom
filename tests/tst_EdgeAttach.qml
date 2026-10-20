@@ -436,6 +436,82 @@ TestCase {
     compare([p.stretch.start, p.stretch.end], [400, 800]);
   }
 
+  // With `between`, a box centred between pills (or islands) and clear of
+  // them grows from the bar's outer edge, a fillet each side
+  function test_between_pills() {
+    const apart = [pill(100, 100), pill(700, 100)];
+    const p = EdgeAttach.place(spec({
+      "pills": apart,
+      "between": true,
+      "centre": 450,
+      "aligned": 400
+    }));
+    compare([p.mode, p.pill, p.stretch], ["between", null, null]);
+    compare([p.start, p.end, p.surfaceStart, p.surfaceLength], [400, 500, 373, 154]);
+    // Islands alike
+    compare(EdgeAttach.place(spec({
+      "pills": apart,
+      "island": true,
+      "between": true,
+      "centre": 450,
+      "aligned": 400
+    })).mode, "between");
+    // Without `between` (submenus): out of the nearest, as ever
+    compare(EdgeAttach.place(spec({
+      "pills": apart,
+      "centre": 450,
+      "aligned": 400
+    })).mode, "pill");
+    // Centred on a pill: out of it
+    compare(EdgeAttach.place(spec({
+      "pills": apart,
+      "between": true,
+      "centre": 150,
+      "aligned": 100
+    })).mode, "pill");
+  }
+
+  function test_between_needs_room() {
+    const at = (merge, aligned) => EdgeAttach.place(spec({
+        "pills": [pill(100, 100), pill(700, 100)],
+        "merge": merge,
+        "between": true,
+        "centre": aligned + 50,
+        "aligned": aligned
+      }));
+    // Two fillets' room (54) from the pill, and no less
+    compare(at(0, 254).mode, "between");
+    compare(at(0, 253).mode, "pill");
+    // More than the merge distance, where that's further
+    compare(at(80, 281).mode, "between");
+    compare(at(80, 280).mode, "pill");
+  }
+
+  // With no room taken by a fillet or corner (radius 0), a side reaching
+  // the pill's end exactly runs flush into it, as a nearer one would
+  function test_sharp_side_at_the_end_is_flush() {
+    const at = (aligned, grows) => EdgeAttach.place(spec({
+        "pills": [pill(100, 400)],
+        "radius": 0,
+        "centre": aligned + 50,
+        "aligned": aligned,
+        "pillGrows": grows
+      }));
+    for (const grows of [false, true]) {
+      compare([at(100, grows).flushStart, at(100, grows).flushEnd], [true, false], "start, pillGrows " + grows);
+      compare([at(400, grows).flushStart, at(400, grows).flushEnd], [false, true], "end, pillGrows " + grows);
+      compare([at(200, grows).flushStart, at(200, grows).flushEnd], [false, false], "inside, pillGrows " + grows);
+    }
+    // A radius keeps the side at the end standing on it, its fillet room
+    // taken from the pill grown past it
+    compare(EdgeAttach.place(spec({
+      "pills": [pill(100, 400)],
+      "centre": 150,
+      "aligned": 100,
+      "pillGrows": true
+    })).flushStart, false);
+  }
+
   function test_nudge_up_to_the_pill_end() {
     // 20 short of room for its fillet before the pill's start: up to it,
     // flush and no empty box, rather than 62 back

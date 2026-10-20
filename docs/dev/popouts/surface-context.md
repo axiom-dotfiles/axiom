@@ -39,7 +39,7 @@ Every surface that grows out of a screen edge asks one pure helper what each of 
   - walls and the strokes' reach
   - `joinsOf`: its joins from where it would rest
 - `layout(f, p)` gives its box (via `EdgeAttach.place`) and everything that follows from it:
-  - `detached`, `straight`, backfill
+  - `detached`, `straight`, backfill (`merged` and `between` boxes grow from the followed bar's outer edge: attached there, with the border as their sink)
   - `attachAt` across
   - `ownSink`, shadow
 - Both work in screen px along the edge. A bar popout, an edge popout and a dock at the same intersection therefore get one answer.

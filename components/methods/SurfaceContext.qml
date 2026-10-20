@@ -311,6 +311,7 @@ QtObject {
       "islandTo": f.islandTo,
       "straight": p.bareEdge,
       "straightMerged": !p.border,
+      "between": true,
       "pillGrows": true,
       "pillJoins": true,
       "joinableStart": f.startEnd.joins,
@@ -322,15 +323,18 @@ QtObject {
       "radius": p.radius
     });
     const merged = place.mode === "merged";
+    // Grown from the followed bar's outer edge: a pill bar showing no
+    // pills (merged), or between pills or islands clear of them
+    const fromOuter = merged || place.mode === "between";
     const onPill = place.mode === "pill" || place.mode === "island";
     const detached = root.detached(p.held, bar, place.mode);
     const pillFoot = pillBar ? (island ? bar.extent : bar.pillDepth) - p.stroke : 0;
     const barOuter = bar ? p.frameLine - bar.extent : 0;
     // Where the attach edge goes, from the followed bar's outer edge: that
-    // edge when merged, a pill's or island's far stroke, a solid bar's own
+    // edge grown from it, a pill's or island's far stroke, a solid bar's own
     // inner stroke, or a transparent bar's inner edge (moved so its box is
     // in line with the windows, Bar.detachedPush)
-    const attachFromBar = !bar ? 0 : merged ? 0 : onPill ? pillFoot : bar.extent - (bar.innerStroke ? p.stroke : 0) + (p.detachedPush ?? 0);
+    const attachFromBar = !bar ? 0 : fromOuter ? 0 : onPill ? pillFoot : bar.extent - (bar.innerStroke ? p.stroke : 0) + (p.detachedPush ?? 0);
     // Held, a connector gap short of where the box goes; following a bar,
     // as that meets it; else on the stroke of what reserves the edge
     const attachAt = p.held ? p.frameLine + (p.across ?? 0) - p.gap / 2 : bar ? barOuter + attachFromBar : p.reserved - (p.bareEdge ? 0 : p.stroke);
@@ -338,9 +342,9 @@ QtObject {
     // the border off a solid bar's own (not a pill's or island's: the bar
     // opens that itself; nor a bare edge's)
     let ownSink;
-    if (detached || onPill || (bar && !bar.solid && !merged) || p.bareEdge)
+    if (detached || onPill || (bar && !bar.solid && !fromOuter) || p.bareEdge)
       ownSink = null;
-    else if (merged)
+    else if (fromOuter)
       ownSink = p.border ? "border" : null;
     else
       ownSink = p.border ? "border" : "solidBar";
@@ -349,7 +353,7 @@ QtObject {
       "merged": merged,
       "onPill": onPill,
       "detached": detached,
-      "straight": merged ? !p.border : place.mode === "plain" && p.bareEdge,
+      "straight": fromOuter ? !p.border : place.mode === "plain" && p.bareEdge,
       "backfill": !detached && onPill ? 1 : 0,
       "attachClearance": merged ? pillFoot : 0,
       "attachAt": attachAt,
@@ -359,7 +363,7 @@ QtObject {
       "shadow": root.shadow({
         "detached": detached,
         "bar": ownBar,
-        "onBar": !p.held && (onPill || merged || (ownBar?.innerStroke ?? false))
+        "onBar": !p.held && (onPill || fromOuter || (ownBar?.innerStroke ?? false))
       }),
       // A joined submenu's reach along the pill it stands on stays between
       // the strokes at the edge's ends

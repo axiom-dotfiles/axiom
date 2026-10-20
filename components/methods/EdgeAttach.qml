@@ -32,7 +32,9 @@ import QtQuick
 //   the box where the box goes past it. Where that end is a pill joining
 //   the perpendicular edge, the box joins that edge too. A pill bar
 //   showing no pills has nothing to grow out of: the box grows from its
-//   outer edge (`merged`).
+//   outer edge (`merged`). With `between`, a box centred between pills (or
+//   islands) that keeps clear of them grows from the bar's outer edge too,
+//   over the bar (`between`), rather than out of the nearest.
 // - At an end with nothing to join (another bar on the perpendicular
 //   edge, an integrated menu's strip) the caller may set a wall: where
 //   the surface stops, its fillet included (SurfaceContext.wallAt puts
@@ -99,6 +101,9 @@ QtObject {
   //     or to `pillTo`, where the bar's ends are, and joins it too; and
   //     joinableStart/joinableEnd, whether that end can join at all: a
   //     side whose pill runs on past `lo`/`hi` joins it there)
+  //   between (centred between pills or islands, a box that keeps more
+  //     than `merge` and two fillets' room from each grows from the bar's
+  //     outer edge over the bar rather than out of the nearest)
   //   pillGrows (a pill or island grows past its end to carry a fillet
   //     its side lands just short of, rather than the box growing empty to
   //     that end; see above)
@@ -110,11 +115,12 @@ QtObject {
   //     out of a pill or island also keeps a full fillet and the pill's
   //     corner inside what it may reach, joinFrom/joinTo or
   //     islandFrom/islandTo)
-  // Returns { mode: "plain" | "pill" | "island" | "merged", pill, start,
-  //   end (the box), grow (the box past `length`), contentStart (where
-  //   the content's `length` starts) and contentOffset (from the box's
-  //   start), joinStart, joinEnd, flushStart, flushEnd, startMargin,
-  //   endMargin (the surface's fillet room), surfaceStart, surfaceLength,
+  // Returns { mode: "plain" | "pill" | "island" | "merged" | "between",
+  //   pill, start, end (the box), grow (the box past `length`),
+  //   contentStart (where the content's `length` starts) and
+  //   contentOffset (from the box's start), joinStart, joinEnd,
+  //   flushStart, flushEnd, startMargin, endMargin (the surface's fillet
+  //   room), surfaceStart, surfaceLength,
   //   stretch ({ index, start, end, squareStart, squareEnd, joinStart,
   //   joinEnd } or null) }
   function place(s) {
@@ -122,8 +128,20 @@ QtObject {
     // A pill bar showing no pills still grows from its outer edge
     const pillBar = !s.island && (s.pillBar ?? pills.length > 0);
     const pill = pills.length > 0 && (s.island || pillBar) ? root.pillAt(pills, s.centre, true) : null;
-    if (pill !== null)
-      return root._onPill(s, pills, pill, !s.island);
+    if (pill === null)
+      return root._offPills(s, pillBar ? "merged" : "plain", pillBar ? !!s.straightMerged : !!s.straight);
+    if (s.between && root.pillAt(pills, s.centre, false) === null) {
+      const free = root._offPills(s, "between", !!s.straightMerged);
+      if (root._clearOf(pills, free, root.filletMargin(s.stroke, s.radius) * 2, s.merge ?? 0))
+        return free;
+    }
+    return root._onPill(s, pills, pill, !s.island);
+  }
+
+  // A box grown from the edge itself (or a bar's outer edge) rather than
+  // out of a pill or island: its content where it wants, kept within
+  // reach, a fillet each side unless joined or `straight`
+  function _offPills(s, mode, straight) {
     const fm = root.filletMargin(s.stroke, s.radius);
     const length = s.length;
     // On whole pixels: a fillet ending mid-pixel leaves a pale pixel in
@@ -134,8 +152,6 @@ QtObject {
     const content = Math.round(Math.max(lo, Math.min(s.aligned, hi - length)));
     const start = s.joinStart ? s.joinFrom : content;
     const end = s.joinEnd ? s.joinTo : content + length;
-    const mode = pillBar ? "merged" : "plain";
-    const straight = pillBar ? !!s.straightMerged : !!s.straight;
     const startMargin = !s.joinStart && !straight ? fm : 0;
     const endMargin = !s.joinEnd && !straight ? fm : 0;
     return {
@@ -156,6 +172,16 @@ QtObject {
       "surfaceLength": startMargin + (end - start) + endMargin,
       "stretch": null
     };
+  }
+
+  // Whether box `b` keeps more than `merge`, and at least `room` (both
+  // their fillets), from every pill: pills closer than `merge` draw as
+  // one, and its fillet and a pill's would overlap closer than `room`
+  function _clearOf(pills, b, room, merge) {
+    return pills.every(p => {
+      const gap = Math.max(p.start - b.end, b.start - (p.start + p.length));
+      return gap > merge && gap >= room;
+    });
   }
 
   // A pill (or island) stretch `target` ({ start, end, ... }) as drawn
@@ -301,15 +327,21 @@ QtObject {
     const overEnd = !!s.pillJoins && !!s.joinableEnd && to > s.hi;
     const edgeStart = isPill && !isFinite(s.wallFrom ?? NaN) && (pills.some(p => p.joinStart && p.start === from) || !!s.pillJoins && !!s.joinStart || overStart);
     const edgeEnd = isPill && !isFinite(s.wallTo ?? NaN) && (pills.some(p => p.joinEnd && p.start + p.length === to) || !!s.pillJoins && !!s.joinEnd || overEnd);
-    const grows0 = !!s.pillGrows && content >= from && content - need >= lo && !edgeStart;
-    const grows1 = !!s.pillGrows && content + length <= to && content + length + need <= hi && !edgeEnd;
+    // Too tight a radius for a fillet or corner (none needs room): a side
+    // reaching the pill's end runs flush into it, its wall continuing the
+    // pill's, rather than standing on its corner, where the box's backfill
+    // cut the pill's stroke short
+    const sharp = need <= 0;
+    const grows0 = !!s.pillGrows && !sharp && content >= from && content - need >= lo && !edgeStart;
+    const grows1 = !!s.pillGrows && !sharp && content + length <= to && content + length + need <= hi && !edgeEnd;
     // A side that joins the edge (`joinStart`/`joinEnd`: within a connector
     // gap of it, see joins) does where its pill can reach it, as does one
     // whose fillet would pass the stroke there (a pill joining the edge may
     // run on past it, under a bar that makes way for this one at that
     // corner)
     const past0 = edgeStart && (content - need < lo || !!s.joinStart), past1 = edgeEnd && (content + length + need > hi || !!s.joinEnd);
-    const short0 = (content - need < from || past0) && !grows0, short1 = (content + length + need > to || past1) && !grows1;
+    const short0 = (content - need < from || sharp && content <= from || past0) && !grows0;
+    const short1 = (content + length + need > to || sharp && content + length >= to || past1) && !grows1;
     const joinStart = short0 && edgeStart;
     const joinEnd = short1 && edgeEnd;
     const flushStart = short0 && !joinStart, flushEnd = short1 && !joinEnd;

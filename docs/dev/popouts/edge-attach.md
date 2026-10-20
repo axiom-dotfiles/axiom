@@ -13,6 +13,7 @@
   - `plain`
   - out of a `pill` or out of an `island`. These follow the same rules: a pill bar's pills are met the way islands are; see [Floating bars](pill-and-floating-bars.md#floating-bars-islands).
   - `merged`: grown from the outer edge of a pill bar that is showing no pills.
+  - `between`: with `between` set (`SurfaceContext.layout` sets it; submenus don't), a box centred between a pill bar's pills or a floating bar's islands grows from the bar's outer edge, over the bar, when it keeps more than `pillMerge` and two fillets' room from every pill. Closer than that, it grows out of the nearest pill as before.
 
   Alongside the mode it returns:
   - the box's `start`/`end`
@@ -33,6 +34,7 @@
   - **Where the pill can't grow:** the side runs flush as before. There are two such cases:
     - a pill that joins the perpendicular edge, which the box then joins too;
     - past where islands may reach (`islandFrom`/`islandTo`).
+  - **With no radius:** a fillet and corner then take no room, so a side reaching the pill's end exactly runs flush into it, whether or not the pill can grow. Its wall continues the pill's edge. Standing on the pill's corner instead, its backfill cut the end of that edge's stroke away: a notch where a submenu met its parent's square corner.
 - **With `pillJoins` (`EdgePlacement`):** a box on a pill bar that `joins` a perpendicular edge joins it from whichever pill it grows out of. Examples are a floating edge menu or a dock running the whole edge.
   - That pill's stretch reaches to the bar's end (`pillFrom`/`pillTo`) and carries `joinStart`/`joinEnd`.
   - So the pill joins the edge too once it gets there (`BarLayout.shownStretches`), rather than ending in a squared cap across the bar.

@@ -84,7 +84,6 @@ GridLayout {
     StyledComboEntry {
       visible: root.showTask
       Layout.fillWidth: true
-      Layout.preferredHeight: Widget.height
       icon: "checklist"
       options: [
         {

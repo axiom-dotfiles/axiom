@@ -275,6 +275,9 @@ PopoutWrapperBase {
   // (EdgePlacement). Both ends joined, it runs the whole edge, the content
   // centred.
   readonly property real _contentAlong: Math.ceil((vertical ? root.contentItem?.implicitHeight ?? 100 : root.contentItem?.implicitWidth ?? 100) + contentPadding * 2)
+  // ...and across it, on whole pixels too: a far side between two pixels
+  // drew its stroke faint, or dotted with a thin one
+  readonly property real _contentAcross: Math.ceil((vertical ? root.contentItem?.implicitWidth ?? 100 : root.contentItem?.implicitHeight ?? 100) + contentPadding * 2)
   EdgePlacement {
     id: placement
     screen: root.screen
@@ -385,6 +388,10 @@ PopoutWrapperBase {
 
     // What PopoutAnchors in its content open in
     readonly property var popoutHost: root.submenu
+    // Its content doesn't grow the box (a menu's cards are fixed): a
+    // StyledComboEntry opens its list inline, in what scrolls around it
+    // (BarPopouts' room is a number)
+    readonly property var popoutRoom: null
 
     // Spans the whole edge; the input mask limits it to the surface.
     anchors {
@@ -484,8 +491,8 @@ PopoutWrapperBase {
       // While the blur window backs surfaces, once it knows where this one
       // is (LayerOrigin.settled), so it never shows unbacked beside them
       active: root.isOpen && root.claimed && placement.stretchReady && (!BlurManager.backing || placeOnScreen.settled)
-      boxWidth: root.vertical ? (root.contentItem?.implicitWidth ?? 100) + root.contentPadding * 2 + root.attachClearance : root.boxLength
-      boxHeight: root.vertical ? root.boxLength : (root.contentItem?.implicitHeight ?? 100) + root.contentPadding * 2 + root.attachClearance + slot.shownStretchAcross
+      boxWidth: root.vertical ? root._contentAcross + root.attachClearance : root.boxLength
+      boxHeight: root.vertical ? root.boxLength : root._contentAcross + root.attachClearance + slot.shownStretchAcross
       fillColor: root.fillColor
       strokeColor: root.strokeColor
 

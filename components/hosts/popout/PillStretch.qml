@@ -68,6 +68,8 @@ QtObject {
       root._relatch();
       return;
     }
+    // One sent just before it opened again, while drawing back
+    root._take();
     Qt.callLater(() => {
       if (!root || !root.open)
         return;
@@ -96,8 +98,12 @@ QtObject {
   Glide on _shownEnd {
     enabled: root._settled
   }
+  // A closing surface never moves, so neither does its stretch: one sent
+  // while it closes is left out (its content unloading may move its box
+  // for a pass, which drew the pill back toward another one), unless it
+  // tracks its surface or nothing shows yet
   function _take() {
-    if (!root.stretch)
+    if (!root.stretch || !root.open && !root.tracks && root._shown)
       return;
     root._shown = root.stretch;
     root._shownStart = root.stretch.start;

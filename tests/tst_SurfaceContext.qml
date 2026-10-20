@@ -201,6 +201,13 @@ TestCase {
         "detached": false
       },
       {
+        "tag": "floating, between islands",
+        "held": false,
+        "bar": "floating",
+        "mode": "between",
+        "detached": false
+      },
+      {
         "tag": "floating, no islands",
         "held": false,
         "bar": "floating",
@@ -540,6 +547,65 @@ TestCase {
     compare(past.attachAt + 24 / 2, 46);
   }
 
+  // Centred between a pill bar's pills (or a floating bar's islands) and
+  // clear of them: grown from the bar's outer edge over the bar, its
+  // content starting there, the border's stroke opened under it
+  function test_layout_between_pills() {
+    const base = params();
+    const f = SurfaceContext.frame(base);
+    const at = (kind, pills, extra) => SurfaceContext.layout(f, Object.assign({}, base, {
+        "bar": Object.assign(bar(kind), {
+          "extent": 40,
+          "pillDepth": 30,
+          "pillMerge": 12
+        }),
+        "pills": pills,
+        "centre": 500,
+        "aligned": 450,
+        "length": 100,
+        "joinStart": false,
+        "joinEnd": false,
+        "frameLine": 40,
+        "reserved": 40
+      }, extra ?? {}));
+    const apart = [
+      {
+        "start": 100,
+        "length": 200
+      },
+      {
+        "start": 700,
+        "length": 200
+      }
+    ];
+    for (const kind of ["pills", "floatingPills"]) {
+      const l = at(kind, apart);
+      compare(l.mode, "between", kind);
+      verify(!l.detached && !l.onPill && !l.merged, kind);
+      compare([l.start, l.end, l.stretch], [450, 550, null], kind);
+      compare([l.attachFromBar, l.attachClearance, l.attachAt], [0, 0, 0], kind);
+      compare(l.ownSink, "border", kind);
+      verify(!l.straight, kind);
+      // With the border off, straight off the screen edge
+      verify(at(kind, apart, {
+        "border": false
+      }).straight, kind);
+    }
+    // Too near a pill for two fillets: out of the nearest, as before
+    const near = at("pills", [
+      {
+        "start": 100,
+        "length": 200
+      },
+      {
+        "start": 560,
+        "length": 200
+      }
+    ]);
+    compare(near.mode, "pill");
+    compare(near.pill.index, 1);
+  }
+
   // A detached box past a transparent bar slides out from under it, only
   // where layer rules order windows and the overlay isn't open over it
   function test_layout_slides_under() {
@@ -809,5 +875,14 @@ TestCase {
     });
     compare(up.end, 700 - need);
     verify(up.start < 600);
+    // With radius 0, at a free end it runs flush, its wall continuing the
+    // parent's edge there (not cut short by its backfill)
+    const sharp = at({
+      "wanted": 100,
+      "freeTop": true,
+      "radius": 0
+    });
+    compare(sharp.start, 100);
+    verify(sharp.flushStart);
   }
 }
