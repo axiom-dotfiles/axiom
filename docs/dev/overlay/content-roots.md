@@ -21,7 +21,7 @@
 - **`TitledCard`**: for titled scrolling panels (ThemePicker, the bar editor panels, the settings page's content).
   - A `CardHeader` with `title`, `dirty`, `save()` / `reset()`, `headerExtras`.
   - Children go into the scrolling body.
-  - `scrollTo(item)` (animated) brings a descendant to the top.
+  - `scrollTo(item, center)` (animated) brings a descendant to the top, or to the middle with `center`.
 - All of them expose `properties`, `slotRect`, `cols`/`rows`, `shape`, `compact`, `pad` and `innerWidth`/`innerHeight` (the room inside `pad`). They take what they derive from their place from `base/SlotContext`.
 - A popout with a text field sets `wantsKeyboardFocus`: BarPopouts then takes a focus grab and the bar takes keyboard focus on demand; a click outside emits `focusLost`.
 - How a bar popout's window is sized around its content (`spareAcross`, `maxImplicitHeight`/`maxImplicitWidth`, the shown-box animation): see [Popout hosts and switching](../popouts/hosts-and-switching.md).

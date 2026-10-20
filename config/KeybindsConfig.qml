@@ -17,4 +17,6 @@ QtObject {
   readonly property var binds: JSON.parse(_bindsJson)
   // The binds to bind: all but the paused ones, which stay in the list
   readonly property var activeBinds: binds.filter(bind => !bind.paused)
+  // Bind sets saved on the Keybinds page: [{ id, name, binds }]
+  readonly property var presets: _c.presets
 }

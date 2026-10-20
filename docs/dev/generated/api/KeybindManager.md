@@ -23,13 +23,15 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `lookupIndex` (readonly int): A combo pressed to look up what it does ("SUPER + Q"), or "": recorded like a bind's key, into lookupIndex
 - `lookupCombo` (string)
 - `editQuery` (string): The editor's search, here so it survives the page reloading.
-- `editSectionFilter` (var): The editor's chips: sections, modifier names, and only binds with issues
+- `editSectionFilter` (var): The editor's chips: sections, modifier names, and binds with issues or paused ones (either, when both are on)
 - `editModFilter` (var)
 - `editIssuesOnly` (bool)
+- `editPausedOnly` (bool)
 - `editFiltering` (readonly bool)
 - `reorderable` (readonly bool): Rows can be dragged into another order only while every bind shows
 - `selectedIndex` (int): The bind the inspector edits, or -1 (the key map shows instead)
 - `selectedBind` (readonly var)
+- `revealIndex` (readonly int): The bind asked for, until its row has scrolled to it, or -1: a row built after the ask (the editor opening, a run unfolding) scrolls to itself when it's this one
 - `expandedRuns` (var): Numbered runs shown bind by bind (BindGroups.runKey of their first bind -> true), for this session
 - `binds` (readonly var): [{ key, action, argument, description }]
 - `isDirty` (readonly alias)
@@ -40,6 +42,7 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `editSectionOptions` (readonly var): The editor's chips: [{ key, title, count }] per section (actionSections order, then any others), and the modifiers its binds use
 - `editModOptions` (readonly var)
 - `visibleKey` (readonly string): The shown binds' indices, filtered by editQuery and the chips, in the saved order, joined: a string only notifies when it changes, so the rows survive edits that leave the list alone
+- `pausedCount` (readonly int)
 - `visibleIndices` (readonly var)
 - `editLayout` (readonly var)
 - `undoText` (readonly string): What Undo would take back, or ""
@@ -52,11 +55,12 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `canMerge` (readonly bool): Managed mode moves the user's binds into axiom instead of dropping axiom's (CompositorConfigManager.mergeUserBinds)
 - `mergeableCount` (readonly int): How many binds in user/ a Merge would move (0 until looked at, when the page opens): not every bind there can (a Lua function, a shared module's, one in a submap), so it's not the conflict count
 - `presets` (readonly var): [{ id, title, description, binds }], for the current workspace layout.
+- `savedPresets` (readonly var): The saved presets (Keybinds.presets), shaped like the built-in ones: [{ id ("saved:" + its own), title, binds, saved }]
 - `recordingIndex` (int): The bind whose key is being recorded, or -1
 
 ### Signals
 
-- `revealRequested(int index)`: Asks the list to unfold and scroll to a bind
+- `revealRequested(int index)`: Asks the list to unfold and scroll to a bind, centred
 
 ### Functions
 
@@ -68,8 +72,10 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `setRefGlyphs(value)`
 - `refGroupKey(section, mods)`
 - `toggleRefFold(key)`
-- `selectBind(index)`
-- `editBind(index)`: Opens the editor on a bind (a click on its row in the reference)
+- `selectBind(index, reveal)`: Selects a bind; the list scrolls to it unless `reveal` is false (a click on its own row, which shows already)
+- `reveal(index)`
+- `revealDone(index)`: A row has scrolled to bind `index`
+- `editBind(index)`: Opens the editor on a bind (a click on it in the reference, the keyboard, a Cheatsheet), showing it even if the search or chips hid it
 - `toggleRun(key)`
 - `sectionIcon(title)`: Material Symbols per reference section, by title ("" is Other)
 - `actionIcon(action)`
@@ -99,7 +105,11 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `removeUserConflicts()`: Removes every bind on a key the user's compositor config binds too (until Save, like any edit).
 - `mergeUserBinds()`
 - `presetPlan(id)`: What a preset would do, bind by bind: [{ bind, id (its key's BindKeys.keyId), status, takenBy, chosen }].
-- `applyPreset(id, ids)`: Applies a preset's binds whose keys (BindKeys.keyId) are in `ids`: new ones at the end, taken ones in place of the bind on their key.
+- `applyPreset(id, ids)`: Applies a preset's binds whose keys (BindKeys.keyId) are in `ids`: new ones at the end, taken ones after the binds on their key, which pause.
+- `restorePreset(id)`: Puts a saved preset's binds in place of all of them (an unsaved edit, like any other)
+- `savePreset(name)`: Saves the binds as they are in the editor (unsaved edits too) as a preset, in place of the one by that name if there is one.
+- `renamePreset(id, name)`
+- `deletePreset(id)`
 - `startRecording(index)`: Meanwhile every key reaches the recorder instead of a bind (CompositorManager.captureKeys)
 - `finishRecording(combo)`
 - `stopRecording()`

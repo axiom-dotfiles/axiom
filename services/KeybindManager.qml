@@ -67,6 +67,7 @@ QtObject {
     root.editSectionFilter = [];
     root.editModFilter = [];
     root.editIssuesOnly = false;
+    root.editPausedOnly = false;
   }
   // The Keybinds page shows the editor instead of the list
   property bool editing: false
@@ -137,11 +138,13 @@ QtObject {
   // The editor's search, here so it survives the page reloading. It only
   // changes what's shown: the saved order stays as it is.
   property string editQuery: ""
-  // The editor's chips: sections, modifier names, and only binds with issues
+  // The editor's chips: sections, modifier names, and binds with issues or
+  // paused ones (either, when both are on)
   property var editSectionFilter: []
   property var editModFilter: []
   property bool editIssuesOnly: false
-  readonly property bool editFiltering: editSectionFilter.length > 0 || editModFilter.length > 0 || editIssuesOnly
+  property bool editPausedOnly: false
+  readonly property bool editFiltering: editSectionFilter.length > 0 || editModFilter.length > 0 || editIssuesOnly || editPausedOnly
   // Rows can be dragged into another order only while every bind shows
   readonly property bool reorderable: editQuery.trim() === "" && !editFiltering
 
@@ -149,22 +152,49 @@ QtObject {
   property int selectedIndex: -1
   readonly property var selectedBind: root.binds[root.selectedIndex] ?? null
 
-  function selectBind(index) {
+  // Selects a bind; the list scrolls to it unless `reveal` is false (a
+  // click on its own row, which shows already)
+  function selectBind(index, reveal) {
     if (index === root.selectedIndex)
       return;
     stopRecording();
     root.selectedIndex = index >= 0 && index < root.binds.length ? index : -1;
-    if (root.selectedIndex >= 0)
-      root.revealRequested(root.selectedIndex);
+    if (root.selectedIndex >= 0 && reveal !== false)
+      root.reveal(root.selectedIndex);
   }
 
-  // Asks the list to unfold and scroll to a bind
+  // Asks the list to unfold and scroll to a bind, centred
   signal revealRequested(int index)
+  // The bind asked for, until its row has scrolled to it, or -1: a row
+  // built after the ask (the editor opening, a run unfolding) scrolls to
+  // itself when it's this one
+  readonly property int revealIndex: root._revealIndex
+  property int _revealIndex: -1
 
-  // Opens the editor on a bind (a click on its row in the reference)
+  function reveal(index) {
+    root._revealIndex = index;
+    root.revealRequested(index);
+  }
+
+  // A row has scrolled to bind `index`
+  function revealDone(index) {
+    if (root._revealIndex === index)
+      root._revealIndex = -1;
+  }
+
+  // Opens the editor on a bind (a click on it in the reference, the
+  // keyboard, a Cheatsheet), showing it even if the search or chips hid it
   function editBind(index) {
+    if (index < 0 || index >= root.binds.length)
+      return;
+    if (!root.visibleIndices.includes(index)) {
+      root.editQuery = "";
+      clearEditFilters();
+    }
     root.editing = true;
-    root.selectBind(index);
+    stopRecording();
+    root.selectedIndex = index;
+    root.reveal(index);
   }
 
   // Numbered runs shown bind by bind (BindGroups.runKey of their first
@@ -394,6 +424,8 @@ QtObject {
     const sections = root.editSectionFilter;
     const mods = root.editModFilter;
     const issuesOnly = root.editIssuesOnly;
+    const pausedOnly = root.editPausedOnly;
+    const state = index => (!issuesOnly && !pausedOnly) || (issuesOnly && root.hasIssue(root.issues[index])) || (pausedOnly && root.binds[index].paused === true);
     return root.binds.map((bind, index) => {
       const key = String(bind.key ?? "").trim();
       const label = root.actionLabels[bind.action] ?? String(bind.action ?? "");
@@ -403,8 +435,9 @@ QtObject {
         "mods": root._bindMods(bind),
         "text": [key, root.displayCombo(key), label, root._bindSection(bind), bind.argument ?? "", bind.description ?? "", BindActions.defaultLabel(bind)].join("\n").toLowerCase()
       };
-    }).filter(row => (query === "" || row.text.includes(query)) && (sections.length === 0 || sections.includes(row.section)) && mods.every(mod => row.mods.includes(mod)) && (!issuesOnly || root.hasIssue(root.issues[row.index]))).map(row => row.index).join(",");
+    }).filter(row => (query === "" || row.text.includes(query)) && (sections.length === 0 || sections.includes(row.section)) && mods.every(mod => row.mods.includes(mod)) && state(row.index)).map(row => row.index).join(",");
   }
+  readonly property int pausedCount: root.binds.filter(bind => bind.paused === true).length
   readonly property var visibleIndices: visibleKey === "" ? [] : visibleKey.split(",").map(Number)
 
   // The shown binds by section, with numbered runs folded
@@ -573,7 +606,7 @@ QtObject {
     _insertAt(index, _completeBind(bind), -1);
     draft.changed();
     root.selectedIndex = index;
-    Qt.callLater(() => root.revealRequested(index));
+    root.reveal(index);
     return index;
   }
 
@@ -978,65 +1011,163 @@ QtObject {
     return list;
   }
 
+  // The saved presets (Keybinds.presets), shaped like the built-in ones:
+  // [{ id ("saved:" + its own), title, binds, saved }]
+  readonly property var savedPresets: KeybindsConfig.presets.map(preset => ({
+        "id": "saved:" + preset.id,
+        "title": preset.name,
+        "description": "",
+        "binds": preset.binds,
+        "saved": true
+      }))
+
+  function _presetById(id) {
+    return root.presets.find(p => p.id === id) ?? root.savedPresets.find(p => p.id === id) ?? null;
+  }
+
   // What a preset would do, bind by bind: [{ bind, id (its key's
   // BindKeys.keyId), status, takenBy, chosen }]. `status` is "new", "same"
-  // (a bind already does just this) or "taken" (`takenBy` is the bind on
-  // that key, which applying it replaces); `chosen` is the default, taken
-  // keys only for a preset that `replaces`.
+  // (a bind already does just this), "taken" (`takenBy` holds the binds on
+  // that key, which applying it pauses) or "resume" (a paused bind does
+  // just this: `takenBy` holds it); paused binds hold no key, so they take
+  // nothing. `chosen` is the default, taken keys only for a preset that
+  // `replaces`.
   function presetPlan(id) {
-    const preset = root.presets.find(p => p.id === id);
+    const preset = root._presetById(id);
     if (!preset)
       return [];
     const ids = draft.local.map(bind => BindKeys.keyId(bind.key));
     const same = (a, b) => a.action === b.action && String(a.argument ?? "") === String(b.argument ?? "");
     return preset.binds.map(bind => {
       const id = BindKeys.keyId(bind.key);
-      const at = ids.indexOf(id);
-      const status = at < 0 ? "new" : same(draft.local[at], bind) && !draft.local[at].paused ? "same" : "taken";
+      const on = ids.map((each, i) => each === id ? i : -1).filter(i => i >= 0);
+      const active = on.filter(i => draft.local[i].paused !== true);
+      const resumable = on.filter(i => draft.local[i].paused === true && same(draft.local[i], bind));
+      let status = "new";
+      let takenBy = [];
+      if (active.some(i => same(draft.local[i], bind)))
+        status = "same";
+      else if (active.length > 0) {
+        status = "taken";
+        takenBy = active;
+      } else if (resumable.length > 0) {
+        status = "resume";
+        takenBy = resumable.slice(0, 1);
+      }
       return {
         "bind": bind,
         "id": id,
         "status": status,
-        "takenBy": at,
-        "chosen": status === "new" || (status === "taken" && preset.replaces === true)
+        "takenBy": takenBy,
+        "chosen": status === "new" || status === "resume" || (status === "taken" && preset.replaces === true)
       };
     });
   }
 
-  // Applies a preset's binds whose keys (BindKeys.keyId) are in `ids`:
-  // new ones at the end, taken ones in place of the bind on their key.
-  // Returns { added, replaced }.
+  // Applies a preset's binds whose keys (BindKeys.keyId) are in `ids`: new
+  // ones at the end, taken ones after the binds on their key, which pause.
+  // Returns { added, paused, resumed }.
   function applyPreset(id, ids) {
     const plan = presetPlan(id).filter(step => step.status !== "same" && ids.includes(step.id));
-    const preset = root.presets.find(p => p.id === id);
+    const preset = root._presetById(id);
+    const done = {
+      "added": 0,
+      "paused": 0,
+      "resumed": 0
+    };
     if (plan.length === 0)
-      return {
-        "added": 0,
-        "replaced": 0
-      };
+      return done;
     _remember("");
     stopRecording();
-    let added = 0;
-    let replaced = 0;
+    // Pauses and resumes first, while the indices hold
     for (const step of plan) {
-      const bind = _completeBind(Utils.clone(step.bind));
-      if (step.status === "taken") {
-        draft.local[step.takenBy] = bind;
-        replaced++;
-      } else {
-        _insertAt(draft.local.length, bind, -1);
-        added++;
+      if (step.status === "resume") {
+        draft.local[step.takenBy[0]].paused = false;
+        done.resumed++;
+      } else if (step.status === "taken") {
+        for (const index of step.takenBy)
+          draft.local[index].paused = true;
+        done.paused += step.takenBy.length;
       }
     }
+    // A taken key's new bind goes after the last bind it pauses, the
+    // furthest first so the nearer positions still hold
+    const inserts = plan.filter(step => step.status === "taken").map(step => ({
+          "at": Math.max(...step.takenBy) + 1,
+          "bind": _completeBind(Utils.clone(step.bind))
+        })).sort((a, b) => b.at - a.at);
+    for (const insert of inserts)
+      _insertAt(insert.at, insert.bind, -1);
+    for (const step of plan.filter(step => step.status === "new"))
+      _insertAt(draft.local.length, _completeBind(Utils.clone(step.bind)), -1);
+    done.added = inserts.length + plan.filter(step => step.status === "new").length;
     // Undo's strip says what it did
     const last = root._undo[root._undo.length - 1];
-    last.text = replaced > 0 ? I18n.tr("{0}: added {1}, replaced {2}", preset.title, added, replaced) : I18n.tr("{0}: added {1}", preset.title, added);
+    if (done.resumed > 0)
+      last.text = I18n.tr("{0}: added {1}, paused {2}, resumed {3}", preset.title, done.added, done.paused, done.resumed);
+    else if (done.paused > 0)
+      last.text = I18n.tr("{0}: added {1}, paused {2}", preset.title, done.added, done.paused);
+    else
+      last.text = I18n.tr("{0}: added {1}", preset.title, done.added);
     root._undo = root._undo.slice();
     draft.changed();
-    return {
-      "added": added,
-      "replaced": replaced
-    };
+    return done;
+  }
+
+  // Puts a saved preset's binds in place of all of them (an unsaved edit,
+  // like any other)
+  function restorePreset(id) {
+    const preset = root._presetById(id);
+    if (!preset)
+      return;
+    _remember(I18n.tr("Restored {0}", preset.title));
+    stopRecording();
+    draft.local = preset.binds.map(bind => _completeBind(Utils.clone(bind)));
+    root.selectedIndex = -1;
+    root._matchOrigins();
+    draft.changed();
+  }
+
+  // Saves the binds as they are in the editor (unsaved edits too) as a
+  // preset, in place of the one by that name if there is one. Saved at
+  // once, apart from the draft. Returns its id ("saved:…"), or "".
+  function savePreset(name) {
+    const title = String(name ?? "").trim();
+    if (title === "")
+      return "";
+    const list = Utils.clone(KeybindsConfig.presets);
+    const binds = Utils.clone(draft.local);
+    let entry = list.find(preset => preset.name === title);
+    if (entry)
+      entry.binds = binds;
+    else {
+      entry = {
+        "id": Date.now().toString(36),
+        "name": title,
+        "binds": binds
+      };
+      list.push(entry);
+    }
+    return root._commitPresets(list) ? "saved:" + entry.id : "";
+  }
+
+  function renamePreset(id, name) {
+    const title = String(name ?? "").trim();
+    if (title === "")
+      return false;
+    return root._commitPresets(KeybindsConfig.presets.map(preset => "saved:" + preset.id === id ? Object.assign({}, preset, {
+        "name": title
+      }) : preset));
+  }
+
+  function deletePreset(id) {
+    return root._commitPresets(KeybindsConfig.presets.filter(preset => "saved:" + preset.id !== id));
+  }
+
+  function _commitPresets(list) {
+    return SettingsManager.commitValues({
+      "Keybinds.presets": list
+    });
   }
 
   // --- Recording a key combo ---

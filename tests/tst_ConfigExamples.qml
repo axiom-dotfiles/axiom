@@ -217,6 +217,36 @@ TestCase {
     compare(ConfigExamples.apply(current, example, schema).Keybinds.binds, [mine], "keybinds not taken at all");
   }
 
+  // Saved keybind presets travel with the keybinds (personal), their exec
+  // binds only with the commands
+  function test_saved_presets_go_with_the_keybinds() {
+    const binds = [
+      {
+        "key": "SUPER + T",
+        "action": "terminal"
+      },
+      {
+        "key": "SUPER + X",
+        "action": "exec",
+        "argument": "theirs"
+      }
+    ];
+    const config = {
+      "Keybinds": {
+        "presets": [
+          {
+            "id": "a",
+            "name": "Mine",
+            "binds": binds
+          }
+        ]
+      }
+    };
+    compare(ConfigExamples.pick(config, schema).Keybinds, undefined, "a look leaves them out");
+    compare(ConfigExamples.pick(config, schema, ["personal"]).Keybinds.presets[0].binds, [binds[0]]);
+    compare(ConfigExamples.pick(config, schema, ConfigExamples.everything).Keybinds.presets[0].binds, binds);
+  }
+
   // An app's OSD bar is personal: a look leaves it out, and applying one
   // keeps the user's after the example's bars
   function test_osd_app_bars_are_personal() {

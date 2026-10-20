@@ -537,7 +537,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `FilterChips.qml`: The Keybinds page's toggle chips, in groups set apart by a short line, then Clear while any is on.
 - `KeyMapPanel.qml`: The Keybinds editor's key map, shown while no bind is selected: a keyboard (KeyMap) under the modifiers picked, each key coloured by who holds it (KeyMap.occupancy).
 - `KeyRecorder.qml`: A bind's key combo as keycaps; click to record a new one.
-- `PresetSheet.qml`: The Keybinds editor's presets, over the list: the presets on the left, on the right what the chosen one would do bind by bind (KeybindManager.presetPlan), each new or taken key with a checkbox, and Apply for the checked…
+- `PresetSheet.qml`: The Keybinds editor's presets, over the list: on the left the built-in ones and those saved from here (KeybindManager.savedPresets), each group folding, and a field to save the binds as one; on the right what the chosen…
 
 ## components/views/layouts/
 

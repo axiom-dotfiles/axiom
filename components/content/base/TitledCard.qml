@@ -30,9 +30,12 @@ Card {
   signal reset
 
   // Scrolls the body so `item` (one of its descendants) sits at the top,
-  // or as near as the body's length allows
-  function scrollTo(item) {
-    scrollAnimation.to = Math.max(0, Math.min(item.mapToItem(body, 0, 0).y, scroll.contentHeight - scroll.availableHeight));
+  // or in the middle with `center`, as near as the body's length allows
+  function scrollTo(item, center) {
+    // Lays out rows built or shown this frame before measuring
+    body.ensurePolished();
+    const top = item.mapToItem(body, 0, 0).y - (center === true ? Math.max(0, (scroll.availableHeight - item.height) / 2) : 0);
+    scrollAnimation.to = Math.max(0, Math.min(top, scroll.contentHeight - scroll.availableHeight));
     scrollAnimation.restart();
   }
 

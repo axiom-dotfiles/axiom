@@ -246,23 +246,30 @@ BaseView {
                   }))
             },
             {
-              "id": "editIssues",
-              "options": KeybindManager.issueCount > 0 || KeybindManager.editIssuesOnly ? [
+              "id": "editState",
+              "options": (KeybindManager.pausedCount > 0 || KeybindManager.editPausedOnly ? [
+                  {
+                    "value": "paused",
+                    "label": I18n.tr("Paused") + "  " + KeybindManager.pausedCount
+                  }
+                ] : []).concat(KeybindManager.issueCount > 0 || KeybindManager.editIssuesOnly ? [
                 {
                   "value": "issues",
                   "label": I18n.tr("With issues") + "  " + KeybindManager.issueCount
                 }
-              ] : []
+              ] : [])
             }
           ]
           selection: ({
               "editSection": KeybindManager.editSectionFilter,
               "editMod": KeybindManager.editModFilter,
-              "editIssues": KeybindManager.editIssuesOnly ? ["issues"] : []
+              "editState": (KeybindManager.editPausedOnly ? ["paused"] : []).concat(KeybindManager.editIssuesOnly ? ["issues"] : [])
             })
           filtering: KeybindManager.editFiltering
           onToggled: (group, value) => {
-            if (group === "editIssues")
+            if (group === "editState" && value === "paused")
+              KeybindManager.editPausedOnly = !KeybindManager.editPausedOnly;
+            else if (group === "editState")
               KeybindManager.editIssuesOnly = !KeybindManager.editIssuesOnly;
             else
               KeybindManager.toggleFilter(group, value);
@@ -276,7 +283,7 @@ BaseView {
         visible: active
         Layout.fillWidth: true
         sourceComponent: BindEditor {
-          scrollTo: item => listCard.scrollTo(item)
+          scrollTo: item => listCard.scrollTo(item, true)
         }
       }
 

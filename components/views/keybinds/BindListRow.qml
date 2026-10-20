@@ -61,20 +61,30 @@ StyledContainer {
     id: hover
   }
 
-  // Shown when asked for, unfolding its run first
+  // Centred when asked for, unfolding its run first (its rows, built
+  // then, find the ask in KeybindManager.revealIndex)
+  function reveal() {
+    if (!root.isRun && root.scrollTo)
+      Qt.callLater(() => {
+        root.scrollTo(root);
+        KeybindManager.revealDone(root.bindIndex);
+      });
+  }
+
+  Component.onCompleted: {
+    if (!root.isRun && KeybindManager.revealIndex === root.bindIndex)
+      root.reveal();
+  }
+
   Connections {
     target: KeybindManager
 
     function onRevealRequested(index) {
       if (!root.indices.includes(index))
         return;
-      // Unfolded, its rows are built next: ask again for them
-      if (root.isRun && !root.expanded) {
+      if (root.isRun && !root.expanded)
         KeybindManager.toggleRun(root.runKey);
-        Qt.callLater(() => KeybindManager.revealRequested(index));
-      }
-      if (!root.isRun && root.scrollTo)
-        Qt.callLater(() => root.scrollTo(root));
+      root.reveal();
     }
   }
 
@@ -92,7 +102,7 @@ StyledContainer {
       if (root.isRun)
         KeybindManager.toggleRun(root.runKey);
       else
-        KeybindManager.selectBind(root.selected ? -1 : root.bindIndex);
+        KeybindManager.selectBind(root.selected ? -1 : root.bindIndex, false);
     }
   }
 
