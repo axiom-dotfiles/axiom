@@ -115,6 +115,10 @@ Every public member of `OverlayConfig`, with the files that use it.
   - in: `components/content/base/SlotContext.qml`, `components/hosts/overlay/ExpandedModule.qml`
 - `OverlayConfig.fillGap` (int): The room left between a page filling the screen and the edges of its area (the bars on one side, the page switcher on the other)
   - in: `components/hosts/overlay/OverlayPanel.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`
+- `OverlayConfig.navigatorHeight` (int): The page switcher's height (OverlayPageNavigator), and the room it takes off the pages' area with the gaps around it (OverlayPanel)
+  - in: `components/hosts/overlay/OverlayPageNavigator.qml`
+- `OverlayConfig.navigatorRoom` (int)
+  - in: `components/hosts/overlay/OverlayPanel.qml`
 - `OverlayConfig.fitCardsWide` (real): At most this many cards fit across, so a page four cards wide still fits a 16:9 screen
   - in: only inside the reader
 - `OverlayConfig.layoutFor(width, height)`: The overlay's cards for `width` × `height` px of room (the page area less the fill gap and the box's padding): { drawn, unit, zoom }, see GridPlacement.overlay…

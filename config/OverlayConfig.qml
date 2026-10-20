@@ -171,6 +171,10 @@ QtObject {
   // The room left between a page filling the screen and the edges of its
   // area (the bars on one side, the page switcher on the other)
   readonly property int fillGap: 16
+  // The page switcher's height (OverlayPageNavigator), and the room it
+  // takes off the pages' area with the gaps around it (OverlayPanel)
+  readonly property int navigatorHeight: Math.round(Widget.height * 1.5)
+  readonly property int navigatorRoom: navigatorHeight + Widget.padding * 4
   // At most this many cards fit across, so a page four cards wide still
   // fits a 16:9 screen
   readonly property real fitCardsWide: 4.25
@@ -187,7 +191,6 @@ QtObject {
   // edge menus, the desktop, the lock screen and the greeter scale it by
   // their own Module size, so they agree whether an overlay is open or not
   function cardUnitOn(width, height) {
-    const navigatorRoom = Math.round(Widget.height * 1.5) + Widget.padding * 4;
     return GridPlacement.overlayLayout(width - cardSpacing * 4, height - navigatorRoom - fillGap * 2 - cardSpacing * 2, Widget.cardSize, fitCardsWide).drawn;
   }
 

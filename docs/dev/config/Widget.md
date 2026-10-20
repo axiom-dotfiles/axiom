@@ -41,7 +41,7 @@ Every public member of `Widget`, with the files that use it.
 - `Widget.density` (string): "compact" | "normal" | "roomy"
   - in: `components/methods/ConfigMigration.qml`
 - `Widget.height` (int): Height of buttons, fields and other controls
-  - in: `components/content/Calculator.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/EmojiPicker.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Password.qml`, `components/content/Session.qml`, `components/content/Stopwatch.qml` (+80 more)
+  - in: `components/content/Calculator.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/EmojiPicker.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Password.qml`, `components/content/Session.qml`, `components/content/Stopwatch.qml` (+79 more)
 - `Widget.padding` (int): Inner padding of panels, cards and controls
   - in: `components/content/AudioMixer.qml`, `components/content/Chat.qml`, `components/content/ClaudeUsage.qml`, `components/content/Login.qml`, `components/content/Notifications.qml`, `components/content/Password.qml`, `components/content/ThemePicker.qml`, `components/content/Updates.qml`, `components/content/Weather.qml`, `components/content/WeatherForecast.qml` (+89 more)
 - `Widget.spacing` (int): Gap between items inside panels, cards and controls

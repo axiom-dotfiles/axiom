@@ -25,6 +25,8 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 - `availableViewTypes` (readonly var)
 - `cardSpacing` (readonly int): Card grid layout (see GridPlacement for the geometry).
 - `fillGap` (readonly int): The room left between a page filling the screen and the edges of its area (the bars on one side, the page switcher on the other)
+- `navigatorHeight` (readonly int): The page switcher's height (OverlayPageNavigator), and the room it takes off the pages' area with the gaps around it (OverlayPanel)
+- `navigatorRoom` (readonly int)
 - `fitCardsWide` (readonly real): At most this many cards fit across, so a page four cards wide still fits a 16:9 screen
 
 ### Functions

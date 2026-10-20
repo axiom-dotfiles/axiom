@@ -207,11 +207,10 @@ ReservedAreaWindow {
     // item anchors to leaves it stretched between both for a moment
     Item {
       id: pageArea
-      readonly property real navigatorRoom: navigator.height + Widget.padding * 4
       x: 0
-      y: root._navigatorTop ? navigatorRoom : 0
+      y: root._navigatorTop ? OverlayConfig.navigatorRoom : 0
       width: parent.width
-      height: parent.height - navigatorRoom
+      height: parent.height - OverlayConfig.navigatorRoom
 
       OverlayPages {
         id: overlayPages
@@ -221,7 +220,7 @@ ReservedAreaWindow {
         // The window has no size until it's first mapped: until then,
         // estimate from the screen so the first page is built to fit
         maxWidth: (pageArea.width > 0 ? pageArea.width : root.screen.width) - OverlayConfig.cardSpacing * 2
-        maxHeight: (pageArea.height > 0 ? pageArea.height : root.screen.height - navigator.height - Widget.padding * 4) - OverlayConfig.cardSpacing * 2
+        maxHeight: (pageArea.height > 0 ? pageArea.height : root.screen.height - OverlayConfig.navigatorRoom) - OverlayConfig.cardSpacing * 2
       }
     }
 

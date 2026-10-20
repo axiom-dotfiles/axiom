@@ -52,7 +52,7 @@ Rectangle {
   readonly property color onAccent: Theme.background
 
   width: row.implicitWidth + root.inset * 2
-  height: Math.round(Widget.height * 1.5)
+  height: OverlayConfig.navigatorHeight
   radius: Appearance.borderRadius
   color: Appearance.fill(Theme.backgroundAlt)
   border.color: Theme.foreground
