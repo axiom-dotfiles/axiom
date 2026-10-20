@@ -270,14 +270,17 @@ QtObject {
     const schema = ConfigManager.configSchema;
     const migrated = ConfigMigration.migrate(parsed).config;
     const look = ConfigExamples.pick(migrated, schema);
+    const personal = ConfigExamples.pick(migrated, schema, ["personal"]);
     root.importing = {
       name: sanitize(title) || "import",
       title: title,
       description: String(parsed._example?.description ?? ""),
       path: path,
       config: config,
-      hasPersonal: !Utils.deepEqual(ConfigExamples.pick(migrated, schema, ["personal"]), look),
-      hasCommands: !Utils.deepEqual(ConfigExamples.pick(migrated, schema, ["commands"]), look)
+      hasPersonal: !Utils.deepEqual(personal, look),
+      // Next to the personal parts, as exec binds are commands inside the
+      // (personal) bind list
+      hasCommands: !Utils.deepEqual(ConfigExamples.pick(migrated, schema, ["personal", "commands"]), personal)
     };
     root.status = "";
   }

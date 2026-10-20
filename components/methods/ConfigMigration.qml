@@ -679,10 +679,8 @@ QtObject {
     return root._addBinds(config, changes, root._v20Binds);
   }
 
-  // A saved bind list gets these default binds, each only on a key it
-  // doesn't use yet
-  // Adds `added` to the binds of `section` (Hyprland's until v60, then
-  // Keybinds), skipping keys already bound
+  // A saved bind list (`section`'s: Hyprland's until v60, then Keybinds)
+  // gets these default binds, each only on a key it doesn't use yet
   function _addBinds(config, changes, added, section) {
     const key = section ?? "Hyprland";
     const binds = config[key]?.binds;
@@ -2321,8 +2319,9 @@ QtObject {
     return config;
   }
 
-  // v70 added the strip binds, SUPER + scroll along the layout
-  // (scrollStep) and the media stop key to the default binds
+  // v70 added SUPER + scroll along the layout (scrollStep) and the media
+  // stop key to the default binds (the strip binds stay the Strips
+  // preset's: they do nothing without strips)
   function _v69ToV70(config, changes) {
     return root._addBinds(config, changes, [
       {
@@ -2334,28 +2333,6 @@ QtObject {
         "key": "SUPER + mouse_up",
         "action": "scrollStep",
         "argument": "left"
-      },
-      {
-        "key": "SUPER + bracketleft",
-        "action": "stripSwapColumn",
-        "argument": "left"
-      },
-      {
-        "key": "SUPER + bracketright",
-        "action": "stripSwapColumn",
-        "argument": "right"
-      },
-      {
-        "key": "SUPER + equal",
-        "action": "stripWider"
-      },
-      {
-        "key": "SUPER + minus",
-        "action": "stripNarrower"
-      },
-      {
-        "key": "SUPER + CTRL + F",
-        "action": "stripFit"
       },
       {
         "key": "XF86AudioStop",

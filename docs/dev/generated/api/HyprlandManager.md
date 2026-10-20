@@ -60,6 +60,8 @@ CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprl
 - `withCursorPos(callback)`: Calls back with the cursor's global position ({ x, y }), or null if Hyprland can't say.
 - `toplevelFor(id)`: The Wayland toplevel for a window id (its "0x…" address), for live previews
 - `sendWindowToWorkspace(id)`: Sends the focused window to workspace `id`, staying put
+- `focusOutput(name)`: Focuses output `name` (a dynamic workspaces' left or right step)
+- `moveWindowToOutput(name, follow)`: Moves the focused window to the workspace output `name` shows, going along with `follow` (a dynamic workspaces' left or right step)
 - `scrollStrip(direction)`: Scrolls the focused workspace's strip a column on (1) or back (-1)
 - `travel(output, legs, mode, focusId)`: A workspace switch (CompositorManager.goToWorkspace): `output` is focused first when set; each of `legs` ([{ id, axis: "x" | "y" | "" }]) is gone to in turn, sliding along its axis, the last one arri…
 - `applyRemap(plan, outputs)`: Carries out a remap (WorkspaceGeometry.remapWorkspaces' plan) for `outputs`, the monitors' names in block order.

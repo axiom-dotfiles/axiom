@@ -88,7 +88,7 @@ EntryListCard {
       }
 
       StyledText {
-        text: root.ownPinned ? I18n.tr("Its own pinned apps") : I18n.tr("The pinned apps every dock shares")
+        text: root.ownPinned ? I18n.tr("Its own pinned apps") : I18n.tr("Global pinned apps")
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
       }

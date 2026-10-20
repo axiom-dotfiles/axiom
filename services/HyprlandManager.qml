@@ -444,6 +444,19 @@ hl.dispatch(hl.dsp.submap("${_captureSubmap}"))`
     Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${id}, follow = false })`);
   }
 
+  // Focuses output `name` (a dynamic workspaces' left or right step)
+  function focusOutput(name) {
+    Hyprland.dispatch(`hl.dsp.focus({ monitor = ${JSON.stringify(name)} })`);
+  }
+
+  // Moves the focused window to the workspace output `name` shows, going
+  // along with `follow` (a dynamic workspaces' left or right step)
+  function moveWindowToOutput(name, follow) {
+    const id = root.outputs.find(o => o.name === name)?.activeWorkspaceId ?? -1;
+    if (id >= 1)
+      Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${id}, follow = ${follow === true} })`);
+  }
+
   // Scrolls the focused workspace's strip a column on (1) or back (-1)
   function scrollStrip(direction) {
     Hyprland.dispatch(`hl.dsp.layout("move ${direction > 0 ? "+col" : "-col"}")`);
@@ -528,9 +541,7 @@ hl.dispatch(hl.dsp.submap("${_captureSubmap}"))`
     _slideTimer.stop();
     root.travelingTo = -1;
     const anim = root._workspaceAnim;
-    const move = (id, workspace) => _moveLua(id, workspace);
-    const focus = (monitor, workspace) => _focusLua(monitor, workspace);
-    const lines = [].concat(anim ? [_animLua(false)] : [], plan.moves.map(m => move(m.id, `"name:axiom-remap-${m.to}"`)), [].concat(...outputs.map((name, i) => focus(name, `"name:axiom-remap-mon-${i}"`))), plan.moves.map(m => move(m.id, m.to)), [].concat(...plan.focus.map(f => focus(f.monitor, f.id))), anim ? [_animLua(true)] : []);
+    const lines = [].concat(anim ? [_animLua(false)] : [], plan.moves.map(m => _moveLua(m.id, `"name:axiom-remap-${m.to}"`)), [].concat(...outputs.map((name, i) => _focusLua(name, `"name:axiom-remap-mon-${i}"`))), plan.moves.map(m => _moveLua(m.id, m.to)), [].concat(...plan.focus.map(f => _focusLua(f.monitor, f.id))), anim ? [_animLua(true)] : []);
     _eval(_luaPrelude + lines.join("\n") + _luaEpilogue);
   }
 

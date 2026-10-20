@@ -2152,13 +2152,13 @@ TestCase {
     }).config.Apps.pinned, []);
   }
 
-  function test_v70_adds_strip_scroll_and_stop_binds_on_free_keys() {
+  function test_v70_adds_scroll_and_stop_binds_on_free_keys() {
     const migrated = load({
       "version": 69,
       "Keybinds": {
         "binds": [
           {
-            "key": "super + equal",
+            "key": "super + mouse_down",
             "action": "exec",
             "argument": "foot"
           }
@@ -2166,14 +2166,14 @@ TestCase {
       }
     });
     const binds = migrated.config.Keybinds.binds;
-    compare(binds.length, 8, "the user's bind and seven of the eight");
+    compare(binds.length, 3, "the user's bind and two of the three");
     compare(binds[0].action, "exec", "a key in use keeps its bind");
-    compare(binds.filter(bind => bind.action === "stripWider").length, 0);
-    compare([binds[1].key, binds[1].action, binds[1].argument], ["SUPER + mouse_down", "scrollStep", "right"]);
-    compare([binds[7].key, binds[7].action, binds[7].locked], ["XF86AudioStop", "mediaStop", true]);
+    compare(binds.filter(bind => bind.action.startsWith("strip")).length, 0, "no strip binds");
+    compare([binds[1].key, binds[1].action, binds[1].argument], ["SUPER + mouse_up", "scrollStep", "left"]);
+    compare([binds[2].key, binds[2].action, binds[2].locked], ["XF86AudioStop", "mediaStop", true]);
     compare(errors(migrated.config), []);
     // Once is enough: a config at v70 isn't touched again
-    compare(ConfigMigration.migrate(migrated.config).config.Keybinds.binds.length, 8);
+    compare(ConfigMigration.migrate(migrated.config).config.Keybinds.binds.length, 3);
   }
 
   function test_v67_blur_wallpaper_is_per_layout() {

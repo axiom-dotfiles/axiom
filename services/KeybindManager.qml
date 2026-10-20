@@ -215,7 +215,7 @@ QtObject {
   readonly property var binds: draft.local ?? []
   readonly property alias isDirty: draft.isDirty
 
-  readonly property var _actionSchema: ConfigManager.configSchema?.properties?.Keybinds?.properties?.binds?.items?.properties?.action ?? ({})
+  readonly property var _actionSchema: ConfigManager.configSchema?.definitions?.Keybind?.properties?.action ?? ({})
   readonly property var actions: _actionSchema.enum ?? []
   // Action -> its label (translated; the schema's labels are keys already)
   readonly property var _actionLabelSchema: _actionSchema["x-enumLabels"] ?? ({})
@@ -822,7 +822,7 @@ QtObject {
           "level": "info",
           "text": I18n.tr("Only does something on the scrolling layout")
         });
-      else if (bind.action === "toggleSplit" && CompositorManager.kind === "hyprland" && WorkspacesConfig.scrolling)
+      else if (bind.action === "toggleSplit" && WorkspacesConfig.scrolling && CompositorManager.supports.strips === true && CompositorManager.supports.splitToggle === true)
         found.push({
           "level": "info",
           "text": I18n.tr("Does nothing on the scrolling layout")

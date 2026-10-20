@@ -3311,7 +3311,6 @@
     "Also take its commands": "",
     "This file holds commands. They run as you, with your files and accounts, so a file from someone else can do anything you can. Before turning this on, open the file in a text editor and read every command in it, and only take them from a source you trust.": "",
     "Its own pinned apps": "",
-    "The pinned apps every dock shares": "",
     "Export your look (without your preferences, keybinds, apps or commands), then fill in the submission form that opens. Attach the exported file and a screenshot of your whole screen there.": "",
     "The dock shows its own pinned apps (pinned) instead of Apps → pinned, the list every other dock shares.": "",
     "Desktop entry ids, in order: the apps every dock shows first, unless it has its own (Dock → pinnedOwn).": "",
@@ -3336,6 +3335,7 @@
     "{0}: added {1}, paused {2}": "",
     "Restored {0}": "",
     "Saved keybind presets": "",
-    "Sets of binds saved from the Keybinds page, to restore or merge later. Edited on the Keybinds page.": ""
+    "Sets of binds saved from the Keybinds page, to restore or merge later. Edited on the Keybinds page.": "",
+    "Global pinned apps": ""
   }
 }
