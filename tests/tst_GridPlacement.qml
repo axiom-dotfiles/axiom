@@ -662,6 +662,47 @@ TestCase {
         "h": 1
       }
     ]), [[0, 2], [3]]);
+    compare(GridPlacement.touchingGroups([
+      {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 2
+      },
+      {
+        "x": 4,
+        "y": 2,
+        "w": 8,
+        "h": 2
+      }
+    ]), [[0], [1]], "a corner alone doesn't join");
+  }
+
+  // The default lock and login screens on an ultrawide grid: the clock
+  // keeps its corner, the centred stack stays centred
+  function test_anchorPlaces_default_screens_on_ultrawide() {
+    const from = {
+      "cols": 16,
+      "rows": 9
+    };
+    const to = {
+      "cols": 21,
+      "rows": 8
+    };
+    const place = (x, y, w, h) => ({
+          "x": x,
+          "y": y,
+          "w": w,
+          "h": h
+        });
+    const lock = GridPlacement.anchorPlaces([place(0, 0, 4, 2), place(4, 2, 8, 2), place(5, 4, 6, 1), place(0, 7, 5, 2)], from, to);
+    compare([lock[0].x, lock[0].y], [0, 0], "lock screen: the clock in its corner");
+    compare(lock[1].x, 7, "the Greeting centred (6.5 rounded)");
+    compare([lock[3].x, lock[3].y + lock[3].h], [0, 8], "NowPlaying at the bottom left");
+    const greeter = GridPlacement.anchorPlaces([place(0, 0, 4, 2), place(4, 2, 8, 2), place(5, 4, 6, 3), place(6, 7, 4, 1), place(0, 8, 2, 1), place(13, 8, 3, 1)], from, to);
+    compare([greeter[0].x, greeter[0].y], [0, 0], "login screen: the clock in its corner");
+    compare(greeter[2].x - greeter[1].x, 1, "Login moves with the Greeting");
+    compare(greeter[5].x + greeter[5].w, 21, "Power at the right");
   }
 
   function test_screenArrangement() {

@@ -571,14 +571,17 @@ QtObject {
     };
   }
 
-  // The groups of `places` that touch or overlap (sharing an edge or a
-  // corner), each [indices], so a stack of modules moves as one. Null
+  // The groups of `places` that touch or overlap (sharing some length of
+  // an edge; a corner alone doesn't join a module in a corner to the
+  // middle), each [indices], so a stack of modules moves as one. Null
   // places are left out
   function touchingGroups(places) {
     const list = places ?? [];
     const group = list.map((_, i) => i);
     const find = i => group[i] === i ? i : (group[i] = find(group[i]));
-    const touch = (a, b) => a.x <= b.x + b.w && b.x <= a.x + a.w && a.y <= b.y + b.h && b.y <= a.y + a.h;
+    const meet = (a, aLen, b, bLen) => a <= b + bLen && b <= a + aLen;
+    const share = (a, aLen, b, bLen) => a < b + bLen && b < a + aLen;
+    const touch = (a, b) => (share(a.x, a.w, b.x, b.w) && meet(a.y, a.h, b.y, b.h)) || (share(a.y, a.h, b.y, b.h) && meet(a.x, a.w, b.x, b.w));
     for (let i = 0; i < list.length; i++)
       for (let j = i + 1; j < list.length; j++)
         if (list[i] && list[j] && touch(list[i], list[j]))

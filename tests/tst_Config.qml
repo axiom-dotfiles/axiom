@@ -2117,6 +2117,30 @@ TestCase {
     compare(errors(config), []);
   }
 
+  function test_v74_moves_the_default_greeter_stack_down() {
+    const greeter = modules => load({
+        "version": 73,
+        "Greeter": {
+          "layout": {
+            "modules": modules
+          }
+        }
+      }).config.Greeter.layout.modules.map(module => module.place.y);
+    const old = [["ClockCalendar", 0, 0, 4, 2], ["Greeting", 4, 1, 8, 2], ["Login", 5, 3, 6, 3], ["Session", 6, 6, 4, 1], ["KeyboardLayout", 0, 8, 2, 1], ["Power", 13, 8, 3, 1]].map(([type, x, y, w, h]) => ({
+          "type": type,
+          "place": {
+            "x": x,
+            "y": y,
+            "w": w,
+            "h": h
+          }
+        }));
+    compare(greeter(old), [0, 2, 4, 7, 8, 8], "the old default moves");
+    const edited = JSON.parse(JSON.stringify(old));
+    edited[1].place.x = 3;
+    compare(greeter(edited), [0, 1, 3, 6, 8, 8], "an edited layout stays");
+  }
+
   function test_v73_moves_sizing_into_widget() {
     const migrated = load({
       "version": 72,

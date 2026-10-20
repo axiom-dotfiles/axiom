@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 73
+  readonly property int currentVersion: 74
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -171,6 +171,8 @@ QtObject {
       result = _v70ToV71(result, changes);
     if (version < 73)
       result = _v71ToV73(result, changes);
+    if (version < 74)
+      result = _v73ToV74(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2412,6 +2414,28 @@ QtObject {
       delete widget.padding;
       delete widget.spacing;
     }
+    return config;
+  }
+
+  // v74 moved the default login screen's Greeting, Login and Session a
+  // row down, so the clock in its corner no longer shares an edge with
+  // the Greeting: modules sharing one move as a group on another screen
+  // shape (GridPlacement.touchingGroups), and the clock left its corner
+  // with them. Only a layout still exactly the old default moves
+  function _v73ToV74(config, changes) {
+    const modules = config.Greeter?.layout?.modules;
+    if (!Array.isArray(modules))
+      return config;
+    const old = [["ClockCalendar", 0, 0, 4, 2], ["Greeting", 4, 1, 8, 2], ["Login", 5, 3, 6, 3], ["Session", 6, 6, 4, 1], ["KeyboardLayout", 0, 8, 2, 1], ["Power", 13, 8, 3, 1]];
+    const same = modules.length === old.length && modules.every((module, i) => {
+      const place = module?.place;
+      const [type, x, y, w, h] = old[i];
+      return module?.type === type && place?.x === x && place?.y === y && place?.w === w && place?.h === h;
+    });
+    if (!same)
+      return config;
+    [1, 2, 3].forEach(i => modules[i].place.y += 1);
+    changes.push("Greeter.layout: the default's Greeting, Login and Session a row down");
     return config;
   }
 }
