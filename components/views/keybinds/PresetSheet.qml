@@ -127,7 +127,7 @@ Popup {
                   text: presetRow.modelData.binds.length
                   textColor: presetRow.ink
                   opacity: 0.6
-                  textSize: Appearance.fontSize - 2
+                  textSize: Appearance.fontSizeBy(-2)
                 }
               }
             }
@@ -160,7 +160,7 @@ Popup {
                   text: savedRow.modelData.binds.length
                   textColor: savedRow.ink
                   opacity: 0.6
-                  textSize: Appearance.fontSize - 2
+                  textSize: Appearance.fontSizeBy(-2)
                 }
 
                 RowAction {
@@ -182,7 +182,7 @@ Popup {
               text: I18n.tr("Save your binds as they are to come back to them later.")
               opacity: 0.6
               wrapMode: Text.WordWrap
-              textSize: Appearance.fontSize - 1
+              textSize: Appearance.fontSizeBy(-1)
               Layout.fillWidth: true
             }
 
@@ -229,7 +229,7 @@ Popup {
           visible: !root.saved
           text: root.preset?.title ?? ""
           font.bold: true
-          textSize: Appearance.fontSize + 2
+          textSize: Appearance.fontSizeBy(2)
         }
 
         StyledText {
@@ -377,7 +377,7 @@ Popup {
                     }
                     textColor: step.modelData.status === "taken" ? Theme.warning : Theme.foreground
                     opacity: step.modelData.status === "taken" ? 1 : 0.6
-                    textSize: Appearance.fontSize - 2
+                    textSize: Appearance.fontSizeBy(-2)
                     elide: Text.ElideRight
                     Layout.maximumWidth: parent.width * 0.4
                   }

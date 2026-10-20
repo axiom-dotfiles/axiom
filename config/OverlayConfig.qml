@@ -7,8 +7,18 @@ import qs.components.methods
 // (Named OverlayConfig because `Overlay` is the module type.)
 QtObject {
   readonly property var views: ConfigManager.config.Overlay.views
-  // Card size as a percentage of what fits the screen (see OverlayGrid)
-  readonly property int size: ConfigManager.config.Overlay.size
+  // The overlay's own Module size, in %: its cards are the card size
+  // (cardUnitOn) times it, and their content drawn at it (see layoutFor)
+  readonly property int moduleScale: ConfigManager.config.Overlay.moduleScale
+  // The page switcher's edge, "bottom" | "top", and which tabs show their
+  // names: "auto" (all while they fit) | "current" | "icons"
+  readonly property string navigator: ConfigManager.config.Overlay.navigator
+  readonly property string navigatorLabels: ConfigManager.config.Overlay.navigatorLabels
+  // "top" | "bottom" (the edge it slides in from) | "fade"
+  readonly property string animation: ConfigManager.config.Overlay.animation
+  readonly property bool showBackdrop: ConfigManager.config.Overlay.showBackdrop
+  // 0-1 opacity of the backdrop
+  readonly property real backdrop: ConfigManager.config.Overlay.backdrop / 100
   // "general" | "primary" | "focused" | "all" (see General.screensFor)
   readonly property string monitors: ConfigManager.config.Overlay.monitors
   readonly property bool closeOnEscape: ConfigManager.config.Overlay.closeOnEscape
@@ -150,25 +160,63 @@ QtObject {
 
   // Card grid layout (see GridPlacement for the geometry). Card radius/border
   // follow Appearance so the overlay matches the shell.
-  readonly property int cardUnit: GridPlacement.cardUnit
   readonly property int cardSpacing: GridPlacement.cardSpacing
-  readonly property int cardPadding: 12
   // The inner padding a module lays its content out within (Card/Panel
-  // `pad`): none when bare, less in a quarter slot
+  // `pad`): none when bare, less in a quarter slot (Widget's density)
   function cardPad(compact, bare) {
-    return bare ? 0 : compact ? cardPadding * 0.75 : cardPadding * 1.5;
+    return bare ? 0 : compact ? Widget.cardPadding * 0.75 : Widget.cardPadding * 1.5;
   }
-  // A screen fits this many cards across its free height / width; the
-  // smaller of the two sizes the cards, so height decides on landscape
-  // screens and width on portrait ones. Cards never go below minCardUnit.
-  readonly property real fitCardsHigh: 2.5
-  readonly property real fitCardsWide: 4.5
-  readonly property int minCardUnit: 280
-  // The card size for `width` × `height` px of free space: what fits,
-  // capped at the reference cardUnit, then scaled by Overlay size
-  function cardUnitFor(width, height) {
-    const fit = Math.min(height / fitCardsHigh, width / fitCardsWide);
-    return Math.round(Math.max(minCardUnit, Math.min(cardUnit, fit) * size / 100));
+  // The overlay box's padding around a page (OverlayPages), at the
+  // Interface scale: the page inside it is scaled, the box isn't
+  readonly property int boxPadding: Widget.px(cardSpacing)
+  // The page switcher's height (OverlayPageNavigator), and the room it
+  // takes off the pages' area with the gaps around it (OverlayPanel)
+  readonly property int navigatorHeight: Math.round(Widget.height * 1.5)
+  readonly property int navigatorRoom: navigatorHeight + Widget.padding * 4
+  // The overlay's cards on `screen` in `width` × `height` px of room (the
+  // page area less its margin and the box's padding): the card size there
+  // times the overlay's Module size, content drawn at that Module size,
+  // two cards high at most. { drawn, unit, zoom }, see
+  // GridPlacement.overlayLayout
+  function layoutFor(screen, width, height) {
+    const card = cardUnitOn(screen?.width ?? width, screen?.height ?? height) * moduleScale / 100;
+    return GridPlacement.overlayLayout(height, card, GridPlacement.zoomOf(moduleScale / 100));
+  }
+  // The card size (px) every module grid on a `width` × `height` screen
+  // starts from: two cards fill its short side (GridPlacement.baseCard)
+  // at the card size (Widget.cardSize). The overlay, edge menus, the
+  // desktop, the lock screen and the greeter scale it by their own Module
+  // size, so on one monitor they all agree, turned either way
+  function cardUnitOn(width, height) {
+    return GridPlacement.baseCard(width, height) * Widget.cardSize / 100;
+  }
+
+  // A screen layout's (a DesktopLayout's, the lock screen's, the
+  // greeter's) `modules` on `screen` in a `width` × `height` px room (its
+  // room inside the bars and border): the units that fit there at its
+  // card size (cardUnitOn times its Module size, its units split in two
+  // each way with fineGrid), each module kept to its nearest edge from the grid it was
+  // placed on (`columns` × `rows`), content drawn at its Module size.
+  // GridPlacement.screenArrangement's { cols, rows, unit, gap, zoom,
+  // places, shrunk }, plus `margin`, the px left all round the grid
+  // reads: Desktop.*.moduleScale, Desktop.*.fineGrid, Lockscreen.layout.moduleScale, Lockscreen.layout.fineGrid, Greeter.layout.moduleScale, Greeter.layout.fineGrid
+  function screenArrangement(layout, modules, screen, width, height) {
+    if (!layout)
+      return {
+        "cols": 0,
+        "rows": 0,
+        "unit": 0,
+        "gap": cardSpacing,
+        "places": [],
+        "shrunk": false,
+        "zoom": 1,
+        "margin": cardSpacing
+      };
+    const card = cardUnitOn(screen?.width ?? width, screen?.height ?? height) * layout.moduleScale / 100;
+    const places = (modules ?? []).map(module => module?.place ?? null);
+    const arranged = GridPlacement.screenArrangement(places, GridPlacement.screenGrid(layout), card, width, height, cardSpacing, layout.fineGrid, GridPlacement.zoomOf(layout.moduleScale / 100));
+    arranged.margin = cardSpacing;
+    return arranged;
   }
 
   // The card size a Custom page's modules are laid out at on an overlay
@@ -178,9 +226,6 @@ QtObject {
     return view?.fineGrid ? GridPlacement.fineUnit(unit) : unit;
   }
 
-  function span(n, unit) {
-    return GridPlacement.span(n, unit);
-  }
   function slotShape(rect) {
     return GridPlacement.slotShape(rect);
   }

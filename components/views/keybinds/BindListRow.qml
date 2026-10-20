@@ -116,8 +116,7 @@ StyledContainer {
     StyledSwitch {
       checkable: false
       checked: !root.paused
-      implicitWidth: 34
-      implicitHeight: 18
+      implicitHeight: Widget.smallHeight
       Layout.alignment: Qt.AlignVCenter
       onClicked: KeybindManager.setPaused(root.indices, !root.paused)
     }
@@ -148,7 +147,7 @@ StyledContainer {
         visible: root.parts.key === ""
         text: KeybindManager.recordingIndex === root.bindIndex ? I18n.tr("Press a combo…") : I18n.tr("No key")
         textColor: root.selected ? root.ink : Theme.warning
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
       }
 
       Item {
@@ -179,7 +178,7 @@ StyledContainer {
       text: root.isRun ? I18n.tr("{0} binds", root.indices.length) : root.actionLabel
       textColor: root.ink
       opacity: 0.5
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       elide: Text.ElideRight
       Layout.maximumWidth: root.width * 0.25
     }
@@ -193,7 +192,7 @@ StyledContainer {
         text: modelData[1]
         textColor: root.ink
         opacity: 0.6
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
       }
     }
 
@@ -211,7 +210,7 @@ StyledContainer {
 
     SquareIconButton {
       visible: !root.isRun
-      size: Widget.height - 6
+      size: Widget.height - Widget.px(6)
       iconText: "close"
       tooltipText: I18n.tr("Remove")
       iconColor: root.ink

@@ -97,7 +97,7 @@ Rectangle {
         elide: Text.ElideRight
         font.bold: true
         textColor: root.contentColor
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
       }
       StyledText {
         Layout.fillWidth: true
@@ -106,7 +106,7 @@ Rectangle {
         elide: Text.ElideRight
         textColor: root.contentColor
         opacity: 0.75
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
     }
 
@@ -123,7 +123,7 @@ Rectangle {
     id: countdownBar
     anchors.bottom: parent.bottom
     anchors.left: parent.left
-    height: 3
+    height: Widget.px(3)
     color: Theme.background
     opacity: 0.6
     visible: root.active && root.countdown > 0

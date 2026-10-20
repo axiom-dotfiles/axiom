@@ -53,7 +53,7 @@ ColumnLayout {
     }
 
     StyledTextButton {
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       text: root.off && !WindowLookConfig.look.blur ? I18n.tr("Set the compositor's blur") : I18n.tr("Change")
       onClicked: {
         if (root.off && !WindowLookConfig.look.blur)

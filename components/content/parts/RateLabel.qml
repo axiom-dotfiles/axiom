@@ -13,7 +13,7 @@ Row {
   // "down" or "up"
   property string direction: "down"
   property color textColor: Theme.foreground
-  property int textSize: Appearance.fontSize - 1
+  property int textSize: Appearance.fontSizeBy(-1)
 
   spacing: 2
 

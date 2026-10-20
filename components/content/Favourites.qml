@@ -59,7 +59,7 @@ Card {
 
         ColumnLayout {
           anchors.centerIn: parent
-          width: parent.width - 4
+          width: parent.width - Widget.px(4)
           spacing: Widget.spacing / 2
           Image {
             readonly property real side: Math.min(Appearance.fontSize * 5, Math.min(app.width, app.height) * (app.labelled ? 0.5 : 0.7))
@@ -75,7 +75,7 @@ Card {
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideRight
             text: app.modelData.name
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
           }
         }
 

@@ -84,7 +84,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Bars[].fontSize`** · integer = 14 · 8–32 · px
   - Font size
   - x-group="Style", x-control="stepper", x-showIf={"overrideFontSize":true}
-  - read: `Bar.savedBars` (whole), `barConfig.fontSize` · in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/SystemStats.qml`, `components/bar/widgets/Time.qml`, `components/bar/widgets/workspaces/WorkspaceCell.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/views/layouts/OpenerButtons.qml`, `config/Bar.qml`
+  - read: `Bar.savedBars` (whole), `barConfig.fontSize` · in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/SystemStats.qml`, `components/bar/widgets/Time.qml`, `components/bar/widgets/workspaces/WorkspaceCell.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `config/Bar.qml`
 - **`Bars[].overrideRadius`** · boolean = false
   - Own corner radius: Off: widgets follow the interior corner radius in Panels & controls. Pills follow the corner radius in Look & Feel.
   - x-group="Style"

@@ -41,15 +41,17 @@ This doc covers the three lock modes, how the built-in lock screen's layout of m
 - **What a real lock shows:** only `LockscreenConfig.layout`, the saved layout. Unsaved drafts never reach a real lock.
 
 #### Grid
-- Overlay modules sit on a bounded grid of `columns` × `rows` units (16 × 9 by default), placed absolutely from the top left. The grid is a `ScreenLayout`, shared with the greeter.
+- Overlay modules sit on a bounded grid fitted to each screen at the card size. The grid is a `ScreenLayout`, shared with the greeter. Its `columns` × `rows` (hidden, written by the editor) are the grid the modules were last placed on.
 - **`fineGrid` ("Double grid")** splits each unit in two each way. `GridPlacement.screenGrid(layout)` gives the grid in the units places use.
   - Turning it on or off rescales every place (`GridPlacement.scalePlace`, in `ScreenLayoutEditor.updateLayoutField`). Merging rounds each edge, so modules that met still meet.
   - The `GridEditor`'s `sizeScale` doubles new modules' default sizes.
-- **Fitting to the screen:** `LockSurface` fits the grid to each screen inside a `cardSpacing` margin. It is built on `surfaces/screenlayout/ScreenLayoutView`, which holds the background, dim and fitted grid it shares with `GreeterSurface`. The fit uses:
-  - an `OverlayGrid` whose `fixedUnit` is `GridPlacement.latticeUnit`; the axis with less room decides;
-  - a `ModuleGrid` with `extent` set to the lattice (or to what the modules reach, if more) and `stretch` set to the screen.
-  So the units stretch to fill a screen of another shape, and placements keep their relative spot.
-- The editor draws the lattice inside a screen outline (`LockscreenTarget.screenBox`).
+- **Fitting to the screen:** `LockSurface` is built on `surfaces/screenlayout/ScreenLayoutView`, which holds the background, dim and fitted grid it shares with `GreeterSurface` and the desktop. It takes `OverlayConfig.screenArrangement` (`GridPlacement.screenArrangement`):
+  - cards of `OverlayConfig.cardUnitOn(screen.width, screen.height)` (two cards fill the short side, times `Widget.cardSize`%) times the layout's `moduleScale`%;
+  - as many units as fit the screen inside a `cardSpacing` margin (`GridPlacement.screenLattice`, whole units even on a double grid), their gaps drawn at its zoom (`gap`, `GridPlacement.gapOf`), stretched by under a unit to sit flush (`ModuleGrid.stretch`);
+  - each group of modules sharing some length of an edge (`GridPlacement.touchingGroups`; a corner alone doesn't join them) moved from the grid it was placed on to that one, keeping to its nearest side on each axis (the first or last third), else keeping its centre's share (`GridPlacement.anchorPlaces`). So corners stay corners on a wider screen or after a size change;
+  - when that leaves modules overlapping or off the grid, the cards shrink a step at a time until they fit (`shrunk`), their content and gaps with them; at the latest, on the grid they were placed on nothing moves.
+- **Content size:** content lays out at the card's size over its zoom, the layout's `moduleScale` (`zoom`, `ModuleGrid.zoom`, see [Edge menu hosts](../edge-menus/hosts.md)), so text is the Interface scale's (`Widget.scale`) times the Module size on every monitor.
+- The editor (`ScreenLayoutEditor`) edits the layout as it shows on one screen (`screen`, `insets`; the primary monitor, or the desktop target's): loading it, or a change of screen or card size, rebases the places onto that screen's arrangement in the draft and in its saved copy alike (`rebase`), so the draft isn't marked changed. Moving modules never changes the grid under an edit. It draws that grid inside a screen outline (`ScreenLayoutTarget.screenBox`) and says when the modules had to shrink (`shrunk`, `shrunkTo`).
 
 #### Hosts
 - Modules get `host: { kind: "lockscreen", target, preview, key, bare, passwordBorder, greetingBorder }`.

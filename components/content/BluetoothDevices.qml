@@ -32,7 +32,7 @@ Panel {
     label: BluetoothManager.enabled ? I18n.tr("connected") : I18n.tr("off")
   }
 
-  implicitWidth: 380
+  implicitWidth: Widget.px(380)
   // The switch, the tabs and a row or two, else the figure
   fullMinWidth: Appearance.fontSize * 15
   fullMinHeight: Appearance.fontSize * 12

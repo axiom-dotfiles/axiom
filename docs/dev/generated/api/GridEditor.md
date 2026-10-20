@@ -64,4 +64,5 @@ Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter ca
 - `duplicateModule(index)`: A copy at the same size in the first free spot
 - `removeSelection()`: Every module selected (the group, or the one) but required ones
 - `removeModule(index)`
+- `recordField(field)`: Records an undo step before an edit to `field` (a module's property, or an owner's own setting kept in snapshotExtra); more edits to the same field (typing, a stepper) join it
 - `updateModuleProperty(index, key, value)`

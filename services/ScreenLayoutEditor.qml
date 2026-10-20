@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
+import qs.config
 import qs.components.methods
 
 // The layouts editor's draft of one screen layout (a ScreenLayout: the
@@ -12,6 +13,11 @@ import qs.components.methods
 // the Desktop section): `layoutOf` picks the one edited, `layoutsOf` lists
 // them all for `problems`, and with a `previewSection` the draft shows
 // live while it differs from the config.
+// It's edited as it shows on one screen (`screen`, inside `insets`): on
+// the units that fit there at its card size, each module kept to its
+// nearest edge (OverlayConfig.screenArrangement). Loading it moves its
+// places onto that grid in the draft and in what it's compared with, so
+// it isn't changed until it's edited.
 // Not a singleton: each owner holds one.
 QtObject {
   id: root
@@ -39,6 +45,40 @@ QtObject {
   // while it differs from the config, "" for none
   property string previewSection: ""
 
+  // The screen it's edited on, and the room kept clear on each side there
+  // ({ left, top, right, bottom } px: the desktop's bars and border)
+  property var screen: General.screensNamed("")[0] ?? null
+  property var insets: ({
+      "left": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0
+    })
+  // Its room there, { width, height } px
+  readonly property var room: root.screen ? {
+    "width": Math.max(0, root.screen.width - root.insets.left - root.insets.right),
+    "height": Math.max(0, root.screen.height - root.insets.top - root.insets.bottom)
+  } : {
+    "width": 0,
+    "height": 0
+  }
+  // The grid it's edited on there ({ cols, rows }): the layout's own
+  // once rebased onto the screen, or as far as it reaches when its
+  // modules don't fit there by their edges
+  readonly property var grid: GridPlacement.layoutReach((root.localLayout?.modules ?? []).map(module => module?.place ?? null), GridPlacement.screenGrid(root.localLayout))
+  // The screen's own grid at the layout's card size, and its key: a
+  // change (another screen, another card size, another layout) moves the
+  // places onto it (rebase). Modules being moved don't change it, so the
+  // grid never jumps under an edit
+  readonly property var lattice: root.localLayout && root.screen ? OverlayConfig.screenArrangement(root.localLayout, [], root.screen, root.room.width, root.room.height) : null
+  // Whether its modules had to shrink below the layout's Module size to
+  // fit this screen, and to how much of it (%)
+  readonly property var _shown: root.localLayout && root.screen ? OverlayConfig.screenArrangement(root.localLayout, root.localLayout.modules, root.screen, root.room.width, root.room.height) : null
+  readonly property var shrunk: root._shown?.shrunk ?? false
+  readonly property var shrunkTo: root._shown && root.lattice ? Math.round(100 * root._shown.unit / root.lattice.unit) : 100
+  readonly property var _latticeKey: root.lattice ? [root.scope, root.lattice.cols, root.lattice.rows, root.grid.cols, root.grid.rows].join(":") : ""
+  on_LatticeKeyChanged: Qt.callLater(root.rebase)
+
   property ConfigDraft _draft: ConfigDraft {
     id: draft
     path: root.path
@@ -53,15 +93,65 @@ QtObject {
 
   property GridEditor layout: GridEditor {
     host: root.host
-    area: GridPlacement.screenGrid(root.localLayout)
+    area: root.grid
     sizeScale: root.localLayout?.fineGrid ? 2 : 1
     modulesOf: () => root.localLayout?.modules ?? null
     scopeKey: root.host + ":" + root.scope
     onEdited: draft.changed()
+    // The layout's own settings (its Module size, grid, background, …)
+    // go with each snapshot, so undoing one puts back the places it moved
+    snapshotExtra: () => {
+      const layout = root.localLayout;
+      if (!layout)
+        return null;
+      const extra = {};
+      Object.keys(layout).filter(key => key !== "modules").forEach(key => extra[key] = layout[key]);
+      return extra;
+    }
+    restoreExtra: extra => {
+      const layout = root.localLayout;
+      if (layout && extra)
+        Object.keys(extra).forEach(key => layout[key] = Utils.clone(extra[key]));
+    }
   }
 
   // Why the draft can't be saved as is (empty = savable)
-  readonly property var problems: draft.local ? [].concat(...root.layoutsOf(draft.local).map(entry => root.layout.problemsFor(entry.layout?.modules, entry.name, GridPlacement.screenGrid(entry.layout)))) : []
+  readonly property var problems: draft.local ? [].concat(...root.layoutsOf(draft.local).map(entry => root.layout.problemsFor(entry.layout?.modules, entry.name, entry.layout === root.localLayout ? root.grid : GridPlacement.screenGrid(entry.layout)))) : []
+
+  // Moves the edited layout's places onto the screen's grid, each kept to
+  // its nearest edge (OverlayConfig.screenArrangement, shrunk as far as
+  // that needs), in the draft and in what it's compared with alike, so it
+  // stays unchanged until edited
+  function rebase(keepHistory) {
+    if (!root.screen || !draft.local)
+      return;
+    const move = layout => {
+      if (!layout)
+        return false;
+      const modules = layout.modules ?? [];
+      const shown = OverlayConfig.screenArrangement(layout, modules, root.screen, root.room.width, root.room.height);
+      const from = GridPlacement.screenGrid(layout);
+      if (from.cols === shown.cols && from.rows === shown.rows)
+        return false;
+      const scale = layout.fineGrid ? 2 : 1;
+      if (shown.cols % scale !== 0 || shown.rows % scale !== 0)
+        return false;
+      modules.forEach((module, i) => {
+        if (module && shown.places[i])
+          module.place = shown.places[i];
+      });
+      layout.columns = shown.cols / scale;
+      layout.rows = shown.rows / scale;
+      return true;
+    };
+    const moved = move(root.layoutOf(draft.local));
+    move(root.layoutOf(draft.saved));
+    if (moved) {
+      if (!keepHistory)
+        root.layout.clearHistory();
+      draft.changed();
+    }
+  }
 
   function _syncPreview() {
     if (root.previewSection === "")
@@ -92,15 +182,18 @@ QtObject {
     const layout = root.localLayout;
     if (!layout || JSON.stringify(layout[key]) === JSON.stringify(value))
       return;
+    // One undo step with the places it moves (snapshotExtra)
+    root.layout.recordField(`layout:${key}`);
     if (key === "fineGrid") {
       (layout.modules ?? []).forEach(module => {
         if (module?.place)
           module.place = GridPlacement.scalePlace(module.place, value);
       });
-      // Older snapshots are on the other grid
-      root.layout.clearHistory();
     }
     layout[key] = value;
+    // A new Module size or grid moves the places onto this screen's grid
+    // now, inside that step, not later as an outside change would
+    root.rebase(true);
     draft.changed();
   }
 
@@ -115,6 +208,7 @@ QtObject {
     draft.load();
     root.layout.clearSelection();
     root.layout.clearHistory();
+    root.rebase();
   }
 
   // --- Preview ---

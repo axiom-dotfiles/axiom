@@ -8,7 +8,12 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 ### Properties
 
 - `views` (readonly var)
-- `size` (readonly int): Card size as a percentage of what fits the screen (see OverlayGrid)
+- `moduleScale` (readonly int): The overlay's own Module size, in %: its cards are the card size (cardUnitOn) times it, and their content drawn at it (see layoutFor)
+- `navigator` (readonly string): The page switcher's edge, "bottom" | "top", and which tabs show their names: "auto" (all while they fit) | "current" | "icons"
+- `navigatorLabels` (readonly string)
+- `animation` (readonly string): "top" | "bottom" (the edge it slides in from) | "fade"
+- `showBackdrop` (readonly bool)
+- `backdrop` (readonly real): 0-1 opacity of the backdrop
 - `monitors` (readonly string): "general" | "primary" | "focused" | "all" (see General.screensFor)
 - `closeOnEscape` (readonly bool)
 - `closeOnOutsideClick` (readonly bool)
@@ -17,12 +22,10 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 - `libraryGroups` (readonly var): The groups the editors' libraries sort bar widgets and modules into (the schema's `x-libraryGroups`), in order
 - `customViewSchema` (readonly var): A Custom page's own fields (name, icon, fineGrid), for the layouts editor
 - `availableViewTypes` (readonly var)
-- `cardUnit` (readonly int): Card grid layout (see GridPlacement for the geometry).
-- `cardSpacing` (readonly int)
-- `cardPadding` (readonly int)
-- `fitCardsHigh` (readonly real): A screen fits this many cards across its free height / width; the smaller of the two sizes the cards, so height decides on landscape screens and width on portrait ones.
-- `fitCardsWide` (readonly real)
-- `minCardUnit` (readonly int)
+- `cardSpacing` (readonly int): Card grid layout (see GridPlacement for the geometry).
+- `boxPadding` (readonly int): The overlay box's padding around a page (OverlayPages), at the Interface scale: the page inside it is scaled, the box isn't
+- `navigatorHeight` (readonly int): The page switcher's height (OverlayPageNavigator), and the room it takes off the pages' area with the gaps around it (OverlayPanel)
+- `navigatorRoom` (readonly int)
 
 ### Functions
 
@@ -38,10 +41,11 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 - `pageIcon(view)`: A page's icon: a Custom page's own, else its type's
 - `isTool(type)`
 - `pageWithModule(type)`: The page to open for a module type (what openOverlayPage takes): the named Custom page where it's biggest, "" when no page has it
-- `cardPad(compact, bare)`: The inner padding a module lays its content out within (Card/Panel `pad`): none when bare, less in a quarter slot
-- `cardUnitFor(width, height)`: The card size for `width` × `height` px of free space: what fits, capped at the reference cardUnit, then scaled by Overlay size
+- `cardPad(compact, bare)`: The inner padding a module lays its content out within (Card/Panel `pad`): none when bare, less in a quarter slot (Widget's density)
+- `layoutFor(screen, width, height)`: The overlay's cards on `screen` in `width` × `height` px of room (the page area less its margin and the box's padding): the card size there times the overlay's Module size, content drawn at that Modu…
+- `cardUnitOn(width, height)`: The card size (px) every module grid on a `width` × `height` screen starts from: two cards fill its short side (GridPlacement.baseCard) at the card size (Widget.cardSize).
+- `screenArrangement(layout, modules, screen, width, height)`: A screen layout's (a DesktopLayout's, the lock screen's, the greeter's) `modules` on `screen` in a `width` × `height` px room (its room inside the bars and border): the units that fit there at its ca…
 - `pageUnit(view, unit)`: The card size a Custom page's modules are laid out at on an overlay whose cards are `unit` px: a double grid's (fineGrid) has twice the units across (GridPlacement.fineUnit)
-- `span(n, unit)`
 - `slotShape(rect)`
 - `defaultSize(type)`: The size [w, h] a module is added at: its declared one, else a card.
 - `minSize(type)`: The least [w, h] a module dropped into a gap is shrunk to fit it: its declared one, else half its default size.

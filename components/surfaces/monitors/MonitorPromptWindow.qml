@@ -80,7 +80,7 @@ PanelWindow {
         visible: root.asking
         Layout.alignment: Qt.AlignHCenter
         text: I18n.tr("Keep this display layout?")
-        textSize: Appearance.fontSize + 4
+        textSize: Appearance.fontSizeBy(4)
         font.bold: true
       }
 

@@ -37,7 +37,7 @@ Rectangle {
     StyledText {
       id: label
       Layout.fillWidth: true
-      Layout.maximumWidth: 300
+      Layout.maximumWidth: Widget.px(300)
       text: root.text
       textColor: area.containsMouse && root.danger ? Theme.background : Theme.foreground
       elide: Text.ElideRight

@@ -20,11 +20,10 @@ ReservedAreaWindow {
   WlrLayershell.namespace: "axiom-onboarding"
 
   // How much the overlay shrinks its first page on this screen (OverlayPages'
-  // fitScale): a small screen's cards stop at OverlayConfig.minCardUnit,
-  // and a page wider than the screen then shrinks as a whole
+  // fitScale): a page wider than the screen shrinks as a whole
   readonly property real overlayFit: {
     const first = OverlayConfig.views.find(view => !OverlayConfig.isTool(view.type));
-    return GridPlacement.fitScale(GridPlacement.bounds(first?.modules), overlayGrid.availableWidth, overlayGrid.availableHeight, OverlayConfig.pageUnit(first, overlayGrid.unit));
+    return GridPlacement.fitScale(GridPlacement.bounds(first?.modules), overlayGrid.roomWidth, overlayGrid.roomHeight, OverlayConfig.pageUnit(first, overlayGrid.unit));
   }
 
   // Esc (or Skip setup) asks first
@@ -51,9 +50,11 @@ ReservedAreaWindow {
       Loader {
         id: page
         anchors.centerIn: parent
-        // Shrinks a page that doesn't fit, and by as much as the overlay
-        // shrinks its first page, so the cards show at the overlay's size
-        scale: Math.min(root.overlayFit, (pageArea.width - OverlayConfig.cardSpacing * 2) / Math.max(1, implicitWidth), (pageArea.height - OverlayConfig.cardSpacing * 2) / Math.max(1, implicitHeight))
+        // Drawn at the overlay's zoom, shrunk by as much as the overlay
+        // shrinks its first page, or more if it doesn't fit, so the cards
+        // show at the overlay's size. `contentZoom`: see StyledIcon
+        scale: overlayGrid.zoom * Math.min(root.overlayFit, (pageArea.width - OverlayConfig.cardSpacing * 2) / Math.max(1, implicitWidth * overlayGrid.zoom), (pageArea.height - OverlayConfig.cardSpacing * 2) / Math.max(1, implicitHeight * overlayGrid.zoom))
+        readonly property real contentZoom: scale
         sourceComponent: {
           switch (OnboardingManager.pageId) {
           case "compositor":
@@ -85,8 +86,9 @@ ReservedAreaWindow {
     // This screen's card size, worked out as the overlay's is
     OverlayGrid {
       id: overlayGrid
-      availableWidth: pageArea.width - OverlayConfig.cardSpacing * 4
-      availableHeight: pageArea.height - OverlayConfig.cardSpacing * 4
+      screen: root.screen
+      availableWidth: pageArea.width - OverlayConfig.cardSpacing * 2 - OverlayConfig.boxPadding * 2
+      availableHeight: pageArea.height - OverlayConfig.cardSpacing * 2 - OverlayConfig.boxPadding * 2
     }
 
     StepBar {

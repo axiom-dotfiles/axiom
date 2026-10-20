@@ -41,6 +41,6 @@ Every public member of `General`, with the files that use it.
 - `General.screens` (var): The screens they're built on
   - in: only inside the reader
 - `General.screensNamed(name)`: The screen named `name` (as a one-screen list), else the primary monitor, else the first screen
-  - in: `components/surfaces/greeter/GreeterSurface.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `config/Bar.qml`, `config/DesktopConfig.qml`, `config/EdgeMenusConfig.qml`, `services/BarManager.qml`, `shell/IdleInhibit.qml`
+  - in: `components/surfaces/greeter/GreeterSurface.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `config/Bar.qml`, `config/DesktopConfig.qml`, `config/EdgeMenusConfig.qml`, `services/BarManager.qml`, `services/ScreenLayoutEditor.qml`, `shell/IdleInhibit.qml`
 - `General.screensFor(mode, name)`: The screens a surface with its own `monitors` setting is built on: "general" (the above) | "primary" (the primary monitor) | "focused" (every screen, opening o…
   - in: `components/hosts/popout/EdgePopout.qml`, `config/DockConfig.qml`, `services/ShellManager.qml`, `shell/AppLauncher.qml`, `shell/Notifications.qml`, `shell/OSD.qml`, `shell/Overlay.qml`, `shell/PowerMenu.qml`, `shell/WindowSwitcher.qml`

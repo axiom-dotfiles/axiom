@@ -25,7 +25,7 @@ StyledContainer {
   // committed or pushed a value in
   property bool typed: false
 
-  implicitHeight: textField.implicitHeight + 20
+  implicitHeight: textField.implicitHeight + Widget.padding * 2
   borderColor: textField.activeFocus ? Theme.accent : Theme.border
   backgroundColor: Theme.backgroundAlt
 
@@ -39,8 +39,8 @@ StyledContainer {
   TextField {
     id: textField
     anchors.fill: parent
-    anchors.leftMargin: 10
-    anchors.rightMargin: 10
+    anchors.leftMargin: Widget.padding
+    anchors.rightMargin: Widget.padding
     verticalAlignment: TextInput.AlignVCenter
     text: root.text
     onTextChanged: root.text = text

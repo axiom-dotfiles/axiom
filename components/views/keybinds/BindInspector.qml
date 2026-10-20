@@ -96,7 +96,7 @@ ColumnLayout {
     StyledText {
       text: I18n.tr("Click, then press the combo. A scroll records a wheel bind; a modifier tapped alone records a tap.")
       opacity: 0.6
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
@@ -177,7 +177,7 @@ ColumnLayout {
         visible: !BindActions.hasOwnSection(label.input.text)
         text: I18n.tr(BindActions.sectionFor(root.bind.action)) + "  ›"
         opacity: 0.5
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
       }
 
       StyledTextEntry {
@@ -197,7 +197,7 @@ ColumnLayout {
     StyledText {
       text: I18n.tr("Empty uses the action's name. \"Section: Label\" files it under a section of its own.")
       opacity: 0.6
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
@@ -228,7 +228,7 @@ ColumnLayout {
           StyledText {
             text: flag.modelData[2]
             opacity: 0.6
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
           }
@@ -246,7 +246,7 @@ ColumnLayout {
   IssueList {
     visible: root.issues.length > 0
     issues: root.issues
-    textSize: Appearance.fontSize - 1
+    textSize: Appearance.fontSizeBy(-1)
     Layout.fillWidth: true
   }
 }

@@ -48,7 +48,7 @@ Item {
     id: troughRect
     anchors.verticalCenter: parent.verticalCenter
     width: parent.width
-    height: 4
+    height: Widget.px(4)
     radius: Widget.radius
     color: Theme.backgroundHighlight
   }
@@ -79,8 +79,8 @@ Item {
     id: handleRect
     x: fillRect.width - width / 2
     anchors.verticalCenter: parent.verticalCenter
-    width: 24
-    height: 14
+    width: Widget.px(24)
+    height: Widget.px(14)
     radius: Widget.radius
     color: Theme.backgroundAlt
     scale: mouseArea.isDragging ? 1.2 : (mouseArea.containsMouse ? 1.1 : 1.0)

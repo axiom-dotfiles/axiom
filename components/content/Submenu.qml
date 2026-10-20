@@ -135,7 +135,7 @@ Card {
     spacing: Widget.spacing / 2
 
     readonly property int iconSize: Math.round(Math.max(Appearance.fontSize * 1.2, Math.min(root.innerWidth * 0.5, root.innerHeight * 0.3, Appearance.fontSize * 3)))
-    readonly property int labelSize: root.innerWidth < Widget.height * 2 ? Appearance.fontSize - 2 : Appearance.fontSize
+    readonly property int labelSize: root.innerWidth < Widget.height * 2 ? Appearance.fontSizeBy(-2) : Appearance.fontSize
     // Icon, two lines of label and the arrow
     readonly property bool roomForLabel: root.innerHeight >= tile.iconSize + tile.labelSize * 3.2 + Appearance.fontSize * 1.5
 

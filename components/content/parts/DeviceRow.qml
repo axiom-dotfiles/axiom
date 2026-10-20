@@ -82,7 +82,7 @@ Rectangle {
     spacing: Widget.padding
 
     StyledIcon {
-      Layout.preferredWidth: 26
+      Layout.preferredWidth: Widget.iconButton
       horizontalAlignment: Text.AlignHCenter
       text: root.icon
       textSize: Appearance.fontSize * 1.4
@@ -102,7 +102,7 @@ Rectangle {
           Layout.fillWidth: true
           text: root.title
           elide: Text.ElideRight
-          textSize: Appearance.fontSize - 1
+          textSize: Appearance.fontSizeBy(-1)
           textColor: root.connected ? Theme.foreground : Theme.foregroundAlt
         }
 
@@ -115,14 +115,14 @@ Rectangle {
         Layout.fillWidth: true
         text: root._confirmForget ? I18n.tr("Click again to forget") : root.status
         elide: Text.ElideRight
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
         textColor: root._confirmForget || root.failed ? Theme.error : root.busy || root.connected ? Theme.accent : Theme.foregroundAlt
       }
     }
 
     // Only on hover, but always laid out so showing it moves nothing
     StyledRectButton {
-      size: 28
+      size: Widget.iconButton
       visible: root.known
       enabled: rowHover.hovered && !root.busy
       opacity: rowHover.hovered || root._confirmForget ? 1 : 0
@@ -141,7 +141,7 @@ Rectangle {
     }
 
     StyledRectButton {
-      size: 28
+      size: Widget.iconButton
       enabled: !root.busy
       opacity: enabled ? 1 : 0.5
       iconText: root.connected ? "link_off" : "link"

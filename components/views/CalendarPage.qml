@@ -17,7 +17,7 @@ BaseView {
 
   property string selectedKey: CalendarEvents.dayKey(new Date())
   readonly property real sideColumnWidth: root.grid.unit * 1.05
-  readonly property real monthWidth: Math.max(root.grid.unit * 1.6, Math.min(root.grid.unit * 3, root.grid.availableWidth - root.sideColumnWidth - OverlayConfig.cardSpacing * 3))
+  readonly property real monthWidth: Math.max(root.grid.unit * 1.6, Math.min(root.grid.unit * 3, root.grid.roomWidth - root.sideColumnWidth - OverlayConfig.cardSpacing * 3))
 
   Component.onCompleted: {
     CalendarManager.acquire(root);
@@ -75,11 +75,11 @@ BaseView {
           StyledIcon {
             text: "calendar_month"
             textColor: Theme.accent
-            textSize: Appearance.fontSize + 4
+            textSize: Appearance.fontSizeBy(4)
           }
           StyledText {
             text: I18n.formatDate(new Date(month.year, month.month, 1), I18n.dateFormat("monthYear"))
-            textSize: Appearance.fontSize + 4
+            textSize: Appearance.fontSizeBy(4)
             font.bold: true
           }
           Item {
@@ -88,7 +88,7 @@ BaseView {
           StyledText {
             text: CalendarManager.syncing ? I18n.tr("Syncing…") : CalendarManager.lastSync > 0 ? I18n.tr("Synced {0}", I18n.formatDate(new Date(CalendarManager.lastSync), CalendarConfig.timeFormat)) : ""
             textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
           }
           FlatIconButton {
             visible: CalendarManager.hasCalendars

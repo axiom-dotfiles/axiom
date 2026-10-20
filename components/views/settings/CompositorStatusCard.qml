@@ -132,7 +132,7 @@ FieldGroup {
     StyledText {
       text: block.hint
       opacity: 0.7
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
@@ -148,7 +148,7 @@ FieldGroup {
         anchors.margins: Widget.padding
         text: block.lines
         textFamily: "monospace"
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         wrapMode: Text.WrapAnywhere
       }
     }
@@ -157,7 +157,7 @@ FieldGroup {
       spacing: Widget.spacing
 
       StyledTextButton {
-        implicitHeight: Widget.height - 4
+        implicitHeight: Widget.height - Widget.px(4)
         text: I18n.tr("Copy")
         onClicked: block.copyClicked()
       }
@@ -165,7 +165,7 @@ FieldGroup {
       StyledTextButton {
         visible: block.canAdd
         enabled: !block.adding && !block.added
-        implicitHeight: Widget.height - 4
+        implicitHeight: Widget.height - Widget.px(4)
         text: block.added ? I18n.tr("Added") : block.adding ? I18n.tr("Adding…") : I18n.tr("Add it for me")
         onClicked: block.addClicked()
       }
@@ -210,7 +210,7 @@ FieldGroup {
       StyledText {
         visible: root.blocked
         text: CompositorConfigManager.managedBlockedBy === "git" ? I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Use Included instead.", Paths.shortenHome(CompositorConfigManager.configDir), Paths.shortenHome(CompositorConfigManager.managedBlockedRepo)) : I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", Paths.shortenHome(CompositorConfigManager.configDir))
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
       }
@@ -221,7 +221,7 @@ FieldGroup {
         delegate: StyledText {
           required property string modelData
           text: "•  " + modelData
-          textSize: Appearance.fontSize - 1
+          textSize: Appearance.fontSizeBy(-1)
           wrapMode: Text.WordWrap
           Layout.fillWidth: true
         }
@@ -256,13 +256,13 @@ FieldGroup {
 
       StyledText {
         text: I18n.tr("Taking over {0} moves your config into {1}, where it keeps working, with a dated backup beside it. Until then, axiom applies its layer at runtime. Included mode leaves your config alone.", Paths.shortenHome(CompositorConfigManager.managedPath), Paths.shortenHome(CompositorConfigManager.userDir))
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
       }
 
       StyledTextButton {
-        implicitHeight: Widget.height - 4
+        implicitHeight: Widget.height - Widget.px(4)
         text: I18n.tr("Allow takeover")
         onClicked: CompositorConfigManager.allowTakeover()
       }
@@ -273,7 +273,7 @@ FieldGroup {
     visible: root.status === "fallback" && !CompositorConfigManager.takeoverPending
     text: CompositorConfigManager.problem + "\n" + I18n.tr("Until then, axiom applies its layer at runtime.")
     textColor: Theme.warning
-    textSize: Appearance.fontSize - 1
+    textSize: Appearance.fontSizeBy(-1)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }
@@ -282,7 +282,7 @@ FieldGroup {
     visible: root.mode === "detached"
     text: root.autostartMissing ? I18n.tr("Binds on keys your config uses are skipped.") : I18n.tr("Nothing to set up. Binds on keys your config uses are skipped.")
     opacity: 0.7
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }
@@ -332,13 +332,13 @@ FieldGroup {
     StyledText {
       text: I18n.tr("Your own settings go in {0}.", Paths.shortenHome(CompositorConfigManager.userFiles))
       opacity: 0.7
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
 
     StyledTextButton {
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       text: I18n.tr("Open folder")
       onClicked: CompositorConfigManager.openConfigDir()
     }
@@ -348,7 +348,7 @@ FieldGroup {
     visible: root.pendingMode !== "managed"
     text: I18n.tr("Managed mode adds the compositor's own settings and what starts with the session.")
     opacity: 0.6
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }

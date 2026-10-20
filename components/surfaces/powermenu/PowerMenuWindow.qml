@@ -204,7 +204,7 @@ PanelWindow {
       id: card
 
       anchors.centerIn: parent
-      width: Math.min(tiles.implicitWidth + root.pad * 2, root.width - 32)
+      width: Math.min(tiles.implicitWidth + root.pad * 2, root.width - Widget.px(32))
       height: content.implicitHeight + root.pad * 2
       color: Appearance.fill(Theme.background)
       border.color: Theme.border
@@ -268,7 +268,7 @@ PanelWindow {
               anchors.verticalCenter: parent.verticalCenter
               text: I18n.tr("up {0}", root.uptime)
               textColor: Theme.foregroundInactive
-              textSize: Appearance.fontSize - 1
+              textSize: Appearance.fontSizeBy(-1)
             }
           }
         }
@@ -306,7 +306,7 @@ PanelWindow {
         Flow {
           visible: PowerMenuConfig.showHint
           width: parent.width
-          spacing: 14
+          spacing: Widget.padding
 
           // I18n.tr("select") I18n.tr("run") I18n.tr("pick") I18n.tr("close")
           Repeater {

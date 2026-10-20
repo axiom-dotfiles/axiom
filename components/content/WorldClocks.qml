@@ -129,8 +129,8 @@ Card {
       readonly property real at: (band.there.getHours() + band.there.getMinutes() / 60) / 24
       x: Math.round(parent.width * at - width / 2)
       anchors.verticalCenter: parent.verticalCenter
-      width: 3
-      height: parent.height + 6
+      width: Widget.px(3)
+      height: parent.height + Widget.px(6)
       radius: 1.5
       color: Theme.accent
     }
@@ -188,12 +188,12 @@ Card {
             StyledIcon {
               text: entry.day ? "light_mode" : "dark_mode"
               textColor: entry.local ? Theme.accent : Theme.foregroundAlt
-              textSize: Appearance.fontSize - 1
+              textSize: Appearance.fontSizeBy(-1)
             }
             StyledText {
               Layout.fillWidth: true
               text: root.cityOf(entry.place)
-              textSize: Appearance.fontSize - 1
+              textSize: Appearance.fontSizeBy(-1)
               elide: Text.ElideRight
             }
           }
@@ -214,7 +214,7 @@ Card {
               "timezone": entry.place.timezone,
               "date": clock.date
             })
-            textSize: Appearance.fontSize - 3
+            textSize: Appearance.fontSizeBy(-3)
             textColor: Theme.foregroundAlt
             elide: Text.ElideRight
           }
@@ -236,7 +236,7 @@ Card {
             StyledIcon {
               text: entry.day ? "light_mode" : "dark_mode"
               textColor: entry.local ? Theme.accent : Theme.foregroundAlt
-              textSize: Appearance.fontSize + 2
+              textSize: Appearance.fontSizeBy(2)
             }
             ColumnLayout {
               Layout.fillWidth: true
@@ -255,7 +255,7 @@ Card {
                   "timezone": entry.place.timezone,
                   "date": clock.date
                 })
-                textSize: Appearance.fontSize - 3
+                textSize: Appearance.fontSizeBy(-3)
                 textColor: Theme.foregroundAlt
                 elide: Text.ElideRight
               }

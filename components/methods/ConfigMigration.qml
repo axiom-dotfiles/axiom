@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 71
+  readonly property int currentVersion: 74
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -169,6 +169,10 @@ QtObject {
       result = _v69ToV70(result, changes);
     if (version < 71)
       result = _v70ToV71(result, changes);
+    if (version < 73)
+      result = _v71ToV73(result, changes);
+    if (version < 74)
+      result = _v73ToV74(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2364,6 +2368,80 @@ QtObject {
         dock.pinnedOwn = true;
     }
     changes.push("Dock.docks[0].pinned -> Apps.pinned");
+    return config;
+  }
+
+  // v73 moved the module sizing out of Overlay into Widget, for every
+  // surface: Overlay.size -> Widget.cardSize (the old default 100 is the
+  // new one, so a config stored full and a sparse one agree), and
+  // Widget's control height, padding and spacing (px) became a density
+  // preset, the nearest one. Overlay.contentScale and a screen layout's
+  // contentScale (only ever in development builds, as v72) are dropped,
+  // the overlay's becoming Widget.scale
+  function _v71ToV73(config, changes) {
+    const desktop = config.Desktop && typeof config.Desktop === "object" ? config.Desktop : {};
+    const layouts = [desktop.all, desktop.primary, config.Lockscreen?.layout, config.Greeter?.layout].concat(Array.isArray(desktop.monitors) ? desktop.monitors : []);
+    layouts.forEach(layout => {
+      if (layout && typeof layout === "object")
+        delete layout.contentScale;
+    });
+    const overlay = config.Overlay && typeof config.Overlay === "object" ? config.Overlay : null;
+    const hasOldWidget = config.Widget && typeof config.Widget === "object";
+    if (!overlay && !hasOldWidget)
+      return config;
+    if (!hasOldWidget)
+      config.Widget = {};
+    const widget = config.Widget;
+    if (overlay && typeof overlay.size === "number") {
+      widget.cardSize = Math.max(50, Math.min(100, Math.round(overlay.size)));
+      changes.push(`Overlay.size -> Widget.cardSize ${widget.cardSize}`);
+    }
+    if (overlay && typeof overlay.contentScale === "number") {
+      widget.scale = Math.max(75, Math.min(150, Math.round(overlay.contentScale)));
+      changes.push(`Overlay.contentScale -> Widget.scale ${widget.scale}`);
+    }
+    if (overlay) {
+      delete overlay.size;
+      delete overlay.contentScale;
+    }
+    const height = typeof widget.height === "number" ? widget.height : 30;
+    const padding = typeof widget.padding === "number" ? widget.padding : 10;
+    if ("height" in widget || "padding" in widget || "spacing" in widget) {
+      const density = padding <= 7 || height <= 27 ? "compact" : padding >= 13 || height >= 34 ? "roomy" : "normal";
+      widget.density = density;
+      changes.push(`Widget.height/padding/spacing -> Widget.density ${density}`);
+      delete widget.height;
+      delete widget.padding;
+      delete widget.spacing;
+    }
+    return config;
+  }
+
+  // v74 moved the default login screen's Greeting, Login and Session a
+  // row down, so the clock in its corner no longer shares an edge with
+  // the Greeting: modules sharing one move as a group on another screen
+  // shape (GridPlacement.touchingGroups), and the clock left its corner
+  // with them. Only a layout still exactly the old default moves. And
+  // the overlay's Module size tops out at 100 (the card size grows it)
+  function _v73ToV74(config, changes) {
+    const overlay = config.Overlay;
+    if (overlay && typeof overlay.moduleScale === "number" && overlay.moduleScale > 100) {
+      changes.push(`Overlay.moduleScale ${overlay.moduleScale} -> 100`);
+      overlay.moduleScale = 100;
+    }
+    const modules = config.Greeter?.layout?.modules;
+    if (!Array.isArray(modules))
+      return config;
+    const old = [["ClockCalendar", 0, 0, 4, 2], ["Greeting", 4, 1, 8, 2], ["Login", 5, 3, 6, 3], ["Session", 6, 6, 4, 1], ["KeyboardLayout", 0, 8, 2, 1], ["Power", 13, 8, 3, 1]];
+    const same = modules.length === old.length && modules.every((module, i) => {
+      const place = module?.place;
+      const [type, x, y, w, h] = old[i];
+      return module?.type === type && place?.x === x && place?.y === y && place?.w === w && place?.h === h;
+    });
+    if (!same)
+      return config;
+    [1, 2, 3].forEach(i => modules[i].place.y += 1);
+    changes.push("Greeter.layout: the default's Greeting, Login and Session a row down");
     return config;
   }
 }

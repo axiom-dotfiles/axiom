@@ -56,7 +56,7 @@ Card {
         Layout.maximumWidth: dial.beside ? dial.width - dial.side - dial.gap : dial.width
         elide: Text.ElideRight
         text: dial.muted ? I18n.tr("{0} · muted", dial.label) : `${dial.label} · ${Math.round(dial.level * 100)}%`
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
         opacity: 0.8
       }
     }

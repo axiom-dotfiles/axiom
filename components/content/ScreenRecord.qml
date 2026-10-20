@@ -36,7 +36,7 @@ Panel {
   // The list beside the controls in a wide card
   readonly property bool sideBySide: root.embedded && root.innerWidth >= Appearance.fontSize * 34 && root.innerWidth >= root.innerHeight * 1.4
 
-  implicitWidth: 360
+  implicitWidth: Widget.px(360)
   fullMinWidth: Appearance.fontSize * 10
   fullMinHeight: Appearance.fontSize * 3.5
   spacing: Widget.spacing
@@ -161,7 +161,7 @@ Panel {
       visible: !root.recording
       text: "screen_record"
       textColor: Theme.accent
-      textSize: Appearance.fontSize + 2
+      textSize: Appearance.fontSizeBy(2)
     }
     StyledText {
       Layout.fillWidth: true
@@ -171,21 +171,21 @@ Panel {
     }
     FlatIconButton {
       visible: !root.recording
-      size: 28
+      size: Widget.iconButton
       iconText: "screenshot_region"
       tooltipText: I18n.tr("Record a region")
       onClicked: root.start("pick")
     }
     FlatIconButton {
       visible: !root.recording
-      size: 28
+      size: Widget.iconButton
       iconText: "screenshot_monitor"
       tooltipText: I18n.tr("Record the screen")
       onClicked: root.start("screen")
     }
     FlatIconButton {
       visible: root.recording
-      size: 28
+      size: Widget.iconButton
       iconText: "stop"
       iconColor: Theme.error
       tooltipText: I18n.tr("Stop")
@@ -300,13 +300,13 @@ Panel {
         StyledText {
           Layout.fillWidth: true
           text: I18n.tr("Recent recordings")
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           textColor: Theme.foregroundAlt
           font.bold: true
           elide: Text.ElideRight
         }
         FlatIconButton {
-          size: 22
+          size: Widget.smallHeight
           iconText: "folder_open"
           tooltipText: I18n.tr("Open the folder")
           onClicked: Qt.openUrlExternally("file://" + ScreenshotManager.recordingFolder)
@@ -338,13 +338,13 @@ Panel {
           onActivated: Qt.openUrlExternally("file://" + row.recording.path)
 
           FlatIconButton {
-            size: 24
+            size: Widget.iconButton
             iconText: "content_copy"
             tooltipText: I18n.tr("Copy the path")
             onClicked: ClipboardManager.copyText(row.recording.path)
           }
           FlatIconButton {
-            size: 24
+            size: Widget.iconButton
             iconText: "delete"
             tooltipText: I18n.tr("Move to the trash")
             onClicked: ScreenshotManager.deleteRecording(row.recording.path)

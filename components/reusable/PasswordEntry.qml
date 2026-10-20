@@ -84,7 +84,7 @@ Item {
       // A space keeps a reserved line's height
       text: root.message || " "
       textColor: root.messageIsError ? Theme.error : Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       horizontalAlignment: root.centered ? Text.AlignHCenter : Text.AlignLeft
       wrapMode: root.wrapMessage ? Text.WordWrap : Text.NoWrap
       elide: root.wrapMessage ? Text.ElideNone : Text.ElideRight
@@ -104,7 +104,7 @@ Item {
     x: body.x + busyTrack.inset
     y: body.y + entry.y + entry.height - height - Appearance.borderWidth - 1
     width: entry.width - busyTrack.inset * 2
-    height: 3
+    height: Widget.px(3)
     visible: root.busy
     clip: true
 

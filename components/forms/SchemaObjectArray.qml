@@ -29,14 +29,14 @@ ColumnLayout {
 
     StyledText {
       text: I18n.tr(root.label)
-      textSize: Appearance.fontSize + 1
+      textSize: Appearance.fontSizeBy(1)
       font.bold: true
       Layout.fillWidth: true
     }
 
     StyledRectButton {
       iconText: "add"
-      iconSize: Appearance.fontSize + 4
+      iconSize: Appearance.fontSizeBy(4)
       hoverColor: Theme.accent
 
       onClicked: {
@@ -49,7 +49,7 @@ ColumnLayout {
     visible: root.description !== ""
     text: I18n.tr(root.description)
     opacity: 0.7
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }
@@ -80,12 +80,12 @@ ColumnLayout {
 
           RowLayout {
             Layout.fillWidth: true
-            spacing: 4
+            spacing: Widget.spacing
 
             StyledText {
               text: "#" + (entry.index + 1)
               textColor: Theme.accent
-              textSize: Appearance.fontSize - 1
+              textSize: Appearance.fontSizeBy(-1)
               font.bold: true
             }
 
@@ -95,9 +95,9 @@ ColumnLayout {
 
             SquareIconButton {
               visible: entry.index > 0
-              size: 24
+              size: Widget.iconButton
               iconText: "expand_less"
-              iconSize: 16
+              iconSize: Appearance.fontSizeBy(2)
 
               onClicked: {
                 root.itemMoved(entry.index, entry.index - 1);
@@ -106,9 +106,9 @@ ColumnLayout {
 
             SquareIconButton {
               visible: entry.index < root.items.length - 1
-              size: 24
+              size: Widget.iconButton
               iconText: "expand_more"
-              iconSize: 16
+              iconSize: Appearance.fontSizeBy(2)
 
               onClicked: {
                 root.itemMoved(entry.index, entry.index + 1);
@@ -116,9 +116,9 @@ ColumnLayout {
             }
 
             SquareIconButton {
-              size: 24
+              size: Widget.iconButton
               iconText: "close"
-              iconSize: 18
+              iconSize: Appearance.fontSizeBy(4)
               hoverColor: Theme.error
 
               onClicked: {
@@ -149,7 +149,7 @@ ColumnLayout {
   StyledContainer {
     visible: root.items.length === 0
     Layout.fillWidth: true
-    Layout.preferredHeight: 80
+    Layout.preferredHeight: Widget.height * 3 - Widget.padding
     backgroundColor: Theme.background
 
     StyledText {

@@ -27,7 +27,7 @@ Panel {
   hovered: pointerInside || wantsKeyboardFocus
   onFocusLost: NetworkingManager.cancelPassword()
 
-  implicitWidth: 380
+  implicitWidth: Widget.px(380)
   // The switch, the connection and a row or two, else the figure
   fullMinWidth: Appearance.fontSize * 15
   fullMinHeight: Appearance.fontSize * 12
@@ -87,7 +87,7 @@ Panel {
     titleExtras: StyledIcon {
       visible: NetworkingManager.isSecure(row.network)
       text: "lock"
-      textSize: Appearance.fontSize - 3
+      textSize: Appearance.fontSizeBy(-3)
       textColor: Theme.foregroundAlt
     }
 
@@ -108,7 +108,7 @@ Panel {
       }
 
       StyledRectButton {
-        size: 28
+        size: Widget.iconButton
         enabled: passwordField.text !== ""
         opacity: enabled ? 1 : 0.5
         iconText: "link"
@@ -136,7 +136,7 @@ Panel {
     spacing: Widget.padding
 
     StyledIcon {
-      Layout.preferredWidth: 26
+      Layout.preferredWidth: Widget.iconButton
       horizontalAlignment: Text.AlignHCenter
       text: root.kindIcon
       textSize: Appearance.fontSize * 1.4
@@ -151,14 +151,14 @@ Panel {
         Layout.fillWidth: true
         text: root.info.name || I18n.tr("Disconnected")
         elide: Text.ElideRight
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
       }
       StyledText {
         Layout.fillWidth: true
         visible: root.info.kind !== ""
         text: root.info.ip !== "" ? `${root.info.ip} · ${root.info.device}` : root.info.device
         elide: Text.ElideRight
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
         textColor: Theme.foregroundAlt
       }
     }
@@ -171,14 +171,14 @@ Panel {
         Layout.alignment: Qt.AlignRight
         rate: SystemManager.netRx
         textColor: Theme.accentAlt
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
       }
       RateLabel {
         Layout.alignment: Qt.AlignRight
         direction: "up"
         rate: SystemManager.netTx
         textColor: Theme.accent
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
       }
     }
   }

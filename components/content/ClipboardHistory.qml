@@ -42,7 +42,7 @@ Panel {
   // detail under them
   readonly property real rowHeight: Math.ceil(Appearance.fontSize * (root.titleLines > 1 ? 3.6 : 2.4)) + Widget.spacing * 2
 
-  implicitWidth: 400
+  implicitWidth: Widget.px(400)
   fullMinWidth: Appearance.fontSize * 11
   fullMinHeight: Appearance.fontSize * 3.5
   wantsKeyboardFocus: root.showSearch
@@ -114,12 +114,12 @@ Panel {
     StyledText {
       visible: root.allClips.length > 0
       text: String(root.allClips.length)
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       textColor: Theme.foregroundAlt
     }
     FlatIconButton {
       visible: ClipboardManager.entries.length > 0
-      size: 24
+      size: Widget.iconButton
       iconText: "delete_sweep"
       iconColor: root.confirmClear ? Theme.error : Theme.foregroundAlt
       backgroundColor: root.confirmClear ? Qt.alpha(Theme.error, 0.2) : "transparent"
@@ -199,14 +199,14 @@ Panel {
 
       FlatIconButton {
         visible: ClipboardManager.canPin(row.entry)
-        size: 24
+        size: Widget.iconButton
         iconText: row.pinned ? "keep_off" : "keep"
         iconColor: row.pinned ? Theme.accent : Theme.foregroundAlt
         tooltipText: row.pinned ? I18n.tr("Unpin") : I18n.tr("Pin")
         onClicked: ClipboardManager.togglePin(row.entry)
       }
       FlatIconButton {
-        size: 24
+        size: Widget.iconButton
         iconText: "delete"
         tooltipText: row.entry.pinned ? I18n.tr("Unpin") : I18n.tr("Remove")
         onClicked: {
@@ -229,7 +229,7 @@ Panel {
     StyledIcon {
       text: root.copiedId !== "" ? "check" : "content_paste"
       textColor: Theme.accent
-      textSize: Appearance.fontSize + 2
+      textSize: Appearance.fontSizeBy(2)
     }
     StyledText {
       Layout.fillWidth: true
@@ -239,7 +239,7 @@ Panel {
     }
     FlatIconButton {
       visible: root.newest !== null && !root.off
-      size: 26
+      size: Widget.iconButton
       iconText: "content_copy"
       tooltipText: I18n.tr("Copy")
       onClicked: root.copy(root.newest)

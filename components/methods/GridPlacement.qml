@@ -10,31 +10,64 @@ QtObject {
   id: root
 
   // Card grid constants: internal design values, not user settings.
-  // cardUnit is the reference card size: the largest a card gets at 100%
-  // (each overlay's OverlayGrid sizes its cards to its screen, up to this).
+  // cardUnit: a card size where there's no screen to work one out from
+  // (a menu whose monitor is gone) or only proportions matter (the
+  // editor canvas, scaled to fit)
   readonly property int cardUnit: 500
   readonly property int cardSpacing: 20
+  // The px a screen keeps clear on each side of its short one when
+  // working out its card size (baseCard): fixed, so text and controls
+  // growing (the Interface scale) never shrink the cards
+  readonly property int screenMargin: 80
   // The largest a module's w or h may be (the schema's GridPlace maximum)
   readonly property int maxSpan: 32
 
   // A span of n grid units is n units plus the n - 1 gaps between them,
   // so span(4) is one card, span(2) half a card and span(8) two cards plus
-  // the gap between them. `unit` is the card size (the reference cardUnit
-  // unless given).
-  function unitOf(unit) {
-    return ((unit ?? root.cardUnit) - 3 * root.cardSpacing) / 4;
+  // the gap between them. `unit` is the card size, `gap` the px between
+  // cards (cardSpacing unless given: a grid drawn zoomed has gapOf's).
+  function unitOf(unit, gap) {
+    return (unit - 3 * (gap ?? root.cardSpacing)) / 4;
   }
 
-  function span(n, unit) {
-    return n * root.unitOf(unit) + (n - 1) * root.cardSpacing;
+  function span(n, unit, gap) {
+    return n * root.unitOf(unit, gap) + (n - 1) * (gap ?? root.cardSpacing);
+  }
+
+  // The card size (px) on a `width` × `height` screen at 100 %: two
+  // cards (span(8): two cards and a gap) fill its short side less
+  // screenMargin each side, so a monitor's cards are the same turned
+  // either way. Every module grid starts from it (OverlayConfig.cardUnitOn)
+  function baseCard(width, height) {
+    return Math.max(1, (Math.min(width, height) - 2 * root.screenMargin - root.cardSpacing) / 2);
+  }
+
+  // What a grid's content is drawn at for a Module size of `scale` (a
+  // factor): content lays out at the card size over it, so text and
+  // controls grow and shrink with the cards only by the Module size,
+  // never by the screen. 1 within 2 %, so it isn't resampled for nothing
+  function zoomOf(scale) {
+    return Math.abs(scale - 1) < 0.02 ? 1 : scale;
+  }
+
+  // The px between the cards of a grid drawn at `zoom`: the layout's,
+  // drawn as its content is
+  function gapOf(zoom) {
+    return root.cardSpacing * zoom;
+  }
+
+  // A grid's own card size at card size `card` px, `gap` px between
+  // cards: a double grid's (`fine`) units are split in two each way
+  function gridUnitOf(card, fine, gap) {
+    return fine ? root.fineUnit(card, gap) : Math.round(card);
   }
 
   // The card size of a double grid (`fineGrid`) at card size `unit`: two
   // of its units and the gap between them span one of `unit`'s, so places
   // scaled by scalePlace keep their size and spot exactly (half the card
   // would leave every span a little larger, the gaps staying the same)
-  function fineUnit(unit) {
-    return Math.round(((unit ?? root.cardUnit) - root.cardSpacing) / 2);
+  function fineUnit(unit, gap) {
+    return Math.round((unit - (gap ?? root.cardSpacing)) / 2);
   }
 
   // A size in grid units as cards: 4 → "1", 2 → "½", 5 → "1¼"
@@ -45,28 +78,29 @@ QtObject {
   }
 
   // One grid unit plus the gap after it, in px, at card size `unit`
-  function stepOf(unit) {
-    return root.unitOf(unit) + root.cardSpacing;
+  function stepOf(unit, gap) {
+    return root.unitOf(unit, gap) + (gap ?? root.cardSpacing);
   }
 
   // The lattice an edge menu's modules sit on along an edge `edgeLength`
   // px long, at card size `unit`: as many whole cells as fit between
   // `startPad` and `endPad`, centred there, then moved `shift` px towards
-  // the end. { origin (where cell 0 starts, in px from the edge's start),
-  // step, cols (the cells of the centred run), first, last (the cells
-  // wholly inside the room once moved), startPad }
-  function menuLattice(edgeLength, unit, startPad, endPad, shift) {
-    const step = root.stepOf(unit);
+  // the end, `gap` px between cards. { origin (where cell 0 starts, in px
+  // from the edge's start), step, cols (the cells of the centred run),
+  // first, last (the cells wholly inside the room once moved), startPad }
+  function menuLattice(edgeLength, unit, startPad, endPad, shift, gap) {
+    const spacing = gap ?? root.cardSpacing;
+    const step = root.stepOf(unit, spacing);
     const room = edgeLength - startPad - endPad;
     // A hair over (and under), so a room exactly n cells long holds n
-    const cols = Math.max(0, Math.floor((room + root.cardSpacing) / step + 0.001));
-    const origin = startPad + (room - cols * step + root.cardSpacing) / 2 + (shift ?? 0);
+    const cols = Math.max(0, Math.floor((room + spacing) / step + 0.001));
+    const origin = startPad + (room - cols * step + spacing) / 2 + (shift ?? 0);
     return {
       "origin": origin,
       "step": step,
       "cols": cols,
       "first": Math.ceil((startPad - origin) / step - 0.001),
-      "last": Math.floor((edgeLength - endPad - origin + root.cardSpacing) / step + 0.001) - 1,
+      "last": Math.floor((edgeLength - endPad - origin + spacing) / step + 0.001) - 1,
       "startPad": startPad
     };
   }
@@ -112,18 +146,20 @@ QtObject {
   // The screen (`width` × `height` px) around an edge menu with modules
   // reaching `bounds` (at card size `unit`) on `edge` ("Left" | "Right" |
   // "Top" | "Bottom"), starting `along` px along the edge and `across` px
-  // in from it. In grid units from the menu's grid origin, as the editor
-  // draws it (its sides midway in the gaps): { x, y, w, h }.
-  function screenBox(width, height, unit, bounds, edge, along, across) {
+  // in from it, `gap` px between cards. In grid units from the menu's grid
+  // origin, as the editor draws it (its sides midway in the gaps):
+  // { x, y, w, h }.
+  function screenBox(width, height, unit, bounds, edge, along, across, gap) {
     const vertical = edge === "Left" || edge === "Right";
-    const step = root.stepOf(unit);
+    const spacing = gap ?? root.cardSpacing;
+    const step = root.stepOf(unit, spacing);
     const thick = vertical ? bounds.cols : bounds.rows;
-    const thickPx = thick > 0 ? thick * step - root.cardSpacing : 0;
+    const thickPx = thick > 0 ? thick * step - spacing : 0;
     const acrossLen = vertical ? width : height;
     // The screen's start, in px from the grid's origin
     const alongFrom = -along;
     const acrossFrom = edge === "Right" || edge === "Bottom" ? thickPx + across - acrossLen : -across;
-    const half = root.cardSpacing / 2;
+    const half = spacing / 2;
     return vertical ? {
       "x": (acrossFrom + half) / step,
       "y": (alongFrom + half) / step,
@@ -519,13 +555,165 @@ QtObject {
   }
 
   // The card size at which a `cols` × `rows` grid fits `width` × `height`
-  // px with `margin` px all round (a lock screen's grid on its screen):
-  // the axis with less room decides, and stretching (trackSizes) fills
-  // the other
-  function latticeUnit(cols, rows, width, height, margin) {
-    const fit = (count, room) => (room - 2 * margin - (count - 1) * root.cardSpacing) / count;
-    const unitSize = Math.max(1, Math.min(fit(Math.max(1, cols), width), fit(Math.max(1, rows), height)));
-    return Math.floor(unitSize * 4 + 3 * root.cardSpacing);
+  // px with `margin` px all round (a lock screen's grid on its screen),
+  // its gaps `ratio` px per px of card size: the axis with less room
+  // decides, and stretching (trackSizes) fills the other
+  function latticeUnit(cols, rows, width, height, margin, ratio) {
+    // The px `count` units and their gaps take, per px of card size
+    const per = count => count * (1 - 3 * ratio) / 4 + (count - 1) * ratio;
+    const fit = (count, room) => (room - 2 * margin) / per(Math.max(1, count));
+    return Math.max(1, Math.floor(Math.min(fit(cols, width), fit(rows, height))));
+  }
+
+  // How many units at card size `unit` (`gap` px between cards) fit
+  // `width` × `height` px with `margin` px all round: a screen layout's
+  // grid on a screen, { cols, rows }, at least one each way
+  function screenLattice(unit, width, height, margin, gap) {
+    const spacing = gap ?? root.cardSpacing;
+    const step = root.stepOf(unit, spacing);
+    const fit = room => Math.max(1, Math.floor((room - 2 * margin + spacing) / step));
+    return {
+      "cols": fit(width),
+      "rows": fit(height)
+    };
+  }
+
+  // The groups of `places` that touch or overlap (sharing some length of
+  // an edge; a corner alone doesn't join a module in a corner to the
+  // middle), each [indices], so a stack of modules moves as one. Null
+  // places are left out
+  function touchingGroups(places) {
+    const list = places ?? [];
+    const group = list.map((_, i) => i);
+    const find = i => group[i] === i ? i : (group[i] = find(group[i]));
+    const meet = (a, aLen, b, bLen) => a <= b + bLen && b <= a + aLen;
+    const share = (a, aLen, b, bLen) => a < b + bLen && b < a + aLen;
+    const touch = (a, b) => (share(a.x, a.w, b.x, b.w) && meet(a.y, a.h, b.y, b.h)) || (share(a.y, a.h, b.y, b.h) && meet(a.x, a.w, b.x, b.w));
+    for (let i = 0; i < list.length; i++)
+      for (let j = i + 1; j < list.length; j++)
+        if (list[i] && list[j] && touch(list[i], list[j]))
+          group[find(i)] = find(j);
+    const groups = {};
+    list.forEach((place, i) => {
+      if (!place)
+        return;
+      const key = find(i);
+      (groups[key] = groups[key] ?? []).push(i);
+    });
+    return Object.keys(groups).map(key => groups[key]);
+  }
+
+  // `places` (null for none) placed on a `from` grid ({ cols, rows }),
+  // moved onto a `to` grid. Modules that touch move as one group
+  // (touchingGroups); on each axis a group keeps to the side its centre
+  // is nearest (the first third: the start, the last third: the end),
+  // else its centre keeps its share of the grid, so a corner stays a
+  // corner and the middle the middle on a wider or smaller grid. Null
+  // when that leaves one off `to` or over another
+  function anchorPlaces(places, from, to) {
+    const list = places ?? [];
+    const shift = (pos, len, fromCount, toCount) => {
+      const centre = pos + len / 2;
+      if (centre < fromCount / 3)
+        return 0;
+      if (centre > fromCount * 2 / 3)
+        return toCount - fromCount;
+      return Math.round(centre * toCount / fromCount - len / 2) - pos;
+    };
+    const moved = list.map(() => null);
+    root.touchingGroups(list).forEach(members => {
+      const box = root.bounds(members.map(i => ({
+            "place": list[i]
+          })));
+      const left = Math.min(...members.map(i => list[i].x));
+      const top = Math.min(...members.map(i => list[i].y));
+      const dx = shift(left, box.cols - left, from.cols, to.cols);
+      const dy = shift(top, box.rows - top, from.rows, to.rows);
+      members.forEach(i => moved[i] = {
+          "x": list[i].x + dx,
+          "y": list[i].y + dy,
+          "w": list[i].w,
+          "h": list[i].h
+        });
+    });
+    const placed = moved.filter(place => place !== null);
+    if (placed.some(place => !root.within(place, to.cols, to.rows)))
+      return null;
+    for (let i = 0; i < placed.length; i++)
+      for (let j = i + 1; j < placed.length; j++)
+        if (root.overlaps(placed[i], placed[j]))
+          return null;
+    return moved;
+  }
+
+  // A screen layout's modules on a `width` × `height` px room at card size
+  // `unit`, `margin` px all round: on the grid that fits there
+  // (screenLattice; with `fine`, a double grid, its units split in two
+  // each way, so it's always whole units), each kept to its nearest side
+  // (anchorPlaces) from `from`, the grid they were placed on (in the same
+  // units). When they don't fit that way the cards shrink, a step at a
+  // time, until they do (on `from` itself at the latest, where nothing
+  // moves), else as a last resort they stay on `from` (or as far as they
+  // reach) fitted into the room (latticeUnit). Its content is drawn at
+  // `zoom` (zoomOf its Module size), and shrunk cards shrink it and the
+  // gaps with them. { cols, rows, unit (its cards' px), gap, zoom, places,
+  // shrunk (smaller than `unit` asked) }
+  function screenArrangement(places, from, unit, width, height, margin, fine, zoom) {
+    const scale = fine ? 2 : 1;
+    // The gap per px of a whole card, and a card's own size and zoom when
+    // the whole card is `card` px
+    const per = root.gapOf(zoom) / unit;
+    const gridUnit = card => root.gridUnitOf(card, fine, per * card);
+    const zoomAt = card => root.zoomOf(zoom * card / unit);
+    const asked = gridUnit(unit);
+    let card = unit;
+    for (let step = 0; step < 40 && card > 4 * root.cardSpacing; step++) {
+      const whole = root.screenLattice(card, width, height, margin, per * card);
+      const lattice = {
+        "cols": whole.cols * scale,
+        "rows": whole.rows * scale
+      };
+      const anchored = root.anchorPlaces(places, from, lattice);
+      if (anchored)
+        return {
+          "cols": lattice.cols,
+          "rows": lattice.rows,
+          "unit": gridUnit(card),
+          "gap": per * card,
+          "zoom": zoomAt(card),
+          "places": anchored,
+          "shrunk": step > 0
+        };
+      if (lattice.cols >= from.cols && lattice.rows >= from.rows)
+        break;
+      card *= 0.96;
+    }
+    const reach = root.layoutReach(places, from);
+    // A double grid's units are (card - gap) / 2: its gap per px of unit
+    const ratio = fine ? 2 * per / (1 - per) : per;
+    const fitted = Math.min(asked, root.latticeUnit(reach.cols, reach.rows, width, height, margin, ratio));
+    return {
+      "cols": reach.cols,
+      "rows": reach.rows,
+      "unit": fitted,
+      "gap": ratio * fitted,
+      "zoom": root.zoomOf(zoom * fitted / asked),
+      "places": places ?? [],
+      "shrunk": fitted < asked
+    };
+  }
+
+  // The grid `places` (null for none) placed on a `from` grid ({ cols,
+  // rows }) take: `from`, or as far as they reach past it, at least one
+  // unit each way
+  function layoutReach(places, from) {
+    const reach = root.bounds((places ?? []).filter(place => place).map(place => ({
+          "place": place
+        })));
+    return {
+      "cols": Math.max(from.cols, reach.cols, 1),
+      "rows": Math.max(from.rows, reach.rows, 1)
+    };
   }
 
   // Shifts the modules (in place) so the topmost and leftmost touch 0.
@@ -559,10 +747,11 @@ QtObject {
   // `bounds` at card size `unit`. `stretch` ({ width, height, fit }, each
   // optional) is room to grow into: that axis's units share it evenly. A
   // grid never shrinks below its natural size, unless `fit`: then it takes
-  // exactly the room, shrinking down to half a unit at the least.
-  function trackSizes(bounds, unit, stretch) {
-    const size = root.unitOf(unit);
-    const spacing = root.cardSpacing;
+  // exactly the room, shrinking down to half a unit at the least. `gap`:
+  // the px between cards (cardSpacing unless given), kept in the result
+  function trackSizes(bounds, unit, stretch, gap) {
+    const spacing = gap ?? root.cardSpacing;
+    const size = root.unitOf(unit, spacing);
     const least = stretch?.fit ? size / 2 : size;
     const grow = (count, room) => count > 0 && room > 0 ? Math.max(least, (room - (count - 1) * spacing) / count) : size;
     const unitW = grow(bounds.cols, stretch?.width ?? 0);
@@ -570,6 +759,7 @@ QtObject {
     return {
       "unitW": unitW,
       "unitH": unitH,
+      "gap": spacing,
       "width": bounds.cols > 0 ? bounds.cols * unitW + (bounds.cols - 1) * spacing : 0,
       "height": bounds.rows > 0 ? bounds.rows * unitH + (bounds.rows - 1) * spacing : 0
     };
@@ -577,7 +767,7 @@ QtObject {
 
   // A place's pixel rect for trackSizes' `sizes`
   function rectPx(place, sizes) {
-    const spacing = root.cardSpacing;
+    const spacing = sizes.gap ?? root.cardSpacing;
     return {
       "x": place.x * (sizes.unitW + spacing),
       "y": place.y * (sizes.unitH + spacing),
@@ -592,13 +782,27 @@ QtObject {
     const sizes = root.trackSizes(bounds, unit);
     return sizes.width <= 0 ? 1 : Math.min(1, width / sizes.width, height / sizes.height);
   }
+  // The overlay's cards in `height` px of room (drawn px): `card` px,
+  // content drawn at `zoom`, but never so big that a page two cards high
+  // (span(8), its gap drawn at the zoom too) overflows the height. A page
+  // too wide is shrunk on its own (OverlayPages.fitScale). { drawn, the
+  // card size shown; unit, the size content lays out at (drawn / zoom);
+  // zoom }
+  function overlayLayout(height, card, zoom) {
+    const drawn = Math.max(1, Math.round(Math.min(card, (height - root.gapOf(zoom)) / 2)));
+    return {
+      "drawn": drawn,
+      "unit": Math.round(drawn / zoom),
+      "zoom": zoom
+    };
+  }
 
   // --- Edge menus on their screen ---
 
   // A menu's lattice along its edge, `edgeLength` px long (menuLattice,
-  // moved by `menu.gridOffset`)
-  function latticeOf(menu, edgeLength, unit, startPad, endPad) {
-    return root.menuLattice(edgeLength, unit, startPad, endPad, menu.gridOffset);
+  // moved by `menu.gridOffset`), `gap` px between its cards
+  function latticeOf(menu, edgeLength, unit, startPad, endPad, gap) {
+    return root.menuLattice(edgeLength, unit, startPad, endPad, menu.gridOffset, gap);
   }
 
   // How many cells a menu's modules (reaching `bounds`, else its own)
@@ -611,24 +815,24 @@ QtObject {
   // Where a menu's modules start along its edge, `edgeLength` px long: on
   // its lattice, `menu.offset` cells from centred (alongStart), or at
   // `startPad` when it takes the whole edge (`menu.length` "edge")
-  function menuAlong(menu, edgeLength, unit, startPad, endPad) {
+  function menuAlong(menu, edgeLength, unit, startPad, endPad, gap) {
     if (menu.length === "edge")
       return startPad;
-    return root.alongStart(root.latticeOf(menu, edgeLength, unit, startPad, endPad), menu.offset, root.unitsAlong(menu));
+    return root.alongStart(root.latticeOf(menu, edgeLength, unit, startPad, endPad, gap), menu.offset, root.unitsAlong(menu));
   }
 
   // Where a menu's modules (reaching `bounds`, at card size `unit`) sit on
-  // a `screenWidth` × `screenHeight` screen, its `frame` (EdgeMenuManager's
-  // frames) around them, in px: { along (from the edge's start), across
+  // a `screenWidth` × `screenHeight` screen, `gap` px between its cards,
+  // its `frame` (EdgeMenuManager's frames) around them, in px: { along (from the edge's start), across
   // (from the edge), length, depth (the grid along and across the edge),
   // edgeLength, lattice (latticeOf), units (cells along the edge), cell
   // (where they start on the lattice: null when the menu takes its whole
   // edge or is longer than the lattice), frame, screenWidth, screenHeight }
-  function menuPlacement(menu, bounds, unit, frame, screenWidth, screenHeight) {
+  function menuPlacement(menu, bounds, unit, frame, screenWidth, screenHeight, gap) {
     const vertical = menu.edge === "Left" || menu.edge === "Right";
-    const sizes = root.trackSizes(bounds, unit);
+    const sizes = root.trackSizes(bounds, unit, null, gap);
     const edgeLength = vertical ? screenHeight : screenWidth;
-    const lattice = root.latticeOf(menu, edgeLength, unit, frame.startPad, frame.endPad);
+    const lattice = root.latticeOf(menu, edgeLength, unit, frame.startPad, frame.endPad, gap);
     const units = root.unitsAlong(menu, bounds);
     const cell = menu.length === "edge" ? null : root.menuCell(lattice, menu.offset, units);
     return {
@@ -649,8 +853,9 @@ QtObject {
   // A menu as it sits on its screen (`place`, from menuPlacement), in
   // screen px: { rect (its box: the modules plus the frame's `after` all
   // round), modules: [{ type, rect }] } (rects { x, y, width, height }),
-  // fitted to its edge when it takes the whole edge (as EdgeMenuBody)
-  function menuOnScreen(menu, place, unit) {
+  // fitted to its edge when it takes the whole edge (as EdgeMenuBody), `gap`
+  // px between its cards
+  function menuOnScreen(menu, place, unit, gap) {
     const vertical = menu.edge === "Left" || menu.edge === "Right";
     const room = place.edgeLength - place.frame.startPad - place.frame.endPad;
     const stretch = menu.length !== "edge" ? null : vertical ? {
@@ -660,7 +865,7 @@ QtObject {
       "width": room,
       "fit": true
     };
-    const sizes = root.trackSizes(root.bounds(menu.modules), unit, stretch);
+    const sizes = root.trackSizes(root.bounds(menu.modules), unit, stretch, gap);
     const depth = vertical ? sizes.width : sizes.height;
     const acrossAt = menu.edge === "Right" ? place.screenWidth - place.across - depth : menu.edge === "Bottom" ? place.screenHeight - place.across - depth : place.across;
     const x = vertical ? acrossAt : place.along;
@@ -741,12 +946,12 @@ QtObject {
   }
 
   // The view of that grid (canvasExtent) drawn centred in an area `width`
-  // × `height` px, scaled from the reference card size to fit (at most
+  // × `height` px, scaled from cardUnit to fit (at most
   // `maxScale`): { scale, step (a unit and the gap after it), gap,
   // unitSize, originX, originY (where unit 0, 0 sits) }
   function canvasFit(extent, width, height, maxScale) {
     const view = extent.view;
-    const refStep = root.stepOf();
+    const refStep = root.stepOf(root.cardUnit);
     const scale = Math.max(0.05, Math.min(maxScale, width / (view.w * refStep), height / (view.h * refStep)));
     const step = refStep * scale;
     const gap = root.cardSpacing * scale;

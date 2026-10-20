@@ -13,12 +13,12 @@ Item {
   property color fillColor: Theme.accentAlt
   property color trackColor: Theme.backgroundHighlight
   // The stroke, as a share of the side, but never thinner than a slider's trough
-  property real thickness: Math.max(4, side * 0.07)
+  property real thickness: Math.max(Widget.px(4), side * 0.07)
 
   readonly property real side: Math.min(root.width, root.height)
 
-  implicitWidth: 120
-  implicitHeight: 120
+  implicitWidth: Widget.px(120)
+  implicitHeight: Widget.px(120)
 
   Canvas {
     id: ring

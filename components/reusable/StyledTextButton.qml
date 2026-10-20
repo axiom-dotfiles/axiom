@@ -21,7 +21,7 @@ Rectangle {
   property string tooltipText: ""
 
   // -- Configurable Appearance --
-  property int textPadding: 8
+  property int textPadding: Math.round(Widget.smallPadding * 4 / 3)
   property color backgroundColor: Theme.backgroundHighlight
   property color hoverColor: Theme.accent
   property color pressColor: Theme.accentAlt

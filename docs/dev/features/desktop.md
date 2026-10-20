@@ -10,7 +10,8 @@ Overlay modules drawn on the desktop, under the windows. Read this doc for deskt
 - `Desktop.all`, `Desktop.primary` and `Desktop.monitors[]` are each a `DesktopLayout` with these fields:
   - `enabled`
   - `monitor` (in `monitors` only)
-  - `columns`, `rows`, `fineGrid`
+  - `moduleScale` (Module size: cards and content together, over the card size), `fineGrid`
+  - `columns`, `rows` (hidden: the grid the modules were last placed on, written by the editor; each monitor fits its own, see [Lockscreen › Layout](lockscreen.md#layout))
   - `moduleBorders` (off by default: modules sit straight on the wallpaper)
   - `modules`.
 - **Which layout a screen shows** (`DesktopConfig.sourceFor`/`layoutFor`), each only while enabled:

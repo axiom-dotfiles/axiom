@@ -72,7 +72,7 @@ Item {
     text: root.checked ? "check_box" : "check_box_outline_blank"
     fill: root.checked ? 1 : 0
     textColor: root.checked ? Theme.accent : Theme.foregroundAlt
-    textSize: Appearance.fontSize + 4
+    textSize: Appearance.fontSizeBy(4)
 
     // A MouseArea, not a TapHandler: it accepts the press, so the editor's
     // background MouseArea (which focuses the note's end) never sees it. An

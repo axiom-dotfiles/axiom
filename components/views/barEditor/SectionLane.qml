@@ -125,9 +125,9 @@ Rectangle {
         readonly property bool locked: BarManager.selectedBar()?.lockCenter ?? false
 
         visible: root.zone === "center"
-        size: Widget.height - 6
+        size: Widget.height - Widget.px(6)
         iconText: locked ? "lock" : "lock_open"
-        iconSize: Appearance.fontSize - 1
+        iconSize: Appearance.fontSizeBy(-1)
         iconColor: locked ? Theme.background : Theme.foreground
         backgroundColor: Qt.alpha(Theme.accent, locked ? 1 : 0)
         tooltipText: I18n.tr(locked ? "Center locked: it stays dead center, other sections make room" : "Lock the center section in place")
@@ -136,7 +136,7 @@ Rectangle {
 
       SquareIconButton {
         id: addButton
-        size: Widget.height - 6
+        size: Widget.height - Widget.px(6)
         iconText: "add"
         backgroundColor: "transparent"
         tooltipText: I18n.tr("Add a widget")
@@ -243,7 +243,7 @@ Rectangle {
         elide: Text.ElideRight
         text: I18n.tr("Drop widgets here")
         opacity: 0.45
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
       }
     }
   }

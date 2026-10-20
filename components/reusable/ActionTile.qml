@@ -43,7 +43,7 @@ Rectangle {
   readonly property bool _labelShown: root.showLabel && root.label !== "" && (root.forceLabel || root.labelFits)
   // The well fills most of what the label leaves, never less than an icon
   // (unless the tile itself is smaller)
-  readonly property real _wellSize: Math.max(Math.min(Appearance.fontSize * 1.6, Math.min(root.width, root.height) - 4), Math.min(root.width - Widget.spacing * 2, root.height - Widget.spacing * 2 - (root._labelShown ? labelText.implicitHeight + Widget.spacing : 0)) * (root._labelShown ? 0.7 : 0.66))
+  readonly property real _wellSize: Math.max(Math.min(Appearance.fontSize * 1.6, Math.min(root.width, root.height) - Widget.px(4)), Math.min(root.width - Widget.spacing * 2, root.height - Widget.spacing * 2 - (root._labelShown ? labelText.implicitHeight + Widget.spacing : 0)) * (root._labelShown ? 0.7 : 0.66))
 
   radius: Widget.radius
   color: Appearance.fill(root.active ? root.activeColor : root.hot ? Theme.backgroundHighlight : Theme.backgroundAlt)
@@ -58,7 +58,7 @@ Rectangle {
     id: labelMetrics
     text: root.label
     font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 1
+    font.pixelSize: Appearance.fontSizeBy(-1)
   }
 
   Column {
@@ -103,7 +103,7 @@ Rectangle {
       elide: Text.ElideRight
       text: root.label
       textColor: root.contentColor
-      textSize: Appearance.fontSize - 1
+      textSize: Appearance.fontSizeBy(-1)
     }
   }
 
@@ -112,7 +112,7 @@ Rectangle {
     id: countdownBar
     anchors.bottom: parent.bottom
     anchors.left: parent.left
-    height: 3
+    height: Widget.px(3)
     color: Theme.background
     opacity: 0.6
     visible: root.active && root.countdown > 0

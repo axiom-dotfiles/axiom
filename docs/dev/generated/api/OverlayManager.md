@@ -16,7 +16,7 @@ OverlayManager holds the layouts editor's working copy of Overlay.views (the edi
 - `greeterEditable` (readonly bool): The login screen's, only once it's set up
 - `layout` (GridEditor)
 - `problems` (readonly var): Why the draft can't be saved as is (empty = savable)
-- `areas` (readonly var): { screenName: { width, height, unit } }: the room each overlay has for a page, and its card size, as its OverlayPanel reports them
+- `areas` (readonly var): { screenName: { width, height, unit } }: the room each overlay has for a page and the card size its content lays out at, in layout px (OverlayGrid), as its OverlayPanel reports them
 
 ### Functions
 

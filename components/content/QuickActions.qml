@@ -173,7 +173,7 @@ Card {
   FontMetrics {
     id: labelFont
     font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 1
+    font.pixelSize: Appearance.fontSizeBy(-1)
   }
 
   function run(name) {

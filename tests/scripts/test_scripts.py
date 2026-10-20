@@ -30,6 +30,8 @@
     starts one, and a second restart fired meanwhile does nothing
   - cursor_theme.py makes the companion theme filling in a cursor theme's
     missing standard names, and only for a theme that needs it
+  - check_sizes.py finds sizes written as numbers, skipping hairlines and
+    lines marked `// fixed px:`
   - pick_path.py falls back to zenity/kdialog without a portal, asking for
     a folder or a filtered file, and exits 1 when cancelled, 2 with no picker
 
@@ -1031,6 +1033,54 @@ class KnownIssues(unittest.TestCase):
         self.assertTrue(lines[2].endswith("(known: issues.md › Qt's own warning)"))
         self.assertNotIn("known", lines[3])
         self.assertNotIn("known", lines[4], "the category alone isn't the warning")
+
+
+class CheckSizes(unittest.TestCase):
+    """scripts/check_sizes.py finds sizes written as numbers outside the bars."""
+
+    def test_finds_literal_sizes(self):
+        sys.path.insert(0, str(SCRIPTS))
+        from check_sizes import find_literals
+        qml = "\n".join([
+            "Item {",
+            "  implicitWidth: 380",
+            "  spacing: 2",
+            "  border.width: 4",
+            "  property int listMargin: 6",
+            "  troughHeight: Widget.px(6)",
+            "  height: Widget.height",
+            "  font.pixelSize: 100 // fixed px: a measuring font",
+            "  Layout.preferredHeight: 24",
+            "  opacity: 50",
+            "  textSize: Appearance.fontSize - 2",
+            "  iconSize: Appearance.fontSize * 2",
+            "  pixelSize: Appearance.fontSizeBy(-2)",
+            "}",
+        ])
+        self.assertEqual([(n, name) for n, name, _ in find_literals(qml)],
+                         [(2, "implicitWidth"), (5, "listMargin"), (9, "Layout.preferredHeight"),
+                          (11, "fontSize")])
+
+    def test_finds_literals_in_expressions(self):
+        sys.path.insert(0, str(SCRIPTS))
+        from check_sizes import find_literals
+        qml = "\n".join([
+            "Item {",
+            "  implicitHeight: Widget.height - 4",
+            "  anchors.margins: -48",
+            "  width: wide ? 8 : Widget.px(4)",
+            "  radius: (root.height - 6) / 2",
+            "  textSize: Appearance.fontSize * (stacked ? 4 : 3)",
+            "  height: Math.max(1, root.width / Math.max(1, Math.min(count, 3)))",
+            "  implicitHeight: root.grid.span(8) + Widget.px(12)",
+            "  width: parent.width * 0.5 - 1",
+            "  sourceSize: Qt.size(128, 128)",
+            "  borderWidth: selected ? 3 : 2",
+            "  width: (screen?.width ?? 2000) * 0.3 // fixed px: a stand-in",
+            "}",
+        ])
+        self.assertEqual([(n, value) for n, _, value in find_literals(qml)],
+                         [(2, "4"), (3, "48"), (4, "8"), (5, "6")])
 
 
 class ClaimHyprland(unittest.TestCase):

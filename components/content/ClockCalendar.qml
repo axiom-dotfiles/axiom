@@ -127,7 +127,7 @@ Card {
             horizontalAlignment: root.clockRow ? Text.AlignRight : Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             fontSizeMode: Text.Fit
-            minimumPixelSize: Math.min(Appearance.fontSize, 8)
+            minimumPixelSize: Math.min(Appearance.fontSize, Widget.px(8))
             textSize: Appearance.fontSize * 9
             text: I18n.formatDate(root.now, root.timeFormat)
             font.bold: true
@@ -140,7 +140,7 @@ Card {
             horizontalAlignment: root.clockRow ? Text.AlignLeft : Text.AlignHCenter
             elide: Text.ElideRight
             text: I18n.formatDate(root.now, I18n.dateFormat(root.compact ? "shortDate" : "longDate"))
-            textSize: root.compact ? Appearance.fontSize - 2 : Appearance.fontSize
+            textSize: root.compact ? Appearance.fontSizeBy(-2) : Appearance.fontSize
             opacity: 0.7
           }
         }

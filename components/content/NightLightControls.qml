@@ -103,15 +103,15 @@ Card {
     StyledIcon {
       text: setting.icon
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize + 1
+      textSize: Appearance.fontSizeBy(1)
     }
     StyledSlider {
       Layout.fillWidth: true
-      Layout.preferredHeight: 16
-      troughHeight: 6
-      handleWidth: 14
-      handleHeight: 14
-      handleRadius: 7
+      Layout.preferredHeight: Widget.px(16)
+      troughHeight: Widget.px(6)
+      handleWidth: Widget.px(14)
+      handleHeight: Widget.px(14)
+      handleRadius: Widget.px(7)
       handleColor: Theme.foreground
       fillColor: root.active ? Theme.accent : Theme.foregroundAlt
       // Not `value`: dragging assigns that, which would drop the binding
@@ -123,7 +123,7 @@ Card {
       Layout.preferredWidth: Appearance.fontSize * 3.6
       horizontalAlignment: Text.AlignRight
       text: setting.valueText
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       textColor: Theme.foregroundAlt
       font.features: {
         "tnum": 1
@@ -168,7 +168,7 @@ Card {
         StyledText {
           Layout.alignment: Qt.AlignHCenter
           text: root.active ? I18n.tr("{0} K", root.kelvin) : I18n.tr("Off")
-          textSize: Math.max(Appearance.fontSize - 2, hero.width * 0.11)
+          textSize: Math.max(Appearance.fontSizeBy(-2), hero.width * 0.11)
           textColor: root.active ? root.onLightColor : Theme.foregroundAlt
           font.bold: true
         }
@@ -216,7 +216,7 @@ Card {
           StyledText {
             Layout.fillWidth: true
             text: root.status
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             textColor: root.missing ? Theme.warning : root.active ? Theme.accent : Theme.foregroundAlt
             elide: Text.ElideRight
           }
@@ -266,12 +266,12 @@ Card {
         StyledIcon {
           text: "schedule"
           textColor: NightLight.schedule ? Theme.accent : Theme.foregroundAlt
-          textSize: Appearance.fontSize + 1
+          textSize: Appearance.fontSizeBy(1)
         }
         StyledText {
           Layout.fillWidth: true
           text: NightLight.schedule ? I18n.tr("On from {0} to {1}", NightLight.startAt, NightLight.endAt) : I18n.tr("No schedule")
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           textColor: Theme.foregroundAlt
           elide: Text.ElideRight
         }

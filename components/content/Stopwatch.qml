@@ -109,14 +109,14 @@ Panel {
         StyledTextButton {
           required property int index
           readonly property string preset: StopwatchConfig.presets[index] ?? ""
-          implicitHeight: Widget.height - 4
+          implicitHeight: Widget.height - Widget.px(4)
           text: preset
           onClicked: StopwatchManager.startTimerText(preset)
         }
       }
       StyledTextButton {
         visible: StopwatchManager.timer.duration > 0
-        implicitHeight: Widget.height - 4
+        implicitHeight: Widget.height - Widget.px(4)
         iconText: "replay"
         text: StopwatchClock.format(StopwatchManager.timer.duration, false, true)
         onClicked: StopwatchManager.toggleTimer()
@@ -229,18 +229,18 @@ Panel {
             Layout.fillWidth: true
             text: I18n.tr("Lap {0}", lapRow.lap.number)
             textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 1
+            textSize: Appearance.fontSizeBy(-1)
           }
           StyledText {
             text: StopwatchClock.format(lapRow.lap.split, true, false)
-            textSize: Appearance.fontSize - 1
+            textSize: Appearance.fontSizeBy(-1)
           }
           StyledText {
             Layout.preferredWidth: Appearance.fontSize * 5
             horizontalAlignment: Text.AlignRight
             text: StopwatchClock.format(lapRow.lap.total, true, false)
             textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 1
+            textSize: Appearance.fontSizeBy(-1)
           }
         }
       }

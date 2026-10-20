@@ -155,7 +155,7 @@ FoldingCard {
   }
 
   headerExtras: StyledTextButton {
-    implicitHeight: Widget.height - 4
+    implicitHeight: Widget.height - Widget.px(4)
     iconText: "add"
     text: I18n.tr("Add")
     onClicked: root.add()
@@ -174,7 +174,7 @@ FoldingCard {
         required property int index
         readonly property var entry: root.entries[tab.index]
 
-        implicitHeight: Widget.height - 4
+        implicitHeight: Widget.height - Widget.px(4)
         text: root.labelOf(tab.entry)
         opacity: tab.entry.enabled ? 1 : 0.6
         active: tab.index === root.current
@@ -205,7 +205,7 @@ FoldingCard {
       StyledText {
         text: root.pickerHint
         textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
       }
@@ -215,14 +215,14 @@ FoldingCard {
         spacing: Widget.spacing / 2
 
         StyledTextButton {
-          implicitHeight: Widget.height - 4
+          implicitHeight: Widget.height - Widget.px(4)
           iconText: "visibility"
           text: I18n.tr("Show")
           onClicked: root.show(root.entry.id)
         }
 
         StyledTextButton {
-          implicitHeight: Widget.height - 4
+          implicitHeight: Widget.height - Widget.px(4)
           iconText: "content_copy"
           text: I18n.tr("Duplicate")
           onClicked: root.duplicate()
@@ -230,7 +230,7 @@ FoldingCard {
 
         StyledTextButton {
           visible: root.entries.length > 1
-          implicitHeight: Widget.height - 4
+          implicitHeight: Widget.height - Widget.px(4)
           iconText: "delete"
           text: I18n.tr("Delete")
           hoverColor: Theme.error

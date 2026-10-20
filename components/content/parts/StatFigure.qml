@@ -28,7 +28,7 @@ ColumnLayout {
     Layout.fillWidth: true
     text: root.label
     elide: Text.ElideRight
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     opacity: 0.6
   }
 }

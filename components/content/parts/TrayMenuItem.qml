@@ -34,7 +34,7 @@ Rectangle {
     anchors.fill: parent
     anchors.leftMargin: root.itemPadding
     anchors.rightMargin: root.itemPadding
-    spacing: 8
+    spacing: Widget.spacing * 2
     visible: !root.menuItem.isSeparator
     layoutDirection: root.openToLeft ? Qt.RightToLeft : Qt.LeftToRight
 
@@ -52,8 +52,8 @@ Rectangle {
 
       Rectangle {
         anchors.centerIn: parent
-        width: parent.width - 6
-        height: parent.height - 6
+        width: parent.width - Widget.smallPadding
+        height: parent.height - Widget.smallPadding
         radius: root.menuItem.buttonType === QsMenuButtonType.RadioButton ? width / 2 : 1
         color: Theme.accent
         visible: root.menuItem.checkState === Qt.Checked

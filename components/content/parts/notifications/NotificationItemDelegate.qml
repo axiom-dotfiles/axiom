@@ -135,7 +135,7 @@ Item {
       visible: thumb.showImage
       Layout.alignment: Qt.AlignTop
       image: root.entry?.image ?? ""
-      size: 44
+      size: Widget.px(44)
     }
 
     ColumnLayout {
@@ -163,8 +163,8 @@ Item {
         Item {
           visible: root.showMeta
           Layout.alignment: Qt.AlignTop
-          implicitWidth: Math.max(time.implicitWidth, 20)
-          implicitHeight: 20
+          implicitWidth: Math.max(time.implicitWidth, Widget.smallHeight)
+          implicitHeight: Widget.smallHeight
 
           StyledText {
             id: time
@@ -176,7 +176,7 @@ Item {
               return I18n.formatRelative(root.entry?.time ?? Date.now());
             }
             textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 3
+            textSize: Appearance.fontSizeBy(-3)
 
             Glide on opacity {}
           }
@@ -184,13 +184,13 @@ Item {
           StyledIconButton {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            width: 20
-            height: 20
+            width: Widget.smallHeight
+            height: Widget.smallHeight
             visible: opacity > 0
             opacity: root.hovered ? 1 : 0
             iconText: "close"
-            iconSize: 12
-            borderRadius: 10
+            iconSize: Appearance.fontSizeBy(-2)
+            borderRadius: width / 2
             iconColor: Theme.foregroundAlt
             hoverColor: Theme.background
             tooltipText: I18n.tr("Dismiss")

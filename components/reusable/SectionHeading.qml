@@ -18,7 +18,7 @@ ColumnLayout {
     Layout.fillWidth: true
     text: root.title
     textColor: Theme.accent
-    textSize: Appearance.fontSize + 1
+    textSize: Appearance.fontSizeBy(1)
     font.bold: true
   }
 
@@ -27,7 +27,7 @@ ColumnLayout {
     Layout.fillWidth: true
     text: root.description
     opacity: 0.7
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
   }
 }

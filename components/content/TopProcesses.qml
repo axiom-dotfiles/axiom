@@ -37,7 +37,7 @@ Card {
     id: numberMetrics
     text: "100.0%"
     font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 1
+    font.pixelSize: Appearance.fontSizeBy(-1)
   }
 
   TextMetrics {
@@ -73,7 +73,7 @@ Card {
         horizontalAlignment: Text.AlignRight
         text: "CPU"
         textColor: root.sortBy === "cpu" ? Theme.accent : Theme.foreground
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.7
       }
       StyledText {
@@ -83,7 +83,7 @@ Card {
         horizontalAlignment: Text.AlignRight
         text: I18n.tr("Mem")
         textColor: root.sortBy === "mem" ? Theme.accent : Theme.foreground
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.7
       }
     }
@@ -137,7 +137,7 @@ Card {
                 horizontalAlignment: Text.AlignRight
                 text: `${row.proc.cpu.toFixed(1)}%`
                 textColor: root.sortBy === "cpu" ? Theme.accent : Theme.foreground
-                textSize: Appearance.fontSize - 1
+                textSize: Appearance.fontSizeBy(-1)
               }
               StyledText {
                 visible: !root.narrow || root.sortBy === "mem"
@@ -145,7 +145,7 @@ Card {
                 horizontalAlignment: Text.AlignRight
                 text: `${row.proc.mem.toFixed(1)}%`
                 textColor: root.sortBy === "mem" ? Theme.accent : Theme.foreground
-                textSize: Appearance.fontSize - 1
+                textSize: Appearance.fontSizeBy(-1)
                 opacity: 0.8
               }
               StyledIcon {

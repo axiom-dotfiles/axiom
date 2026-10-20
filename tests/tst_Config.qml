@@ -2117,6 +2117,126 @@ TestCase {
     compare(errors(config), []);
   }
 
+  function test_v74_moves_the_default_greeter_stack_down() {
+    const greeter = modules => load({
+        "version": 73,
+        "Greeter": {
+          "layout": {
+            "modules": modules
+          }
+        }
+      }).config.Greeter.layout.modules.map(module => module.place.y);
+    const old = [["ClockCalendar", 0, 0, 4, 2], ["Greeting", 4, 1, 8, 2], ["Login", 5, 3, 6, 3], ["Session", 6, 6, 4, 1], ["KeyboardLayout", 0, 8, 2, 1], ["Power", 13, 8, 3, 1]].map(([type, x, y, w, h]) => ({
+          "type": type,
+          "place": {
+            "x": x,
+            "y": y,
+            "w": w,
+            "h": h
+          }
+        }));
+    compare(greeter(old), [0, 2, 4, 7, 8, 8], "the old default moves");
+    const edited = JSON.parse(JSON.stringify(old));
+    edited[1].place.x = 3;
+    compare(greeter(edited), [0, 1, 3, 6, 8, 8], "an edited layout stays");
+    compare(load({
+      "version": 73,
+      "Overlay": {
+        "moduleScale": 140
+      }
+    }).config.Overlay.moduleScale, 100, "the overlay's Module size capped at 100");
+  }
+
+  function test_v73_moves_sizing_into_widget() {
+    const migrated = load({
+      "version": 72,
+      "Overlay": {
+        "size": 80,
+        "contentScale": 120
+      },
+      "Widget": {
+        "height": 30,
+        "padding": 10,
+        "spacing": 4,
+        "overrideRadius": true
+      },
+      "Lockscreen": {
+        "layout": {
+          "contentScale": 150
+        }
+      }
+    });
+    compare(migrated.config.Widget.cardSize, 80);
+    compare(migrated.config.Widget.scale, 120);
+    compare(migrated.config.Widget.density, "normal");
+    compare(migrated.config.Widget.overrideRadius, true, "the rest of Widget stays");
+    compare(migrated.config.Overlay.size, undefined);
+    compare(migrated.config.Overlay.contentScale, undefined);
+    compare(migrated.config.Widget.height, undefined);
+    compare(migrated.config.Lockscreen.layout.contentScale, undefined);
+    compare(migrated.config.Lockscreen.layout.moduleScale, 100);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    compare(load({
+      "version": 72,
+      "Overlay": {
+        "contentScale": 60
+      }
+    }).config.Widget.scale, 75, "clamped to the new least");
+  }
+
+  function test_v73_widget_px_become_the_nearest_density() {
+    const density = widget => load({
+        "version": 72,
+        "Widget": widget
+      }).config.Widget.density;
+    compare(density({
+      "padding": 6
+    }), "compact");
+    compare(density({
+      "height": 26,
+      "padding": 10
+    }), "compact");
+    compare(density({
+      "padding": 14
+    }), "roomy");
+    compare(density({
+      "height": 40
+    }), "roomy");
+    compare(density({
+      "spacing": 8
+    }), "normal");
+    compare(load({
+      "version": 72
+    }).config.Widget.density, "normal", "no Widget: the default");
+  }
+
+  function test_v73_overlay_size_becomes_the_card_size() {
+    const cardSize = overlay => load({
+        "version": 71,
+        "Overlay": overlay
+      }).config.Widget.cardSize;
+    compare(cardSize({
+      "size": 100
+    }), 100, "the old default is the new one");
+    compare(cardSize({}), 100, "a sparse file agrees with a full one");
+    compare(cardSize({
+      "size": 150
+    }), 100, "capped at the new most");
+    compare(cardSize({
+      "size": 50
+    }), 50, "kept at the new least");
+    const migrated = load({
+      "version": 71,
+      "Overlay": {
+        "size": 90
+      }
+    });
+    compare(migrated.config.Widget.cardSize, 90);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+  }
+
   function test_v71_moves_pinned_apps_to_apps() {
     const migrated = load({
       "version": 70,

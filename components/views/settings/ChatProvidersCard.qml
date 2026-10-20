@@ -108,9 +108,9 @@ FieldGroup {
     StyledText {
       text: SecretsManager.keyringAvailable === null ? "" : SecretsManager.keyringAvailable ? I18n.tr("Stored in your keyring") : I18n.tr("No keyring: stored in {0}", Paths.shortenHome(SecretsManager.secretsPath))
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       elide: Text.ElideMiddle
-      Layout.maximumWidth: 320
+      Layout.maximumWidth: Widget.px(320)
     }
   ]
 
@@ -148,7 +148,7 @@ FieldGroup {
             Layout.fillWidth: true
             text: row.provider.baseUrl
             textColor: Theme.foregroundInactive
-            textSize: Appearance.fontSize - 3
+            textSize: Appearance.fontSizeBy(-3)
             textFamily: "monospace"
             elide: Text.ElideRight
           }
@@ -229,14 +229,14 @@ FieldGroup {
             Layout.fillWidth: true
             text: row.result?.busy ? I18n.tr("Connecting…") : row.result?.text ?? ""
             textColor: row.result?.busy ? Theme.foregroundAlt : row.result?.ok ? Theme.success : Theme.error
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             wrapMode: Text.Wrap
             maximumLineCount: 3
             elide: Text.ElideRight
           }
 
           StyledTextButton {
-            implicitHeight: Widget.height - 4
+            implicitHeight: Widget.height - Widget.px(4)
             enabled: !row.result?.busy
             text: I18n.tr("Test")
             iconText: "network_check"
@@ -244,7 +244,7 @@ FieldGroup {
           }
 
           StyledTextButton {
-            implicitHeight: Widget.height - 4
+            implicitHeight: Widget.height - Widget.px(4)
             enabled: !row.result?.busy
             text: I18n.tr("Fetch models")
             iconText: "download"
@@ -259,7 +259,7 @@ FieldGroup {
     Layout.fillWidth: true
     text: I18n.tr("A key in the provider's environment variable wins over a stored one. Keys are never written to config.json.")
     opacity: 0.6
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
   }
 }

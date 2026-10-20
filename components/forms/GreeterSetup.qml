@@ -145,7 +145,7 @@ ColumnLayout {
     StyledText {
       text: I18n.tr("Fonts and cursor themes installed only in your home folder don't reach the login screen: install them system-wide to use them there.")
       opacity: 0.7
-      textSize: Appearance.fontSize - 1
+      textSize: Appearance.fontSizeBy(-1)
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
@@ -176,7 +176,7 @@ ColumnLayout {
     StyledTextButton {
       visible: root.status === "noGreetd" || root.status === "noCompositor" || root.status === "checking" || root.status === "checkFailed"
       enabled: root.status !== "checking"
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       iconText: "refresh"
       text: I18n.tr("Check again")
       onClicked: GreeterManager.check()
@@ -185,7 +185,7 @@ ColumnLayout {
     StyledTextButton {
       visible: root.status === "installed" || root.status === "outdated"
       enabled: !root.busy
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       iconText: root.confirmingRemove ? "warning" : "delete"
       text: root.confirmingRemove ? I18n.tr("Remove it?") : I18n.tr("Remove")
       onClicked: {
@@ -208,7 +208,7 @@ ColumnLayout {
     StyledTextButton {
       visible: root.status === "outdated"
       enabled: !root.busy
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       iconText: "system_update_alt"
       text: I18n.tr("Update")
       onClicked: GreeterManager.update()
@@ -217,7 +217,7 @@ ColumnLayout {
     StyledTextButton {
       visible: root.status === "off" || root.status === "notInstalled"
       enabled: !root.busy
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       iconText: "login"
       text: I18n.tr("Install")
       onClicked: GreeterManager.install()

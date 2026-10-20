@@ -125,7 +125,7 @@ QtObject {
       // section (that's for panels, popouts and controls)
       "widgetPadding": barConfig.widgetPadding,
       "widgetSpacing": barConfig.widgetSpacing,
-      "fontSize": barConfig.overrideFontSize ? barConfig.fontSize : Appearance.fontSize,
+      "fontSize": barConfig.overrideFontSize ? barConfig.fontSize : Appearance.baseFontSize,
       // Widget chips only, else the interior radius: pills and fillets keep
       // Appearance's, to meet the border
       "radius": barConfig.overrideRadius ? barConfig.widgetRadius : Widget.radius,

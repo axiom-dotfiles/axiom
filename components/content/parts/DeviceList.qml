@@ -27,7 +27,7 @@ Item {
   readonly property real overflow: scroll.height <= 0 ? 0 : root.on ? list.implicitHeight - scroll.height : -scroll.height
 
   // One row's height (DeviceRow.rowHeight): its two lines, or a button
-  readonly property real rowHeight: Math.max(titleMetrics.height + statusMetrics.height, 28) + Widget.spacing * 2
+  readonly property real rowHeight: Math.max(titleMetrics.height + statusMetrics.height, Widget.iconButton) + Widget.spacing * 2
   readonly property real listHeight: rowHeight * visibleRows + list.spacing * (visibleRows - 1)
 
   // Fades the rows in, e.g. on a tab switch
@@ -42,12 +42,12 @@ Item {
   FontMetrics {
     id: titleMetrics
     font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 1
+    font.pixelSize: Appearance.fontSizeBy(-1)
   }
   FontMetrics {
     id: statusMetrics
     font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 3
+    font.pixelSize: Appearance.fontSizeBy(-3)
   }
 
   EmptyState {

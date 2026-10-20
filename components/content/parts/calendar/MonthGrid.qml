@@ -131,7 +131,7 @@ Item {
           size: Math.round(root.headerHeight * 0.9)
           iconText: modelData[0]
           iconColor: Theme.accent
-          iconSize: Appearance.fontSize + 2
+          iconSize: Appearance.fontSizeBy(2)
           onClicked: root.step(modelData[1])
         }
       }
@@ -151,11 +151,11 @@ Item {
           required property int index
           Layout.fillWidth: true
           Layout.preferredHeight: root.weekdayHeight
-          leftPadding: root.titles ? 5 : 0
+          leftPadding: root.titles ? Widget.spacing : 0
           horizontalAlignment: root.titles ? Text.AlignLeft : Text.AlignHCenter
           verticalAlignment: Text.AlignVCenter
           text: I18n.locale.dayName((root.firstDay + index) % 7, root.titles ? Locale.ShortFormat : Locale.NarrowFormat)
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           opacity: 0.6
         }
       }
@@ -217,7 +217,7 @@ Item {
             id: number
             x: root.titles ? cell.inset : (cell.width - width) / 2
             y: root.titles ? cell.inset : (cell.height - height) / 2 - (cell.dotKey ? cell.height * 0.08 : 0)
-            width: root.titles ? Math.max(cell.numberSize, numberText.implicitWidth + 8) : numberText.implicitWidth
+            width: root.titles ? Math.max(cell.numberSize, numberText.implicitWidth + Widget.spacing * 2) : numberText.implicitWidth
             height: root.titles ? cell.numberSize : numberText.implicitHeight
             radius: height / 2
             color: root.titles && cell.modelData.isToday ? Theme.accent : "transparent"
@@ -229,7 +229,7 @@ Item {
               textColor: cell.modelData.isToday ? Theme.background : Theme.foreground
               font.bold: cell.modelData.isToday
               opacity: cell.modelData.inMonth ? 1 : 0.35
-              textSize: Appearance.fontSize - 1
+              textSize: Appearance.fontSizeBy(-1)
             }
           }
 
@@ -245,7 +245,7 @@ Item {
               model: cell.dotKey ? cell.dotKey.split(",") : []
               Rectangle {
                 required property string modelData
-                width: Math.max(3, Appearance.fontSize * 0.28)
+                width: Math.max(Widget.px(3), Appearance.fontSize * 0.28)
                 height: width
                 radius: width / 2
                 color: cell.modelData.isToday && !root.titles ? Theme.background : modelData
@@ -279,18 +279,18 @@ Item {
                   visible: !chip.event?.allDay
                   x: 2
                   anchors.verticalCenter: parent.verticalCenter
-                  width: 3
-                  height: parent.height - 4
+                  width: Widget.px(3)
+                  height: parent.height - Widget.px(4)
                   radius: 1.5
                   color: chip.calendarColor
                 }
                 StyledText {
                   anchors.verticalCenter: parent.verticalCenter
-                  x: chip.event?.allDay ? 4 : 8
+                  x: Widget.px(chip.event?.allDay ? 4 : 8)
                   width: parent.width - x - 2
                   text: chip.event ? (chip.event.allDay || CalendarEvents.spanOn(chip.event, cell.key) !== "single" && CalendarEvents.spanOn(chip.event, cell.key) !== "starts" ? "" : I18n.formatDate(new Date(chip.event.start), CalendarConfig.timeFormat) + " ") + (chip.event.title || I18n.tr("(No title)")) : ""
                   elide: Text.ElideRight
-                  textSize: Appearance.fontSize - 3
+                  textSize: Appearance.fontSizeBy(-3)
                 }
               }
             }
@@ -298,7 +298,7 @@ Item {
               visible: cell.dayEvents.length > cell.shownCount
               x: 4
               text: I18n.tr("+{0} more", cell.dayEvents.length - cell.shownCount)
-              textSize: Appearance.fontSize - 3
+              textSize: Appearance.fontSizeBy(-3)
               textColor: Theme.foregroundAlt
             }
           }

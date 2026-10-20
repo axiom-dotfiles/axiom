@@ -23,5 +23,5 @@ EdgeMenus: menus that pop out of a screen edge, holding overlay modules. While t
 - `edgeOf(menu)`: The menu's edge as a Bar.Location
 - `colorsOf(menu)`: The menu's box colours
 - `paddingOf(menu)`: Space between the menu's box and its modules: its own, else (-1) the popouts'
-- `lengthOf(menu, vertical, unit)`: The menu's length along its edge, from config alone (for the hover strip before the menu has ever been loaded): its modules' grid at card size `unit` (EdgeMenuManager.cardUnitOf), as EdgeMenuBody lay…
-- `gridLengthOf(menu, vertical, unit)`: The menu's modules' grid along its edge, unstretched, at card size `unit`
+- `lengthOf(menu, vertical, unit, gap)`: The menu's length along its edge, from config alone (for the hover strip before the menu has ever been loaded): its modules' grid at card size `unit` and `gap` px between cards (EdgeMenuManager.cardU…
+- `gridLengthOf(menu, vertical, unit, gap)`: The menu's modules' grid along its edge, unstretched, at card size `unit`, `gap` px between cards

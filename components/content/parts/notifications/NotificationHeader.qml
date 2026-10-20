@@ -19,7 +19,7 @@ RowLayout {
   StyledIcon {
     text: NotificationManager.dnd ? "notifications_paused" : "notifications"
     textColor: Theme.accent
-    textSize: Appearance.fontSize + 2
+    textSize: Appearance.fontSizeBy(2)
   }
 
   // Shrinks (eliding) before the buttons are pushed out of a narrow card
@@ -34,8 +34,8 @@ RowLayout {
 
   Rectangle {
     visible: NotificationManager.count > 0
-    implicitWidth: Math.max(implicitHeight, countLabel.implicitWidth + 12)
-    implicitHeight: countLabel.implicitHeight + 4
+    implicitWidth: Math.max(implicitHeight, countLabel.implicitWidth + Widget.px(12))
+    implicitHeight: countLabel.implicitHeight + Widget.px(4)
     radius: height / 2
     color: Theme.accent
 
@@ -43,7 +43,7 @@ RowLayout {
       id: countLabel
       anchors.centerIn: parent
       text: NotificationManager.countLabel
-      textSize: Appearance.fontSize - 3
+      textSize: Appearance.fontSizeBy(-3)
       textColor: Theme.background
       font.bold: true
     }
@@ -54,7 +54,7 @@ RowLayout {
   }
 
   StyledRectButton {
-    size: 28
+    size: Widget.iconButton
     iconText: NotificationManager.dnd ? "notifications_paused" : "notifications_off"
     iconColor: NotificationManager.dnd ? Theme.background : Theme.foreground
     backgroundColor: Qt.alpha(Theme.accent, NotificationManager.dnd ? 1 : 0)
@@ -64,7 +64,7 @@ RowLayout {
   }
 
   StyledRectButton {
-    size: 28
+    size: Widget.iconButton
     enabled: NotificationManager.count > 0
     opacity: enabled ? 1 : 0.4
     iconText: "clear_all"

@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 71,
+      "default": 74,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -112,9 +112,9 @@
           "default": {
             "modules": [
               { "type": "ClockCalendar", "place": { "x": 0, "y": 0, "w": 4, "h": 2 } },
-              { "type": "Greeting", "place": { "x": 4, "y": 1, "w": 8, "h": 2 } },
-              { "type": "Login", "place": { "x": 5, "y": 3, "w": 6, "h": 3 } },
-              { "type": "Session", "place": { "x": 6, "y": 6, "w": 4, "h": 1 } },
+              { "type": "Greeting", "place": { "x": 4, "y": 2, "w": 8, "h": 2 } },
+              { "type": "Login", "place": { "x": 5, "y": 4, "w": 6, "h": 3 } },
+              { "type": "Session", "place": { "x": 6, "y": 7, "w": 4, "h": 1 } },
               { "type": "KeyboardLayout", "place": { "x": 0, "y": 8, "w": 2, "h": 1 } },
               { "type": "Power", "place": { "x": 13, "y": 8, "w": 3, "h": 1 } }
             ]
@@ -1094,38 +1094,39 @@
       "type": "object",
       "x-category": "Look & Feel",
       "title": "Panels & controls",
-      "description": "Sizing for the overlay, popouts, launcher and settings. Each bar has its own, in the bar editor.",
+      "description": "Sizing for the overlay, edge menus, desktop, lock screen, popouts, launcher and settings. Each bar has its own, in the bar editor.",
+      "x-order": ["scale", "cardSize", "density", "overrideRadius", "radius"],
       "additionalProperties": false,
       "properties": {
-        "height": {
+        "scale": {
+          "x-scope": "personal",
           "type": "integer",
           "x-control": "stepper",
-          "title": "Control height",
-          "default": 30,
-          "minimum": 16,
-          "maximum": 128,
-          "x-unit": "px",
-          "description": "Height of buttons, fields and other controls (px)."
+          "title": "Interface scale",
+          "default": 100,
+          "minimum": 75,
+          "maximum": 150,
+          "x-unit": "%",
+          "description": "Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Sizes set in px there (the launcher's width, a toast's, tiles, padding) grow with it. Higher is easier to read but fits less in each card and panel."
         },
-        "padding": {
+        "cardSize": {
+          "x-scope": "personal",
           "type": "integer",
-          "x-control": "stepper",
-          "title": "Padding",
-          "default": 10,
-          "minimum": 0,
-          "maximum": 32,
-          "x-unit": "px",
-          "description": "Inner padding of panels, cards and controls (px)."
+          "title": "Card size",
+          "default": 100,
+          "minimum": 50,
+          "maximum": 150,
+          "x-unit": "%",
+          "description": "How big module cards are, as a share of the screen: at 100 two cards fill its shorter side. The overlay, edge menus, desktop, lock screen and greeter all start from it, and each can be made bigger or smaller with its own Module size. Text stays the Interface scale's size, so on a smaller screen a higher card size gives modules back their room. The overlay never grows past filling its screen."
         },
-        "spacing": {
-          "type": "integer",
-          "x-control": "stepper",
-          "title": "Spacing",
-          "default": 4,
-          "minimum": 0,
-          "maximum": 32,
-          "x-unit": "px",
-          "description": "Gap between items inside panels, cards and controls (px)."
+        "density": {
+          "x-scope": "personal",
+          "type": "string",
+          "title": "Density",
+          "enum": ["compact", "normal", "roomy"],
+          "x-enumLabels": { "compact": "Compact", "normal": "Normal", "roomy": "Roomy" },
+          "default": "normal",
+          "description": "How tightly controls, padding and gaps are packed in panels and cards."
         },
         "overrideRadius": {
           "type": "boolean",
@@ -1903,6 +1904,7 @@
       "type": "object",
       "x-category": "Overlay & Popouts",
       "x-links": ["Layouts"],
+      "x-order": ["monitors", "moduleScale", "navigator", "navigatorLabels", "animation", "showBackdrop", "backdrop", "closeOnEscape", "closeOnOutsideClick"],
       "title": "Overlay",
       "additionalProperties": false,
       "properties": {
@@ -1915,16 +1917,50 @@
           "default": "general",
           "description": "Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
-        "size": {
+        "moduleScale": {
           "x-scope": "look",
+          "x-group": "Size",
           "type": "integer",
-          "title": "Overlay size",
-          "x-unit": "%",
+          "x-control": "stepper",
+          "title": "Module size",
           "default": 100,
           "minimum": 50,
-          "maximum": 150,
-          "description": "Size of the overlay's cards, relative to what fits the screen. Pages that would still overflow are shrunk to fit."
+          "maximum": 100,
+          "x-unit": "%",
+          "description": "Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content shrink with them. For bigger cards, raise the card size."
         },
+        "navigator": {
+          "x-scope": "look",
+          "x-group": "Page switcher",
+          "type": "string",
+          "title": "Position",
+          "enum": ["bottom", "top"],
+          "x-enumLabels": { "bottom": "Bottom", "top": "Top" },
+          "default": "bottom",
+          "description": "The screen edge the page switcher sits on."
+        },
+        "navigatorLabels": {
+          "x-scope": "look",
+          "x-group": "Page switcher",
+          "type": "string",
+          "title": "Page names",
+          "enum": ["auto", "current", "icons"],
+          "x-enumLabels": { "auto": "All, while they fit", "current": "Current page only", "icons": "Icons only" },
+          "default": "auto",
+          "description": "Which pages show their name beside their icon. Tool pages are always icons, named in a tooltip."
+        },
+        "animation": {
+          "x-scope": "look",
+          "x-group": "Look",
+          "type": "string",
+          "title": "Opening animation",
+          "enum": ["top", "bottom", "fade"],
+          "x-enumLabels": { "top": "Slide from the top", "bottom": "Slide from the bottom", "fade": "Fade" },
+          "default": "top",
+          "description": "How the overlay and its dim background come in and go."
+        },
+        "showBackdrop": { "x-scope": "look", "x-group": "Look", "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the overlay, under the bars and border." },
+        "backdrop": { "x-scope": "look", "x-group": "Look", "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 85, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the overlay goes.", "x-showIf": { "showBackdrop": true } },
         "closeOnEscape": {
           "type": "boolean",
           "title": "Close on Escape",
@@ -2409,16 +2445,17 @@
       }
     },
     "DesktopLayout": {
-      "description": "A desktop's overlay modules on a bounded grid of columns × rows units, fitted to each monitor inside its bars and border (Desktop).",
+      "description": "A desktop's overlay modules on a bounded grid, fitted to each monitor inside its bars and border at the card size (Desktop).",
       "type": "object",
       "additionalProperties": false,
-      "x-order": ["columns", "rows", "fineGrid", "moduleBorders"],
+      "x-order": ["moduleScale", "fineGrid", "moduleBorders"],
       "properties": {
         "enabled": { "type": "boolean", "x-settings": false, "default": true, "description": "Shown. Off on a monitor's own layout leaves that monitor's desktop empty." },
         "monitor": { "x-scope": "machine", "x-monitorRef": "drop", "type": "string", "x-settings": false, "default": "", "description": "The monitor (connector name) a layout in Desktop.monitors is for." },
-        "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill the room inside the bars and border, so match its shape." },
-        "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
+        "columns": { "type": "integer", "x-settings": false, "default": 16, "minimum": 1, "maximum": 256, "description": "Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it." },
+        "rows": { "type": "integer", "x-settings": false, "default": 9, "minimum": 1, "maximum": 256, "description": "Grid units down of the grid the modules were last placed on." },
         "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
+        "moduleScale": { "x-group": "Grid", "type": "integer", "x-control": "stepper", "title": "Module size", "default": 100, "minimum": 50, "maximum": 200, "x-unit": "%", "description": "Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds." },
         "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": false, "description": "Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper." },
         "modules": {
           "type": "array",
@@ -2429,14 +2466,15 @@
       }
     },
     "ScreenLayout": {
-      "description": "A screen of overlay modules on a bounded grid of columns × rows units, fitted to each monitor: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).",
+      "description": "A screen of overlay modules on a bounded grid fitted to each monitor at the card size: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).",
       "type": "object",
       "additionalProperties": false,
-      "x-order": ["columns", "rows", "fineGrid", "otherScreens", "background", "blurWallpaper", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
+      "x-order": ["moduleScale", "fineGrid", "otherScreens", "background", "blurWallpaper", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
       "properties": {
-        "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9)." },
-        "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
+        "columns": { "type": "integer", "x-settings": false, "default": 16, "minimum": 1, "maximum": 256, "description": "Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it." },
+        "rows": { "type": "integer", "x-settings": false, "default": 9, "minimum": 1, "maximum": 256, "description": "Grid units down of the grid the modules were last placed on." },
         "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
+        "moduleScale": { "x-group": "Grid", "type": "integer", "x-control": "stepper", "title": "Module size", "default": 100, "minimum": 50, "maximum": 200, "x-unit": "%", "description": "Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds." },
         "otherScreens": {
           "x-group": "Grid",
           "type": "string",
@@ -2831,7 +2869,7 @@
           "minimum": 50,
           "maximum": 200,
           "x-unit": "%",
-          "description": "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size)."
+          "description": "Size of the menu's modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them."
         },
         "fineGrid": { "x-group": "Placement", "x-beside": true, "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
         "detached": {

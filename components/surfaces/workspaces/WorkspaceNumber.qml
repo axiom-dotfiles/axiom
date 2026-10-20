@@ -25,8 +25,8 @@ Rectangle {
     return Math.max(root._edge, corner);
   }
 
-  width: Math.max(height, label.implicitWidth + 10)
-  height: label.implicitHeight + 4
+  width: Math.max(height, label.implicitWidth + Widget.padding)
+  height: label.implicitHeight + Widget.px(4)
   radius: height / 2
   color: root.current ? Theme.accent : Qt.alpha(Theme.background, 0.75)
 
@@ -34,7 +34,7 @@ Rectangle {
     id: label
     anchors.centerIn: parent
     text: root.number
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     textColor: root.current ? Theme.background : Theme.foreground
     font.bold: root.current
   }

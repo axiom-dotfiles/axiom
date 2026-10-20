@@ -35,7 +35,7 @@ Panel {
   readonly property bool large: root.sideBySide && root.innerHeight >= Appearance.fontSize * 20
   // A strip: one row of small art, the track and the buttons
   readonly property bool mini: root.embedded && !root.compact && root.height < Appearance.fontSize * 7
-  readonly property real artSize: 96
+  readonly property real artSize: Widget.px(96)
   // A seek bar is being dragged, so the popout mustn't dismiss
   property bool seeking: false
 
@@ -47,7 +47,7 @@ Panel {
   fullMinHeight: Appearance.fontSize * 3.5
 
   spacing: Widget.spacing
-  implicitWidth: 380
+  implicitWidth: Widget.px(380)
 
   component MediaButton: Rectangle {
     id: button
@@ -123,7 +123,7 @@ Panel {
       RowLayout {
         id: playerRow
         anchors.fill: parent
-        spacing: 4
+        spacing: Widget.spacing
         Item {
           visible: root.stacked
           Layout.fillWidth: true
@@ -133,12 +133,12 @@ Panel {
           Layout.maximumWidth: Math.ceil(implicitWidth)
           elide: Text.ElideRight
           text: MediaManager.identity
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
         StyledIcon {
           visible: MediaManager.players.length > 1
           text: "refresh"
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
         Item {
           Layout.fillWidth: true
@@ -166,7 +166,7 @@ Panel {
         horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
         text: value
         textColor: Theme.accent
-        textSize: root.large ? Appearance.fontSize * 2 : root.short ? Appearance.fontSize : Appearance.fontSize + 3
+        textSize: root.large ? Appearance.fontSize * 2 : root.short ? Appearance.fontSize : Appearance.fontSizeBy(3)
         font.bold: true
       }
     }
@@ -179,7 +179,7 @@ Panel {
         elide: Text.ElideRight
         horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
         text: value
-        textSize: root.large ? Appearance.fontSize + 4 : root.short ? Appearance.fontSize - 2 : Appearance.fontSize
+        textSize: root.large ? Appearance.fontSizeBy(4) : root.short ? Appearance.fontSizeBy(-2) : Appearance.fontSize
       }
     }
     CrossFade {
@@ -193,7 +193,7 @@ Panel {
         elide: Text.ElideRight
         horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
         text: value
-        textSize: root.large ? Appearance.fontSize : Appearance.fontSize - 2
+        textSize: root.large ? Appearance.fontSize : Appearance.fontSizeBy(-2)
       }
     }
   }
@@ -204,12 +204,12 @@ Panel {
     StyledSlider {
       id: seek
       Layout.fillWidth: true
-      Layout.preferredHeight: root.short ? 10 : root.large ? 20 : 16
+      Layout.preferredHeight: Widget.px(root.short ? 10 : root.large ? 20 : 16)
       enabled: MediaManager.canSeek
-      troughHeight: root.short ? 4 : root.large ? 8 : 6
-      handleWidth: root.short ? 10 : root.large ? 18 : 14
-      handleHeight: root.short ? 10 : root.large ? 18 : 14
-      handleRadius: root.short ? 5 : root.large ? 9 : 7
+      troughHeight: Widget.px(root.short ? 4 : root.large ? 8 : 6)
+      handleWidth: Widget.px(root.short ? 10 : root.large ? 18 : 14)
+      handleHeight: Widget.px(root.short ? 10 : root.large ? 18 : 14)
+      handleRadius: Widget.px(root.short ? 5 : root.large ? 9 : 7)
       handleColor: Theme.foreground
       fillColor: Theme.accent
       // Not `value`: dragging assigns that, which would drop the binding
@@ -222,7 +222,7 @@ Panel {
       Layout.fillWidth: true
       StyledText {
         text: MediaManager.formatTime(seek.pressed ? seek.value * MediaManager.length : MediaManager.position)
-        textSize: root.large ? Appearance.fontSize - 1 : Appearance.fontSize - 3
+        textSize: root.large ? Appearance.fontSizeBy(-1) : Appearance.fontSizeBy(-3)
         opacity: 0.6
       }
       Item {
@@ -230,7 +230,7 @@ Panel {
       }
       StyledText {
         text: MediaManager.formatTime(MediaManager.length)
-        textSize: root.large ? Appearance.fontSize - 1 : Appearance.fontSize - 3
+        textSize: root.large ? Appearance.fontSizeBy(-1) : Appearance.fontSizeBy(-3)
         opacity: 0.6
       }
     }
@@ -271,7 +271,7 @@ Panel {
       // Larger than the box, so the blur doesn't fade out at its edges
       CrossFade {
         anchors.fill: parent
-        anchors.margins: -48
+        anchors.margins: -Widget.px(48)
         value: root.artSource
         delegate: Image {
           required property var value
@@ -374,7 +374,7 @@ Panel {
           required property var value
           elide: Text.ElideRight
           text: value
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
       }
     }

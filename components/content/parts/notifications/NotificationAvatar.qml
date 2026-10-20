@@ -15,7 +15,7 @@ Item {
   property string appIcon: ""
   property string desktopEntry: ""
   property string image: ""
-  property int size: 32
+  property int size: Widget.px(32)
   property real radius: Widget.radius
   property bool badge: false
 

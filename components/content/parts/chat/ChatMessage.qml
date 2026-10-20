@@ -76,7 +76,7 @@ Item {
             delegate: AttachmentChip {
               required property int index
               attachment: root.message.attachments[index]
-              size: 96
+              size: Widget.px(96)
             }
           }
         }
@@ -147,18 +147,18 @@ Item {
       // Waiting for the first token
       Row {
         visible: root.streaming && root.text === "" && root.thinking === ""
-        spacing: 5
-        Layout.topMargin: 4
-        Layout.bottomMargin: 4
+        spacing: Widget.spacing
+        Layout.topMargin: Widget.spacing
+        Layout.bottomMargin: Widget.spacing
 
         Repeater {
           model: 3
           delegate: Rectangle {
             id: dot
             required property int index
-            width: 7
-            height: 7
-            radius: 3.5
+            width: Widget.px(7)
+            height: Widget.px(7)
+            radius: width / 2
             color: Theme.accent
             opacity: 0.35
 
@@ -192,13 +192,13 @@ Item {
         StyledIcon {
           text: root.message?.state === "stopped" ? "stop_circle" : root.message?.notice === "refusal" ? "block" : "content_cut"
           textColor: Theme.warning
-          textSize: Appearance.fontSize - 1
+          textSize: Appearance.fontSizeBy(-1)
         }
         StyledText {
           Layout.fillWidth: true
           wrapMode: Text.WordWrap
           textColor: Theme.warning
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           text: {
             if (root.message?.state === "stopped")
               return I18n.tr("Stopped");
@@ -254,7 +254,7 @@ Item {
             wrapMode: Text.Wrap
             maximumLineCount: 6
             elide: Text.ElideRight
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             opacity: 0.8
           }
 
@@ -281,7 +281,7 @@ Item {
 
     RowLayout {
       Layout.alignment: root.isUser ? Qt.AlignRight : Qt.AlignLeft
-      Layout.preferredHeight: 24
+      Layout.preferredHeight: Widget.iconButton
       spacing: 2
       opacity: root.hovered && !root.streaming ? 1 : 0
       enabled: opacity > 0
@@ -294,31 +294,31 @@ Item {
         Layout.rightMargin: Widget.spacing
         text: root.message?.model ?? ""
         textColor: Theme.foregroundInactive
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
       }
 
       FlatIconButton {
         visible: root.text !== ""
-        size: 24
+        size: Widget.iconButton
         iconText: "content_copy"
-        iconSize: Appearance.fontSize - 2
+        iconSize: Appearance.fontSizeBy(-2)
         tooltipText: I18n.tr("Copy")
         onClicked: ChatManager.copy(root.text)
       }
 
       FlatIconButton {
         visible: !root.isUser && root.isLast && root.message?.state !== "error"
-        size: 24
+        size: Widget.iconButton
         iconText: "refresh"
-        iconSize: Appearance.fontSize - 2
+        iconSize: Appearance.fontSizeBy(-2)
         tooltipText: I18n.tr("Regenerate")
         onClicked: ChatManager.regenerate()
       }
 
       FlatIconButton {
-        size: 24
+        size: Widget.iconButton
         iconText: "delete"
-        iconSize: Appearance.fontSize - 2
+        iconSize: Appearance.fontSizeBy(-2)
         tooltipText: I18n.tr("Delete")
         onClicked: ChatManager.removeMessage(root.index)
       }

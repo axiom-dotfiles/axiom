@@ -68,7 +68,7 @@ Rectangle {
         Rectangle {
           visible: root.tag !== ""
           implicitWidth: tag.implicitWidth + Widget.spacing * 2
-          implicitHeight: tag.implicitHeight + 4
+          implicitHeight: tag.implicitHeight + Widget.px(4)
           radius: height / 2
           color: root.tagColor
 

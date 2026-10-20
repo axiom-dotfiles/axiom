@@ -144,7 +144,7 @@ ColumnLayout {
     StyledText {
       text: KeybindManager.issueCount > 0 ? I18n.tr("{0} with issues", KeybindManager.issueCount) : ""
       textColor: Theme.warning
-      textSize: Appearance.fontSize - 1
+      textSize: Appearance.fontSizeBy(-1)
       elide: Text.ElideRight
       Layout.fillWidth: true
     }
@@ -195,14 +195,14 @@ ColumnLayout {
       }
 
       StyledTextButton {
-        implicitHeight: Widget.height - 4
+        implicitHeight: Widget.height - Widget.px(4)
         iconText: "undo"
         text: I18n.tr("Undo")
         onClicked: KeybindManager.undo()
       }
 
       SquareIconButton {
-        size: Widget.height - 4
+        size: Widget.height - Widget.px(4)
         iconText: "close"
         tooltipText: I18n.tr("Dismiss")
         backgroundColor: "transparent"
@@ -222,7 +222,7 @@ ColumnLayout {
     visible: KeybindManager.editQuery.trim() !== "" || KeybindManager.editFiltering
     text: KeybindManager.visibleIndices.length > 0 ? I18n.tr("Showing {0} of {1}", KeybindManager.visibleIndices.length, KeybindManager.binds.length) : KeybindManager.editQuery.trim() !== "" ? I18n.tr("No binds match \"{0}\"", KeybindManager.editQuery.trim()) : I18n.tr("No keybinds match the filters")
     opacity: 0.6
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     Layout.fillWidth: true
   }
 

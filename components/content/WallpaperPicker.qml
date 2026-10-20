@@ -167,7 +167,7 @@ Card {
           readonly property bool selected: root.variant === slot.modelData
           Layout.fillWidth: true
           Layout.preferredWidth: 1
-          spacing: 4
+          spacing: Widget.spacing
 
           Thumbnail {
             Layout.fillWidth: true
@@ -195,7 +195,7 @@ Card {
 
           RowLayout {
             Layout.fillWidth: true
-            spacing: 4
+            spacing: Widget.spacing
 
             StyledIcon {
               text: slot.modelData === "dark" ? "dark_mode" : "light_mode"

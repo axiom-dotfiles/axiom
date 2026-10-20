@@ -116,21 +116,21 @@ ColumnLayout {
       StyledText {
         text: root.section.indices.length
         opacity: 0.5
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
 
       StyledIcon {
         visible: root.issueCount > 0
         text: "warning"
         textColor: Theme.warning
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
       }
 
       StyledText {
         visible: root.issueCount > 0
         text: root.issueCount
         textColor: Theme.warning
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
 
       UnsavedDot {
@@ -144,15 +144,14 @@ ColumnLayout {
       StyledText {
         text: root.allPaused ? I18n.tr("Paused") : ""
         opacity: 0.5
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
 
       // Pauses or resumes the whole section
       StyledSwitch {
         checkable: false
         checked: !root.allPaused
-        implicitWidth: 34
-        implicitHeight: 18
+        implicitHeight: Widget.smallHeight
         onClicked: KeybindManager.setPaused(root.section.indices, !root.allPaused)
       }
     }
@@ -208,7 +207,7 @@ ColumnLayout {
       readonly property var target: rowRepeater.itemAt(Math.min(root.dragLayer?.hoverIndex ?? 0, rowRepeater.count - 1))
       readonly property real at: !target ? 0 : (root.dragLayer.hoverIndex >= rowRepeater.count ? target.y + target.height : target.y)
       width: parent.width
-      height: 3
+      height: Widget.px(3)
       radius: 1.5
       y: rows.y + at - 1.5 - parent.y
       color: Theme.accent

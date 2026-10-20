@@ -23,8 +23,11 @@ Item {
 
   // The ModuleGrid hosting it, passed on as the module's `expander`
   property var expander: null
-  // The height the module grows to (its growHeight; 0: as placed)
-  readonly property real growHeight: loader.item?.growHeight ?? 0
+  // What the module is drawn at: laid out at the slot's size over this,
+  // then scaled to it (an edge menu's modules, see ModuleGrid.zoom)
+  property real zoom: 1
+  // The height the module grows to, drawn (its growHeight; 0: as placed)
+  readonly property real growHeight: (loader.item?.growHeight ?? 0) * root.zoom
 
   anchors.fill: parent
 
@@ -48,9 +51,14 @@ Item {
   onComponentPathChanged: _load()
   Component.onCompleted: _load()
 
+  // `contentZoom`: see StyledIcon
   Loader {
     id: loader
-    anchors.fill: parent
+    width: root.width / root.zoom
+    height: root.height / root.zoom
+    scale: root.zoom
+    transformOrigin: Item.TopLeft
+    readonly property real contentZoom: root.zoom
     onLoaded: {
       item.properties = Qt.binding(() => root.config?.properties || {});
       item.slotRect = Qt.binding(() => root.rect);

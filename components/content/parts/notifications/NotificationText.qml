@@ -59,7 +59,7 @@ Item {
       Layout.fillWidth: true
       text: root.notification?.body ?? ""
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 1
+      textSize: Appearance.fontSizeBy(-1)
       wrapMode: Text.Wrap
       maximumLineCount: root.bodyLines
       elide: Text.ElideRight

@@ -131,7 +131,7 @@ Item {
           spacing: Widget.spacing * 2
 
           ColumnLayout {
-            Layout.preferredWidth: 3
+            Layout.preferredWidth: Widget.px(3)
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
             spacing: Widget.spacing
@@ -140,7 +140,7 @@ Item {
               visible: editorRoot.opens !== null
               iconText: "edit"
               text: I18n.tr("Edit {0} in Layouts", editorRoot.opens?.label ?? "")
-              textPadding: 6
+              textPadding: Widget.smallPadding
               onClicked: OverlayManager.editOpenedBy(editorRoot.widget)
             }
 
@@ -211,7 +211,7 @@ Item {
         Layout.fillWidth: true
         text: I18n.tr("Drag a widget onto a section, or click one to add it to the {0} section. Click a widget in a section to edit it.", root.dragLayer.zoneLabel(BarManager.lastZone))
         opacity: 0.6
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         wrapMode: Text.WordWrap
       }
 

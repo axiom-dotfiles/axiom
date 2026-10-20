@@ -31,15 +31,17 @@ PanelWindow {
     source: root.request
   }
   readonly property var _style: root._last.value ?? ({
-      "slide": false,
+      "slide": "",
       "fillColor": "transparent",
       "fillOpacity": 0
     })
-  readonly property bool slide: root._style.slide
+  readonly property bool slide: root._style.slide !== ""
+  // Where it waits while hidden, sliding: off the edge it comes from
+  readonly property real _hiddenY: root._style.slide === "bottom" ? root._span : -root._span
   readonly property int duration: root.slide ? Appearance.animSlow : Appearance.animNormal
 
   // Whether it's showing or animating out
-  readonly property bool _wanted: root.shown || (root.slide ? slideOffset.y > -root._span : fill.opacity > 0)
+  readonly property bool _wanted: root.shown || (root.slide ? slideOffset.y !== root._hiddenY : fill.opacity > 0)
   readonly property real _span: root.screen?.height ?? root.height
 
   visible: slot.shown
@@ -95,7 +97,7 @@ PanelWindow {
     color: root._style.fillColor
     // Sliding, it stays dim until it's out of sight, then clears so a
     // fading one after it fades in from nothing
-    opacity: root.shown || (root.slide && slideOffset.y > -root._span) ? root._style.fillOpacity : 0
+    opacity: root.shown || (root.slide && slideOffset.y !== root._hiddenY) ? root._style.fillOpacity : 0
 
     Behavior on opacity {
       enabled: !root.slide
@@ -107,7 +109,7 @@ PanelWindow {
 
     transform: Translate {
       id: slideOffset
-      y: !root.slide || root.shown ? 0 : -root._span
+      y: !root.slide || root.shown ? 0 : root._hiddenY
       Behavior on y {
         enabled: root.slide
         NumberAnimation {

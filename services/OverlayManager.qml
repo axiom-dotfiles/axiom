@@ -121,8 +121,9 @@ QtObject {
 
   // --- Room on each screen ---
 
-  // { screenName: { width, height, unit } }: the room each overlay has for
-  // a page, and its card size, as its OverlayPanel reports them
+  // { screenName: { width, height, unit } }: the room each overlay has
+  // for a page and the card size its content lays out at, in layout px
+  // (OverlayGrid), as its OverlayPanel reports them
   readonly property var areas: root._areas
   property var _areas: ({})
 

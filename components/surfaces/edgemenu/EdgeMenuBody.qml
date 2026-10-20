@@ -37,6 +37,7 @@ Item {
   OverlayGrid {
     id: overlayGrid
     fixedUnit: EdgeMenuManager.cardUnitOf(root.menu)
+    gap: EdgeMenuManager.gapOf(root.menu)
   }
 
   // Whether the menu takes its whole edge
@@ -88,6 +89,7 @@ Item {
       grid: overlayGrid
       stretch: root._stretch
       host: root.host
+      zoom: EdgeMenuManager.zoomOf(root.menu)
       // A bottom menu's edge is under its modules
       growTowards: root.menu.edge === "Bottom" ? 1 : -1
     }

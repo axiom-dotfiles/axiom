@@ -21,7 +21,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`WindowSwitcher.tileSize`** · integer = 200 · 64–480 · px
   - Tile size: Width of each window's tile.
   - x-scope="look", x-control="stepper"
-  - read: `WindowSwitcherConfig.tileSize` · in: `components/surfaces/switcher/SwitcherStrip.qml`, `components/surfaces/switcher/SwitcherTile.qml`
+  - read: `WindowSwitcherConfig.tileSize` (computed) · in: `components/surfaces/switcher/SwitcherStrip.qml`, `components/surfaces/switcher/SwitcherTile.qml`
 - **`WindowSwitcher.showDelay`** · integer = 120 · 0–1000 · ms
   - Show after: How long the keys must be held before the switcher shows. A quicker tap swaps to the last window without showing it.
   - x-control="stepper"

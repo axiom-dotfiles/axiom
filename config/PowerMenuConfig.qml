@@ -13,7 +13,7 @@ QtObject {
   readonly property var actions: _c.actions
   // Destructive actions ask for a second press
   readonly property bool confirm: _c.confirm
-  readonly property int tileSize: _c.tileSize
+  readonly property int tileSize: Widget.px(_c.tileSize)
   readonly property bool showHeader: _c.showHeader
   readonly property bool showHint: _c.showHint
   // Dim the screen behind it

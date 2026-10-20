@@ -4,7 +4,7 @@
 #
 #   1. formats changed QML with Qt 6's qmlformat, writing in place so the
 #      file keeps its inode and the running shell still reloads it
-#   2. check_structure, gen_docs (rewrites docs/dev/config + generated),
+#   2. check_structure, check_sizes, gen_docs (rewrites docs/dev/config + generated),
 #      check_docs, check_packages, qmllint, the unit tests the change touches (QML, and
 #      the test_scripts.py classes of a changed script), shellcheck, i18n
 #   3. the shell's log since its last reload, lines issues.md already
@@ -100,6 +100,7 @@ for f in "${changed[@]}"; do
   scripts/restart.sh) script_tests+=(RestartScript) ;;
   scripts/sway_config_text.py) script_tests+=(SwayConfigText) ;;
   scripts/dev/known_issues.py) script_tests+=(KnownIssues) ;;
+  scripts/check_sizes.py) script_tests+=(CheckSizes) ;;
   scripts/migrate_xdg.sh) script_tests+=(MigrateXdg) ;;
   tests/scripts/test_scripts.py) script_tests+=(all) ;;
   esac
@@ -128,6 +129,9 @@ fi
 
 # 2. Checks
 step "structure" python3 scripts/check_structure.py
+if [[ ${#qml[@]} -gt 0 ]]; then
+  step "sizes" python3 scripts/check_sizes.py
+fi
 [[ $docs -eq 1 ]] && step "generated docs" python3 scripts/gen_docs.py
 if printf '%s\n' "${changed[@]}" | grep -qE '\.(md|qml)$'; then
   step "doc citations" python3 scripts/check_docs.py

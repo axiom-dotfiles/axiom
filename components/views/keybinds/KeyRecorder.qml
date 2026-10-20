@@ -79,7 +79,7 @@ StyledContainer {
       text: root.recording ? I18n.tr("Press a combo…") : root.placeholder
       textColor: root.recording ? Theme.accent : Theme.foreground
       opacity: root.recording ? 1 : 0.5
-      textSize: Appearance.fontSize - 1
+      textSize: Appearance.fontSizeBy(-1)
       elide: Text.ElideRight
       Layout.fillWidth: true
     }
@@ -100,7 +100,7 @@ StyledContainer {
       visible: !root.recording
       text: "keyboard"
       opacity: 0.5
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
     }
   }
 

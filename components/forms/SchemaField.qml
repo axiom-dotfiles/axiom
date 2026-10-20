@@ -269,7 +269,7 @@ Loader {
           "start": 0
         })
       readonly property bool custom: root.current !== undefined && root.current !== autoField.auto.value
-      spacing: 4
+      spacing: Widget.spacing
       SchemaSwitch {
         label: root.label
         description: root.description
@@ -296,7 +296,7 @@ Loader {
   Component {
     id: readonlyField
     ColumnLayout {
-      spacing: 4
+      spacing: Widget.spacing
       RowLayout {
         Layout.fillWidth: true
         spacing: Widget.spacing
@@ -311,7 +311,7 @@ Loader {
           opacity: 0.8
         }
         SquareIconButton {
-          size: Widget.height - 6
+          size: Widget.height - Widget.px(6)
           iconText: "content_copy"
           tooltipText: I18n.tr("Copy")
           onClicked: ClipboardManager.copyText(String(root.current ?? ""))
@@ -322,7 +322,7 @@ Loader {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: I18n.tr(root.description)
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.7
       }
     }
@@ -344,7 +344,7 @@ Loader {
   Component {
     id: searchField
     ColumnLayout {
-      spacing: 4
+      spacing: Widget.spacing
       StyledText {
         text: I18n.tr(root.label)
         Layout.fillWidth: true
@@ -369,7 +369,7 @@ Loader {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: I18n.tr(root.description)
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.7
       }
     }
@@ -416,7 +416,7 @@ Loader {
   Component {
     id: chipsField
     ColumnLayout {
-      spacing: 4
+      spacing: Widget.spacing
       StyledText {
         text: I18n.tr(root.label)
         Layout.fillWidth: true
@@ -445,7 +445,7 @@ Loader {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: I18n.tr(root.description)
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.7
       }
     }

@@ -29,7 +29,7 @@ QtObject {
   readonly property bool appTimeouts: _c.appTimeouts
   readonly property bool criticalStays: _c.criticalStays
   readonly property int maxToasts: _c.maxToasts
-  readonly property int width: _c.width
+  readonly property int width: Widget.px(_c.width)
   readonly property bool quietFullscreen: _c.quietFullscreen
 
   // History

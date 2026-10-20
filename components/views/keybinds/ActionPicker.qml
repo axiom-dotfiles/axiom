@@ -124,7 +124,7 @@ Item {
       StyledIcon {
         text: "arrow_drop_down"
         textColor: Theme.accent
-        textSize: Appearance.fontSize + 2
+        textSize: Appearance.fontSizeBy(2)
       }
     }
 
@@ -140,7 +140,7 @@ Item {
   Popup {
     id: popup
     y: button.height + Widget.spacing
-    width: Math.max(root.width, 320)
+    width: Math.max(root.width, Widget.px(320))
     // Kept inside the window
     margins: Widget.spacing
     padding: Widget.spacing
@@ -215,7 +215,7 @@ Item {
               visible: row.header
               text: String(row.entry.count ?? "")
               opacity: 0.5
-              textSize: Appearance.fontSize - 2
+              textSize: Appearance.fontSizeBy(-2)
             }
           }
 

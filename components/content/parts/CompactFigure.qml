@@ -39,11 +39,11 @@ Item {
 
   // Room left for the value (and, without one, the icon)
   readonly property real _labelRoom: root.showLabel ? root._labelLine : 0
-  readonly property real _iconSize: !root.showIcon ? 0 : root.wide ? Math.min(root.height * 0.7, Appearance.fontSize * 2.6) : root._hasValue ? Math.min(root._iconFull, root.height * 0.3) : Math.max(8, Math.min(root.width * 0.6, (root.height - root._labelRoom - root.gap) * 0.8, Appearance.fontSize * 3))
+  readonly property real _iconSize: !root.showIcon ? 0 : root.wide ? Math.min(root.height * 0.7, Appearance.fontSize * 2.6) : root._hasValue ? Math.min(root._iconFull, root.height * 0.3) : Math.max(Widget.px(8), Math.min(root.width * 0.6, (root.height - root._labelRoom - root.gap) * 0.8, Appearance.fontSize * 3))
   readonly property real _textWidth: root.wide && root.showIcon ? root.width - root._iconSize - Widget.spacing : root.width
   readonly property real _valueRoomH: root.wide ? root.height - root._labelRoom : root.height - root._labelRoom - (root.showIcon ? root._iconSize * 1.15 + root.gap : 0)
   readonly property real _unitWidth: root.unit !== "" ? unitMetrics.advanceWidth + 2 : 0
-  readonly property real valueSize: Math.max(6, Math.min(root._valueFull, root._valueFull * root._valueRoomH / Math.max(1, root._valueLine), root._valueFull * (root._textWidth - root._unitWidth) / Math.max(1, valueWidth.advanceWidth)))
+  readonly property real valueSize: Math.max(Widget.px(6), Math.min(root._valueFull, root._valueFull * root._valueRoomH / Math.max(1, root._valueLine), root._valueFull * (root._textWidth - root._unitWidth) / Math.max(1, valueWidth.advanceWidth)))
 
   FontMetrics {
     id: valueMetrics
@@ -65,7 +65,7 @@ Item {
   FontMetrics {
     id: labelMetrics
     font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 2
+    font.pixelSize: Appearance.fontSizeBy(-2)
   }
 
   GridLayout {
@@ -105,7 +105,7 @@ Item {
         horizontalAlignment: root.wide && root.showIcon ? Text.AlignLeft : Text.AlignHCenter
         elide: Text.ElideRight
         text: root.label
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.6
       }
     }

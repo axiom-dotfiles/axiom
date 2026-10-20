@@ -4,25 +4,25 @@
 > **Reader:** `Widget` (`config/Widget.qml`)
 > **Schema:** `config/json/config.schema.json` → `properties.Widget` · category Look & Feel · scope look
 
-Panels & controls: Sizing for the overlay, popouts, launcher and settings. Each bar has its own, in the bar editor.
+Panels & controls: Sizing for the overlay, edge menus, desktop, lock screen, popouts, launcher and settings. Each bar has its own, in the bar editor.
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
 
 ### `Widget`
 
-- **`Widget.height`** · integer = 30 · 16–128 · px
-  - Control height: Height of buttons, fields and other controls (px).
-  - x-control="stepper"
-  - read: `Widget.height` · in: `components/content/Calculator.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/EmojiPicker.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Password.qml`, `components/content/Session.qml`, `components/content/Stopwatch.qml`, `components/content/Submenu.qml`, `components/content/TopProcesses.qml`, `components/content/WorkspaceGrid.qml`, `components/content/WorkspaceStrips.qml` (+70 more)
-- **`Widget.padding`** · integer = 10 · 0–32 · px
-  - Padding: Inner padding of panels, cards and controls (px).
-  - x-control="stepper"
-  - read: `Widget.padding` · in: `components/content/AudioMixer.qml`, `components/content/Chat.qml`, `components/content/ClaudeUsage.qml`, `components/content/Login.qml`, `components/content/Notifications.qml`, `components/content/Password.qml`, `components/content/ThemePicker.qml`, `components/content/Updates.qml`, `components/content/Weather.qml`, `components/content/WeatherForecast.qml`, `components/content/WifiNetworks.qml`, `components/content/base/CardHeader.qml`, `components/content/base/SaveResetActions.qml`, `components/content/base/TitledCard.qml` (+74 more)
-- **`Widget.spacing`** · integer = 4 · 0–32 · px
-  - Spacing: Gap between items inside panels, cards and controls (px).
-  - x-control="stepper"
-  - read: `Widget.spacing` · in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/Clock.qml`, `components/content/ClockCalendar.qml`, `components/content/CommandOutput.qml`, `components/content/Disks.qml`, `components/content/EmojiPicker.qml`, `components/content/Favourites.qml` (+174 more)
+- **`Widget.scale`** · integer = 100 · 75–150 · %
+  - Interface scale: Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Sizes set in px there (the launcher's width, a toast's, tiles, padding) grow with it. Higher is easier to read but fits less in each card and panel.
+  - x-scope="personal", x-control="stepper"
+  - read: `Widget.scale` (computed) · in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/Appearance.qml`
+- **`Widget.cardSize`** · integer = 100 · 50–150 · %
+  - Card size: How big module cards are, as a share of the screen: at 100 two cards fill its shorter side. The overlay, edge menus, desktop, lock screen and greeter all start from it, and each can be made bigger or smaller with its own Module size. Text stays the Interface scale's size, so on a smaller screen a higher card size gives modules back their room. The overlay never grows past filling its screen.
+  - x-scope="personal"
+  - read: `Widget.cardSize` · in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/OverlayConfig.qml`
+- **`Widget.density`** · string = "normal" · enum compact|normal|roomy
+  - Density: How tightly controls, padding and gaps are packed in panels and cards.
+  - x-scope="personal"
+  - read: `Widget.density` · in: `components/methods/ConfigMigration.qml`
 - **`Widget.overrideRadius`** · boolean = false
   - Own corner radius: Off: follows the corner radius in Look & Feel.
   - read: `Widget.radius` (computed) · in: `components/content/AudioMixer.qml`, `components/content/Calculator.qml`, `components/content/Chat.qml`, `components/content/EmojiPicker.qml`, `components/content/Favourites.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Palette.qml`, `components/content/Password.qml`, `components/content/Submenu.qml`, `components/content/ThemePicker.qml`, `components/content/TopProcesses.qml`, `components/content/WallpaperPicker.qml` (+71 more)
@@ -35,11 +35,27 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 Every public member of `Widget`, with the files that use it.
 
-- `Widget.height` (int)
-  - in: `components/content/Calculator.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/EmojiPicker.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Password.qml`, `components/content/Session.qml`, `components/content/Stopwatch.qml` (+74 more)
-- `Widget.padding` (int)
-  - in: `components/content/AudioMixer.qml`, `components/content/Chat.qml`, `components/content/ClaudeUsage.qml`, `components/content/Login.qml`, `components/content/Notifications.qml`, `components/content/Password.qml`, `components/content/ThemePicker.qml`, `components/content/Updates.qml`, `components/content/Weather.qml`, `components/content/WeatherForecast.qml` (+78 more)
-- `Widget.spacing` (int)
-  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/Clock.qml`, `components/content/ClockCalendar.qml` (+178 more)
+- `Widget.scale` (real): The Interface scale, as a factor: text (Appearance.fontSize) and the sizes below grow with it
+  - in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/Appearance.qml`
+- `Widget.cardSize` (int): How big module cards are, in % of two filling the screen's short side (OverlayConfig.cardUnitOn)
+  - in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/OverlayConfig.qml`
+- `Widget.density` (string): "compact" | "normal" | "roomy"
+  - in: `components/methods/ConfigMigration.qml`
+- `Widget.height` (int): Height of buttons, fields and other controls
+  - in: `components/content/Calculator.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/EmojiPicker.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Password.qml`, `components/content/Session.qml`, `components/content/Stopwatch.qml` (+79 more)
+- `Widget.padding` (int): Inner padding of panels, cards and controls
+  - in: `components/content/AudioMixer.qml`, `components/content/Chat.qml`, `components/content/ClaudeUsage.qml`, `components/content/Login.qml`, `components/content/Notifications.qml`, `components/content/Password.qml`, `components/content/ThemePicker.qml`, `components/content/Updates.qml`, `components/content/Weather.qml`, `components/content/WeatherForecast.qml` (+89 more)
+- `Widget.spacing` (int): Gap between items inside panels, cards and controls
+  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/Clock.qml`, `components/content/ClockCalendar.qml` (+188 more)
+- `Widget.cardPadding` (int): A module card's padding (OverlayConfig.cardPad)
+  - in: `config/OverlayConfig.qml`
+- `Widget.iconButton` (int): Side of a square icon button (FlatIconButton)
+  - in: `components/content/AudioMixer.qml`, `components/content/Calculator.qml`, `components/content/ClipboardHistory.qml`, `components/content/CommandOutput.qml`, `components/content/EmojiPicker.qml`, `components/content/Notes.qml`, `components/content/ScreenRecord.qml`, `components/content/WifiNetworks.qml`, `components/content/parts/AudioRow.qml`, `components/content/parts/DeviceList.qml` (+11 more)
+- `Widget.smallHeight` (int): Height of chips, pills and small buttons (keybind chips, a notification's actions)
+  - in: `components/content/ScreenRecord.qml`, `components/content/parts/chat/AttachmentChip.qml`, `components/content/parts/notes/NoteBrowser.qml`, `components/content/parts/notifications/NotificationGroupDelegate.qml`, `components/content/parts/notifications/NotificationItemDelegate.qml`, `components/surfaces/notifications/NotificationToast.qml`, `components/views/keybinds/BindListRow.qml`, `components/views/keybinds/BindSection.qml`
+- `Widget.smallPadding` (int): Inner margins of rows, fields and dropdowns
+  - in: `components/content/parts/TrayMenuItem.qml`, `components/reusable/StyledComboEntry.qml`, `components/reusable/StyledTextButton.qml`, `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/launcher/LauncherRow.qml`, `components/surfaces/screenshot/ScreenshotPickerWindow.qml`, `components/surfaces/workspaces/WindowPreview.qml`, `components/views/barEditor/LayoutOverrideField.qml`, `components/views/barEditor/WidgetInspector.qml`, `components/views/layouts/MenuOpening.qml` (+1 more)
+- `Widget.px(n: real): int`: A size that isn't a control's, padding or gap (a panel's width, an avatar, a dot) at the Interface scale.
+  - in: `components/content/AudioMixer.qml`, `components/content/BluetoothDevices.qml`, `components/content/Calculator.qml`, `components/content/Chat.qml`, `components/content/ClaudeUsage.qml`, `components/content/ClipboardHistory.qml`, `components/content/ClockCalendar.qml`, `components/content/Disks.qml`, `components/content/EmojiPicker.qml`, `components/content/Favourites.qml` (+104 more)
 - `Widget.radius` (int): Corners of what sits inside something (cards, controls, rows, bar widgets); outer edges use Appearance.borderRadius
   - in: `components/content/AudioMixer.qml`, `components/content/Calculator.qml`, `components/content/Chat.qml`, `components/content/EmojiPicker.qml`, `components/content/Favourites.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Palette.qml`, `components/content/Password.qml` (+75 more)

@@ -35,7 +35,7 @@ FieldGroup {
     visible: shown && SavedConfigsManager.status !== ""
     text: SavedConfigsManager.status
     opacity: 0.7
-    textSize: Appearance.fontSize - 1
+    textSize: Appearance.fontSizeBy(-1)
     Layout.fillWidth: true
   }
 
@@ -132,7 +132,7 @@ FieldGroup {
           StyledText {
             text: I18n.formatDate(row.fileModified, I18n.dateFormat("dateTime"))
             opacity: 0.6
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             Layout.fillWidth: true
           }
         }
@@ -184,7 +184,7 @@ FieldGroup {
         StyledText {
           text: I18n.tr("The look, layout, keybinds and apps a first run starts with")
           opacity: 0.6
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           elide: Text.ElideRight
           Layout.fillWidth: true
         }
@@ -265,7 +265,7 @@ FieldGroup {
   StyledText {
     text: I18n.tr("Only import files from people you trust. An import can also carry preferences, keybinds and apps, and commands, which you're asked about separately (off unless you turn them on): commands run as you, so read every one in the file first.")
     textColor: Theme.warning
-    textSize: Appearance.fontSize - 1
+    textSize: Appearance.fontSizeBy(-1)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }
@@ -309,7 +309,7 @@ FieldGroup {
             visible: text !== ""
             text: importRow.importing?.description ?? ""
             opacity: 0.6
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             elide: Text.ElideRight
             Layout.fillWidth: true
           }
@@ -317,7 +317,7 @@ FieldGroup {
           StyledText {
             text: Paths.shortenHome(importRow.importing?.path ?? "")
             opacity: 0.6
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             elide: Text.ElideMiddle
             Layout.fillWidth: true
           }
@@ -377,7 +377,7 @@ FieldGroup {
         visible: importRow.importing?.hasCommands ?? false
         text: I18n.tr("This file holds commands. They run as you, with your files and accounts, so a file from someone else can do anything you can. Before turning this on, open the file in a text editor and read every command in it, and only take them from a source you trust.")
         textColor: takeCommands.checked ? Theme.error : Theme.warning
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
       }
@@ -423,7 +423,7 @@ FieldGroup {
             visible: text !== ""
             text: exampleRow.modelData.description
             opacity: 0.6
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             elide: Text.ElideRight
             Layout.fillWidth: true
           }

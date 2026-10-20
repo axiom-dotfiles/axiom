@@ -116,7 +116,7 @@ Panel {
             Layout.leftMargin: Widget.spacing / 2
             text: root.dayTitle(group.day.key)
             textColor: group.day.key === root.todayKey ? Theme.accent : Theme.foregroundAlt
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             font.bold: true
           }
           Repeater {

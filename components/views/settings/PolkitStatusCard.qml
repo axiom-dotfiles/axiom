@@ -66,7 +66,7 @@ FieldGroup {
     visible: PolkitConfig.enabled && PolkitManager.replaced.length > 0
     text: I18n.tr("axiom stopped {0}, likely started by your own compositor config or a systemd unit. Remove its autostart line or disable the unit so the two don't race at login.", PolkitManager.replaced.join(", "))
     textColor: Theme.warning
-    textSize: Appearance.fontSize - 1
+    textSize: Appearance.fontSizeBy(-1)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }

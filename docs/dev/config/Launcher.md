@@ -38,7 +38,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Launcher.width`** · integer = 680 · 400–1200 · px
   - Width: Width of the launcher.
   - x-scope="look"
-  - read: `LauncherConfig.width` · in: `components/surfaces/launcher/Launcher.qml`, `components/surfaces/launcher/LauncherPanel.qml`
+  - read: `LauncherConfig.width` (computed) · in: `components/surfaces/launcher/Launcher.qml`, `components/surfaces/launcher/LauncherPanel.qml`
 - **`Launcher.maxResults`** · integer = 8 · 3–20
   - Results shown: How many rows fit before the list scrolls.
   - x-scope="look", x-group="Launcher look", x-control="stepper"
@@ -46,7 +46,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Launcher.iconSize`** · integer = 32 · 16–64 · px
   - Icon size: Size of the result icons.
   - x-scope="look", x-group="Launcher look", x-control="stepper"
-  - read: `LauncherConfig.iconSize` · in: `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/launcher/LauncherRow.qml`
+  - read: `LauncherConfig.iconSize` (computed) · in: `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/launcher/LauncherRow.qml`
 - **`Launcher.showBackdrop`** · boolean = true
   - Dim background: Dim the whole screen behind the launcher, under the bars and border.
   - x-scope="look", x-group="Launcher look"

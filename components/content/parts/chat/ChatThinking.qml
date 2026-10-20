@@ -56,7 +56,7 @@ ColumnLayout {
         return seconds > 0 ? I18n.tr("Thought for {0}s", seconds) : I18n.tr("Thought");
       }
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 1
+      textSize: Appearance.fontSizeBy(-1)
     }
 
     StyledIcon {
@@ -93,7 +93,7 @@ ColumnLayout {
       Layout.fillWidth: true
       text: root.text
       textColor: Theme.foregroundAlt
-      font.pixelSize: Appearance.fontSize - 1
+      font.pixelSize: Appearance.fontSizeBy(-1)
     }
   }
 }

@@ -17,7 +17,7 @@ DropdownSurface {
   // The conversation being renamed ("" when none)
   property string renaming: ""
   // Floating, it grows with its rows up to this
-  property real maxHeight: 420
+  property real maxHeight: Widget.px(420)
 
   readonly property var rows: {
     const wanted = root.query.trim().toLowerCase();
@@ -65,7 +65,7 @@ DropdownSurface {
       contentPadding: 0
       // A lane of its own for the scroll bar, so it never covers a row
       showScrollBar: listColumn.implicitHeight > scroll.height
-      rightPadding: showScrollBar ? 12 : 0
+      rightPadding: showScrollBar ? Widget.px(12) : 0
 
       ColumnLayout {
         id: listColumn
@@ -90,7 +90,7 @@ DropdownSurface {
                 leftPadding: Widget.spacing
                 text: row.rowData.header
                 textColor: Theme.foregroundAlt
-                textSize: Appearance.fontSize - 3
+                textSize: Appearance.fontSizeBy(-3)
                 font.bold: true
               }
             }
@@ -122,7 +122,7 @@ DropdownSurface {
                   id: itemRowLayout
                   anchors.fill: parent
                   anchors.leftMargin: Widget.spacing
-                  anchors.rightMargin: 3
+                  anchors.rightMargin: Widget.spacing
                   spacing: 0
 
                   StyledText {
@@ -130,7 +130,7 @@ DropdownSurface {
                     Layout.fillWidth: true
                     text: item.conversation.title || I18n.tr("Untitled")
                     textColor: item.current ? Theme.accent : Theme.foreground
-                    textSize: Appearance.fontSize - 1
+                    textSize: Appearance.fontSizeBy(-1)
                     elide: Text.ElideRight
                   }
 
@@ -138,7 +138,7 @@ DropdownSurface {
                     id: renameField
                     visible: item.editing
                     Layout.fillWidth: true
-                    Layout.preferredHeight: Widget.height - 6
+                    Layout.preferredHeight: Widget.height - Widget.px(6)
                     text: item.conversation.title ?? ""
                     onVisibleChanged: {
                       if (visible) {
@@ -155,17 +155,17 @@ DropdownSurface {
 
                   FlatIconButton {
                     visible: itemHover.hovered && !item.editing
-                    size: 24
+                    size: Widget.iconButton
                     iconText: "edit"
-                    iconSize: Appearance.fontSize - 2
+                    iconSize: Appearance.fontSizeBy(-2)
                     tooltipText: I18n.tr("Rename")
                     onClicked: root.renaming = item.conversation.id
                   }
                   FlatIconButton {
                     visible: itemHover.hovered && !item.editing
-                    size: 24
+                    size: Widget.iconButton
                     iconText: "delete"
-                    iconSize: Appearance.fontSize - 2
+                    iconSize: Appearance.fontSizeBy(-2)
                     tooltipText: I18n.tr("Delete")
                     onClicked: ChatManager.remove(item.conversation.id)
                   }
@@ -183,7 +183,7 @@ DropdownSurface {
           wrapMode: Text.WordWrap
           text: ChatConfig.keepConversations === 0 ? I18n.tr("Conversations aren't saved (Settings → Chat).") : root.query !== "" ? I18n.tr("No matches") : I18n.tr("No conversations yet")
           textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
       }
     }

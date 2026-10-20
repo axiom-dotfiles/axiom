@@ -198,7 +198,7 @@ FoldingCard {
   }
 
   headerExtras: StyledTextButton {
-    implicitHeight: Widget.height - 4
+    implicitHeight: Widget.height - Widget.px(4)
     iconText: "add"
     text: I18n.tr("Add")
     onClicked: root.add()
@@ -226,7 +226,7 @@ FoldingCard {
         required property int index
         readonly property var entry: root.accounts[tab.index]
 
-        implicitHeight: Widget.height - 4
+        implicitHeight: Widget.height - Widget.px(4)
         text: tab.entry.name || tab.entry.username || CalendarConfig.hostOf(tab.entry.url) || (tab.entry.kind === "local" ? I18n.tr("This computer") : I18n.tr("Account {0}", tab.index + 1))
         active: tab.index === root.current
         onClicked: root.selected = tab.index
@@ -248,7 +248,7 @@ FoldingCard {
     Layout.fillWidth: true
     text: I18n.tr("iCloud needs an app-specific password: make one at account.apple.com (Sign-In and Security → App-Specific Passwords). Your username is your Apple Account's email.")
     textColor: Theme.foregroundAlt
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
   }
 
@@ -296,18 +296,18 @@ FoldingCard {
       Layout.fillWidth: true
       text: root.isLocal ? I18n.tr("Kept in {0}", Paths.userDataPath + "calendars") : root.result?.busy ? I18n.tr("Connecting…") : root.result?.text ?? ""
       textColor: root.isLocal || root.result?.busy ? Theme.foregroundAlt : root.result?.ok ? Theme.success : Theme.error
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       wrapMode: Text.Wrap
     }
     StyledTextButton {
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       visible: root.isLocal
       iconText: "add"
       text: I18n.tr("Add calendar")
       onClicked: root.addLocal()
     }
     StyledTextButton {
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       visible: !root.isLocal
       enabled: !root.result?.busy && (root.account?.url ?? "") !== ""
       iconText: "sync"
@@ -315,7 +315,7 @@ FoldingCard {
       onClicked: root.connect()
     }
     StyledTextButton {
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       iconText: "delete"
       text: root.confirmRemove ? I18n.tr("Click again to remove") : I18n.tr("Remove")
       hoverColor: Theme.error
@@ -374,7 +374,7 @@ FoldingCard {
         readonly property string saved: calendarRow.calendar.name ?? ""
         visible: root.isLocal
         Layout.fillWidth: true
-        Layout.preferredHeight: Widget.height - 6
+        Layout.preferredHeight: Widget.height - Widget.px(6)
         placeholderText: I18n.tr("Name")
         // One line, cut off rather than wrapped in a narrow field
         input.wrapMode: TextInput.NoWrap
@@ -415,7 +415,7 @@ FoldingCard {
       SegmentButton {
         visible: !(calendarRow.calendar.readOnly ?? false) && CalendarConfig.writableKind(root.account.kind)
         Layout.fillWidth: false
-        implicitHeight: Widget.height - 6
+        implicitHeight: Widget.height - Widget.px(6)
         text: I18n.tr("Default")
         active: root.defaultCalendar === calendarRow.calendarId
         onClicked: SettingsManager.setValue(["Calendar", "defaultCalendar"], active ? "" : calendarRow.calendarId)
@@ -437,7 +437,7 @@ FoldingCard {
       }
       StyledTextButton {
         visible: root.isLocal
-        implicitHeight: Widget.height - 6
+        implicitHeight: Widget.height - Widget.px(6)
         iconText: "delete"
         text: root.confirmDrop === calendarRow.calendar.href ? I18n.tr("Click again to remove (its files stay)") : ""
         hoverColor: Theme.error
@@ -452,7 +452,7 @@ FoldingCard {
     Layout.fillWidth: true
     text: I18n.tr("Task lists (such as iCloud's reminders) aren't shown yet.")
     opacity: 0.6
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
   }
 }

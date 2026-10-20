@@ -75,7 +75,7 @@ Card {
         horizontalAlignment: root.sideBySide ? Text.AlignLeft : Text.AlignHCenter
         elide: Text.ElideRight
         text: root.stateText
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.7
       }
     }

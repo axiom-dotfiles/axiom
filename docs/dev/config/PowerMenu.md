@@ -26,7 +26,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`PowerMenu.tileSize`** · integer = 120 · 80–200 · px
   - Tile size: Width and height of each action's tile.
   - x-scope="look"
-  - read: `PowerMenuConfig.tileSize` · in: `components/surfaces/powermenu/PowerMenuTile.qml`
+  - read: `PowerMenuConfig.tileSize` (computed) · in: `components/surfaces/powermenu/PowerMenuTile.qml`
 - **`PowerMenu.showHeader`** · boolean = true
   - Greeting and uptime: Show a greeting and how long the computer has been up above the actions.
   - x-scope="look"

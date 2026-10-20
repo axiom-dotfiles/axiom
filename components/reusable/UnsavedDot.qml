@@ -9,8 +9,8 @@ import qs.config
 PopInRectangle {
   property bool onAccent: false
 
-  implicitWidth: 8
-  implicitHeight: 8
-  radius: 4
+  implicitWidth: Widget.px(8)
+  implicitHeight: Widget.px(8)
+  radius: width / 2
   color: onAccent ? Theme.background : Theme.accent
 }

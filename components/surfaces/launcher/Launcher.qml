@@ -167,7 +167,7 @@ Scope {
         LauncherPanel {
           // Stays open until Esc, a pick or a click elsewhere
           readonly property bool autoDismiss: false
-          implicitWidth: Math.min(LauncherConfig.width, root.screen.width - 32)
+          implicitWidth: Math.min(LauncherConfig.width, root.screen.width - Widget.px(32))
           shown: floating.isOpen
           onCloseRequested: floating.hide()
           Component.onCompleted: reset(root._openText)
@@ -203,7 +203,7 @@ Scope {
         LauncherPanel {
           // Stays open until Esc, a pick or a click elsewhere
           readonly property bool autoDismiss: false
-          implicitWidth: Math.min(LauncherConfig.width, root.screen.width - 64)
+          implicitWidth: Math.min(LauncherConfig.width, root.screen.width - Widget.px(64))
           holdHeight: popout.vertical
           shown: popout.isOpen
           onCloseRequested: popout.hide()

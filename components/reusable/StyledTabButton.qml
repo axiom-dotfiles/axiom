@@ -19,7 +19,7 @@ TabButton {
 
   contentItem: StyledText {
     text: root.text
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     textColor: root.checked ? root.activeColor : root.inactiveColor
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter

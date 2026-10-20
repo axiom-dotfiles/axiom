@@ -217,7 +217,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 - `ExpandedModule.qml`: A module's detail grown over its grid (ModuleGrid.expand): a card box opening out of the tile or strip that asked for it to the grid less `inset` on every side (the modules stay dimmed beneath it), with a back button ov…
 - `ModuleGrid.qml`: A Custom page's, an edge menu's or the lock screen's modules, each in its own place on a grid of quarter cards (GridPlacement).
-- `OverlayGrid.qml`: One overlay's card grid, sized to its screen: the card unit is what fits the free space (OverlayConfig.fitCardsHigh / fitCardsWide), capped at the reference cardUnit, then scaled by the user's Overlay size.
+- `OverlayGrid.qml`: One overlay's card grid, sized to its screen: cards of the card size there times the overlay's Module size, at most two filling the height (OverlayConfig.layoutFor), their content laid out at `unit` and drawn `zoom` (th…
 - `OverlayPage.qml`: One page of the overlay: shown when it's the current page, sliding in from the side the navigation came from (`direction`), while the page it replaces slides out the other way and fades.
 - `OverlayPageNavigator.qml`: Fixed page navigator for the overlay's pages: arrows at the ends and a tab per page (icon and name), the current one under a sliding accent pill.
 - `OverlayPages.qml`: The overlay's pages on one screen: a view per Overlay.views entry, the current one and its neighbours loaded, sliding between them.
@@ -481,7 +481,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 ## components/surfaces/screenlayout/
 
-- `ScreenLayoutView.qml`: One screen of a screen layout (a ScreenLayout: the lock screen's, the greeter's; or a DesktopLayout): the background (wallpaper or a color, dimmed), then the modules on the layout's grid of `columns` × `rows` units, str…
+- `ScreenLayoutView.qml`: One screen of a screen layout (a ScreenLayout: the lock screen's, the greeter's; or a DesktopLayout): the background (wallpaper or a color, dimmed), then the modules on as many units as fit the screen inside `insets` at…
 
 ## components/surfaces/screenshot/
 
@@ -561,7 +561,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `OpenerButtons.qml`: Buttons that add a bar button (one per bar) or a keybind opening what the layouts editor has selected.
 - `PageTarget.qml`: The layouts editor on an overlay page (OverlayManager's selected view): a Custom page's modules, with how they fit each monitor's overlay.
 - `PagesSection.qml`: i18n: keys from the schema (view labels) Layouts editor, left: the overlay's pages as the navigator shows them, your own pages (duplicate, remove, New page) then the tool pages (only hidden, never removed), each group d…
-- `ScreenLayoutTarget.qml`: The layouts editor on a screen layout (a ScreenLayoutEditor's draft: the desktop's, the lock screen's, the greeter's): its modules on a bounded grid of columns × rows units inside the screen's outline, which every monit…
+- `ScreenLayoutTarget.qml`: The layouts editor on a screen layout (a ScreenLayoutEditor's draft: the desktop's, the lock screen's, the greeter's): its modules on the grid that fits the screen it's edited on at its card size, inside that screen's o…
 
 ## components/views/monitors/
 
@@ -763,7 +763,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `TodoConfig.qml`: Reader for the Todo section: how every todo widget and module shows the list (the items are TodoManager's, in the data folder).
 - `UpdatesConfig.qml`: Reader for the Updates section: how every updates widget and module checks for and installs updates (see UpdatesManager).
 - `WeatherConfig.qml`: Reader for the Weather section: the one location and units every weather widget and module shows (see WeatherManager).
-- `Widget.qml`: Reader for the Widget section: sizing for panels, cards, popouts and controls.
+- `Widget.qml`: Reader for the Widget section: sizing for panels, cards, popouts and controls, and the card size every module grid starts from.
 - `WindowBehaviourConfig.qml`: Reader for the WindowBehaviour section: focus and the cursor, which every compositor's managed config writes (each field by its x-hypr / x-sway annotation).
 - `WindowLookConfig.qml`: Reader for the WindowLook section: settings that make windows match axiom ({ borders, activeColor, shape, matchShell, gaps, surfaceBlur…, blur…, shadow…, dim…, opacity… }), applied by the compositor's backend (its confi…
 - `WindowSwitcherConfig.qml`: Reader for the WindowSwitcher section (Alt+Tab).

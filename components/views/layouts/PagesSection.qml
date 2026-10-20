@@ -96,7 +96,7 @@ ColumnLayout {
     visible: root.tools.length > 0
     Layout.topMargin: Widget.spacing / 2
     text: I18n.tr("Tools")
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     opacity: 0.6
   }
 

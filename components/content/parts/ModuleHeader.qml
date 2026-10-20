@@ -20,7 +20,7 @@ RowLayout {
     visible: root.icon !== ""
     text: root.icon
     textColor: root.iconColor
-    textSize: Appearance.fontSize + 2
+    textSize: Appearance.fontSizeBy(2)
   }
 
   StyledText {

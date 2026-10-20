@@ -9,7 +9,7 @@ Rectangle {
 
   // { path, mime, name }
   property var attachment: ({})
-  property int size: 56
+  property int size: Widget.px(56)
   property bool removable: false
 
   signal removed
@@ -50,16 +50,16 @@ Rectangle {
     visible: root.removable && hover.hovered
     anchors.top: parent.top
     anchors.right: parent.right
-    anchors.margins: 3
-    width: 20
-    height: 20
-    radius: 10
+    anchors.margins: Widget.spacing
+    width: Widget.smallHeight
+    height: Widget.smallHeight
+    radius: width / 2
     color: Qt.alpha(Theme.background, 0.85)
 
     StyledIcon {
       anchors.centerIn: parent
       text: "close"
-      textSize: Appearance.fontSize - 3
+      textSize: Appearance.fontSizeBy(-3)
     }
 
     TapHandler {

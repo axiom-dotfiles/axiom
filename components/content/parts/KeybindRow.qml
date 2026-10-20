@@ -129,7 +129,7 @@ Item {
     StyledIcon {
       text: root.bind.action ? KeybindManager.actionIcon(root.bind.action) : (root.bind.user ? "person" : "keyboard")
       textColor: root.bind.action ? Theme.accent : Theme.foregroundAlt
-      textSize: Appearance.fontSize - 1
+      textSize: Appearance.fontSizeBy(-1)
       opacity: root.bind.action ? 1 : 0.6
     }
 
@@ -145,7 +145,7 @@ Item {
       visible: root.bind.overrides !== ""
       text: "warning"
       textColor: Theme.warning
-      textSize: Appearance.fontSize - 1
+      textSize: Appearance.fontSizeBy(-1)
 
       HoverHandler {
         id: warningHover

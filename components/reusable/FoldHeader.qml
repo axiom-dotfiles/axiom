@@ -46,7 +46,7 @@ Item {
         visible: root.section !== ""
         text: root.section
         opacity: 0.6
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         Layout.fillWidth: true
       }
 
@@ -66,7 +66,7 @@ Item {
       visible: root.foldable
       text: "expand_more"
       textColor: headerArea.containsMouse ? Theme.accent : Theme.foregroundAlt
-      textSize: Appearance.fontSize + 4
+      textSize: Appearance.fontSizeBy(4)
       rotation: root.collapsed ? -90 : 0
       Layout.alignment: Qt.AlignTop
 

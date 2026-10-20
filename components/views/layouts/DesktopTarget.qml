@@ -11,11 +11,9 @@ import qs.services
 ScreenLayoutTarget {
   id: root
 
-  readonly property var screen: DesktopManager.screenFor(DesktopManager.selectedTarget)
-  readonly property var insets: DesktopManager.insetsFor(root.screen)
-  // The room its grid is fitted to on that screen, px
-  readonly property int roomWidth: root.screen ? Math.max(0, root.screen.width - root.insets.left - root.insets.right) : 0
-  readonly property int roomHeight: root.screen ? Math.max(0, root.screen.height - root.insets.top - root.insets.bottom) : 0
+  // The room its grid is fitted to on the screen it's laid out on, px
+  readonly property int roomWidth: DesktopManager.editor.room.width
+  readonly property int roomHeight: DesktopManager.editor.room.height
   readonly property var target: DesktopManager.targets.find(t => t.key === DesktopManager.selectedTarget) ?? null
 
   screenEditor: DesktopManager.editor
@@ -24,6 +22,6 @@ ScreenLayoutTarget {
   title: root.target ? I18n.tr("Desktop: {0}", root.target.label) : I18n.tr("Desktop")
   description: I18n.tr("Modules on the desktop, under your windows. They take clicks but not typing. A monitor shows its own layout if it has one, else the primary monitor's, else the one for all monitors.")
   emptyText: root.target ? I18n.tr("{0}: give it a layout of its own to edit it here.", root.target.status) : ""
-  fitText: !root.layout ? "" : root.layout.enabled ? I18n.tr("{0} × {1} units, fitted to {2} × {3} px inside the bars and border", root.grid.cols, root.grid.rows, root.roomWidth, root.roomHeight) : I18n.tr("Turned off: the desktop doesn't show it")
-  fitWarning: root.layout !== null && !root.layout.enabled
+  fitText: !root.layout ? "" : !root.layout.enabled ? I18n.tr("Turned off: the desktop doesn't show it") : root.screenEditor.shrunk ? root.shrinkText : I18n.tr("{0} × {1} units, fitted to {2} × {3} px inside the bars and border; modules keep to their nearest edge on other monitors", root.grid.cols, root.grid.rows, root.roomWidth, root.roomHeight)
+  fitWarning: root.layout !== null && (!root.layout.enabled || root.screenEditor.shrunk)
 }

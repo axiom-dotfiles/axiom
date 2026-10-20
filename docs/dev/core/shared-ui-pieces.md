@@ -6,6 +6,26 @@
 
 An index of reusable pieces. Reach for one of these before drawing your own; when a pattern appears a second time, it becomes one of these. (Rule: AGENTS.md › UI conventions, "Reuse before building".) Every file in `reusable/`, `forms/` and `content/parts/` is named here or in the docs it links to (`scripts/check_docs.py` checks): add a line when you add a piece.
 
+### Sizes
+Everything outside the bars follows the Interface scale and Density through `Widget` (`config/Widget.qml`); a size written as a number doesn't, and `scripts/check_sizes.py` fails on one of 3 px or more, set alone or added, subtracted or chosen in a size's expression (`Widget.height - 4` is `Widget.height - Widget.px(4)`; factors like `* 2` and grid units like `span(8)` are fine).
+
+| What | Use |
+|---|---|
+| A gap: 3–6 / 8 / 12–14 px | `Widget.spacing` / `Widget.spacing * 2` / `Widget.padding` |
+| Inner margins of a row, field or dropdown (6–8 px) | `Widget.smallPadding` |
+| A panel's or card's padding (10–22 px) | `Widget.padding` (× 2 for 18–22) |
+| A control's height (fields, switches, tabs) | `Widget.height` (or a fixed share of it) |
+| A square icon button | `Widget.iconButton` (`FlatIconButton`'s default) |
+| A chip, pill or small button (18–22 px) | `Widget.smallHeight` |
+| An icon or text size | `Appearance.fontSize`, `fontSizeLarge`, or `Appearance.fontSizeBy(n)` for n px more or less (never `fontSize ± n`: the offset wouldn't scale) |
+| A width, an avatar, a dot, a thin bar | `Widget.px(n)` (the Interface scale only) |
+| A hairline (0–2 px, `border.width`) | the number |
+| Measured against the screen, a measuring font, a placeholder or stand-in, a layout weight | the number, marked `// fixed px: <reason>` |
+
+A size setting in px outside the bars (`Launcher.width`, `Notifications.width`, tile sizes, `Popouts.padding`, an edge menu's `padding`) is scaled in its reader (`Widget.px(_c.width)`), so it follows the Interface scale too; gaps that line up with the compositor's (an edge menu's or dock's `gap`) and hover strips stay as set.
+
+Bars size their own widgets (`Bar.enrichBarConfig`) and never use these: a shared piece the bar uses takes its size from the bar (`CountBadge.textSize`, `IconTextWidget.spacing`).
+
 ### Text and structure (`reusable/`)
 - `StyledText` / `StyledIcon`.
 - `SectionHeading`: accent title + muted description.

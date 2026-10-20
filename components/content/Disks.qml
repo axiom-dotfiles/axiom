@@ -17,7 +17,7 @@ Card {
   readonly property var paths: root.properties.paths?.length > 0 ? root.properties.paths : ["/"]
 
   // One disk's rows (path and sizes, then the bar), and the room inside
-  readonly property real diskHeight: Appearance.fontSize * 1.4 + 8 + Widget.spacing / 2
+  readonly property real diskHeight: Appearance.fontSize * 1.4 + Widget.px(8) + Widget.spacing / 2
   // Stacked unless they don't fit that way, then as many across as fit
   readonly property int columns: {
     const n = root.paths.length;
@@ -103,13 +103,13 @@ Card {
                 readonly property bool narrow: disk.width < Appearance.fontSize * 12
                 visible: disk.width >= Appearance.fontSize * 7
                 text: !disk.usage ? "…" : narrow ? Utils.formatSize(disk.usage.used) : Utils.formatSize(disk.usage.used) + " / " + Utils.formatSize(disk.usage.total)
-                textSize: Appearance.fontSize - 2
+                textSize: Appearance.fontSizeBy(-2)
                 opacity: 0.7
               }
             }
             Rectangle {
               Layout.fillWidth: true
-              Layout.preferredHeight: 8
+              Layout.preferredHeight: Widget.px(8)
               radius: height / 2
               color: Theme.backgroundAlt
               Rectangle {

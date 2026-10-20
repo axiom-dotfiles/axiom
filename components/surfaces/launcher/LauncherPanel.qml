@@ -29,8 +29,8 @@ FocusScope {
   signal closeRequested
 
   // Above and below the list, while it has rows
-  readonly property int listMargin: 6
-  readonly property int rowHeight: Math.max(LauncherConfig.iconSize + 14, LauncherConfig.showDescriptions ? Appearance.fontSize * 2 + 24 : Appearance.fontSize + 22)
+  readonly property int listMargin: Widget.smallPadding
+  readonly property int rowHeight: Math.max(LauncherConfig.iconSize + Widget.padding + Widget.spacing, LauncherConfig.showDescriptions ? Appearance.fontSize * 2 + Widget.padding * 2 + Widget.spacing : Appearance.fontSize + Widget.padding * 2 + Widget.spacing / 2)
   // The tallest it gets, so a host can keep it from moving as rows come and
   // go: every block at its largest (a full list under the Frequent header).
   // Exact, not estimated: content taller than this resizes the host, which
@@ -154,10 +154,10 @@ FocusScope {
   RowLayout {
     id: searchRow
     y: root._offset(root._order.indexOf(searchRow))
-    x: 20
-    width: root.width - 36
-    height: Appearance.fontSizeLarge + 36
-    spacing: 12
+    x: Widget.padding * 2
+    width: root.width - Widget.padding * 4
+    height: Appearance.fontSizeLarge + Widget.px(36)
+    spacing: Widget.padding
 
     StyledIcon {
       readonly property var glyphs: ({
@@ -172,7 +172,7 @@ FocusScope {
         })
       text: glyphs[LauncherManager.mode] ?? glyphs.apps
       textColor: Theme.accent
-      textSize: Appearance.fontSizeLarge + 2
+      textSize: Appearance.fontSizeBy(6)
     }
 
     TextField {
@@ -253,8 +253,8 @@ FocusScope {
           emoji: I18n.tr("Emoji")
         })
       visible: modeLabel.text !== ""
-      implicitWidth: modeLabel.implicitWidth + 16
-      implicitHeight: modeLabel.implicitHeight + 8
+      implicitWidth: modeLabel.implicitWidth + Widget.spacing * 4
+      implicitHeight: modeLabel.implicitHeight + Widget.spacing * 2
       radius: Widget.radius
       color: Qt.alpha(Theme.accent, 0.16)
 
@@ -263,7 +263,7 @@ FocusScope {
         anchors.centerIn: parent
         text: parent.labels[LauncherManager.mode] ?? ""
         textColor: Theme.accent
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
     }
   }
@@ -288,12 +288,12 @@ FocusScope {
 
     StyledText {
       id: frequentLabel
-      Layout.leftMargin: 22
-      Layout.topMargin: 10
+      Layout.leftMargin: Widget.padding * 2
+      Layout.topMargin: Widget.padding
       visible: LauncherManager.frequent && list.count > 0
       text: I18n.tr("Frequent")
       textColor: Theme.foregroundInactive
-      textSize: Appearance.fontSize - 3
+      textSize: Appearance.fontSizeBy(-3)
       font.weight: Font.DemiBold
       font.capitalization: Font.AllUppercase
       font.letterSpacing: 1
@@ -302,7 +302,7 @@ FocusScope {
     StyledText {
       id: empty
       Layout.fillWidth: true
-      Layout.margins: 18
+      Layout.margins: Widget.padding * 2
       visible: list.count === 0 && input.text.trim() !== ""
       horizontalAlignment: Text.AlignHCenter
       text: I18n.tr("No results")
@@ -396,15 +396,15 @@ FocusScope {
     id: hint
     y: root._offset(root._order.indexOf(hint))
     width: root.width
-    height: hintFlow.implicitHeight + 20
+    height: hintFlow.implicitHeight + Widget.padding * 2
     visible: LauncherConfig.showHint
 
     Flow {
       id: hintFlow
-      x: 18
-      y: 10
-      width: parent.width - 36
-      spacing: 14
+      x: Widget.padding * 2
+      y: Widget.padding
+      width: parent.width - Widget.padding * 4
+      spacing: Widget.padding
 
       Repeater {
         // I18n.tr("commands") I18n.tr("calculate") I18n.tr("run") I18n.tr("web")

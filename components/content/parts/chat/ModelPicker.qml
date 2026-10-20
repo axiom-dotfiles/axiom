@@ -40,7 +40,7 @@ DropdownSurface {
   }
 
   // The most it may grow to (the chat sets what's left below the header)
-  property real maxHeight: 420
+  property real maxHeight: Widget.px(420)
 
   implicitHeight: Math.min(listColumn.implicitHeight + Widget.spacing * 2, root.maxHeight)
 
@@ -51,7 +51,7 @@ DropdownSurface {
     contentPadding: 0
     // A lane of its own for the scroll bar, so it never covers a row
     showScrollBar: listColumn.implicitHeight > scroll.height
-    rightPadding: showScrollBar ? 12 : 0
+    rightPadding: showScrollBar ? Widget.px(12) : 0
 
     ColumnLayout {
       id: listColumn
@@ -80,7 +80,7 @@ DropdownSurface {
                 Layout.fillWidth: true
                 text: row.rowData.header
                 textColor: Theme.foregroundAlt
-                textSize: Appearance.fontSize - 3
+                textSize: Appearance.fontSizeBy(-3)
                 font.bold: true
               }
 
@@ -93,7 +93,7 @@ DropdownSurface {
                 Layout.rightMargin: Widget.spacing
                 text: "key_off"
                 textColor: Theme.warning
-                textSize: Appearance.fontSize - 2
+                textSize: Appearance.fontSizeBy(-2)
               }
             }
           }
@@ -106,7 +106,7 @@ DropdownSurface {
               rightPadding: Widget.spacing
               text: I18n.tr("No models: fetch them in Settings → Chat")
               textColor: Theme.foregroundInactive
-              textSize: Appearance.fontSize - 3
+              textSize: Appearance.fontSizeBy(-3)
               wrapMode: Text.WordWrap
             }
           }
@@ -152,7 +152,7 @@ DropdownSurface {
                   Layout.fillWidth: true
                   text: choice.preset ? choice.preset.name : row.rowData.model
                   textColor: choice.selected ? Theme.accent : Theme.foreground
-                  textSize: Appearance.fontSize - 1
+                  textSize: Appearance.fontSizeBy(-1)
                   elide: Text.ElideRight
                 }
                 StyledIcon {

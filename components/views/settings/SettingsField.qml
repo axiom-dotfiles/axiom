@@ -34,7 +34,7 @@ Item {
     form: root.form
     // The dot and reset button's full width, kept even while they're
     // hidden, so their appearing doesn't shift a stepper under the cursor
-    headerInset: 8 + Widget.spacing / 2 + Appearance.fontSize + 8 + Widget.spacing
+    headerInset: 8 + Widget.spacing / 2 + Appearance.fontSizeBy(8) + Widget.spacing
   }
 
   Loader {
@@ -68,7 +68,7 @@ Item {
       MouseArea {
         id: dotArea
         anchors.fill: parent
-        anchors.margins: -4
+        anchors.margins: -Widget.px(4)
         enabled: root.changed
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
@@ -89,9 +89,9 @@ Item {
 
     SquareIconButton {
       visible: !root.atDefault
-      size: Appearance.fontSize + 8
+      size: Appearance.fontSizeBy(8)
       iconText: "settings_backup_restore"
-      iconSize: Appearance.fontSize - 1
+      iconSize: Appearance.fontSizeBy(-1)
       backgroundColor: Theme.backgroundHighlight
       tooltipText: I18n.tr("Reset to default")
       onClicked: root.form.edited(root.row.path, Utils.clone(root.defaultValue))

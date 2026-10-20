@@ -39,8 +39,8 @@ Item {
     spacing: Widget.padding
 
     Item {
-      Layout.preferredWidth: 26
-      Layout.preferredHeight: 26
+      Layout.preferredWidth: Widget.iconButton
+      Layout.preferredHeight: Widget.iconButton
 
       IconImage {
         id: image
@@ -74,7 +74,7 @@ Item {
           Layout.maximumWidth: subtitleText.visible ? implicitWidth : -1
           text: root.title
           elide: Text.ElideRight
-          textSize: Appearance.fontSize - 1
+          textSize: Appearance.fontSizeBy(-1)
           textColor: root.muted ? Theme.foregroundAlt : Theme.foreground
         }
 
@@ -84,18 +84,18 @@ Item {
           visible: root.subtitle !== "" && root.subtitle !== root.title
           text: root.subtitle
           elide: Text.ElideRight
-          textSize: Appearance.fontSize - 3
+          textSize: Appearance.fontSizeBy(-3)
           textColor: Theme.foregroundAlt
         }
       }
 
       StyledSlider {
         Layout.fillWidth: true
-        Layout.preferredHeight: 16
-        troughHeight: 6
-        handleWidth: 14
-        handleHeight: 14
-        handleRadius: 7
+        Layout.preferredHeight: Widget.px(16)
+        troughHeight: Widget.px(6)
+        handleWidth: Widget.px(14)
+        handleHeight: Widget.px(14)
+        handleRadius: Widget.px(7)
         handleColor: root.muted ? Theme.foregroundAlt : Theme.foreground
         fillColor: root.muted ? Theme.foregroundAlt : Theme.accent
         // Not `value`: dragging assigns that, which would drop the binding
@@ -109,20 +109,20 @@ Item {
       Layout.preferredWidth: percentMetrics.width
       horizontalAlignment: Text.AlignRight
       text: `${Math.round(root.volume * 100)}%`
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       textColor: Theme.foregroundAlt
 
       TextMetrics {
         id: percentMetrics
         font.family: Appearance.fontFamily
-        font.pixelSize: Appearance.fontSize - 2
+        font.pixelSize: Appearance.fontSizeBy(-2)
         text: "150%"
       }
     }
 
     StyledRectButton {
       visible: root.showMute
-      size: 28
+      size: Widget.iconButton
       iconText: root.muted ? root.mutedGlyph : root.unmutedGlyph
       iconColor: root.muted ? Theme.error : Theme.foreground
       backgroundColor: "transparent"

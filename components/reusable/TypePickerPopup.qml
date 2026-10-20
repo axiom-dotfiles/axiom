@@ -62,7 +62,7 @@ Popup {
     list.positionViewAtIndex(root.highlighted, ListView.Contain);
   }
 
-  width: 260
+  width: Widget.px(260)
   // Kept inside the window
   margins: Widget.spacing
   padding: Widget.spacing

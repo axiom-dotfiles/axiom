@@ -108,7 +108,7 @@ ColumnLayout {
   }
 
   Layout.fillWidth: true
-  spacing: 4
+  spacing: Appearance.fontSizeBy(2)
 
   StyledText {
     text: I18n.tr(root.label)
@@ -187,7 +187,7 @@ ColumnLayout {
 
       delegate: StyledTextButton {
         required property string modelData
-        implicitHeight: Widget.height - 8
+        implicitHeight: Widget.height - Widget.px(8)
         text: modelData
         onClicked: {
           if (!root.commaList) {
@@ -209,7 +209,7 @@ ColumnLayout {
     visible: root._pickFailed
     text: I18n.tr("No file picker could be opened")
     color: Theme.warning
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }
@@ -218,7 +218,7 @@ ColumnLayout {
     visible: root.description !== ""
     text: I18n.tr(root.description)
     opacity: 0.7
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }

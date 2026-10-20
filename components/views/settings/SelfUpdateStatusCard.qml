@@ -111,7 +111,7 @@ FieldGroup {
     visible: root.status === "error"
     text: SelfUpdateManager.error
     textColor: Theme.error
-    textSize: Appearance.fontSize - 1
+    textSize: Appearance.fontSizeBy(-1)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }
@@ -120,7 +120,7 @@ FieldGroup {
     visible: root.status === "blocked"
     text: I18n.tr("{0} is available, but your copy of axiom can't update: {1}", SelfUpdateManager.latest, SelfUpdateManager.blockedReason(SelfUpdateManager.blocked))
     textColor: Theme.warning
-    textSize: Appearance.fontSize - 1
+    textSize: Appearance.fontSizeBy(-1)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }
@@ -148,7 +148,7 @@ FieldGroup {
         anchors.fill: parent
         anchors.margins: Widget.padding
         text: SelfUpdateManager.notes
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
         wrapMode: Text.WordWrap
       }
     }
@@ -161,20 +161,20 @@ FieldGroup {
     StyledText {
       text: SelfUpdate.mode === "off" ? I18n.tr("Automatic checks are off.") : I18n.tr("Checked at startup and once a day.")
       opacity: 0.6
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
 
     StyledTextButton {
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       visible: !SelfUpdateManager.busy
       text: I18n.tr("Check now")
       onClicked: SelfUpdateManager.check()
     }
 
     StyledTextButton {
-      implicitHeight: Widget.height - 4
+      implicitHeight: Widget.height - Widget.px(4)
       visible: SelfUpdateManager.available && !SelfUpdateManager.busy
       text: I18n.tr("Update to {0}", SelfUpdateManager.latest)
       backgroundColor: Theme.accent

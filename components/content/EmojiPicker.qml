@@ -84,7 +84,7 @@ Panel {
     }
   ]
 
-  implicitWidth: 380
+  implicitWidth: Widget.px(380)
   fullMinWidth: Appearance.fontSize * 10
   fullMinHeight: Appearance.fontSize * 3.5
   wantsKeyboardFocus: true
@@ -200,7 +200,7 @@ Panel {
         readonly property bool active: root.group === tab.info.group
         Layout.fillWidth: true
         Layout.preferredWidth: -1
-        size: 26
+        size: Widget.iconButton
         iconText: tab.info.icon
         iconColor: tab.active ? Theme.accent : Theme.foregroundAlt
         backgroundColor: tab.active ? Qt.alpha(Theme.accent, 0.15) : "transparent"
@@ -255,7 +255,7 @@ Panel {
     visible: root.showFooter
     Layout.fillWidth: true
     text: root.copied !== "" ? I18n.tr("Copied {0}", root.copied) : root.hoveredEntry ? root.nameOf(root.hoveredEntry) : I18n.tr("Click to copy")
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     textColor: root.copied !== "" ? Theme.accent : Theme.foregroundAlt
     elide: Text.ElideRight
   }
@@ -283,7 +283,7 @@ Panel {
       horizontalAlignment: Text.AlignHCenter
       text: I18n.tr("Emoji you copy show up here")
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
     }
 
     Item {

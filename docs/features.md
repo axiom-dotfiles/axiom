@@ -60,6 +60,12 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
 - A bar can override the shared widget style, accents, shadow, font size and corner radius.
 - Floating bars and pills have their own gap, and nearby pills can merge into one.
 - **Translucency** (**Settings → Look & Feel → Translucency**): one opacity for every surface (bars, the screen border, popouts, menus, panels), down to 60%, with the compositor blurring behind it (Hyprland, niri, SwayFX). The blur is the compositor's own: set it from axiom under **Settings → Compositor → Window look → Blur** (size, passes, noise, …, and whether windows blur too), where window opacity lives as well, and both travel with exported and imported configs. The backdrops behind the overlay, launcher and power menu can frost the whole screen.
+- **Size** (**Settings → Look & Feel → Panels & controls**), for everything outside the bars:
+  - **Interface scale** (75–150 %): text and controls in the overlay, menus, popouts, the launcher, settings and notifications.
+  - **Card size** (50–150 %): how big module cards are, as a share of the screen. At 100 % two cards fill its shorter side, so a monitor gets the same cards turned either way. Text keeps its size, so on a smaller screen a higher card size gives modules back their room (the overlay stays within its screen). The overlay, edge menus, desktop, lock and login screens each scale it with their own **Module size**, which zooms their text and content with the cards.
+  - **Density** (compact, normal, roomy): how tightly controls, padding and gaps are packed.
+
+  These are yours: an imported setup keeps your sizes unless you take its personal parts too.
 
 ## Overlay
 
@@ -87,6 +93,8 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
 
   Tool pages sit after your own in the navigator, as icons, and any of them can be hidden.
 - Every page has an opener: a bar button or a keybind that opens the overlay on it, added from the editor in one click.
+- **Page switcher** on the bottom or top edge, naming every page while they fit, only the current one, or none (icons only). Scroll over it to step through the pages.
+- The overlay slides in from the top or bottom, or fades in, over a dimmed screen whose darkness you set (or no dimming at all).
 
 <details>
 <summary><b>Built-in pages</b></summary>
@@ -107,13 +115,13 @@ One editor, one grid, for everything made of modules: your **overlay pages**, yo
 | :---: | :---: |
 | <img src="../assets/screenshots/overlay-editor.webp" alt="The Layouts editor on the Home page"> | <img src="../assets/screenshots/edge-menu-editor.webp" alt="The Layouts editor on the left edge menu, drawn against its screen edge"> |
 | **The lock screen** | **The login screen** |
-| <img src="../assets/screenshots/layouts-lockscreen.webp" alt="The Layouts editor on the lock screen, a screen-sized grid"> | <img src="../assets/screenshots/layouts-greeter.webp" alt="The Layouts editor on the login screen"> |
+| <img src="../assets/screenshots/layouts-lockscreen.webp" alt="The Layouts editor on the lock screen, its grid fitted to the monitor"> | <img src="../assets/screenshots/layouts-greeter.webp" alt="The Layouts editor on the login screen"> |
 
 - Drag a module from the library onto the grid (or click it to drop it in the first free spot): dropped into a gap it shrinks to fit, dropped onto other modules it pushes them aside (down a page, along an edge menu's edge), and you see where everything will go before you let go. Drag a module anywhere, and drag any edge or corner to resize it.
 - Drag a box (or Shift/Ctrl+click) to select several modules and move them together, or drop them on the trash can to remove them.
 - Undo and redo every edit (buttons, or Ctrl+Z / Ctrl+Shift+Z), and move or resize the selected module with the arrow keys (Shift to resize).
 - Click a module to edit its options in the inspector, which also has steppers for its exact size.
-- Edge menus are drawn against their screen edge. The desktop and the lock and login screens are a screen-sized grid, with an optional double grid for finer placement.
+- Edge menus are drawn against their screen edge. The desktop and the lock and login screens are fitted to each monitor: every screen gets as many grid units as fit at your card size, and modules keep to their nearest edge, so a corner stays a corner on a wider or turned screen. Each has its own Module size and an optional double grid for finer placement.
 - **Desktop widgets:** modules on your desktop, under your windows, fitted inside the bars and border so they line up with your tiled windows. They sit straight on the wallpaper (or in frosted cards) and take clicks, while the empty desktop is clicked through. One layout can cover all monitors, the primary monitor, or a monitor of its own (by name, so a laptop's screen keeps its layout when you dock and undock).
 - Every change shows live on your desktop (or on screen, for the lock and login screens, with **Show on screen**). **Save** keeps it, **Discard** throws it away.
 - Each page and menu lists what opens it, and adds a bar button or a keybind for it.
@@ -131,7 +139,7 @@ Edge menus are the overlay's other half. Every overlay module fits in them, plac
 - **Per-menu settings.** Each menu has its own:
   - edge, monitor and position along the edge
   - length: fit its modules, or take the whole edge
-  - card size, padding and colors
+  - module size, padding and colors
   - hover timings
 
   An integrated menu can also draw a framed box along the whole edge.
@@ -251,7 +259,7 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
 | <img src="../assets/screenshots/lockscreen.webp" alt="The lock screen: a greeting, the password field, media, a volume dial, weather, a clock and calendar, and power buttons over the blurred wallpaper"> | <img src="../assets/screenshots/greeter.webp" alt="The login screen: a greeting, the user and password fields, a clock and calendar, weather, the keyboard layout, the session picker and power buttons"> |
 
 - **Lock screen modes:**
-  - **Built-in** (`ext-session-lock`, PAM): the lock screen is laid out on the Layouts page, like an overlay page. Put a greeting, the password field, a clock, media, weather, power buttons (suspend, restart, shut down) and other display-only modules anywhere on a screen-sized grid. It shows over your wallpaper (blurred and dimmed) or a color, and **Show on screen** previews it.
+  - **Built-in** (`ext-session-lock`, PAM): the lock screen is laid out on the Layouts page, like an overlay page. Put a greeting, the password field, a clock, media, weather, power buttons (suspend, restart, shut down) and other display-only modules anywhere on a grid fitted to each monitor. It shows over your wallpaper (blurred and dimmed) or a color, and **Show on screen** previews it.
   - **None:** use your own locker.
 - **Login screen:** optional, through greetd.
   - Laid out the same way, with a login box (pick or type the user, with their picture), a session picker, the keyboard layout, power buttons and the same display-only modules.

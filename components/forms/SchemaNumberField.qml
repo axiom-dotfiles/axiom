@@ -38,7 +38,7 @@ ColumnLayout {
   property int value: currentConfigValue
 
   // Compact, near the text's own height, so it doesn't outweigh the label
-  property int controlHeight: Math.min(Widget.height, Appearance.fontSize + 10)
+  property int controlHeight: Math.min(Widget.height, Appearance.fontSizeBy(10))
   readonly property int containerMargins: 2
   readonly property int buttonSize: controlHeight - (containerMargins * 2)
 
@@ -57,7 +57,7 @@ ColumnLayout {
   signal valueTyped(int value)
 
   Layout.fillWidth: true
-  spacing: 4
+  spacing: Widget.spacing
 
   function clamp(v) {
     const snapped = root.minimum + Math.round((v - root.minimum) / Math.max(1, root.stepSize)) * root.stepSize;
@@ -172,13 +172,13 @@ ColumnLayout {
     StyledSlider {
       Layout.fillWidth: true
       Layout.preferredHeight: root.controlHeight
-      troughHeight: 6
+      troughHeight: Widget.px(6)
       troughColor: Theme.border
       fillColor: Theme.accent
       handleColor: Theme.foreground
-      handleWidth: 14
-      handleHeight: 14
-      handleRadius: 7
+      handleWidth: Widget.px(14)
+      handleHeight: Widget.px(14)
+      handleRadius: Widget.px(7)
       // Not `value`: dragging assigns that, which would drop the binding
       targetValue: root.maximum > root.minimum ? (root.value - root.minimum) / (root.maximum - root.minimum) : 0
       onMoved: ratio => root.value = root.clamp(root.minimum + ratio * (root.maximum - root.minimum))
@@ -194,7 +194,7 @@ ColumnLayout {
     visible: root.description !== ""
     text: I18n.tr(root.description)
     opacity: 0.7
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }
@@ -214,7 +214,7 @@ ColumnLayout {
     Layout.preferredHeight: root.buttonSize
     Layout.fillWidth: false
     Layout.fillHeight: false
-    iconSize: coarse ? Appearance.fontSize - 4 : Appearance.fontSize
+    iconSize: coarse ? Appearance.fontSizeBy(-4) : Appearance.fontSize
     iconColor: coarse ? Theme.foregroundAlt : Theme.foreground
     autoRepeat: true
     autoRepeatDelay: 400
@@ -324,7 +324,7 @@ ColumnLayout {
       anchors.rightMargin: Widget.padding
       text: root.unitText
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
     }
 
     WheelHandler {

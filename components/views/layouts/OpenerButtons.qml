@@ -26,7 +26,7 @@ ColumnLayout {
     Layout.fillWidth: true
     wrapMode: Text.WordWrap
     text: root.unsavedHint
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     opacity: 0.7
   }
 
@@ -43,7 +43,7 @@ ColumnLayout {
         required property int index
         iconText: "add"
         text: I18n.tr("Button on {0}", BarManager.barLabel(index))
-        textPadding: 6
+        textPadding: Widget.smallPadding
         onClicked: root.barButtonRequested(index)
       }
     }
@@ -51,7 +51,7 @@ ColumnLayout {
     StyledTextButton {
       iconText: "keyboard"
       text: I18n.tr("Add a keybind")
-      textPadding: 6
+      textPadding: Widget.smallPadding
       onClicked: root.keybindRequested()
     }
   }

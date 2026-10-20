@@ -10,12 +10,12 @@ Row {
   property string key: ""
   property string label: ""
 
-  spacing: 5
+  spacing: Widget.spacing
 
   Rectangle {
     anchors.verticalCenter: parent.verticalCenter
-    width: Math.max(height, keyText.implicitWidth + 8)
-    height: keyText.implicitHeight + 4
+    width: Math.max(height, keyText.implicitWidth + Widget.spacing * 2)
+    height: keyText.implicitHeight + Widget.px(4)
     radius: Widget.radius / 2
     color: Appearance.fill(Theme.backgroundAlt)
     border.color: Theme.border
@@ -26,7 +26,7 @@ Row {
       anchors.centerIn: parent
       text: root.key
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 4
+      textSize: Appearance.fontSizeBy(-4)
     }
   }
 
@@ -34,6 +34,6 @@ Row {
     anchors.verticalCenter: parent.verticalCenter
     text: root.label
     textColor: Theme.foregroundInactive
-    textSize: Appearance.fontSize - 3
+    textSize: Appearance.fontSizeBy(-3)
   }
 }
