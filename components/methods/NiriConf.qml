@@ -225,6 +225,10 @@ QtObject {
       return node("set-column-width", ["-10%"]);
     case "stripFit":
       return node("expand-column-to-available-width");
+    case "stripConsume":
+      return node(argument === "left" || argument === "up" ? "consume-or-expel-window-left" : "consume-or-expel-window-right");
+    case "stripCenter":
+      return node("center-column");
     // niri's own action, as the user wrote it
     case "raw":
       return {

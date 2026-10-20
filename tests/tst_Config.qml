@@ -224,8 +224,8 @@ TestCase {
     });
     const binds = result.config.Keybinds.binds;
     // The user's own SUPER + A stays; the other seven are added once (and
-    // v38's three)
-    compare(binds.length, 11);
+    // v38's three, v70's three)
+    compare(binds.length, 14);
     compare(binds[0].argument, "pavucontrol");
     compare(binds.filter(bind => bind.action === "workspaceStep").map(bind => bind.argument).sort(), ["down", "right", "up"]);
     compare(binds.filter(bind => bind.action === "moveWindowStep").length, 4);
@@ -705,7 +705,8 @@ TestCase {
         ]
       }
     }).config.Keybinds.binds;
-    compare(free.length, 4);
+    // (and v70's three)
+    compare(free.length, 7);
     compare(free[1].key, "SUPER + X");
     compare(free[1].action, "toggleSplit");
     compare([free[2].key, free[2].action, free[2].argument], ["SUPER + V", "toggleSpecial", "magic"]);
@@ -722,7 +723,7 @@ TestCase {
         ]
       }
     }).config.Keybinds.binds;
-    compare(taken.length, 3);
+    compare(taken.length, 6);
     compare(taken[0].action, "exec");
     compare(taken.filter(bind => bind.action === "toggleSplit").length, 0);
   }
@@ -1890,7 +1891,8 @@ TestCase {
       }
     });
     const binds = migrated.config.Keybinds.binds;
-    compare(binds.length, 3);
+    // (and v70's three)
+    compare(binds.length, 6);
     compare(binds[0].action, "exitSession");
     compare(binds[0].release, true);
     compare(binds[1].action, "raw");
@@ -1905,7 +1907,7 @@ TestCase {
       "version": 59
     })))).config;
     compare(again.Keybinds.binds[1].action, "raw");
-    compare(again.Keybinds.binds.length, 3);
+    compare(again.Keybinds.binds.length, 6);
     verify(load({
       "version": 59
     }).config.Keybinds.binds.some(bind => bind.action === "exitSession"), "the defaults");
@@ -2113,6 +2115,65 @@ TestCase {
     compare(config.Bars.map(bar => bar.shadow), [true, false, false]);
     compare(migrated.removed, []);
     compare(errors(config), []);
+  }
+
+  function test_v71_moves_pinned_apps_to_apps() {
+    const migrated = load({
+      "version": 70,
+      "Dock": {
+        "docks": [
+          {
+            "id": "main",
+            "pinned": ["kitty", "firefox"]
+          },
+          {
+            "id": "same",
+            "pinned": ["kitty", "firefox"]
+          },
+          {
+            "id": "other",
+            "pinned": ["gimp"]
+          },
+          {
+            "id": "empty"
+          }
+        ]
+      }
+    });
+    const config = migrated.config;
+    compare(config.Apps.pinned, ["kitty", "firefox"], "the first dock's pins are shared");
+    compare(config.Dock.docks.map(dock => dock.pinnedOwn), [false, false, true, true]);
+    compare(config.Dock.docks[2].pinned, ["gimp"], "a different list stays the dock's own");
+    compare(config.Dock.docks[3].pinned, [], "an empty one too");
+    compare(errors(config), []);
+    // No docks: nothing moves, and the shared list is the default
+    compare(load({
+      "version": 70
+    }).config.Apps.pinned, []);
+  }
+
+  function test_v70_adds_scroll_and_stop_binds_on_free_keys() {
+    const migrated = load({
+      "version": 69,
+      "Keybinds": {
+        "binds": [
+          {
+            "key": "super + mouse_down",
+            "action": "exec",
+            "argument": "foot"
+          }
+        ]
+      }
+    });
+    const binds = migrated.config.Keybinds.binds;
+    compare(binds.length, 3, "the user's bind and two of the three");
+    compare(binds[0].action, "exec", "a key in use keeps its bind");
+    compare(binds.filter(bind => bind.action.startsWith("strip")).length, 0, "no strip binds");
+    compare([binds[1].key, binds[1].action, binds[1].argument], ["SUPER + mouse_up", "scrollStep", "left"]);
+    compare([binds[2].key, binds[2].action, binds[2].locked], ["XF86AudioStop", "mediaStop", true]);
+    compare(errors(migrated.config), []);
+    // Once is enough: a config at v70 isn't touched again
+    compare(ConfigMigration.migrate(migrated.config).config.Keybinds.binds.length, 3);
   }
 
   function test_v67_blur_wallpaper_is_per_layout() {

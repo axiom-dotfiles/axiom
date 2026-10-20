@@ -66,7 +66,7 @@ QtObject {
     const output = CompositorManager.outputFor(screen);
     const workspaceId = output?.activeWorkspaceId ?? -1;
     const windows = CompositorManager.windows.filter(w => DockLayout.inScope(w, dock.windowScope, output?.name ?? "", workspaceId));
-    return DockLayout.buildItems(dock.pinned, windows, w => root.appKey(w), dock.showRunning);
+    return DockLayout.buildItems(DockConfig.pinnedOf(dock), windows, w => root.appKey(w), dock.showRunning);
   }
 
   readonly property string focusedId: CompositorManager.windows.find(w => w.focusRank === 0)?.id ?? ""
@@ -99,12 +99,20 @@ QtObject {
 
   // --- Pinning (saved at once) ---
 
-  function _editDock(dockId, change) {
+  // Changes the pinned apps of a dock ([key] → [key]): its own with
+  // pinnedOwn, else the shared Apps.pinned
+  function _editPinned(dockId, change) {
     const docks = Utils.clone(DockConfig.docks);
     const dock = docks.find(d => d.id === dockId);
     if (!dock)
       return;
-    change(dock);
+    if (!dock.pinnedOwn) {
+      SettingsManager.commitValues({
+        "Apps.pinned": change(Apps.pinned.slice())
+      });
+      return;
+    }
+    dock.pinned = change(dock.pinned);
     SettingsManager.commitValues({
       "Dock.docks": docks
     });
@@ -113,15 +121,15 @@ QtObject {
   // Pins an app at `index` (the end when -1), moving it there when it's
   // already pinned
   function pin(dockId, key, index) {
-    root._editDock(dockId, dock => {
-      const pinned = dock.pinned.filter(k => k !== key);
+    root._editPinned(dockId, list => {
+      const pinned = list.filter(k => k !== key);
       pinned.splice(index < 0 ? pinned.length : Math.min(index, pinned.length), 0, key);
-      dock.pinned = pinned;
+      return pinned;
     });
   }
 
   function unpin(dockId, key) {
-    root._editDock(dockId, dock => dock.pinned = dock.pinned.filter(k => k !== key));
+    root._editPinned(dockId, list => list.filter(k => k !== key));
   }
 
   // --- Reserved space ---

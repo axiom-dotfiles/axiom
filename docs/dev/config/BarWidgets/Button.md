@@ -28,15 +28,15 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/Button.qml`
 - **`command`** · string = ""
   - Command: Shell command run on left click.
-  - x-scope="personal", x-showIf={"action":"command"}
+  - x-scope="commands", x-showIf={"action":"command"}
   - in: `components/bar/widgets/Button.qml`
 - **`rightCommand`** · string = ""
   - Right-click command: Shell command run on right click. Empty does nothing.
-  - x-scope="personal"
+  - x-scope="commands"
   - in: `components/bar/widgets/Button.qml`
 - **`middleCommand`** · string = ""
   - Middle-click command: Shell command run on middle click. Empty does nothing.
-  - x-scope="personal"
+  - x-scope="commands"
   - in: `components/bar/widgets/Button.qml`, `components/bar/widgets/AudioLevelWidget.qml`
 - **`hoverActivate`** · boolean = false
   - Activate on hover: Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay or power menu that is already open. For an edge menu on hover, use Hover popout.
@@ -51,7 +51,7 @@ Settings are read as `properties.<key>`.
   - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`labelCommand`** · string = ""
   - Label command: Shell command whose first line of output is shown as the label, re-run on an interval.
-  - x-scope="personal"
+  - x-scope="commands"
   - in: `components/bar/widgets/Button.qml`
 - **`labelInterval`** · integer = 5000 · 500–3600000 · ms
   - Label interval: How often the label command runs.

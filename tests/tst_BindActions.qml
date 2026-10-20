@@ -12,7 +12,7 @@ TestCase {
   }
 
   function _schemaActions() {
-    return files.json("config/json/config.schema.json").properties.Keybinds.properties.binds.items.properties.action.enum;
+    return files.json("config/json/config.schema.json").definitions.Keybind.properties.action.enum;
   }
 
   function test_everySchemaActionIsKnown() {

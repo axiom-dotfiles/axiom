@@ -15,7 +15,7 @@ The settings, bar, layouts, keybinds and monitors editors share one shape; a new
 - `ensureLoaded()` on page open reloads only a clean draft.
 
 ### Selection
-- Lives in the manager (`selectedBarIndex`, `selectedViewIndex`, `selectedMenuIndex`, `selectedProfile`, …).
+- Lives in the manager (`selectedBarIndex`, `selectedViewIndex`, `selectedMenuIndex`, `selectedProfile`, `KeybindManager.selectedIndex`, …).
 - Changes through `select*()`, which clears or fixes what hangs off it.
 - Add/remove/move functions keep it on the right entry.
 
@@ -39,7 +39,7 @@ The settings, bar, layouts, keybinds and monitors editors share one shape; a new
 ### Text fields
 - Fields bound to draft values follow the push pattern (AGENTS.md › QML pitfalls).
   - Set the text on selection change, and on draft change unless focused.
-  - Write on `textEdited` (`LayoutsPanel`, `Monitors`), or on focus loss only if `typed` (`BindEditorRow`, `StyledComboEntry`).
+  - Write on `textEdited` (`LayoutsPanel`, `Monitors`), or on focus loss only if `typed` (`BindInspector`, `StyledComboEntry`).
 
 ### Drag
 - A `reusable/DragLayer` subclass covers the page and draws the ghost.

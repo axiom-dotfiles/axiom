@@ -13,6 +13,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Hyprland.managed`** · object
   - Managed config: Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.
+  - x-scope="personal"
 - **`Hyprland.managed.layout`** · string = "dwindle" · enum dwindle|master
   - Layout: How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.
   - x-group="Hyprland layout", x-hypr="general.layout", x-hyprAlways=true
@@ -55,15 +56,15 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.dimSpecial`** · integer = 20 · 0–100 · %
   - Dim behind special workspaces
-  - x-group="Hyprland behaviour", x-hypr="decoration.dim_special", x-hyprScale=0.01
+  - x-scope="look", x-group="Hyprland behaviour", x-hypr="decoration.dim_special", x-hyprScale=0.01
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.animations`** · boolean = true
   - Animations
-  - x-group="Hyprland animations", x-hypr="animations.enabled", x-hyprAlways=true
+  - x-scope="look", x-group="Hyprland animations", x-hypr="animations.enabled", x-hyprAlways=true
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`
-- **`Hyprland.managed.animationPreset`** · string = "axiom" · enum hyprland|axiom|snappy|bouncy|lightning|custom
+- **`Hyprland.managed.animationPreset`** · string = "axiom" · enum hyprland|axiom|instant|snappy|bouncy|lightning|custom
   - Style: Follow axiom's motion uses Look & Feel → Motion's speed, and turns Hyprland's animations off with axiom's.
-  - x-group="Hyprland animations", x-showIf={"animations":true}
+  - x-scope="look", x-group="Hyprland animations", x-showIf={"animations":true}
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.workspaceWraparound`** · boolean = false
   - Wrap workspace animations: Going from the last workspace to the first slides forward, not back.
@@ -71,7 +72,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.curves`** · array<object> = []
   - Curves: Named bezier curves for the custom animations.
-  - x-wide=true, x-group="Hyprland animations", x-showIf={"animationPreset":"custom"}
+  - x-scope="look", x-wide=true, x-group="Hyprland animations", x-showIf={"animationPreset":"custom"}
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 
 ### `Hyprland.managed.curves[]`
@@ -88,7 +89,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Hyprland.managed.customAnimations`** · array<object> = []
   - Animations: One entry per animation to change; a parent (windows) covers its children (windowsIn, windowsOut, windowsMove).
-  - x-group="Hyprland animations", x-showIf={"animationPreset":"custom"}
+  - x-scope="look", x-group="Hyprland animations", x-showIf={"animationPreset":"custom"}
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 
 ### `Hyprland.managed.customAnimations[]`
@@ -122,15 +123,15 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.hideLogo`** · boolean = true
   - Hide Hyprland's logo and splash
-  - x-group="Hyprland behaviour", x-hypr=["misc.disable_hyprland_logo","misc.disable_splash_rendering"], x-hyprAlways=true
+  - x-scope="look", x-group="Hyprland behaviour", x-hypr=["misc.disable_hyprland_logo","misc.disable_splash_rendering"], x-hyprAlways=true
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.backgroundThemed`** · boolean = false
   - Background in a theme color: What shows where there's no wallpaper.
-  - x-group="Hyprland behaviour"
+  - x-scope="look", x-group="Hyprland behaviour"
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.backgroundColor`** · string = "base00"
   - Background color
-  - x-group="Hyprland behaviour", x-options="colors", x-showIf={"backgroundThemed":true}, x-hypr="misc.background_color", x-hyprValue="color", x-hyprIf="backgroundThemed"
+  - x-scope="look", x-group="Hyprland behaviour", x-options="colors", x-showIf={"backgroundThemed":true}, x-hypr="misc.background_color", x-hyprValue="color", x-hyprIf="backgroundThemed"
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.swallow`** · boolean = true
   - Terminals swallow what they open: A GUI app started from a terminal takes the terminal's place until it closes.
@@ -150,23 +151,23 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.mouseWakesScreen`** · boolean = true
   - Mouse wakes the screen
-  - x-group="Hyprland behaviour", x-hypr="misc.mouse_move_enables_dpms", x-hyprAlways=true
+  - x-scope="machine", x-group="Hyprland behaviour", x-hypr="misc.mouse_move_enables_dpms", x-hyprAlways=true
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.keyWakesScreen`** · boolean = false
   - Keys wake the screen
-  - x-group="Hyprland behaviour", x-hypr="misc.key_press_enables_dpms"
+  - x-scope="machine", x-group="Hyprland behaviour", x-hypr="misc.key_press_enables_dpms"
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.vrr`** · string = "0" · enum 0|1|2
   - Variable refresh rate
-  - x-group="Hyprland behaviour", x-hypr="misc.vrr", x-hyprValue="number"
+  - x-scope="machine", x-group="Hyprland behaviour", x-hypr="misc.vrr", x-hyprValue="number"
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.scrollEventDelay`** · integer = 300 · 0–2000 · ms
   - Scroll bind delay: How long a bound scroll ignores further scrolling.
-  - x-group="Hyprland behaviour", x-hypr="binds.scroll_event_delay"
+  - x-scope="machine", x-group="Hyprland behaviour", x-hypr="binds.scroll_event_delay"
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.xwaylandZeroScaling`** · boolean = true
   - Unscaled X11 apps: X11 apps draw at native resolution on scaled monitors, instead of blurry.
-  - x-group="Hyprland behaviour", x-hypr="xwayland.force_zero_scaling", x-hyprAlways=true
+  - x-scope="machine", x-group="Hyprland behaviour", x-hypr="xwayland.force_zero_scaling", x-hyprAlways=true
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 
 ### Reader members

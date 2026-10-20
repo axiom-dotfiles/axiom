@@ -1,7 +1,7 @@
 # Dock
 
 > **Files:** `services/DockManager.qml`, `config/DockConfig.qml`, `shell/Dock.qml`, `components/surfaces/dock/DockWindow.qml`, `components/surfaces/dock/DockMenu.qml`, `components/methods/DockLayout.qml`, `components/views/settings/DockListCard.qml`
-> **Config:** `Dock.*` (reader `DockConfig`); entries are `definitions/DockEntry`
+> **Config:** `Dock.*` (reader `DockConfig`); entries are `definitions/DockEntry`; `Apps.pinned` (reader `Apps`)
 > **Related:** [Held off an edge](../popouts/held-off-edge.md), [Edge attach](../popouts/edge-attach.md), [Popout registry](../popouts/registry.md), [Layering and corners](../bar/layering-and-corners.md), [OSD](osd.md)
 
 App docks on screen edges: pinned and running apps, magnification, hover and intellihide, placement against bars and the border, and the settings preview.
@@ -10,6 +10,9 @@ App docks on screen edges: pinned and running apps, magnification, hover and int
 - The `Dock` section, read by `DockConfig`.
 - `docks` is `[DockEntry]`, each with its own `enabled`; the default dock starts off (the section-wide `enabled` went in config v69).
 - Docks are edited on `views/settings/DockListCard`, the section's `x-card`, in its own `Dock` settings category.
+- **Pinned apps** are the shared `Apps.pinned` (personal), which every dock shows, unless a dock's `pinnedOwn` is on: then its own `pinned` (`DockConfig.pinnedOf`). The card's switch picks which; turning it on starts the dock's own list as a copy of the shared one.
+  - So a shared setup's docks (`pinnedOwn` is look, `pinned` personal) show the importer's apps, never the author's.
+  - Config v71 moved the first dock's `pinned` to `Apps.pinned`; another dock with a different list kept it as its own.
 
 ### Building (shell/Dock)
 - `shell/Dock` builds one `surfaces/dock/DockWindow` per enabled dock, per screen it shows on.
@@ -26,7 +29,7 @@ App docks on screen edges: pinned and running apps, magnification, hover and int
   - **`magnifiedSizes`.**
   - **`covered`.**
 - Delegates are keyed by the joined item keys.
-- **Pinning from the dock** saves at once through `SettingsManager.commitValues`:
+- **Pinning from the dock** saves at once through `SettingsManager.commitValues`, to the list the dock shows (`DockManager._editPinned`):
   - right-click `DockMenu`;
   - dragging icons;
   - dragging an icon off the dock unpins it.

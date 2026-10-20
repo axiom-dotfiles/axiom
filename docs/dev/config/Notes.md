@@ -17,12 +17,15 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `NotesConfig.directory` (part), `NotesConfig.linked` (part) · in: `services/NotesManager.qml`
 - **`Notes.extensions`** · array<string> = ["md","txt"]
   - File types: File extensions the note list shows, comma-separated. New notes are .md.
+  - x-scope="personal"
   - read: `NotesConfig.extensions` (part) · in: `components/content/parts/notes/NoteBrowser.qml`, `services/NotesManager.qml`
 - **`Notes.showHidden`** · boolean = false
   - Show hidden files: List files and folders whose names start with a dot.
+  - x-scope="personal"
   - read: `NotesConfig.showHidden` · in: `components/content/parts/notes/NoteBrowser.qml`, `services/NotesManager.qml`
 - **`Notes.confirmDelete`** · boolean = true
   - Confirm before deleting: Deleted notes and folders go to the trash. Without gio (glib2) deleting is permanent, and always asks first.
+  - x-scope="personal"
   - read: `NotesConfig.confirmDelete` · in: `components/content/parts/notes/NoteBrowser.qml`
 
 ### Reader members

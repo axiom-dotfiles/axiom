@@ -40,9 +40,14 @@ Scope {
       // from whatever is at each edge. A transparent bar reserves Hyprland's
       // gaps_out less than it draws (see BarPanel) and shows only its widgets,
       // `inset` inside its window: the gap starts at their inner edge instead.
+      // Over a fullscreen window nothing else shows, so the gaps are measured
+      // from the screen's edges instead.
+      readonly property bool fullscreen: CompositorManager.hasFullscreen(stack.modelData?.name ?? "")
       readonly property var _edges: BarManager.edgesFor(stack.modelData)
       function _edgeGap(side, gap) {
         const bar = stack._edges[side];
+        if (stack.fullscreen)
+          return gap;
         if (bar?.background !== "transparent")
           return gap;
         return gap + (CompositorManager.gapsOut[side] ?? 0) - (bar.inset ?? 0);
@@ -73,7 +78,7 @@ Scope {
         focusable: false
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "axiom-notifications"
-        exclusionMode: ExclusionMode.Normal
+        exclusionMode: stack.fullscreen ? ExclusionMode.Ignore : ExclusionMode.Normal
         exclusiveZone: 0
 
         // Where NotificationManager renders images to cache them: grabbing
@@ -136,8 +141,7 @@ Scope {
         if (!ShellManager.showsOn(stack.modelData, NotificationsConfig.monitors))
           return;
         const critical = notification.urgency === NotificationUrgency.Critical;
-        const fullscreen = CompositorManager.hasFullscreen(stack.modelData?.name ?? "");
-        if (NotificationsConfig.quietFullscreen && fullscreen && !critical)
+        if (NotificationsConfig.quietFullscreen && stack.fullscreen && !critical)
           return;
 
         // Make room: the oldest go (they leave the list once faded out)

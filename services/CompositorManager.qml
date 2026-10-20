@@ -418,7 +418,8 @@ Singleton {
       "id": id,
       "time": Date.now()
     };
-    const cols = WorkspacesConfig.columns;
+    // Dynamic workspaces are one column: every switch slides vertically
+    const cols = root.dynamicWorkspaces ? 1 : WorkspacesConfig.columns;
     const from = at - base;
     const to = id - base;
     const legs = [];
@@ -513,10 +514,11 @@ Singleton {
   // The n-th workspace (1-based) of the current row in a grid or perMonitor
   // layout, or workspace n in the standard layout (number keybinds)
   function nthWorkspace(n, mode) {
-    // The n-th of the output's list (one past its end is its last)
+    // The n-th of the output's list, its last (the empty one) past its end
     if (root.dynamicWorkspaces) {
-      if (n >= 1 && n <= root.blockSize)
-        goToWorkspace(workspaceBase(root.focusedOutput) + n - 1, mode);
+      const ids = workspaceIds(root.focusedOutput);
+      if (n >= 1 && ids.length > 0)
+        goToWorkspace(ids[Math.min(n, ids.length) - 1], mode);
       return;
     }
     if (!root.perMonitorBlocks) {
@@ -552,6 +554,16 @@ Singleton {
       root.backend.scrollStrip(direction);
   }
 
+  // A scroll bind's step (the scrollStep action): along the focused
+  // output's strip where it has one (focus follows), else to the workspace
+  // that way. Right and down go forward.
+  function scrollStep(direction) {
+    if (root.stripDirection(root.focusedOutput) !== "")
+      root.stepStrip(direction === "right" || direction === "down" ? 1 : -1, root.focusedOutput);
+    else
+      root.stepWorkspace(direction, "go");
+  }
+
   // The last workspace gone to, for a moment: key presses can come faster
   // than the compositor reports the switch
   property var _lastGo: ({
@@ -585,6 +597,10 @@ Singleton {
   // per output (supports.dynamicWorkspaces: niri's). The Workspaces
   // section's layout doesn't apply: its workspaces are the ones it has
   readonly property bool dynamicWorkspaces: root.supports.dynamicWorkspaces === true
+  // Whether they're axiom's, kept so by the backend for the scrolling
+  // layout (Hyprland: WorkspacesConfig.scrolling), rather than the
+  // compositor's own (niri), where the layout doesn't apply at all
+  readonly property bool dynamicByLayout: root.dynamicWorkspaces && root.backend?.dynamicByLayout === true
   // Whether the workspaces are laid out in a grid: the grid layout, where
   // the compositor leaves the workspaces to axiom
   readonly property bool workspaceGrid: WorkspacesConfig.grid && !root.dynamicWorkspaces
@@ -626,7 +642,7 @@ Singleton {
   function _currentLayout() {
     return {
       "blocks": WorkspacesConfig.perMonitorBlocks,
-      "size": WorkspacesConfig.size
+      "size": root.blockSize
     };
   }
 
@@ -647,11 +663,11 @@ Singleton {
     function onPerMonitorBlocksChanged() {
       root._remapTimer.restart();
     }
-
-    function onSizeChanged() {
-      root._remapTimer.restart();
-    }
   }
+
+  // The layout's size, or the backend's block where workspaces turn
+  // dynamic (Hyprland's scrolling layout)
+  onBlockSizeChanged: root._remapTimer.restart()
 
   // Moves every window from its workspace under the `from` layout to the
   // matching one in its output's ids under `to` (WorkspaceGeometry.
@@ -712,6 +728,12 @@ Singleton {
     // direction: left, right, up or down
     function step(direction: string, mode: string): void {
       root.stepWorkspace(direction, mode);
+    }
+
+    // A column along the focused output's strip, else a workspace step
+    // (scrollStep); direction: left, right, up or down
+    function scroll(direction: string): void {
+      root.scrollStep(direction);
     }
 
     function left(): void {

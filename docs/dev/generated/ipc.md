@@ -229,6 +229,7 @@ Every `IpcHandler`: call with `qs -c axiom ipc call <target> <function> [args]`.
 - `nth(n: string, mode: string): void`
 - `reconcile(): void`
 - `step(direction: string, mode: string): void`
+- `scroll(direction: string): void`
 - `left(): void`
 - `right(): void`
 - `up(): void`

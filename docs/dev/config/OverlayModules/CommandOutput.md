@@ -14,7 +14,7 @@ Settings are read as `properties.<key>`.
   - in: `components/content/CommandOutput.qml`
 - **`command`** · string = "uptime -p"
   - Command: Run with sh while the card is shown; its output is the card. One short line shows as a big figure.
-  - x-scope="machine", x-multiline=true
+  - x-scope="commands", x-multiline=true
   - in: `components/content/CommandOutput.qml`
 - **`interval`** · integer = 10 · 1–86400 · s
   - Run every
@@ -24,5 +24,5 @@ Settings are read as `properties.<key>`.
   - in: `components/content/CommandOutput.qml`
 - **`clickCommand`** · string = ""
   - On click: A command a click on the card runs (the command runs again after). Empty does nothing.
-  - x-scope="machine"
+  - x-scope="commands"
   - in: `components/content/CommandOutput.qml`

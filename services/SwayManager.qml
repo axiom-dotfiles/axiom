@@ -83,6 +83,8 @@ Singleton {
     "scratchpad": true,
     "namedSpecial": true,
     "mouseBinds": true,
+    "splitToggle": true,
+    "pin": true,
     "windowOpacity": true
   }, fx ? _fxCapabilities.reduce((caps, cap) => {
     caps[cap] = true;

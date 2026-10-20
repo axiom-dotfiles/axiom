@@ -32,7 +32,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `DockConfig.docks` (whole) · in: `services/DockManager.qml`
 - **`Dock.docks[].monitor`** · string = ""
   - Monitor: Monitor the dock is shown on. Empty uses the primary monitor.
-  - x-scope="machine", x-options="screens", x-showIf={"monitors":"monitor"}
+  - x-monitorRef="off", x-scope="machine", x-options="screens", x-showIf={"monitors":"monitor"}
   - read: `DockConfig.docks` (whole) · in: `services/DockManager.qml`
 - **`Dock.docks[].edge`** · string = "Bottom" · enum Top|Bottom|Left|Right
   - Screen edge
@@ -112,8 +112,12 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Border
   - x-options="colors"
   - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
+- **`Dock.docks[].pinnedOwn`** · boolean = false
+  - Own pinned apps: The dock shows its own pinned apps (pinned) instead of Apps → pinned, the list every other dock shares.
+  - x-settings=false
+  - read: `DockConfig.docks` (whole) · in: `components/views/settings/DockListCard.qml`, `services/DockManager.qml`
 - **`Dock.docks[].pinned`** · array<string> = []
-  - Pinned apps: Desktop entry ids, in order.
+  - Pinned apps: Desktop entry ids, in order: the dock's own, shown with pinnedOwn.
   - x-scope="personal", x-settings=false
   - read: `DockConfig.docks` (whole) · in: `components/views/settings/DockListCard.qml`, `services/DockManager.qml`
 
@@ -125,6 +129,8 @@ Every public member of `DockConfig`, with the files that use it.
   - in: `components/views/settings/DockListCard.qml`, `services/DockManager.qml`, `services/KeybindManager.qml`
 - `DockConfig.shownIds` (var): The enabled ones, by id: what the shell builds
   - in: `services/DockManager.qml`, `shell/Dock.qml`
+- `DockConfig.pinnedOf(dock)`: The apps a dock pins: its own with pinnedOwn, else the shared Apps.pinned
+  - in: `services/DockManager.qml`
 - `DockConfig.dockById(id)`
   - in: `services/DockManager.qml`, `shell/Dock.qml`
 - `DockConfig.screensOf(dock)`: The screens a dock may be on, by its `monitors` (as an OSD's): every one for "focused" and "all" (shell/Dock shows it only where ShellManager.showsOn puts it),…

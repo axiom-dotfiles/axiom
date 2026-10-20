@@ -11,15 +11,15 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`General.language`** · string = "en"
   - Language: Language for the shell's text, dates and clock. Each file in config/i18n adds one.
-  - x-options="languages"
-  - read: `General.language` · in: `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/I18n.qml`
+  - x-scope="personal", x-options="languages"
+  - read: `General.language` · in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/I18n.qml`
 - **`General.displayName`** · string = ""
   - Display name: Name shown on the lockscreen and in chat. Empty uses your login name.
   - read: `General.displayName` (computed) · in: `components/content/Greeting.qml`, `components/content/parts/LoginField.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `components/surfaces/powermenu/PowerMenuWindow.qml`
 - **`General.primaryMonitor`** · string = ""
   - Primary monitor: Monitor that hosts the lockscreen input, and the surfaces below when they're on one monitor. Empty uses the first screen.
   - x-options="screens", x-emptyLabel="First screen"
-  - read: `General.primaryMonitor` (computed) · in: `components/content/Brightness.qml`, `components/content/WallpaperPicker.qml`, `components/views/monitors/MonitorCanvas.qml`, `components/views/monitors/MonitorInspector.qml`, `config/DesktopConfig.qml`, `config/WorkspacesConfig.qml`, `services/CompositorManager.qml`, `services/MonitorManager.qml`, `services/NiriManager.qml`, `services/PolkitManager.qml`, `services/ShellManager.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`, `shell/IdleInhibit.qml` (+1 more)
+  - read: `General.primaryMonitor` (computed) · in: `components/content/Brightness.qml`, `components/content/WallpaperPicker.qml`, `components/views/monitors/MonitorCanvas.qml`, `components/views/monitors/MonitorInspector.qml`, `config/DesktopConfig.qml`, `config/WorkspacesConfig.qml`, `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `services/MonitorManager.qml`, `services/NiriManager.qml`, `services/PolkitManager.qml`, `services/ShellManager.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml` (+2 more)
 - **`General.monitors`** · string = "primary" · enum primary|focused|all
   - Monitors: Where the overlay, launcher, power menu and OSD appear (each can override this). Focused monitor opens them on the one with your active workspace (and mouse); every monitor opens them on all of them at once. The workspace overview always opens on the monitor under the mouse.
   - read: `General.monitors` · in: `components/methods/ConfigMigration.qml`, `services/ShellManager.qml`
@@ -31,9 +31,9 @@ Every public member of `General`, with the files that use it.
 - `General.displayName` (string)
   - in: `components/content/Greeting.qml`, `components/content/parts/LoginField.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `components/surfaces/powermenu/PowerMenuWindow.qml`
 - `General.language` (string): Monitor for the lockscreen input, launcher, power menu and overlay Language for the shell's text, dates and clock (see I18n): "en" | "ja"
-  - in: `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/I18n.qml`
+  - in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/I18n.qml`
 - `General.primaryMonitor` (string)
-  - in: `components/content/Brightness.qml`, `components/content/WallpaperPicker.qml`, `components/views/monitors/MonitorCanvas.qml`, `components/views/monitors/MonitorInspector.qml`, `config/DesktopConfig.qml`, `config/WorkspacesConfig.qml`, `services/CompositorManager.qml`, `services/MonitorManager.qml`, `services/NiriManager.qml`, `services/PolkitManager.qml` (+5 more)
+  - in: `components/content/Brightness.qml`, `components/content/WallpaperPicker.qml`, `components/views/monitors/MonitorCanvas.qml`, `components/views/monitors/MonitorInspector.qml`, `config/DesktopConfig.qml`, `config/WorkspacesConfig.qml`, `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `services/MonitorManager.qml`, `services/NiriManager.qml` (+6 more)
 - `General.monitors` (string): "primary" | "focused" | "all": where the power menu (and the overlay, launcher and OSD, unless their own `monitors` says otherwise) appear: the primary monitor…
   - in: `components/methods/ConfigMigration.qml`, `services/ShellManager.qml`
 - `General.outputs` (var): The connected monitors: Quickshell.screens without the stand-ins shown while none is (Qt's nameless placeholder, Hyprland's headless FALLBACK).

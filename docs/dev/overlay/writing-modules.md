@@ -41,7 +41,7 @@ How a module adapts to any size, the shared parts in `content/parts/`, where dat
   - `DeviceList`: fixed-height in a popout, off and empty states
   - `DeviceRow`: confirm-to-forget, connect; extras beside the title and content under it.
 - `ItemRow`: a plain list entry. An icon or rounded thumbnail, a title of `titleLines`, a muted subtitle, `activated` on a click, and its children as buttons on the right, faint until hovered. Used for clipboard clips, calculator answers, recordings.
-- `KeybindSection` (a section of binds as a card), `KeybindRow` and `KeyCap` draw keybinds read-only, for the Keybinds page and the Cheatsheet module.
+- `KeybindSection` (a section of binds as a card, grouped by modifiers), `KeybindRow` (keys first), `KeyCap`, `ModifierCap` and `KeyCluster` draw keybinds read-only, for the Keybinds page and the Cheatsheet module.
 - `FigureValue`: the bold value + unit row of `StatFigure` and `CompactFigure`.
 - `CompactFigure`: fills its box (inside `pad`).
   - Icon, value and label stacked, or the icon beside them in a wide box.

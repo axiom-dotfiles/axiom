@@ -2,7 +2,7 @@
 # Config: Launcher
 
 > **Reader:** `LauncherConfig` (`config/LauncherConfig.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.Launcher` · category Launcher
+> **Schema:** `config/json/config.schema.json` → `properties.Launcher` · category Launcher · scope personal
 
 Launcher: The search launcher: apps, open windows, a calculator, web search, running commands, and / commands that control the shell.
 
@@ -13,45 +13,51 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Launcher.monitors`** · string = "general" · enum general|primary|focused|all
   - Monitors: Where the launcher opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
+  - x-scope="look"
   - read: `LauncherConfig.monitors` · in: `components/surfaces/launcher/Launcher.qml`, `services/LauncherCommands.qml`, `shell/AppLauncher.qml`
 - **`Launcher.edge`** · string = "Top" · enum Top|Bottom|Left|Right
   - Screen edge: Screen edge the launcher opens from, or is held off when detached.
+  - x-scope="look"
   - read: `LauncherConfig.edge` (computed) · in: `components/surfaces/launcher/Launcher.qml`
 - **`Launcher.position`** · integer = 50 · 0–100 · %
   - Position along edge: Where along the edge its centre sits: 0 is the start (left/top), 100 the end. It never runs off the screen.
+  - x-scope="look"
   - read: `LauncherConfig.position` (computed) · in: `components/surfaces/launcher/Launcher.qml`
 - **`Launcher.detached`** · boolean = true
   - Detach from edge: A separate box floating off the edge. Off, the launcher grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge.
+  - x-scope="look"
   - read: `LauncherConfig.detached` · in: `components/surfaces/launcher/Launcher.qml`
 - **`Launcher.distance`** · integer = 30 · 0–50 · %
   - Distance from edge: How far across the free screen it sits: 0 lines it up with a detached dock or OSD on that edge, 50 centres it.
-  - x-showIf={"detached":true}
+  - x-scope="look", x-showIf={"detached":true}
   - read: `LauncherConfig.distance` (computed) · in: `components/surfaces/launcher/Launcher.qml`
 - **`Launcher.reverse`** · boolean = false
   - Search bar at the bottom: Put the search field under the results, with the best match nearest to it. Suits the bottom edge.
+  - x-scope="look"
   - read: `LauncherConfig.reverse` · in: `components/surfaces/launcher/Launcher.qml`, `components/surfaces/launcher/LauncherPanel.qml`
 - **`Launcher.width`** · integer = 680 · 400–1200 · px
   - Width: Width of the launcher.
+  - x-scope="look"
   - read: `LauncherConfig.width` · in: `components/surfaces/launcher/Launcher.qml`, `components/surfaces/launcher/LauncherPanel.qml`
 - **`Launcher.maxResults`** · integer = 8 · 3–20
   - Results shown: How many rows fit before the list scrolls.
-  - x-group="Launcher look", x-control="stepper"
+  - x-scope="look", x-group="Launcher look", x-control="stepper"
   - read: `LauncherConfig.maxResults` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherManager.qml`
 - **`Launcher.iconSize`** · integer = 32 · 16–64 · px
   - Icon size: Size of the result icons.
-  - x-group="Launcher look", x-control="stepper"
+  - x-scope="look", x-group="Launcher look", x-control="stepper"
   - read: `LauncherConfig.iconSize` · in: `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/launcher/LauncherRow.qml`
 - **`Launcher.showBackdrop`** · boolean = true
   - Dim background: Dim the whole screen behind the launcher, under the bars and border.
-  - x-group="Launcher look"
+  - x-scope="look", x-group="Launcher look"
   - read: `LauncherConfig.showBackdrop` · in: `components/surfaces/launcher/Launcher.qml`
 - **`Launcher.backdrop`** · integer = 25 · 0–90 · %
   - Backdrop darkness: How dark the screen behind the launcher goes.
-  - x-group="Launcher look", x-showIf={"showBackdrop":true}
+  - x-scope="look", x-group="Launcher look", x-showIf={"showBackdrop":true}
   - read: `LauncherConfig.backdrop` (computed) · in: `components/surfaces/launcher/Launcher.qml`
 - **`Launcher.showDescriptions`** · boolean = true
   - Descriptions: Show a second line under each result (an app's generic name, a window's class, a command's description).
-  - x-group="Launcher look"
+  - x-scope="look", x-group="Launcher look"
   - read: `LauncherConfig.showDescriptions` · in: `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/launcher/LauncherRow.qml`
 - **`Launcher.showRecent`** · boolean = true
   - Frequent apps when empty: List your most used apps before you type anything.
@@ -59,7 +65,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `LauncherConfig.showRecent` · in: `services/LauncherManager.qml`
 - **`Launcher.showHint`** · boolean = true
   - Controls hint: Show the search prefixes and keys under the results.
-  - x-group="Launcher look"
+  - x-scope="look", x-group="Launcher look"
   - read: `LauncherConfig.showHint` · in: `components/surfaces/launcher/LauncherPanel.qml`
 - **`Launcher.hiddenApps`** · array<string> = []
   - Hidden apps: Desktop entry ids never shown, comma-separated (e.g. avahi-discover, qv4l2).
@@ -99,7 +105,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `LauncherConfig.clipboard` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/ClipboardManager.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`
 - **`Launcher.clipboardSource`** · string = "axiom" · enum axiom|cliphist
   - Clipboard history source: axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).
-  - x-group="Launcher search", x-showIf={"clipboard":true}
+  - x-scope="machine", x-group="Launcher search", x-showIf={"clipboard":true}
   - read: `LauncherConfig.clipboardSource` · in: `services/ClipboardManager.qml`
 - **`Launcher.clipboardMaxEntries`** · integer = 100 · 10–1000
   - Clipboard history size: How many clips axiom keeps.

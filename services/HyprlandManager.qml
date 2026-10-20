@@ -24,8 +24,13 @@ Singleton {
   property var windows: []
   // The monitors (HyprState.output)
   readonly property var outputs: Hyprland.monitors.values.map(m => HyprState.output(m, m === Hyprland.focusedMonitor))
-  // The workspaces (HyprState.workspace)
-  readonly property var workspaces: Hyprland.workspaces.values.map(ws => HyprState.workspace(ws))
+  // The workspaces (HyprState.workspace). Under the scrolling layout,
+  // niri's: each output's from its first id, with an empty one after the
+  // last (DynamicWorkspaces.workspaces), kept so by _compaction
+  readonly property var workspaces: {
+    const real = Hyprland.workspaces.values.map(ws => HyprState.workspace(ws));
+    return root.dynamicByLayout ? DynamicWorkspaces.workspaces(real, root._bases, root.blockSize) : real;
+  }
   // The focused monitor's name, or "" while Hyprland has none
   readonly property string focusedOutput: Hyprland.focusedMonitor?.name ?? ""
   // The focused window's id (its "0x…" address), or ""
@@ -41,6 +46,7 @@ Singleton {
       "switcher": true,
       "switcherRelease": true,
       "strips": true,
+      "dynamicWorkspaces": root.dynamicByLayout,
       "focusGrab": true,
       "blurThreshold": true,
       "layerOrder": true,
@@ -68,9 +74,22 @@ Singleton {
       "namedSpecial": true,
       "mouseBinds": true,
       "pseudoTile": true,
+      "splitToggle": true,
+      "pin": true,
       "windowGroups": true,
       "outputProfiles": true
     })
+
+  // Whether the workspaces are niri's, kept by axiom (the scrolling layout,
+  // WorkspacesConfig.scrolling) rather than the layout's fixed ids. Never
+  // in the greeter, which has no windows to keep
+  readonly property bool dynamicByLayout: WorkspacesConfig.scrolling && !Paths.greeter
+  // Ids in each output's block while the workspaces are dynamic
+  // (CompositorManager.blockSize): more than anyone opens
+  readonly property int blockSize: 100
+  // Each output's first id while they're dynamic, as CompositorManager
+  // numbers them (WorkspaceGeometry.blockBases)
+  readonly property var _bases: WorkspaceGeometry.blockBases(root.outputs, General.primaryMonitor, root.blockSize)
 
   // Re-reads the monitors and the windows soon (Quickshell re-reads the
   // monitors' lastIpcObject only on monitor events)
@@ -241,7 +260,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     // Those waiting get this read's answer: it started after they asked
     const waiting = _optionsWaiting;
     _optionsWaiting = [];
-    HyprlandIpcManager.jsonBatch(["getoption general:gaps_out", "getoption dwindle:split_width_multiplier", "getoption decoration:blur:enabled", "getoption decoration:blur:size", "getoption decoration:blur:passes", "animations"], replies => {
+    HyprlandIpcManager.jsonBatch(["getoption general:gaps_out", "getoption dwindle:split_width_multiplier", "getoption decoration:blur:enabled", "getoption decoration:blur:size", "getoption decoration:blur:passes", "getoption animations:enabled", "animations"], replies => {
       root._readingOptions = false;
       root._readOptions(replies);
       waiting.forEach(callback => callback());
@@ -263,7 +282,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     refreshOptions();
   }
 
-  function _readOptions([gaps, split, blurEnabled, blurSize, blurPasses, animations]) {
+  function _readOptions([gaps, split, blurEnabled, blurSize, blurPasses, animationsEnabled, animations]) {
     root.gapsOut = _gapSides(gaps) ?? root.gapsOut;
     const multiplier = Number(split?.float);
     if (multiplier > 0)
@@ -275,6 +294,8 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     };
     if (blur.size > 0 && blur.passes > 0 && JSON.stringify(blur) !== JSON.stringify(root.blur))
       root.blur = blur;
+    if (animationsEnabled)
+      root.animationsEnabled = animationsEnabled.int !== 0 && animationsEnabled.bool !== false;
     if (Array.isArray(animations))
       root.animations = animations;
   }
@@ -423,6 +444,19 @@ hl.dispatch(hl.dsp.submap("${_captureSubmap}"))`
     Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${id}, follow = false })`);
   }
 
+  // Focuses output `name` (a dynamic workspaces' left or right step)
+  function focusOutput(name) {
+    Hyprland.dispatch(`hl.dsp.focus({ monitor = ${JSON.stringify(name)} })`);
+  }
+
+  // Moves the focused window to the workspace output `name` shows, going
+  // along with `follow` (a dynamic workspaces' left or right step)
+  function moveWindowToOutput(name, follow) {
+    const id = root.outputs.find(o => o.name === name)?.activeWorkspaceId ?? -1;
+    if (id >= 1)
+      Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${id}, follow = ${follow === true} })`);
+  }
+
   // Scrolls the focused workspace's strip a column on (1) or back (-1)
   function scrollStrip(direction) {
     Hyprland.dispatch(`hl.dsp.layout("move ${direction > 0 ? "+col" : "-col"}")`);
@@ -507,12 +541,65 @@ hl.dispatch(hl.dsp.submap("${_captureSubmap}"))`
     _slideTimer.stop();
     root.travelingTo = -1;
     const anim = root._workspaceAnim;
-    const set = enabled => `hl.animation({ leaf = "workspaces", enabled = ${enabled}, speed = ${anim.speed}, bezier = "${anim.bezier}", style = "${anim.style}" })`;
-    const move = (id, workspace) => `run(function() return hl.dsp.window.move({ workspace = ${workspace}, follow = false, window = ${_window(id)} }) end)`;
-    const focus = (monitor, workspace) => [`run(function() return hl.dsp.focus({ monitor = ${JSON.stringify(monitor)} }) end)`, `run(function() return hl.dsp.focus({ workspace = ${workspace} }) end)`];
-    const lines = [].concat(anim ? [set(false)] : [], plan.moves.map(m => move(m.id, `"name:axiom-remap-${m.to}"`)), [].concat(...outputs.map((name, i) => focus(name, `"name:axiom-remap-mon-${i}"`))), plan.moves.map(m => move(m.id, m.to)), [].concat(...plan.focus.map(f => focus(f.monitor, f.id))), anim ? [set(true)] : []);
+    const lines = [].concat(anim ? [_animLua(false)] : [], plan.moves.map(m => _moveLua(m.id, `"name:axiom-remap-${m.to}"`)), [].concat(...outputs.map((name, i) => _focusLua(name, `"name:axiom-remap-mon-${i}"`))), plan.moves.map(m => _moveLua(m.id, m.to)), [].concat(...plan.focus.map(f => _focusLua(f.monitor, f.id))), anim ? [_animLua(true)] : []);
     _eval(_luaPrelude + lines.join("\n") + _luaEpilogue);
   }
+
+  // The workspaces animation on or off, as configured otherwise (Lua)
+  function _animLua(enabled) {
+    const anim = root._workspaceAnim;
+    return `hl.animation({ leaf = "workspaces", enabled = ${enabled}, speed = ${anim.speed}, bezier = "${anim.bezier}", style = "${anim.style}" })`;
+  }
+
+  // Window `id` to `workspace` (a Lua value), staying put (Lua, in run())
+  function _moveLua(id, workspace) {
+    return `run(function() return hl.dsp.window.move({ workspace = ${workspace}, follow = false, window = ${_window(id)} }) end)`;
+  }
+
+  // Monitor `monitor` focused, then its `workspace` unless `stay` (Lua
+  // lines, in run())
+  function _focusLua(monitor, workspace, stay) {
+    const lead = `run(function() return hl.dsp.focus({ monitor = ${JSON.stringify(monitor)} }) end)`;
+    return stay ? [lead] : [lead, `run(function() return hl.dsp.focus({ workspace = ${workspace} }) end)`];
+  }
+
+  // --- Dynamic workspaces (dynamicByLayout) ---
+
+  // Closes the gaps a workspace left empty in the middle leaves
+  // (DynamicWorkspaces.compaction), once things have settled: after a
+  // fetch, with no slide, fetch or Lua under way. The plan is worked out
+  // when it's carried out, from the state then, and only ever moves windows
+  // down, so a change made meanwhile (axiom's or anyone's) is simply
+  // planned for next time.
+  property Timer _compaction: Timer {
+    interval: 300
+    onTriggered: {
+      if (!root.dynamicByLayout)
+        return;
+      if (root._fetching || root._debounce.running || root._evaluating || root._evalQueue.length > 0 || root._slideSteps.length > 0 || root.travelingTo > 0) {
+        restart();
+        return;
+      }
+      const monitors = root.outputs.map(o => ({
+            "name": o.name,
+            "active": o.activeWorkspaceId,
+            "focused": o.focused
+          }));
+      const windows = root.windows.map(w => ({
+            "id": w.id,
+            "workspace": w.workspaceId
+          }));
+      const plan = DynamicWorkspaces.compaction(monitors, windows, root._bases, root.blockSize);
+      if (!plan.changed)
+        return;
+      console.log(`[HyprlandManager] closing workspace gaps: ${plan.moves.length} windows, outputs to ${plan.focus.map(f => f.monitor + ":" + f.id).join(", ")}`);
+      const anim = root._workspaceAnim;
+      const lines = [].concat(anim ? [_animLua(false)] : [], plan.moves.map(m => _moveLua(m.id, m.to)), [].concat(...plan.focus.map(f => _focusLua(f.monitor, f.id, f.stay))), anim ? [_animLua(true)] : []);
+      _eval(_luaPrelude + lines.join("\n") + _luaEpilogue);
+    }
+  }
+
+  onDynamicByLayoutChanged: _compaction.restart()
 
   // Hyprland's general:gaps_out per side, which it adds after every
   // reserved zone (transparent bars subtract it, see BarPanel)
@@ -535,11 +622,15 @@ hl.dispatch(hl.dsp.submap("${_captureSubmap}"))`
   // Hyprland's animations (j/animations: [leaves, curves]), read with the
   // options; [] until read
   property var animations: []
+  // animations:enabled, Hyprland's switch for all of them
+  property bool animationsEnabled: true
   // Hyprland's own "workspaces" animation ({ speed, bezier, style }), put
   // back after each slide (global's speed and curve when it isn't set,
   // sliding by default); null when animations are off, so there's nothing
   // to slide with
   readonly property var _workspaceAnim: {
+    if (!animationsEnabled)
+      return null;
     const leaves = Array.isArray(animations[0]) ? animations[0] : [];
     const leaf = name => leaves.find(a => a.name === name);
     const own = leaf("workspaces");
@@ -680,6 +771,8 @@ hl.dispatch(hl.dsp.submap("${_captureSubmap}"))`
           return map;
         }, {});
         root.windows = clients.map(client => HyprState.window(client, names)).filter(win => win !== null);
+        if (root.dynamicByLayout)
+          root._compaction.restart();
       }
       if (root._pending) {
         root._pending = false;

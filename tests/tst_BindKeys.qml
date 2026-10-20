@@ -147,4 +147,43 @@ TestCase {
     compare(axiom[0].action, "overlay");
     compare(BindKeys.mergeBinds(axiom, []), axiom);
   }
+
+  // A paused bind holds no key: the user's replaces the active one on it
+  function test_mergeBinds_skips_paused() {
+    const axiom = [
+      {
+        "key": "SUPER + W",
+        "action": "focusDir",
+        "argument": "up",
+        "paused": true
+      },
+      {
+        "key": "SUPER + W",
+        "action": "workspaceStep",
+        "argument": "up"
+      },
+      {
+        "key": "SUPER + S",
+        "action": "focusDir",
+        "argument": "down",
+        "paused": true
+      }
+    ];
+    const user = [
+      {
+        "key": "SUPER + W",
+        "action": "exec",
+        "argument": "a"
+      },
+      {
+        "key": "SUPER + S",
+        "action": "exec",
+        "argument": "b"
+      }
+    ];
+    const merged = BindKeys.mergeBinds(axiom, user);
+    compare(merged.map(bind => bind.action), ["focusDir", "exec", "focusDir", "exec"]);
+    compare(merged[0].paused, true);
+    compare(merged[2].paused, true);
+  }
 }

@@ -48,7 +48,7 @@ QtObject {
 ## Steps
 1. **Schema section.**
    - `x-category` must be one of the root's `x-categories`: General, Look & Feel, Hyprland, Workspaces, Overlay & Popouts, Dock & OSD, Launcher, Notifications, Screen & Power, Calendar, Modules, Maintenance.
-   - Add `"x-scope": "look"` or `"personal"` only if the section should travel with examples and exports. Otherwise it inherits the root's `machine`.
+   - Add `"x-scope": "look"`, `"personal"` or `"commands"` only if the section should travel with examples and exports. Otherwise it inherits the root's `machine`.
 2. **Reader.**
    - Imports are only `QtQuick` and `qs.services` (for `ConfigManager`), plus other readers if needed.
    - Write one `readonly property` per key that is used, as `_c.<key>`. No `??` fallbacks.

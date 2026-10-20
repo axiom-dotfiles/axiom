@@ -85,7 +85,7 @@ OnboardingPage {
   // The main modifier: Super everywhere, or Alt (they trade places, so
   // Super + Alt binds stay distinct)
   readonly property string modifier: {
-    const launcher = KeybindsConfig.binds.find(bind => bind.action === "launcher");
+    const launcher = KeybindsConfig.activeBinds.find(bind => bind.action === "launcher");
     return /^\s*ALT\b/i.test(launcher?.key ?? "") ? "ALT" : "SUPER";
   }
 

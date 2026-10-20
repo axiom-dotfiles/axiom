@@ -8,3 +8,5 @@ Reader for the Keybinds section: axiom's own binds, edited on the Keybinds page 
 ### Properties
 
 - `binds` (readonly var)
+- `activeBinds` (readonly var): The binds to bind: all but the paused ones, which stay in the list
+- `presets` (readonly var): Bind sets saved on the Keybinds page: [{ id, name, binds }]

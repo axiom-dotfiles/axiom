@@ -10,6 +10,7 @@ Reader for the Apps section: the apps axiom opens (keybinds, the launcher's term
 - `terminal` (readonly string)
 - `fileManager` (readonly string): Empty is the system default (xdg-open / xdg-settings)
 - `browser` (readonly string)
+- `pinned` (readonly var)
 - `terminalCommand` (readonly string): What a bind (or the onboarder) runs to open each
 - `fileManagerCommand` (readonly string)
 - `browserCommand` (readonly string)

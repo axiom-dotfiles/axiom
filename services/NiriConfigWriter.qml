@@ -121,7 +121,7 @@ Singleton {
 
   // axiom's binds against the user's (BindKeys.runtimeBinds): those to
   // write, and those whose key the user's config already binds
-  readonly property var _plan: BindKeys.runtimeBinds(KeybindsConfig.binds.filter(bind => root.isComplete(bind)), _userEntries ?? [])
+  readonly property var _plan: BindKeys.runtimeBinds(KeybindsConfig.activeBinds.filter(bind => root.isComplete(bind)), _userEntries ?? [])
   on_PlanChanged: {
     for (const key of _plan.skipped) {
       const id = BindKeys.keyId(key);

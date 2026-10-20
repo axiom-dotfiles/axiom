@@ -2,7 +2,7 @@
 # Config: Sway
 
 > **Reader:** `SwayConfig` (`config/SwayConfig.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.Sway` · category Compositor
+> **Schema:** `config/json/config.schema.json` → `properties.Sway` · category Compositor · scope personal
 
 Sway: Sway's own options, written while axiom manages its config. Anything else goes in ~/.config/sway/user/.
 
@@ -17,11 +17,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `SwayConfig.options` (whole), `// reads:` marker · in: `config/SwayConfig.qml`, `services/SwayConfigWriter.qml`
 - **`Sway.hideEdgeBorders`** · string = "none" · enum none|vertical|horizontal|both|smart|smart_no_gaps
   - Hide borders at the screen edges
-  - x-sway="hide_edge_borders {}"
+  - x-scope="look", x-sway="hide_edge_borders {}"
   - read: `SwayConfig.options` (whole), `// reads:` marker · in: `config/SwayConfig.qml`, `services/SwayConfigWriter.qml`
 - **`Sway.smartGaps`** · string = "off" · enum off|on|inverse_outer
   - Smart gaps
-  - x-sway="smart_gaps {}"
+  - x-scope="look", x-sway="smart_gaps {}"
   - read: `SwayConfig.options` (whole), `// reads:` marker · in: `config/SwayConfig.qml`, `services/SwayConfigWriter.qml`
 - **`Sway.focusWrapping`** · string = "yes" · enum yes|no|force|workspace
   - Focus wraps around
@@ -33,11 +33,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `SwayConfig.options` (whole), `// reads:` marker · in: `config/SwayConfig.qml`, `services/SwayConfigWriter.qml`
 - **`Sway.xwayland`** · string = "enable" · enum enable|disable|force
   - X11 apps (Xwayland)
-  - x-sway="xwayland {}"
+  - x-scope="machine", x-sway="xwayland {}"
   - read: `SwayConfig.options` (whole), `// reads:` marker · in: `config/SwayConfig.qml`, `services/SwayConfigWriter.qml`
 - **`Sway.font`** · string = ""
   - Title bar font: A Pango font, e.g. pango:Inter 10. Empty keeps sway's.
-  - x-sway="font {}", x-swayValue="raw", x-swaySkip=""
+  - x-scope="look", x-sway="font {}", x-swayValue="raw", x-swaySkip=""
   - read: `SwayConfig.options` (whole), `// reads:` marker · in: `config/SwayConfig.qml`, `services/SwayConfigWriter.qml`
 
 ### Reader members

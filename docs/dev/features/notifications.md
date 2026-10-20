@@ -27,7 +27,7 @@ The D-Bus notification server, its persistent history, the toasts, and do-not-di
 - `shell/Notifications` stacks the toasts once per screen in `NotificationsConfig.monitors` (`showsOn`).
 - A toast the user closes closes on every screen.
 - Toasts take their entry's uid when they're created (`uidOf`), because invoking an action can close the notification.
-- **Placement:** `NotificationsConfig` sets the toasts' corner and gaps. They are measured inside the work area by an Overlay-layer anchor window with Normal exclusion, like `OverlayPanel`.
+- **Placement:** `NotificationsConfig` sets the toasts' corner and gaps. They are measured inside the work area by an Overlay-layer anchor window with Normal exclusion, like `OverlayPanel`. While the screen shows a fullscreen window the anchor ignores exclusive zones, so the gaps are measured from the screen's edges.
 
 ### Images
 - Cached as PNGs in `$XDG_STATE_HOME/axiom/notifications/`.

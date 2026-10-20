@@ -17,6 +17,12 @@ QtObject {
   // The enabled ones, by id: what the shell builds
   readonly property var shownIds: root.docks.filter(dock => dock.enabled).map(dock => dock.id)
 
+  // The apps a dock pins: its own with pinnedOwn, else the shared
+  // Apps.pinned
+  function pinnedOf(dock) {
+    return dock.pinnedOwn ? dock.pinned : Apps.pinned;
+  }
+
   function dockById(id) {
     return root.docks.find(dock => dock.id === id) ?? null;
   }

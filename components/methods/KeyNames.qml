@@ -21,6 +21,18 @@ QtObject {
       "CAPS": "Caps"
     })
 
+  // A modifier as a glyph ("SHIFT" -> "⇧"), or "" for one drawn another way
+  // (SUPER, as an icon) or with no glyph
+  function modifierGlyph(name) {
+    return root._modifierGlyphs[name] ?? "";
+  }
+  readonly property var _modifierGlyphs: ({
+      "CTRL": "⌃",
+      "ALT": "⌥",
+      "SHIFT": "⇧",
+      "CAPS": "⇪"
+    })
+
   // Other spellings Hyprland accepts, by the name used here
   readonly property var _aliases: ({
       "WIN": "SUPER",

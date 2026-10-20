@@ -9,16 +9,19 @@ CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprl
 
 - `windows` (var): The windows (HyprState.window), from j/clients
 - `outputs` (readonly var): The monitors (HyprState.output)
-- `workspaces` (readonly var): The workspaces (HyprState.workspace)
+- `workspaces` (readonly var): The workspaces (HyprState.workspace).
 - `focusedOutput` (readonly string): The focused monitor's name, or "" while Hyprland has none
 - `activeWindowId` (readonly string): The focused window's id (its "0x…" address), or ""
 - `configWriter` (readonly var): Writes axiom's layer into Hyprland's config (CompositorConfigManager).
 - `supports` (readonly var): What Hyprland does (CompositorManager.supports)
+- `dynamicByLayout` (readonly bool): Whether the workspaces are niri's, kept by axiom (the scrolling layout, WorkspacesConfig.scrolling) rather than the layout's fixed ids.
+- `blockSize` (readonly int): Ids in each output's block while the workspaces are dynamic (CompositorManager.blockSize): more than anyone opens
 - `travelingTo` (int): The workspace a slide still under way has reached, or -1
 - `gapsOut` (var): Hyprland's general:gaps_out per side, which it adds after every reserved zone (transparent bars subtract it, see BarPanel)
 - `splitWidthMultiplier` (real): dwindle:split_width_multiplier: a box wider than tall times this splits side by side (placeWindow, and the overview's drop preview)
 - `blur` (var): Hyprland's blur as in effect, { enabled, size, passes } (its defaults until read): the one axiom's translucent surfaces blur with
 - `animations` (var): Hyprland's animations (j/animations: [leaves, curves]), read with the options; [] until read
+- `animationsEnabled` (bool): animations:enabled, Hyprland's switch for all of them
 - `surfacesReady` (readonly bool): Whether the layer rules are in Hyprland.
 
 ### Signals
@@ -57,6 +60,8 @@ CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprl
 - `withCursorPos(callback)`: Calls back with the cursor's global position ({ x, y }), or null if Hyprland can't say.
 - `toplevelFor(id)`: The Wayland toplevel for a window id (its "0x…" address), for live previews
 - `sendWindowToWorkspace(id)`: Sends the focused window to workspace `id`, staying put
+- `focusOutput(name)`: Focuses output `name` (a dynamic workspaces' left or right step)
+- `moveWindowToOutput(name, follow)`: Moves the focused window to the workspace output `name` shows, going along with `follow` (a dynamic workspaces' left or right step)
 - `scrollStrip(direction)`: Scrolls the focused workspace's strip a column on (1) or back (-1)
 - `travel(output, legs, mode, focusId)`: A workspace switch (CompositorManager.goToWorkspace): `output` is focused first when set; each of `legs` ([{ id, axis: "x" | "y" | "" }]) is gone to in turn, sliding along its axis, the last one arri…
 - `applyRemap(plan, outputs)`: Carries out a remap (WorkspaceGeometry.remapWorkspaces' plan) for `outputs`, the monitors' names in block order.

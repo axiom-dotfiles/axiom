@@ -92,7 +92,7 @@ QtObject {
       _start();
       return;
     }
-    const plan = BindKeys.runtimeBinds(KeybindsConfig.binds.filter(bind => root.canBind(bind)), entries);
+    const plan = BindKeys.runtimeBinds(KeybindsConfig.activeBinds.filter(bind => root.canBind(bind)), entries);
     for (const key of plan.unreadable)
       console.warn(`[${root.logTag}] Can't read the key "${key}"; bind it as MODS + KEY`);
     for (const key of plan.skipped) {

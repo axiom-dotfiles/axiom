@@ -13,6 +13,10 @@ QtObject {
   // Empty is the system default (xdg-open / xdg-settings)
   readonly property string fileManager: _c.fileManager
   readonly property string browser: _c.browser
+  // Desktop entry ids every dock shows first, unless it has its own
+  // (DockConfig.pinnedOf). Through a string, like DockConfig.docks
+  readonly property string _pinnedJson: JSON.stringify(_c.pinned)
+  readonly property var pinned: JSON.parse(_pinnedJson)
   // What a bind (or the onboarder) runs to open each
   readonly property string terminalCommand: terminal.trim() || "xdg-terminal-exec"
   readonly property string fileManagerCommand: fileManager.trim() || 'xdg-open "$HOME"'

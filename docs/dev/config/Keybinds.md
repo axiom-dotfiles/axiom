@@ -11,32 +11,33 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 ### `Keybinds`
 
-- **`Keybinds.binds`** · array<object> = [{"key":"SUPER + space","action":"launcher"},{"key":"SUPER + Tab","ac…
+- **`Keybinds.binds`** · array<Keybind> = [{"key":"SUPER + space","action":"launcher"},{"key":"SUPER + Tab","ac…
   - Keybinds: Edited on the Keybinds page.
   - x-scope="personal"
-  - read: `KeybindsConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandConfigWriter.qml`, `services/KeybindManager.qml`, `services/NiriConfigWriter.qml`, `services/RuntimeLayer.qml`, `services/SwayConfigWriter.qml`, `services/UserBindMerge.qml`
+  - read: `KeybindsConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `services/EdgeMenuManager.qml`, `services/UserBindMerge.qml`
 
 ### `Keybinds.binds[]`
 
 - **`Keybinds.binds[]`** · object
+  - x-scopeIf={"when":{"action":["exec","raw"]},"scope":"commands"}
 - **`Keybinds.binds[].key`** · string = ""
   - Key: Modifiers and key, joined by +: "SUPER + SHIFT + space". A modifier key alone ("Super_L") fires when tapped, on compositors that can bind one.
-  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/KeybindManager.qml`
-- **`Keybinds.binds[].action`** · string = "launcher" · enum launcher|launcherSearch|overlay|overlayPage|edgeMenu|dock|workspaceOverview|powerMenu|lock|toggleDnd|clearNotifications|idleInhibit|nightLight|nextWallpaper|workspaceStep|moveWindowStep|moveWindowStepSilent|workspaceNth|moveWindowNth|moveWindowNthSilent|focusDir|moveWindowDir|resizeWindow|closeWindow|fullscreen|toggleFloat|pin|centerWindow|toggleGroup|windowSwitcher|windowSwitcherReverse|mouseDrag|mouseResize|toggleSpecial|moveToSpecial|restartShell|volumeUp|volumeDown|toggleMute|toggleMicMute|brightnessUp|brightnessDown|mediaPlayPause|mediaNext|mediaPrevious|mediaStop|terminal|fileManager|browser|screenshot|screenRecord|exitSession|exec|pseudo|toggleSplit|stripSwapColumn|stripWider|stripNarrower|stripFit|raw
+  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `services/EdgeMenuManager.qml`
+- **`Keybinds.binds[].action`** · string = "launcher" · enum launcher|launcherSearch|overlay|overlayPage|edgeMenu|dock|workspaceOverview|powerMenu|lock|toggleDnd|clearNotifications|idleInhibit|nightLight|nextWallpaper|workspaceStep|moveWindowStep|moveWindowStepSilent|workspaceNth|moveWindowNth|moveWindowNthSilent|scrollStep|focusDir|moveWindowDir|resizeWindow|closeWindow|fullscreen|toggleFloat|pin|centerWindow|toggleGroup|windowSwitcher|windowSwitcherReverse|mouseDrag|mouseResize|toggleSpecial|moveToSpecial|restartShell|volumeUp|volumeDown|toggleMute|toggleMicMute|brightnessUp|brightnessDown|mediaPlayPause|mediaNext|mediaPrevious|mediaStop|terminal|fileManager|browser|screenshot|screenRecord|exitSession|exec|pseudo|toggleSplit|stripSwapColumn|stripWider|stripNarrower|stripFit|stripConsume|stripCenter|raw
   - Action
-  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/KeybindManager.qml`, `services/NiriConfigWriter.qml`
+  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `services/EdgeMenuManager.qml`
 - **`Keybinds.binds[].argument`** · string = ""
   - Argument: Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step ("50 0"), screenshot kind (region, window or screen), command, or a compositor command in its own language (Hyprland: a dispatcher as Lua, hl.dsp.layout("swapsplit"); sway: a command, layout tabbed; niri: an action as its config writes it, focus-column-first).
   - x-showIf={"action":["launcherSearch","overlayPage","edgeMenu","dock","workspac…
-  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/KeybindManager.qml`
+  - read: `KeybindsConfig.binds` (whole) · in: `services/EdgeMenuManager.qml`
 - **`Keybinds.binds[].call`** · string = "toggle" · enum toggle|open|close
   - Call: For actions that open and close something: whether the bind toggles it, only opens it or only closes it.
   - x-showIf={"action":["launcher","overlay","edgeMenu","dock","workspaceOverview"…
-  - read: `KeybindsConfig.binds` (whole) · in: `services/KeybindManager.qml`
+  - read: entry field, name match · in: `components/views/keybinds/BindInspector.qml`
 - **`Keybinds.binds[].compositor`** · string = "hyprland" · enum hyprland|sway|niri
   - Compositor: The compositor the command is written for: the bind does nothing under another.
   - x-showIf={"action":"raw"}
-  - read: `KeybindsConfig.binds` (whole) · in: `services/KeybindManager.qml`
+  - read: entry field, name match · in: `components/views/keybinds/BindInspector.qml`
 - **`Keybinds.binds[].repeating`** · boolean = false
   - Repeat while held
   - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/BindActions.qml`, `components/methods/NiriConf.qml`, `components/methods/SwayConf.qml`
@@ -45,14 +46,76 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match repo-wide, `// reads:` marker · in: `components/content/Notes.qml`, `components/methods/BindActions.qml`, `components/methods/NiriConf.qml`, `components/methods/SwayConf.qml`, `shell/Lockscreen.qml`
 - **`Keybinds.binds[].release`** · boolean = false
   - On release
-  - read: `KeybindsConfig.binds` (whole), `// reads:` marker · in: `components/methods/BindActions.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: entry field, name match, `// reads:` marker · in: `components/methods/BindActions.qml`
+- **`Keybinds.binds[].paused`** · boolean = false
+  - Paused: Kept in the list but not bound.
+  - read: entry field, name match · in: `components/views/keybinds/BindInspector.qml`, `components/views/keybinds/BindListRow.qml`, `components/views/keybinds/BindSection.qml`, `config/KeybindsConfig.qml`
 - **`Keybinds.binds[].description`** · string = ""
   - Description: Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write "Section: Label".
-  - read: `KeybindsConfig.binds` (whole) · in: `services/KeybindManager.qml`
+  - read: entry field, name match · in: `components/views/keybinds/BindInspector.qml`, `components/views/keybinds/PresetSheet.qml`
+
+### `Keybinds`
+
+- **`Keybinds.presets`** · array<object> = []
+  - Saved keybind presets: Sets of binds saved from the Keybinds page, to restore or merge later. Edited on the Keybinds page.
+  - x-scope="personal"
+  - read: `KeybindsConfig.presets` · in: `services/KeybindManager.qml`
+
+### `Keybinds.presets[]`
+
+- **`Keybinds.presets[]`** · object
+- **`Keybinds.presets[].id`** · string = ""
+  - read: `KeybindsConfig.presets` (whole) · in: `services/KeybindManager.qml`
+- **`Keybinds.presets[].name`** · string = ""
+  - read: `KeybindsConfig.presets` (whole) · in: `services/KeybindManager.qml`
+- **`Keybinds.presets[].binds`** · array<Keybind> = []
+  - read: `KeybindsConfig.presets` (whole) · in: `services/KeybindManager.qml`
+
+### `Keybinds.presets[].binds[]`
+
+- **`Keybinds.presets[].binds[]`** · object
+  - x-scopeIf={"when":{"action":["exec","raw"]},"scope":"commands"}
+- **`Keybinds.presets[].binds[].key`** · string = ""
+  - Key: Modifiers and key, joined by +: "SUPER + SHIFT + space". A modifier key alone ("Super_L") fires when tapped, on compositors that can bind one.
+  - read: `KeybindsConfig.presets` (whole) · in: `services/KeybindManager.qml`
+- **`Keybinds.presets[].binds[].action`** · string = "launcher" · enum launcher|launcherSearch|overlay|overlayPage|edgeMenu|dock|workspaceOverview|powerMenu|lock|toggleDnd|clearNotifications|idleInhibit|nightLight|nextWallpaper|workspaceStep|moveWindowStep|moveWindowStepSilent|workspaceNth|moveWindowNth|moveWindowNthSilent|scrollStep|focusDir|moveWindowDir|resizeWindow|closeWindow|fullscreen|toggleFloat|pin|centerWindow|toggleGroup|windowSwitcher|windowSwitcherReverse|mouseDrag|mouseResize|toggleSpecial|moveToSpecial|restartShell|volumeUp|volumeDown|toggleMute|toggleMicMute|brightnessUp|brightnessDown|mediaPlayPause|mediaNext|mediaPrevious|mediaStop|terminal|fileManager|browser|screenshot|screenRecord|exitSession|exec|pseudo|toggleSplit|stripSwapColumn|stripWider|stripNarrower|stripFit|stripConsume|stripCenter|raw
+  - Action
+  - read: `KeybindsConfig.presets` (whole) · in: `services/KeybindManager.qml`
+- **`Keybinds.presets[].binds[].argument`** · string = ""
+  - Argument: Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step ("50 0"), screenshot kind (region, window or screen), command, or a compositor command in its own language (Hyprland: a dispatcher as Lua, hl.dsp.layout("swapsplit"); sway: a command, layout tabbed; niri: an action as its config writes it, focus-column-first).
+  - x-showIf={"action":["launcherSearch","overlayPage","edgeMenu","dock","workspac…
+  - read: `KeybindsConfig.presets` (whole) · in: `services/KeybindManager.qml`
+- **`Keybinds.presets[].binds[].call`** · string = "toggle" · enum toggle|open|close
+  - Call: For actions that open and close something: whether the bind toggles it, only opens it or only closes it.
+  - x-showIf={"action":["launcher","overlay","edgeMenu","dock","workspaceOverview"…
+  - read: `KeybindsConfig.presets` (whole) · in: `services/KeybindManager.qml`
+- **`Keybinds.presets[].binds[].compositor`** · string = "hyprland" · enum hyprland|sway|niri
+  - Compositor: The compositor the command is written for: the bind does nothing under another.
+  - x-showIf={"action":"raw"}
+  - read: `KeybindsConfig.presets` (whole) · in: `services/KeybindManager.qml`
+- **`Keybinds.presets[].binds[].repeating`** · boolean = false
+  - Repeat while held
+  - read: entry field, name match repo-wide · in: `components/methods/NiriConf.qml`, `components/methods/SwayConf.qml`
+- **`Keybinds.presets[].binds[].locked`** · boolean = false
+  - Works while locked
+  - read: entry field, name match repo-wide · in: `components/content/Notes.qml`, `components/methods/NiriConf.qml`, `components/methods/SwayConf.qml`, `shell/Lockscreen.qml`
+- **`Keybinds.presets[].binds[].release`** · boolean = false
+  - On release
+  - read: entry field, name match · in: none found
+- **`Keybinds.presets[].binds[].paused`** · boolean = false
+  - Paused: Kept in the list but not bound.
+  - read: `KeybindsConfig.presets` (whole) · in: `services/KeybindManager.qml`
+- **`Keybinds.presets[].binds[].description`** · string = ""
+  - Description: Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write "Section: Label".
+  - read: `KeybindsConfig.presets` (whole) · in: `services/KeybindManager.qml`
 
 ### Reader members
 
 Every public member of `KeybindsConfig`, with the files that use it.
 
 - `KeybindsConfig.binds` (var)
-  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandConfigWriter.qml`, `services/KeybindManager.qml`, `services/NiriConfigWriter.qml`, `services/RuntimeLayer.qml`, `services/SwayConfigWriter.qml`, `services/UserBindMerge.qml`
+  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `services/EdgeMenuManager.qml`, `services/UserBindMerge.qml`
+- `KeybindsConfig.activeBinds` (var): The binds to bind: all but the paused ones, which stay in the list
+  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/HyprlandConfigWriter.qml`, `services/KeybindManager.qml`, `services/NiriConfigWriter.qml`, `services/RuntimeLayer.qml`, `services/SwayConfigWriter.qml`
+- `KeybindsConfig.presets` (var): Bind sets saved on the Keybinds page: [{ id, name, binds }]
+  - in: `services/KeybindManager.qml`

@@ -111,14 +111,14 @@ QtObject {
    * a key already bound replaces that bind where it stands (the user's
    * config loads after axiom's layer, so it's the one that was in effect),
    * the rest are added at the end, a later one on the same key winning.
-   * Binds whose key has no id (none yet, or a bad modifier) are kept as
-   * they are.
+   * Binds whose key has no id (none yet, or a bad modifier) and paused
+   * ones (they hold no key) are kept as they are.
    */
   function mergeBinds(binds, incoming) {
     const result = (binds ?? []).slice();
     const at = {};
     result.forEach((bind, index) => {
-      const id = keyId(bind.key);
+      const id = bind.paused === true ? "" : keyId(bind.key);
       if (id !== "" && at[id] === undefined)
         at[id] = index;
     });

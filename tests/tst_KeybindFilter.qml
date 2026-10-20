@@ -114,5 +114,37 @@ TestCase {
     compare(cols[1].map(s => s.title), ["B", "C", "D"], "the shorter column takes each next section");
     compare(KeybindFilter.columns([], 3).length, 3);
     compare(KeybindFilter.columns([section("A", 1)], 0).length, 1, "at least one column");
+    // Each modifier group's header counts a row: A is 1.5 + 2 rows + 2
+    // headers = 5.5, B (1.5 + 5 rows, no modifiers) 6.5, so C goes under A
+    const grouped = {
+      "title": "A",
+      "binds": [row("Terminal", ["SUPER"], ["Return"], true), row("Browser", ["SUPER", "SHIFT"], ["B"], true)]
+    };
+    const cols2 = KeybindFilter.columns([grouped, section("B", 5), section("C", 1)], 2);
+    compare(cols2[1].map(s => s.title), ["B"]);
+    compare(cols2[0].map(s => s.title), ["A", "C"]);
+  }
+
+  function test_ids() {
+    const withIds = [
+      {
+        "title": "Apps",
+        "undescribed": false,
+        "binds": [Object.assign(row("Terminal", ["SUPER"], ["Return"], true), {
+            "ids": ["64:return"]
+          }), Object.assign(row("Browser", ["SUPER"], ["B"], true), {
+            "ids": ["64:b"]
+          })]
+      }
+    ];
+    compare(KeybindFilter.filter(withIds, "", {
+      "ids": ["64:b"]
+    })[0].binds.map(r => r.label), ["Browser"]);
+    compare(KeybindFilter.filter(withIds, "", {
+      "ids": ["64:q"]
+    }).length, 0);
+    compare(KeybindFilter.filter(withIds, "", {
+      "ids": null
+    })[0].binds.length, 2);
   }
 }

@@ -25,8 +25,10 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-group`: puts a field on a card of that name. One section or object can make several cards.
   - The bar and edge menu editors group a `Bar`'s / `EdgeMenu`'s own fields the same way (`SchemaLayout.objectGroups`, as `Bar.fieldGroups` / `EdgeMenusConfig.fieldGroups`).
 - `x-cardPerField: true` (on a section): each direct field becomes a card of its own, titled and described by the field, sorted by title, a switch's row labelled "Enabled" (`row.label`, `row.description` override the field's in `SchemaField`). The section's description gets a card first. Example: `ThemeIntegrations`, one card per app.
-- `x-scope` (`look` | `personal` | `machine`, inherited, root `machine`): what a snapshot, example, import or export carries. See [Saved configs and sharing](saved-configs-sharing.md).
-  - A new setting inside a look section that names a monitor, path, account or command needs `machine` or `personal`.
+- `x-scope` (`look` | `personal` | `commands` | `machine`, inherited, root `machine`): what a snapshot, example, import or export carries. See [Saved configs and sharing](saved-configs-sharing.md).
+  - A new setting inside a look section that names a monitor, path or account needs `machine`; one that runs something (a command, a terminal) `commands`; a preference that means something on any PC `personal`.
+- `x-scopeIf: { when, scope }` (on an array's item schema): an item that matches `when` (`x-showIf`'s form, over the item's keys) has `scope` as its own: an exec bind is `commands`, an app's OSD bar `personal`.
+- `x-monitorRef` (`"off"` | `"drop"`, on a per-monitor part's `monitor`): a shared file names the monitor by its place, and a part for a place the user has no monitor for is turned off or left out (`ConfigExamples.apply`).
 - `x-libraryGroups` (root) lists in order the groups the bar editor's and layouts editor's libraries sort their types into (by category).
   - Each bar widget and overlay module definition joins one with `x-libraryGroup` (`methods/LibraryOrder`, `reusable/TypeLibrary`).
   - `check_structure.py` errors on an unknown group.

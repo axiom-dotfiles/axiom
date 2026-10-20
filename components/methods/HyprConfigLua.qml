@@ -61,7 +61,8 @@ QtObject {
       return `hl.dsp.layout("togglesplit")`;
     // Strips (the scrolling layout): the column before (left, up) or after
     // (right, down) swaps with the focused one; widths step through
-    // scrolling.explicit_column_widths
+    // scrolling.explicit_column_widths; consuming takes the focused window
+    // into the column that way, or out of its own one into a new one
     case "stripSwapColumn":
       return `hl.dsp.layout(${_lua("swapcol " + (argument === "left" || argument === "up" ? "l" : "r"))})`;
     case "stripWider":
@@ -70,6 +71,10 @@ QtObject {
       return `hl.dsp.layout("colresize -conf")`;
     case "stripFit":
       return `hl.dsp.layout("fit visible")`;
+    case "stripConsume":
+      return `hl.dsp.layout(${_lua("consume_or_expel " + (argument === "left" || argument === "up" ? "prev" : "next"))})`;
+    case "stripCenter":
+      return `hl.dsp.layout("center")`;
     // Any dispatcher, as Lua (`hl.dsp.layout("swapsplit")`), compiled when
     // the bind is made so a mistake only leaves that bind doing nothing
     // instead of breaking the whole file (bindLua leaves out a raw command
@@ -307,10 +312,27 @@ return setmetatable({}, { __index = function() return function() end end })
       }
     })
 
+  // Whether the managed settings `m` turn Hyprland's animations off
+  // altogether (animations:enabled): off, instant, or following axiom's
+  // motion while it's off. `motion`: { enabled }
+  function animationsOff(m, motion) {
+    return !m.animations || m.animationPreset === "instant" || (m.animationPreset === "axiom" && !motion.enabled);
+  }
+
   // The preset (or custom list) of the managed settings `m` as { curves,
   // leaves }, or null for Hyprland's own animations. `motion`: the shell's
-  // { fast, normal, slow } durations in ms (the "axiom" preset)
+  // { fast, normal, slow } durations in ms (the "axiom" preset). A set
+  // giving global but not workspaces gets a workspaces leaf like global's:
+  // requiredLua's own one, set before, would otherwise keep sliding.
   function animationSet(m, motion) {
+    const set = _animationSet(m, motion);
+    const global = set?.leaves.find(leaf => leaf[0] === "global");
+    if (global && !set.leaves.some(leaf => leaf[0] === "workspaces"))
+      set.leaves.push(["workspaces", global[1], global[2], "slide"]);
+    return set;
+  }
+
+  function _animationSet(m, motion) {
     switch (m.animationPreset) {
     case "axiom":
       {
@@ -337,7 +359,11 @@ return setmetatable({}, { __index = function() return function() end end })
         };
       }
     }
-    return root.animationPresets[m.animationPreset] ?? null;
+    const preset = root.animationPresets[m.animationPreset];
+    return preset ? {
+      "curves": preset.curves,
+      "leaves": preset.leaves.slice()
+    } : null;
   }
 
   // The curves and animations of the managed settings `m`, or "" for
@@ -345,8 +371,7 @@ return setmetatable({}, { __index = function() return function() end end })
   // animations; following axiom's motion while it's off turns them off,
   // in configLua)
   function animationsLua(m, motion) {
-    const off = !m.animations || (m.animationPreset === "axiom" && !motion.enabled);
-    const set = off ? null : animationSet(m, motion);
+    const set = animationsOff(m, motion) ? null : animationSet(m, motion);
     if (!set)
       return "";
     const lines = Object.keys(set.curves).map(name => {
@@ -370,8 +395,8 @@ return setmetatable({}, { __index = function() return function() end end })
   // (M.look()).
   function configLua(m, opts) {
     const overrides = {};
-    // Following axiom's motion includes turning animations off with it
-    if (m.animationPreset === "axiom" && !opts.motion.enabled)
+    // Instant, or following axiom's motion while it's off, turns them off
+    if (animationsOff(m, opts.motion))
       overrides["animations.enabled"] = false;
     return `hl.config(${HyprLua.serialize(HyprLua.configTable(opts.schema, m, opts.resolveHex, overrides))})`;
   }

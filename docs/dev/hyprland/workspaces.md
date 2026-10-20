@@ -15,6 +15,7 @@ One workspace layout serves everything that shows workspaces or moves between th
 - `standard`: ids 1..`count`, shared by every monitor.
 - `perMonitor`: each monitor gets its own block of `count` ids.
 - `grid`: each monitor gets a block of `columns × rows` ids.
+- `scrolling`: ids as `perMonitor` (`count` each), and every monitor a horizontal strip (`WorkspacesConfig.strips` is `*` whatever the list holds; [workspace strips](workspace-strips.md)). Offered only with `supports.strips` and not `stripsAlways` (`x-enumShowIf`). On Hyprland its workspaces are dynamic, as niri's, kept by axiom ([workspace strips](workspace-strips.md) › The scrolling layout). A config carrying it elsewhere (sway) works as `perMonitor`: the strips are ignored there (`CompositorManager.stripDirection`), and nothing else tells the two apart.
 - Blocks are numbered in a stable monitor order (`WorkspaceGeometry.orderMonitors`: the primary first, then by output identity). `WorkspaceGeometry.blockBases` gives each output's first id.
 - Where the compositor's workspaces belong to an output (`supports.outputWorkspaces`, niri), every layout gets blocks, `standard` too (`CompositorManager.perMonitorBlocks`), and nothing is remapped.
 - **Dynamic workspaces** (`supports.dynamicWorkspaces`, niri): the compositor makes and removes them itself, one column per output, so no layout applies. The section's fields are greyed out under its `x-intro` (`WorkspacesStatus`), except `wrap`. Blocks are the backend's `blockSize` long (`CompositorManager.blockSize`), `workspaceIds` are the ones it has, `workspaceGrid` is false whatever the layout says (so the Workspaces widget's `showActiveIcon` is hidden), the widget always shows app icons (`showAppIcons` is hidden; `WorkspaceCellRow.appIcons`), `wideActive` and `relativeNumbers` show whatever the layout, and the overview is one column.
@@ -38,7 +39,7 @@ One workspace layout serves everything that shows workspaces or moves between th
 - **In a grid** a move only reaches the monitor's own ids.
   - It goes sideways first, then vertically, sliding along each axis in turn (`animate`).
   - Each leg of a two-leg trip takes `_legSpeed` of the configured time.
-- **The slide** (`HyprlandManager.travel`) briefly overrides Hyprland's `workspaces` animation, then puts it back. The animation is read with the options (`HyprlandManager.animations`) at startup and on config reload.
+- **The slide** (`HyprlandManager.travel`) briefly overrides Hyprland's `workspaces` animation, then puts it back. The animation is read with the options (`HyprlandManager.animations`, and `animationsEnabled`: with `animations:enabled` off there's no slide, just the switch) at startup and on config reload.
 - Keybinds call `qs -c axiom ipc call workspaces …` rather than scripts of their own.
 
 ### Layout changes (remap)

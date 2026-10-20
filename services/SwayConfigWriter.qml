@@ -123,7 +123,7 @@ Singleton {
     return SwayConf.moduleText({
       "header": _header,
       "includeLines": includeLines,
-      "binds": SwayConf.bindLines(KeybindsConfig.binds, _bindCtx),
+      "binds": SwayConf.bindLines(KeybindsConfig.activeBinds, _bindCtx),
       "look": SwayConf.lookLines(spec.look, false),
       "input": _inputLines(spec, false),
       "outputs": _outputLinesIn(path)
@@ -259,7 +259,7 @@ Singleton {
         callback(null);
         return;
       }
-      const ours = root._runtimeOn ? runtime.applied : KeybindsConfig.binds;
+      const ours = root._runtimeOn ? runtime.applied : KeybindsConfig.activeBinds;
       callback(entries.filter(entry => entry.submap === "").concat(SwayConf.bindEntries(ours, root._bindCtx)));
     });
   }

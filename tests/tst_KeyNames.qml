@@ -11,6 +11,13 @@ TestCase {
     compare(KeyNames.modifierLabel("MOD3"), "Mod3");
   }
 
+  function test_modifierGlyph() {
+    compare(KeyNames.modifierGlyph("SHIFT"), "⇧");
+    compare(KeyNames.modifierGlyph("CTRL"), "⌃");
+    compare(KeyNames.modifierGlyph("SUPER"), "", "drawn as an icon");
+    compare(KeyNames.modifierGlyph("MOD3"), "");
+  }
+
   function test_keyName() {
     compare(KeyNames.keyName(Qt.Key_A, 0), "A");
     compare(KeyNames.keyName(Qt.Key_5, 0), "5");

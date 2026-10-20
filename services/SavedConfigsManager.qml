@@ -8,8 +8,8 @@ import qs.components.methods
 
 /**
  * Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/saved/.
- * A snapshot holds what ConfigExamples.snapshot picks: the look and personal
- * parts (by the schema's x-scope) and the wallpaper setup (x-snapshot:
+ * A snapshot holds what ConfigExamples.snapshot picks: the look, personal
+ * parts and commands (by the schema's x-scope) and the wallpaper setup (x-snapshot:
  * wallpapers, mode, rotation, light/dark ones, theme schedule), in the
  * export format, so a saved file can be shared or imported as it is.
  * Restoring applies it like an example, plus the wallpaper setup (other
@@ -77,8 +77,9 @@ QtObject {
   property string _savedStatus: ""
   property string _savedSource: ""
   // An imported file awaiting confirmation: { name, title, description,
-  // path, config, hasPersonal } (config loaded: migrated, defaults filled;
-  // hasPersonal: the file holds keybinds, apps or commands), or null
+  // path, config, hasPersonal, hasCommands } (config loaded: migrated,
+  // defaults filled; hasPersonal: the file holds preferences, keybinds or
+  // apps; hasCommands: commands), or null
   property var importing: null
   // The file picker is open
   readonly property bool picking: FilePickerManager.running
@@ -92,7 +93,8 @@ QtObject {
   signal applyFailed(string name)
 
   // What to apply once the running config is saved as its backup:
-  // { name, config, personal, snapshot }, or null
+  // { name, config, carry, snapshot } (carry: ConfigExamples.apply's), or
+  // null
   property var _pendingApply: null
   // The snapshot being restored once its wallpapers are checked:
   // { name, path, config }, or null
@@ -201,7 +203,7 @@ QtObject {
     root._restoring = null;
     if (!pending)
       return;
-    const applied = ConfigExamples.apply(ConfigManager.config, pending.config, ConfigManager.configSchema, true);
+    const applied = ConfigExamples.apply(ConfigManager.config, pending.config, ConfigManager.configSchema, ConfigExamples.everything);
     if (!ConfigManager.restoreConfig(ConfigExamples.withSnapshot(applied, pending.config, ConfigManager.configSchema, existing))) {
       root.status = I18n.tr("\"{0}\" is not a valid config", pending.name);
       return;
@@ -212,21 +214,21 @@ QtObject {
     console.log("[SavedConfigsManager] Restored", pending.path);
   }
 
-  // Applies the schema defaults like an example (the look and personal
-  // parts; machine settings stay), after saving the running config as
+  // Applies the schema defaults like an example (the look, personal parts
+  // and commands; machine settings stay), after saving the running config as
   // "before-defaults". The current version skips migration, which would
   // otherwise treat the empty object as a version 1 config.
   function restoreDefaults() {
     _backupThenApply("defaults", ConfigManager.normalizeConfig({
       "version": ConfigMigration.currentVersion
-    }), true);
+    }), ConfigExamples.everything);
   }
 
   // A file to apply, loaded (migrated, defaults filled; null if invalid),
-  // keeping what an older file never held (ConfigExamples.keepMovedLook)
+  // keeping what an older file never held (ConfigExamples.keepMovedKeys)
   function _load(parsed) {
     const config = ConfigManager.normalizeConfig(parsed);
-    return config ? ConfigExamples.keepMovedLook(config, ConfigManager.config, parsed.version) : null;
+    return config ? ConfigExamples.keepMovedKeys(config, ConfigMigration.migrate(parsed).config, ConfigManager.config, parsed.version) : null;
   }
 
   // Saves the running config as "before-<name>", then applies the example
@@ -237,7 +239,7 @@ QtObject {
       root.status = I18n.tr("\"{0}\" could not be read", name);
       return;
     }
-    _backupThenApply(name, root._load(example), false, name, "example-" + name);
+    _backupThenApply(name, root._load(example), [], name, "example-" + name);
   }
 
   // Opens the desktop's file picker; the chosen file goes to openImport
@@ -261,29 +263,38 @@ QtObject {
       return;
     }
     const title = String(parsed._example?.title ?? "") || fileName.replace(/\.json$/, "");
-    // A file with no personal parts loads with their defaults, which taking
-    // them would put in place of the user's own keybinds and apps. Read
-    // migrated (not filled), so an older file's are found where they are now
+    // A file with no personal parts (or commands) loads with their
+    // defaults, which taking them would put in place of the user's own
+    // keybinds and apps. Read migrated (not filled), so an older file's are
+    // found where they are now
     const schema = ConfigManager.configSchema;
     const migrated = ConfigMigration.migrate(parsed).config;
+    const look = ConfigExamples.pick(migrated, schema);
+    const personal = ConfigExamples.pick(migrated, schema, ["personal"]);
     root.importing = {
       name: sanitize(title) || "import",
       title: title,
       description: String(parsed._example?.description ?? ""),
       path: path,
       config: config,
-      hasPersonal: !Utils.deepEqual(ConfigExamples.pick(migrated, schema, true), ConfigExamples.pick(migrated, schema, false))
+      hasPersonal: !Utils.deepEqual(personal, look),
+      // Next to the personal parts, as exec binds are commands inside the
+      // (personal) bind list
+      hasCommands: !Utils.deepEqual(ConfigExamples.pick(migrated, schema, ["personal", "commands"]), personal)
     };
     root.status = "";
   }
 
-  // Applies `importing` (its personal parts too when `personal`: keybinds,
-  // apps, commands), after saving the running config as "before-<name>"
-  function confirmImport(personal) {
+  // Applies `importing` (its personal parts too when `personal`:
+  // preferences, keybinds, apps; its commands when `commands`), after
+  // saving the running config as "before-<name>"
+  function confirmImport(personal, commands) {
     const pending = root.importing;
     root.importing = null;
-    if (pending)
-      _backupThenApply(pending.name, pending.config, personal && pending.hasPersonal, pending.name, "import-" + pending.name);
+    if (!pending)
+      return;
+    const carry = [].concat(personal && pending.hasPersonal ? ["personal"] : [], commands && pending.hasCommands ? ["commands"] : []);
+    _backupThenApply(pending.name, pending.config, carry, pending.name, "import-" + pending.name);
   }
 
   function cancelImport() {
@@ -291,13 +302,13 @@ QtObject {
   }
 
   // Applies a shared file at `path` straight away, its look only (never
-  // keybinds, apps or commands), after saving the running config as
+  // preferences, keybinds, apps or commands), after saving the running config as
   // "before-<name>", then saves the result as `snapshot`: a community
   // setup (CommunitySetupsManager). False with `status` saying why when
   // the file can't be applied.
   function applyShared(name, path, title, snapshot) {
     const parsed = root._readShared(path, title);
-    return parsed !== null && root._backupThenApply(name, root._load(parsed), false, title, snapshot);
+    return parsed !== null && root._backupThenApply(name, root._load(parsed), [], title, snapshot);
   }
 
   // The parsed shared file at `path`, or null with `status` saying why (as
@@ -334,10 +345,14 @@ QtObject {
     return parsed;
   }
 
-  // Writes the running config's look (and personal parts, when `personal`)
-  // to ~/axiom-<name>-<date>-<time>.json, holding only what differs from the
-  // defaults: a file to share, in the format examples and imports use
-  function exportConfig(personal) {
+  // Writes the running config's look (and its personal parts when
+  // `personal`, its commands when `commands`) to
+  // ~/axiom-<name>-<date>-<time>.json, holding only what differs from the
+  // defaults: a file to share, in the format examples and imports use.
+  // `places`: per-monitor parts name their monitor by its place
+  // (ConfigExamples.pick's monitors), which the community setups' check
+  // doesn't take yet
+  function exportConfig(personal, commands, places = true) {
     const schema = ConfigManager.configSchema;
     const header = {
       "_example": {
@@ -347,7 +362,8 @@ QtObject {
       "version": ConfigMigration.currentVersion
     };
     // Applies as the whole pick would (tst_ConfigExamples' round trips)
-    const shared = Object.assign({}, header, ConfigExamples.sparse(ConfigExamples.pick(ConfigManager.config, schema, personal), schema));
+    const carry = [].concat(personal ? ["personal"] : [], commands ? ["commands"] : []);
+    const shared = Object.assign({}, header, ConfigExamples.sparse(ConfigExamples.pick(ConfigManager.config, schema, carry, places ? root._monitors() : null), schema));
     const now = new Date();
     // To the second, so a later export never replaces an earlier one
     const pad = n => String(n).padStart(2, "0");
@@ -359,8 +375,8 @@ QtObject {
 
   // False (with `status` naming it as `label`) when `config` is invalid or
   // another apply is under way. `snapshot`: the name to save the result
-  // as once applied ("" for none)
-  function _backupThenApply(name, config, personal, label = name, snapshot = "") {
+  // as once applied ("" for none); `carry`: ConfigExamples.apply's
+  function _backupThenApply(name, config, carry, label = name, snapshot = "") {
     if (!config) {
       root.status = I18n.tr("\"{0}\" is not a valid config", label);
       return false;
@@ -373,7 +389,7 @@ QtObject {
     root._pendingApply = {
       name: name,
       config: config,
-      personal: personal,
+      carry: carry,
       snapshot: snapshot
     };
     save("before-" + name);
@@ -381,7 +397,7 @@ QtObject {
   }
 
   function _apply(pending) {
-    if (!ConfigManager.restoreConfig(ConfigExamples.apply(ConfigManager.config, pending.config, ConfigManager.configSchema, pending.personal))) {
+    if (!ConfigManager.restoreConfig(ConfigExamples.apply(ConfigManager.config, pending.config, ConfigManager.configSchema, pending.carry, root._monitors()))) {
       root.status = I18n.tr("\"{0}\" is not a valid config", pending.name);
       root.applyFailed(pending.name);
       return;
@@ -389,12 +405,18 @@ QtObject {
     root._setActive("", null);
     SettingsManager.loadConfig();
     root.status = I18n.tr("Applied \"{0}\". The previous configuration is saved as \"{1}\".", pending.name, "before-" + pending.name);
-    console.log("[SavedConfigsManager] Applied", pending.name, pending.personal ? "with personal parts" : "");
+    console.log("[SavedConfigsManager] Applied", pending.name, pending.carry.length > 0 ? "with " + pending.carry.join(", ") : "");
     // Handlers may change the config first (a community setup's wallpaper)
     root.applied(pending.name);
     // Later: this runs inside the backup's write, through the same FileView
     if (pending.snapshot !== "")
       Qt.callLater(root.save, pending.snapshot, I18n.tr("Applied \"{0}\" as \"{1}\". The previous configuration is saved as \"{2}\".", pending.name, sanitize(pending.snapshot), "before-" + pending.name), pending.name);
+  }
+
+  // This PC's monitors by place (ConfigExamples.monitorOrder): what a
+  // shared file's per-monitor parts are written against and put on
+  function _monitors() {
+    return ConfigExamples.monitorOrder(CompositorManager.outputs);
   }
 
   // The parsed example (with its _example header), or null

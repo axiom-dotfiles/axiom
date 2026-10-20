@@ -37,20 +37,22 @@ QtObject {
    * The sections with their binds that pass: `query` (matched against a
    * section's title, which keeps all its rows, a row's label and its keys,
    * case-insensitively) and `filters` ({ sections: [sectionKey], mods:
-   * ["SUPER", …], sources: ["axiom" | "user"] }). Sections left with no
-   * binds are dropped.
+   * ["SUPER", …], sources: ["axiom" | "user"], ids: [BindKeys.keyId] (a
+   * row holding one of them; null doesn't filter) }). Sections left with
+   * no binds are dropped.
    */
   function filter(sections, query, filters) {
     const needle = String(query ?? "").trim().toLowerCase();
     const keys = filters?.sections ?? [];
     const mods = filters?.mods ?? [];
     const sources = filters?.sources ?? [];
+    const ids = filters?.ids ?? null;
     const result = [];
     for (const section of sections ?? []) {
       if (keys.length > 0 && !keys.includes(sectionKey(section)))
         continue;
       const titleMatches = needle === "" || _matches(section.title, needle);
-      const binds = section.binds.filter(row => rowPasses(row, mods, sources) && (titleMatches || _rowMatches(row, needle)));
+      const binds = section.binds.filter(row => rowPasses(row, mods, sources) && (ids === null || (row.ids ?? []).some(id => ids.includes(id))) && (titleMatches || _rowMatches(row, needle)));
       if (binds.length === 0)
         continue;
       result.push(binds.length === section.binds.length ? section : Object.assign({}, section, {
@@ -61,8 +63,9 @@ QtObject {
   }
 
   // Sections split into `count` columns for a masonry layout: each goes to
-  // the shortest column so far, by rows (a heading counts 1.5, the
-  // undescribed section's note 2 more)
+  // the shortest column so far, by rows (a heading counts 1.5, each
+  // modifier group's header 1 (BindRows.byModifiers), the undescribed
+  // section's note 2 more)
   function columns(sections, count) {
     const result = [];
     const heights = [];
@@ -73,7 +76,7 @@ QtObject {
     for (const section of sections ?? []) {
       const target = heights.indexOf(Math.min(...heights));
       result[target].push(section);
-      heights[target] += 1.5 + section.binds.length + (section.undescribed ? 2 : 0);
+      heights[target] += 1.5 + section.binds.length + BindRows.byModifiers(section.binds).filter(group => group.mods.length > 0).length + (section.undescribed ? 2 : 0);
     }
     return result;
   }

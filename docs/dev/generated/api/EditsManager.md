@@ -12,6 +12,7 @@ The editors' unsaved edits, by overlay page: which pages hold a dirty draft (the
 - `canActOnAll` (readonly bool)
 - `libraryGrouped` (readonly bool): The widget and module libraries show their types by group (the schema's `x-libraryGroups`), else by name
 - `barStacked` (readonly bool): The bar editor draws a top or bottom bar's sections stacked down the side of the page, as a side bar's, rather than across it
+- `keybindsFolded` (readonly var): The Keybinds editor's folded sections, by section name
 - `typingField` (readonly var): The box holding typed text (var: callers use commitTyped() and discardTyped()), and the window it's in, so only that window's Save shows it
 - `typingWindow` (readonly var)
 
@@ -19,6 +20,7 @@ The editors' unsaved edits, by overlay page: which pages hold a dirty draft (the
 
 - `setLibraryGrouped(value)`
 - `setBarStacked(value)`
+- `setKeybindsFolded(section, folded)`
 - `holdTyping(field, window)`
 - `releaseTyping(field)`
 - `commitTyping()`: Before a save: the typed text commits (dropped if it isn't valid yet)

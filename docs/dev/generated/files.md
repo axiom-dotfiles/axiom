@@ -138,11 +138,15 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `FigureValue.qml`: A bold value with its unit beside it, on one baseline (StatFigure, CompactFigure)
 - `FocusKeeper.qml`: Keeps the keyboard on a field (the lock screen's password, the greeter's login box): whenever focus leaves it, `reclaim` fires on the next tick.
 - `ItemRow.qml`: One entry in a module's list (clipboard clips, calculator answers, recordings): an icon or a rounded thumbnail, a title and a muted subtitle, and buttons on the right (children), faint until the row is hovered so showin…
-- `KeyCap.qml`: One key (or modifier) of a keybind, drawn as a small keycap
-- `KeybindRow.qml`: One action: its label on the left, its key combos on the right, alternatives separated by a slash
-- `KeybindSection.qml`: One section of keybinds as a card: its title, then a row per action
+- `KeyCap.qml`: One key (or modifier) of a keybind, drawn as a small keycap: its text, or an icon before it
+- `KeyCluster.qml`: A folded direction set's keys in one keycap, spaced (H J K L)
+- `KeybindRow.qml`: One action of the keybinds reference, keys first: its key combos (alternatives separated by a slash; a folded direction set as one keycap), its action's icon (a person for the user's own binds), its label, and a warning…
+- `KeybindSection.qml`: One section of the keybinds reference as a card: its icon and title, then its rows grouped by modifiers (BindRows.byModifiers), each group under its modifiers, with the keys in one aligned column
+- `KeyboardMap.qml`: A US keyboard (KeyMap.rows, then KeyMap.extras), each key coloured and labelled through hooks: the editor's key map of free keys and the keybinds reference's keyboard.
+- `KeyboardReference.qml`: The keybinds reference as a keyboard: under the modifiers picked (`mods`), each key shows what it does (KeyMap.labels), coloured by whose bind it is.
 - `LoginField.qml`: The greeter's login box: who logs in (a list of the system's users to pick from or type over, or typed only) and the password, with greetd's messages under it.
 - `MenuSubmenu.qml`: An edge menu's modules in another menu's submenu (SubPopout, loaded as "parts/MenuSubmenu" by a Submenu module), on a grid at the card size of the menu it opens from, scaled by this one's moduleScale.
+- `ModifierCap.qml`: A combo's modifiers in one keycap: as glyphs (Super as an icon, ⌃ ⌥ ⇧), or as words with `glyphs` off
 - `ModuleHeader.qml`: Icon + title row at the top of a module; children go on the right
 - `PasswordField.qml`: The lock screen's password field: what the Password module draws, and LockSurface's own when no Password module shows.
 - `PomodoroDial.qml`: The pomodoro timer (PomodoroManager), for the Pomodoro popout and module and the Focus module: a ring with the time left and the phase, a dot per session until the long break, stop / start-pause / skip, and (with `showT…
@@ -259,7 +263,9 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BarShapes.qml`: The shapes bar widget backgrounds take (Bars[].widgetShape, a slanted or arrow widget's or run's ends by Bars[].widgetEnds), alone or in runs (Bars[].widgetGrouping): which cap each end of a widget gets, how much room i…
 - `BarWidgetStyle.qml`: What a bar widget draws in, by its bar's widget style: { fill, stroke, indicator, text, icon }.
 - `BindActions.qml`: What each keybind action (the schema's Keybinds.binds[].action) is, independent of the compositor: its IPC call into axiom, default label, section on the Keybinds page, calls, starting flags and whether it takes an argu…
+- `BindGroups.qml`: The Keybinds editor's list: axiom's binds grouped by section, and in a section, numbered runs (SUPER + 1 … SUPER + 0 going to workspaces 1–10) folded into one row.
 - `BindKeys.qml`: Binds against what the compositor reports (CompositorManager.withBinds entries: { modmask, key, keycode, description, submap }, the modifiers as X11 mask bits, as Hyprland's `hyprctl binds -j` lists them and SwayConf re…
+- `BindRows.qml`: The Keybinds reference's rows (KeybindManager.keybindings): numbered runs and direction sets folded into one row each, and a section's rows grouped by their modifiers.
 - `CalendarEvents.qml`: Pure helpers for calendar events (see CalendarManager): day keys, which days an event covers, a day's events in order, dots, what's next, reminders due, editing drafts and the launcher's quick add.
 - `ChatMarkdown.qml`: Splits a chat reply into what the chat draws separately: Markdown prose (a TextEdit in MarkdownText) and fenced code blocks (a box of their own, with a copy button).
 - `ChatProtocol.qml`: The chat providers' wire formats, as pure functions: ChatManager builds a request with request(), ChatRequest sends it with curl and feeds every streamed event to parse().
@@ -272,6 +278,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ConfigMigration.qml`: Upgrades older config.json layouts to the current one (see config/json/config.schema.json).
 - `DataDirs.qml`: Where axiom keeps what it writes (XDG base directories), and where it kept it inside the repo before (the legacy layout, until moved over).
 - `DockLayout.qml`: Pure helpers for the dock: which apps it shows (pinned ones, then running ones), which window a click goes to, how big each icon is under the pointer, and whether a window covers it.
+- `DynamicWorkspaces.qml`: niri's workspaces for a compositor that only has ids (Hyprland, under the scrolling layout): each output's workspaces are its block's ids from the first, without gaps, with one empty one after the last.
 - `EdgeAttach.qml`: Where a box that grows out of a screen edge goes along it: bar popouts, edge popouts (the launcher, OSDs, floating edge menus) and anything else drawn with AttachedSurface.
 - `GreeterBundle.qml`: The greeter's config, both ways (GreeterManager writes it, ConfigManager reads it in the greeter).
 - `GreeterSessions.qml`: The sessions the greeter can start (GreetdManager): Wayland session desktop entries (wayland-sessions/*.desktop in each data dir), their Exec line split into the argv greetd launches, and the environment they start in.
@@ -283,6 +290,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `HyprState.qml`: Hyprland's JSON replies (HyprlandManager) as the shapes the rest of the shell reads, which don't depend on the compositor: what another compositor's service would hand back too.
 - `HypridleConf.qml`: The hypridle config axiom runs hypridle with (HypridleManager), from the Idle section: a general block, then one listener per step whose timeout isn't 0 (dim, lock, screen off, suspend) in timeout order, then the user's…
 - `IconResolver.qml`: Resolves icon names for window classes: desktop entries first, then known substitutions, then name variants that exist in the icon theme.
+- `KeyMap.qml`: The Keybinds editor's key map: a US keyboard as rows of keys (by the names binds use, KeyNames), and which of them a set of modifiers leaves free, given axiom's binds and the user's own.
 - `KeyNames.qml`: Keys as Hyprland writes them ("SUPER + SHIFT + space"): turning a Qt key event into one (for recording a bind), and splitting one for display.
 - `KeybindFilter.qml`: The Keybinds page's filter over KeybindManager.keybindings: a search plus toggle chips in three groups (sections, modifiers, source).
 - `KeyboardLayouts.qml`: A keyboard's layouts as the shell shows them ({ layouts, index, keymap }, CompositorManager.withKeyboard), from the full names a compositor reports ("English (US)"): the same for every backend that only has those.
@@ -503,7 +511,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BaseView.qml`: The base of every overlay page (views/<type>.qml): its grid and viewConfig, and the page sizes hand-built pages lay out with.
 - `CalendarPage.qml`: The Calendar page: the month large, each day's events in it where they fit, and beside it the selected day's events (opening in the editor) over the calendars, which switch on and off here.
 - `Custom.qml`: A view assembled from config: its modules, each in its place on a grid of quarter cards (eighths with a double grid, `fineGrid`: laid out at its card size, OverlayConfig.pageUnit).
-- `Keybinds.qml`: The keybinds page: Hyprland's binds by section, as cards in columns, with a search over labels, sections and keys and toggle chips by section, modifier and source (KeybindFilter); or the editor for axiom's own binds (Bi…
+- `Keybinds.qml`: The keybinds page: the compositor's binds by section, as cards in columns, with a search over labels, sections and keys and toggle chips by section, modifier and source (KeybindFilter); or the editor for axiom's own bin…
 - `Layouts.qml`: The layouts editor: always the last page (pinned by OverlayPages; not part of config).
 - `Monitors.qml`: The monitors page: layout profiles (one per set of monitors, picked by what's connected), each a layout to drag monitors around in and the selected monitor's settings.
 - `Settings.qml`: The settings page, generated from the config schema: categories (in `x-categories` order) and search on the left, the selected category's groups in two columns on the right.
@@ -522,10 +530,14 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 ## components/views/keybinds/
 
 - `ActionPicker.qml`: A bind's action: a button showing it, opening a popup with a search and one scrolling list of actions under collapsible category headers (KeybindManager.actionInfo).
-- `BindEditor.qml`: The Keybinds page's editor for axiom's own binds (Keybinds.binds): presets, then one row per bind, with a search and a sort that only change what's shown.
-- `BindEditorRow.qml`: One of axiom's binds in the editor: key, action, argument and label on one line, its issues under it.
+- `BindEditor.qml`: The Keybinds page's list of axiom's own binds (Keybinds.binds), the body of its left card: what the last merge did, the binds' issues, the strip to undo the last removal or preset, then the binds by section (BindSection…
+- `BindInspector.qml`: The Keybinds editor's inspector for the selected bind (KeybindManager.selectedIndex): its key, action, argument and label, its flags in words, its issues, and Duplicate, Pause and Remove.
+- `BindListRow.qml`: One row of the Keybinds editor's list: a bind, or a numbered run of binds (BindGroups) folded into one.
+- `BindSection.qml`: A section of the Keybinds editor's list (KeybindManager.editLayout): a header to fold it (remembered, EditsManager.keybindsFolded), with its counts, the unsaved dot and a switch pausing or resuming all of it, over its r…
 - `FilterChips.qml`: The Keybinds page's toggle chips, in groups set apart by a short line, then Clear while any is on.
+- `KeyMapPanel.qml`: The Keybinds editor's key map, shown while no bind is selected: a keyboard (KeyMap) under the modifiers picked, each key coloured by who holds it (KeyMap.occupancy).
 - `KeyRecorder.qml`: A bind's key combo as keycaps; click to record a new one.
+- `PresetSheet.qml`: The Keybinds editor's presets, over the list: on the left the built-in ones and those saved from here (KeybindManager.savedPresets), each group folding, and a field to save the binds as one; on the right what the chosen…
 
 ## components/views/layouts/
 
@@ -562,7 +574,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ChatProvidersCard.qml`: The Chat category's first card (the section's `x-card`): each provider's API key (where it comes from, and a field to store one: in the keyring, or the secrets file without one), a connection test, and fetching its mode…
 - `CommunitySetupsCard.qml`: Settings page, Maintenance › Community setups (the section's `x-card`, wide): the gallery of setups shared at axiom-dotfiles/community-setups.
 - `CompositorStatusCard.qml`: The Compositor section's first card (its `x-card`): whether the mode is in effect and what it needs, and, while a new mode waits for Save (`x-applyOnSave`), what saving will do
-- `DockListCard.qml`: The Dock section's first card (its `x-card`): the docks as tabs, one shown at a time: where it sits (a screen picker with presets), Show, its pinned apps (with a search to add more) and its settings (EntryListCard).
+- `DockListCard.qml`: The Dock section's first card (its `x-card`): the docks as tabs, one shown at a time: where it sits (a screen picker with presets), Show, its pinned apps (the shared Apps.pinned, or its own with pinnedOwn, with a search…
 - `EntryListCard.qml`: A section's list of entries as one card (the Dock and OSD `x-card`s): the entries as tabs, one shown at a time: where it sits (a screen picker with `presets`), Show, Duplicate and Delete, then `entryContent` and its set…
 - `FoldingCard.qml`: A settings card that folds: clicking its header (title, help text, chevron) emits `toggled`, and the body below animates shut while `collapsed`.
 - `GreeterStatusCard.qml`: The Greeter section's first card (its `x-card`): whether axiom is the login screen, and setting it up, updating or removing it (GreeterSetup)
@@ -580,7 +592,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SettingsGroupCard.qml`: i18n: keys from the schema (titles, descriptions) One group of settings (a section's own fields, or one nested object) as a card: title, help text, then its rows.
 - `SettingsSidebar.qml`: i18n: keys from the schema (category names, card titles) Settings page, left: search and the category list; the selected category also lists its cards, and clicking one scrolls the page to it.
 - `TranslucencyStatus.qml`: The top of the Translucency card (its `x-intro`): a warning that it's experimental, and while the surfaces blur, the blur they get: the compositor's one (CompositorManager.blur, as in effect), set by the window look's b…
-- `WorkspacesStatus.qml`: The top of the Workspaces card (the section's `x-intro`): where the compositor makes its workspaces itself (CompositorManager. dynamicWorkspaces), why the layout below is greyed out and what the workspace keys do instead
+- `WorkspacesStatus.qml`: The top of the Workspaces card (the section's `x-intro`): where the compositor makes its workspaces itself (CompositorManager. dynamicWorkspaces), why the layout below is greyed out and what the workspace keys do instea…
 
 ## shell/
 

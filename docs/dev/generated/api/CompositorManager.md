@@ -25,6 +25,7 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 - `focused` (readonly var): The focused output, or null
 - `perMonitorBlocks` (readonly bool): Whether each output has a block of ids of its own: the grid and perMonitor layouts, and every layout where the compositor's workspaces belong to an output (supports.outputWorkspaces: niri's), as the …
 - `dynamicWorkspaces` (readonly bool): Whether the compositor makes and removes workspaces itself, one list per output (supports.dynamicWorkspaces: niri's).
+- `dynamicByLayout` (readonly bool): Whether they're axiom's, kept so by the backend for the scrolling layout (Hyprland: WorkspacesConfig.scrolling), rather than the compositor's own (niri), where the layout doesn't apply at all
 - `workspaceGrid` (readonly bool): Whether the workspaces are laid out in a grid: the grid layout, where the compositor leaves the workspaces to axiom
 - `blockSize` (readonly int): How many ids each output's block holds: the layout's size, or the backend's own where its workspaces are dynamic
 
@@ -72,5 +73,6 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 - `nthWorkspace(n, mode)`: The n-th workspace (1-based) of the current row in a grid or perMonitor layout, or workspace n in the standard layout (number keybinds)
 - `stripDirection(screenName)`: "horizontal" | "vertical" on a strip monitor (its name), else "", always "" where the compositor has no strips (a config from Hyprland may still list them), always "horizontal" where it has nothing e…
 - `stepStrip(direction, output)`: Scrolls the strip of an output's active workspace a column on (1) or back (-1).
+- `scrollStep(direction)`: A scroll bind's step (the scrollStep action): along the focused output's strip where it has one (focus follows), else to the workspace that way.
 - `workspaceBase(output)`: First workspace id an output (its name) shows: 1 in the standard layout, else its block's (grid/perMonitor, one block per output in a stable order — the primary first, then the rest by a description-…
 - `workspaceIds(output)`: The workspace ids an output (its name) shows, in order: the layout's, or the ones the compositor has where they're dynamic

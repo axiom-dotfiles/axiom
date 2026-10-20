@@ -2,7 +2,7 @@
 # Config: Idle
 
 > **Reader:** `Idle` (`config/Idle.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.Idle` · category Screen & Power
+> **Schema:** `config/json/config.schema.json` → `properties.Idle` · category Screen & Power · scope personal
 
 Idle: What happens when you step away: dimming, locking, turning the screens off and suspending, run by hypridle.
 
@@ -13,59 +13,59 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Idle.enabled`** · boolean = false
   - Manage hypridle: axiom runs hypridle with a config of its own (~/.local/state/axiom/hypridle.conf) and stops any other hypridle while this is on. Your own hypridle.conf is never touched; remove your own hypridle autostart line.
-  - x-takeover=true
+  - x-scope="machine", x-takeover=true
   - read: `Idle.enabled`, `// reads:` marker · in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/settings/IdleStatusCard.qml`, `services/HypridleManager.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`Idle.dimTimeout`** · integer = 150 · 0–7200 · s
   - Dim the screens after: 0 never dims. Brightness comes back when you return.
   - x-showIf={"enabled":true}
-  - read: `Idle.dimTimeout`, `// reads:` marker · in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `services/HypridleManager.qml`
+  - read: `Idle.dimTimeout`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `services/HypridleManager.qml`
 - **`Idle.dimMode`** · string = "to" · enum to|by
   - Dim: A set brightness leaves screens already darker as they are. A share always dims, unless a screen is already at 0.
   - x-showIf={"enabled":true}
-  - read: `Idle.dimMode`, `// reads:` marker · in: `services/HypridleManager.qml`
+  - read: `Idle.dimMode`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 - **`Idle.dimLevel`** · integer = 30 · 5–100 · %
   - Dim to: Screens already darker stay as they are.
   - x-showIf={"enabled":true,"dimMode":"to"}
-  - read: `Idle.dimLevel`, `// reads:` marker · in: `services/HypridleManager.qml`
+  - read: `Idle.dimLevel`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 - **`Idle.dimBy`** · integer = 50 · 5–95 · %
   - Dim by: How much of each screen's current brightness to take away: 50% takes 80% down to 40%.
   - x-showIf={"enabled":true,"dimMode":"by"}
-  - read: `Idle.dimBy`, `// reads:` marker · in: `services/HypridleManager.qml`
+  - read: `Idle.dimBy`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 - **`Idle.lockTimeout`** · integer = 300 · 0–7200 · s
   - Lock after: 0 never locks on idle. Locks with the Lockscreen settings' locker.
   - x-showIf={"enabled":true}
-  - read: `Idle.lockTimeout`, `// reads:` marker · in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `services/HypridleManager.qml`
+  - read: `Idle.lockTimeout`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `services/HypridleManager.qml`
 - **`Idle.screenOffTimeout`** · integer = 330 · 0–7200 · s
   - Turn the screens off after: 0 keeps them on.
   - x-showIf={"enabled":true}
-  - read: `Idle.screenOffTimeout`, `// reads:` marker · in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `services/HypridleManager.qml`
+  - read: `Idle.screenOffTimeout`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `services/HypridleManager.qml`
 - **`Idle.suspendTimeout`** · integer = 0 · 0–14400 · s
   - Suspend after: 0 never suspends on idle.
   - x-showIf={"enabled":true}
-  - read: `Idle.suspendTimeout`, `// reads:` marker · in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `services/HypridleManager.qml`
+  - read: `Idle.suspendTimeout`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `services/HypridleManager.qml`
 - **`Idle.lockBeforeSleep`** · boolean = true
   - Lock before sleep: Lock the session before the computer suspends or hibernates.
   - x-group="Sleep", x-showIf={"enabled":true}
-  - read: `Idle.lockBeforeSleep`, `// reads:` marker · in: `services/HypridleManager.qml`
+  - read: `Idle.lockBeforeSleep`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 - **`Idle.screenOnAfterSleep`** · boolean = true
   - Screens on after sleep: Turn the screens back on when the computer wakes.
   - x-group="Sleep", x-showIf={"enabled":true}
-  - read: `Idle.screenOnAfterSleep`, `// reads:` marker · in: `services/HypridleManager.qml`
+  - read: `Idle.screenOnAfterSleep`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 - **`Idle.respectInhibitors`** · boolean = true
   - Respect apps that keep the screen on: Video players and browsers can ask to stay awake over D-Bus and systemd. The caffeine widget works either way.
   - x-group="Sleep", x-showIf={"enabled":true}
-  - read: `Idle.respectInhibitors`, `// reads:` marker · in: `services/HypridleManager.qml`
+  - read: `Idle.respectInhibitors`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 - **`Idle.listeners`** · array<object> = []
   - Extra listeners: Commands of your own to run after a time idle, and when you return.
-  - x-group="Idle listeners", x-showIf={"enabled":true}
-  - read: `Idle.listeners`, `// reads:` marker · in: `services/HypridleManager.qml`
+  - x-scope="commands", x-group="Idle listeners", x-showIf={"enabled":true}
+  - read: `Idle.listeners`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 
 ### `Idle.listeners[]`
 
 - **`Idle.listeners[]`** · object
 - **`Idle.listeners[].timeout`** · integer = 600 · 1–14400 · s
   - After
-  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/HypridleConf.qml`, `config/NotificationsConfig.qml`, `services/HypridleManager.qml`, `shell/Notifications.qml`, `shell/OSD.qml`
+  - read: `Idle.listeners` (whole), `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 - **`Idle.listeners[].onTimeout`** · string = ""
   - Run
   - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/HypridleConf.qml`, `services/HypridleManager.qml`
@@ -74,7 +74,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/HypridleConf.qml`, `services/HypridleManager.qml`
 - **`Idle.listeners[].enabled`** · boolean = true
   - On
-  - read: `Idle.listeners` (whole), `// reads:` marker · in: `services/HypridleManager.qml`
+  - read: `Idle.listeners` (whole), `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 
 ### Reader members
 
@@ -83,24 +83,24 @@ Every public member of `Idle`, with the files that use it.
 - `Idle.enabled` (bool)
   - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/settings/IdleStatusCard.qml`, `services/HypridleManager.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - `Idle.dimTimeout` (int)
-  - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`
+  - in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`
 - `Idle.dimMode` (string): "to": down to dimLevel%; "by": dimBy% off each screen's brightness
-  - in: `services/HypridleManager.qml`
+  - in: `components/methods/ConfigExamples.qml`
 - `Idle.dimLevel` (int)
-  - in: `services/HypridleManager.qml`
+  - in: `components/methods/ConfigExamples.qml`
 - `Idle.dimBy` (int)
-  - in: `services/HypridleManager.qml`
+  - in: `components/methods/ConfigExamples.qml`
 - `Idle.lockTimeout` (int)
-  - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`
+  - in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`
 - `Idle.screenOffTimeout` (int)
-  - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`
+  - in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`
 - `Idle.suspendTimeout` (int)
-  - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`
+  - in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`
 - `Idle.lockBeforeSleep` (bool)
-  - in: `services/HypridleManager.qml`
+  - in: `components/methods/ConfigExamples.qml`
 - `Idle.screenOnAfterSleep` (bool)
-  - in: `services/HypridleManager.qml`
+  - in: `components/methods/ConfigExamples.qml`
 - `Idle.respectInhibitors` (bool)
-  - in: `services/HypridleManager.qml`
+  - in: `components/methods/ConfigExamples.qml`
 - `Idle.listeners` (var): [{ enabled, timeout, onTimeout, onResume }]
-  - in: `services/HypridleManager.qml`
+  - in: `components/methods/ConfigExamples.qml`

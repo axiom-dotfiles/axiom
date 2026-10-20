@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 69
+  readonly property int currentVersion: 71
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -165,6 +165,10 @@ QtObject {
       result = _v67ToV68(result, changes);
     if (version < 69)
       result = _v68ToV69(result, changes);
+    if (version < 70)
+      result = _v69ToV70(result, changes);
+    if (version < 71)
+      result = _v70ToV71(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -675,10 +679,11 @@ QtObject {
     return root._addBinds(config, changes, root._v20Binds);
   }
 
-  // A saved bind list gets these default binds, each only on a key it
-  // doesn't use yet
-  function _addBinds(config, changes, added) {
-    const binds = config.Hyprland?.binds;
+  // A saved bind list (`section`'s: Hyprland's until v60, then Keybinds)
+  // gets these default binds, each only on a key it doesn't use yet
+  function _addBinds(config, changes, added, section) {
+    const key = section ?? "Hyprland";
+    const binds = config[key]?.binds;
     if (!Array.isArray(binds))
       return config;
     const used = new Set(binds.map(bind => BindKeys.keyId(bind?.key)));
@@ -688,7 +693,7 @@ QtObject {
         continue;
       binds.push(JSON.parse(JSON.stringify(bind)));
       used.add(id);
-      changes.push(`Hyprland.binds: added ${bind.key} (${bind.action})`);
+      changes.push(`${key}.binds: added ${bind.key} (${bind.action})`);
     }
     return config;
   }
@@ -2311,6 +2316,54 @@ QtObject {
       section[each.list] = entries;
       changes.push(`${each.key}.enabled -> ${each.key}.${each.list}[].enabled`);
     }
+    return config;
+  }
+
+  // v70 added SUPER + scroll along the layout (scrollStep) and the media
+  // stop key to the default binds (the strip binds stay the Strips
+  // preset's: they do nothing without strips)
+  function _v69ToV70(config, changes) {
+    return root._addBinds(config, changes, [
+      {
+        "key": "SUPER + mouse_down",
+        "action": "scrollStep",
+        "argument": "right"
+      },
+      {
+        "key": "SUPER + mouse_up",
+        "action": "scrollStep",
+        "argument": "left"
+      },
+      {
+        "key": "XF86AudioStop",
+        "action": "mediaStop",
+        "locked": true
+      }
+    ], "Keybinds");
+  }
+
+  // v71 moved pinned apps to Apps.pinned, the list every dock shows unless
+  // it has its own (pinnedOwn): the first dock's pins move there, and any
+  // other dock with a different list keeps it as its own
+  function _v70ToV71(config, changes) {
+    const docks = config.Dock?.docks;
+    if (!Array.isArray(docks) || docks.length === 0 || !docks[0] || typeof docks[0] !== "object")
+      return config;
+    const shared = Array.isArray(docks[0].pinned) ? docks[0].pinned : [];
+    if (!config.Apps || typeof config.Apps !== "object")
+      config.Apps = {};
+    config.Apps.pinned = shared;
+    delete docks[0].pinned;
+    for (const dock of docks.slice(1)) {
+      if (!dock || typeof dock !== "object")
+        continue;
+      const own = Array.isArray(dock.pinned) ? dock.pinned : [];
+      if (JSON.stringify(own) === JSON.stringify(shared))
+        delete dock.pinned;
+      else
+        dock.pinnedOwn = true;
+    }
+    changes.push("Dock.docks[0].pinned -> Apps.pinned");
     return config;
   }
 }

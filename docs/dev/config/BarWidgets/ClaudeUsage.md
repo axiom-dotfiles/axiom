@@ -30,7 +30,7 @@ Settings are read as `properties.<key>`.
   - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`clickCommand`** · string = ""
   - Click command: Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now.
-  - x-scope="personal"
+  - x-scope="commands"
   - in: `components/bar/widgets/ClaudeUsage.qml`
 - **`backgroundColor`** · string = ""
   - Color

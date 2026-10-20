@@ -22,6 +22,8 @@ StyledContainer {
   required property int bindIndex
   required property string combo
   property bool invalid: false
+  // Shown while it holds no combo
+  property string placeholder: I18n.tr("Click to record")
 
   readonly property bool recording: KeybindManager.recordingIndex === root.bindIndex
   // Modifiers held so far while recording
@@ -38,6 +40,11 @@ StyledContainer {
   onRecordingChanged: {
     root.held = [];
     root.tap = "";
+    if (root.recording)
+      catcher.forceActiveFocus();
+  }
+  // Recording may start before it's built (a bind added and recorded)
+  Component.onCompleted: {
     if (root.recording)
       catcher.forceActiveFocus();
   }
@@ -69,7 +76,7 @@ StyledContainer {
 
     StyledText {
       visible: root.recording || root.parts.key === ""
-      text: root.recording ? I18n.tr("Press a combo…") : I18n.tr("Click to record")
+      text: root.recording ? I18n.tr("Press a combo…") : root.placeholder
       textColor: root.recording ? Theme.accent : Theme.foreground
       opacity: root.recording ? 1 : 0.5
       textSize: Appearance.fontSize - 1
