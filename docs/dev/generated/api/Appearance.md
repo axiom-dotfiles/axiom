@@ -25,6 +25,7 @@ Reader for the Appearance section. Values are always present: schema defaults ar
 - `lightAt` (readonly string)
 - `darkAt` (readonly string)
 - `fontFamily` (readonly string): --- Font ---
+- `baseFontSize` (readonly int): At the Interface scale (Widget.scale); bars size their text from baseFontSize, the setting itself
 - `fontSize` (readonly int)
 - `fontSizeLarge` (readonly int)
 - `iconFamily` (readonly string): Icons are Material Symbols names drawn in this font (StyledIcon), so they don't depend on the text font

@@ -88,8 +88,10 @@ Every public member of `Appearance`, with the files that use it.
   - in: `services/WallpaperManager.qml`
 - `Appearance.fontFamily` (string): --- Font ---
   - in: `components/bar/widgets/Time.qml`, `components/content/Clock.qml`, `components/content/CommandOutput.qml`, `components/content/QuickActions.qml`, `components/content/TopProcesses.qml`, `components/content/parts/AudioRow.qml`, `components/content/parts/CompactFigure.qml`, `components/content/parts/DeviceList.qml`, `components/content/parts/ItemRow.qml`, `components/content/parts/chat/ChatMarkdownText.qml` (+11 more)
+- `Appearance.baseFontSize` (int): At the Interface scale (Widget.scale); bars size their text from baseFontSize, the setting itself
+  - in: `config/Bar.qml`
 - `Appearance.fontSize` (int)
-  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/BluetoothDevices.qml`, `components/content/Brightness.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClaudeUsage.qml` (+164 more)
+  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/BluetoothDevices.qml`, `components/content/Brightness.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClaudeUsage.qml` (+163 more)
 - `Appearance.fontSizeLarge` (int)
   - in: `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `components/surfaces/powermenu/PowerMenuWindow.qml`
 - `Appearance.iconFamily` (string): Icons are Material Symbols names drawn in this font (StyledIcon), so they don't depend on the text font

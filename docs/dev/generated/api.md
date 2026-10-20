@@ -145,7 +145,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [TodoConfig](api/TodoConfig.md): Reader for the Todo section: how every todo widget and module shows the list (the items are TodoManager's, in the data folder).
 - [UpdatesConfig](api/UpdatesConfig.md): Reader for the Updates section: how every updates widget and module checks for and installs updates (see UpdatesManager).
 - [WeatherConfig](api/WeatherConfig.md): Reader for the Weather section: the one location and units every weather widget and module shows (see WeatherManager).
-- [Widget](api/Widget.md): Reader for the Widget section: sizing for panels, cards, popouts and controls.
+- [Widget](api/Widget.md): Reader for the Widget section: sizing for panels, cards, popouts and controls, and the card size every module grid starts from.
 - [WindowBehaviourConfig](api/WindowBehaviourConfig.md): Reader for the WindowBehaviour section: focus and the cursor, which every compositor's managed config writes (each field by its x-hypr / x-sway annotation).
 - [WindowLookConfig](api/WindowLookConfig.md): Reader for the WindowLook section: settings that make windows match axiom ({ borders, activeColor, shape, matchShell, gaps, surfaceBlur…, blur…, shadow…, dim…,…
 - [WindowSwitcherConfig](api/WindowSwitcherConfig.md): Reader for the WindowSwitcher section (Alt+Tab).

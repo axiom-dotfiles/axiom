@@ -32,7 +32,6 @@ OverlayManager holds the layouts editor's working copy of Overlay.views (the edi
 - `editPages()`: The pages, or the menus, keeping what was selected in each
 - `editMenus()`
 - `reportArea(screenName, width, height, unit, drawnUnit)`
-- `zoomOn(screen)`: What content laid out at the content card size (OverlayConfig. contentUnit) is drawn at on `screen`: its overlay's zoom, or what an overlay would have on a screen that size where there's none (the gr…
 - `clearArea(screenName)`: A screen's overlay is gone (its screen was unplugged)
 - `fitOf(view)`: How much each screen's overlay shrinks a Custom page: [{ screen, scale }], 1 where it fits
 - `selectedView()`

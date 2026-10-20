@@ -4,9 +4,10 @@ import qs.config
 import qs.components.methods
 
 // One overlay's card grid, sized to its screen: content lays out at the
-// same card size everywhere (`unit`, from the Overlay content size), and
-// is drawn `zoom` times that so a page two cards high fills the screen
-// (OverlayConfig.layoutFor, scaled by the Overlay size). Each OverlayPanel
+// same card size everywhere (`unit`, GridPlacement.layoutUnit), and is
+// drawn `zoom` times that so a page two cards high fills the screen
+// (OverlayConfig.layoutFor, scaled by the card size and the overlay's
+// Module size). Each OverlayPanel
 // has its own, so every monitor shows the same look at its own size;
 // pages that still overflow are shrunk by OverlayPages.
 QtObject {
@@ -15,7 +16,7 @@ QtObject {
   // The drawn px a page may take, set by the panel
   property real availableWidth: 0
   property real availableHeight: 0
-  // A card size of its own (an edge menu's, a page's double grid), used
+  // A card size of its own (an edge menu's, a screen layout's), used
   // as is, undrawn, instead of what fits; 0 fits the space
   property int fixedUnit: 0
 

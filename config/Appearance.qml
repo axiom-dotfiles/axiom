@@ -44,8 +44,11 @@ QtObject {
 
   // --- Font ---
   readonly property string fontFamily: _c.font.family
-  readonly property int fontSize: _c.font.size
-  readonly property int fontSizeLarge: fontSize + 4
+  // At the Interface scale (Widget.scale); bars size their text from
+  // baseFontSize, the setting itself
+  readonly property int baseFontSize: _c.font.size
+  readonly property int fontSize: Math.round(baseFontSize * Widget.scale)
+  readonly property int fontSizeLarge: Math.round((baseFontSize + 4) * Widget.scale)
   // Icons are Material Symbols names drawn in this font (StyledIcon), so
   // they don't depend on the text font
   readonly property string iconFamily: "Material Symbols Rounded"

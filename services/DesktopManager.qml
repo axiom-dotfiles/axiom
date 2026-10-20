@@ -26,6 +26,8 @@ QtObject {
     name: I18n.tr("Desktop")
     scope: root.selectedTarget
     previewSection: "Desktop"
+    screen: root.screenFor(root.selectedTarget)
+    insets: root.insetsFor(screen)
     layoutOf: local => root.layoutIn(local, root.selectedTarget)
     layoutsOf: local => local ? [
         {

@@ -12,9 +12,9 @@ QtObject {
   // Card grid constants: internal design values, not user settings.
   // cardUnit is the grid's default card size, where none is given.
   readonly property int cardUnit: 500
-  // The card size the overlay's content lays out at, at 100 % content
-  // size: drawn bigger or smaller to fit each screen (overlayLayout), so
-  // it looks the same on all of them
+  // The card size every module's content lays out at: drawn bigger or
+  // smaller on each grid's cards (overlayLayout, zoomOf), so it looks the
+  // same on all of them. Text size is the Interface scale's (Widget.scale)
   readonly property int layoutUnit: 590
   readonly property int cardSpacing: 20
   // The largest a module's w or h may be (the schema's GridPlace maximum)
@@ -531,6 +531,132 @@ QtObject {
     return Math.floor(unitSize * 4 + 3 * root.cardSpacing);
   }
 
+  // How many units at card size `unit` fit `width` × `height` px with
+  // `margin` px all round: a screen layout's grid on a screen, { cols,
+  // rows }, at least one each way
+  function screenLattice(unit, width, height, margin) {
+    const step = root.stepOf(unit);
+    const fit = room => Math.max(1, Math.floor((room - 2 * margin + root.cardSpacing) / step));
+    return {
+      "cols": fit(width),
+      "rows": fit(height)
+    };
+  }
+
+  // The groups of `places` that touch or overlap (sharing an edge or a
+  // corner), each [indices], so a stack of modules moves as one. Null
+  // places are left out
+  function touchingGroups(places) {
+    const list = places ?? [];
+    const group = list.map((_, i) => i);
+    const find = i => group[i] === i ? i : (group[i] = find(group[i]));
+    const touch = (a, b) => a.x <= b.x + b.w && b.x <= a.x + a.w && a.y <= b.y + b.h && b.y <= a.y + a.h;
+    for (let i = 0; i < list.length; i++)
+      for (let j = i + 1; j < list.length; j++)
+        if (list[i] && list[j] && touch(list[i], list[j]))
+          group[find(i)] = find(j);
+    const groups = {};
+    list.forEach((place, i) => {
+      if (!place)
+        return;
+      const key = find(i);
+      (groups[key] = groups[key] ?? []).push(i);
+    });
+    return Object.keys(groups).map(key => groups[key]);
+  }
+
+  // `places` (null for none) placed on a `from` grid ({ cols, rows }),
+  // moved onto a `to` grid. Modules that touch move as one group
+  // (touchingGroups); on each axis a group keeps to the side its centre
+  // is nearest (the first third: the start, the last third: the end),
+  // else its centre keeps its share of the grid, so a corner stays a
+  // corner and the middle the middle on a wider or smaller grid. Null
+  // when that leaves one off `to` or over another
+  function anchorPlaces(places, from, to) {
+    const list = places ?? [];
+    const shift = (pos, len, fromCount, toCount) => {
+      const centre = pos + len / 2;
+      if (centre < fromCount / 3)
+        return 0;
+      if (centre > fromCount * 2 / 3)
+        return toCount - fromCount;
+      return Math.round(centre * toCount / fromCount - len / 2) - pos;
+    };
+    const moved = list.map(() => null);
+    root.touchingGroups(list).forEach(members => {
+      const box = root.bounds(members.map(i => ({
+            "place": list[i]
+          })));
+      const left = Math.min(...members.map(i => list[i].x));
+      const top = Math.min(...members.map(i => list[i].y));
+      const dx = shift(left, box.cols - left, from.cols, to.cols);
+      const dy = shift(top, box.rows - top, from.rows, to.rows);
+      members.forEach(i => moved[i] = {
+          "x": list[i].x + dx,
+          "y": list[i].y + dy,
+          "w": list[i].w,
+          "h": list[i].h
+        });
+    });
+    const placed = moved.filter(place => place !== null);
+    if (placed.some(place => !root.within(place, to.cols, to.rows)))
+      return null;
+    for (let i = 0; i < placed.length; i++)
+      for (let j = i + 1; j < placed.length; j++)
+        if (root.overlaps(placed[i], placed[j]))
+          return null;
+    return moved;
+  }
+
+  // A screen layout's modules on a `width` × `height` px room at card size
+  // `unit`, `margin` px all round: on the grid that fits there
+  // (screenLattice; with `fine`, a double grid, its units split in two
+  // each way, so it's always whole units), each kept to its nearest side
+  // (anchorPlaces) from `from`, the grid they were placed on (in the same
+  // units). When they don't fit that way the cards shrink, a step at a
+  // time, until they do (on `from` itself at the latest, where nothing
+  // moves), else as a last resort they stay on `from` (or as far as they
+  // reach) fitted into the room (latticeUnit). { cols, rows, unit (its
+  // cards' px), places, shrunk (smaller than `unit` asked) }
+  function screenArrangement(places, from, unit, width, height, margin, fine) {
+    const scale = fine ? 2 : 1;
+    const drawnOf = card => fine ? root.fineUnit(card) : Math.round(card);
+    const asked = drawnOf(unit);
+    let card = unit;
+    for (let step = 0; step < 40 && card > 4 * root.cardSpacing; step++) {
+      const whole = root.screenLattice(card, width, height, margin);
+      const lattice = {
+        "cols": whole.cols * scale,
+        "rows": whole.rows * scale
+      };
+      const anchored = root.anchorPlaces(places, from, lattice);
+      if (anchored)
+        return {
+          "cols": lattice.cols,
+          "rows": lattice.rows,
+          "unit": drawnOf(card),
+          "places": anchored,
+          "shrunk": step > 0
+        };
+      if (lattice.cols >= from.cols && lattice.rows >= from.rows)
+        break;
+      card *= 0.96;
+    }
+    const reach = root.bounds((places ?? []).filter(place => place).map(place => ({
+          "place": place
+        })));
+    const cols = Math.max(from.cols, reach.cols, 1);
+    const rows = Math.max(from.rows, reach.rows, 1);
+    const fitted = Math.min(asked, root.latticeUnit(cols, rows, width, height, margin));
+    return {
+      "cols": cols,
+      "rows": rows,
+      "unit": fitted,
+      "places": places ?? [],
+      "shrunk": fitted < asked
+    };
+  }
+
   // Shifts the modules (in place) so the topmost and leftmost touch 0.
   // Returns the shift taken off, { x, y } (0, 0 when nothing moved).
   // `hold` ({ x, y }, each optional): on a held axis a gap before the
@@ -595,12 +721,6 @@ QtObject {
     const sizes = root.trackSizes(bounds, unit);
     return sizes.width <= 0 ? 1 : Math.min(1, width / sizes.width, height / sizes.height);
   }
-  // The card size content lays out at, at `contentScale` % (the Overlay
-  // content size): layoutUnit at 100, less as content grows
-  function contentUnit(contentScale) {
-    return Math.round(root.layoutUnit * 100 / contentScale);
-  }
-
   // What content laid out at card size `unit` is drawn at, on cards
   // `drawn` px: 1 within 2 %, so it isn't resampled for nothing (an edge
   // menu's modules; the overlay snaps its card size instead)
@@ -612,13 +732,12 @@ QtObject {
   // The overlay's cards for `width` × `height` px of room, where a page
   // two cards high (span(8)) fills the height, at most `cardsWide` cards
   // fitting across: { drawn, the card size shown (`size` % of what
-  // fills); unit, the size its content lays out at (layoutUnit at 100 %
-  // `contentScale`, less as content grows); zoom, drawn / unit }. Within
-  // 2 % of the layout size it's drawn at it, so the content isn't
-  // resampled for nothing
-  function overlayLayout(width, height, size, contentScale, cardsWide) {
+  // fills); unit, the size content lays out at (layoutUnit); zoom, drawn
+  // / unit }. Within 2 % of the layout size it's drawn at it, so the
+  // content isn't resampled for nothing
+  function overlayLayout(width, height, size, cardsWide) {
     const fill = Math.min((height - root.cardSpacing) / 2, width / cardsWide);
-    const unit = root.contentUnit(contentScale);
+    const unit = root.layoutUnit;
     const drawn = Math.max(1, Math.round(fill * size / 100));
     const snapped = Math.abs(drawn / unit - 1) < 0.02 ? unit : drawn;
     return {

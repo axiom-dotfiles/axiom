@@ -22,13 +22,13 @@ OnboardingPage {
   StyledText {
     Layout.fillWidth: true
     Layout.topMargin: Widget.spacing
-    text: I18n.tr("How big should the overlay be, and its text? This window uses the same sizes, so it changes as you drag.")
+    text: I18n.tr("How big should cards and text be? This window uses the same sizes, so it changes as you drag.")
     wrapMode: Text.WordWrap
   }
 
   SettingRows {
     Layout.fillWidth: true
-    paths: ["Overlay.size", "Overlay.contentScale"]
+    paths: ["Widget.cardSize", "Widget.scale"]
   }
 
   Notice {

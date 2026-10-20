@@ -53,7 +53,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-group="Placement", x-showIf={"mode":"floating","length":"content"}
   - read: entry field, name match · in: `components/surfaces/edgemenu/FloatingEdgeMenu.qml`
 - **`EdgeMenus[].moduleScale`** · integer = 100 · 50–200 · %
-  - Module size: Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size). Their text and content grow and shrink with them, as set by Overlay content size.
+  - Module size: Size of the menu's modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them.
   - x-group="Placement", x-control="stepper"
   - read: `EdgeMenusConfig.menus` (whole) · in: `services/EdgeMenuManager.qml`
 - **`EdgeMenus[].fineGrid`** · boolean = false

@@ -78,7 +78,7 @@ Built on `Quickshell.Services.Greetd`.
 
 ### Surfaces and modules
 - **`surfaces/greeter/GreeterSurface`** is a `ScreenLayoutView`, the same view the lock screen uses ([lockscreen.md](lockscreen.md#layout)).
-  - With no overlay running, its content zoom is `OverlayConfig.screenLayout`'s estimate for the screen (no bars), so it can come out a little bigger than the lock screen's on the same monitor.
+  - Its cards are sized like the lock screen's (`OverlayConfig.cardUnitOn`, from the bundle's `Widget.cardSize`), so both look the same on a monitor.
   - Its host is `{ kind: "greeter", target, preview, key, bare, passwordBorder, greetingBorder }`.
   - The target is `Greeter.monitor`'s screen. Other screens follow `otherScreens`.
   - With no Login module reported (`ShellManager.requiredFields`), it draws a `content/parts/LoginField` of its own.

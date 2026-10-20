@@ -12,13 +12,13 @@ How an edge menu is put on screen: the shared body and sync, the lattice its mod
 
 ### The body (`EdgeMenuBody`)
 - Both hosts put `EdgeMenuBody` inside: a `ModuleGrid` on an `OverlayGrid`.
-- `fixedUnit` is the card size its screen's overlay draws its cards at (`EdgeMenuManager.cardUnitOf`):
-  - `OverlayManager.areas`' `drawnUnit`, else `OverlayConfig.screenLayout` of the screen (an overlay there with no bars), so Overlay size scales menus too;
+- `fixedUnit` is the card size on its screen (`EdgeMenuManager.cardUnitOf`):
+  - `OverlayConfig.cardUnitOn` of the screen: what an overlay at the card size (`Widget.cardSize`) would draw there with no bars. It's the same whether an overlay is open or not, and the overlay's own Module size (`Overlay.moduleScale`) doesn't reach menus;
   - times the menu's `moduleScale`%.
   - The grid and everything placed by it (the lattice, the menu's size, reserved strips) use that drawn card size.
 - Each module's content is zoomed as on the overlay (`ModuleGrid.zoom` → `OverlaySlot.zoom`, `ExpandedModule.zoom`): laid out at its slot's size over `EdgeMenuManager.zoomOf` and scaled back to fill it.
-  - `zoomOf`: the drawn card size over the overlay's content card size (`OverlayConfig.contentUnit`, halved for a double grid; `GridPlacement.zoomOf`, 1 within 2 %).
-  - So a module looks as it does on an overlay page, Overlay content size reaches menus too, and `moduleScale` scales text with the cards.
+  - `zoomOf`: the drawn card size over the size all module content lays out at (`GridPlacement.layoutUnit`, halved for a double grid; `GridPlacement.zoomOf`, 1 within 2 %).
+  - So a module looks as it does on an overlay page and `moduleScale` scales text with the cards. Text size itself is the Interface scale's (`Widget.scale`, through `Appearance.fontSize` and the Widget sizes).
   - Submenus (`MenuSubmenu`) do the same on their parent menu's screen.
 - When `length` is `edge` (`fillsEdge`) it's stretched along the edge to `maxLength`; otherwise it scrolls along it past that.
 - With `pinButton` it draws a pin in the corner away from the edge (`EdgeMenuManager.togglePinned`).

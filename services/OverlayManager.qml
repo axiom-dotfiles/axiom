@@ -140,18 +140,6 @@ QtObject {
     });
   }
 
-  // What content laid out at the content card size (OverlayConfig.
-  // contentUnit) is drawn at on `screen`: its overlay's zoom, or what an
-  // overlay would have on a screen that size where there's none (the
-  // greeter's). The lock screen's, the greeter's and the desktop's modules
-  // are drawn at this, times their layout's contentScale
-  function zoomOn(screen) {
-    const area = root.areas[screen?.name ?? ""];
-    if (area)
-      return area.drawnUnit / area.unit;
-    return screen ? OverlayConfig.screenLayout(screen.width, screen.height).zoom : 1;
-  }
-
   // A screen's overlay is gone (its screen was unplugged)
   function clearArea(screenName) {
     if (screenName in root._areas)

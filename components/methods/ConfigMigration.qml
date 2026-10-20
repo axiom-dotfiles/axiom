@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 72
+  readonly property int currentVersion: 73
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -171,6 +171,8 @@ QtObject {
       result = _v70ToV71(result, changes);
     if (version < 72)
       result = _v71ToV72(result, changes);
+    if (version < 73)
+      result = _v72ToV73(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2379,6 +2381,52 @@ QtObject {
     const size = Math.max(50, Math.min(100, Math.round(overlay.size / 1.2)));
     changes.push(`Overlay.size ${overlay.size} -> ${size} (now a share of the screen)`);
     overlay.size = size;
+    return config;
+  }
+
+  // v73 moved the module sizing out of Overlay into Widget, for every
+  // surface: Overlay.size -> Widget.cardSize, Overlay.contentScale (the
+  // text inside the overlay's cards) -> Widget.scale (text and controls
+  // everywhere); and Widget's control height, padding and spacing (px)
+  // became a density preset, the nearest one. A screen layout's content
+  // size (only ever in development builds) is dropped: its Module size
+  // scales cards and content together
+  function _v72ToV73(config, changes) {
+    const desktop = config.Desktop && typeof config.Desktop === "object" ? config.Desktop : {};
+    const layouts = [desktop.all, desktop.primary, config.Lockscreen?.layout, config.Greeter?.layout].concat(Array.isArray(desktop.monitors) ? desktop.monitors : []);
+    layouts.forEach(layout => {
+      if (layout && typeof layout === "object")
+        delete layout.contentScale;
+    });
+    const overlay = config.Overlay && typeof config.Overlay === "object" ? config.Overlay : null;
+    const hasOldWidget = config.Widget && typeof config.Widget === "object";
+    if (!overlay && !hasOldWidget)
+      return config;
+    if (!hasOldWidget)
+      config.Widget = {};
+    const widget = config.Widget;
+    if (overlay && typeof overlay.size === "number") {
+      widget.cardSize = Math.max(50, Math.min(100, Math.round(overlay.size)));
+      changes.push(`Overlay.size -> Widget.cardSize ${widget.cardSize}`);
+    }
+    if (overlay && typeof overlay.contentScale === "number") {
+      widget.scale = Math.max(75, Math.min(150, Math.round(overlay.contentScale)));
+      changes.push(`Overlay.contentScale -> Widget.scale ${widget.scale}`);
+    }
+    if (overlay) {
+      delete overlay.size;
+      delete overlay.contentScale;
+    }
+    const height = typeof widget.height === "number" ? widget.height : 30;
+    const padding = typeof widget.padding === "number" ? widget.padding : 10;
+    if ("height" in widget || "padding" in widget || "spacing" in widget) {
+      const density = padding <= 7 || height <= 27 ? "compact" : padding >= 13 || height >= 34 ? "roomy" : "normal";
+      widget.density = density;
+      changes.push(`Widget.height/padding/spacing -> Widget.density ${density}`);
+      delete widget.height;
+      delete widget.padding;
+      delete widget.spacing;
+    }
     return config;
   }
 }

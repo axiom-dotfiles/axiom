@@ -472,25 +472,24 @@ Singleton {
     return JSON.stringify(menu) !== JSON.stringify(saved);
   }
 
-  // A menu's card size: the size its screen's overlay draws its cards at
-  // (OverlayManager.areas, or what the overlay would take on a screen that
-  // size where there's none), scaled by the menu's moduleScale. A
-  // submenu's is on the screen of the menu it opens from (`screen`)
+  // A menu's card size: the card size on its screen (OverlayConfig.
+  // cardUnitOn, the card size setting's, not the overlay's own Module
+  // size), scaled by the menu's moduleScale. A submenu's is on the screen
+  // of the menu it opens from (`screen`)
   function cardUnitOf(menu, screen) {
     screen = screen ?? EdgeMenusConfig.screenFor(menu);
-    const area = OverlayManager.areas[screen?.name ?? ""];
-    const unit = area ? area.drawnUnit : screen ? OverlayConfig.screenLayout(screen.width, screen.height).drawn : OverlayConfig.contentUnit;
+    const unit = screen ? OverlayConfig.cardUnitOn(screen.width, screen.height) : GridPlacement.layoutUnit;
     const card = unit * menu.moduleScale / 100;
     // A double grid (fineGrid) splits each unit in two each way
     return menu.fineGrid ? GridPlacement.fineUnit(card) : Math.round(card);
   }
 
-  // What a menu's modules are drawn at: laid out at the overlay's content
-  // card size (Overlay content size), drawn on the menu's own cards
+  // What a menu's modules are drawn at: laid out at the size all module
+  // content is (GridPlacement.layoutUnit), drawn on the menu's own cards
   // (cardUnitOf), so they look as on an overlay page and moduleScale
   // scales their text too. A submenu's is on `screen`, as for cardUnitOf
   function zoomOf(menu, screen) {
-    const unit = OverlayConfig.contentUnit;
+    const unit = GridPlacement.layoutUnit;
     return GridPlacement.zoomOf(root.cardUnitOf(menu, screen), menu.fineGrid ? GridPlacement.fineUnit(unit) : unit);
   }
 

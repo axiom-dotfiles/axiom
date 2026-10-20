@@ -2117,37 +2117,101 @@ TestCase {
     compare(errors(config), []);
   }
 
+  function test_v73_moves_sizing_into_widget() {
+    const migrated = load({
+      "version": 72,
+      "Overlay": {
+        "size": 80,
+        "contentScale": 120
+      },
+      "Widget": {
+        "height": 30,
+        "padding": 10,
+        "spacing": 4,
+        "overrideRadius": true
+      },
+      "Lockscreen": {
+        "layout": {
+          "contentScale": 150
+        }
+      }
+    });
+    compare(migrated.config.Widget.cardSize, 80);
+    compare(migrated.config.Widget.scale, 120);
+    compare(migrated.config.Widget.density, "normal");
+    compare(migrated.config.Widget.overrideRadius, true, "the rest of Widget stays");
+    compare(migrated.config.Overlay.size, undefined);
+    compare(migrated.config.Overlay.contentScale, undefined);
+    compare(migrated.config.Widget.height, undefined);
+    compare(migrated.config.Lockscreen.layout.contentScale, undefined);
+    compare(migrated.config.Lockscreen.layout.moduleScale, 100);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    compare(load({
+      "version": 72,
+      "Overlay": {
+        "contentScale": 60
+      }
+    }).config.Widget.scale, 75, "clamped to the new least");
+  }
+
+  function test_v73_widget_px_become_the_nearest_density() {
+    const density = widget => load({
+        "version": 72,
+        "Widget": widget
+      }).config.Widget.density;
+    compare(density({
+      "padding": 6
+    }), "compact");
+    compare(density({
+      "height": 26,
+      "padding": 10
+    }), "compact");
+    compare(density({
+      "padding": 14
+    }), "roomy");
+    compare(density({
+      "height": 40
+    }), "roomy");
+    compare(density({
+      "spacing": 8
+    }), "normal");
+    compare(load({
+      "version": 72
+    }).config.Widget.density, "normal", "no Widget: the default");
+  }
+
   function test_v72_overlay_size_is_a_share_of_the_screen() {
     compare(load({
       "version": 71,
       "Overlay": {
         "size": 120
       }
-    }).config.Overlay.size, 100, "the old 120 fills the screen");
+    }).config.Widget.cardSize, 100, "the old 120 fills the screen");
     compare(load({
       "version": 71,
       "Overlay": {
         "size": 150
       }
-    }).config.Overlay.size, 100, "capped at the new most");
+    }).config.Widget.cardSize, 100, "capped at the new most");
     compare(load({
       "version": 71,
       "Overlay": {
         "size": 50
       }
-    }).config.Overlay.size, 50, "kept at the new least");
+    }).config.Widget.cardSize, 50, "kept at the new least");
     const migrated = load({
       "version": 71,
       "Overlay": {
         "size": 90
       }
     });
-    compare(migrated.config.Overlay.size, 75);
+    compare(migrated.config.Widget.cardSize, 75);
     compare(migrated.removed, []);
     compare(errors(migrated.config), []);
     compare(load({
       "version": 71
-    }).config.Overlay.size, 100, "no size: the default");
+    }).config.Widget.cardSize, 100, "no size: the default");
   }
 
   function test_v71_moves_pinned_apps_to_apps() {

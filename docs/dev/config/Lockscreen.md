@@ -23,23 +23,23 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 ### `Lockscreen.layout`
 
 - **`Lockscreen.layout`** · object
-  - A screen of overlay modules on a bounded grid of columns × rows units, fitted to each monitor: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).
-- **`Lockscreen.layout.columns`** · integer = 16 · 4–32
-  - Columns: Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9).
-  - x-group="Grid"
+  - A screen of overlay modules on a bounded grid fitted to each monitor at the card size: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).
+- **`Lockscreen.layout.columns`** · integer = 16 · 1–64
+  - Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it.
+  - x-settings=false
   - read: `LockscreenConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/LockscreenConfig.qml`
-- **`Lockscreen.layout.rows`** · integer = 9 · 2–32
-  - Rows: Grid units down.
-  - x-group="Grid"
+- **`Lockscreen.layout.rows`** · integer = 9 · 1–64
+  - Grid units down of the grid the modules were last placed on.
+  - x-settings=false
   - read: `LockscreenConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/LockscreenConfig.qml`
 - **`Lockscreen.layout.fineGrid`** · boolean = false
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
   - x-group="Grid"
   - read: `LockscreenConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/LockscreenConfig.qml`
-- **`Lockscreen.layout.contentScale`** · integer = 100 · 50–200 · %
-  - Content size: Size of the modules' text and content, against what the overlay shows on each monitor (which follows Overlay size and content size). Columns and rows set how big the cards are.
+- **`Lockscreen.layout.moduleScale`** · integer = 100 · 50–200 · %
+  - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
   - x-group="Grid", x-control="stepper"
-  - read: `LockscreenConfig.layout` (whole), `// reads:` marker · in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `config/LockscreenConfig.qml`
+  - read: `LockscreenConfig.layout` (whole), `// reads:` marker · in: `config/LockscreenConfig.qml`, `config/OverlayConfig.qml`
 - **`Lockscreen.layout.otherScreens`** · string = "layout" · enum layout|background
   - Other monitors: What monitors other than the one with the password field show.
   - x-group="Grid"

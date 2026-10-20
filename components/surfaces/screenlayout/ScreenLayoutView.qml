@@ -4,15 +4,14 @@ import QtQuick.Effects
 import Quickshell
 
 import qs.config
-import qs.services
 import qs.components.methods
 import qs.components.hosts.overlay
 
 // One screen of a screen layout (a ScreenLayout: the lock screen's, the
 // greeter's; or a DesktopLayout): the background (wallpaper or a color,
-// dimmed), then the modules on the layout's grid of `columns` × `rows`
-// units, stretched to fill the screen inside `insets`, fading in. Children
-// go over the modules (LockSurface's and GreeterSurface's fallback
+// dimmed), then the modules on as many units as fit the screen inside
+// `insets` at the card size (GridPlacement.screenArrangement), fading
+// in. Children go over the modules (LockSurface's and GreeterSurface's fallback
 // fields). The desktop draws no background (`showBackdrop`): its modules
 // sit on the wallpaper, and only frost a copy of it.
 Item {
@@ -58,13 +57,15 @@ Item {
 
   default property alias content: fade.data
 
-  // The grid: at least columns × rows (doubled with fineGrid), fitted
-  // inside a margin
+  // The grid: what fits inside a margin at the layout's card size, the
+  // modules kept to their nearest edge from the grid they were placed on
+  // (OverlayConfig.screenArrangement)
   readonly property real margin: OverlayConfig.cardSpacing
-  readonly property var reach: GridPlacement.bounds(root.layout?.modules ?? [])
-  readonly property var gridSize: GridPlacement.screenGrid(root.layout)
-  readonly property int cols: Math.max(root.gridSize.cols, root.reach.cols, 1)
-  readonly property int rows: Math.max(root.gridSize.rows, root.reach.rows, 1)
+  readonly property var arrangement: OverlayConfig.screenArrangement(root.layout, root.shownModules, root.screen, root.roomWidth, root.roomHeight)
+  // The modules shown, at their places here
+  readonly property var placedModules: root.shownModules.map((module, i) => Object.assign({}, module, {
+      "place": root.arrangement.places[i]
+    }))
 
   // Where each module shown is, [{ x, y, width, height }] in px from the
   // view's top left (the desktop's input mask)
@@ -178,22 +179,19 @@ Item {
       id: grid
       x: root.insets.left + root.margin
       y: root.insets.top + root.margin
-      modules: root.shownModules
+      modules: root.placedModules
       extent: ({
-          "cols": root.cols,
-          "rows": root.rows
+          "cols": root.arrangement.cols,
+          "rows": root.arrangement.rows
         })
       stretch: ({
           "width": root.roomWidth - root.margin * 2,
           "height": root.roomHeight - root.margin * 2
         })
       host: root.host
-      // The overlay's zoom on this screen, times the layout's content
-      // size, so modules look as on the overlay there
-      // reads: Desktop.*.contentScale, Lockscreen.layout.contentScale, Greeter.layout.contentScale
-      zoom: GridPlacement.zoomOf(OverlayManager.zoomOn(root.screen) * (root.layout?.contentScale ?? 100) / 100, 1)
+      zoom: root.arrangement.zoom
       grid: OverlayGrid {
-        fixedUnit: GridPlacement.latticeUnit(root.cols, root.rows, root.roomWidth, root.roomHeight, root.margin)
+        fixedUnit: root.arrangement.unit
       }
     }
   }

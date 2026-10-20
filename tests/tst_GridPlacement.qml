@@ -474,8 +474,6 @@ TestCase {
   }
 
   function test_zoomOf() {
-    compare(GridPlacement.contentUnit(100), 590);
-    compare(GridPlacement.contentUnit(125), 472, "bigger content: laid out on smaller cards");
     compare(GridPlacement.zoomOf(472, 590), 0.8, "a menu at 80 %");
     compare(GridPlacement.zoomOf(595, 590), 1, "within 2 %: as laid out");
     compare(GridPlacement.zoomOf(500, 0), 1, "no layout size");
@@ -483,21 +481,171 @@ TestCase {
 
   function test_overlayLayout() {
     // layoutUnit 590, cardSpacing 20: two cards fill 2 × drawn + 20
-    const ultrawide = GridPlacement.overlayLayout(3336, 1199, 100, 100, 4.25);
+    const ultrawide = GridPlacement.overlayLayout(3336, 1199, 100, 4.25);
     compare([ultrawide.drawn, ultrawide.unit, ultrawide.zoom], [590, 590, 1], "1440p ultrawide: drawn at the layout size");
-    const fhd = GridPlacement.overlayLayout(1840, 870, 100, 100, 4.25);
+    const fhd = GridPlacement.overlayLayout(1840, 870, 100, 4.25);
     compare([fhd.drawn, fhd.unit], [425, 590], "1080p: the height decides");
     fuzzyCompare(fhd.zoom, 425 / 590, 1e-9, "the same look, smaller");
-    compare(GridPlacement.overlayLayout(3760, 2020, 100, 100, 4.25).drawn, 885, "4K at 1x: the width decides");
-    compare(GridPlacement.overlayLayout(1840, 1070, 100, 100, 4.25).drawn, 433, "16:10: the width decides");
-    compare(GridPlacement.overlayLayout(1360, 2400, 100, 100, 4.25).drawn, 320, "portrait: the width decides");
-    compare(GridPlacement.overlayLayout(3336, 1199, 50, 100, 4.25).drawn, 295, "half the size");
-    const bigText = GridPlacement.overlayLayout(1840, 870, 100, 120, 4.25);
-    compare([bigText.unit, bigText.drawn], [492, 425], "content 120 %: laid out smaller, drawn the same");
-    fuzzyCompare(bigText.zoom, 425 / 492, 1e-9);
-    compare(GridPlacement.overlayLayout(3336, 1199, 99, 100, 4.25).drawn, 590, "within 2 % of the layout size: drawn at it");
-    compare(GridPlacement.overlayLayout(3336, 1199, 97, 100, 4.25).drawn, 572, "past it: drawn as asked");
-    compare(GridPlacement.overlayLayout(10, 10, 100, 100, 4.25).drawn, 1, "never nothing");
+    compare(GridPlacement.overlayLayout(3760, 2020, 100, 4.25).drawn, 885, "4K at 1x: the width decides");
+    compare(GridPlacement.overlayLayout(1840, 1070, 100, 4.25).drawn, 433, "16:10: the width decides");
+    compare(GridPlacement.overlayLayout(1360, 2400, 100, 4.25).drawn, 320, "portrait: the width decides");
+    compare(GridPlacement.overlayLayout(3336, 1199, 50, 4.25).drawn, 295, "half the size");
+    compare(GridPlacement.overlayLayout(3336, 1199, 99, 4.25).drawn, 590, "within 2 % of the layout size: drawn at it");
+    compare(GridPlacement.overlayLayout(3336, 1199, 97, 4.25).drawn, 572, "past it: drawn as asked");
+    compare(GridPlacement.overlayLayout(10, 10, 100, 4.25).drawn, 1, "never nothing");
+  }
+
+  function test_screenLattice() {
+    // card 425: unit (425 - 60) / 4 = 91.25, step 111.25
+    compare(GridPlacement.screenLattice(425, 1920, 1080, 20), {
+      "cols": 17,
+      "rows": 9
+    }, "1080p");
+    compare(GridPlacement.screenLattice(425, 2560, 1080, 20).cols, 22, "21:9: more across, as many down");
+    compare(GridPlacement.screenLattice(850, 1920, 1080, 20), {
+      "cols": 8,
+      "rows": 4
+    }, "cards twice the size: half as many");
+    compare(GridPlacement.screenLattice(425, 10, 10, 20), {
+      "cols": 1,
+      "rows": 1
+    }, "never none");
+  }
+
+  function test_anchorPlaces() {
+    const from = {
+      "cols": 16,
+      "rows": 9
+    };
+    const corner = {
+      "x": 13,
+      "y": 6,
+      "w": 3,
+      "h": 3
+    };
+    const topLeft = {
+      "x": 0,
+      "y": 0,
+      "w": 4,
+      "h": 2
+    };
+    const middle = {
+      "x": 6,
+      "y": 3,
+      "w": 4,
+      "h": 3
+    };
+    compare(GridPlacement.anchorPlaces([topLeft, corner, middle, null], from, from), [topLeft, corner, middle, null], "same grid: unmoved");
+    const wide = GridPlacement.anchorPlaces([topLeft, corner, middle], from, {
+      "cols": 22,
+      "rows": 9
+    });
+    compare(wide[0], topLeft, "the start stays");
+    compare(wide[1].x, 19, "the end keeps to the end");
+    compare(wide[1].y, 6);
+    compare(wide[2].x, 9, "the middle keeps centred");
+    const small = GridPlacement.anchorPlaces([topLeft, corner, middle], from, {
+      "cols": 13,
+      "rows": 7
+    });
+    compare([small[1].x, small[1].y], [10, 4], "a corner on a smaller grid");
+    compare([small[2].x, small[2].y], [5, 2]);
+    compare(GridPlacement.anchorPlaces([topLeft,
+      {
+        "x": 13,
+        "y": 0,
+        "w": 3,
+        "h": 3
+      }
+    ], from, {
+      "cols": 6,
+      "rows": 9
+    }), null, "left and right meet: null");
+    compare(GridPlacement.anchorPlaces([
+      {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 2
+      }
+    ], from, {
+      "cols": 12,
+      "rows": 9
+    }), null, "too wide for the grid: null");
+  }
+
+  function test_anchorPlaces_moves_touching_modules_as_one() {
+    // A centred stack low on the screen: its parts touch, so it moves as
+    // one and keeps its shape; alone, its bottom part would go to the end
+    // and its top part stay centred, landing on each other
+    const stack = [
+      {
+        "x": 6,
+        "y": 4,
+        "w": 4,
+        "h": 2
+      },
+      {
+        "x": 6,
+        "y": 6,
+        "w": 4,
+        "h": 3
+      }
+    ];
+    const moved = GridPlacement.anchorPlaces(stack, {
+      "cols": 16,
+      "rows": 9
+    }, {
+      "cols": 16,
+      "rows": 7
+    });
+    compare(moved[1].y - moved[0].y, 2, "kept together");
+    compare(moved[1].y + moved[1].h, 7, "the stack keeps to the end");
+    compare(GridPlacement.touchingGroups([stack[0], null, stack[1],
+      {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      }
+    ]), [[0, 2], [3]]);
+  }
+
+  function test_screenArrangement() {
+    const from = {
+      "cols": 16,
+      "rows": 9
+    };
+    const places = [
+      {
+        "x": 0,
+        "y": 0,
+        "w": 5,
+        "h": 2
+      },
+      {
+        "x": 11,
+        "y": 0,
+        "w": 5,
+        "h": 2
+      }
+    ];
+    const fits = GridPlacement.screenArrangement(places, from, 425, 2560, 1080, 20);
+    compare([fits.cols, fits.rows, fits.unit, fits.shrunk], [22, 9, 425, false]);
+    compare(fits.places[1].x, 17, "kept to the right edge");
+    // Big cards: 8 across can't hold both, so the cards shrink until 10
+    // across do, and no further
+    const shrunk = GridPlacement.screenArrangement(places, from, 850, 1920, 1080, 20);
+    verify(shrunk.shrunk);
+    compare(shrunk.cols, 10);
+    verify(shrunk.unit < 850 && shrunk.unit > GridPlacement.latticeUnit(16, 9, 1920, 1080, 20), "smaller, but not back to the old grid");
+    compare([shrunk.places[0].x, shrunk.places[1].x], [0, 5]);
+    // A double grid: twice the units each way, on half cards
+    const fine = GridPlacement.screenArrangement([], {
+      "cols": 32,
+      "rows": 18
+    }, 425, 2560, 1080, 20, true);
+    compare([fine.cols, fine.rows, fine.unit], [44, 18, GridPlacement.fineUnit(425)]);
   }
 
   function test_fitScale() {

@@ -1,7 +1,7 @@
 # Overlay pages and the module grid
 
 > **Files:** `shell/Overlay.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayGrid.qml`, `components/hosts/overlay/ModuleGrid.qml`, `components/hosts/overlay/OverlaySlot.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/views/BaseView.qml`, `components/views/Custom.qml`, `components/methods/GridPlacement.qml`, `config/OverlayConfig.qml`
-> **Config:** `Overlay.views`, `Overlay.size`, `Overlay.contentScale`, `Overlay.navigator`, `Overlay.navigatorLabels`, `Overlay.animation`, `Overlay.showBackdrop`, `Overlay.backdrop`
+> **Config:** `Overlay.views`, `Overlay.moduleScale`, `Widget.cardSize`, `Widget.scale`, `Overlay.navigator`, `Overlay.navigatorLabels`, `Overlay.animation`, `Overlay.showBackdrop`, `Overlay.backdrop`
 > **Related:** [Content roots](content-roots.md), [Writing modules](writing-modules.md), [Layouts editor](layouts-editor.md), [Edge menus](../edge-menus/overview.md)
 
 How the overlay turns `Overlay.views` into pages, and a page's modules into a grid of slots: views, the pure grid maths in `GridPlacement`, per-screen card sizing and what is loaded when. Read this before touching a view, the grid or overlay loading.
@@ -63,8 +63,8 @@ Pure, tested by `tst_GridPlacement`.
 ### Sizing (per screen)
 The overlay looks the same on every screen, only bigger or smaller: content lays out at one card size everywhere and is drawn scaled to fit.
 - Each `OverlayPanel` has an `OverlayGrid` (`hosts/overlay/`) on the page area beside the navigator, less `OverlayConfig.fillGap` at both ends and the box's padding (`GridPlacement.overlayLayout`, tested in `tst_GridPlacement`):
-  - `drawnUnit`: the card size at which a page two cards high (`span(8)`) fills that height, at most `fitCardsWide` cards across, times `Overlay.size`%.
-  - `unit`: the card size content lays out at, `GridPlacement.layoutUnit` (590) at 100 % `Overlay.contentScale`, smaller as content grows.
+  - `drawnUnit`: the card size at which a page two cards high (`span(8)`) fills that height, at most `fitCardsWide` cards across, times `OverlayConfig.size`% (`Widget.cardSize` × `Overlay.moduleScale`, at most 100).
+  - `unit`: the card size content lays out at, always `GridPlacement.layoutUnit` (590). Text size is the Interface scale's (`Widget.scale`): it grows `Appearance.fontSize` and the `Widget` sizes, so bigger text fits less in each card.
   - `zoom`: `drawnUnit / unit`. Within 2 % of the layout size it's drawn at it (`zoom` 1), so content isn't resampled for nothing.
   - `roomWidth` / `roomHeight`: the room in layout px, what views size against (`BaseView.editorWidth`).
 - Views receive it as `grid` (`BaseView`) and size everything from `grid.unit` / `grid.span(n)` / `grid.sizes(bounds, stretch)`, passing plain numbers down to content. Text and widget sizes stay the shell's px tokens; the zoom scales them with the cards.
@@ -72,10 +72,10 @@ The overlay looks the same on every screen, only bigger or smaller: content lays
   - Edge menus zoom each module's content instead (`ModuleGrid.zoom`), keeping their grid in drawn px: see [Edge menu hosts](../edge-menus/hosts.md).
   - `StyledIcon` finds the `contentZoom`s up its parents (multiplied) and, scaled, draws unfilled symbols with the distance-field renderer (a native glyph blurs when scaled; a filled one stays native, as distance fields blot its contours).
 - A page that still doesn't fit (wider than `fitCardsWide`, higher than two cards) is shrunk as a whole by `OverlayPages.fitScale`.
-- The panel reports its room before shrinking, in layout px, its `unit` and `drawnUnit` to `OverlayManager.reportArea`: the layouts editor's "fits" line (`fitOf`), and edge menus' card size (`drawnUnit`, see [Edge menu hosts](../edge-menus/hosts.md)).
+- The panel reports its room before shrinking, in layout px, its `unit` and `drawnUnit` to `OverlayManager.reportArea`: the layouts editor's "fits" line (`fitOf`), which the layouts editor's page fits read. Edge menus, the desktop, the lock screen and the greeter don't use it: they start from `OverlayConfig.cardUnitOn` (the card size without the overlay's own Module size, and without bars), so they look the same whether an overlay is open or not.
 - `OverlayConfig.span` without a unit is the grid's default size (`GridPlacement.cardUnit`, 500).
-- `cardSpacing` / `cardPadding` are layout px: they scale with the zoom.
-- The onboarder (`OnboardingWindow`) works out the same grid and draws its pages at the same zoom, so its Welcome page previews `Overlay.size` and `contentScale`.
+- `cardSpacing` and the card padding (`OverlayConfig.cardPad`, from `Widget.cardPadding`: the density's, at the Interface scale) are layout px: they scale with the zoom.
+- The onboarder (`OnboardingWindow`) works out the same grid and draws its pages at the same zoom, so its Welcome page previews `Widget.cardSize` and `Widget.scale`.
 
 ### Loading
 - One overlay per screen in `General.screens` (`shell/Overlay.qml`): a transparent `OverlayPanel` inside the reserved area, placed by its base `ReservedAreaWindow` (shared with the onboarder).

@@ -3,7 +3,7 @@
 
 > **File:** `services/ScreenLayoutEditor.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lock screen's, LockManager.editor, or the greeter's, GreeterManager.editor): its modules on a bounded grid, edited through `layout`, its own fields, and its preview on screen. What really shows (a lock, the greeter) only ever reads the saved layout. A draft can hold several layouts (the desktop's, DesktopManager.editor: the Desktop section): `layoutOf` picks the one edited, `layoutsOf` lists them all for `problems`, and with a `previewSection` the draft shows live while it differs from the config. Not a singleton: each owner holds one.
+The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lock screen's, LockManager.editor, or the greeter's, GreeterManager.editor): its modules on a bounded grid, edited through `layout`, its own fields, and its preview on screen. What really shows (a lock, the greeter) only ever reads the saved layout. A draft can hold several layouts (the desktop's, DesktopManager.editor: the Desktop section): `layoutOf` picks the one edited, `layoutsOf` lists them all for `problems`, and with a `previewSection` the draft shows live while it differs from the config. It's edited as it shows on one screen (`screen`, inside `insets`): on the units that fit there at its card size, each module kept to its nearest edge (OverlayConfig.screenArrangement). Loading it moves its places onto that grid in the draft and in what it's compared with, so it isn't changed until it's edited. Not a singleton: each owner holds one.
 
 ### Properties
 
@@ -14,6 +14,13 @@ The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lo
 - `layoutsOf` (var): Every layout in the draft, [{ layout, name }] (named in problems)
 - `scope` (string): What's being edited in the draft (a key the grid's history and forms start over on)
 - `previewSection` (string): The config section the draft is shown live as (ConfigManager.setPreview) while it differs from the config, "" for none
+- `screen` (var): The screen it's edited on, and the room kept clear on each side there ({ left, top, right, bottom } px: the desktop's bars and border)
+- `insets` (var)
+- `room` (readonly var): Its room there, { width, height } px
+- `grid` (readonly var): The grid it's edited on there ({ cols, rows }): the layout's own once rebased onto the screen, or as far as it reaches when its modules don't fit there by their edges
+- `lattice` (readonly var): The screen's own grid at the layout's card size, and its key: a change (another screen, another card size, another layout) moves the places onto it (rebase).
+- `shrunk` (readonly var)
+- `shrunkTo` (readonly var)
 - `local` (readonly alias): The whole draft, and the layout edited in it
 - `localLayout` (readonly var)
 - `savedLayout` (readonly var)
@@ -25,6 +32,7 @@ The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lo
 
 ### Functions
 
+- `rebase()`: Moves the edited layout's places onto the screen's grid, each kept to its nearest edge (OverlayConfig.screenArrangement, shrunk as far as that needs), in the draft and in what it's compared with alik…
 - `edit(change)`: Changes the draft in place (`change(local)`), as an edit
 - `ensureLoaded()`: Loads the draft unless it holds unsaved edits
 - `updateLayoutField(key, value)`: One of the layout's own fields (columns, background, …).
