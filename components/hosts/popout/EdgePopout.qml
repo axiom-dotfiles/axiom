@@ -90,7 +90,7 @@ PopoutWrapperBase {
   // not while the overlay is open on its screen, _overOverlay, nor over a
   // fullscreen window, nor without supports.layerOrder). Anything else it
   // opens over, sliding out within its own window.
-  readonly property real slideDistance: placement.slidesUnder ? Math.max(0, root.attachAt - root.barOuter - (root.barConfig.insideBorder ? Appearance.borderWidth : 0)) : 0
+  readonly property real slideDistance: placement.slidesUnder ? Math.max(0, root.attachAt - root.barOuter - (root.barConfig?.insideBorder ? Appearance.borderWidth : 0)) : 0
   readonly property bool slidesUnder: root.slideDistance > 0
   // Its window's layer: Overlay unless it slides under a bar
   readonly property int windowLayer: root.slidesUnder ? WlrLayer.Top : WlrLayer.Overlay

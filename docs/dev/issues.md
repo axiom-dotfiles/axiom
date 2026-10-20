@@ -36,12 +36,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-20, while testing popout fixes on saved configs
 
-### An edge popout reads a missing bar's config while configs switch
-- **Where:** `components/hosts/popout/EdgePopout.qml` (`slideDistance`)
-- **What:** Switching the whole config (a saved config over another) logged `TypeError: Value is null and could not be converted to an object` at `EdgePopout.qml:93`: `slideDistance` reads `root.barConfig.insideBorder` while `placement.slidesUnder` is still true but the bar it followed is gone. Transient, but an optional read (or `slidesUnder` false without a bar) would end it.
-- **Size:** trivial
-- **Found:** 2026-10-20, while fixing pill stretches and opening between pills
-
 ### Surfaces touch a dead screen after the outputs go away
 - **Where:** `config/General.qml` (`outputs`: whatever is built on it while no monitor is connected)
 - **What:** After the monitors drop out (`qt.qpa.wayland` `There are no outputs - creating placeholder screen`, e.g. DPMS off), the log fills with `attempted to use dangling screen object` (68 lines in one session, no file named). Something holds a `ShellScreen` past its removal and reads it. Which surface it is hasn't been found yet: next step, reproduce with a nested compositor dropping its output and bisect by commenting out surfaces in `shell.qml`.
