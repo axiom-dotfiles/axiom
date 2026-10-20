@@ -210,15 +210,15 @@ FieldGroup {
     Layout.fillWidth: true
     spacing: Widget.spacing
 
-    // Off by default: keybinds and commands can hold what isn't meant to
-    // be shared, and a shared command runs on whoever takes it
+    // Off by default: preferences, keybinds and apps are yours, not part
+    // of a look to share
     StyledSwitch {
       id: includePersonal
     }
 
     StyledText {
       Layout.fillWidth: true
-      text: I18n.tr("Include keybinds, apps and commands")
+      text: I18n.tr("Include preferences, keybinds and apps")
       elide: Text.ElideRight
     }
 
@@ -227,7 +227,7 @@ FieldGroup {
       text: I18n.tr("Export")
       onClicked: {
         root.shareStatus = true;
-        SavedConfigsManager.exportConfig(includePersonal.checked);
+        SavedConfigsManager.exportConfig(includePersonal.checked, includeCommands.checked);
       }
     }
 
@@ -242,12 +242,28 @@ FieldGroup {
     }
   }
 
+  RowLayout {
+    Layout.fillWidth: true
+    spacing: Widget.spacing
+
+    // Off by default too: a shared command runs on whoever takes it
+    StyledSwitch {
+      id: includeCommands
+    }
+
+    StyledText {
+      Layout.fillWidth: true
+      text: I18n.tr("Include commands (for a backup or your other PCs)")
+      elide: Text.ElideRight
+    }
+  }
+
   StatusLine {
     shown: root.shareStatus
   }
 
   StyledText {
-    text: I18n.tr("Only import files from people you trust. An import can also carry keybinds, apps and commands, which you're asked about separately (off unless you turn it on): commands run as you, so read every one in the file first.")
+    text: I18n.tr("Only import files from people you trust. An import can also carry preferences, keybinds and apps, and commands, which you're asked about separately (off unless you turn them on): commands run as you, so read every one in the file first.")
     textColor: Theme.warning
     textSize: Appearance.fontSize - 1
     wrapMode: Text.WordWrap
@@ -261,8 +277,12 @@ FieldGroup {
     visible: importing !== null
     Layout.fillWidth: true
     implicitHeight: importColumn.implicitHeight + Widget.padding * 2
-    // Off for each new file: its keybinds and commands come only when asked
-    onImportingChanged: takePersonal.checked = false
+    // Off for each new file: its personal parts and commands come only
+    // when asked
+    onImportingChanged: {
+      takePersonal.checked = false;
+      takeCommands.checked = false;
+    }
 
     ColumnLayout {
       id: importColumn
@@ -308,7 +328,7 @@ FieldGroup {
           text: I18n.tr("Apply")
           onClicked: {
             root.shareStatus = true;
-            SavedConfigsManager.confirmImport(takePersonal.checked);
+            SavedConfigsManager.confirmImport(takePersonal.checked, takeCommands.checked);
           }
         }
 
@@ -332,15 +352,31 @@ FieldGroup {
 
         StyledText {
           Layout.fillWidth: true
-          text: I18n.tr("Also take its keybinds, apps and commands")
+          text: I18n.tr("Also take its preferences, keybinds and apps")
+          wrapMode: Text.Wrap
+        }
+      }
+
+      RowLayout {
+        visible: importRow.importing?.hasCommands ?? false
+        Layout.fillWidth: true
+        spacing: Widget.spacing
+
+        StyledSwitch {
+          id: takeCommands
+        }
+
+        StyledText {
+          Layout.fillWidth: true
+          text: I18n.tr("Also take its commands")
           wrapMode: Text.Wrap
         }
       }
 
       StyledText {
-        visible: importRow.importing?.hasPersonal ?? false
-        text: I18n.tr("This file holds keybinds, apps and commands. Commands run as you, with your files and accounts, so a file from someone else can do anything you can. Before turning this on, open the file in a text editor and read every command in it, and only take them from a source you trust.")
-        textColor: takePersonal.checked ? Theme.error : Theme.warning
+        visible: importRow.importing?.hasCommands ?? false
+        text: I18n.tr("This file holds commands. They run as you, with your files and accounts, so a file from someone else can do anything you can. Before turning this on, open the file in a text editor and read every command in it, and only take them from a source you trust.")
+        textColor: takeCommands.checked ? Theme.error : Theme.warning
         textSize: Appearance.fontSize - 1
         wrapMode: Text.WordWrap
         Layout.fillWidth: true

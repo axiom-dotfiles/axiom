@@ -2,7 +2,7 @@
 # Config: Overlay
 
 > **Reader:** `OverlayConfig` (`config/OverlayConfig.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.Overlay` · category Overlay & Popouts
+> **Schema:** `config/json/config.schema.json` → `properties.Overlay` · category Overlay & Popouts · scope personal
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
@@ -11,6 +11,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Overlay.monitors`** · string = "general" · enum general|primary|focused|all
   - Monitors: Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
+  - x-scope="look"
   - read: `OverlayConfig.monitors` · in: `components/hosts/overlay/OverlayPanel.qml`, `shell/Overlay.qml`
 - **`Overlay.size`** · integer = 100 · 50–150 · %
   - Overlay size: Size of the overlay's cards, relative to what fits the screen. Pages that would still overflow are shrunk to fit.

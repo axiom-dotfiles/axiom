@@ -25,7 +25,7 @@ Settings are read as `properties.<key>`.
   - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`middleCommand`** · string = ""
   - Middle-click command: Shell command run on middle click (e.g. blueman-manager). Empty does nothing.
-  - x-scope="personal"
+  - x-scope="commands"
   - in: `components/bar/widgets/Bluetooth.qml`, `components/bar/widgets/AudioLevelWidget.qml`
 - **`backgroundColor`** · string = ""
   - Color

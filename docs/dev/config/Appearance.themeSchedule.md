@@ -11,7 +11,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Appearance.themeSchedule`** · object
   - Light and dark by time
-  - x-snapshot=true
+  - x-scope="look"
 - **`Appearance.themeSchedule.enabled`** · boolean = false
   - Switch by time of day: Use the theme's light variant during the day and its dark one at night. Switching by hand lasts until the next change.
   - read: `Appearance.themeScheduled`, `// reads:` marker · in: `components/content/ThemePicker.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`

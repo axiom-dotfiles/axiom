@@ -17,7 +17,7 @@ Overlay modules drawn on the desktop, under the windows. Read this doc for deskt
   1. its own layout from `monitors`, by connector name; a monitor whose own layout is turned off shows nothing;
   2. otherwise `primary`, on the primary monitor (`DesktopConfig.primaryName`, as surfaces place on it);
   3. otherwise `all`.
-- **Scope:** `all` and `primary` are `x-scope: look`, `monitors` is `machine`, so an example or export carries only the first two. See [saved configs](../core/saved-configs-sharing.md).
+- **Scope:** all three are `x-scope: look`; a `monitors` entry's `monitor` travels by its place (`x-monitorRef: "drop"`), so on a PC with fewer monitors the extra ones are left out. See [saved configs](../core/saved-configs-sharing.md).
 - **Default:** a Stacked Clock on the primary monitor.
 
 ### DesktopManager

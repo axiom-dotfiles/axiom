@@ -2117,6 +2117,41 @@ TestCase {
     compare(errors(config), []);
   }
 
+  function test_v71_moves_pinned_apps_to_apps() {
+    const migrated = load({
+      "version": 70,
+      "Dock": {
+        "docks": [
+          {
+            "id": "main",
+            "pinned": ["kitty", "firefox"]
+          },
+          {
+            "id": "same",
+            "pinned": ["kitty", "firefox"]
+          },
+          {
+            "id": "other",
+            "pinned": ["gimp"]
+          },
+          {
+            "id": "empty"
+          }
+        ]
+      }
+    });
+    const config = migrated.config;
+    compare(config.Apps.pinned, ["kitty", "firefox"], "the first dock's pins are shared");
+    compare(config.Dock.docks.map(dock => dock.pinnedOwn), [false, false, true, true]);
+    compare(config.Dock.docks[2].pinned, ["gimp"], "a different list stays the dock's own");
+    compare(config.Dock.docks[3].pinned, [], "an empty one too");
+    compare(errors(config), []);
+    // No docks: nothing moves, and the shared list is the default
+    compare(load({
+      "version": 70
+    }).config.Apps.pinned, []);
+  }
+
   function test_v70_adds_strip_scroll_and_stop_binds_on_free_keys() {
     const migrated = load({
       "version": 69,

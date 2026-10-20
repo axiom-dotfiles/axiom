@@ -2,7 +2,7 @@
 # Config: Niri
 
 > **Reader:** `NiriConfig` (`config/NiriConfig.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.Niri` · category Compositor
+> **Schema:** `config/json/config.schema.json` → `properties.Niri` · category Compositor · scope personal
 
 niri: niri's own options, written while axiom manages its config. Anything else goes in ~/.config/niri/user/.
 
@@ -25,7 +25,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.defaultColumnDisplay`** · string = "normal" · enum normal|tabbed
   - New columns show
-  - x-niri="layout.default-column-display"
+  - x-scope="look", x-niri="layout.default-column-display"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.hotCorner`** · boolean = false
   - Top-left corner opens niri's overview: Pushing the cursor into the top-left corner opens niri's own overview.
@@ -33,15 +33,15 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.overviewZoom`** · integer = 50 · 10–75 · %
   - Overview zoom: How large workspaces show in niri's overview.
-  - x-niri="overview.zoom", x-niriScale=0.01, x-niriValue="float"
+  - x-scope="look", x-niri="overview.zoom", x-niriScale=0.01, x-niriValue="float"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.animations`** · boolean = true
   - Animations
-  - x-niri="animations.off", x-niriValue="offFlag"
+  - x-scope="look", x-niri="animations.off", x-niriValue="offFlag"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.animationSlowdown`** · integer = 100 · 10–1000 · %
   - Animation length: 100 is niri's own speed; more is slower.
-  - x-showIf={"animations":true}, x-niri="animations.slowdown", x-niriScale=0.01, x-niriValue="float", x-niriSkip=100
+  - x-scope="look", x-showIf={"animations":true}, x-niri="animations.slowdown", x-niriScale=0.01, x-niriValue="float", x-niriSkip=100
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.preferNoCsd`** · boolean = false
   - No title bars on windows: Asks apps to leave out their own title bar (with its close and maximize buttons) and window shadow. Apps that don't agree keep theirs; open ones change once restarted.
@@ -57,7 +57,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 - **`Niri.xwayland`** · boolean = true
   - X11 apps (xwayland-satellite): Runs X11 apps through xwayland-satellite, when it's installed.
-  - x-niri="xwayland-satellite.off", x-niriValue="offFlag"
+  - x-scope="machine", x-niri="xwayland-satellite.off", x-niriValue="offFlag"
   - read: `NiriConfig.options` (whole), `// reads:` marker · in: `config/NiriConfig.qml`, `services/NiriConfigWriter.qml`
 
 ### Reader members

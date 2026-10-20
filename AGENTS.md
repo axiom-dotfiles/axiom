@@ -137,7 +137,7 @@ Dependencies point one way:
 - Every default is filled at load (`docs/dev/core/config-manager.md`), so **readers use no `??` fallbacks**.
 - Readers are named for their section, with a `Config` suffix where the name is a type (`OSDConfig`, `OverlayConfig`, `LauncherConfig`, …). `Paths` holds derived paths. A reader that also exposes the config as saved says so (`Bar.savedBars`, `ChatConfig.savedProviders`).
 - **Schema annotations drive the UI; prefer a new annotation to a hand-kept list in QML.** The complete list is `docs/dev/core/schema-annotations.md`. The ones with rules attached:
-  - `x-scope` (`look`/`personal`/`machine`, inherited, root `machine`) is what an example, import or export carries: a new setting inside a look section that names a monitor, path, account or command needs `machine`/`personal`.
+  - `x-scope` (`look`/`personal`/`commands`/`machine`, inherited, root `machine`) is what an example, import or export carries: a new setting inside a look section that names a monitor, path or account needs `machine`, one that runs something `commands`, a preference that means something on any PC `personal`. A setting moved out of `machine` goes in `ConfigExamples.movedKeys` (with a version bump), or older files reset it.
   - `x-takeover` marks a setting that takes something over on this PC (compositor mode, locker, idle, polkit, greeter): loading or importing a config never changes it, only its own card does.
   - `x-hosts` on overlay modules: every module lists `desktop` with `overlay` and `edgeMenu` (`check_structure` enforces it), and one with a text field sets `x-keyboard`; the lock screen and the greeter are opt-in hosts (see UI conventions).
   - `oneOf`s are discriminated by `type` (bar widgets, overlay views and modules).

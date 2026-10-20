@@ -27,7 +27,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `Bar.savedBars` (whole), `barConfig.enabled` · in: `components/bar/BarPanel.qml`, `config/Bar.qml`, `services/EdgeMenuManager.qml`, `services/ShellManager.qml`
 - **`Bars[].monitor`** · string = ""
   - Monitor: Monitor this bar is shown on. Empty uses the primary monitor; All monitors puts an identical copy on each.
-  - x-scope="machine", x-group="General", x-options="screens", x-allScreens=true
+  - x-monitorRef="off", x-scope="machine", x-group="General", x-options="screens", x-allScreens=true
   - read: `Bar.savedBars` (whole), `barConfig.monitor` · in: `components/bar/BarPanel.qml`, `config/Bar.qml`
 - **`Bars[].location`** · string = "Top" · enum Top|Bottom|Left|Right
   - Location

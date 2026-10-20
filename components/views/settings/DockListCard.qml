@@ -7,12 +7,15 @@ import qs.components.reusable
 
 // The Dock section's first card (its `x-card`): the docks as tabs, one
 // shown at a time: where it sits (a screen picker with presets), Show, its
-// pinned apps (with a search to add more) and its settings
-// (EntryListCard).
+// pinned apps (the shared Apps.pinned, or its own with pinnedOwn, with a
+// search to add more) and its settings (EntryListCard).
 EntryListCard {
   id: root
 
-  readonly property var pinned: root.entry?.pinned ?? []
+  readonly property bool ownPinned: root.entry?.pinnedOwn ?? false
+  // Apps.pinned as edited, saved or not
+  readonly property var sharedPinned: SettingsManager.localConfig?.Apps?.pinned ?? Apps.pinned
+  readonly property var pinned: root.ownPinned ? root.entry.pinned : root.sharedPinned
 
   sectionKey: "Dock"
   listKey: "docks"
@@ -24,17 +27,33 @@ EntryListCard {
   // The dock as edited, saved or not
   onShow: () => DockManager.preview(root.entry)
 
+  // The dock's own list, or the shared one
+  function setPinned(list) {
+    if (root.ownPinned)
+      root.edit({
+        "pinned": list
+      });
+    else
+      SettingsManager.setValue(["Apps", "pinned"], list);
+  }
+
+  // Its own list starts as a copy of the shared one
+  function setOwnPinned(own) {
+    root.edit(own && root.entry.pinned.length === 0 ? {
+      "pinnedOwn": true,
+      "pinned": root.sharedPinned.slice()
+    } : {
+      "pinnedOwn": own
+    });
+  }
+
   function pinApp(id) {
     if (!root.pinned.includes(id))
-      root.edit({
-        "pinned": root.pinned.concat([id])
-      });
+      root.setPinned(root.pinned.concat([id]));
   }
 
   function unpinAt(index) {
-    root.edit({
-      "pinned": root.pinned.filter((_, i) => i !== index)
-    });
+    root.setPinned(root.pinned.filter((_, i) => i !== index));
   }
 
   function movePinned(index, by) {
@@ -43,9 +62,7 @@ EntryListCard {
       return;
     const pinned = root.pinned.slice();
     pinned.splice(to, 0, pinned.splice(index, 1)[0]);
-    root.edit({
-      "pinned": pinned
-    });
+    root.setPinned(pinned);
   }
 
   // The pinned apps, with a search to pin more
@@ -54,6 +71,27 @@ EntryListCard {
       text: I18n.tr("Pinned apps")
       font.bold: true
       Layout.fillWidth: true
+    },
+    RowLayout {
+      Layout.fillWidth: true
+      spacing: Widget.spacing
+
+      StyledSwitch {
+        id: ownSwitch
+        checked: root.ownPinned
+        onToggled: {
+          root.setOwnPinned(checked);
+          // A click sets checked itself, which would leave it on the next
+          // dock's tab
+          ownSwitch.checked = Qt.binding(() => root.ownPinned);
+        }
+      }
+
+      StyledText {
+        text: root.ownPinned ? I18n.tr("Its own pinned apps") : I18n.tr("The pinned apps every dock shares")
+        wrapMode: Text.WordWrap
+        Layout.fillWidth: true
+      }
     },
     StyledText {
       visible: root.pinned.length === 0

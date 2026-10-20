@@ -129,10 +129,8 @@ TestCase {
         ]
       }
     });
-    compare(ConfigExamples.pick(config, schema, true), {
-      "Apps": {
-        "terminal": "foot"
-      },
+    compare(ConfigExamples.pick(config, schema, ["personal"]), {
+      "Apps": {},
       "Keybinds": {
         "binds": config.Keybinds.binds
       },
@@ -145,6 +143,112 @@ TestCase {
         ]
       }
     });
+    // The terminal runs: it's a command
+    compare(ConfigExamples.pick(config, schema, ["commands"]).Apps, {
+      "terminal": "foot"
+    });
+  }
+
+  // Each command field is in the commands scope, apart from the personal
+  // parts: a file shared with its preferences runs nothing
+  function test_command_fields_are_commands() {
+    const scopes = [];
+    const walk = (node, scope, path, depth) => {
+      node = SchemaValidation.resolveRef(node, schema);
+      if (!node || depth > 12)
+        return;
+      scope = node["x-scope"] ?? scope;
+      if (/[cC]ommand$/.test(path[path.length - 1] ?? "") && node.type === "string")
+        scopes.push(path.join(".") + " " + scope);
+      for (const key in node.properties ?? {})
+        walk(node.properties[key], scope, path.concat([key]), depth + 1);
+      for (const option of node.oneOf ?? [])
+        walk(option, scope, path, depth + 1);
+      if (node.items)
+        walk(node.items, scope, path.concat(["[]"]), depth + 1);
+    };
+    walk(schema, "machine", [], 0);
+    verify(scopes.length > 10, scopes.length + " command fields");
+    // Lockscreen.lockCommand and Session's autostart never travel at all
+    compare(scopes.filter(line => !line.endsWith(" commands") && !line.endsWith(" machine")), []);
+  }
+
+  // An exec bind is a command: shared with the keybinds, it's left out,
+  // and applying the keybinds keeps the user's own
+  function test_exec_binds_are_commands() {
+    const binds = [
+      {
+        "key": "SUPER + T",
+        "action": "terminal"
+      },
+      {
+        "key": "SUPER + X",
+        "action": "exec",
+        "argument": "theirs"
+      }
+    ];
+    compare(ConfigExamples.pick({
+      "Keybinds": {
+        "binds": binds
+      }
+    }, schema, ["personal"]).Keybinds.binds, [binds[0]]);
+    compare(ConfigExamples.pick({
+      "Keybinds": {
+        "binds": binds
+      }
+    }, schema, ConfigExamples.everything).Keybinds.binds, binds);
+    const mine = {
+      "key": "SUPER + M",
+      "action": "raw",
+      "argument": "mine"
+    };
+    const current = {
+      "Keybinds": {
+        "binds": [mine]
+      }
+    };
+    const example = {
+      "Keybinds": {
+        "binds": binds
+      }
+    };
+    compare(ConfigExamples.apply(current, example, schema, ["personal"]).Keybinds.binds, [binds[0], mine]);
+    compare(ConfigExamples.apply(current, example, schema, ConfigExamples.everything).Keybinds.binds, binds);
+    compare(ConfigExamples.apply(current, example, schema).Keybinds.binds, [mine], "keybinds not taken at all");
+  }
+
+  // An app's OSD bar is personal: a look leaves it out, and applying one
+  // keeps the user's after the example's bars
+  function test_osd_app_bars_are_personal() {
+    const osd = bars => ({
+          "OSD": {
+            "osds": [
+              {
+                "id": "main",
+                "bars": bars
+              }
+            ]
+          }
+        });
+    const master = {
+      "type": "master"
+    };
+    const spotify = {
+      "type": "app",
+      "apps": ["spotify"]
+    };
+    compare(ConfigExamples.pick(osd([master, spotify]), schema).OSD.osds[0].bars, [master]);
+    compare(ConfigExamples.pick(osd([master, spotify]), schema, ["personal"]).OSD.osds[0].bars, [master, spotify]);
+    const firefox = {
+      "type": "app",
+      "apps": ["firefox"]
+    };
+    const brightness = {
+      "type": "brightness"
+    };
+    const applied = ConfigExamples.apply(osd([master, firefox]), osd([brightness, spotify]), schema);
+    compare(applied.OSD.osds[0].bars.map(bar => bar.type), ["brightness", "app"]);
+    compare(applied.OSD.osds[0].bars[1].apps, ["firefox"]);
   }
 
   function test_apply_replaces_parts_and_keeps_the_rest() {
@@ -281,7 +385,7 @@ TestCase {
     }, ConfigExamples.sparse(snapshot, schema));
     const loaded = load(file);
     compare(ConfigExamples.snapshotFiles(loaded, schema).sort(), ["/walls/a b.png", "/walls/gone.png", "/walls/night.png"]);
-    const restored = ConfigExamples.withSnapshot(ConfigExamples.apply(current, loaded, schema, true), loaded, schema, ["/walls/a b.png", "/walls/night.png"]);
+    const restored = ConfigExamples.withSnapshot(ConfigExamples.apply(current, loaded, schema, ConfigExamples.everything), loaded, schema, ["/walls/a b.png", "/walls/night.png"]);
     compare(restored.Appearance.theme, "nord");
     compare(restored.Keybinds.binds, []);
     compare(restored.ThemeIntegrations.kitty, true);
@@ -311,7 +415,7 @@ TestCase {
     old.Appearance.theme = "nord";
     const current = defaults();
     current.ThemeIntegrations.kitty = true;
-    const restored = ConfigExamples.withSnapshot(ConfigExamples.apply(current, old, schema, true), old, schema, []);
+    const restored = ConfigExamples.withSnapshot(ConfigExamples.apply(current, old, schema, ConfigExamples.everything), old, schema, []);
     compare(restored.ThemeIntegrations.kitty, true);
     compare(restored.Appearance.theme, "nord");
   }
@@ -327,7 +431,7 @@ TestCase {
     current.Appearance.themeSchedule.enabled = true;
     current.Appearance.variantWallpapers.light = "file:///walls/day.png";
     verify(!Utils.deepEqual(ConfigExamples.snapshot(current, schema), ConfigExamples.snapshot(saved, schema)), "a mode switch is a change");
-    const restored = ConfigExamples.withSnapshot(ConfigExamples.apply(current, saved, schema, true), saved, schema, ["/walls/fixed.png"]);
+    const restored = ConfigExamples.withSnapshot(ConfigExamples.apply(current, saved, schema, ConfigExamples.everything), saved, schema, ["/walls/fixed.png"]);
     compare(restored.Appearance.wallpaperMode, "fixed");
     compare(restored.Appearance.wallpaperRotation.interval, saved.Appearance.wallpaperRotation.interval);
     compare(restored.Appearance.themeSchedule.enabled, false);
@@ -338,7 +442,7 @@ TestCase {
   }
 
   function test_snapshot_paths() {
-    compare(ConfigExamples.snapshotPaths(schema).map(path => path.join(".")).sort(), ["Appearance.themeSchedule", "Appearance.variantWallpapers", "Appearance.wallpaper", "Appearance.wallpaperFolder", "Appearance.wallpaperMode", "Appearance.wallpaperRotation", "Appearance.wallpapers"]);
+    compare(ConfigExamples.snapshotPaths(schema).map(path => path.join(".")).sort(), ["Appearance.variantWallpapers", "Appearance.wallpaper", "Appearance.wallpaperFolder", "Appearance.wallpaperMode", "Appearance.wallpaperRotation", "Appearance.wallpapers"]);
   }
 
   function test_snapshot_files() {
@@ -365,6 +469,72 @@ TestCase {
     }, schema);
     // "side" by its id, "theirs" by its position, "third" has neither
     compare(result.Bars.map(b => b.monitor), ["HDMI-A-1", "HDMI-A-1", ""]);
+  }
+
+  function test_monitor_order() {
+    compare(ConfigExamples.monitorOrder([
+      {
+        "name": "B",
+        "x": 1920,
+        "y": 0
+      },
+      {
+        "name": "C",
+        "x": 0,
+        "y": 1080
+      },
+      {
+        "name": "A",
+        "x": 0,
+        "y": 0
+      }
+    ]), ["A", "C", "B"]);
+  }
+
+  // Shared, a monitor is written by its place, and applying it puts it on
+  // the user's monitor in that place: a part for a monitor they don't
+  // have is turned off, or left out where it can't be
+  function test_monitors_travel_by_place() {
+    const author = ["DP-1", "HDMI-A-1"];
+    const config = {
+      "Bars": [bar("main", ""), bar("side", "HDMI-A-1"), bar("every", "*"), bar("gone", "DP-9")],
+      "Workspaces": {
+        "strips": [
+          {
+            "monitor": "HDMI-A-1",
+            "direction": "vertical"
+          }
+        ]
+      },
+      "Desktop": {
+        "monitors": [
+          {
+            "monitor": "HDMI-A-1",
+            "columns": 8
+          }
+        ]
+      }
+    };
+    const picked = ConfigExamples.pick(config, schema, [], author);
+    compare(picked.Bars.map(b => b.monitor), ["@primary", "#2", "*", undefined]);
+    compare(picked.Workspaces.strips[0].monitor, "#2");
+    compare(picked.Desktop.monitors[0].monitor, "#2");
+    verify(ConfigExamples.pick(config, schema).Bars[1].monitor === undefined, "without the monitors, names stay out");
+
+    const file = load(Object.assign({
+      "version": ConfigMigration.currentVersion
+    }, picked));
+    // Two monitors: the second is the user's second
+    const two = ConfigExamples.apply(defaults(), file, schema, [], ["eDP-1", "DP-2"]);
+    compare(two.Bars.map(b => [b.monitor, b.enabled]), [["", true], ["DP-2", true], ["*", true], ["", true]]);
+    compare(two.Workspaces.strips.map(s => s.monitor), ["DP-2"]);
+    compare(two.Desktop.monitors.map(m => m.monitor), ["DP-2"]);
+    // One: the second monitor's bar is off, its strip and desktop left out
+    const one = ConfigExamples.apply(defaults(), file, schema, [], ["eDP-1"]);
+    compare(one.Bars.map(b => b.enabled), [true, false, true, true]);
+    compare(one.Workspaces.strips, []);
+    compare(one.Desktop.monitors, []);
+    compare(SchemaValidation.validationErrors(one, schema), []);
   }
 
   function test_apply_takes_personal_values_only_when_asked() {
@@ -420,7 +590,11 @@ TestCase {
     compare(kept.Dock.docks.map(d => d.pinned), [["kitty"], []]);
     compare(kept.Keybinds.binds, current.Keybinds.binds);
 
-    const taken = ConfigExamples.apply(current, example, schema, true);
+    const personal = ConfigExamples.apply(current, example, schema, ["personal"]);
+    compare(personal.Bars[0].widgets.left[0].properties.command, "mine", "a command comes only with the commands");
+    compare(personal.Dock.docks.map(d => d.pinned), [["firefox"], ["gimp"]]);
+
+    const taken = ConfigExamples.apply(current, example, schema, ConfigExamples.everything);
     compare(taken.Bars[0].widgets.left[0].properties.command, "theirs");
     compare(taken.Bars[0].monitor, "DP-1");
     compare(taken.Dock.docks.map(d => d.pinned), [["firefox"], ["gimp"]]);
@@ -477,7 +651,7 @@ TestCase {
     compare(more.Bars[0].widgets.left.map(w => w.properties.diskPath), ["/home", "/data", "/"]);
   }
 
-  function test_keep_moved_look() {
+  function test_keep_moved_keys() {
     const current = {
       "WindowLook": {
         "shape": true,
@@ -498,7 +672,7 @@ TestCase {
         "borders": false
       }
     };
-    compare(ConfigExamples.keepMovedLook(file, current, 49).WindowLook, {
+    compare(ConfigExamples.keepMovedKeys(file, {}, current, 49).WindowLook, {
       "shape": true,
       "rounding": 3,
       "shadow": true,
@@ -506,10 +680,42 @@ TestCase {
       "dim": true,
       "borders": false
     }, "a file older than v58 never held any of them");
-    const v60 = ConfigExamples.keepMovedLook(file, current, 60).WindowLook;
+    const v60 = ConfigExamples.keepMovedKeys(file, {}, current, 60).WindowLook;
     compare([v60.shape, v60.rounding, v60.shadow, v60.dim], [false, 8, true, true], "the shape is the file's since v58");
-    compare(ConfigExamples.keepMovedLook(file, current, 63), file, "the file's own since v63");
+    compare(ConfigExamples.keepMovedKeys(file, {}, current, 63), file, "the file's own since v63");
     compare(file.WindowLook.shadow, false, "the file is left as it was");
+    const held = ConfigExamples.keepMovedKeys(file, {
+      "WindowLook": {
+        "rounding": 8
+      }
+    }, current, 49).WindowLook;
+    compare([held.shape, held.rounding], [true, 8], "what an older file holds is its own");
+  }
+
+  // Settings carried since v71 (the launcher's look, notification and
+  // input preferences, …): an older export never held them, so applying
+  // one keeps the user's instead of putting the defaults in
+  function test_older_files_keep_settings_carried_since_v71() {
+    const user = defaults();
+    user.Launcher.width = 900;
+    user.Notifications.timeout = 9;
+    user.Input.kbLayout = "de";
+    user.Appearance.themeSchedule.enabled = true;
+    const v70 = {
+      "version": 70,
+      "Appearance": {
+        "theme": "nord"
+      }
+    };
+    const loaded = ConfigExamples.keepMovedKeys(load(v70), ConfigMigration.migrate(v70).config, user, 70);
+    const applied = ConfigExamples.apply(user, loaded, schema);
+    compare([applied.Launcher.width, applied.Notifications.timeout, applied.Appearance.themeSchedule.enabled, applied.Appearance.theme], [900, 9, true, "nord"]);
+    compare(ConfigExamples.apply(user, loaded, schema, ["personal"]).Input.kbLayout, "de");
+    // A file of this version holds them, its defaults included
+    const now = load({
+      "version": ConfigMigration.currentVersion
+    });
+    compare(ConfigExamples.apply(user, now, schema).Launcher.width, 680);
   }
 
   function test_sparse_defaults_are_empty() {
@@ -539,7 +745,7 @@ TestCase {
       const parts = Utils.clone(example);
       delete parts._example;
       delete parts.version;
-      compare(ConfigExamples.pick(parts, schema, true), parts, name);
+      compare(ConfigExamples.pick(parts, schema, ConfigExamples.everything), parts, name);
     }
   }
 
@@ -551,7 +757,7 @@ TestCase {
     const user = load(files.json("tests/fixtures/configs/v1.json"));
     const sources = exampleNames().map(name => ({
           "name": name,
-          "config": ConfigExamples.apply(user, load(files.json("examples/" + name)), schema, true)
+          "config": ConfigExamples.apply(user, load(files.json("examples/" + name)), schema, ConfigExamples.everything)
         })).concat([
       {
         "name": "v1.json",
@@ -559,12 +765,12 @@ TestCase {
       }
     ]);
     for (const source of sources) {
-      for (const personal of [false, true]) {
-        const label = `${source.name}${personal ? " with personal parts" : ""}`;
-        const exported = ConfigExamples.sparse(ConfigExamples.pick(source.config, schema, personal), schema);
+      for (const carry of [[], ["personal"], ["commands"], ConfigExamples.everything]) {
+        const label = `${source.name} with ${carry.join(", ") || "the look"}`;
+        const exported = ConfigExamples.sparse(ConfigExamples.pick(source.config, schema, carry), schema);
         exported.version = ConfigMigration.currentVersion;
         for (const current of [defaults(), user])
-          verify(Utils.deepEqual(ConfigExamples.apply(current, load(exported), schema, personal), ConfigExamples.apply(current, source.config, schema, personal)), label + " imported");
+          verify(Utils.deepEqual(ConfigExamples.apply(current, load(exported), schema, carry), ConfigExamples.apply(current, source.config, schema, carry)), label + " imported");
       }
     }
   }

@@ -2,7 +2,7 @@
 # Config: WindowSwitcher
 
 > **Reader:** `WindowSwitcherConfig` (`config/WindowSwitcherConfig.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.WindowSwitcher` · category Workspaces
+> **Schema:** `config/json/config.schema.json` → `properties.WindowSwitcher` · category Workspaces · scope personal
 
 Window switcher: Your windows, most recently used first, while the switch windows keys are held (ALT + Tab and ALT + SHIFT + Tab on the Keybinds page). Releasing the modifier focuses the chosen window; Escape keeps the current one.
 

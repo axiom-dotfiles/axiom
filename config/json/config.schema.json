@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 70,
+      "default": 71,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -104,6 +104,7 @@
         "monitor": { "type": "string", "title": "Login monitor", "x-options": "screens", "default": "", "description": "The monitor the login box shows on. The others show the layout without it, or only the background." },
         "rememberUser": { "type": "boolean", "title": "Remember the last user", "default": true, "description": "Start on whoever logged in last, and on their last session. Off starts with an empty user field." },
         "layout": {
+          "x-scope": "look",
           "$ref": "#/definitions/ScreenLayout",
           "x-settings": false,
           "title": "Login screen",
@@ -122,6 +123,7 @@
       }
     },
     "Idle": {
+      "x-scope": "personal",
       "type": "object",
       "x-category": "Screen & Power",
       "x-card": "IdleStatus",
@@ -131,7 +133,7 @@
       "additionalProperties": false,
       "x-order": ["enabled", "dimTimeout", "dimMode", "dimLevel", "dimBy", "lockTimeout", "screenOffTimeout", "suspendTimeout", "lockBeforeSleep", "screenOnAfterSleep", "respectInhibitors", "listeners"],
       "properties": {
-        "enabled": { "type": "boolean", "x-takeover": true, "title": "Manage hypridle", "default": false, "description": "axiom runs hypridle with a config of its own (~/.local/state/axiom/hypridle.conf) and stops any other hypridle while this is on. Your own hypridle.conf is never touched; remove your own hypridle autostart line." },
+        "enabled": { "x-scope": "machine", "type": "boolean", "x-takeover": true, "title": "Manage hypridle", "default": false, "description": "axiom runs hypridle with a config of its own (~/.local/state/axiom/hypridle.conf) and stops any other hypridle while this is on. Your own hypridle.conf is never touched; remove your own hypridle autostart line." },
         "dimTimeout": { "type": "integer", "title": "Dim the screens after", "x-unit": "s", "default": 150, "minimum": 0, "maximum": 7200, "description": "0 never dims. Brightness comes back when you return.", "x-showIf": { "enabled": true } },
         "dimMode": { "type": "string", "title": "Dim", "default": "to", "enum": ["to", "by"], "x-enumLabels": { "to": "To a set brightness", "by": "By a share of the current brightness" }, "description": "A set brightness leaves screens already darker as they are. A share always dims, unless a screen is already at 0.", "x-showIf": { "enabled": true } },
         "dimLevel": { "type": "integer", "title": "Dim to", "x-unit": "%", "default": 30, "minimum": 5, "maximum": 100, "description": "Screens already darker stay as they are.", "x-showIf": { "enabled": true, "dimMode": "to" } },
@@ -143,6 +145,7 @@
         "screenOnAfterSleep": { "type": "boolean", "title": "Screens on after sleep", "x-group": "Sleep", "default": true, "description": "Turn the screens back on when the computer wakes.", "x-showIf": { "enabled": true } },
         "respectInhibitors": { "type": "boolean", "title": "Respect apps that keep the screen on", "x-group": "Sleep", "default": true, "description": "Video players and browsers can ask to stay awake over D-Bus and systemd. The caffeine widget works either way.", "x-showIf": { "enabled": true } },
         "listeners": {
+          "x-scope": "commands",
           "type": "array",
           "title": "Extra listeners",
           "x-group": "Idle listeners",
@@ -178,6 +181,7 @@
     },
 
     "NightLight": {
+      "x-scope": "personal",
       "type": "object",
       "x-category": "Screen & Power",
       "x-intro": "NightLightStatus",
@@ -203,6 +207,7 @@
       "additionalProperties": false,
       "properties": {
         "language": {
+          "x-scope": "personal",
           "type": "string",
           "title": "Language",
           "default": "en",
@@ -235,6 +240,7 @@
     },
 
     "Launcher": {
+      "x-scope": "personal",
       "type": "object",
       "x-category": "Launcher",
       "title": "Launcher",
@@ -244,6 +250,7 @@
       "x-order": ["monitors", "edge", "position", "detached", "distance", "reverse", "width", "maxResults", "iconSize", "showBackdrop", "backdrop", "showDescriptions", "showRecent", "showHint", "windows", "calculator", "commands", "runCommands", "webSearch", "searchEngine", "chat", "clipboard", "clipboardSource", "clipboardMaxEntries", "emoji", "hiddenApps"],
       "properties": {
         "monitors": {
+          "x-scope": "look",
           "type": "string",
           "title": "Monitors",
           "enum": ["general", "primary", "focused", "all"],
@@ -252,6 +259,7 @@
           "description": "Where the launcher opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "edge": {
+          "x-scope": "look",
           "type": "string",
           "title": "Screen edge",
           "default": "Top",
@@ -259,6 +267,7 @@
           "description": "Screen edge the launcher opens from, or is held off when detached."
         },
         "position": {
+          "x-scope": "look",
           "type": "integer",
           "title": "Position along edge",
           "x-unit": "%",
@@ -268,12 +277,14 @@
           "description": "Where along the edge its centre sits: 0 is the start (left/top), 100 the end. It never runs off the screen."
         },
         "detached": {
+          "x-scope": "look",
           "type": "boolean",
           "title": "Detach from edge",
           "default": true,
           "description": "A separate box floating off the edge. Off, the launcher grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge."
         },
         "distance": {
+          "x-scope": "look",
           "type": "integer",
           "title": "Distance from edge",
           "x-unit": "%",
@@ -283,15 +294,15 @@
           "description": "How far across the free screen it sits: 0 lines it up with a detached dock or OSD on that edge, 50 centres it.",
           "x-showIf": { "detached": true }
         },
-        "reverse": { "type": "boolean", "title": "Search bar at the bottom", "default": false, "description": "Put the search field under the results, with the best match nearest to it. Suits the bottom edge." },
-        "width": { "type": "integer", "title": "Width", "x-unit": "px", "default": 680, "minimum": 400, "maximum": 1200, "description": "Width of the launcher." },
-        "maxResults": { "x-group": "Launcher look", "type": "integer", "x-control": "stepper", "title": "Results shown", "default": 8, "minimum": 3, "maximum": 20, "description": "How many rows fit before the list scrolls." },
-        "iconSize": { "x-group": "Launcher look", "type": "integer", "x-control": "stepper", "title": "Icon size", "x-unit": "px", "default": 32, "minimum": 16, "maximum": 64, "description": "Size of the result icons." },
-        "showBackdrop": { "x-group": "Launcher look", "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the launcher, under the bars and border." },
-        "backdrop": { "x-group": "Launcher look", "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 25, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the launcher goes.", "x-showIf": { "showBackdrop": true } },
-        "showDescriptions": { "x-group": "Launcher look", "type": "boolean", "title": "Descriptions", "default": true, "description": "Show a second line under each result (an app's generic name, a window's class, a command's description)." },
+        "reverse": { "x-scope": "look", "type": "boolean", "title": "Search bar at the bottom", "default": false, "description": "Put the search field under the results, with the best match nearest to it. Suits the bottom edge." },
+        "width": { "x-scope": "look", "type": "integer", "title": "Width", "x-unit": "px", "default": 680, "minimum": 400, "maximum": 1200, "description": "Width of the launcher." },
+        "maxResults": { "x-scope": "look", "x-group": "Launcher look", "type": "integer", "x-control": "stepper", "title": "Results shown", "default": 8, "minimum": 3, "maximum": 20, "description": "How many rows fit before the list scrolls." },
+        "iconSize": { "x-scope": "look", "x-group": "Launcher look", "type": "integer", "x-control": "stepper", "title": "Icon size", "x-unit": "px", "default": 32, "minimum": 16, "maximum": 64, "description": "Size of the result icons." },
+        "showBackdrop": { "x-scope": "look", "x-group": "Launcher look", "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the launcher, under the bars and border." },
+        "backdrop": { "x-scope": "look", "x-group": "Launcher look", "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 25, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the launcher goes.", "x-showIf": { "showBackdrop": true } },
+        "showDescriptions": { "x-scope": "look", "x-group": "Launcher look", "type": "boolean", "title": "Descriptions", "default": true, "description": "Show a second line under each result (an app's generic name, a window's class, a command's description)." },
         "showRecent": { "x-group": "Launcher look", "type": "boolean", "title": "Frequent apps when empty", "default": true, "description": "List your most used apps before you type anything." },
-        "showHint": { "x-group": "Launcher look", "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the search prefixes and keys under the results." },
+        "showHint": { "x-scope": "look", "x-group": "Launcher look", "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the search prefixes and keys under the results." },
         "hiddenApps": { "x-group": "Launcher search", "type": "array", "title": "Hidden apps", "default": [], "items": { "type": "string" }, "description": "Desktop entry ids never shown, comma-separated (e.g. avahi-discover, qv4l2)." },
         "windows": { "x-group": "Launcher search", "type": "boolean", "title": "Open windows", "default": true, "description": "Also match open windows by title and class; picking one focuses it." },
         "calculator": { "x-group": "Launcher search", "type": "boolean", "title": "Calculator", "default": true, "description": "Show the result of math as you type it (or after =), using qalc. Enter copies the result." },
@@ -301,7 +312,7 @@
         "searchEngine": { "x-group": "Launcher search", "type": "string", "title": "Search engine URL", "default": "https://duckduckgo.com/?q={}", "description": "{} is replaced by the search terms.", "x-showIf": { "webSearch": true } },
         "chat": { "x-group": "Launcher search", "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." },
         "clipboard": { "x-group": "Launcher search", "type": "boolean", "title": "Clipboard history (:)", "default": true, "description": "Type : (or /clipboard) to search what you've copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don't; turning it off clears the history." },
-        "clipboardSource": { "x-group": "Launcher search", "type": "string", "title": "Clipboard history source", "default": "axiom", "enum": ["axiom", "cliphist"], "x-enumLabels": { "axiom": "axiom (in memory)", "cliphist": "cliphist" }, "description": "axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).", "x-showIf": { "clipboard": true } },
+        "clipboardSource": { "x-scope": "machine", "x-group": "Launcher search", "type": "string", "title": "Clipboard history source", "default": "axiom", "enum": ["axiom", "cliphist"], "x-enumLabels": { "axiom": "axiom (in memory)", "cliphist": "cliphist" }, "description": "axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).", "x-showIf": { "clipboard": true } },
         "clipboardMaxEntries": { "x-group": "Launcher search", "type": "integer", "title": "Clipboard history size", "default": 100, "minimum": 10, "maximum": 1000, "description": "How many clips axiom keeps.", "x-showIf": { "clipboard": true, "clipboardSource": "axiom" } },
         "emoji": { "x-group": "Launcher search", "type": "boolean", "title": "Emoji (;)", "default": true, "description": "Type ; (or /emoji) to search emoji by name or keyword; Enter copies one. With wtype installed, Shift+Enter also types it into the focused window." }
       }
@@ -316,9 +327,10 @@
       "additionalProperties": false,
       "x-order": ["terminal", "fileManager", "browser"],
       "properties": {
-        "terminal": { "type": "string", "title": "Terminal", "default": "kitty", "description": "Terminal used for commands run with Shift+Enter, for terminal apps and by the Terminal keybind. It's started as: terminal -e command." },
-        "fileManager": { "type": "string", "title": "File manager", "default": "", "description": "Command the File manager keybind runs. Empty opens your home folder in the system's default file manager." },
-        "browser": { "type": "string", "title": "Browser", "default": "", "description": "Command the Browser keybind runs. Empty starts the system's default web browser." }
+        "terminal": { "x-scope": "commands", "type": "string", "title": "Terminal", "default": "kitty", "description": "Terminal used for commands run with Shift+Enter, for terminal apps and by the Terminal keybind. It's started as: terminal -e command." },
+        "fileManager": { "x-scope": "commands", "type": "string", "title": "File manager", "default": "", "description": "Command the File manager keybind runs. Empty opens your home folder in the system's default file manager." },
+        "browser": { "x-scope": "commands", "type": "string", "title": "Browser", "default": "", "description": "Command the Browser keybind runs. Empty starts the system's default web browser." },
+        "pinned": { "x-scope": "personal", "type": "array", "title": "Pinned apps", "x-settings": false, "default": [], "items": { "type": "string" }, "description": "Desktop entry ids, in order: the apps every dock shows first, unless it has its own (Dock → pinnedOwn)." }
       }
     },
 
@@ -330,6 +342,7 @@
       "additionalProperties": false,
       "properties": {
         "monitors": {
+          "x-scope": "look",
           "type": "string",
           "title": "Monitors",
           "enum": ["general", "primary", "focused", "all"],
@@ -374,6 +387,7 @@
     },
 
     "Notifications": {
+      "x-scope": "personal",
       "type": "object",
       "x-category": "Notifications",
       "title": "Notifications",
@@ -382,6 +396,7 @@
       "x-order": ["monitors", "position", "evenGaps", "gap", "gapTop", "gapBottom", "gapLeft", "gapRight", "timeout", "appTimeouts", "criticalStays", "maxToasts", "width", "quietFullscreen", "clearOnFocus", "removeOnClick", "closeRemoves", "maxEntries", "maxAgeDays"],
       "properties": {
         "monitors": {
+          "x-scope": "look",
           "type": "string",
           "title": "Monitors",
           "enum": ["general", "primary", "focused", "all"],
@@ -551,6 +566,7 @@
             { "key": "XF86AudioStop", "action": "mediaStop", "locked": true }
           ],
           "items": {
+            "x-scopeIf": {"when": {"action": ["exec", "raw"]}, "scope": "commands"},
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -675,6 +691,7 @@
       "additionalProperties": false,
       "properties": {
         "managed": {
+          "x-scope": "personal",
           "type": "object",
           "title": "Managed config",
           "description": "Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.",
@@ -691,11 +708,12 @@
             "masterOrientation": { "type": "string", "title": "Master side", "x-group": "Hyprland layout", "enum": ["left", "right", "top", "bottom", "center"], "default": "left", "x-showIf": { "layout": "master" }, "x-hypr": "master.orientation" },
             "masterNewStatus": { "type": "string", "title": "New windows become", "x-group": "Hyprland layout", "enum": ["slave", "master", "inherit"], "x-enumLabels": { "slave": "Part of the stack", "master": "The master", "inherit": "Like the focused window" }, "default": "slave", "x-showIf": { "layout": "master" }, "x-hypr": "master.new_status" },
             "snap": { "type": "boolean", "title": "Snap floating windows", "x-group": "Hyprland layout", "default": false, "description": "Floating windows snap to each other and the screen edges.", "x-hypr": "general.snap.enabled" },
-            "dimSpecial": { "type": "integer", "title": "Dim behind special workspaces", "x-unit": "%", "x-group": "Hyprland behaviour", "default": 20, "minimum": 0, "maximum": 100, "x-hypr": "decoration.dim_special", "x-hyprScale": 0.01 },
-            "animations": { "type": "boolean", "title": "Animations", "x-group": "Hyprland animations", "default": true, "x-hypr": "animations.enabled", "x-hyprAlways": true },
-            "animationPreset": { "type": "string", "title": "Style", "x-group": "Hyprland animations", "enum": ["hyprland", "axiom", "instant", "snappy", "bouncy", "lightning", "custom"], "x-enumLabels": { "hyprland": "Hyprland's defaults", "axiom": "Follow axiom's motion", "instant": "Instant", "snappy": "Snappy", "bouncy": "Bouncy", "lightning": "Lightning", "custom": "Custom" }, "default": "axiom", "description": "Follow axiom's motion uses Look & Feel → Motion's speed, and turns Hyprland's animations off with axiom's.", "x-showIf": { "animations": true } },
+            "dimSpecial": { "x-scope": "look", "type": "integer", "title": "Dim behind special workspaces", "x-unit": "%", "x-group": "Hyprland behaviour", "default": 20, "minimum": 0, "maximum": 100, "x-hypr": "decoration.dim_special", "x-hyprScale": 0.01 },
+            "animations": { "x-scope": "look", "type": "boolean", "title": "Animations", "x-group": "Hyprland animations", "default": true, "x-hypr": "animations.enabled", "x-hyprAlways": true },
+            "animationPreset": { "x-scope": "look", "type": "string", "title": "Style", "x-group": "Hyprland animations", "enum": ["hyprland", "axiom", "instant", "snappy", "bouncy", "lightning", "custom"], "x-enumLabels": { "hyprland": "Hyprland's defaults", "axiom": "Follow axiom's motion", "instant": "Instant", "snappy": "Snappy", "bouncy": "Bouncy", "lightning": "Lightning", "custom": "Custom" }, "default": "axiom", "description": "Follow axiom's motion uses Look & Feel → Motion's speed, and turns Hyprland's animations off with axiom's.", "x-showIf": { "animations": true } },
             "workspaceWraparound": { "type": "boolean", "title": "Wrap workspace animations", "x-group": "Hyprland animations", "default": false, "description": "Going from the last workspace to the first slides forward, not back.", "x-showIf": { "animations": true }, "x-hypr": "animations.workspace_wraparound" },
             "curves": {
+              "x-scope": "look",
               "x-wide": true,
               "type": "array",
               "title": "Curves",
@@ -714,6 +732,7 @@
               }
             },
             "customAnimations": {
+              "x-scope": "look",
               "type": "array",
               "title": "Animations",
               "x-group": "Hyprland animations",
@@ -735,24 +754,25 @@
             },
             "floatSwitchOverrideFocus": { "type": "string", "title": "Crossing tiled/floating", "x-group": "Hyprland windows", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Leaves focus alone", "1": "Moves focus", "2": "Moves focus, also floating to floating" }, "default": "1", "description": "What moving the cursor between tiled and floating windows does.", "x-showIf": { "/WindowBehaviour.followMouse": true }, "x-hypr": "input.float_switch_override_focus", "x-hyprValue": "number" },
             "resizeOnBorder": { "type": "boolean", "title": "Resize by dragging borders", "x-group": "Hyprland windows", "default": true, "x-hypr": "general.resize_on_border", "x-hyprAlways": true },
-            "hideLogo": { "type": "boolean", "title": "Hide Hyprland's logo and splash", "x-group": "Hyprland behaviour", "default": true, "x-hypr": ["misc.disable_hyprland_logo", "misc.disable_splash_rendering"], "x-hyprAlways": true },
-            "backgroundThemed": { "type": "boolean", "title": "Background in a theme color", "x-group": "Hyprland behaviour", "default": false, "description": "What shows where there's no wallpaper." },
-            "backgroundColor": { "type": "string", "title": "Background color", "x-group": "Hyprland behaviour", "x-options": "colors", "default": "base00", "x-showIf": { "backgroundThemed": true }, "x-hypr": "misc.background_color", "x-hyprValue": "color", "x-hyprIf": "backgroundThemed" },
+            "hideLogo": { "x-scope": "look", "type": "boolean", "title": "Hide Hyprland's logo and splash", "x-group": "Hyprland behaviour", "default": true, "x-hypr": ["misc.disable_hyprland_logo", "misc.disable_splash_rendering"], "x-hyprAlways": true },
+            "backgroundThemed": { "x-scope": "look", "type": "boolean", "title": "Background in a theme color", "x-group": "Hyprland behaviour", "default": false, "description": "What shows where there's no wallpaper." },
+            "backgroundColor": { "x-scope": "look", "type": "string", "title": "Background color", "x-group": "Hyprland behaviour", "x-options": "colors", "default": "base00", "x-showIf": { "backgroundThemed": true }, "x-hypr": "misc.background_color", "x-hyprValue": "color", "x-hyprIf": "backgroundThemed" },
             "swallow": { "type": "boolean", "title": "Terminals swallow what they open", "x-group": "Hyprland behaviour", "default": true, "description": "A GUI app started from a terminal takes the terminal's place until it closes.", "x-hypr": "misc.enable_swallow", "x-hyprAlways": true },
             "swallowRegex": { "type": "string", "title": "Swallowing terminals", "x-group": "Hyprland behaviour", "default": "^(kitty|foot|Alacritty|com\\.mitchellh\\.ghostty|org\\.wezfurlong\\.wezterm)$", "description": "A regex of terminal window classes.", "x-showIf": { "swallow": true }, "x-hypr": "misc.swallow_regex", "x-hyprIf": "swallow" },
             "closeSpecialOnEmpty": { "type": "boolean", "title": "Close empty special workspaces", "x-group": "Hyprland behaviour", "default": true, "x-hypr": "misc.close_special_on_empty" },
             "hideSpecialOnWorkspaceChange": { "type": "boolean", "title": "Hide special workspaces on switching", "x-group": "Hyprland behaviour", "default": false, "x-hypr": "binds.hide_special_on_workspace_change" },
-            "mouseWakesScreen": { "type": "boolean", "title": "Mouse wakes the screen", "x-group": "Hyprland behaviour", "default": true, "x-hypr": "misc.mouse_move_enables_dpms", "x-hyprAlways": true },
-            "keyWakesScreen": { "type": "boolean", "title": "Keys wake the screen", "x-group": "Hyprland behaviour", "default": false, "x-hypr": "misc.key_press_enables_dpms" },
-            "vrr": { "type": "string", "title": "Variable refresh rate", "x-group": "Hyprland behaviour", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Off", "1": "On", "2": "Fullscreen only" }, "default": "0", "x-hypr": "misc.vrr", "x-hyprValue": "number" },
-            "scrollEventDelay": { "type": "integer", "title": "Scroll bind delay", "x-unit": "ms", "x-group": "Hyprland behaviour", "default": 300, "minimum": 0, "maximum": 2000, "description": "How long a bound scroll ignores further scrolling.", "x-hypr": "binds.scroll_event_delay" },
-            "xwaylandZeroScaling": { "type": "boolean", "title": "Unscaled X11 apps", "x-group": "Hyprland behaviour", "default": true, "description": "X11 apps draw at native resolution on scaled monitors, instead of blurry.", "x-hypr": "xwayland.force_zero_scaling", "x-hyprAlways": true }
+            "mouseWakesScreen": { "x-scope": "machine", "type": "boolean", "title": "Mouse wakes the screen", "x-group": "Hyprland behaviour", "default": true, "x-hypr": "misc.mouse_move_enables_dpms", "x-hyprAlways": true },
+            "keyWakesScreen": { "x-scope": "machine", "type": "boolean", "title": "Keys wake the screen", "x-group": "Hyprland behaviour", "default": false, "x-hypr": "misc.key_press_enables_dpms" },
+            "vrr": { "x-scope": "machine", "type": "string", "title": "Variable refresh rate", "x-group": "Hyprland behaviour", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Off", "1": "On", "2": "Fullscreen only" }, "default": "0", "x-hypr": "misc.vrr", "x-hyprValue": "number" },
+            "scrollEventDelay": { "x-scope": "machine", "type": "integer", "title": "Scroll bind delay", "x-unit": "ms", "x-group": "Hyprland behaviour", "default": 300, "minimum": 0, "maximum": 2000, "description": "How long a bound scroll ignores further scrolling.", "x-hypr": "binds.scroll_event_delay" },
+            "xwaylandZeroScaling": { "x-scope": "machine", "type": "boolean", "title": "Unscaled X11 apps", "x-group": "Hyprland behaviour", "default": true, "description": "X11 apps draw at native resolution on scaled monitors, instead of blurry.", "x-hypr": "xwayland.force_zero_scaling", "x-hyprAlways": true }
           }
         }
       }
     },
 
     "WindowBehaviour": {
+      "x-scope": "personal",
       "type": "object",
       "x-category": "Compositor",
       "x-showIf": { "/$supports.configModes": true, "/Compositor.mode": "managed" },
@@ -771,6 +791,7 @@
     },
 
     "Sway": {
+      "x-scope": "personal",
       "type": "object",
       "x-category": "Compositor",
       "x-showIf": { "/$compositor": "sway", "/Compositor.mode": "managed" },
@@ -780,16 +801,17 @@
       "x-order": ["workspaceLayout", "hideEdgeBorders", "smartGaps", "focusWrapping", "popupDuringFullscreen", "xwayland", "font"],
       "properties": {
         "workspaceLayout": { "type": "string", "title": "New workspaces", "enum": ["default", "stacking", "tabbed"], "x-enumLabels": { "default": "Tiled", "stacking": "Stacked", "tabbed": "Tabbed" }, "default": "default", "x-sway": "workspace_layout {}" },
-        "hideEdgeBorders": { "type": "string", "title": "Hide borders at the screen edges", "enum": ["none", "vertical", "horizontal", "both", "smart", "smart_no_gaps"], "x-enumLabels": { "none": "Never", "vertical": "Left and right", "horizontal": "Top and bottom", "both": "All", "smart": "With one window", "smart_no_gaps": "With one window and no gaps" }, "default": "none", "x-sway": "hide_edge_borders {}" },
-        "smartGaps": { "type": "string", "title": "Smart gaps", "enum": ["off", "on", "inverse_outer"], "x-enumLabels": { "off": "Off", "on": "No gaps around a lone window", "inverse_outer": "Outer gaps only around a lone window" }, "default": "off", "x-sway": "smart_gaps {}" },
+        "hideEdgeBorders": { "x-scope": "look", "type": "string", "title": "Hide borders at the screen edges", "enum": ["none", "vertical", "horizontal", "both", "smart", "smart_no_gaps"], "x-enumLabels": { "none": "Never", "vertical": "Left and right", "horizontal": "Top and bottom", "both": "All", "smart": "With one window", "smart_no_gaps": "With one window and no gaps" }, "default": "none", "x-sway": "hide_edge_borders {}" },
+        "smartGaps": { "x-scope": "look", "type": "string", "title": "Smart gaps", "enum": ["off", "on", "inverse_outer"], "x-enumLabels": { "off": "Off", "on": "No gaps around a lone window", "inverse_outer": "Outer gaps only around a lone window" }, "default": "off", "x-sway": "smart_gaps {}" },
         "focusWrapping": { "type": "string", "title": "Focus wraps around", "enum": ["yes", "no", "force", "workspace"], "x-enumLabels": { "yes": "Within a container", "no": "Never", "force": "Always", "workspace": "Within the workspace" }, "default": "yes", "x-sway": "focus_wrapping {}" },
         "popupDuringFullscreen": { "type": "string", "title": "Popups over a fullscreen window", "enum": ["smart", "ignore", "leave_fullscreen"], "x-enumLabels": { "smart": "Show its own", "ignore": "Never show", "leave_fullscreen": "Leave fullscreen" }, "default": "smart", "x-sway": "popup_during_fullscreen {}" },
-        "xwayland": { "type": "string", "title": "X11 apps (Xwayland)", "enum": ["enable", "disable", "force"], "x-enumLabels": { "enable": "When one starts", "disable": "Off", "force": "Always running" }, "default": "enable", "x-sway": "xwayland {}" },
-        "font": { "type": "string", "title": "Title bar font", "default": "", "description": "A Pango font, e.g. pango:Inter 10. Empty keeps sway's.", "x-sway": "font {}", "x-swayValue": "raw", "x-swaySkip": "" }
+        "xwayland": { "x-scope": "machine", "type": "string", "title": "X11 apps (Xwayland)", "enum": ["enable", "disable", "force"], "x-enumLabels": { "enable": "When one starts", "disable": "Off", "force": "Always running" }, "default": "enable", "x-sway": "xwayland {}" },
+        "font": { "x-scope": "look", "type": "string", "title": "Title bar font", "default": "", "description": "A Pango font, e.g. pango:Inter 10. Empty keeps sway's.", "x-sway": "font {}", "x-swayValue": "raw", "x-swaySkip": "" }
       }
     },
 
     "Niri": {
+      "x-scope": "personal",
       "type": "object",
       "x-category": "Compositor",
       "x-showIf": { "/$compositor": "niri", "/Compositor.mode": "managed" },
@@ -801,15 +823,15 @@
         "centerFocusedColumn": { "type": "string", "title": "Center the focused column", "enum": ["never", "always", "on-overflow"], "x-enumLabels": { "never": "Never", "always": "Always", "on-overflow": "When it doesn't fit beside the last one" }, "default": "never", "x-niri": "layout.center-focused-column" },
         "alwaysCenterSingleColumn": { "type": "boolean", "title": "Center a lone column", "default": false, "description": "A column alone on its workspace sits in the middle.", "x-niri": "layout.always-center-single-column", "x-niriValue": "flag" },
         "emptyWorkspaceAboveFirst": { "type": "boolean", "title": "Empty workspace above the first", "default": false, "description": "Keeps an empty workspace above the first one, as well as below the last.", "x-niri": "layout.empty-workspace-above-first", "x-niriValue": "flag" },
-        "defaultColumnDisplay": { "type": "string", "title": "New columns show", "enum": ["normal", "tabbed"], "x-enumLabels": { "normal": "Windows stacked", "tabbed": "Windows as tabs" }, "default": "normal", "x-niri": "layout.default-column-display" },
+        "defaultColumnDisplay": { "x-scope": "look", "type": "string", "title": "New columns show", "enum": ["normal", "tabbed"], "x-enumLabels": { "normal": "Windows stacked", "tabbed": "Windows as tabs" }, "default": "normal", "x-niri": "layout.default-column-display" },
         "hotCorner": { "type": "boolean", "title": "Top-left corner opens niri's overview", "default": false, "description": "Pushing the cursor into the top-left corner opens niri's own overview.", "x-niri": "gestures.hot-corners.off", "x-niriValue": "offFlag" },
-        "overviewZoom": { "type": "integer", "title": "Overview zoom", "x-unit": "%", "default": 50, "minimum": 10, "maximum": 75, "description": "How large workspaces show in niri's overview.", "x-niri": "overview.zoom", "x-niriScale": 0.01, "x-niriValue": "float" },
-        "animations": { "type": "boolean", "title": "Animations", "default": true, "x-niri": "animations.off", "x-niriValue": "offFlag" },
-        "animationSlowdown": { "type": "integer", "title": "Animation length", "x-unit": "%", "default": 100, "minimum": 10, "maximum": 1000, "description": "100 is niri's own speed; more is slower.", "x-showIf": { "animations": true }, "x-niri": "animations.slowdown", "x-niriScale": 0.01, "x-niriValue": "float", "x-niriSkip": 100 },
+        "overviewZoom": { "x-scope": "look", "type": "integer", "title": "Overview zoom", "x-unit": "%", "default": 50, "minimum": 10, "maximum": 75, "description": "How large workspaces show in niri's overview.", "x-niri": "overview.zoom", "x-niriScale": 0.01, "x-niriValue": "float" },
+        "animations": { "x-scope": "look", "type": "boolean", "title": "Animations", "default": true, "x-niri": "animations.off", "x-niriValue": "offFlag" },
+        "animationSlowdown": { "x-scope": "look", "type": "integer", "title": "Animation length", "x-unit": "%", "default": 100, "minimum": 10, "maximum": 1000, "description": "100 is niri's own speed; more is slower.", "x-showIf": { "animations": true }, "x-niri": "animations.slowdown", "x-niriScale": 0.01, "x-niriValue": "float", "x-niriSkip": 100 },
         "preferNoCsd": { "type": "boolean", "title": "No title bars on windows", "default": false, "description": "Asks apps to leave out their own title bar (with its close and maximize buttons) and window shadow. Apps that don't agree keep theirs; open ones change once restarted.", "x-niri": "prefer-no-csd", "x-niriValue": "flag" },
         "skipHotkeyOverlay": { "type": "boolean", "title": "Skip the hotkey help at start", "default": true, "description": "niri's list of important keys shows when it starts; axiom's binds aren't niri's.", "x-niri": "hotkey-overlay.skip-at-startup", "x-niriValue": "flag" },
         "primaryClipboard": { "type": "boolean", "title": "Middle-click paste", "default": true, "description": "Selected text pastes with the middle mouse button.", "x-niri": "clipboard.disable-primary", "x-niriValue": "offFlag" },
-        "xwayland": { "type": "boolean", "title": "X11 apps (xwayland-satellite)", "default": true, "description": "Runs X11 apps through xwayland-satellite, when it's installed.", "x-niri": "xwayland-satellite.off", "x-niriValue": "offFlag" }
+        "xwayland": { "x-scope": "machine", "type": "boolean", "title": "X11 apps (xwayland-satellite)", "default": true, "description": "Runs X11 apps through xwayland-satellite, when it's installed.", "x-niri": "xwayland-satellite.off", "x-niriValue": "offFlag" }
       }
     },
 
@@ -823,24 +845,24 @@
       "x-order": ["keyboard", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "mouse", "accelProfile", "sensitivity", "leftHanded", "touchpad", "naturalScroll", "tapToClick", "disableWhileTyping", "scrollFactor", "cursor", "cursorTheme", "cursorSize"],
       "properties": {
         "keyboard": { "x-greeter": true, "type": "boolean", "title": "Set the keyboard", "x-group": "Keyboard", "default": false, "description": "Layout and key repeat. Off, your compositor's own config applies." },
-        "kbLayout": { "x-greeter": true, "type": "string", "title": "Keyboard layout", "x-group": "Keyboard", "default": "us", "description": "XKB layouts, comma-separated (e.g. us,de).", "x-hypr": "input.kb_layout", "x-sway": "input type:keyboard xkb_layout {}", "x-niri": "input.keyboard.xkb.layout", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
-        "kbVariant": { "x-greeter": true, "type": "string", "title": "Layout variant", "x-group": "Keyboard", "default": "", "description": "XKB variants, one per layout (e.g. colemak).", "x-hypr": "input.kb_variant", "x-sway": "input type:keyboard xkb_variant {}", "x-niri": "input.keyboard.xkb.variant", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
-        "kbOptions": { "x-greeter": true, "type": "string", "title": "XKB options", "x-group": "Keyboard", "default": "", "description": "e.g. caps:escape,grp:alt_shift_toggle.", "x-hypr": "input.kb_options", "x-sway": "input type:keyboard xkb_options {}", "x-niri": "input.keyboard.xkb.options", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
-        "repeatRate": { "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Key repeat rate", "x-group": "Keyboard", "default": 50, "minimum": 1, "maximum": 100, "x-hypr": "input.repeat_rate", "x-sway": "input type:keyboard repeat_rate {}", "x-niri": "input.keyboard.repeat-rate", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
-        "repeatDelay": { "x-greeter": true, "type": "integer", "title": "Key repeat delay", "x-group": "Keyboard", "default": 300, "minimum": 100, "maximum": 2000, "x-hypr": "input.repeat_delay", "x-sway": "input type:keyboard repeat_delay {}", "x-niri": "input.keyboard.repeat-delay", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
-        "numlockByDefault": { "x-greeter": true, "type": "boolean", "title": "Num Lock on at start", "x-group": "Keyboard", "default": true, "x-hypr": "input.numlock_by_default", "x-sway": "input type:keyboard xkb_numlock {}", "x-niri": "input.keyboard.numlock", "x-niriValue": "flag", "x-swayValue": "enabled", "x-swayConfigOnly": true, "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "kbLayout": { "x-scope": "personal", "x-greeter": true, "type": "string", "title": "Keyboard layout", "x-group": "Keyboard", "default": "us", "description": "XKB layouts, comma-separated (e.g. us,de).", "x-hypr": "input.kb_layout", "x-sway": "input type:keyboard xkb_layout {}", "x-niri": "input.keyboard.xkb.layout", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "kbVariant": { "x-scope": "personal", "x-greeter": true, "type": "string", "title": "Layout variant", "x-group": "Keyboard", "default": "", "description": "XKB variants, one per layout (e.g. colemak).", "x-hypr": "input.kb_variant", "x-sway": "input type:keyboard xkb_variant {}", "x-niri": "input.keyboard.xkb.variant", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "kbOptions": { "x-scope": "personal", "x-greeter": true, "type": "string", "title": "XKB options", "x-group": "Keyboard", "default": "", "description": "e.g. caps:escape,grp:alt_shift_toggle.", "x-hypr": "input.kb_options", "x-sway": "input type:keyboard xkb_options {}", "x-niri": "input.keyboard.xkb.options", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "repeatRate": { "x-scope": "personal", "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Key repeat rate", "x-group": "Keyboard", "default": 50, "minimum": 1, "maximum": 100, "x-hypr": "input.repeat_rate", "x-sway": "input type:keyboard repeat_rate {}", "x-niri": "input.keyboard.repeat-rate", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "repeatDelay": { "x-scope": "personal", "x-greeter": true, "type": "integer", "title": "Key repeat delay", "x-group": "Keyboard", "default": 300, "minimum": 100, "maximum": 2000, "x-hypr": "input.repeat_delay", "x-sway": "input type:keyboard repeat_delay {}", "x-niri": "input.keyboard.repeat-delay", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "numlockByDefault": { "x-scope": "personal", "x-greeter": true, "type": "boolean", "title": "Num Lock on at start", "x-group": "Keyboard", "default": true, "x-hypr": "input.numlock_by_default", "x-sway": "input type:keyboard xkb_numlock {}", "x-niri": "input.keyboard.numlock", "x-niriValue": "flag", "x-swayValue": "enabled", "x-swayConfigOnly": true, "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
         "mouse": { "x-greeter": true, "type": "boolean", "title": "Set the mouse", "x-group": "Mouse & cursor", "default": false, "description": "Acceleration, speed and buttons. Off, your compositor's own config applies." },
         "accelProfile": { "x-greeter": true, "type": "string", "title": "Pointer acceleration", "x-group": "Mouse & cursor", "enum": ["default", "flat", "adaptive"], "x-enumLabels": { "default": "Device default", "flat": "Flat (none)", "adaptive": "Adaptive" }, "default": "default", "x-hypr": "input.accel_profile", "x-hyprValue": "emptyIsDefault", "x-sway": "input type:pointer accel_profile {}", "x-niri": "input.mouse.accel-profile", "x-niriSkip": "default", "x-swaySkip": "default", "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
         "sensitivity": { "x-greeter": true, "type": "integer", "title": "Pointer speed", "x-group": "Mouse & cursor", "default": 0, "minimum": -100, "maximum": 100, "description": "-100 to 100; 0 leaves it as the device reports.", "x-hypr": "input.sensitivity", "x-hyprScale": 0.01, "x-sway": "input type:pointer pointer_accel {}", "x-niri": "input.mouse.accel-speed", "x-niriScale": 0.01, "x-niriValue": "float", "x-swayScale": 0.01, "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
-        "leftHanded": { "x-greeter": true, "type": "boolean", "title": "Left-handed buttons", "x-group": "Mouse & cursor", "default": false, "x-hypr": "input.left_handed", "x-sway": "input type:pointer left_handed {}", "x-niri": "input.mouse.left-handed", "x-niriValue": "flag", "x-swayValue": "enabled", "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
+        "leftHanded": { "x-scope": "personal", "x-greeter": true, "type": "boolean", "title": "Left-handed buttons", "x-group": "Mouse & cursor", "default": false, "x-hypr": "input.left_handed", "x-sway": "input type:pointer left_handed {}", "x-niri": "input.mouse.left-handed", "x-niriValue": "flag", "x-swayValue": "enabled", "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
         "touchpad": { "x-greeter": true, "type": "boolean", "title": "Set the touchpad", "x-group": "Touchpad", "default": false, "description": "Off, your compositor's own config applies." },
-        "naturalScroll": { "x-greeter": true, "type": "boolean", "title": "Natural scrolling", "x-group": "Touchpad", "default": false, "x-hypr": "input.touchpad.natural_scroll", "x-sway": "input type:touchpad natural_scroll {}", "x-niri": "input.touchpad.natural-scroll", "x-niriValue": "flag", "x-swayValue": "enabled", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
-        "tapToClick": { "x-greeter": true, "type": "boolean", "title": "Tap to click", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.tap_to_click", "x-sway": "input type:touchpad tap {}", "x-niri": "input.touchpad.tap", "x-niriValue": "flag", "x-swayValue": "enabled", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
-        "disableWhileTyping": { "x-greeter": true, "type": "boolean", "title": "Off while typing", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.disable_while_typing", "x-sway": "input type:touchpad dwt {}", "x-niri": "input.touchpad.dwt", "x-niriValue": "flag", "x-swayValue": "enabled", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
+        "naturalScroll": { "x-scope": "personal", "x-greeter": true, "type": "boolean", "title": "Natural scrolling", "x-group": "Touchpad", "default": false, "x-hypr": "input.touchpad.natural_scroll", "x-sway": "input type:touchpad natural_scroll {}", "x-niri": "input.touchpad.natural-scroll", "x-niriValue": "flag", "x-swayValue": "enabled", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
+        "tapToClick": { "x-scope": "personal", "x-greeter": true, "type": "boolean", "title": "Tap to click", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.tap_to_click", "x-sway": "input type:touchpad tap {}", "x-niri": "input.touchpad.tap", "x-niriValue": "flag", "x-swayValue": "enabled", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
+        "disableWhileTyping": { "x-scope": "personal", "x-greeter": true, "type": "boolean", "title": "Off while typing", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.disable_while_typing", "x-sway": "input type:touchpad dwt {}", "x-niri": "input.touchpad.dwt", "x-niriValue": "flag", "x-swayValue": "enabled", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
         "scrollFactor": { "x-greeter": true, "type": "integer", "title": "Scroll speed", "x-unit": "%", "x-group": "Touchpad", "default": 100, "minimum": 10, "maximum": 500, "x-hypr": "input.touchpad.scroll_factor", "x-hyprScale": 0.01, "x-sway": "input type:touchpad scroll_factor {}", "x-niri": "input.touchpad.scroll-factor", "x-niriScale": 0.01, "x-niriValue": "float", "x-swayScale": 0.01, "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
         "cursor": { "x-greeter": true, "type": "boolean", "title": "Set the cursor", "x-group": "Mouse & cursor", "default": false, "description": "An installed cursor theme and its size. Off, the cursor is left alone." },
-        "cursorTheme": { "x-greeter": true, "type": "string", "title": "Cursor theme", "x-group": "Mouse & cursor", "x-options": "cursorThemes", "x-enumLabels": { "": "None" }, "default": "", "description": "An installed cursor theme.", "x-showIf": { "cursor": true } },
-        "cursorSize": { "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Cursor size", "x-group": "Mouse & cursor", "default": 24, "minimum": 8, "maximum": 128, "x-showIf": { "cursor": true } }
+        "cursorTheme": { "x-scope": "look", "x-greeter": true, "type": "string", "title": "Cursor theme", "x-group": "Mouse & cursor", "x-options": "cursorThemes", "x-enumLabels": { "": "None" }, "default": "", "description": "An installed cursor theme.", "x-showIf": { "cursor": true } },
+        "cursorSize": { "x-scope": "look", "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Cursor size", "x-group": "Mouse & cursor", "default": 24, "minimum": 8, "maximum": 128, "x-showIf": { "cursor": true } }
       }
     },
 
@@ -1031,8 +1053,8 @@
           "x-settings": false
         },
         "themeSchedule": {
+          "x-scope": "look",
           "type": "object",
-          "x-snapshot": true,
           "title": "Light and dark by time",
           "additionalProperties": false,
           "x-order": ["enabled", "lightAt", "darkAt"],
@@ -1606,6 +1628,7 @@
           "description": "Used by presets that don't name a provider of their own."
         },
         "defaultPreset": {
+          "x-scope": "personal",
           "type": "string",
           "title": "Default preset",
           "x-group": "Chat conversations",
@@ -1614,10 +1637,11 @@
           "description": "What a new conversation starts with."
         },
         "maxTokens": { "type": "integer", "title": "Longest reply", "x-unit": "tokens", "x-group": "Chat conversations", "default": 16000, "minimum": 256, "maximum": 128000, "description": "A reply that reaches this is cut off, with a note saying so." },
-        "keepConversations": { "type": "integer", "title": "Conversations kept", "x-group": "Chat conversations", "default": 50, "minimum": 0, "maximum": 500, "description": "Older ones are deleted. 0 keeps none: conversations last until the shell restarts." },
-        "showThinking": { "type": "boolean", "title": "Show thinking", "x-group": "Chat display", "default": true, "description": "Ask models that reason for a summary of it, shown folded above the reply." },
-        "renderMarkdown": { "type": "boolean", "title": "Format replies", "x-group": "Chat display", "default": true, "description": "Draw Markdown (headings, lists, tables, code blocks) instead of the raw text." },
+        "keepConversations": { "x-scope": "personal", "type": "integer", "title": "Conversations kept", "x-group": "Chat conversations", "default": 50, "minimum": 0, "maximum": 500, "description": "Older ones are deleted. 0 keeps none: conversations last until the shell restarts." },
+        "showThinking": { "x-scope": "personal", "type": "boolean", "title": "Show thinking", "x-group": "Chat display", "default": true, "description": "Ask models that reason for a summary of it, shown folded above the reply." },
+        "renderMarkdown": { "x-scope": "personal", "type": "boolean", "title": "Format replies", "x-group": "Chat display", "default": true, "description": "Draw Markdown (headings, lists, tables, code blocks) instead of the raw text." },
         "sendKey": {
+          "x-scope": "personal",
           "type": "string",
           "title": "Send with",
           "x-group": "Chat display",
@@ -1666,6 +1690,7 @@
           }
         },
         "presets": {
+          "x-scope": "personal",
           "type": "array",
           "title": "Presets",
           "description": "Saved setups to start a conversation with: a system prompt, and optionally a provider, model and effort of their own.",
@@ -1706,9 +1731,9 @@
       "x-order": ["directory", "extensions", "showHidden", "confirmDelete"],
       "properties": {
         "directory": { "type": "string", "title": "Notes folder", "x-control": "folder", "default": "", "description": "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in ~/.local/share/axiom/notes." },
-        "extensions": { "type": "array", "title": "File types", "default": ["md", "txt"], "items": { "type": "string" }, "description": "File extensions the note list shows, comma-separated. New notes are .md." },
-        "showHidden": { "type": "boolean", "title": "Show hidden files", "default": false, "description": "List files and folders whose names start with a dot." },
-        "confirmDelete": { "type": "boolean", "title": "Confirm before deleting", "default": true, "description": "Deleted notes and folders go to the trash. Without gio (glib2) deleting is permanent, and always asks first." }
+        "extensions": { "x-scope": "personal", "type": "array", "title": "File types", "default": ["md", "txt"], "items": { "type": "string" }, "description": "File extensions the note list shows, comma-separated. New notes are .md." },
+        "showHidden": { "x-scope": "personal", "type": "boolean", "title": "Show hidden files", "default": false, "description": "List files and folders whose names start with a dot." },
+        "confirmDelete": { "x-scope": "personal", "type": "boolean", "title": "Confirm before deleting", "default": true, "description": "Deleted notes and folders go to the trash. Without gio (glib2) deleting is permanent, and always asks first." }
       }
     },
 
@@ -1732,14 +1757,14 @@
           "items": { "$ref": "#/definitions/CalendarAccount" }
         },
         "defaultCalendar": { "type": "string", "title": "New events go to", "x-group": "Events", "default": "", "x-options": "calendars", "x-emptyLabel": "The first calendar", "description": "The calendar picked for a new event (the launcher's /event uses it too)." },
-        "defaultDuration": { "type": "integer", "title": "Event length", "x-unit": "min", "x-group": "Events", "default": 60, "minimum": 5, "maximum": 1440, "description": "How long a new event lasts until you change it." },
-        "defaultReminder": { "type": "integer", "title": "Reminder", "x-unit": "min", "x-group": "Events", "default": 10, "minimum": -1, "maximum": 10080, "description": "How long before a new event's start its reminder fires. -1 adds none." },
-        "reminders": { "type": "boolean", "title": "Notify reminders", "x-group": "Events", "default": true, "description": "Show a notification when an event's reminder is due (while axiom runs)." },
+        "defaultDuration": { "x-scope": "personal", "type": "integer", "title": "Event length", "x-unit": "min", "x-group": "Events", "default": 60, "minimum": 5, "maximum": 1440, "description": "How long a new event lasts until you change it." },
+        "defaultReminder": { "x-scope": "personal", "type": "integer", "title": "Reminder", "x-unit": "min", "x-group": "Events", "default": 10, "minimum": -1, "maximum": 10080, "description": "How long before a new event's start its reminder fires. -1 adds none." },
+        "reminders": { "x-scope": "personal", "type": "boolean", "title": "Notify reminders", "x-group": "Events", "default": true, "description": "Show a notification when an event's reminder is due (while axiom runs)." },
         "syncInterval": { "type": "integer", "title": "Sync every", "x-unit": "min", "x-group": "Sync", "default": 15, "minimum": 1, "maximum": 1440, "description": "How often calendars are checked for changes, while something shows them or reminders are on." },
-        "pastMonths": { "type": "integer", "title": "Months back", "x-group": "Sync", "default": 2, "minimum": 0, "maximum": 24, "description": "How far back events are kept. Paging past it fetches more." },
-        "futureMonths": { "type": "integer", "title": "Months ahead", "x-group": "Sync", "default": 12, "minimum": 1, "maximum": 60 },
-        "use24Hour": { "type": "boolean", "title": "24-hour times", "x-group": "Display", "default": true, "description": "How event times show everywhere events do." },
-        "maxDots": { "type": "integer", "title": "Dots per day", "x-group": "Display", "default": 3, "minimum": 1, "maximum": 6, "description": "Most calendar-colored dots under a day in the month grids." },
+        "pastMonths": { "x-scope": "personal", "type": "integer", "title": "Months back", "x-group": "Sync", "default": 2, "minimum": 0, "maximum": 24, "description": "How far back events are kept. Paging past it fetches more." },
+        "futureMonths": { "x-scope": "personal", "type": "integer", "title": "Months ahead", "x-group": "Sync", "default": 12, "minimum": 1, "maximum": 60 },
+        "use24Hour": { "x-scope": "look", "type": "boolean", "title": "24-hour times", "x-group": "Display", "default": true, "description": "How event times show everywhere events do." },
+        "maxDots": { "x-scope": "look", "type": "integer", "title": "Dots per day", "x-group": "Display", "default": 3, "minimum": 1, "maximum": 6, "description": "Most calendar-colored dots under a day in the month grids." },
         "showOnLockscreen": { "type": "boolean", "title": "Events on the lock screen", "x-group": "Display", "default": false, "description": "The Clock & calendar module shows the day's events on the lock screen too (read-only). Anyone at the locked screen can read them." }
       }
     },
@@ -1755,7 +1780,7 @@
         "location": { "type": "string", "title": "Location", "default": "", "description": "City name to look up. Empty uses your IP's location." },
         "latitude": { "type": "string", "title": "Latitude", "default": "", "description": "Exact coordinates; with longitude, overrides the location lookup." },
         "longitude": { "type": "string", "title": "Longitude", "default": "" },
-        "units": { "type": "string", "title": "Units", "default": "celsius", "enum": ["celsius", "fahrenheit"] },
+        "units": { "x-scope": "personal", "type": "string", "title": "Units", "default": "celsius", "enum": ["celsius", "fahrenheit"] },
         "intervalMinutes": { "type": "integer", "title": "Refresh interval", "x-unit": "min", "default": 15, "minimum": 5, "maximum": 1440 }
       }
     },
@@ -1797,8 +1822,8 @@
       "properties": {
         "includeAur": { "type": "boolean", "title": "Include AUR", "default": false, "description": "Also count outdated AUR packages.", "x-showIf": { "/$distro": "arch" } },
         "aurHelper": { "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": { "includeAur": true, "/$distro": "arch" } },
-        "terminal": { "x-scope": "personal", "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
-        "upgradeCommand": { "x-scope": "personal", "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu." }
+        "terminal": { "x-scope": "commands", "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
+        "upgradeCommand": { "x-scope": "commands", "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu." }
       }
     },
 
@@ -1963,6 +1988,7 @@
     },
 
     "Overlay": {
+      "x-scope": "personal",
       "type": "object",
       "x-category": "Overlay & Popouts",
       "x-links": ["Layouts"],
@@ -1970,6 +1996,7 @@
       "additionalProperties": false,
       "properties": {
         "monitors": {
+          "x-scope": "look",
           "type": "string",
           "title": "Monitors",
           "enum": ["general", "primary", "focused", "all"],
@@ -2102,7 +2129,7 @@
             "additionalProperties": false,
             "x-order": ["monitor", "direction"],
             "properties": {
-              "monitor": { "x-scope": "machine", "type": "string", "title": "Monitor", "x-options": "screens", "x-allScreens": true, "default": "", "description": "Empty uses the primary monitor; All monitors makes every monitor a strip, unless another entry names it." },
+              "monitor": { "x-monitorRef": "drop", "x-scope": "machine", "type": "string", "title": "Monitor", "x-options": "screens", "x-allScreens": true, "default": "", "description": "Empty uses the primary monitor; All monitors makes every monitor a strip, unless another entry names it." },
               "direction": { "type": "string", "title": "Direction", "enum": ["horizontal", "vertical"], "x-enumLabels": { "horizontal": "Horizontal", "vertical": "Vertical" }, "default": "horizontal", "description": "Horizontal: columns side by side, scrolling sideways. Vertical: rows one under another, scrolling up and down." }
             }
           }
@@ -2185,6 +2212,7 @@
     },
 
     "WindowSwitcher": {
+      "x-scope": "personal",
       "type": "object",
       "x-category": "Workspaces",
       "title": "Window switcher",
@@ -2356,7 +2384,7 @@
           }
         },
         "monitors": {
-          "x-scope": "machine",
+          "x-scope": "look",
           "type": "array",
           "title": "Monitors",
           "description": "Layouts of monitors by name (their connector), ahead of the primary monitor's and the one for all.",
@@ -2375,7 +2403,7 @@
       "x-order": ["columns", "rows", "fineGrid", "moduleBorders"],
       "properties": {
         "enabled": { "type": "boolean", "x-settings": false, "default": true, "description": "Shown. Off on a monitor's own layout leaves that monitor's desktop empty." },
-        "monitor": { "type": "string", "x-settings": false, "default": "", "description": "The monitor (connector name) a layout in Desktop.monitors is for." },
+        "monitor": { "x-scope": "machine", "x-monitorRef": "drop", "type": "string", "x-settings": false, "default": "", "description": "The monitor (connector name) a layout in Desktop.monitors is for." },
         "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill the room inside the bars and border, so match its shape." },
         "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
         "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
@@ -2446,6 +2474,7 @@
           "description": "Where the dock appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse), and the dock moves with it; every monitor shows it on all of them at once; a specific monitor is the one picked below."
         },
         "monitor": {
+          "x-monitorRef": "off",
           "x-scope": "machine",
           "type": "string",
           "title": "Monitor",
@@ -2573,6 +2602,7 @@
         "showLabels": { "type": "boolean", "title": "Names on hover", "default": true, "description": "Show an app's name in a tooltip when the pointer rests on it." },
         "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base00" },
         "borderColor": { "type": "string", "title": "Border", "x-options": "colors", "default": "base05" },
+        "pinnedOwn": { "type": "boolean", "title": "Own pinned apps", "x-settings": false, "default": false, "description": "The dock shows its own pinned apps (pinned) instead of Apps → pinned, the list every other dock shares." },
         "pinned": {
           "x-scope": "personal",
           "type": "array",
@@ -2580,7 +2610,7 @@
           "x-settings": false,
           "default": [],
           "items": { "type": "string" },
-          "description": "Desktop entry ids, in order."
+          "description": "Desktop entry ids, in order: the dock's own, shown with pinnedOwn."
         }
       }
     },
@@ -2601,6 +2631,7 @@
           "description": "Where the OSD appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once; a specific monitor is the one picked below."
         },
         "monitor": {
+          "x-monitorRef": "off",
           "x-scope": "machine",
           "type": "string",
           "title": "Monitor",
@@ -2693,6 +2724,7 @@
             { "type": "master", "icon": "", "showOsd": true }
           ],
           "items": {
+            "x-scopeIf": {"when": {"type": "app"}, "scope": "personal"},
             "type": "object",
             "additionalProperties": false,
             "x-order": ["type", "apps", "allMonitors", "icon", "showOsd"],
@@ -2723,6 +2755,7 @@
         "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
         "enabled": { "x-group": "General", "type": "boolean", "title": "Enabled", "default": true },
         "monitor": {
+          "x-monitorRef": "off",
           "x-scope": "machine",
           "x-group": "General",
           "type": "string",
@@ -2905,6 +2938,7 @@
         "id": { "x-group": "General", "type": "string", "title": "Id" },
         "enabled": { "x-group": "General", "type": "boolean", "title": "Enabled", "default": true },
         "monitor": {
+          "x-monitorRef": "off",
           "x-scope": "machine",
           "x-group": "General",
           "type": "string",
@@ -4218,10 +4252,10 @@
           "properties": {
             "title": { "type": "string", "title": "Title", "default": "", "description": "Shown over the output. Empty shows the command when there's room." },
             "icon": { "type": "string", "title": "Icon", "default": "terminal", "description": "A Material Symbols name." },
-            "command": { "x-scope": "machine", "type": "string", "title": "Command", "x-multiline": true, "default": "uptime -p", "description": "Run with sh while the card is shown; its output is the card. One short line shows as a big figure." },
+            "command": { "x-scope": "commands", "type": "string", "title": "Command", "x-multiline": true, "default": "uptime -p", "description": "Run with sh while the card is shown; its output is the card. One short line shows as a big figure." },
             "interval": { "type": "integer", "title": "Run every", "x-unit": "s", "default": 10, "minimum": 1, "maximum": 86400 },
             "monospace": { "type": "boolean", "title": "Monospace", "default": false, "description": "For tables and aligned output (lines aren't wrapped)." },
-            "clickCommand": { "x-scope": "machine", "type": "string", "title": "On click", "default": "", "description": "A command a click on the card runs (the command runs again after). Empty does nothing." }
+            "clickCommand": { "x-scope": "commands", "type": "string", "title": "On click", "default": "", "description": "A command a click on the card runs (the command runs again after). Empty does nothing." }
           }
         }
       }
@@ -4816,7 +4850,7 @@
             "showName": { "type": "boolean", "title": "Show device", "default": false, "description": "Show the connected device name next to the icon." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Wi-Fi menu when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-            "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing." },
+            "middleCommand": { "x-scope": "commands", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Connected color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "disconnectedColor": { "type": "string", "title": "Disconnected color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
@@ -4891,13 +4925,13 @@
             "action": { "type": "string", "title": "Click action", "default": "powerMenu", "description": "What a left click does.", "enum": ["powerMenu", "appLauncher", "overlay", "overlayPage", "workspaceOverlay", "edgeMenu", "lock", "command", "none"] },
             "page": { "type": "string", "title": "Overlay page", "default": "", "description": "The page the button opens the overlay on.", "x-options": "overlayPages", "x-showIf": { "action": "overlayPage" } },
             "menu": { "type": "string", "title": "Edge menu", "default": "", "description": "The edge menu a click opens and closes, as a full menu: hovering another widget's popout doesn't replace it.", "x-options": "edgeMenus", "x-showIf": { "action": "edgeMenu" } },
-            "command": { "x-scope": "personal", "type": "string", "title": "Command", "default": "", "description": "Shell command run on left click.", "x-showIf": { "action": "command" } },
-            "rightCommand": { "x-scope": "personal", "type": "string", "title": "Right-click command", "default": "", "description": "Shell command run on right click. Empty does nothing." },
-            "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click. Empty does nothing." },
+            "command": { "x-scope": "commands", "type": "string", "title": "Command", "default": "", "description": "Shell command run on left click.", "x-showIf": { "action": "command" } },
+            "rightCommand": { "x-scope": "commands", "type": "string", "title": "Right-click command", "default": "", "description": "Shell command run on right click. Empty does nothing." },
+            "middleCommand": { "x-scope": "commands", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click. Empty does nothing." },
             "hoverActivate": { "type": "boolean", "title": "Activate on hover", "default": false, "description": "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay or power menu that is already open. For an edge menu on hover, use Hover popout.", "x-showIf": { "action": ["powerMenu", "appLauncher", "overlay", "overlayPage", "workspaceOverlay", "lock", "command"] } },
             "showPopout": { "type": "boolean", "title": "Hover popout", "default": false, "description": "Open an edge menu while the button is hovered, like other widgets' popouts: it closes when the pointer leaves, and a neighbouring popout replaces it. Separate from the click action." },
             "popoutMenu": { "type": "string", "title": "Popout menu", "default": "", "x-options": "edgeMenus", "description": "The edge menu shown on hover. It can differ from the one a click opens.", "x-showIf": { "showPopout": true } },
-            "labelCommand": { "x-scope": "personal", "type": "string", "title": "Label command", "default": "", "description": "Shell command whose first line of output is shown as the label, re-run on an interval." },
+            "labelCommand": { "x-scope": "commands", "type": "string", "title": "Label command", "default": "", "description": "Shell command whose first line of output is shown as the label, re-run on an interval." },
             "labelInterval": { "type": "integer", "title": "Label interval", "x-unit": "ms", "default": 5000, "minimum": 500, "maximum": 3600000, "description": "How often the label command runs.", "x-showIf": { "labelCommand": { "not": "" } } },
             "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
@@ -5181,7 +5215,7 @@
             "criticalThreshold": { "type": "integer", "title": "Critical at", "x-unit": "%", "default": 90, "minimum": 1, "maximum": 100 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List every limit per account when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-            "clickCommand": { "x-scope": "personal", "type": "string", "title": "Click command", "default": "", "description": "Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now." },
+            "clickCommand": { "x-scope": "commands", "type": "string", "title": "Click command", "default": "", "description": "Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now." },
             "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "warnColor": { "type": "string", "title": "Warning color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "criticalColor": { "type": "string", "title": "Critical color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
@@ -5280,7 +5314,7 @@
             "maxVolume": { "type": "integer", "title": "Maximum volume", "x-unit": "%", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the output mixer when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-            "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
+            "middleCommand": { "x-scope": "commands", "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "mutedColor": { "type": "string", "title": "Muted color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
@@ -5307,7 +5341,7 @@
             "maxVolume": { "type": "integer", "title": "Maximum volume", "x-unit": "%", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the input mixer when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-            "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
+            "middleCommand": { "x-scope": "commands", "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
             "activeColor": { "type": "string", "title": "In-use color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "description": "Used while an app is recording from the microphone.", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "hideWhenIdle": { "type": "boolean", "title": "Hide when idle", "default": false, "description": "Only show the widget while the microphone is in use or muted." },
             "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
@@ -5336,7 +5370,7 @@
             "hideWhenOff": { "type": "boolean", "title": "Hide when off", "default": false },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Bluetooth menu when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
-            "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. blueman-manager). Empty does nothing." },
+            "middleCommand": { "x-scope": "commands", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. blueman-manager). Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "connectedColor": { "type": "string", "title": "Connected color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "disabledColor": { "type": "string", "title": "Off color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },

@@ -26,7 +26,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `EdgeMenusConfig.menus` (whole) · in: `services/EdgeMenuManager.qml`, `services/OverlayManager.qml`
 - **`EdgeMenus[].monitor`** · string = ""
   - Monitor: Monitor this menu is shown on. Empty uses the primary monitor.
-  - x-scope="machine", x-group="General", x-options="screens", x-showIf={"mode":{"not":"submenu"}}
+  - x-monitorRef="off", x-scope="machine", x-group="General", x-options="screens", x-showIf={"mode":{"not":"submenu"}}
   - read: entry field, name match · in: `config/EdgeMenusConfig.qml`
 - **`EdgeMenus[].edge`** · string = "Left" · enum Top|Bottom|Left|Right
   - Edge

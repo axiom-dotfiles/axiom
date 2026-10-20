@@ -73,15 +73,15 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `CalendarConfig.defaultCalendar` · in: `components/views/settings/CalendarAccountsCard.qml`
 - **`Calendar.defaultDuration`** · integer = 60 · 5–1440 · min
   - Event length: How long a new event lasts until you change it.
-  - x-group="Events"
+  - x-scope="personal", x-group="Events"
   - read: `CalendarConfig.defaultDuration` · in: `components/content/Agenda.qml`, `components/content/parts/calendar/DayPane.qml`, `services/CalendarManager.qml`
 - **`Calendar.defaultReminder`** · integer = 10 · -1–10080 · min
   - Reminder: How long before a new event's start its reminder fires. -1 adds none.
-  - x-group="Events"
+  - x-scope="personal", x-group="Events"
   - read: `CalendarConfig.defaultReminder` · in: `components/content/Agenda.qml`, `components/content/parts/calendar/DayPane.qml`, `services/CalendarManager.qml`
 - **`Calendar.reminders`** · boolean = true
   - Notify reminders: Show a notification when an event's reminder is due (while axiom runs).
-  - x-group="Events"
+  - x-scope="personal", x-group="Events"
   - read: `CalendarConfig.reminders` · in: `services/CalendarManager.qml`
 - **`Calendar.syncInterval`** · integer = 15 · 1–1440 · min
   - Sync every: How often calendars are checked for changes, while something shows them or reminders are on.
@@ -89,19 +89,19 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `CalendarConfig.syncInterval` · in: `services/CalendarManager.qml`
 - **`Calendar.pastMonths`** · integer = 2 · 0–24
   - Months back: How far back events are kept. Paging past it fetches more.
-  - x-group="Sync"
+  - x-scope="personal", x-group="Sync"
   - read: `CalendarConfig.pastMonths` · in: `services/CalendarManager.qml`
 - **`Calendar.futureMonths`** · integer = 12 · 1–60
   - Months ahead
-  - x-group="Sync"
+  - x-scope="personal", x-group="Sync"
   - read: `CalendarConfig.futureMonths` · in: `services/CalendarManager.qml`
 - **`Calendar.use24Hour`** · boolean = true
   - 24-hour times: How event times show everywhere events do.
-  - x-group="Display"
+  - x-scope="look", x-group="Display"
   - read: `CalendarConfig.use24Hour` · in: `config/CalendarConfig.qml`
 - **`Calendar.maxDots`** · integer = 3 · 1–6
   - Dots per day: Most calendar-colored dots under a day in the month grids.
-  - x-group="Display"
+  - x-scope="look", x-group="Display"
   - read: `CalendarConfig.maxDots` · in: `services/CalendarManager.qml`
 - **`Calendar.showOnLockscreen`** · boolean = false
   - Events on the lock screen: The Clock & calendar module shows the day's events on the lock screen too (read-only). Anyone at the locked screen can read them.

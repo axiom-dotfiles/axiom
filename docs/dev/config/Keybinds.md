@@ -19,6 +19,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 ### `Keybinds.binds[]`
 
 - **`Keybinds.binds[]`** · object
+  - x-scopeIf={"when":{"action":["exec","raw"]},"scope":"commands"}
 - **`Keybinds.binds[].key`** · string = ""
   - Key: Modifiers and key, joined by +: "SUPER + SHIFT + space". A modifier key alone ("Super_L") fires when tapped, on compositors that can bind one.
   - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`

@@ -5,21 +5,33 @@ import QtQuick
 // belongs to the look of a desktop or to the PC and person it runs for
 // (inherited from the nearest ancestor that sets one; the root is machine):
 //   look      how the desktop looks and is laid out
-//   personal  habits that travel only when asked for: keybinds, apps,
-//             commands, pinned and favourite apps
+//   personal  preferences, keybinds and apps: travel only when asked for
+//   commands  anything that runs as you (a command, a terminal, an exec
+//             bind): travel only when asked for, on their own
 //   machine   what only means something here: monitors, wallpapers,
 //             accounts, paths, hardware and services
+// An array item can have a scope of its own by what it holds
+// (`x-scopeIf: { when, scope }`, `when` as x-showIf over the item's keys):
+// an exec bind is commands, an app's OSD bar personal. Such an item is
+// left out where its scope isn't carried, and applying keeps the user's.
 // Example setups (examples/*.json) and exported configs hold the look (and,
-// when asked, the personal) parts; saved snapshots hold both, plus the
+// when asked, the personal parts and the commands: `carry`, a list of
+// "personal" and "commands"); saved snapshots hold all three, plus the
 // wallpaper setup (`x-snapshot`). Applying one replaces those parts of the
 // running config and leaves the rest as the user set it.
 QtObject {
   id: root
 
-  // The parts of `config` a shared file holds: the look, and the personal
-  // parts too when `personal` is set, never a takeover setting
-  function pick(config, schema, personal = false) {
-    return _pick(config, schema, "machine", _kept(personal), schema) ?? {};
+  // What a snapshot carries besides the look
+  readonly property var everything: ["personal", "commands"]
+
+  // The parts of `config` a shared file holds: the look, and the scopes in
+  // `carry` ("personal", "commands"), never a takeover setting. With
+  // `monitors` (monitorOrder's), each monitor a per-monitor part names
+  // (`x-monitorRef`) is written by its place: "#1" the leftmost, "#2" the
+  // next, "@primary" the primary monitor, "*" all of them
+  function pick(config, schema, carry = [], monitors = null) {
+    return _pick(config, schema, "machine", _context(carry, monitors), schema) ?? {};
   }
 
   // A copy of `current` with the example's parts in place of its own. Both
@@ -28,25 +40,56 @@ QtObject {
   // nothing of the old layout (a bar, a menu) is left behind; inside it,
   // what isn't taken (a bar's monitor, a dock's pinned apps) stays the
   // user's, from the same item: by id or name, or else (machine values
-  // only) by position. With no such item it is the default.
-  function apply(current, example, schema, personal = false) {
-    return _merge(current, example, schema, "machine", _kept(personal), true, schema);
+  // only) by position. With no such item it is the default. A monitor
+  // written by its place (pick) is the user's monitor in that place
+  // (`monitors`: monitorOrder's); a part for one the user doesn't have is
+  // turned off (`x-monitorRef: "off"`: a bar, dock, OSD, edge menu) or left
+  // out ("drop": a strip, a monitor's own desktop), so nothing piles up on
+  // the primary monitor.
+  function apply(current, example, schema, carry = [], monitors = null) {
+    return _merge(current, example, schema, "machine", _context(carry, monitors), true, schema);
   }
 
-  // A copy of `config` (a file of `version`, loaded) with the window look
-  // settings that were machine settings when it was written (under
-  // Hyprland.managed, so the file never held them) as they are in
-  // `current`: applying an older file leaves them as the user set them,
-  // as it did then, instead of their defaults
-  function keepMovedLook(config, current, version) {
-    const keys = [].concat(version < 58 ? ["shape", "matchShell", "borderSize", "rounding"] : [], version < 63 ? ["shadow", "shadowMatchShell", "shadowSize", "shadowPower", "shadowColor", "dim", "dimStrength"] : []);
+  // The monitors' names by place, left to right (then top to bottom), from
+  // outputs ([{ name, x, y }])
+  function monitorOrder(outputs) {
+    return Array.from(outputs ?? []).slice().sort((a, b) => a.x - b.x || a.y - b.y).map(output => output.name);
+  }
+
+  // Settings that became part of a shared file at a version (moved into
+  // a carried scope, or into WindowLook from Hyprland.managed, where a file
+  // never held them): applying a file older than that keeps the user's
+  // value of each it doesn't hold, instead of its default
+  readonly property var movedKeys: [
+    {
+      "version": 58,
+      "paths": ["WindowLook.shape", "WindowLook.matchShell", "WindowLook.borderSize", "WindowLook.rounding"]
+    },
+    {
+      "version": 63,
+      "paths": ["WindowLook.shadow", "WindowLook.shadowMatchShell", "WindowLook.shadowSize", "WindowLook.shadowPower", "WindowLook.shadowColor", "WindowLook.dim", "WindowLook.dimStrength"]
+    },
+    {
+      "version": 71,
+      "paths": ["Greeter.layout", "Desktop.monitors", "Idle.dimTimeout", "Idle.dimMode", "Idle.dimLevel", "Idle.dimBy", "Idle.lockTimeout", "Idle.screenOffTimeout", "Idle.suspendTimeout", "Idle.lockBeforeSleep", "Idle.screenOnAfterSleep", "Idle.respectInhibitors", "Idle.listeners", "NightLight.schedule", "NightLight.startAt", "NightLight.endAt", "NightLight.temperature", "NightLight.gamma", "General.language", "Launcher.monitors", "Launcher.edge", "Launcher.position", "Launcher.detached", "Launcher.distance", "Launcher.reverse", "Launcher.width", "Launcher.maxResults", "Launcher.iconSize", "Launcher.showBackdrop", "Launcher.backdrop", "Launcher.showDescriptions", "Launcher.showRecent", "Launcher.showHint", "Launcher.hiddenApps", "Launcher.windows", "Launcher.calculator", "Launcher.commands", "Launcher.runCommands", "Launcher.webSearch", "Launcher.searchEngine", "Launcher.chat", "Launcher.clipboard", "Launcher.clipboardMaxEntries", "Launcher.emoji", "PowerMenu.monitors", "Notifications.monitors", "Notifications.timeout", "Notifications.appTimeouts", "Notifications.criticalStays", "Notifications.quietFullscreen", "Notifications.clearOnFocus", "Notifications.removeOnClick", "Notifications.closeRemoves", "Notifications.maxEntries", "Notifications.maxAgeDays", "Hyprland.managed.layout", "Hyprland.managed.preserveSplit", "Hyprland.managed.smartSplit", "Hyprland.managed.smartResizing", "Hyprland.managed.forceSplit", "Hyprland.managed.splitRatio", "Hyprland.managed.masterSize", "Hyprland.managed.masterOrientation", "Hyprland.managed.masterNewStatus", "Hyprland.managed.snap", "Hyprland.managed.dimSpecial", "Hyprland.managed.animations", "Hyprland.managed.animationPreset", "Hyprland.managed.workspaceWraparound", "Hyprland.managed.curves", "Hyprland.managed.customAnimations", "Hyprland.managed.floatSwitchOverrideFocus", "Hyprland.managed.resizeOnBorder", "Hyprland.managed.hideLogo", "Hyprland.managed.backgroundThemed", "Hyprland.managed.backgroundColor", "Hyprland.managed.swallow", "Hyprland.managed.swallowRegex", "Hyprland.managed.closeSpecialOnEmpty", "Hyprland.managed.hideSpecialOnWorkspaceChange", "WindowBehaviour.followMouse", "WindowBehaviour.focusOnActivate", "WindowBehaviour.workspaceBackAndForth", "WindowBehaviour.cursorHideTimeout", "WindowBehaviour.hideCursorOnKeyPress", "WindowBehaviour.noWarps", "Sway.workspaceLayout", "Sway.hideEdgeBorders", "Sway.smartGaps", "Sway.focusWrapping", "Sway.popupDuringFullscreen", "Sway.font", "Niri.centerFocusedColumn", "Niri.alwaysCenterSingleColumn", "Niri.emptyWorkspaceAboveFirst", "Niri.defaultColumnDisplay", "Niri.hotCorner", "Niri.overviewZoom", "Niri.animations", "Niri.animationSlowdown", "Niri.preferNoCsd", "Niri.skipHotkeyOverlay", "Niri.primaryClipboard", "Input.kbLayout", "Input.kbVariant", "Input.kbOptions", "Input.repeatRate", "Input.repeatDelay", "Input.numlockByDefault", "Input.leftHanded", "Input.naturalScroll", "Input.tapToClick", "Input.disableWhileTyping", "Input.cursorTheme", "Input.cursorSize", "Appearance.themeSchedule", "Chat.defaultPreset", "Chat.keepConversations", "Chat.showThinking", "Chat.renderMarkdown", "Chat.sendKey", "Chat.presets", "Notes.extensions", "Notes.showHidden", "Notes.confirmDelete", "Calendar.defaultDuration", "Calendar.defaultReminder", "Calendar.reminders", "Calendar.pastMonths", "Calendar.futureMonths", "Calendar.use24Hour", "Calendar.maxDots", "Weather.units", "Overlay.monitors", "Overlay.closeOnEscape", "Overlay.closeOnOutsideClick", "WindowSwitcher.scope", "WindowSwitcher.showDelay"]
+    }
+  ]
+
+  // A copy of `config` (a file of `version`, loaded) with each of
+  // movedKeys newer than the file as it is in `current`, unless the file
+  // holds it: `held` is the file migrated but not filled (an older whole
+  // config.json holds them; an export or example didn't)
+  function keepMovedKeys(config, held, current, version) {
     const result = Utils.clone(config);
-    const from = current?.WindowLook;
-    if (keys.length === 0 || !_isObject(from) || !_isObject(result.WindowLook))
-      return result;
-    for (const key of keys) {
-      if (from[key] !== undefined)
-        result.WindowLook[key] = Utils.clone(from[key]);
+    for (const moved of root.movedKeys) {
+      if (version >= moved.version)
+        continue;
+      for (const dotted of moved.paths) {
+        const path = dotted.split(".");
+        const value = _at(current, path);
+        if (value !== undefined && _at(held, path) === undefined && _isObject(_at(result, path.slice(0, -1))))
+          _setAt(result, path, Utils.clone(value));
+      }
     }
     return result;
   }
@@ -79,12 +122,12 @@ QtObject {
     return result;
   }
 
-  // What a saved snapshot holds: the look and personal parts, and the
-  // `x-snapshot` settings (the wallpaper setup). Those are machine values,
-  // but a snapshot restores on the PC it was saved on, where they still
-  // mean something (withSnapshot).
+  // What a saved snapshot holds: the look, the personal parts and the
+  // commands, and the `x-snapshot` settings (the wallpaper setup). Those
+  // are machine values, but a snapshot restores on the PC it was saved on,
+  // where they still mean something (withSnapshot).
   function snapshot(config, schema) {
-    const result = pick(config, schema, true);
+    const result = pick(config, schema, root.everything);
     for (const path of snapshotPaths(schema)) {
       const value = _at(config, path);
       if (value !== undefined)
@@ -194,21 +237,81 @@ QtObject {
     }
   }
 
-  function _kept(personal) {
-    return personal ? ["look", "personal"] : ["look"];
+  // What a walk carries: { kept: scopes, monitors: names by place or null }
+  function _context(carry, monitors) {
+    return {
+      kept: ["look"].concat(carry ?? []),
+      monitors: monitors
+    };
   }
 
-  // { schema, scope } for `value` at `schema`: the $ref resolved, the oneOf
-  // option for its type (schema null when none matches), the scope it has
+  // A monitor name as its place (pick), or undefined for one not connected
+  function _monitorToken(name, monitors) {
+    if (name === "")
+      return "@primary";
+    if (name === "*")
+      return name;
+    const index = monitors.indexOf(name);
+    return index < 0 ? undefined : "#" + (index + 1);
+  }
+
+  function _isMonitorToken(value) {
+    return typeof value === "string" && (value === "@primary" || value === "*" || /^#[1-9][0-9]*$/.test(value));
+  }
+
+  // The user's monitor for a place, "" (the primary) for one they don't have
+  function _monitorName(token, monitors) {
+    if (token === "@primary")
+      return "";
+    if (token === "*")
+      return token;
+    return (monitors ?? [])[parseInt(token.slice(1)) - 1] ?? "";
+  }
+
+  // What becomes of `item` when it names a place the user has no monitor
+  // for: its field's `x-monitorRef` ("off" or "drop"), else ""
+  function _monitorMissing(item, items, ctx, rootSchema) {
+    const node = _node(item, items, "", rootSchema).schema;
+    if (!_isObject(item) || !node?.properties)
+      return "";
+    for (const key of Object.keys(node.properties)) {
+      const rule = SchemaValidation.resolveRef(node.properties[key], rootSchema)?.["x-monitorRef"];
+      const value = item[key];
+      if (rule && /^#[1-9][0-9]*$/.test(value ?? "") && parseInt(value.slice(1)) > (ctx.monitors ?? []).length)
+        return rule;
+    }
+    return "";
+  }
+
+  // { schema, scope, own } for `value` at `schema`: the $ref resolved, the
+  // oneOf option for its type (schema null when none matches), the scope
+  // it has; `own` when that's the item's own (x-scopeIf)
   function _node(value, schema, scope, rootSchema) {
     let node = SchemaValidation.resolveRef(schema, rootSchema);
     scope = node?.["x-scope"] ?? scope;
     if (node?.oneOf)
       node = SchemaValidation.oneOfOption(value, node, rootSchema);
+    const own = _ownScope(value, node);
     return {
       schema: node ?? null,
-      scope: node?.["x-scope"] ?? scope
+      scope: own ?? node?.["x-scope"] ?? scope,
+      own: own !== null
     };
+  }
+
+  // The scope an item has by what it holds (x-scopeIf), or null
+  function _ownScope(value, node) {
+    const rule = node?.["x-scopeIf"];
+    if (!rule || !_isObject(value))
+      return null;
+    return SchemaLayout.showIfHolds(rule.when, key => value[key]) ? rule.scope : null;
+  }
+
+  // Whether an item of `items` (an array's item schema) has a scope of its
+  // own that isn't kept: left out of a pick, and the user's kept on apply
+  function _ownNotKept(item, items, scope, ctx, rootSchema) {
+    const node = _node(item, items, scope, rootSchema);
+    return node.own && !ctx.kept.includes(node.scope);
   }
 
   function _child(schema, key) {
@@ -222,34 +325,39 @@ QtObject {
   }
 
   // Whether anything at or under `schema` has a kept scope
-  function _carries(schema, scope, kept, rootSchema, depth = 0) {
+  function _carries(schema, scope, ctx, rootSchema, depth = 0) {
     const node = SchemaValidation.resolveRef(schema, rootSchema);
     if (!node || depth > 40)
       return false;
     scope = node["x-scope"] ?? scope;
-    if (kept.includes(scope))
+    if (ctx.kept.includes(scope))
       return true;
     const children = [].concat(node.oneOf ?? [], Object.values(node.properties ?? {}), node.items ? [node.items] : [], typeof node.additionalProperties === "object" ? [node.additionalProperties] : []);
-    return children.some(child => _carries(child, scope, kept, rootSchema, depth + 1));
+    return children.some(child => _carries(child, scope, ctx, rootSchema, depth + 1));
   }
 
   // `value` with only its kept parts, or undefined for none (a takeover
   // setting is never kept: loading one keeps the running value)
-  function _pick(value, schema, scope, kept, rootSchema) {
+  function _pick(value, schema, scope, ctx, rootSchema) {
     const node = _node(value, schema, scope, rootSchema);
     if (node.schema?.["x-takeover"] === true)
       return undefined;
-    const keep = kept.includes(node.scope);
+    if (node.schema?.["x-monitorRef"] && ctx.monitors && typeof value === "string")
+      return _monitorToken(value, ctx.monitors);
+    const keep = ctx.kept.includes(node.scope);
     if (Array.isArray(value)) {
       if (!keep)
         return undefined;
-      return value.map(item => node.schema?.items ? _pick(item, node.schema.items, node.scope, kept, rootSchema) : Utils.clone(item)).filter(item => item !== undefined);
+      const items = node.schema?.items;
+      if (!items)
+        return Utils.clone(value);
+      return value.filter(item => !_ownNotKept(item, items, node.scope, ctx, rootSchema)).map(item => _pick(item, items, node.scope, ctx, rootSchema)).filter(item => item !== undefined);
     }
     if (_isObject(value) && node.schema) {
       const result = {};
       for (const key in value) {
         const child = _child(node.schema, key);
-        const picked = child ? _pick(value[key], child, node.scope, kept, rootSchema) : keep ? Utils.clone(value[key]) : undefined;
+        const picked = child ? _pick(value[key], child, node.scope, ctx, rootSchema) : keep ? Utils.clone(value[key]) : undefined;
         if (picked !== undefined)
           result[key] = picked;
       }
@@ -261,20 +369,31 @@ QtObject {
   // The applied value at one place. `strict`: `current` is the example's
   // item by id or name all the way up, not just by position, so a personal
   // value not taken carries over from it.
-  function _merge(current, example, schema, scope, kept, strict, rootSchema) {
+  function _merge(current, example, schema, scope, ctx, strict, rootSchema) {
     const node = _node(example !== undefined ? example : current, schema, scope, rootSchema);
-    if (!kept.includes(node.scope))
-      return _keep(current, example, node, kept, strict, rootSchema);
+    if (node.schema?.["x-monitorRef"] && _isMonitorToken(example))
+      return _monitorName(example, ctx.monitors);
+    if (!ctx.kept.includes(node.scope))
+      return _keep(current, example, node, ctx, strict, rootSchema);
     if (example === undefined)
       return Utils.clone(current);
     if (Array.isArray(example)) {
       const items = node.schema?.items;
-      return example.map((item, i) => {
-        if (!items)
-          return Utils.clone(item);
-        const match = _match(current, item, i, example);
-        return _merge(match.item, item, items, node.scope, kept, strict && match.strict, rootSchema);
-      }).filter(item => item !== undefined);
+      if (!items)
+        return Utils.clone(example);
+      const taken = example.filter(item => !_ownNotKept(item, items, node.scope, ctx, rootSchema));
+      // The user's own items of a scope not taken stay, after the example's
+      const own = Array.isArray(current) ? current.filter(item => _ownNotKept(item, items, node.scope, ctx, rootSchema)) : [];
+      return taken.map((item, i) => {
+        const match = _match(current, item, i, taken);
+        const merged = _merge(match.item, item, items, node.scope, ctx, strict && match.strict, rootSchema);
+        const missing = _monitorMissing(item, items, ctx, rootSchema);
+        if (missing === "drop")
+          return undefined;
+        if (missing === "off")
+          merged.enabled = false;
+        return merged;
+      }).filter(item => item !== undefined).concat(Utils.clone(own));
     }
     if (_isObject(example) && node.schema) {
       // An item of another type has none of this one's values
@@ -283,7 +402,7 @@ QtObject {
       const result = {};
       for (const key in example) {
         const child = _child(node.schema, key);
-        const merged = child ? _merge(current?.[key], example[key], child, node.scope, kept, strict, rootSchema) : Utils.clone(example[key]);
+        const merged = child ? _merge(current?.[key], example[key], child, node.scope, ctx, strict, rootSchema) : Utils.clone(example[key]);
         if (merged !== undefined)
           result[key] = merged;
       }
@@ -294,14 +413,14 @@ QtObject {
 
   // A part not taken from the example: the user's (a personal one only from
   // a strict match), or else its default. Its kept parts are still taken.
-  function _keep(current, example, node, kept, strict, rootSchema) {
+  function _keep(current, example, node, ctx, strict, rootSchema) {
     const usable = current !== undefined && (node.scope === "machine" || strict);
-    if (_isObject(current) && _isObject(example) && node.schema && _carries(node.schema, node.scope, kept, rootSchema)) {
+    if (_isObject(current) && _isObject(example) && node.schema && _carries(node.schema, node.scope, ctx, rootSchema)) {
       const result = {};
       const keys = Object.keys(Object.assign({}, current, example));
       for (const key of keys) {
         const child = _child(node.schema, key);
-        const merged = child ? _merge(usable ? current[key] : undefined, example[key], child, node.scope, kept, strict, rootSchema) : Utils.clone(usable ? current[key] : example[key]);
+        const merged = child ? _merge(usable ? current[key] : undefined, example[key], child, node.scope, ctx, strict, rootSchema) : Utils.clone(usable ? current[key] : example[key]);
         if (merged !== undefined)
           result[key] = merged;
       }

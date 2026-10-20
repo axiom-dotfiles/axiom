@@ -13,6 +13,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`PowerMenu.monitors`** · string = "general" · enum general|primary|focused|all
   - Monitors: Where the power menu opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
+  - x-scope="look"
   - read: `PowerMenuConfig.monitors` · in: `components/surfaces/powermenu/PowerMenuWindow.qml`, `shell/PowerMenu.qml`
 - **`PowerMenu.actions`** · array<string> = ["lock","suspend","hibernate","logout","reboot","poweroff"]
   - Actions: Which actions the menu shows, in order.

@@ -365,7 +365,7 @@ FieldGroup {
     SectionHeading {
       Layout.topMargin: Widget.spacing
       title: I18n.tr("Share yours")
-      description: I18n.tr("Export your look (without keybinds, apps or commands), then fill in the submission form that opens. Attach the exported file and a screenshot of your whole screen there.")
+      description: I18n.tr("Export your look (without your preferences, keybinds, apps or commands), then fill in the submission form that opens. Attach the exported file and a screenshot of your whole screen there.")
     }
 
     RowLayout {
@@ -385,7 +385,7 @@ FieldGroup {
         iconText: "upload"
         text: I18n.tr("Export and submit…")
         onClicked: {
-          SavedConfigsManager.exportConfig(false);
+          SavedConfigsManager.exportConfig(false, false, false);
           Qt.openUrlExternally(CommunitySetupsManager.submitUrl(SavedConfigsManager.active));
         }
       }

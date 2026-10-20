@@ -41,7 +41,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match · in: `components/surfaces/osd/OSDTriggers.qml`, `shell/OSD.qml`
 - **`OSD.osds[].monitor`** · string = ""
   - Monitor: Monitor the OSD is shown on. Empty uses the primary monitor.
-  - x-scope="machine", x-options="screens", x-showIf={"monitors":"monitor"}
+  - x-monitorRef="off", x-scope="machine", x-options="screens", x-showIf={"monitors":"monitor"}
   - read: entry field, name match · in: `components/surfaces/osd/OSDTriggers.qml`, `shell/OSD.qml`
 - **`OSD.osds[].edge`** · string = "Bottom" · enum Top|Bottom|Left|Right
   - Screen edge: Screen edge the OSD slides out of.
@@ -79,6 +79,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 ### `OSD.osds[].bars[]`
 
 - **`OSD.osds[].bars[]`** · object
+  - x-scopeIf={"when":{"type":"app"},"scope":"personal"}
 - **`OSD.osds[].bars[].type`** · string = "app" · enum master|other|microphone|brightness|app
   - Shows
   - read: entry field, name match · in: `components/surfaces/osd/OSDBar.qml`, `config/OSDConfig.qml`

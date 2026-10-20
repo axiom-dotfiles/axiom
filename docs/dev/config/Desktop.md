@@ -19,7 +19,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
 - **`Desktop.all.monitor`** · string = ""
   - The monitor (connector name) a layout in Desktop.monitors is for.
-  - x-settings=false
+  - x-scope="machine", x-monitorRef="drop", x-settings=false
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
 - **`Desktop.all.columns`** · integer = 16 · 4–32
   - Columns: Grid units across. The grid is stretched to fill the room inside the bars and border, so match its shape.
@@ -52,7 +52,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
 - **`Desktop.primary.monitor`** · string = ""
   - The monitor (connector name) a layout in Desktop.monitors is for.
-  - x-settings=false
+  - x-scope="machine", x-monitorRef="drop", x-settings=false
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
 - **`Desktop.primary.columns`** · integer = 16 · 4–32
   - Columns: Grid units across. The grid is stretched to fill the room inside the bars and border, so match its shape.
@@ -79,7 +79,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Desktop.monitors`** · array<DesktopLayout> = []
   - Monitors: Layouts of monitors by name (their connector), ahead of the primary monitor's and the one for all.
-  - x-scope="machine"
+  - x-scope="look"
   - read: `DesktopConfig.layoutFor` (part) · in: `shell/Desktop.qml`
 
 ### `Desktop.monitors[]`
@@ -92,7 +92,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
 - **`Desktop.monitors[].monitor`** · string = ""
   - The monitor (connector name) a layout in Desktop.monitors is for.
-  - x-settings=false
+  - x-scope="machine", x-monitorRef="drop", x-settings=false
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
 - **`Desktop.monitors[].columns`** · integer = 16 · 4–32
   - Columns: Grid units across. The grid is stretched to fill the room inside the bars and border, so match its shape.

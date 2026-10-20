@@ -22,6 +22,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `WeatherConfig.longitude` · in: `services/WeatherManager.qml`
 - **`Weather.units`** · string = "celsius" · enum celsius|fahrenheit
   - Units
+  - x-scope="personal"
   - read: `WeatherConfig.units` · in: `services/WeatherManager.qml`
 - **`Weather.intervalMinutes`** · integer = 15 · 5–1440 · min
   - Refresh interval

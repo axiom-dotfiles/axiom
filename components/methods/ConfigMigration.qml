@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 70
+  readonly property int currentVersion: 71
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -167,6 +167,8 @@ QtObject {
       result = _v68ToV69(result, changes);
     if (version < 70)
       result = _v69ToV70(result, changes);
+    if (version < 71)
+      result = _v70ToV71(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2361,5 +2363,30 @@ QtObject {
         "locked": true
       }
     ], "Keybinds");
+  }
+
+  // v71 moved pinned apps to Apps.pinned, the list every dock shows unless
+  // it has its own (pinnedOwn): the first dock's pins move there, and any
+  // other dock with a different list keeps it as its own
+  function _v70ToV71(config, changes) {
+    const docks = config.Dock?.docks;
+    if (!Array.isArray(docks) || docks.length === 0 || !docks[0] || typeof docks[0] !== "object")
+      return config;
+    const shared = Array.isArray(docks[0].pinned) ? docks[0].pinned : [];
+    if (!config.Apps || typeof config.Apps !== "object")
+      config.Apps = {};
+    config.Apps.pinned = shared;
+    delete docks[0].pinned;
+    for (const dock of docks.slice(1)) {
+      if (!dock || typeof dock !== "object")
+        continue;
+      const own = Array.isArray(dock.pinned) ? dock.pinned : [];
+      if (JSON.stringify(own) === JSON.stringify(shared))
+        delete dock.pinned;
+      else
+        dock.pinnedOwn = true;
+    }
+    changes.push("Dock.docks[0].pinned -> Apps.pinned");
+    return config;
   }
 }

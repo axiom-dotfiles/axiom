@@ -2,7 +2,7 @@
 # Config: WindowBehaviour
 
 > **Reader:** `WindowBehaviourConfig` (`config/WindowBehaviourConfig.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.WindowBehaviour` · category Compositor
+> **Schema:** `config/json/config.schema.json` → `properties.WindowBehaviour` · category Compositor · scope personal
 
 Windows and focus: How focus and the cursor behave, written into your compositor's config while axiom manages it.
 

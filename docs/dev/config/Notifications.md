@@ -2,7 +2,7 @@
 # Config: Notifications
 
 > **Reader:** `NotificationsConfig` (`config/NotificationsConfig.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.Notifications` · category Notifications
+> **Schema:** `config/json/config.schema.json` → `properties.Notifications` · category Notifications · scope personal
 
 Notifications: Where notification toasts appear, how long they stay, and what the history keeps. Toasts sit inside the work area, the space the bars and screen border leave free, so a gap is measured from whatever is at that edge: a bar, the border's stroke, or the bare screen edge.
 
@@ -13,6 +13,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Notifications.monitors`** · string = "general" · enum general|primary|focused|all
   - Monitors: Where toasts appear. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace when the notification arrives; every monitor shows each toast on all of them, and closing one closes the rest.
+  - x-scope="look"
   - read: `NotificationsConfig.monitors` · in: `shell/Notifications.qml`
 - **`Notifications.position`** · string = "topLeft" · enum topLeft|topRight|bottomLeft|bottomRight
   - Corner: Corner of the work area the toasts stack from. Bottom corners stack upwards.
