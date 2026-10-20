@@ -224,8 +224,8 @@ TestCase {
     });
     const binds = result.config.Keybinds.binds;
     // The user's own SUPER + A stays; the other seven are added once (and
-    // v38's three, v70's eight)
-    compare(binds.length, 19);
+    // v38's three, v70's three)
+    compare(binds.length, 14);
     compare(binds[0].argument, "pavucontrol");
     compare(binds.filter(bind => bind.action === "workspaceStep").map(bind => bind.argument).sort(), ["down", "right", "up"]);
     compare(binds.filter(bind => bind.action === "moveWindowStep").length, 4);
@@ -705,8 +705,8 @@ TestCase {
         ]
       }
     }).config.Keybinds.binds;
-    // (and v70's eight)
-    compare(free.length, 12);
+    // (and v70's three)
+    compare(free.length, 7);
     compare(free[1].key, "SUPER + X");
     compare(free[1].action, "toggleSplit");
     compare([free[2].key, free[2].action, free[2].argument], ["SUPER + V", "toggleSpecial", "magic"]);
@@ -723,7 +723,7 @@ TestCase {
         ]
       }
     }).config.Keybinds.binds;
-    compare(taken.length, 11);
+    compare(taken.length, 6);
     compare(taken[0].action, "exec");
     compare(taken.filter(bind => bind.action === "toggleSplit").length, 0);
   }
@@ -1891,8 +1891,8 @@ TestCase {
       }
     });
     const binds = migrated.config.Keybinds.binds;
-    // (and v70's eight)
-    compare(binds.length, 11);
+    // (and v70's three)
+    compare(binds.length, 6);
     compare(binds[0].action, "exitSession");
     compare(binds[0].release, true);
     compare(binds[1].action, "raw");
@@ -1907,7 +1907,7 @@ TestCase {
       "version": 59
     })))).config;
     compare(again.Keybinds.binds[1].action, "raw");
-    compare(again.Keybinds.binds.length, 11);
+    compare(again.Keybinds.binds.length, 6);
     verify(load({
       "version": 59
     }).config.Keybinds.binds.some(bind => bind.action === "exitSession"), "the defaults");
