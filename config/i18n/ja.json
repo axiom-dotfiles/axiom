@@ -1309,7 +1309,6 @@
     "Timeout": "表示時間",
     "Overlay size": "オーバーレイのサイズ",
     "Module size": "モジュールのサイズ",
-    "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size).": "モニターのオーバーレイのカード（オーバーレイのサイズに従う）を基準にした、メニューのモジュールの大きさ。",
     "Dim other workspaces": "他のワークスペースを暗く",
     "Check interval": "確認間隔",
     "Poll interval": "更新間隔",
@@ -3355,6 +3354,7 @@
     "Slide from the bottom": "",
     "Opening animation": "",
     "Icons only": "",
-    "Fade": ""
+    "Fade": "",
+    "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size). Their text and content grow and shrink with them, as set by Overlay content size.": ""
   }
 }

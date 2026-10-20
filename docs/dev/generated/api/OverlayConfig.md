@@ -10,6 +10,7 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 - `views` (readonly var)
 - `size` (readonly int): How much of what fills the screen the overlay takes, and how big its content is against its cards, in % (see layoutFor)
 - `contentScale` (readonly int)
+- `contentUnit` (readonly int): The card size the overlay's and edge menus' content lays out at
 - `navigator` (readonly string): The page switcher's edge, "bottom" | "top", and which tabs show their names: "auto" (all while they fit) | "current" | "icons"
 - `navigatorLabels` (readonly string)
 - `animation` (readonly string): "top" | "bottom" (the edge it slides in from) | "fade"

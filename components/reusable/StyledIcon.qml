@@ -20,21 +20,22 @@ StyledText {
   // distance-field renderer draws as blotches, and curve rendering leaves seams
   // and uneven thin strokes. Native rendering gets both right, but a scaled
   // native glyph is resampled and blurs: grow an icon by size, not `scale`.
-  // On a page drawn scaled (an ancestor's `contentZoom`: the overlay's
-  // pages), an unfilled one is drawn by the distance-field renderer, which
+  // Drawn scaled (ancestors' `contentZoom`s: the overlay's pages, an edge
+  // menu's modules), an unfilled one is drawn by the distance-field renderer, which
   // scales cleanly
   renderType: isSymbol && !(root._zoomed && root.fill === 0) ? Text.NativeRendering : Text.QtRendering
-  // The ancestor whose `contentZoom` it's drawn at, found once it's placed
+  // The ancestors whose `contentZoom`s it's drawn at (a page's, a menu
+  // module's), found once it's placed
   // (var: qmllint knows only Item's members)
-  property var _zoomHost: null
-  readonly property bool _zoomed: root._zoomHost !== null && Math.abs(root._zoomHost.contentZoom - 1) > 0.01
+  property var _zoomHosts: []
+  readonly property bool _zoomed: Math.abs(root._zoomHosts.reduce((zoom, host) => zoom * host.contentZoom, 1) - 1) > 0.01
   Component.onCompleted: {
+    const hosts = [];
     for (let item = root.parent; item; item = item.parent) {
-      if ("contentZoom" in item) {
-        root._zoomHost = item;
-        return;
-      }
+      if ("contentZoom" in item)
+        hosts.push(item);
     }
+    root._zoomHosts = hosts;
   }
   font.variableAxes: isSymbol ? {
     "FILL": root.fill,

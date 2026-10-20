@@ -2164,7 +2164,7 @@
     "Shut down": "",
     "Size": "",
     "Size of the icon right under the pointer.": "",
-    "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size).": "",
+    "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size). Their text and content grow and shrink with them, as set by Overlay content size.": "",
     "Size of the result icons.": "",
     "Size of the text and everything else inside the overlay's cards, compared with the cards themselves: higher is easier to read but fits less in each card, lower fits more. Use it to bring text to the size you like on a small or very large screen.": "",
     "Size of tray icons (px).": "",

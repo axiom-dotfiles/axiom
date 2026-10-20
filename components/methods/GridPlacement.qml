@@ -15,7 +15,7 @@ QtObject {
   // The card size the overlay's content lays out at, at 100 % content
   // size: drawn bigger or smaller to fit each screen (overlayLayout), so
   // it looks the same on all of them
-  readonly property int layoutUnit: 570
+  readonly property int layoutUnit: 590
   readonly property int cardSpacing: 20
   // The largest a module's w or h may be (the schema's GridPlace maximum)
   readonly property int maxSpan: 32
@@ -595,6 +595,20 @@ QtObject {
     const sizes = root.trackSizes(bounds, unit);
     return sizes.width <= 0 ? 1 : Math.min(1, width / sizes.width, height / sizes.height);
   }
+  // The card size content lays out at, at `contentScale` % (the Overlay
+  // content size): layoutUnit at 100, less as content grows
+  function contentUnit(contentScale) {
+    return Math.round(root.layoutUnit * 100 / contentScale);
+  }
+
+  // What content laid out at card size `unit` is drawn at, on cards
+  // `drawn` px: 1 within 2 %, so it isn't resampled for nothing (an edge
+  // menu's modules; the overlay snaps its card size instead)
+  function zoomOf(drawn, unit) {
+    const zoom = unit > 0 ? drawn / unit : 1;
+    return Math.abs(zoom - 1) < 0.02 ? 1 : zoom;
+  }
+
   // The overlay's cards for `width` × `height` px of room, where a page
   // two cards high (span(8)) fills the height, at most `cardsWide` cards
   // fitting across: { drawn, the card size shown (`size` % of what
@@ -604,7 +618,7 @@ QtObject {
   // resampled for nothing
   function overlayLayout(width, height, size, contentScale, cardsWide) {
     const fill = Math.min((height - root.cardSpacing) / 2, width / cardsWide);
-    const unit = Math.round(root.layoutUnit * 100 / contentScale);
+    const unit = root.contentUnit(contentScale);
     const drawn = Math.max(1, Math.round(fill * size / 100));
     const snapped = Math.abs(drawn / unit - 1) < 0.02 ? unit : drawn;
     return {

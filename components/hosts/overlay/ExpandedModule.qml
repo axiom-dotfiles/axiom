@@ -29,6 +29,8 @@ Item {
   readonly property real pad: OverlayConfig.cardPad(false, false)
   // The room left around the grown box, where the modules show
   property real inset: Widget.spacing
+  // What the content is drawn at (ModuleGrid.zoom)
+  property real zoom: 1
 
   signal closed
 
@@ -129,12 +131,16 @@ Item {
       anchors.fill: parent
     }
 
-    // At the grown box's place whatever the box's, so it never moves
+    // At the grown box's place whatever the box's, so it never moves.
+    // `contentZoom`: see StyledIcon
     Item {
       x: root.inset - box.x
       y: root.inset - box.y
-      width: root.width - root.inset * 2
-      height: root.height - root.inset * 2
+      width: (root.width - root.inset * 2) / root.zoom
+      height: (root.height - root.inset * 2) / root.zoom
+      scale: root.zoom
+      transformOrigin: Item.TopLeft
+      readonly property real contentZoom: root.zoom
 
       RowLayout {
         id: header

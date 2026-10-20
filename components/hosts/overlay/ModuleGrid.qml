@@ -23,6 +23,11 @@ Item {
       "kind": "overlay"
     })
 
+  // What each module is drawn at: laid out at its slot's size over this,
+  // then scaled to fill it (an edge menu's, EdgeMenuManager.zoomOf). The
+  // grid itself is laid out at `grid`'s card size, drawn
+  property real zoom: 1
+
   // The least the grid spans ({ cols, rows }) whatever its modules reach
   // (a lock screen's grid), null for just the modules
   property var extent: null
@@ -191,6 +196,7 @@ Item {
           rect: GridPlacement.rectOf(slot.place)
           host: root.host
           expander: root.expandable ? root : null
+          zoom: root.zoom
         }
       }
     }
@@ -203,6 +209,7 @@ Item {
     host: root.host
     slotRect: [0, 0, root.bounds.cols, root.bounds.rows]
     inset: OverlayConfig.cardSpacing
+    zoom: root.zoom
     onClosed: root.expanded = null
   }
 }

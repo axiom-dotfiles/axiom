@@ -63,6 +63,8 @@ Every public member of `OverlayConfig`, with the files that use it.
   - in: only inside the reader
 - `OverlayConfig.contentScale` (int)
   - in: only inside the reader
+- `OverlayConfig.contentUnit` (int): The card size the overlay's and edge menus' content lays out at
+  - in: `services/EdgeMenuManager.qml`
 - `OverlayConfig.navigator` (string): The page switcher's edge, "bottom" | "top", and which tabs show their names: "auto" (all while they fit) | "current" | "icons"
   - in: `components/hosts/overlay/OverlayPanel.qml`
 - `OverlayConfig.navigatorLabels` (string)

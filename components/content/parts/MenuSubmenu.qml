@@ -66,6 +66,7 @@ Item {
       modules: root.modules
       grid: overlayGrid
       host: root.host
+      zoom: root.menu ? EdgeMenuManager.zoomOf(root.menu, root.parentMenu ? EdgeMenusConfig.screenFor(root.parentMenu) : null) : 1
     }
   }
 

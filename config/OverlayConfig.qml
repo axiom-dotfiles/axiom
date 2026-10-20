@@ -11,6 +11,8 @@ QtObject {
   // content is against its cards, in % (see layoutFor)
   readonly property int size: ConfigManager.config.Overlay.size
   readonly property int contentScale: ConfigManager.config.Overlay.contentScale
+  // The card size the overlay's and edge menus' content lays out at
+  readonly property int contentUnit: GridPlacement.contentUnit(contentScale)
   // The page switcher's edge, "bottom" | "top", and which tabs show their
   // names: "auto" (all while they fit) | "current" | "icons"
   readonly property string navigator: ConfigManager.config.Overlay.navigator
@@ -171,7 +173,7 @@ QtObject {
   }
   // The room left between a page filling the screen and the edges of its
   // area (the bars on one side, the page switcher on the other)
-  readonly property int fillGap: 32
+  readonly property int fillGap: 16
   // At most this many cards fit across, so a page four cards wide still
   // fits a 16:9 screen
   readonly property real fitCardsWide: 4.25

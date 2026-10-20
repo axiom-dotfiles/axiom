@@ -485,6 +485,15 @@ Singleton {
     return menu.fineGrid ? GridPlacement.fineUnit(card) : Math.round(card);
   }
 
+  // What a menu's modules are drawn at: laid out at the overlay's content
+  // card size (Overlay content size), drawn on the menu's own cards
+  // (cardUnitOf), so they look as on an overlay page and moduleScale
+  // scales their text too. A submenu's is on `screen`, as for cardUnitOf
+  function zoomOf(menu, screen) {
+    const unit = OverlayConfig.contentUnit;
+    return GridPlacement.zoomOf(root.cardUnitOf(menu, screen), menu.fineGrid ? GridPlacement.fineUnit(unit) : unit);
+  }
+
   function selectedMenu() {
     return root.localMenus?.[root.selectedMenuIndex] || null;
   }

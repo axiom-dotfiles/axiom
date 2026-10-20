@@ -2876,7 +2876,7 @@
           "minimum": 50,
           "maximum": 200,
           "x-unit": "%",
-          "description": "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size)."
+          "description": "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size). Their text and content grow and shrink with them, as set by Overlay content size."
         },
         "fineGrid": { "x-group": "Placement", "x-beside": true, "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
         "detached": {

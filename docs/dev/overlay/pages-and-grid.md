@@ -64,12 +64,13 @@ Pure, tested by `tst_GridPlacement`.
 The overlay looks the same on every screen, only bigger or smaller: content lays out at one card size everywhere and is drawn scaled to fit.
 - Each `OverlayPanel` has an `OverlayGrid` (`hosts/overlay/`) on the page area beside the navigator, less `OverlayConfig.fillGap` at both ends and the box's padding (`GridPlacement.overlayLayout`, tested in `tst_GridPlacement`):
   - `drawnUnit`: the card size at which a page two cards high (`span(8)`) fills that height, at most `fitCardsWide` cards across, times `Overlay.size`%.
-  - `unit`: the card size content lays out at, `GridPlacement.layoutUnit` (570) at 100 % `Overlay.contentScale`, smaller as content grows.
+  - `unit`: the card size content lays out at, `GridPlacement.layoutUnit` (590) at 100 % `Overlay.contentScale`, smaller as content grows.
   - `zoom`: `drawnUnit / unit`. Within 2 % of the layout size it's drawn at it (`zoom` 1), so content isn't resampled for nothing.
   - `roomWidth` / `roomHeight`: the room in layout px, what views size against (`BaseView.editorWidth`).
 - Views receive it as `grid` (`BaseView`) and size everything from `grid.unit` / `grid.span(n)` / `grid.sizes(bounds, stretch)`, passing plain numbers down to content. Text and widget sizes stay the shell's px tokens; the zoom scales them with the cards.
 - `OverlayPages` draws the current page at `contentZoom` (`zoom × fitScale`, Item.scale on the views' container); its box is sized in drawn px, so its border and radius stay crisp.
-  - `StyledIcon` finds that `contentZoom` up its parents and, scaled, draws unfilled symbols with the distance-field renderer (a native glyph blurs when scaled; a filled one stays native, as distance fields blot its contours).
+  - Edge menus zoom each module's content instead (`ModuleGrid.zoom`), keeping their grid in drawn px: see [Edge menu hosts](../edge-menus/hosts.md).
+  - `StyledIcon` finds the `contentZoom`s up its parents (multiplied) and, scaled, draws unfilled symbols with the distance-field renderer (a native glyph blurs when scaled; a filled one stays native, as distance fields blot its contours).
 - A page that still doesn't fit (wider than `fitCardsWide`, higher than two cards) is shrunk as a whole by `OverlayPages.fitScale`.
 - The panel reports its room before shrinking, in layout px, its `unit` and `drawnUnit` to `OverlayManager.reportArea`: the layouts editor's "fits" line (`fitOf`), and edge menus' card size (`drawnUnit`, see [Edge menu hosts](../edge-menus/hosts.md)).
 - `OverlayConfig.span` without a unit is the grid's default size (`GridPlacement.cardUnit`, 500).
