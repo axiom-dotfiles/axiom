@@ -51,6 +51,6 @@
    - Only the binds that went are sent to `bindsMerged`.
 
 ### Duplicates and results
-- A key axiom already binds stays one bind. `BindKeys.mergeBinds` puts the moved bind in place of axiom's, because the user's config loads after axiom's layer and so was the one in effect. It does the same in a draft with unsaved edits.
+- A key axiom already binds stays one bind. `BindKeys.mergeBinds` puts the moved bind in place of axiom's, because the user's config loads after axiom's layer and so was the one in effect. A paused bind holds no key, so it's never the one replaced: a preset's bind put after it on that key is. It does the same in a draft with unsaved edits.
 - Reasons are codes (listed in the script's docstring), translated by `BindEditor.reasonText`. `tracked` names files that are in a git repository.
 - `lastMerge` shows above the bind list. Its fields are `moved`, `removed`, `kept` (with reasons), `failed`, `remapped`, `tracked`, `errors` and `saveFailed`.

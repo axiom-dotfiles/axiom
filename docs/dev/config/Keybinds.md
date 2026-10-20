@@ -14,7 +14,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Keybinds.binds`** · array<Keybind> = [{"key":"SUPER + space","action":"launcher"},{"key":"SUPER + Tab","ac…
   - Keybinds: Edited on the Keybinds page.
   - x-scope="personal"
-  - read: `KeybindsConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/UserBindMerge.qml`
+  - read: `KeybindsConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `services/EdgeMenuManager.qml`, `services/UserBindMerge.qml`
 
 ### `Keybinds.binds[]`
 
@@ -22,14 +22,14 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-scopeIf={"when":{"action":["exec","raw"]},"scope":"commands"}
 - **`Keybinds.binds[].key`** · string = ""
   - Key: Modifiers and key, joined by +: "SUPER + SHIFT + space". A modifier key alone ("Super_L") fires when tapped, on compositors that can bind one.
-  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`
+  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `services/EdgeMenuManager.qml`
 - **`Keybinds.binds[].action`** · string = "launcher" · enum launcher|launcherSearch|overlay|overlayPage|edgeMenu|dock|workspaceOverview|powerMenu|lock|toggleDnd|clearNotifications|idleInhibit|nightLight|nextWallpaper|workspaceStep|moveWindowStep|moveWindowStepSilent|workspaceNth|moveWindowNth|moveWindowNthSilent|scrollStep|focusDir|moveWindowDir|resizeWindow|closeWindow|fullscreen|toggleFloat|pin|centerWindow|toggleGroup|windowSwitcher|windowSwitcherReverse|mouseDrag|mouseResize|toggleSpecial|moveToSpecial|restartShell|volumeUp|volumeDown|toggleMute|toggleMicMute|brightnessUp|brightnessDown|mediaPlayPause|mediaNext|mediaPrevious|mediaStop|terminal|fileManager|browser|screenshot|screenRecord|exitSession|exec|pseudo|toggleSplit|stripSwapColumn|stripWider|stripNarrower|stripFit|stripConsume|stripCenter|raw
   - Action
-  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`
+  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `services/EdgeMenuManager.qml`
 - **`Keybinds.binds[].argument`** · string = ""
   - Argument: Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step ("50 0"), screenshot kind (region, window or screen), command, or a compositor command in its own language (Hyprland: a dispatcher as Lua, hl.dsp.layout("swapsplit"); sway: a command, layout tabbed; niri: an action as its config writes it, focus-column-first).
   - x-showIf={"action":["launcherSearch","overlayPage","edgeMenu","dock","workspac…
-  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`
+  - read: `KeybindsConfig.binds` (whole) · in: `services/EdgeMenuManager.qml`
 - **`Keybinds.binds[].call`** · string = "toggle" · enum toggle|open|close
   - Call: For actions that open and close something: whether the bind toggles it, only opens it or only closes it.
   - x-showIf={"action":["launcher","overlay","edgeMenu","dock","workspaceOverview"…
@@ -114,8 +114,8 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `KeybindsConfig`, with the files that use it.
 
 - `KeybindsConfig.binds` (var)
-  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/UserBindMerge.qml`
+  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `services/EdgeMenuManager.qml`, `services/UserBindMerge.qml`
 - `KeybindsConfig.activeBinds` (var): The binds to bind: all but the paused ones, which stay in the list
-  - in: `services/HyprlandConfigWriter.qml`, `services/KeybindManager.qml`, `services/NiriConfigWriter.qml`, `services/RuntimeLayer.qml`, `services/SwayConfigWriter.qml`
+  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/HyprlandConfigWriter.qml`, `services/KeybindManager.qml`, `services/NiriConfigWriter.qml`, `services/RuntimeLayer.qml`, `services/SwayConfigWriter.qml`
 - `KeybindsConfig.presets` (var): Bind sets saved on the Keybinds page: [{ id, name, binds }]
   - in: `services/KeybindManager.qml`
