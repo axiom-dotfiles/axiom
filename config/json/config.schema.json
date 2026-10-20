@@ -2457,13 +2457,14 @@
       "description": "A desktop's overlay modules on a bounded grid of columns × rows units, fitted to each monitor inside its bars and border (Desktop).",
       "type": "object",
       "additionalProperties": false,
-      "x-order": ["columns", "rows", "fineGrid", "moduleBorders"],
+      "x-order": ["columns", "rows", "fineGrid", "contentScale", "moduleBorders"],
       "properties": {
         "enabled": { "type": "boolean", "x-settings": false, "default": true, "description": "Shown. Off on a monitor's own layout leaves that monitor's desktop empty." },
         "monitor": { "x-scope": "machine", "x-monitorRef": "drop", "type": "string", "x-settings": false, "default": "", "description": "The monitor (connector name) a layout in Desktop.monitors is for." },
         "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill the room inside the bars and border, so match its shape." },
         "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
         "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
+        "contentScale": { "x-group": "Grid", "type": "integer", "x-control": "stepper", "title": "Content size", "default": 100, "minimum": 50, "maximum": 200, "x-unit": "%", "description": "Size of the modules' text and content, against what the overlay shows on each monitor (which follows Overlay size and content size). Columns and rows set how big the cards are." },
         "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": false, "description": "Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper." },
         "modules": {
           "type": "array",
@@ -2477,11 +2478,12 @@
       "description": "A screen of overlay modules on a bounded grid of columns × rows units, fitted to each monitor: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).",
       "type": "object",
       "additionalProperties": false,
-      "x-order": ["columns", "rows", "fineGrid", "otherScreens", "background", "blurWallpaper", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
+      "x-order": ["columns", "rows", "fineGrid", "contentScale", "otherScreens", "background", "blurWallpaper", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
       "properties": {
         "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9)." },
         "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
         "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
+        "contentScale": { "x-group": "Grid", "type": "integer", "x-control": "stepper", "title": "Content size", "default": 100, "minimum": 50, "maximum": 200, "x-unit": "%", "description": "Size of the modules' text and content, against what the overlay shows on each monitor (which follows Overlay size and content size). Columns and rows set how big the cards are." },
         "otherScreens": {
           "x-group": "Grid",
           "type": "string",

@@ -479,7 +479,7 @@ Singleton {
   function cardUnitOf(menu, screen) {
     screen = screen ?? EdgeMenusConfig.screenFor(menu);
     const area = OverlayManager.areas[screen?.name ?? ""];
-    const unit = area ? area.drawnUnit : screen ? OverlayConfig.screenLayout(screen.width, screen.height).drawn : OverlayConfig.cardUnit;
+    const unit = area ? area.drawnUnit : screen ? OverlayConfig.screenLayout(screen.width, screen.height).drawn : OverlayConfig.contentUnit;
     const card = unit * menu.moduleScale / 100;
     // A double grid (fineGrid) splits each unit in two each way
     return menu.fineGrid ? GridPlacement.fineUnit(card) : Math.round(card);

@@ -24,8 +24,7 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 - `libraryGroups` (readonly var): The groups the editors' libraries sort bar widgets and modules into (the schema's `x-libraryGroups`), in order
 - `customViewSchema` (readonly var): A Custom page's own fields (name, icon, fineGrid), for the layouts editor
 - `availableViewTypes` (readonly var)
-- `cardUnit` (readonly int): Card grid layout (see GridPlacement for the geometry).
-- `cardSpacing` (readonly int)
+- `cardSpacing` (readonly int): Card grid layout (see GridPlacement for the geometry).
 - `cardPadding` (readonly int)
 - `fillGap` (readonly int): The room left between a page filling the screen and the edges of its area (the bars on one side, the page switcher on the other)
 - `fitCardsWide` (readonly real): At most this many cards fit across, so a page four cards wide still fits a 16:9 screen

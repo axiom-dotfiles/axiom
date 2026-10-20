@@ -22,7 +22,7 @@ QtObject {
 
   // A span of n grid units is n units plus the n - 1 gaps between them,
   // so span(4) is one card, span(2) half a card and span(8) two cards plus
-  // the gap between them. `unit` is the card size (the reference cardUnit
+  // the gap between them. `unit` is the card size (the default cardUnit
   // unless given).
   function unitOf(unit) {
     return ((unit ?? root.cardUnit) - 3 * root.cardSpacing) / 4;
@@ -776,7 +776,7 @@ QtObject {
   }
 
   // The view of that grid (canvasExtent) drawn centred in an area `width`
-  // × `height` px, scaled from the reference card size to fit (at most
+  // × `height` px, scaled from the default card size to fit (at most
   // `maxScale`): { scale, step (a unit and the gap after it), gap,
   // unitSize, originX, originY (where unit 0, 0 sits) }
   function canvasFit(extent, width, height, maxScale) {

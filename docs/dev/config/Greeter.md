@@ -43,6 +43,10 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
   - x-group="Grid"
   - read: `GreeterConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/GreeterConfig.qml`
+- **`Greeter.layout.contentScale`** · integer = 100 · 50–200 · %
+  - Content size: Size of the modules' text and content, against what the overlay shows on each monitor (which follows Overlay size and content size). Columns and rows set how big the cards are.
+  - x-group="Grid", x-control="stepper"
+  - read: `GreeterConfig.layout` (whole), `// reads:` marker · in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `config/GreeterConfig.qml`
 - **`Greeter.layout.otherScreens`** · string = "layout" · enum layout|background
   - Other monitors: What monitors other than the one with the password field show.
   - x-group="Grid"

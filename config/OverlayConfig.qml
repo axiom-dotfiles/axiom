@@ -163,7 +163,6 @@ QtObject {
 
   // Card grid layout (see GridPlacement for the geometry). Card radius/border
   // follow Appearance so the overlay matches the shell.
-  readonly property int cardUnit: GridPlacement.cardUnit
   readonly property int cardSpacing: GridPlacement.cardSpacing
   readonly property int cardPadding: 12
   // The inner padding a module lays its content out within (Card/Panel

@@ -3355,6 +3355,7 @@
     "Opening animation": "",
     "Icons only": "",
     "Fade": "",
-    "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size). Their text and content grow and shrink with them, as set by Overlay content size.": ""
+    "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size). Their text and content grow and shrink with them, as set by Overlay content size.": "",
+    "Size of the modules' text and content, against what the overlay shows on each monitor (which follows Overlay size and content size). Columns and rows set how big the cards are.": ""
   }
 }

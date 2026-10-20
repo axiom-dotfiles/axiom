@@ -92,7 +92,7 @@ Card {
   // (to make space left of / above them, and to grow them right / down),
   // or one unit past the screen all round (GridPlacement.canvasExtent)
   readonly property var extent: GridPlacement.canvasExtent(root.bounds, root.hasScreen ? root.screenBox : null, 1, 3)
-  // Its scale to fit the area, from the reference card size; geometry is
+  // Its scale to fit the area, from the default card size; geometry is
   // scaled by hand (GridPlacement.canvasFit)
   readonly property var fit: GridPlacement.canvasFit(root.extent, area.width, area.height, 0.6)
   readonly property real step: root.fit.step

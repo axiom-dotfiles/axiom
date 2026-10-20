@@ -33,6 +33,10 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
   - x-group="Grid"
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`
+- **`Desktop.all.contentScale`** · integer = 100 · 50–200 · %
+  - Content size: Size of the modules' text and content, against what the overlay shows on each monitor (which follows Overlay size and content size). Columns and rows set how big the cards are.
+  - x-group="Grid", x-control="stepper"
+  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `config/DesktopConfig.qml`
 - **`Desktop.all.moduleBorders`** · boolean = false
   - Module borders: Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper.
   - x-group="Style"
@@ -66,6 +70,10 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
   - x-group="Grid"
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`
+- **`Desktop.primary.contentScale`** · integer = 100 · 50–200 · %
+  - Content size: Size of the modules' text and content, against what the overlay shows on each monitor (which follows Overlay size and content size). Columns and rows set how big the cards are.
+  - x-group="Grid", x-control="stepper"
+  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `config/DesktopConfig.qml`
 - **`Desktop.primary.moduleBorders`** · boolean = false
   - Module borders: Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper.
   - x-group="Style"
@@ -106,6 +114,10 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
   - x-group="Grid"
   - read: entry field, name match, `// reads:` marker · in: `components/methods/GridPlacement.qml`
+- **`Desktop.monitors[].contentScale`** · integer = 100 · 50–200 · %
+  - Content size: Size of the modules' text and content, against what the overlay shows on each monitor (which follows Overlay size and content size). Columns and rows set how big the cards are.
+  - x-group="Grid", x-control="stepper"
+  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/surfaces/onboarding/pages/WelcomePage.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `config/OverlayConfig.qml`
 - **`Desktop.monitors[].moduleBorders`** · boolean = false
   - Module borders: Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper.
   - x-group="Style"

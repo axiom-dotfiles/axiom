@@ -49,6 +49,7 @@ This doc covers the three lock modes, how the built-in lock screen's layout of m
   - an `OverlayGrid` whose `fixedUnit` is `GridPlacement.latticeUnit`; the axis with less room decides;
   - a `ModuleGrid` with `extent` set to the lattice (or to what the modules reach, if more) and `stretch` set to the screen.
   So the units stretch to fill a screen of another shape, and placements keep their relative spot.
+- **Content size:** the modules' content is zoomed as on the overlay (`ModuleGrid.zoom`, see [Edge menu hosts](../edge-menus/hosts.md)): drawn at `OverlayManager.zoomOn(screen)` (the screen's overlay's zoom, or an estimate for a screen with none, as the greeter's) times the layout's `contentScale`%. So text is the same share of the screen as on the overlay, whatever the resolution; the lattice still decides the cards. The desktop's layouts do the same.
 - The editor draws the lattice inside a screen outline (`LockscreenTarget.screenBox`).
 
 #### Hosts

@@ -4,6 +4,7 @@ import QtQuick.Effects
 import Quickshell
 
 import qs.config
+import qs.services
 import qs.components.methods
 import qs.components.hosts.overlay
 
@@ -187,6 +188,10 @@ Item {
           "height": root.roomHeight - root.margin * 2
         })
       host: root.host
+      // The overlay's zoom on this screen, times the layout's content
+      // size, so modules look as on the overlay there
+      // reads: Desktop.*.contentScale, Lockscreen.layout.contentScale, Greeter.layout.contentScale
+      zoom: GridPlacement.zoomOf(OverlayManager.zoomOn(root.screen) * (root.layout?.contentScale ?? 100) / 100, 1)
       grid: OverlayGrid {
         fixedUnit: GridPlacement.latticeUnit(root.cols, root.rows, root.roomWidth, root.roomHeight, root.margin)
       }
