@@ -35,7 +35,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 - `SegmentButton`: a choice, accent when `active`; `Layout.fillWidth: false` in a row of pills.
 - `SegmentRow`: a single choice of SegmentButtons on one track, the accent sliding to the active one. Toggles and multi-select chips stay plain rows or Flows.
 - `StyledTabBar` (of `StyledTabButton`s): its current tab's highlight slides between tabs.
-- `StyledTextEntry`: see the AGENTS.md pitfall (push the value in, act on `textEdited`). `StyledTextArea`: multi-line, optionally growing with its text.
+- `StyledTextEntry`: see [QML pitfalls](qml-pitfalls.md) (push the value in, act on `textEdited`). `StyledTextArea`: multi-line, optionally growing with its text.
 - `PasswordEntry`: a password field with a message, a busy bar and `shake()`.
   - It has no authenticator of its own: the lock screen's `PasswordField`, the greeter's `LoginField` and the polkit prompt wire it.
 - `StyledComboEntry`: a choice from a list dropping down under a field, optionally typed.

@@ -77,7 +77,7 @@ Check the changed code against `AGENTS.md`, the local `AGENTS.md` of each touche
 - Files: nothing written under `Paths.axiomPath`; watched files written atomically; secrets only through `SecretsManager`; paths with `~` expanded before a process or read; greeter-reachable side effects check `Paths.greeter`; lock only through `LockManager.lock()`, unlock only by PAM.
 - Naming: services `*Manager`, no shadowing Quickshell singletons, `Styled*` stand-ins, root id `root`, `Window` suffix rule, purpose comment above each root object, `// reads:` comments for config reads grep can't see.
 - Tests: a changed methods helper or migration step has a new test case; a new script's test class is in verify.sh's `script_tests`; a new dependency is in install.sh, `Packages.packages` and the PKGBUILDs.
-- The QML pitfalls list in `AGENTS.md` (StyledTextEntry write-back, object literal without parentheses, assigning a bound property, redeclared base property, `visibleChildren` self-hide, `Item`-typed params read for custom members, inline component using another in a URL-loaded file, MultiEffect on own layer).
+- The traps in `docs/dev/core/qml-pitfalls.md` (StyledTextEntry write-back, object literal without parentheses, assigning a bound property, redeclared base property, `visibleChildren` self-hide, `Item`-typed params read for custom members, inline component using another in a URL-loaded file, MultiEffect on own layer).
 
 ## design: does it make sense, and is it described truthfully
 
