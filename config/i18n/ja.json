@@ -2453,7 +2453,6 @@
     "Change which?": "どれを変更しますか？",
     "This event": "この予定のみ",
     "All events": "すべての予定",
-    "Click again to delete": "もう一度クリックすると削除します",
     "Saving…": "保存中…",
     "Nothing on this day": "この日の予定はありません",
     "(No title)": "（タイトルなし）",
@@ -3336,6 +3335,7 @@
     "Restored {0}": "",
     "Saved keybind presets": "",
     "Sets of binds saved from the Keybinds page, to restore or merge later. Edited on the Keybinds page.": "",
-    "Global pinned apps": ""
+    "Global pinned apps": "",
+    "Delete this event?": ""
   }
 }

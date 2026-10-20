@@ -133,7 +133,8 @@ CalDAV accounts, read-only .ics feeds and local calendars: syncing through a Pyt
 - **`DayAgenda`:** a day's rows under its date, a + to add, and empty / no-calendar states.
 - **`EventEditor`:**
   - `open(draft)` takes a `CalendarEvents.newDraft` / `draftOf`.
-  - For a recurring event it asks This event / All events.
+  - Deleting asks in place of its buttons: This event / All events for a recurring event, a confirm otherwise. Saving a recurring event asks the same.
+  - `actionsWidth` is how wide its buttons need it. The Calendar popout widens to it (through `DayPane.actionsWidth`), so a long translation isn't clipped.
   - It is read-only for a calendar axiom can't change.
 - **`DateTimeField`:** a date button that folds a `MonthGrid` open, plus a typed time.
 - **`DayPane`:** the agenda turning into the editor (`editing`).
