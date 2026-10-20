@@ -45,7 +45,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `GreeterConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/GreeterConfig.qml`
 - **`Greeter.layout.moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
-  - x-group="Grid", x-control="stepper"
+  - x-scope="personal", x-group="Grid", x-control="stepper"
   - read: `GreeterConfig.layout` (whole), `// reads:` marker · in: `config/GreeterConfig.qml`, `config/OverlayConfig.qml`
 - **`Greeter.layout.otherScreens`** · string = "layout" · enum layout|background
   - Other monitors: What monitors other than the one with the password field show.

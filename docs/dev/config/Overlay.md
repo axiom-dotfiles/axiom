@@ -15,7 +15,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `OverlayConfig.monitors` · in: `components/hosts/overlay/OverlayPanel.qml`, `shell/Overlay.qml`
 - **`Overlay.moduleScale`** · integer = 100 · 50–150 · %
   - Module size: Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content grow and shrink with them. The overlay never grows past filling its screen.
-  - x-group="Size", x-control="stepper"
+  - x-scope="personal", x-group="Size", x-control="stepper"
   - read: `OverlayConfig.moduleScale` · in: `config/OverlayConfig.qml`
 - **`Overlay.navigator`** · string = "bottom" · enum bottom|top
   - Position: The screen edge the page switcher sits on.

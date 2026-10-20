@@ -21,6 +21,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `Widget.cardSize` · in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/OverlayConfig.qml`
 - **`Widget.density`** · string = "normal" · enum compact|normal|roomy
   - Density: How tightly controls, padding and gaps are packed in panels and cards.
+  - x-scope="personal"
   - read: `Widget.density` · in: `components/methods/ConfigMigration.qml`
 - **`Widget.overrideRadius`** · boolean = false
   - Own corner radius: Off: follows the corner radius in Look & Feel.

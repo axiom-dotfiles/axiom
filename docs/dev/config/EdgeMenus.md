@@ -54,7 +54,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match · in: `components/surfaces/edgemenu/FloatingEdgeMenu.qml`
 - **`EdgeMenus[].moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the menu's modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them.
-  - x-group="Placement", x-control="stepper"
+  - x-scope="personal", x-group="Placement", x-control="stepper"
   - read: `EdgeMenusConfig.menus` (whole) · in: `services/EdgeMenuManager.qml`
 - **`EdgeMenus[].fineGrid`** · boolean = false
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.

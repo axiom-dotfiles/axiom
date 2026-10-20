@@ -38,7 +38,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `LockscreenConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/LockscreenConfig.qml`
 - **`Lockscreen.layout.moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
-  - x-group="Grid", x-control="stepper"
+  - x-scope="personal", x-group="Grid", x-control="stepper"
   - read: `LockscreenConfig.layout` (whole), `// reads:` marker · in: `config/LockscreenConfig.qml`, `config/OverlayConfig.qml`
 - **`Lockscreen.layout.otherScreens`** · string = "layout" · enum layout|background
   - Other monitors: What monitors other than the one with the password field show.

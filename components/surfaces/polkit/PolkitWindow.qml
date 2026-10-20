@@ -191,7 +191,7 @@ PanelWindow {
             visible: !appIcon.visible
             text: "admin_panel_settings"
             textColor: Theme.accent
-            textSize: Appearance.fontSize + 18
+            textSize: Widget.px(32)
           }
         }
 
