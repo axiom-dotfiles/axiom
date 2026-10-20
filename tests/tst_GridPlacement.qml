@@ -336,9 +336,10 @@ TestCase {
 
   function test_latticeUnit() {
     // 16 × 9 on 2560 × 1440 with 20 px margins: height decides, the gaps
-    // scaled with the cards (gapOf)
-    const card = GridPlacement.latticeUnit(16, 9, 2560, 1440, 20);
-    const gap = GridPlacement.gapOf(card);
+    // `ratio` px per px of card
+    const ratio = GridPlacement.cardSpacing / 500;
+    const card = GridPlacement.latticeUnit(16, 9, 2560, 1440, 20, ratio);
+    const gap = card * ratio;
     const sizes = GridPlacement.trackSizes({
       "cols": 16,
       "rows": 9
@@ -355,15 +356,12 @@ TestCase {
     compare(Math.round(stretched.width), 2520);
     compare(Math.round(stretched.height), 1400);
     // A portrait screen: width decides
-    const portrait = GridPlacement.latticeUnit(16, 9, 1080, 1920, 20);
+    const portrait = GridPlacement.latticeUnit(16, 9, 1080, 1920, 20, ratio);
     const across = GridPlacement.trackSizes({
       "cols": 16,
       "rows": 9
-    }, portrait, null, GridPlacement.gapOf(portrait)).width;
+    }, portrait, null, portrait * ratio).width;
     verify(across <= 1040 && across > 1040 - 16);
-    // A double grid's gaps are its whole cards'
-    const fine = GridPlacement.latticeUnit(32, 18, 2560, 1440, 20, true);
-    fuzzyCompare(GridPlacement.gapOf(fine, true), GridPlacement.gapOf(fine * 2 + GridPlacement.gapOf(fine, true)), 0.01);
   }
 
   // Two units of a double grid and the gap between them are one unit, so
@@ -486,13 +484,16 @@ TestCase {
     return [r.x, r.y, r.width, r.height].map(v => Math.round(v * 100) / 100);
   }
 
-  function test_zoomOf() {
-    compare(GridPlacement.zoomOf(472, false), 0.8, "a menu at 80 %");
-    compare(GridPlacement.zoomOf(595, false), 1, "within 2 %: as laid out");
-    compare(GridPlacement.zoomOf(228, true), 0.8, "a double grid's, against its own layout size");
-    compare(GridPlacement.layoutUnitOf(true), GridPlacement.fineUnit(GridPlacement.layoutUnit));
-    compare(GridPlacement.gridUnitOf(472.4, false), 472);
-    compare(GridPlacement.gridUnitOf(590, true), 285, "a double grid's units at the layout size");
+  function test_baseCard_and_zoomOf() {
+    // Two cards and a gap fill the short side less 80 px each side
+    compare(GridPlacement.baseCard(1920, 1080), 450, "1080p");
+    compare(GridPlacement.baseCard(1080, 1920), 450, "the same monitor turned");
+    compare(GridPlacement.baseCard(3440, 1440), 630, "1440p ultrawide");
+    compare(GridPlacement.baseCard(100, 100), 1, "never nothing");
+    compare(GridPlacement.zoomOf(0.8), 0.8, "a menu at 80 %");
+    compare(GridPlacement.zoomOf(1.01), 1, "within 2 %: as laid out");
+    compare(GridPlacement.gridUnitOf(472.4, false, 20), 472);
+    compare(GridPlacement.gridUnitOf(590, true, 20), 285, "a double grid's units");
     compare(GridPlacement.layoutReach([null,
       {
         "x": 14,
@@ -509,43 +510,36 @@ TestCase {
     }, "as far as the modules reach past their grid");
   }
 
-  // A grid drawn at other cards than the layout's, with gapOf's gaps, is
-  // the layout's grid scaled: every place's rect, a double grid's too
+  // A grid drawn at `zoom`, its cards and gapOf's gaps, is the grid at 1
+  // scaled: every place's rect
   function test_gapOf() {
-    compare(GridPlacement.gapOf(GridPlacement.layoutUnit), GridPlacement.cardSpacing, "the layout's own");
-    compare(GridPlacement.gapOf(GridPlacement.fineUnit(GridPlacement.layoutUnit), true), GridPlacement.cardSpacing, "a double grid's at the layout size");
+    compare(GridPlacement.gapOf(1), GridPlacement.cardSpacing, "the layout's own");
+    compare(GridPlacement.gapOf(0.5), GridPlacement.cardSpacing / 2);
     const bounds = {
       "cols": 6,
       "rows": 5
     };
     const place = at(1, 2, 3, 2).place;
-    [[GridPlacement.layoutUnit, false], [GridPlacement.fineUnit(GridPlacement.layoutUnit), true]].forEach(([base, fine]) => {
-      const layout = GridPlacement.trackSizes(bounds, base, null, GridPlacement.gapOf(base, fine));
-      const zoom = 0.73;
-      const drawn = GridPlacement.trackSizes(bounds, base * zoom, null, GridPlacement.gapOf(base * zoom, fine));
-      fuzzyCompare(drawn.width, layout.width * zoom, 1e-6);
-      fuzzyCompare(drawn.height, layout.height * zoom, 1e-6);
-      const a = GridPlacement.rectPx(place, layout);
-      const b = GridPlacement.rectPx(place, drawn);
-      ["x", "y", "width", "height"].forEach(key => fuzzyCompare(b[key], a[key] * zoom, 1e-6, key));
-    });
+    const zoom = 0.73;
+    const layout = GridPlacement.trackSizes(bounds, 450, null, GridPlacement.gapOf(1));
+    const drawn = GridPlacement.trackSizes(bounds, 450 * zoom, null, GridPlacement.gapOf(zoom));
+    fuzzyCompare(drawn.width, layout.width * zoom, 1e-6);
+    fuzzyCompare(drawn.height, layout.height * zoom, 1e-6);
+    const a = GridPlacement.rectPx(place, layout);
+    const b = GridPlacement.rectPx(place, drawn);
+    ["x", "y", "width", "height"].forEach(key => fuzzyCompare(b[key], a[key] * zoom, 1e-6, key));
   }
 
   function test_overlayLayout() {
-    // layoutUnit 590, cardSpacing 20: two cards high is span(8), 1200 at
-    // the layout size, its gap scaled with the cards
-    const ultrawide = GridPlacement.overlayLayout(3336, 1199, 100, 4.25);
-    compare([ultrawide.drawn, ultrawide.unit, ultrawide.zoom], [590, 590, 1], "1440p ultrawide: drawn at the layout size");
-    const fhd = GridPlacement.overlayLayout(1840, 870, 100, 4.25);
-    compare([fhd.drawn, fhd.unit], [428, 590], "1080p: the height decides");
-    fuzzyCompare(fhd.zoom, 428 / 590, 1e-9, "the same look, smaller");
-    compare(GridPlacement.overlayLayout(3760, 2020, 100, 4.25).drawn, 885, "4K at 1x: the width decides");
-    compare(GridPlacement.overlayLayout(1840, 1070, 100, 4.25).drawn, 433, "16:10: the width decides");
-    compare(GridPlacement.overlayLayout(1360, 2400, 100, 4.25).drawn, 320, "portrait: the width decides");
-    compare(GridPlacement.overlayLayout(3336, 1199, 50, 4.25).drawn, 295, "half the size");
-    compare(GridPlacement.overlayLayout(3336, 1199, 99, 4.25).drawn, 590, "within 2 % of the layout size: drawn at it");
-    compare(GridPlacement.overlayLayout(3336, 1199, 97, 4.25).drawn, 572, "past it: drawn as asked");
-    compare(GridPlacement.overlayLayout(1, 1, 100, 4.25).drawn, 1, "never nothing");
+    // cardSpacing 20: two cards high is two cards and a gap
+    const ultrawide = GridPlacement.overlayLayout(1199, 630, 1);
+    compare([ultrawide.drawn, ultrawide.unit, ultrawide.zoom], [590, 590, 1], "1440p ultrawide with a bar: two cards fill the height");
+    const fhd = GridPlacement.overlayLayout(870, 450, 1);
+    compare([fhd.drawn, fhd.unit, fhd.zoom], [425, 425, 1], "1080p: smaller cards, content at its own size");
+    compare(GridPlacement.overlayLayout(2000, 450, 1).drawn, 450, "room to spare: the card size");
+    const bigger = GridPlacement.overlayLayout(1199, 756, 1.2);
+    compare([bigger.drawn, bigger.unit, bigger.zoom], [588, 490, 1.2], "a bigger Module size zooms the content, its gap too");
+    compare(GridPlacement.overlayLayout(1, 1, 1).drawn, 1, "never nothing");
   }
 
   function test_screenLattice() {
@@ -724,24 +718,34 @@ TestCase {
         "h": 2
       }
     ];
-    // Card 425: gap 425 / 590 × 20 ≈ 14.4, step ≈ 109.9
-    const fits = GridPlacement.screenArrangement(places, from, 425, 2560, 1080, 20);
-    compare([fits.cols, fits.rows, fits.unit, fits.shrunk], [23, 9, 425, false]);
-    fuzzyCompare(fits.gap, GridPlacement.gapOf(425), 1e-9, "its gap scaled with its cards");
-    compare(fits.places[1].x, 18, "kept to the right edge");
+    // Card 425 at zoom 1: gap 20, unit 91.25, step 111.25
+    const fits = GridPlacement.screenArrangement(places, from, 425, 2560, 1080, 20, false, 1);
+    compare([fits.cols, fits.rows, fits.unit, fits.gap, fits.zoom, fits.shrunk], [22, 9, 425, 20, 1, false]);
+    compare(fits.places[1].x, 17, "kept to the right edge");
+    const zoomed = GridPlacement.screenArrangement(places, from, 425, 2560, 1080, 20, false, 1.2);
+    compare([zoomed.gap, zoomed.zoom], [24, 1.2], "content and gaps drawn at its Module size");
     // Big cards: 8 across can't hold both, so the cards shrink until 10
-    // across do, and no further
-    const shrunk = GridPlacement.screenArrangement(places, from, 850, 1920, 1080, 20);
+    // across do, and no further, content and gaps with them
+    const shrunk = GridPlacement.screenArrangement(places, from, 850, 1920, 1080, 20, false, 1);
     verify(shrunk.shrunk);
     compare(shrunk.cols, 10);
-    verify(shrunk.unit < 850 && shrunk.unit > GridPlacement.latticeUnit(16, 9, 1920, 1080, 20), "smaller, but not back to the old grid");
+    verify(shrunk.unit < 850 && shrunk.unit > 1080 / 9 * 4 / 2, "smaller, but not back to the old grid");
+    fuzzyCompare(shrunk.zoom, shrunk.unit / 850, 0.002, "its content shrinks with it (its unit in whole px)");
+    fuzzyCompare(shrunk.gap, 20 * shrunk.zoom, 1e-9);
     compare([shrunk.places[0].x, shrunk.places[1].x], [0, 5]);
     // A double grid: twice the units each way, on half cards
     const fine = GridPlacement.screenArrangement([], {
       "cols": 32,
       "rows": 18
-    }, 425, 2560, 1080, 20, true);
-    compare([fine.cols, fine.rows, fine.unit], [46, 18, GridPlacement.fineUnit(425, GridPlacement.gapOf(425))]);
+    }, 425, 2560, 1080, 20, true, 1);
+    compare([fine.cols, fine.rows, fine.unit, fine.zoom], [44, 18, GridPlacement.fineUnit(425, 20), 1]);
+    // Too big for the room even on its own grid: fitted into it
+    const fitted = GridPlacement.screenArrangement([at(0, 0, 4, 4).place], {
+      "cols": 16,
+      "rows": 9
+    }, 850, 800, 450, 20, false, 1);
+    verify(fitted.shrunk && fitted.unit < 850);
+    fuzzyCompare(fitted.gap / fitted.unit, 20 / 850, 1e-4, "its gaps shrink with its cards");
   }
 
   function test_fitScale() {

@@ -86,6 +86,7 @@ ReservedAreaWindow {
     // This screen's card size, worked out as the overlay's is
     OverlayGrid {
       id: overlayGrid
+      screen: root.screen
       availableWidth: pageArea.width - OverlayConfig.cardSpacing * 2 - OverlayConfig.boxPadding * 2
       availableHeight: pageArea.height - OverlayConfig.cardSpacing * 2 - OverlayConfig.boxPadding * 2
     }

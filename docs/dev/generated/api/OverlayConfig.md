@@ -8,8 +8,7 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 ### Properties
 
 - `views` (readonly var)
-- `moduleScale` (readonly int): How much of what fills the screen the overlay's cards take, in %: the card size (Widget.cardSize) times the overlay's own Module size, at most all of it (see layoutFor)
-- `size` (readonly int)
+- `moduleScale` (readonly int): The overlay's own Module size, in %: its cards are the card size (cardUnitOn) times it, and their content drawn at it (see layoutFor)
 - `navigator` (readonly string): The page switcher's edge, "bottom" | "top", and which tabs show their names: "auto" (all while they fit) | "current" | "icons"
 - `navigatorLabels` (readonly string)
 - `animation` (readonly string): "top" | "bottom" (the edge it slides in from) | "fade"
@@ -27,7 +26,6 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 - `boxPadding` (readonly int): The overlay box's padding around a page (OverlayPages), at the Interface scale: the page inside it is scaled, the box isn't
 - `navigatorHeight` (readonly int): The page switcher's height (OverlayPageNavigator), and the room it takes off the pages' area with the gaps around it (OverlayPanel)
 - `navigatorRoom` (readonly int)
-- `fitCardsWide` (readonly real): At most this many cards fit across, so a page four cards wide still fits a 16:9 screen
 
 ### Functions
 
@@ -44,8 +42,8 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 - `isTool(type)`
 - `pageWithModule(type)`: The page to open for a module type (what openOverlayPage takes): the named Custom page where it's biggest, "" when no page has it
 - `cardPad(compact, bare)`: The inner padding a module lays its content out within (Card/Panel `pad`): none when bare, less in a quarter slot (Widget's density)
-- `layoutFor(width, height)`: The overlay's cards for `width` × `height` px of room (the page area less its margin and the box's padding): { drawn, unit, zoom }, see GridPlacement.overlayLayout
-- `cardUnitOn(width, height)`: The card size (px) every module grid on a `width` × `height` screen starts from: what an overlay at the card size (Widget.cardSize, not the overlay's own Module size) would draw there with no bars, i…
+- `layoutFor(screen, width, height)`: The overlay's cards on `screen` in `width` × `height` px of room (the page area less its margin and the box's padding): the card size there times the overlay's Module size, content drawn at that Modu…
+- `cardUnitOn(width, height)`: The card size (px) every module grid on a `width` × `height` screen starts from: two cards fill its short side (GridPlacement.baseCard) at the card size (Widget.cardSize).
 - `screenArrangement(layout, modules, screen, width, height)`: A screen layout's (a DesktopLayout's, the lock screen's, the greeter's) `modules` on `screen` in a `width` × `height` px room (its room inside the bars and border): the units that fit there at its ca…
 - `pageUnit(view, unit)`: The card size a Custom page's modules are laid out at on an overlay whose cards are `unit` px: a double grid's (fineGrid) has twice the units across (GridPlacement.fineUnit)
 - `slotShape(rect)`

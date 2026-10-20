@@ -7,11 +7,9 @@ import qs.components.methods
 // (Named OverlayConfig because `Overlay` is the module type.)
 QtObject {
   readonly property var views: ConfigManager.config.Overlay.views
-  // How much of what fills the screen the overlay's cards take, in %: the
-  // card size (Widget.cardSize) times the overlay's own Module size, at
-  // most all of it (see layoutFor)
+  // The overlay's own Module size, in %: its cards are the card size
+  // (cardUnitOn) times it, and their content drawn at it (see layoutFor)
   readonly property int moduleScale: ConfigManager.config.Overlay.moduleScale
-  readonly property int size: Math.min(100, Math.round(Widget.cardSize * moduleScale / 100))
   // The page switcher's edge, "bottom" | "top", and which tabs show their
   // names: "auto" (all while they fit) | "current" | "icons"
   readonly property string navigator: ConfigManager.config.Overlay.navigator
@@ -175,24 +173,22 @@ QtObject {
   // takes off the pages' area with the gaps around it (OverlayPanel)
   readonly property int navigatorHeight: Math.round(Widget.height * 1.5)
   readonly property int navigatorRoom: navigatorHeight + Widget.padding * 4
-  // At most this many cards fit across, so a page four cards wide still
-  // fits a 16:9 screen
-  readonly property real fitCardsWide: 4.25
-  // The overlay's cards for `width` × `height` px of room (the page area
-  // less its margin and the box's padding): { drawn, unit, zoom }, see
+  // The overlay's cards on `screen` in `width` × `height` px of room (the
+  // page area less its margin and the box's padding): the card size there
+  // times the overlay's Module size, content drawn at that Module size,
+  // two cards high at most. { drawn, unit, zoom }, see
   // GridPlacement.overlayLayout
-  function layoutFor(width, height) {
-    return GridPlacement.overlayLayout(width, height, size, fitCardsWide);
+  function layoutFor(screen, width, height) {
+    const card = cardUnitOn(screen?.width ?? width, screen?.height ?? height) * moduleScale / 100;
+    return GridPlacement.overlayLayout(height, card, GridPlacement.zoomOf(moduleScale / 100));
   }
   // The card size (px) every module grid on a `width` × `height` screen
-  // starts from: what an overlay at the card size (Widget.cardSize, not
-  // the overlay's own Module size) would draw there with no bars, its
-  // room less the page switcher, the page area's margin and the box's
-  // padding. The
-  // edge menus, the desktop, the lock screen and the greeter scale it by
-  // their own Module size, so they agree whether an overlay is open or not
+  // starts from: two cards fill its short side (GridPlacement.baseCard)
+  // at the card size (Widget.cardSize). The overlay, edge menus, the
+  // desktop, the lock screen and the greeter scale it by their own Module
+  // size, so on one monitor they all agree, turned either way
   function cardUnitOn(width, height) {
-    return GridPlacement.overlayLayout(width - cardSpacing * 2 - boxPadding * 2, height - navigatorRoom - cardSpacing * 2 - boxPadding * 2, Widget.cardSize, fitCardsWide).drawn;
+    return GridPlacement.baseCard(width, height) * Widget.cardSize / 100;
   }
 
   // A screen layout's (a DesktopLayout's, the lock screen's, the
@@ -200,9 +196,9 @@ QtObject {
   // room inside the bars and border): the units that fit there at its
   // card size (cardUnitOn times its Module size, its units split in two
   // each way with fineGrid), each module kept to its nearest edge from the grid it was
-  // placed on (`columns` × `rows`). GridPlacement.screenArrangement's
-  // { cols, rows, unit, places, shrunk }, plus `zoom`, what content is
-  // drawn at on those cards, and `margin`, the px left all round the grid
+  // placed on (`columns` × `rows`), content drawn at its Module size.
+  // GridPlacement.screenArrangement's { cols, rows, unit, gap, zoom,
+  // places, shrunk }, plus `margin`, the px left all round the grid
   // reads: Desktop.*.moduleScale, Desktop.*.fineGrid, Lockscreen.layout.moduleScale, Lockscreen.layout.fineGrid, Greeter.layout.moduleScale, Greeter.layout.fineGrid
   function screenArrangement(layout, modules, screen, width, height) {
     if (!layout)
@@ -218,8 +214,7 @@ QtObject {
       };
     const card = cardUnitOn(screen?.width ?? width, screen?.height ?? height) * layout.moduleScale / 100;
     const places = (modules ?? []).map(module => module?.place ?? null);
-    const arranged = GridPlacement.screenArrangement(places, GridPlacement.screenGrid(layout), card, width, height, cardSpacing, layout.fineGrid);
-    arranged.zoom = GridPlacement.zoomOf(arranged.unit, layout.fineGrid);
+    const arranged = GridPlacement.screenArrangement(places, GridPlacement.screenGrid(layout), card, width, height, cardSpacing, layout.fineGrid, GridPlacement.zoomOf(layout.moduleScale / 100));
     arranged.margin = cardSpacing;
     return arranged;
   }

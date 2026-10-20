@@ -55,9 +55,7 @@ Every public member of `OverlayConfig`, with the files that use it.
 
 - `OverlayConfig.views` (var)
   - in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/settings/SettingsContent.qml`, `services/CalendarManager.qml`, `services/KeybindManager.qml`, `services/LauncherCommands.qml`, `services/OverlayManager.qml`, `services/SystemManager.qml`
-- `OverlayConfig.moduleScale` (int): How much of what fills the screen the overlay's cards take, in %: the card size (Widget.cardSize) times the overlay's own Module size, at most all of it (see l…
-  - in: only inside the reader
-- `OverlayConfig.size` (int)
+- `OverlayConfig.moduleScale` (int): The overlay's own Module size, in %: its cards are the card size (cardUnitOn) times it, and their content drawn at it (see layoutFor)
   - in: only inside the reader
 - `OverlayConfig.navigator` (string): The page switcher's edge, "bottom" | "top", and which tabs show their names: "auto" (all while they fit) | "current" | "icons"
   - in: `components/hosts/overlay/OverlayPanel.qml`
@@ -119,11 +117,9 @@ Every public member of `OverlayConfig`, with the files that use it.
   - in: `components/hosts/overlay/OverlayPageNavigator.qml`
 - `OverlayConfig.navigatorRoom` (int)
   - in: `components/hosts/overlay/OverlayPanel.qml`
-- `OverlayConfig.fitCardsWide` (real): At most this many cards fit across, so a page four cards wide still fits a 16:9 screen
-  - in: only inside the reader
-- `OverlayConfig.layoutFor(width, height)`: The overlay's cards for `width` × `height` px of room (the page area less its margin and the box's padding): { drawn, unit, zoom }, see GridPlacement.overlayLa…
+- `OverlayConfig.layoutFor(screen, width, height)`: The overlay's cards on `screen` in `width` × `height` px of room (the page area less its margin and the box's padding): the card size there times the overlay's…
   - in: `components/hosts/overlay/OverlayGrid.qml`
-- `OverlayConfig.cardUnitOn(width, height)`: The card size (px) every module grid on a `width` × `height` screen starts from: what an overlay at the card size (Widget.cardSize, not the overlay's own Modul…
+- `OverlayConfig.cardUnitOn(width, height)`: The card size (px) every module grid on a `width` × `height` screen starts from: two cards fill its short side (GridPlacement.baseCard) at the card size (Widge…
   - in: `services/EdgeMenuManager.qml`
 - `OverlayConfig.screenArrangement(layout, modules, screen, width, height)`: A screen layout's (a DesktopLayout's, the lock screen's, the greeter's) `modules` on `screen` in a `width` × `height` px room (its room inside the bars and bor…
   - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `services/ScreenLayoutEditor.qml`

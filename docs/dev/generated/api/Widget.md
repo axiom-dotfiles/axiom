@@ -8,7 +8,7 @@ Reader for the Widget section: sizing for panels, cards, popouts and controls, a
 ### Properties
 
 - `scale` (readonly real): The Interface scale, as a factor: text (Appearance.fontSize) and the sizes below grow with it
-- `cardSize` (readonly int): How big module cards are, in % of what fills the overlay (OverlayConfig.cardUnitOn)
+- `cardSize` (readonly int): How big module cards are, in % of two filling the screen's short side (OverlayConfig.cardUnitOn)
 - `density` (readonly string): "compact" | "normal" | "roomy"
 - `height` (readonly int): Height of buttons, fields and other controls
 - `padding` (readonly int): Inner padding of panels, cards and controls

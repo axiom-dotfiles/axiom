@@ -224,11 +224,12 @@ ReservedAreaWindow {
       }
     }
 
-    // This screen's card size: what fills the space the pages get
-    // (maxWidth/Height: the page area less its margin) inside the box's
-    // padding, so a page two cards high fills it unshrunk
+    // This screen's card size, so that a page two cards high fits the
+    // space the pages get (maxWidth/Height: the page area less its
+    // margin) inside the box's padding unshrunk
     OverlayGrid {
       id: grid
+      screen: root.screen
       availableWidth: overlayPages.maxWidth - OverlayConfig.boxPadding * 2
       availableHeight: overlayPages.maxHeight - OverlayConfig.boxPadding * 2
 

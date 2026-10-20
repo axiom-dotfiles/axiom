@@ -11,8 +11,8 @@ QtObject {
   // The Interface scale, as a factor: text (Appearance.fontSize) and the
   // sizes below grow with it
   readonly property real scale: _c.scale / 100
-  // How big module cards are, in % of what fills the overlay
-  // (OverlayConfig.cardUnitOn)
+  // How big module cards are, in % of two filling the screen's short
+  // side (OverlayConfig.cardUnitOn)
   readonly property int cardSize: _c.cardSize
   // "compact" | "normal" | "roomy"
   readonly property string density: _c.density

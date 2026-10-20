@@ -3349,7 +3349,6 @@
     "Interface scale": "",
     "Card size": "",
     "Density": "",
-    "How big module cards are: at 100 two cards fill the overlay's height. The overlay, edge menus, desktop, lock screen and greeter all start from it, and each can be made bigger or smaller with its own Module size. It looks the same on every resolution.": "",
     "Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it.": "",
     "A screen of overlay modules on a bounded grid fitted to each monitor at the card size: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).": "",
     "Sizing for the overlay, edge menus, desktop, lock screen, popouts, launcher and settings. Each bar has its own, in the bar editor.": "",
@@ -3360,6 +3359,7 @@
     "How tightly controls, padding and gaps are packed in panels and cards.": "",
     "Grid units down of the grid the modules were last placed on.": "",
     "Compact": "",
-    "Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Sizes set in px there (the launcher's width, a toast's, tiles, padding) grow with it. Higher is easier to read but fits less in each card and panel.": ""
+    "Size of text and controls everywhere outside the bars: modules, popouts, the launcher, settings and notifications. Sizes set in px there (the launcher's width, a toast's, tiles, padding) grow with it. Higher is easier to read but fits less in each card and panel.": "",
+    "How big module cards are, as a share of the screen: at 100 two cards fill its shorter side. The overlay, edge menus, desktop, lock screen and greeter all start from it, and each can be made bigger or smaller with its own Module size. Text stays the Interface scale's size on every screen.": ""
   }
 }

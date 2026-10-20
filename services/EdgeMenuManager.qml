@@ -478,24 +478,22 @@ Singleton {
   // of the menu it opens from (`screen`)
   function cardUnitOf(menu, screen) {
     screen = screen ?? EdgeMenusConfig.screenFor(menu);
-    const unit = screen ? OverlayConfig.cardUnitOn(screen.width, screen.height) : GridPlacement.layoutUnit;
+    const unit = screen ? OverlayConfig.cardUnitOn(screen.width, screen.height) : GridPlacement.cardUnit;
     // A double grid (fineGrid) splits each unit in two each way
-    return GridPlacement.gridUnitOf(unit * menu.moduleScale / 100, menu.fineGrid);
+    return GridPlacement.gridUnitOf(unit * menu.moduleScale / 100, menu.fineGrid, root.gapOf(menu));
   }
 
-  // The px between a menu's cards: the layout's gap scaled as its cards
-  // are (GridPlacement.gapOf), so the menu is an overlay page's grid
-  // scaled. A submenu's is on `screen`, as for cardUnitOf
-  function gapOf(menu, screen) {
-    return GridPlacement.gapOf(root.cardUnitOf(menu, screen), menu.fineGrid);
+  // The px between a menu's cards: the layout's gap drawn at the menu's
+  // zoom (GridPlacement.gapOf), so the menu is an overlay page's grid
+  function gapOf(menu) {
+    return GridPlacement.gapOf(root.zoomOf(menu));
   }
 
-  // What a menu's modules are drawn at: laid out at the size all module
-  // content is (GridPlacement.layoutUnit), drawn on the menu's own cards
-  // (cardUnitOf), so they look as on an overlay page and moduleScale
-  // scales their text too. A submenu's is on `screen`, as for cardUnitOf
-  function zoomOf(menu, screen) {
-    return GridPlacement.zoomOf(root.cardUnitOf(menu, screen), menu.fineGrid);
+  // What a menu's modules are drawn at: its moduleScale
+  // (GridPlacement.zoomOf), so it scales their text and controls with
+  // its cards, while the screen only changes how big the cards are
+  function zoomOf(menu) {
+    return GridPlacement.zoomOf(menu.moduleScale / 100);
   }
 
   function selectedMenu() {

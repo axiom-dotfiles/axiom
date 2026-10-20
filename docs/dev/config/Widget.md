@@ -16,7 +16,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-scope="personal", x-control="stepper"
   - read: `Widget.scale` (computed) · in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/Appearance.qml`
 - **`Widget.cardSize`** · integer = 100 · 50–100 · %
-  - Card size: How big module cards are: at 100 two cards fill the overlay's height. The overlay, edge menus, desktop, lock screen and greeter all start from it, and each can be made bigger or smaller with its own Module size. It looks the same on every resolution.
+  - Card size: How big module cards are, as a share of the screen: at 100 two cards fill its shorter side. The overlay, edge menus, desktop, lock screen and greeter all start from it, and each can be made bigger or smaller with its own Module size. Text stays the Interface scale's size on every screen.
   - x-scope="personal"
   - read: `Widget.cardSize` · in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/OverlayConfig.qml`
 - **`Widget.density`** · string = "normal" · enum compact|normal|roomy
@@ -37,7 +37,7 @@ Every public member of `Widget`, with the files that use it.
 
 - `Widget.scale` (real): The Interface scale, as a factor: text (Appearance.fontSize) and the sizes below grow with it
   - in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/Appearance.qml`
-- `Widget.cardSize` (int): How big module cards are, in % of what fills the overlay (OverlayConfig.cardUnitOn)
+- `Widget.cardSize` (int): How big module cards are, in % of two filling the screen's short side (OverlayConfig.cardUnitOn)
   - in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/OverlayConfig.qml`
 - `Widget.density` (string): "compact" | "normal" | "roomy"
   - in: `components/methods/ConfigMigration.qml`
