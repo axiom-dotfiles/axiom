@@ -473,6 +473,24 @@ TestCase {
     return [r.x, r.y, r.width, r.height].map(v => Math.round(v * 100) / 100);
   }
 
+  function test_overlayLayout() {
+    // layoutUnit 570, cardSpacing 20: two cards fill 2 × drawn + 20
+    const ultrawide = GridPlacement.overlayLayout(3296, 1171, 100, 100, 4.25);
+    compare([ultrawide.drawn, ultrawide.unit, ultrawide.zoom], [570, 570, 1], "1440p ultrawide: within 2 % of the layout size, drawn at it");
+    const fhd = GridPlacement.overlayLayout(1840, 870, 100, 100, 4.25);
+    compare([fhd.drawn, fhd.unit], [425, 570], "1080p: the height decides");
+    fuzzyCompare(fhd.zoom, 425 / 570, 1e-9, "the same look, smaller");
+    compare(GridPlacement.overlayLayout(3760, 2020, 100, 100, 4.25).drawn, 885, "4K at 1x: the width decides");
+    compare(GridPlacement.overlayLayout(1840, 1070, 100, 100, 4.25).drawn, 433, "16:10: the width decides");
+    compare(GridPlacement.overlayLayout(1360, 2400, 100, 100, 4.25).drawn, 320, "portrait: the width decides");
+    compare(GridPlacement.overlayLayout(3296, 1171, 50, 100, 4.25).drawn, 288, "half the size");
+    const bigText = GridPlacement.overlayLayout(1840, 870, 100, 140, 4.25);
+    compare([bigText.unit, bigText.drawn], [407, 425], "content 140 %: laid out smaller, drawn the same");
+    fuzzyCompare(bigText.zoom, 425 / 407, 1e-9);
+    compare(GridPlacement.overlayLayout(3296, 1171, 98, 100, 4.25).drawn, 570, "98 %: still within 2 %");
+    compare(GridPlacement.overlayLayout(10, 10, 100, 100, 4.25).drawn, 1, "never nothing");
+  }
+
   function test_fitScale() {
     const bounds = {
       "cols": 8,

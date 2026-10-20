@@ -7,8 +7,19 @@ import qs.components.methods
 // (Named OverlayConfig because `Overlay` is the module type.)
 QtObject {
   readonly property var views: ConfigManager.config.Overlay.views
-  // Card size as a percentage of what fits the screen (see OverlayGrid)
+  // How much of what fills the screen the overlay takes, and how big its
+  // content is against its cards, in % (see layoutFor)
   readonly property int size: ConfigManager.config.Overlay.size
+  readonly property int contentScale: ConfigManager.config.Overlay.contentScale
+  // The page switcher's edge, "bottom" | "top", and which tabs show their
+  // names: "auto" (all while they fit) | "current" | "icons"
+  readonly property string navigator: ConfigManager.config.Overlay.navigator
+  readonly property string navigatorLabels: ConfigManager.config.Overlay.navigatorLabels
+  // "top" | "bottom" (the edge it slides in from) | "fade"
+  readonly property string animation: ConfigManager.config.Overlay.animation
+  readonly property bool showBackdrop: ConfigManager.config.Overlay.showBackdrop
+  // 0-1 opacity of the backdrop
+  readonly property real backdrop: ConfigManager.config.Overlay.backdrop / 100
   // "general" | "primary" | "focused" | "all" (see General.screensFor)
   readonly property string monitors: ConfigManager.config.Overlay.monitors
   readonly property bool closeOnEscape: ConfigManager.config.Overlay.closeOnEscape
@@ -158,17 +169,24 @@ QtObject {
   function cardPad(compact, bare) {
     return bare ? 0 : compact ? cardPadding * 0.75 : cardPadding * 1.5;
   }
-  // A screen fits this many cards across its free height / width; the
-  // smaller of the two sizes the cards, so height decides on landscape
-  // screens and width on portrait ones. Cards never go below minCardUnit.
-  readonly property real fitCardsHigh: 2.5
-  readonly property real fitCardsWide: 4.5
-  readonly property int minCardUnit: 280
-  // The card size for `width` × `height` px of free space: what fits,
-  // capped at the reference cardUnit, then scaled by Overlay size
-  function cardUnitFor(width, height) {
-    const fit = Math.min(height / fitCardsHigh, width / fitCardsWide);
-    return Math.round(Math.max(minCardUnit, Math.min(cardUnit, fit) * size / 100));
+  // The room left between a page filling the screen and the edges of its
+  // area (the bars on one side, the page switcher on the other)
+  readonly property int fillGap: 32
+  // At most this many cards fit across, so a page four cards wide still
+  // fits a 16:9 screen
+  readonly property real fitCardsWide: 4.25
+  // The overlay's cards for `width` × `height` px of room (the page area
+  // less the fill gap and the box's padding): { drawn, unit, zoom }, see
+  // GridPlacement.overlayLayout
+  function layoutFor(width, height) {
+    return GridPlacement.overlayLayout(width, height, size, contentScale, fitCardsWide);
+  }
+  // What the overlay would take on a `width` × `height` screen with no
+  // bars: its room there, less the page switcher, the fill gap and the
+  // box's padding, as OverlayPanel works it out
+  function screenLayout(width, height) {
+    const navigatorRoom = Math.round(Widget.height * 1.5) + Widget.padding * 4;
+    return layoutFor(width - cardSpacing * 4, height - navigatorRoom - fillGap * 2 - cardSpacing * 2);
   }
 
   // The card size a Custom page's modules are laid out at on an overlay

@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 71
+  readonly property int currentVersion: 72
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -169,6 +169,8 @@ QtObject {
       result = _v69ToV70(result, changes);
     if (version < 71)
       result = _v70ToV71(result, changes);
+    if (version < 72)
+      result = _v71ToV72(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2364,6 +2366,19 @@ QtObject {
         dock.pinnedOwn = true;
     }
     changes.push("Dock.docks[0].pinned -> Apps.pinned");
+    return config;
+  }
+
+  // v72 made Overlay.size a share of the screen the pages fill (50-100)
+  // instead of a share of a card capped at 500 px (50-150): the old 120
+  // filled about as much as the new 100, so sizes scale by that
+  function _v71ToV72(config, changes) {
+    const overlay = config.Overlay;
+    if (!overlay || typeof overlay !== "object" || typeof overlay.size !== "number")
+      return config;
+    const size = Math.max(50, Math.min(100, Math.round(overlay.size / 1.2)));
+    changes.push(`Overlay.size ${overlay.size} -> ${size} (now a share of the screen)`);
+    overlay.size = size;
     return config;
   }
 }

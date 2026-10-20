@@ -20,7 +20,7 @@ Item {
   readonly property real sideWidth: root.grid ? root.grid.unit * 0.8 : 0
   // An editor's main area beside its side panel: as wide as the page
   // allows, within reason
-  readonly property real editorWidth: root.grid ? Math.max(root.grid.unit * 1.8, Math.min(root.grid.unit * 2.8, root.grid.availableWidth - root.sideWidth - OverlayConfig.cardSpacing * 3)) : 0
+  readonly property real editorWidth: root.grid ? Math.max(root.grid.unit * 1.8, Math.min(root.grid.unit * 2.8, root.grid.roomWidth - root.sideWidth - OverlayConfig.cardSpacing * 3)) : 0
   default property alias content: rowLayout.data
 
   implicitWidth: rowLayout.implicitWidth

@@ -10,7 +10,8 @@ import qs.components.reusable
 // per page (icon and name), the current one under a sliding accent pill.
 // Tool pages follow the user's own after a divider, as icons (named in a
 // tooltip), even when current. When every name doesn't fit `maxWidth`, the
-// other tabs drop to their icons too. Scrolling over it steps through the pages.
+// other tabs drop to their icons too; `labels` can keep them there, or
+// every tab. Scrolling over it steps through the pages.
 // Pages with unsaved edits get a dot, and while another page has some,
 // Save all / Discard all follow the arrows (EditsManager: a reminder, as
 // drafts survive leaving a page or closing the overlay).
@@ -24,6 +25,9 @@ Rectangle {
   required property var pages
   // The widest it may get; 0 for no limit
   property real maxWidth: 0
+  // Which tabs show their names (Overlay.navigatorLabels): "auto" (all
+  // while they fit, else the current one), "current" or "icons" (none)
+  property string labels: "auto"
 
   signal previous
   signal next
@@ -193,7 +197,7 @@ Rectangle {
             required property int index
             required property var modelData
             readonly property bool isCurrent: index === root.currentIndex
-            readonly property bool showLabel: !tab.modelData.tool && (tab.isCurrent || !root.compact)
+            readonly property bool showLabel: !tab.modelData.tool && root.labels !== "icons" && (tab.isCurrent || (root.labels === "auto" && !root.compact))
             readonly property color ink: tab.isCurrent ? root.onAccent : Theme.foreground
             readonly property bool firstTool: tab.modelData.tool === true && tab.index > 0 && root.pages[tab.index - 1]?.tool !== true
             readonly property real divider: tab.firstTool ? root.tabSpacing + Appearance.borderWidth : 0

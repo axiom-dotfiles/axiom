@@ -13,10 +13,34 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Monitors: Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
   - x-scope="look"
   - read: `OverlayConfig.monitors` · in: `components/hosts/overlay/OverlayPanel.qml`, `shell/Overlay.qml`
-- **`Overlay.size`** · integer = 100 · 50–150 · %
-  - Overlay size: Size of the overlay's cards, relative to what fits the screen. Pages that would still overflow are shrunk to fit.
-  - x-scope="look"
+- **`Overlay.size`** · integer = 100 · 50–100 · %
+  - Overlay size: How much of the screen the overlay takes: at 100 its pages fill the height between the page switcher and the far edge; lower shrinks the whole overlay, its text and cards alike. It looks the same on every resolution, only bigger or smaller.
+  - x-scope="look", x-group="Size"
   - read: `OverlayConfig.size` · in: `config/OverlayConfig.qml`
+- **`Overlay.contentScale`** · integer = 100 · 60–140 · %
+  - Content size: Size of the text and everything else inside the overlay's cards, compared with the cards themselves: higher is easier to read but fits less in each card, lower fits more. Use it to bring text to the size you like on a small or very large screen.
+  - x-scope="look", x-group="Size"
+  - read: `OverlayConfig.contentScale` · in: `config/OverlayConfig.qml`
+- **`Overlay.navigator`** · string = "bottom" · enum bottom|top
+  - Position: The screen edge the page switcher sits on.
+  - x-scope="look", x-group="Page switcher"
+  - read: `OverlayConfig.navigator` · in: `components/hosts/overlay/OverlayPanel.qml`
+- **`Overlay.navigatorLabels`** · string = "auto" · enum auto|current|icons
+  - Page names: Which pages show their name beside their icon. Tool pages are always icons, named in a tooltip.
+  - x-scope="look", x-group="Page switcher"
+  - read: `OverlayConfig.navigatorLabels` · in: `components/hosts/overlay/OverlayPanel.qml`
+- **`Overlay.animation`** · string = "top" · enum top|bottom|fade
+  - Opening animation: How the overlay and its dim background come in and go.
+  - x-scope="look", x-group="Look"
+  - read: `OverlayConfig.animation` · in: `components/hosts/overlay/OverlayPanel.qml`, `shell/Overlay.qml`
+- **`Overlay.showBackdrop`** · boolean = true
+  - Dim background: Dim the whole screen behind the overlay, under the bars and border.
+  - x-scope="look", x-group="Look"
+  - read: `OverlayConfig.showBackdrop` · in: `shell/Overlay.qml`
+- **`Overlay.backdrop`** · integer = 85 · 0–90 · %
+  - Backdrop darkness: How dark the screen behind the overlay goes.
+  - x-scope="look", x-group="Look", x-showIf={"showBackdrop":true}
+  - read: `OverlayConfig.backdrop` (computed) · in: `shell/Overlay.qml`
 - **`Overlay.closeOnEscape`** · boolean = false
   - Close on Escape: Close the overlay when Escape is pressed (unless something in it, like a popup, uses the key first).
   - read: `OverlayConfig.closeOnEscape` · in: `components/hosts/overlay/OverlayPanel.qml`
@@ -35,8 +59,20 @@ Every public member of `OverlayConfig`, with the files that use it.
 
 - `OverlayConfig.views` (var)
   - in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/settings/SettingsContent.qml`, `services/CalendarManager.qml`, `services/KeybindManager.qml`, `services/LauncherCommands.qml`, `services/OverlayManager.qml`, `services/SystemManager.qml`
-- `OverlayConfig.size` (int): Card size as a percentage of what fits the screen (see OverlayGrid)
+- `OverlayConfig.size` (int): How much of what fills the screen the overlay takes, and how big its content is against its cards, in % (see layoutFor)
   - in: only inside the reader
+- `OverlayConfig.contentScale` (int)
+  - in: only inside the reader
+- `OverlayConfig.navigator` (string): The page switcher's edge, "bottom" | "top", and which tabs show their names: "auto" (all while they fit) | "current" | "icons"
+  - in: `components/hosts/overlay/OverlayPanel.qml`
+- `OverlayConfig.navigatorLabels` (string)
+  - in: `components/hosts/overlay/OverlayPanel.qml`
+- `OverlayConfig.animation` (string): "top" | "bottom" (the edge it slides in from) | "fade"
+  - in: `components/hosts/overlay/OverlayPanel.qml`, `shell/Overlay.qml`
+- `OverlayConfig.showBackdrop` (bool)
+  - in: `shell/Overlay.qml`
+- `OverlayConfig.backdrop` (real): 0-1 opacity of the backdrop
+  - in: `shell/Overlay.qml`
 - `OverlayConfig.monitors` (string): "general" | "primary" | "focused" | "all" (see General.screensFor)
   - in: `components/hosts/overlay/OverlayPanel.qml`, `shell/Overlay.qml`
 - `OverlayConfig.closeOnEscape` (bool)
@@ -85,14 +121,14 @@ Every public member of `OverlayConfig`, with the files that use it.
   - in: only inside the reader
 - `OverlayConfig.cardPad(compact, bare)`: The inner padding a module lays its content out within (Card/Panel `pad`): none when bare, less in a quarter slot
   - in: `components/content/base/SlotContext.qml`, `components/hosts/overlay/ExpandedModule.qml`
-- `OverlayConfig.fitCardsHigh` (real): A screen fits this many cards across its free height / width; the smaller of the two sizes the cards, so height decides on landscape screens and width on portr…
+- `OverlayConfig.fillGap` (int): The room left between a page filling the screen and the edges of its area (the bars on one side, the page switcher on the other)
+  - in: `components/hosts/overlay/OverlayPanel.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`
+- `OverlayConfig.fitCardsWide` (real): At most this many cards fit across, so a page four cards wide still fits a 16:9 screen
   - in: only inside the reader
-- `OverlayConfig.fitCardsWide` (real)
-  - in: only inside the reader
-- `OverlayConfig.minCardUnit` (int)
-  - in: only inside the reader
-- `OverlayConfig.cardUnitFor(width, height)`: The card size for `width` × `height` px of free space: what fits, capped at the reference cardUnit, then scaled by Overlay size
-  - in: `components/hosts/overlay/OverlayGrid.qml`, `services/EdgeMenuManager.qml`
+- `OverlayConfig.layoutFor(width, height)`: The overlay's cards for `width` × `height` px of room (the page area less the fill gap and the box's padding): { drawn, unit, zoom }, see GridPlacement.overlay…
+  - in: `components/hosts/overlay/OverlayGrid.qml`
+- `OverlayConfig.screenLayout(width, height)`: What the overlay would take on a `width` × `height` screen with no bars: its room there, less the page switcher, the fill gap and the box's padding, as Overlay…
+  - in: `services/EdgeMenuManager.qml`
 - `OverlayConfig.pageUnit(view, unit)`: The card size a Custom page's modules are laid out at on an overlay whose cards are `unit` px: a double grid's (fineGrid) has twice the units across (GridPlace…
   - in: `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/Custom.qml`, `services/OverlayManager.qml`
 - `OverlayConfig.span(n, unit)`

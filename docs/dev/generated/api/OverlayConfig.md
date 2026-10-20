@@ -8,7 +8,13 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 ### Properties
 
 - `views` (readonly var)
-- `size` (readonly int): Card size as a percentage of what fits the screen (see OverlayGrid)
+- `size` (readonly int): How much of what fills the screen the overlay takes, and how big its content is against its cards, in % (see layoutFor)
+- `contentScale` (readonly int)
+- `navigator` (readonly string): The page switcher's edge, "bottom" | "top", and which tabs show their names: "auto" (all while they fit) | "current" | "icons"
+- `navigatorLabels` (readonly string)
+- `animation` (readonly string): "top" | "bottom" (the edge it slides in from) | "fade"
+- `showBackdrop` (readonly bool)
+- `backdrop` (readonly real): 0-1 opacity of the backdrop
 - `monitors` (readonly string): "general" | "primary" | "focused" | "all" (see General.screensFor)
 - `closeOnEscape` (readonly bool)
 - `closeOnOutsideClick` (readonly bool)
@@ -20,9 +26,8 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 - `cardUnit` (readonly int): Card grid layout (see GridPlacement for the geometry).
 - `cardSpacing` (readonly int)
 - `cardPadding` (readonly int)
-- `fitCardsHigh` (readonly real): A screen fits this many cards across its free height / width; the smaller of the two sizes the cards, so height decides on landscape screens and width on portrait ones.
-- `fitCardsWide` (readonly real)
-- `minCardUnit` (readonly int)
+- `fillGap` (readonly int): The room left between a page filling the screen and the edges of its area (the bars on one side, the page switcher on the other)
+- `fitCardsWide` (readonly real): At most this many cards fit across, so a page four cards wide still fits a 16:9 screen
 
 ### Functions
 
@@ -39,7 +44,8 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 - `isTool(type)`
 - `pageWithModule(type)`: The page to open for a module type (what openOverlayPage takes): the named Custom page where it's biggest, "" when no page has it
 - `cardPad(compact, bare)`: The inner padding a module lays its content out within (Card/Panel `pad`): none when bare, less in a quarter slot
-- `cardUnitFor(width, height)`: The card size for `width` × `height` px of free space: what fits, capped at the reference cardUnit, then scaled by Overlay size
+- `layoutFor(width, height)`: The overlay's cards for `width` × `height` px of room (the page area less the fill gap and the box's padding): { drawn, unit, zoom }, see GridPlacement.overlayLayout
+- `screenLayout(width, height)`: What the overlay would take on a `width` × `height` screen with no bars: its room there, less the page switcher, the fill gap and the box's padding, as OverlayPanel works it out
 - `pageUnit(view, unit)`: The card size a Custom page's modules are laid out at on an overlay whose cards are `unit` px: a double grid's (fineGrid) has twice the units across (GridPlacement.fineUnit)
 - `span(n, unit)`
 - `slotShape(rect)`

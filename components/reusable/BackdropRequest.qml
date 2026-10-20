@@ -13,9 +13,9 @@ QtObject {
 
   property ShellScreen screen: null
   property bool shown: false
-  // Slides down from the top edge with the surface (the overlay) instead
-  // of fading in and out
-  property bool slide: false
+  // Slides in with the surface (the overlay) from that edge, "top" or
+  // "bottom", instead of fading in and out ("")
+  property string slide: ""
   property color fillColor: Appearance.darkMode ? Theme.background : Theme.foreground
   property real fillOpacity: 0.85
 

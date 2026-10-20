@@ -2117,6 +2117,39 @@ TestCase {
     compare(errors(config), []);
   }
 
+  function test_v72_overlay_size_is_a_share_of_the_screen() {
+    compare(load({
+      "version": 71,
+      "Overlay": {
+        "size": 120
+      }
+    }).config.Overlay.size, 100, "the old 120 fills the screen");
+    compare(load({
+      "version": 71,
+      "Overlay": {
+        "size": 150
+      }
+    }).config.Overlay.size, 100, "capped at the new most");
+    compare(load({
+      "version": 71,
+      "Overlay": {
+        "size": 50
+      }
+    }).config.Overlay.size, 50, "kept at the new least");
+    const migrated = load({
+      "version": 71,
+      "Overlay": {
+        "size": 90
+      }
+    });
+    compare(migrated.config.Overlay.size, 75);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    compare(load({
+      "version": 71
+    }).config.Overlay.size, 100, "no size: the default");
+  }
+
   function test_v71_moves_pinned_apps_to_apps() {
     const migrated = load({
       "version": 70,

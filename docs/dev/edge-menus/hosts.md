@@ -12,9 +12,10 @@ How an edge menu is put on screen: the shared body and sync, the lattice its mod
 
 ### The body (`EdgeMenuBody`)
 - Both hosts put `EdgeMenuBody` inside: a `ModuleGrid` on an `OverlayGrid`.
-- `fixedUnit` is the card size of its screen's overlay (`EdgeMenuManager.cardUnitOf`):
-  - `OverlayManager.areas`, else `OverlayConfig.cardUnitFor` the screen, so Overlay size scales menus too;
+- `fixedUnit` is the card size its screen's overlay draws its cards at (`EdgeMenuManager.cardUnitOf`):
+  - `OverlayManager.areas`' `drawnUnit`, else `OverlayConfig.screenLayout` of the screen (an overlay there with no bars), so Overlay size scales menus too;
   - times the menu's `moduleScale`%.
+  - Menus aren't zoomed as the overlay's pages are: their content lays out at that card size, so Overlay content size doesn't reach them.
 - When `length` is `edge` (`fillsEdge`) it's stretched along the edge to `maxLength`; otherwise it scrolls along it past that.
 - With `pinButton` it draws a pin in the corner away from the edge (`EdgeMenuManager.togglePinned`).
 

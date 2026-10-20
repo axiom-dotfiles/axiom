@@ -17,8 +17,9 @@ Scope {
 
       BackdropRequest {
         screen: overlay.modelData
-        shown: panel.isOpen && !panel.steppedAside
-        slide: true
+        shown: panel.isOpen && !panel.steppedAside && OverlayConfig.showBackdrop
+        slide: OverlayConfig.animation === "fade" ? "" : OverlayConfig.animation
+        fillOpacity: OverlayConfig.backdrop
       }
 
       OverlayPanel {

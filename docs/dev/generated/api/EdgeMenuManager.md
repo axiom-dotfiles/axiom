@@ -66,7 +66,7 @@ Which edge menus (EdgeMenusConfig) are open and which are pinned. The menus them
 - `ensureLoaded()`: Loads the draft unless it holds unsaved edits (the page is rebuilt whenever the overlay reopens)
 - `applyChanges()`: Call after mutating localMenus in place: shows the edit on the running menus while the draft differs from the saved config
 - `menuChanged(index)`: Whether a menu differs from its saved version (matched by id)
-- `cardUnitOf(menu, screen)`: A menu's card size: its screen's overlay's (OverlayManager.areas, or what the overlay would take on that screen before it reports one), scaled by the menu's moduleScale.
+- `cardUnitOf(menu, screen)`: A menu's card size: the size its screen's overlay draws its cards at (OverlayManager.areas, or what the overlay would take on a screen that size where there's none), scaled by the menu's moduleScale.
 - `selectedMenu()`
 - `selectMenu(index)`
 - `addMenu()`: A new menu at the schema defaults, opening on hover, and held open on screen so edits show as they're made

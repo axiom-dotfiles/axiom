@@ -88,27 +88,32 @@ Item {
     }
   }
 
-  implicitWidth: currentViewWidth * fitScale + OverlayConfig.cardSpacing * 2
-  implicitHeight: currentViewHeight * fitScale + OverlayConfig.cardSpacing * 2
+  implicitWidth: currentViewWidth * contentZoom + OverlayConfig.cardSpacing * 2
+  implicitHeight: currentViewHeight * contentZoom + OverlayConfig.cardSpacing * 2
 
   // Store current view dimensions to avoid binding loops
   property real currentViewWidth: root.currentPage ? root.currentPage.implicitWidth : 0
   property real currentViewHeight: root.currentPage ? root.currentPage.implicitHeight : 0
 
   // The grid already sizes cards to the screen; this is the last resort
-  // for a page that still doesn't fit (many columns, a large Overlay size).
-  // Item.scale doesn't feed back into implicit sizes, so no binding loop.
+  // for a page that still doesn't fit (many columns, a page more than two
+  // cards high). Item.scale doesn't feed back into implicit sizes, so no
+  // binding loop.
   readonly property real fitScale: {
     const room = OverlayConfig.cardSpacing * 2;
-    const scaleW = root.currentViewWidth > 0 && root.maxWidth > room ? (root.maxWidth - room) / root.currentViewWidth : 1;
-    const scaleH = root.currentViewHeight > 0 && root.maxHeight > room ? (root.maxHeight - room) / root.currentViewHeight : 1;
+    const width = root.currentViewWidth * root.grid.zoom;
+    const height = root.currentViewHeight * root.grid.zoom;
+    const scaleW = width > 0 && root.maxWidth > room ? (root.maxWidth - room) / width : 1;
+    const scaleH = height > 0 && root.maxHeight > room ? (root.maxHeight - room) / height : 1;
     return Math.min(1, scaleW, scaleH);
   }
+  // What the pages, laid out at the grid's unit, are drawn at
+  readonly property real contentZoom: root.grid.zoom * root.fitScale
   onFitScaleChanged: console.log(`Overlay page ${root.currentIndex} scaled to ${root.fitScale.toFixed(3)} (card unit ${root.grid.unit})`)
   Connections {
     target: root.grid
-    function onUnitChanged() {
-      console.log(`Overlay card unit ${root.grid.unit} for ${root.maxWidth}x${root.maxHeight}`);
+    function onDrawnUnitChanged() {
+      console.log(`Overlay card unit ${root.grid.unit} drawn at ${root.grid.drawnUnit} (zoom ${root.grid.zoom.toFixed(3)}) for ${root.maxWidth}x${root.maxHeight}`);
     }
   }
 
@@ -171,14 +176,16 @@ Item {
       border.color: Theme.foreground
       border.width: Appearance.borderWidth
 
-      // Laid out at full size and scaled as a whole, so the box's own
-      // border and radius stay crisp
+      // Laid out at the grid's unit and scaled as a whole, so the box's
+      // own border and radius stay crisp. `contentZoom`: what StyledIcon
+      // looks for to draw its glyphs for a scaled page
       Item {
         id: viewsContainer
         anchors.centerIn: parent
         width: root.currentViewWidth
         height: root.currentViewHeight
-        scale: root.fitScale
+        scale: root.contentZoom
+        readonly property real contentZoom: root.contentZoom
 
         Repeater {
           id: viewsRepeater

@@ -17,7 +17,7 @@ BaseView {
 
   property string selectedKey: CalendarEvents.dayKey(new Date())
   readonly property real sideColumnWidth: root.grid.unit * 1.05
-  readonly property real monthWidth: Math.max(root.grid.unit * 1.6, Math.min(root.grid.unit * 3, root.grid.availableWidth - root.sideColumnWidth - OverlayConfig.cardSpacing * 3))
+  readonly property real monthWidth: Math.max(root.grid.unit * 1.6, Math.min(root.grid.unit * 3, root.grid.roomWidth - root.sideColumnWidth - OverlayConfig.cardSpacing * 3))
 
   Component.onCompleted: {
     CalendarManager.acquire(root);

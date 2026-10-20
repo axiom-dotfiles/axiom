@@ -121,19 +121,22 @@ QtObject {
 
   // --- Room on each screen ---
 
-  // { screenName: { width, height, unit } }: the room each overlay has for
-  // a page, and its card size, as its OverlayPanel reports them
+  // { screenName: { width, height, unit, drawnUnit } }: the room each
+  // overlay has for a page and the card size its content lays out at, in
+  // layout px, and the card size it's drawn at (OverlayGrid), as its
+  // OverlayPanel reports them
   readonly property var areas: root._areas
   property var _areas: ({})
 
-  function reportArea(screenName, width, height, unit) {
+  function reportArea(screenName, width, height, unit, drawnUnit) {
     const old = root._areas[screenName];
-    if (old && old.width === width && old.height === height && old.unit === unit)
+    if (old && old.width === width && old.height === height && old.unit === unit && old.drawnUnit === drawnUnit)
       return;
     root._areas = Utils.withEntry(root._areas, screenName, {
       "width": width,
       "height": height,
-      "unit": unit
+      "unit": unit,
+      "drawnUnit": drawnUnit
     });
   }
 

@@ -1,7 +1,7 @@
 # Overlay pages and the module grid
 
 > **Files:** `shell/Overlay.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayGrid.qml`, `components/hosts/overlay/ModuleGrid.qml`, `components/hosts/overlay/OverlaySlot.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/views/BaseView.qml`, `components/views/Custom.qml`, `components/methods/GridPlacement.qml`, `config/OverlayConfig.qml`
-> **Config:** `Overlay.views`, `Overlay.size`
+> **Config:** `Overlay.views`, `Overlay.size`, `Overlay.contentScale`, `Overlay.navigator`, `Overlay.navigatorLabels`, `Overlay.animation`, `Overlay.showBackdrop`, `Overlay.backdrop`
 > **Related:** [Content roots](content-roots.md), [Writing modules](writing-modules.md), [Layouts editor](layouts-editor.md), [Edge menus](../edge-menus/overview.md)
 
 How the overlay turns `Overlay.views` into pages, and a page's modules into a grid of slots: views, the pure grid maths in `GridPlacement`, per-screen card sizing and what is loaded when. Read this before touching a view, the grid or overlay loading.
@@ -61,21 +61,25 @@ Pure, tested by `tst_GridPlacement`.
 - Adding a module type: see [Writing modules](writing-modules.md).
 
 ### Sizing (per screen)
-- The card size is per screen, not a constant.
-- Each `OverlayPanel` has an `OverlayGrid` (`hosts/overlay/`) whose `unit` is what fits the page area above the navigator:
-  - `min(height / fitCardsHigh, width / fitCardsWide)`
-  - capped at the reference `OverlayConfig.cardUnit` (500)
-  - times `Overlay.size`%
-  - never below `minCardUnit`.
-- It reports its room to `OverlayManager.reportArea` (the layouts editor's "fits" line).
-- Views receive it as `grid` (`BaseView`) and size everything from `grid.unit` / `grid.span(n)` / `grid.sizes(bounds, stretch)`, passing plain numbers down to content.
-- `OverlayConfig.span` without a unit is the reference size.
-- A page that still doesn't fit is shrunk as a whole by `OverlayPages.fitScale` (Item.scale, last resort).
-- `cardSpacing` / `cardPadding` don't scale.
+The overlay looks the same on every screen, only bigger or smaller: content lays out at one card size everywhere and is drawn scaled to fit.
+- Each `OverlayPanel` has an `OverlayGrid` (`hosts/overlay/`) on the page area beside the navigator, less `OverlayConfig.fillGap` at both ends and the box's padding (`GridPlacement.overlayLayout`, tested in `tst_GridPlacement`):
+  - `drawnUnit`: the card size at which a page two cards high (`span(8)`) fills that height, at most `fitCardsWide` cards across, times `Overlay.size`%.
+  - `unit`: the card size content lays out at, `GridPlacement.layoutUnit` (570) at 100 % `Overlay.contentScale`, smaller as content grows.
+  - `zoom`: `drawnUnit / unit`. Within 2 % of the layout size it's drawn at it (`zoom` 1), so content isn't resampled for nothing.
+  - `roomWidth` / `roomHeight`: the room in layout px, what views size against (`BaseView.editorWidth`).
+- Views receive it as `grid` (`BaseView`) and size everything from `grid.unit` / `grid.span(n)` / `grid.sizes(bounds, stretch)`, passing plain numbers down to content. Text and widget sizes stay the shell's px tokens; the zoom scales them with the cards.
+- `OverlayPages` draws the current page at `contentZoom` (`zoom × fitScale`, Item.scale on the views' container); its box is sized in drawn px, so its border and radius stay crisp.
+  - `StyledIcon` finds that `contentZoom` up its parents and, scaled, draws unfilled symbols with the distance-field renderer (a native glyph blurs when scaled; a filled one stays native, as distance fields blot its contours).
+- A page that still doesn't fit (wider than `fitCardsWide`, higher than two cards) is shrunk as a whole by `OverlayPages.fitScale`.
+- The panel reports its room before shrinking, in layout px, its `unit` and `drawnUnit` to `OverlayManager.reportArea`: the layouts editor's "fits" line (`fitOf`), and edge menus' card size (`drawnUnit`, see [Edge menu hosts](../edge-menus/hosts.md)).
+- `OverlayConfig.span` without a unit is the grid's default size (`GridPlacement.cardUnit`, 500).
+- `cardSpacing` / `cardPadding` are layout px: they scale with the zoom.
+- The onboarder (`OnboardingWindow`) works out the same grid and draws its pages at the same zoom, so its Welcome page previews `Overlay.size` and `contentScale`.
 
 ### Loading
 - One overlay per screen in `General.screens` (`shell/Overlay.qml`): a transparent `OverlayPanel` inside the reserved area, placed by its base `ReservedAreaWindow` (shared with the onboarder).
-- Under it, its `reusable/BackdropRequest` dims the whole monitor under the bars and border (the screen's `ScreenBackdrop` window).
+- Under it, its `reusable/BackdropRequest` dims the whole monitor under the bars and border (the screen's `ScreenBackdrop` window), as dark as `Overlay.backdrop` while `Overlay.showBackdrop`.
+  - It comes in as the overlay does (`Overlay.animation`): sliding from the top or bottom edge (the request's `slide`), or fading.
   - A Top-layer surface kept under them by a Hyprland `order` layer rule that `HyprlandManager` adds at startup and on config reload.
   - The workspace overview and launcher use it too.
 - Its focus grab (`HyprlandGrab`) also whitelists `ShellManager.grabPartnersFor(screen)`. The bars, bar popouts and submenus register themselves there (`registerGrabPartner(window, screenName)`), so they keep working while it's open.
@@ -87,7 +91,7 @@ Pure, tested by `tst_GridPlacement`.
 - A view with `visible: false` stays in config but isn't shown.
 
 ### Navigator
-- `OverlayPageNavigator`, under the pages, shows a tab per page with a sliding accent pill.
+- `OverlayPageNavigator`, pinned to the screen's bottom or top edge (`Overlay.navigator`), shows a tab per page with a sliding accent pill. It's pinned to the edge, not the box, since the box changes height with each page.
 - Tabs come from `OverlayPages.pages`: icon, name and `tool` from `OverlayConfig.viewIcon` / `viewLabel` / `isTool`, shared with the layouts editor.
 - Tool tabs follow a divider as icons only (named in a tooltip), even when current.
-- When all names don't fit, the other tabs drop to icons too.
+- `Overlay.navigatorLabels`: `auto` drops the other tabs to icons when all names don't fit; `current` names only the current tab; `icons` names none.

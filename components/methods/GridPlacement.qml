@@ -10,9 +10,12 @@ QtObject {
   id: root
 
   // Card grid constants: internal design values, not user settings.
-  // cardUnit is the reference card size: the largest a card gets at 100%
-  // (each overlay's OverlayGrid sizes its cards to its screen, up to this).
+  // cardUnit is the grid's default card size, where none is given.
   readonly property int cardUnit: 500
+  // The card size the overlay's content lays out at, at 100 % content
+  // size: drawn bigger or smaller to fit each screen (overlayLayout), so
+  // it looks the same on all of them
+  readonly property int layoutUnit: 570
   readonly property int cardSpacing: 20
   // The largest a module's w or h may be (the schema's GridPlace maximum)
   readonly property int maxSpan: 32
@@ -591,6 +594,24 @@ QtObject {
   function fitScale(bounds, width, height, unit) {
     const sizes = root.trackSizes(bounds, unit);
     return sizes.width <= 0 ? 1 : Math.min(1, width / sizes.width, height / sizes.height);
+  }
+  // The overlay's cards for `width` × `height` px of room, where a page
+  // two cards high (span(8)) fills the height, at most `cardsWide` cards
+  // fitting across: { drawn, the card size shown (`size` % of what
+  // fills); unit, the size its content lays out at (layoutUnit at 100 %
+  // `contentScale`, less as content grows); zoom, drawn / unit }. Within
+  // 2 % of the layout size it's drawn at it, so the content isn't
+  // resampled for nothing
+  function overlayLayout(width, height, size, contentScale, cardsWide) {
+    const fill = Math.min((height - root.cardSpacing) / 2, width / cardsWide);
+    const unit = Math.round(root.layoutUnit * 100 / contentScale);
+    const drawn = Math.max(1, Math.round(fill * size / 100));
+    const snapped = Math.abs(drawn / unit - 1) < 0.02 ? unit : drawn;
+    return {
+      "drawn": snapped,
+      "unit": unit,
+      "zoom": snapped / unit
+    };
   }
 
   // --- Edge menus on their screen ---

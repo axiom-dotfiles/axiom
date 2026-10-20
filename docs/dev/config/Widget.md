@@ -14,11 +14,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Widget.height`** · integer = 30 · 16–128 · px
   - Control height: Height of buttons, fields and other controls (px).
   - x-control="stepper"
-  - read: `Widget.height` · in: `components/content/Calculator.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/EmojiPicker.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Password.qml`, `components/content/Session.qml`, `components/content/Stopwatch.qml`, `components/content/Submenu.qml`, `components/content/TopProcesses.qml`, `components/content/WorkspaceGrid.qml`, `components/content/WorkspaceStrips.qml` (+70 more)
+  - read: `Widget.height` · in: `components/content/Calculator.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/EmojiPicker.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Password.qml`, `components/content/Session.qml`, `components/content/Stopwatch.qml`, `components/content/Submenu.qml`, `components/content/TopProcesses.qml`, `components/content/WorkspaceGrid.qml`, `components/content/WorkspaceStrips.qml` (+71 more)
 - **`Widget.padding`** · integer = 10 · 0–32 · px
   - Padding: Inner padding of panels, cards and controls (px).
   - x-control="stepper"
-  - read: `Widget.padding` · in: `components/content/AudioMixer.qml`, `components/content/Chat.qml`, `components/content/ClaudeUsage.qml`, `components/content/Login.qml`, `components/content/Notifications.qml`, `components/content/Password.qml`, `components/content/ThemePicker.qml`, `components/content/Updates.qml`, `components/content/Weather.qml`, `components/content/WeatherForecast.qml`, `components/content/WifiNetworks.qml`, `components/content/base/CardHeader.qml`, `components/content/base/SaveResetActions.qml`, `components/content/base/TitledCard.qml` (+74 more)
+  - read: `Widget.padding` · in: `components/content/AudioMixer.qml`, `components/content/Chat.qml`, `components/content/ClaudeUsage.qml`, `components/content/Login.qml`, `components/content/Notifications.qml`, `components/content/Password.qml`, `components/content/ThemePicker.qml`, `components/content/Updates.qml`, `components/content/Weather.qml`, `components/content/WeatherForecast.qml`, `components/content/WifiNetworks.qml`, `components/content/base/CardHeader.qml`, `components/content/base/SaveResetActions.qml`, `components/content/base/TitledCard.qml` (+75 more)
 - **`Widget.spacing`** · integer = 4 · 0–32 · px
   - Spacing: Gap between items inside panels, cards and controls (px).
   - x-control="stepper"
@@ -36,9 +36,9 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `Widget`, with the files that use it.
 
 - `Widget.height` (int)
-  - in: `components/content/Calculator.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/EmojiPicker.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Password.qml`, `components/content/Session.qml`, `components/content/Stopwatch.qml` (+74 more)
+  - in: `components/content/Calculator.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/EmojiPicker.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Password.qml`, `components/content/Session.qml`, `components/content/Stopwatch.qml` (+75 more)
 - `Widget.padding` (int)
-  - in: `components/content/AudioMixer.qml`, `components/content/Chat.qml`, `components/content/ClaudeUsage.qml`, `components/content/Login.qml`, `components/content/Notifications.qml`, `components/content/Password.qml`, `components/content/ThemePicker.qml`, `components/content/Updates.qml`, `components/content/Weather.qml`, `components/content/WeatherForecast.qml` (+78 more)
+  - in: `components/content/AudioMixer.qml`, `components/content/Chat.qml`, `components/content/ClaudeUsage.qml`, `components/content/Login.qml`, `components/content/Notifications.qml`, `components/content/Password.qml`, `components/content/ThemePicker.qml`, `components/content/Updates.qml`, `components/content/Weather.qml`, `components/content/WeatherForecast.qml` (+79 more)
 - `Widget.spacing` (int)
   - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/Clock.qml`, `components/content/ClockCalendar.qml` (+178 more)
 - `Widget.radius` (int): Corners of what sits inside something (cards, controls, rows, bar widgets); outer edges use Appearance.borderRadius

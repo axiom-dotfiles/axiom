@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 71,
+      "default": 72,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -1903,6 +1903,7 @@
       "type": "object",
       "x-category": "Overlay & Popouts",
       "x-links": ["Layouts"],
+      "x-order": ["monitors", "size", "contentScale", "navigator", "navigatorLabels", "animation", "showBackdrop", "backdrop", "closeOnEscape", "closeOnOutsideClick"],
       "title": "Overlay",
       "additionalProperties": false,
       "properties": {
@@ -1917,14 +1918,58 @@
         },
         "size": {
           "x-scope": "look",
+          "x-group": "Size",
           "type": "integer",
           "title": "Overlay size",
           "x-unit": "%",
           "default": 100,
           "minimum": 50,
-          "maximum": 150,
-          "description": "Size of the overlay's cards, relative to what fits the screen. Pages that would still overflow are shrunk to fit."
+          "maximum": 100,
+          "description": "How much of the screen the overlay takes: at 100 its pages fill the height between the page switcher and the far edge; lower shrinks the whole overlay, its text and cards alike. It looks the same on every resolution, only bigger or smaller."
         },
+        "contentScale": {
+          "x-scope": "look",
+          "x-group": "Size",
+          "type": "integer",
+          "title": "Content size",
+          "x-unit": "%",
+          "default": 100,
+          "minimum": 60,
+          "maximum": 140,
+          "description": "Size of the text and everything else inside the overlay's cards, compared with the cards themselves: higher is easier to read but fits less in each card, lower fits more. Use it to bring text to the size you like on a small or very large screen."
+        },
+        "navigator": {
+          "x-scope": "look",
+          "x-group": "Page switcher",
+          "type": "string",
+          "title": "Position",
+          "enum": ["bottom", "top"],
+          "x-enumLabels": { "bottom": "Bottom", "top": "Top" },
+          "default": "bottom",
+          "description": "The screen edge the page switcher sits on."
+        },
+        "navigatorLabels": {
+          "x-scope": "look",
+          "x-group": "Page switcher",
+          "type": "string",
+          "title": "Page names",
+          "enum": ["auto", "current", "icons"],
+          "x-enumLabels": { "auto": "All, while they fit", "current": "Current page only", "icons": "Icons only" },
+          "default": "auto",
+          "description": "Which pages show their name beside their icon. Tool pages are always icons, named in a tooltip."
+        },
+        "animation": {
+          "x-scope": "look",
+          "x-group": "Look",
+          "type": "string",
+          "title": "Opening animation",
+          "enum": ["top", "bottom", "fade"],
+          "x-enumLabels": { "top": "Slide from the top", "bottom": "Slide from the bottom", "fade": "Fade" },
+          "default": "top",
+          "description": "How the overlay and its dim background come in and go."
+        },
+        "showBackdrop": { "x-scope": "look", "x-group": "Look", "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the overlay, under the bars and border." },
+        "backdrop": { "x-scope": "look", "x-group": "Look", "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 85, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the overlay goes.", "x-showIf": { "showBackdrop": true } },
         "closeOnEscape": {
           "type": "boolean",
           "title": "Close on Escape",

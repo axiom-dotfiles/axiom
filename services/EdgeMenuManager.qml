@@ -472,14 +472,14 @@ Singleton {
     return JSON.stringify(menu) !== JSON.stringify(saved);
   }
 
-  // A menu's card size: its screen's overlay's (OverlayManager.areas, or
-  // what the overlay would take on that screen before it reports one),
-  // scaled by the menu's moduleScale. A submenu's is on the screen of the
-  // menu it opens from (`screen`)
+  // A menu's card size: the size its screen's overlay draws its cards at
+  // (OverlayManager.areas, or what the overlay would take on a screen that
+  // size where there's none), scaled by the menu's moduleScale. A
+  // submenu's is on the screen of the menu it opens from (`screen`)
   function cardUnitOf(menu, screen) {
     screen = screen ?? EdgeMenusConfig.screenFor(menu);
     const area = OverlayManager.areas[screen?.name ?? ""];
-    const unit = area ? area.unit : screen ? OverlayConfig.cardUnitFor(screen.width, screen.height) : OverlayConfig.cardUnit;
+    const unit = area ? area.drawnUnit : screen ? OverlayConfig.screenLayout(screen.width, screen.height).drawn : OverlayConfig.cardUnit;
     const card = unit * menu.moduleScale / 100;
     // A double grid (fineGrid) splits each unit in two each way
     return menu.fineGrid ? GridPlacement.fineUnit(card) : Math.round(card);

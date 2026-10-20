@@ -16,7 +16,12 @@ ReservedAreaWindow {
   id: root
 
   property bool isOpen: false
-  property real slideOffset: isOpen ? 0 : -height
+  // Closed, it waits off the edge it slides in from (Overlay.animation),
+  // or in place, faded out
+  readonly property bool _fades: OverlayConfig.animation === "fade"
+  property real slideOffset: isOpen || _fades ? 0 : OverlayConfig.animation === "bottom" ? height : -height
+  // The page switcher's on the top edge, not the bottom
+  readonly property bool _navigatorTop: OverlayConfig.navigator === "top"
 
   visible: false
   // Its layer rule arranges it after docks and draws it over them
@@ -156,7 +161,7 @@ ReservedAreaWindow {
   Item {
     id: slideContainer
     anchors.fill: parent
-    opacity: root.steppedAside ? 0 : 1
+    opacity: root.steppedAside || (root._fades && !root.isOpen) ? 0 : 1
     Glide on opacity {
       duration: Appearance.animNormal
     }
@@ -197,17 +202,16 @@ ReservedAreaWindow {
       }
     }
 
-    // Where pages go: everything above the navigator, so a page never
-    // sits under it
+    // Where pages go: everything beside the navigator, so a page never
+    // sits under it. Placed by y, not anchors: switching which edge an
+    // item anchors to leaves it stretched between both for a moment
     Item {
       id: pageArea
-      anchors {
-        top: parent.top
-        left: parent.left
-        right: parent.right
-        bottom: navigator.top
-        bottomMargin: Widget.padding * 2
-      }
+      readonly property real navigatorRoom: navigator.height + Widget.padding * 4
+      x: 0
+      y: root._navigatorTop ? navigatorRoom : 0
+      width: parent.width
+      height: parent.height - navigatorRoom
 
       OverlayPages {
         id: overlayPages
@@ -221,32 +225,35 @@ ReservedAreaWindow {
       }
     }
 
-    // This screen's card size: what fits the space the pages get
+    // This screen's card size: what fills the space the pages get, less
+    // the fill gap at both ends (the box's padding is in maxWidth/Height)
     OverlayGrid {
       id: grid
       availableWidth: overlayPages.maxWidth - OverlayConfig.cardSpacing * 2
-      availableHeight: overlayPages.maxHeight - OverlayConfig.cardSpacing * 2
+      availableHeight: overlayPages.maxHeight - OverlayConfig.fillGap * 2
 
-      // The layouts editor's "fits" line reads each screen's room
-      readonly property string areaKey: [grid.availableWidth, grid.availableHeight, grid.unit].join(",")
+      // The room a page has before it's shrunk (OverlayPages.fitScale), in
+      // layout px: the layouts editor's "fits" line reads each screen's,
+      // and edge menus its drawn card size
+      readonly property real fitWidth: (overlayPages.maxWidth - OverlayConfig.cardSpacing * 2) / grid.zoom
+      readonly property real fitHeight: (overlayPages.maxHeight - OverlayConfig.cardSpacing * 2) / grid.zoom
+      readonly property string areaKey: [grid.fitWidth, grid.fitHeight, grid.unit, grid.drawnUnit].join(",")
       onAreaKeyChanged: report()
       Component.onCompleted: report()
       Component.onDestruction: OverlayManager.clearArea(root.screen?.name ?? "")
 
       function report() {
-        OverlayManager.reportArea(root.screen?.name ?? "", grid.availableWidth, grid.availableHeight, grid.unit);
+        OverlayManager.reportArea(root.screen?.name ?? "", grid.fitWidth, grid.fitHeight, grid.unit, grid.drawnUnit);
       }
     }
 
     OverlayPageNavigator {
       id: navigator
-      anchors {
-        bottom: parent.bottom
-        bottomMargin: Widget.padding * 2
-        horizontalCenter: parent.horizontalCenter
-      }
+      anchors.horizontalCenter: parent.horizontalCenter
+      y: root._navigatorTop ? Widget.padding * 2 : parent.height - height - Widget.padding * 2
       currentIndex: overlayPages.currentIndex
       pages: overlayPages.pages
+      labels: OverlayConfig.navigatorLabels
       maxWidth: slideContainer.width - Widget.padding * 4
       onPrevious: overlayPages.step(-1)
       onNext: overlayPages.step(1)
