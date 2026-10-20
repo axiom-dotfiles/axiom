@@ -14,4 +14,11 @@ Reader for the Widget section: sizing for panels, cards, popouts and controls, a
 - `padding` (readonly int): Inner padding of panels, cards and controls
 - `spacing` (readonly int): Gap between items inside panels, cards and controls
 - `cardPadding` (readonly int): A module card's padding (OverlayConfig.cardPad)
+- `iconButton` (readonly int): Side of a square icon button (FlatIconButton)
+- `smallHeight` (readonly int): Height of chips, pills and small buttons (keybind chips, a notification's actions)
+- `smallPadding` (readonly int): Inner margins of rows, fields and dropdowns
 - `radius` (readonly int): Corners of what sits inside something (cards, controls, rows, bar widgets); outer edges use Appearance.borderRadius
+
+### Functions
+
+- `px(n: real): int`: A size that isn't a control's, padding or gap (a panel's width, an avatar, a dot) at the Interface scale.

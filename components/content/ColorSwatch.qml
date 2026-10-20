@@ -24,7 +24,7 @@ Card {
 
   component SwatchLabel: StyledText {
     anchors.horizontalCenter: parent.horizontalCenter
-    width: Math.min(implicitWidth, root.width - 8)
+    width: Math.min(implicitWidth, root.width - Widget.spacing * 2)
     horizontalAlignment: Text.AlignHCenter
     elide: Text.ElideRight
     textColor: root.labelColor

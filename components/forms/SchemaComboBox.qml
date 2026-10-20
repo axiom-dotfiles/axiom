@@ -32,7 +32,7 @@ ColumnLayout {
   signal selectionChanged(string newValue)
 
   Layout.fillWidth: true
-  spacing: 4
+  spacing: Widget.spacing
 
   StyledText {
     text: I18n.tr(root.label)

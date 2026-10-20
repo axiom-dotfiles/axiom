@@ -104,7 +104,7 @@ Item {
     x: body.x + busyTrack.inset
     y: body.y + entry.y + entry.height - height - Appearance.borderWidth - 1
     width: entry.width - busyTrack.inset * 2
-    height: 3
+    height: Widget.px(3)
     visible: root.busy
     clip: true
 

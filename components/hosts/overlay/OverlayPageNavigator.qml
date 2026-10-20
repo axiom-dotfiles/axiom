@@ -89,7 +89,7 @@ Rectangle {
       model: root.pages
       Item {
         required property var modelData
-        implicitWidth: root.tabPadding * 2 + root.iconSize + (modelData.tool ? 0 : root.labelSpacing + measureLabel.implicitWidth) + (EditsManager.isUnsaved(modelData.type) ? root.labelSpacing + 8 : 0)
+        implicitWidth: root.tabPadding * 2 + root.iconSize + (modelData.tool ? 0 : root.labelSpacing + measureLabel.implicitWidth) + (EditsManager.isUnsaved(modelData.type) ? root.labelSpacing + Widget.px(8) : 0)
         StyledText {
           id: measureLabel
           text: parent.modelData.label

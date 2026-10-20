@@ -30,7 +30,7 @@ Panel {
     }))
 
   spacing: Widget.padding
-  implicitWidth: Math.max(320, body.implicitWidth + margins * 2)
+  implicitWidth: Math.max(Widget.px(320), body.implicitWidth + margins * 2)
 
   function duration(ms) {
     const minutes = Math.max(0, Math.round(ms / 60000));
@@ -71,8 +71,8 @@ Panel {
     }
     Rectangle {
       Layout.fillWidth: true
-      implicitHeight: 6
-      radius: 3
+      implicitHeight: Widget.px(6)
+      radius: height / 2
       color: Theme.backgroundHighlight
       Rectangle {
         width: parent.width * Math.min(1, (meter.usage?.percent ?? 0) / 100)
@@ -144,7 +144,7 @@ Panel {
         textSize: Appearance.fontSize - 2
         wrapMode: Text.Wrap
         Layout.fillWidth: true
-        Layout.maximumWidth: 320
+        Layout.maximumWidth: Widget.px(320)
       }
 
       Meter {
@@ -175,7 +175,7 @@ Panel {
         textSize: Appearance.fontSize - 2
         wrapMode: Text.Wrap
         Layout.fillWidth: true
-        Layout.maximumWidth: 320
+        Layout.maximumWidth: Widget.px(320)
       }
 
       StyledText {

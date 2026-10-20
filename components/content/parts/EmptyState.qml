@@ -12,7 +12,7 @@ ColumnLayout {
   property string icon: ""
   property string text: ""
   // Widest the text may be before it wraps
-  property real maxWidth: 220
+  property real maxWidth: Widget.px(220)
   // The height it has (negative: no limit). Short of room for the text,
   // only the icon shows, sized to fit
   property real availableHeight: -1
@@ -26,7 +26,7 @@ ColumnLayout {
     visible: root.icon !== ""
     Layout.alignment: Qt.AlignHCenter
     text: root.icon
-    textSize: root._limited && !root._textFits ? Math.max(8, Math.min(Appearance.fontSize * 2, root.availableHeight * 0.7)) : Appearance.fontSize * 2
+    textSize: root._limited && !root._textFits ? Math.max(Widget.px(8), Math.min(Appearance.fontSize * 2, root.availableHeight * 0.7)) : Appearance.fontSize * 2
   }
   StyledText {
     id: textLine

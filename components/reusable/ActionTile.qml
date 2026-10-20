@@ -112,7 +112,7 @@ Rectangle {
     id: countdownBar
     anchors.bottom: parent.bottom
     anchors.left: parent.left
-    height: 3
+    height: Widget.px(3)
     color: Theme.background
     opacity: 0.6
     visible: root.active && root.countdown > 0

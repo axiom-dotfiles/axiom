@@ -63,7 +63,7 @@ PopoutWrapperBase {
   // Hover strip at the very edge of the screen that opens the popout
   property bool triggerEnabled: true
   property int triggerWidth: PopoutsConfig.edgeTriggerSize
-  property int triggerLength: 200
+  property int triggerLength: 200 // fixed px: a hover strip on the screen's edge, like edgeTriggerSize
   property int hoverDelay: PopoutsConfig.openDelay
   // The strip's centre along the edge in screen px (NaN: at the box's
   // `position`, EdgeTrigger.centre)

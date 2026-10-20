@@ -30,7 +30,7 @@ ColumnLayout {
       opacity: enabled ? 1 : 0.5
       iconText: root.previewingThis ? "visibility_off" : "visibility"
       text: root.previewingThis ? I18n.tr("Hide from screen") : I18n.tr("Show on screen")
-      textPadding: 6
+      textPadding: Widget.smallPadding
       backgroundColor: root.previewingThis ? Theme.accent : Theme.backgroundHighlight
       textColor: root.previewingThis ? Theme.background : Theme.foreground
       onClicked: EdgeMenuManager.togglePreviewing()
@@ -40,7 +40,7 @@ ColumnLayout {
       Layout.fillWidth: true
       iconText: "layers"
       text: EdgeMenuManager.showingOthers ? I18n.tr("Hide other menus") : I18n.tr("Show other menus")
-      textPadding: 6
+      textPadding: Widget.smallPadding
       backgroundColor: EdgeMenuManager.showingOthers ? Theme.accent : Theme.backgroundHighlight
       textColor: EdgeMenuManager.showingOthers ? Theme.background : Theme.foreground
       onClicked: EdgeMenuManager.toggleShowingOthers()

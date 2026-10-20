@@ -27,7 +27,7 @@ Item {
   readonly property real overflow: scroll.height <= 0 ? 0 : root.on ? list.implicitHeight - scroll.height : -scroll.height
 
   // One row's height (DeviceRow.rowHeight): its two lines, or a button
-  readonly property real rowHeight: Math.max(titleMetrics.height + statusMetrics.height, 28) + Widget.spacing * 2
+  readonly property real rowHeight: Math.max(titleMetrics.height + statusMetrics.height, Widget.iconButton) + Widget.spacing * 2
   readonly property real listHeight: rowHeight * visibleRows + list.spacing * (visibleRows - 1)
 
   // Fades the rows in, e.g. on a tab switch

@@ -18,12 +18,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
-### Literal px sizes don't follow the Interface scale outside cards
-- **Where:** `components/content/`, `components/surfaces/`, `components/hosts/popout/` (sizes written as numbers)
-- **What:** `Widget.scale` grows text and controls through `Appearance.fontSize` and the `Widget` sizes, but about 140 sizes in content, views, hosts and surfaces are literal px (`spacing: 2`, `anchors.margins: 3`, fixed heights; `grep -rEn '(height|spacing|margins|padding): [0-9]+$'`). Inside a module card they still scale with the card's zoom; in popouts, the launcher and other surfaces they stay the same at any scale, so gaps and fixed boxes come out relatively tighter at 150 % and looser at 75 %. Most are 0–3 px and harmless; the fixed heights and widths are the ones to move to `Widget` sizes.
-- **Size:** small
-- **Found:** 2026-10-21, while adding the Interface scale
-
 ### A popout taller than the screen runs off it
 - **Where:** `components/hosts/popout/BarPopouts.qml` (`popoutRoom`), `components/content/Calendar.qml`
 - **What:** Nothing keeps a bar popout's content within the screen: content taller than the room past the bar (the Calendar popout with its event editor open on a short screen, 1080 px or less with a top bar) draws its box past the screen's far side, and what's there is cut off. `popoutRoom` measures the room left, and only `StyledComboEntry`'s inline list keeps to it. A general guard would hand the content a most height (as `SubPopout.maxContentHeight` does for submenus) for it to scroll within.

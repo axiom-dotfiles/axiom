@@ -131,7 +131,7 @@ Item {
           spacing: Widget.spacing * 2
 
           ColumnLayout {
-            Layout.preferredWidth: 3
+            Layout.preferredWidth: Widget.px(3)
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
             spacing: Widget.spacing
@@ -140,7 +140,7 @@ Item {
               visible: editorRoot.opens !== null
               iconText: "edit"
               text: I18n.tr("Edit {0} in Layouts", editorRoot.opens?.label ?? "")
-              textPadding: 6
+              textPadding: Widget.smallPadding
               onClicked: OverlayManager.editOpenedBy(editorRoot.widget)
             }
 

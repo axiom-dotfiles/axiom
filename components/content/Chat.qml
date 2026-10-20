@@ -21,7 +21,7 @@ Panel {
   // The dropdowns open just under the header
   readonly property real popupTop: header.height + Widget.spacing
 
-  implicitWidth: 440 + root.margins * 2
+  implicitWidth: Widget.px(440) + root.margins * 2
   // The header, a message or two and the composer, else the figure
   fullMinWidth: Appearance.fontSize * 18
   fullMinHeight: Appearance.fontSize * 16
@@ -49,7 +49,7 @@ Panel {
   Item {
     Layout.fillWidth: true
     Layout.fillHeight: true
-    Layout.preferredHeight: root.embedded ? -1 : 560
+    Layout.preferredHeight: root.embedded ? -1 : Widget.px(560)
 
     RowLayout {
       anchors.fill: parent
@@ -58,7 +58,7 @@ Panel {
       ConversationList {
         visible: root.listDocked
         Layout.fillHeight: true
-        Layout.preferredWidth: Math.max(180, parent.width * 0.32)
+        Layout.preferredWidth: Math.max(Widget.px(180), parent.width * 0.32)
         color: Theme.backgroundAlt
         border.width: 0
         floating: false
@@ -118,7 +118,7 @@ Panel {
       anchors.top: parent.top
       anchors.topMargin: root.popupTop
       anchors.left: parent.left
-      width: Math.min(parent.width - Widget.padding * 2, 300)
+      width: Math.min(parent.width - Widget.padding * 2, Widget.px(300))
       maxHeight: parent.height - root.popupTop - Widget.spacing
       onPicked: root.listOpen = false
     }
@@ -128,8 +128,8 @@ Panel {
       anchors.top: parent.top
       anchors.topMargin: root.popupTop
       anchors.right: parent.right
-      width: Math.min(parent.width - Widget.padding * 2, 280)
-      maxHeight: Math.min(420, parent.height - root.popupTop - Widget.spacing)
+      width: Math.min(parent.width - Widget.padding * 2, Widget.px(280))
+      maxHeight: Math.min(Widget.px(420), parent.height - root.popupTop - Widget.spacing)
       onPicked: root.pickerOpen = false
     }
 

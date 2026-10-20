@@ -110,7 +110,7 @@ FieldGroup {
       textColor: Theme.foregroundAlt
       textSize: Appearance.fontSize - 2
       elide: Text.ElideMiddle
-      Layout.maximumWidth: 320
+      Layout.maximumWidth: Widget.px(320)
     }
   ]
 

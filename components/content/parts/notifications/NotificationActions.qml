@@ -35,8 +35,8 @@ Flickable {
         id: pill
         required property var modelData
 
-        implicitWidth: label.implicitWidth + 20
-        implicitHeight: label.implicitHeight + 10
+        implicitWidth: label.implicitWidth + Widget.padding * 2
+        implicitHeight: label.implicitHeight + Widget.padding
         radius: height / 2
         color: area.containsMouse ? Theme.accent : Theme.backgroundHighlight
         scale: area.pressed ? 0.95 : 1

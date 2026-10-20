@@ -19,7 +19,7 @@ Item {
   readonly property int itemHeight: Widget.height
   readonly property int itemPadding: Widget.padding
   property real minWidth: Widget.height * 4
-  property real maxWidth: 600
+  property real maxWidth: Widget.px(600)
 
   signal itemClicked
   signal submenuRequested(Item itemDelegate)
@@ -48,7 +48,7 @@ Item {
   ColumnLayout {
     id: menuLayout
     width: parent.width
-    spacing: 4
+    spacing: Widget.spacing
 
     Repeater {
       id: menuRepeater

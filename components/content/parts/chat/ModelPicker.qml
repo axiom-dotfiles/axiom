@@ -40,7 +40,7 @@ DropdownSurface {
   }
 
   // The most it may grow to (the chat sets what's left below the header)
-  property real maxHeight: 420
+  property real maxHeight: Widget.px(420)
 
   implicitHeight: Math.min(listColumn.implicitHeight + Widget.spacing * 2, root.maxHeight)
 
@@ -51,7 +51,7 @@ DropdownSurface {
     contentPadding: 0
     // A lane of its own for the scroll bar, so it never covers a row
     showScrollBar: listColumn.implicitHeight > scroll.height
-    rightPadding: showScrollBar ? 12 : 0
+    rightPadding: showScrollBar ? Widget.px(12) : 0
 
     ColumnLayout {
       id: listColumn

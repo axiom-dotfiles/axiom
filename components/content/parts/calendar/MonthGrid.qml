@@ -151,7 +151,7 @@ Item {
           required property int index
           Layout.fillWidth: true
           Layout.preferredHeight: root.weekdayHeight
-          leftPadding: root.titles ? 5 : 0
+          leftPadding: root.titles ? Widget.spacing : 0
           horizontalAlignment: root.titles ? Text.AlignLeft : Text.AlignHCenter
           verticalAlignment: Text.AlignVCenter
           text: I18n.locale.dayName((root.firstDay + index) % 7, root.titles ? Locale.ShortFormat : Locale.NarrowFormat)
@@ -217,7 +217,7 @@ Item {
             id: number
             x: root.titles ? cell.inset : (cell.width - width) / 2
             y: root.titles ? cell.inset : (cell.height - height) / 2 - (cell.dotKey ? cell.height * 0.08 : 0)
-            width: root.titles ? Math.max(cell.numberSize, numberText.implicitWidth + 8) : numberText.implicitWidth
+            width: root.titles ? Math.max(cell.numberSize, numberText.implicitWidth + Widget.spacing * 2) : numberText.implicitWidth
             height: root.titles ? cell.numberSize : numberText.implicitHeight
             radius: height / 2
             color: root.titles && cell.modelData.isToday ? Theme.accent : "transparent"
@@ -279,14 +279,14 @@ Item {
                   visible: !chip.event?.allDay
                   x: 2
                   anchors.verticalCenter: parent.verticalCenter
-                  width: 3
+                  width: Widget.px(3)
                   height: parent.height - 4
                   radius: 1.5
                   color: chip.calendarColor
                 }
                 StyledText {
                   anchors.verticalCenter: parent.verticalCenter
-                  x: chip.event?.allDay ? 4 : 8
+                  x: Widget.px(chip.event?.allDay ? 4 : 8)
                   width: parent.width - x - 2
                   text: chip.event ? (chip.event.allDay || CalendarEvents.spanOn(chip.event, cell.key) !== "single" && CalendarEvents.spanOn(chip.event, cell.key) !== "starts" ? "" : I18n.formatDate(new Date(chip.event.start), CalendarConfig.timeFormat) + " ") + (chip.event.title || I18n.tr("(No title)")) : ""
                   elide: Text.ElideRight

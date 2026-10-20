@@ -60,10 +60,10 @@ Item {
 
     ScrollBar.vertical: ScrollBar {
       policy: root._lane > 0 ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
-      rightPadding: 3
-      leftPadding: 3
+      rightPadding: Widget.px(3)
+      leftPadding: Widget.px(3)
       contentItem: Rectangle {
-        implicitWidth: 4
+        implicitWidth: Widget.px(4)
         radius: 2
         color: Theme.accent
         opacity: parent.pressed ? 0.8 : 0.4
@@ -99,7 +99,7 @@ Item {
   ColumnLayout {
     visible: ChatManager.messages.length === 0
     anchors.centerIn: parent
-    width: Math.min(parent.width - Widget.padding * 2, 280)
+    width: Math.min(parent.width - Widget.padding * 2, Widget.px(280))
     spacing: Widget.spacing
 
     EmptyState {

@@ -34,8 +34,8 @@ Rectangle {
     return Qt.point(along, 1 - across);
   }
 
-  implicitWidth: 192
-  implicitHeight: 108
+  implicitWidth: Widget.px(192)
+  implicitHeight: Widget.px(108)
   color: Theme.background
   border.color: Theme.border
   border.width: Appearance.borderWidth

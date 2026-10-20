@@ -16,8 +16,8 @@ Rectangle {
   required property var screen
   // Open: previews capture only then
   property bool active: true
-  property real availableWidth: 1920
-  property real availableHeight: 1080
+  property real availableWidth: 1920 // fixed px: a placeholder, set from the screen
+  property real availableHeight: 1080 // fixed px: a placeholder, set from the screen
 
   signal closeRequested
 

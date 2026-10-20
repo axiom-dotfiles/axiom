@@ -17,7 +17,7 @@ DropdownSurface {
   property string current: ""
   // The folder shown (relative, "" for the top)
   property string folder: NotesManager.parentOf(root.current)
-  property real maxHeight: 400
+  property real maxHeight: Widget.px(400)
 
   // A note, and the line to show (0-based, or -1)
   signal picked(string path, int line)
@@ -106,7 +106,7 @@ DropdownSurface {
 
       Flickable {
         Layout.fillWidth: true
-        Layout.preferredHeight: 26
+        Layout.preferredHeight: Widget.iconButton
         contentWidth: crumbRow.implicitWidth
         contentX: Math.max(0, contentWidth - width)
         clip: true
@@ -135,7 +135,7 @@ DropdownSurface {
               Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 implicitWidth: (crumb.index === 0 ? crumbLabel.implicitWidth : crumbName.implicitWidth) + Widget.spacing * 1.5
-                implicitHeight: 24
+                implicitHeight: Widget.smallHeight
                 radius: Widget.radius / 2
                 color: crumbHover.hovered && !crumb.last ? Theme.backgroundHighlight : "transparent"
 
@@ -173,14 +173,14 @@ DropdownSurface {
       }
 
       FlatIconButton {
-        size: 26
+        size: Widget.iconButton
         iconText: "note_add"
         iconColor: root.creating === "note" ? Theme.accent : Theme.foreground
         tooltipText: I18n.tr("New note")
         onClicked: root.creating = root.creating === "note" ? "" : "note"
       }
       FlatIconButton {
-        size: 26
+        size: Widget.iconButton
         iconText: "create_new_folder"
         iconColor: root.creating === "folder" ? Theme.accent : Theme.foreground
         tooltipText: I18n.tr("New folder")
@@ -359,7 +359,7 @@ DropdownSurface {
           id: rowLayout
           anchors.fill: parent
           anchors.leftMargin: Widget.spacing
-          anchors.rightMargin: 3
+          anchors.rightMargin: Widget.spacing
           spacing: Widget.spacing
 
           StyledIcon {
@@ -406,7 +406,7 @@ DropdownSurface {
           // Delete: confirm or cancel
           FlatIconButton {
             visible: row.confirming
-            size: 24
+            size: Widget.iconButton
             iconText: "check"
             iconColor: Theme.error
             iconSize: Appearance.fontSize - 1
@@ -415,7 +415,7 @@ DropdownSurface {
           }
           FlatIconButton {
             visible: row.confirming
-            size: 24
+            size: Widget.iconButton
             iconText: "close"
             iconSize: Appearance.fontSize - 1
             tooltipText: I18n.tr("Cancel")
@@ -424,7 +424,7 @@ DropdownSurface {
 
           FlatIconButton {
             visible: rowHover.hovered && !row.editing && !row.confirming
-            size: 24
+            size: Widget.iconButton
             iconText: "edit"
             iconSize: Appearance.fontSize - 2
             tooltipText: I18n.tr("Rename")
@@ -435,7 +435,7 @@ DropdownSurface {
           }
           FlatIconButton {
             visible: rowHover.hovered && !row.editing && !row.confirming
-            size: 24
+            size: Widget.iconButton
             iconText: "delete"
             iconSize: Appearance.fontSize - 2
             tooltipText: I18n.tr("Delete")

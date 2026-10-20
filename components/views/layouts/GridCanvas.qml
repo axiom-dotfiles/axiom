@@ -167,14 +167,14 @@ Card {
         spacing: 0
 
         FlatIconButton {
-          size: 24
+          size: Widget.iconButton
           iconText: "undo"
           tooltipText: I18n.tr("Undo")
           enabled: root.dragLayer.editor.canUndo
           onClicked: root.dragLayer.editor.undo()
         }
         FlatIconButton {
-          size: 24
+          size: Widget.iconButton
           iconText: "redo"
           tooltipText: I18n.tr("Redo")
           enabled: root.dragLayer.editor.canRedo
@@ -221,14 +221,14 @@ Card {
           spacing: 0
 
           FlatIconButton {
-            size: 24
+            size: Widget.iconButton
             iconText: root.nudgeVertical ? "keyboard_arrow_up" : "chevron_left"
             tooltipText: root.nudgeVertical ? I18n.tr("Move up") : I18n.tr("Move left")
             enabled: root.canNudgeBack
             onClicked: root.nudge(-1)
           }
           FlatIconButton {
-            size: 24
+            size: Widget.iconButton
             iconText: root.nudgeVertical ? "keyboard_arrow_down" : "chevron_right"
             tooltipText: root.nudgeVertical ? I18n.tr("Move down") : I18n.tr("Move right")
             enabled: root.canNudgeForward
@@ -242,7 +242,7 @@ Card {
           }
           FlatIconButton {
             visible: root.canCentre
-            size: 24
+            size: Widget.iconButton
             iconText: root.nudgeVertical ? "align_vertical_center" : "align_horizontal_center"
             tooltipText: I18n.tr("Centre")
             onClicked: root.centre()

@@ -269,7 +269,7 @@ Loader {
           "start": 0
         })
       readonly property bool custom: root.current !== undefined && root.current !== autoField.auto.value
-      spacing: 4
+      spacing: Widget.spacing
       SchemaSwitch {
         label: root.label
         description: root.description
@@ -296,7 +296,7 @@ Loader {
   Component {
     id: readonlyField
     ColumnLayout {
-      spacing: 4
+      spacing: Widget.spacing
       RowLayout {
         Layout.fillWidth: true
         spacing: Widget.spacing
@@ -344,7 +344,7 @@ Loader {
   Component {
     id: searchField
     ColumnLayout {
-      spacing: 4
+      spacing: Widget.spacing
       StyledText {
         text: I18n.tr(root.label)
         Layout.fillWidth: true
@@ -416,7 +416,7 @@ Loader {
   Component {
     id: chipsField
     ColumnLayout {
-      spacing: 4
+      spacing: Widget.spacing
       StyledText {
         text: I18n.tr(root.label)
         Layout.fillWidth: true

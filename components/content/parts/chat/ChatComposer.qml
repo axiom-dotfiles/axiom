@@ -67,8 +67,8 @@ ColumnLayout {
 
         Rectangle {
           visible: ChatManager.attaching
-          width: 56
-          height: 56
+          width: Widget.px(56)
+          height: Widget.px(56)
           radius: Widget.radius / 2
           color: Theme.backgroundHighlight
 
@@ -86,8 +86,8 @@ ColumnLayout {
         Layout.maximumHeight: Appearance.fontSize * 12
         expandable: true
         newlineOnEnter: root.ctrlEnter
-        horizontalMargin: 4
-        verticalMargin: 4
+        horizontalMargin: Widget.spacing
+        verticalMargin: Widget.spacing
         minHeight: 0
         backgroundColor: "transparent"
         borderColor: "transparent"
@@ -138,8 +138,8 @@ ColumnLayout {
           id: sendButton
           readonly property bool canSend: ChatManager.busy || area.text.trim() !== "" || ChatManager.attachments.length > 0
           Layout.alignment: Qt.AlignVCenter
-          implicitWidth: 28
-          implicitHeight: 28
+          implicitWidth: Widget.iconButton
+          implicitHeight: Widget.iconButton
           radius: height / 2
           color: ChatManager.busy ? Theme.backgroundHighlight : canSend ? Theme.accent : Theme.backgroundHighlight
           opacity: canSend ? 1 : 0.5

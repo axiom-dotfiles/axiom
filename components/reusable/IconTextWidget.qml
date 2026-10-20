@@ -17,7 +17,7 @@ BaseWidget {
   property real iconScale: 1.0
   property bool showText: true
   property bool showIcon: true
-  property real spacing: 6
+  property real spacing: Widget.spacing * 1.5
   property color foregroundColor: Theme.background
   property color iconColor: foregroundColor
   property int fontSize: Appearance.fontSize

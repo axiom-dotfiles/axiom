@@ -19,7 +19,7 @@ Panel {
 
   spacing: Widget.padding
 
-  implicitWidth: Math.max(300, body.implicitWidth + margins * 2)
+  implicitWidth: Math.max(Widget.px(300), body.implicitWidth + margins * 2)
 
   StyledText {
     visible: text !== ""

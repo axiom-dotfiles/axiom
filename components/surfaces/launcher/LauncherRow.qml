@@ -51,18 +51,18 @@ Item {
   // Selection pill with an accent bar
   Rectangle {
     anchors.fill: parent
-    anchors.leftMargin: 6
-    anchors.rightMargin: 6
+    anchors.leftMargin: Widget.smallPadding
+    anchors.rightMargin: Widget.smallPadding
     radius: Widget.radius
     color: root.current ? Qt.alpha(Theme.accent, 0.14) : area.containsMouse && root.pointerActive ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
     ColorGlide on color {}
 
     Rectangle {
-      width: 3
+      width: Widget.px(3)
       height: parent.height * 0.5
       radius: 2
       anchors.left: parent.left
-      anchors.leftMargin: 4
+      anchors.leftMargin: Widget.spacing
       anchors.verticalCenter: parent.verticalCenter
       color: Theme.accent
       opacity: root.current ? 1 : 0
@@ -82,9 +82,9 @@ Item {
   RowLayout {
     id: content
     anchors.fill: parent
-    anchors.leftMargin: 20
-    anchors.rightMargin: 18
-    spacing: 12
+    anchors.leftMargin: Widget.padding * 2
+    anchors.rightMargin: Widget.padding * 2
+    spacing: Widget.padding
 
     Item {
       Layout.preferredWidth: LauncherConfig.iconSize
@@ -125,7 +125,7 @@ Item {
 
       RowLayout {
         Layout.fillWidth: true
-        spacing: 8
+        spacing: Widget.spacing * 2
 
         StyledText {
           Layout.fillWidth: usage.text === ""
@@ -165,16 +165,16 @@ Item {
       Layout.alignment: Qt.AlignVCenter
       Layout.maximumWidth: root.width * 0.4
       visible: hint.text !== ""
-      implicitWidth: hint.implicitWidth + 14
-      implicitHeight: hint.implicitHeight + 6
+      implicitWidth: hint.implicitWidth + Widget.smallPadding * 2
+      implicitHeight: hint.implicitHeight + Widget.smallPadding
       radius: Widget.radius
       color: root.modelData.armed ? Theme.error : Theme.backgroundAlt
 
       StyledText {
         id: hint
         anchors.fill: parent
-        anchors.leftMargin: 7
-        anchors.rightMargin: 7
+        anchors.leftMargin: Widget.smallPadding
+        anchors.rightMargin: Widget.smallPadding
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         text: root.modelData.hint ?? ""

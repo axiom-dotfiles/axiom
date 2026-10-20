@@ -48,10 +48,10 @@ Card {
     anchors.margins: root.pad
     text: root.shownText
     textColor: Theme.resolveColor(root.properties.color)
-    textSize: Math.max(8, Math.round(height))
+    textSize: Math.max(Widget.px(8), Math.round(height))
     font.bold: root.properties.bold
     fontSizeMode: Text.Fit
-    minimumPixelSize: 8
+    minimumPixelSize: Widget.px(8)
     wrapMode: Text.WordWrap
     elide: Text.ElideRight
     horizontalAlignment: root.properties.alignment === "left" ? Text.AlignLeft : root.properties.alignment === "right" ? Text.AlignRight : Text.AlignHCenter

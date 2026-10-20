@@ -95,7 +95,7 @@ ColumnLayout {
           anchors.verticalCenter: parent.verticalCenter
           width: Appearance.fontSize
           height: Appearance.fontSize
-          radius: 3
+          radius: Widget.px(3)
           color: root.fill(legend.modelData[0])
           border.width: 1
           border.color: Theme.border

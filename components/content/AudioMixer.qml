@@ -43,7 +43,7 @@ Panel {
   // apps coming and going never resizes (and moves) the popout
   readonly property real listHeight: defaultRow.implicitHeight * 4 + list.spacing * 3
 
-  implicitWidth: 380
+  implicitWidth: Widget.px(380)
   fullMinWidth: Appearance.fontSize * 12
   // Grows to list every app or device (a short card stays the slider)
   wantedHeight: root.sliderOnly || scroll.height <= 0 ? 0 : root.height + list.implicitHeight - scroll.height
@@ -261,7 +261,7 @@ Panel {
                 spacing: Widget.padding
 
                 StyledIcon {
-                  Layout.preferredWidth: 26
+                  Layout.preferredWidth: Widget.iconButton
                   horizontalAlignment: Text.AlignHCenter
                   text: root.deviceIcon(deviceRow.node, false, 1)
                   textSize: Appearance.fontSize * 1.2

@@ -30,6 +30,8 @@
     starts one, and a second restart fired meanwhile does nothing
   - cursor_theme.py makes the companion theme filling in a cursor theme's
     missing standard names, and only for a theme that needs it
+  - check_sizes.py finds sizes written as numbers, skipping hairlines and
+    lines marked `// fixed px:`
   - pick_path.py falls back to zenity/kdialog without a portal, asking for
     a folder or a filtered file, and exits 1 when cancelled, 2 with no picker
 
@@ -1031,6 +1033,29 @@ class KnownIssues(unittest.TestCase):
         self.assertTrue(lines[2].endswith("(known: issues.md › Qt's own warning)"))
         self.assertNotIn("known", lines[3])
         self.assertNotIn("known", lines[4], "the category alone isn't the warning")
+
+
+class CheckSizes(unittest.TestCase):
+    """scripts/check_sizes.py finds sizes written as numbers outside the bars."""
+
+    def test_finds_literal_sizes(self):
+        sys.path.insert(0, str(SCRIPTS))
+        from check_sizes import find_literals
+        qml = "\n".join([
+            "Item {",
+            "  implicitWidth: 380",
+            "  spacing: 2",
+            "  border.width: 4",
+            "  property int listMargin: 6",
+            "  troughHeight: Widget.px(6)",
+            "  height: Widget.height",
+            "  font.pixelSize: 100 // fixed px: a measuring font",
+            "  Layout.preferredHeight: 24",
+            "  opacity: 50",
+            "}",
+        ])
+        self.assertEqual([(n, name) for n, name, _ in find_literals(qml)],
+                         [(2, "implicitWidth"), (5, "listMargin"), (9, "Layout.preferredHeight")])
 
 
 class ClaimHyprland(unittest.TestCase):

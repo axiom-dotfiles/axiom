@@ -63,7 +63,7 @@ Panel {
     label: I18n.tr("updates")
   }
 
-  implicitWidth: Math.max(320, body.implicitWidth + margins * 2)
+  implicitWidth: Math.max(Widget.px(320), body.implicitWidth + margins * 2)
 
   component Section: ColumnLayout {
     id: section

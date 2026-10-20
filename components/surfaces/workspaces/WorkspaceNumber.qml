@@ -25,7 +25,7 @@ Rectangle {
     return Math.max(root._edge, corner);
   }
 
-  width: Math.max(height, label.implicitWidth + 10)
+  width: Math.max(height, label.implicitWidth + Widget.padding)
   height: label.implicitHeight + 4
   radius: height / 2
   color: root.current ? Theme.accent : Qt.alpha(Theme.background, 0.75)

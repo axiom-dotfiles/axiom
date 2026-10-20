@@ -17,7 +17,7 @@ DropdownSurface {
   // The conversation being renamed ("" when none)
   property string renaming: ""
   // Floating, it grows with its rows up to this
-  property real maxHeight: 420
+  property real maxHeight: Widget.px(420)
 
   readonly property var rows: {
     const wanted = root.query.trim().toLowerCase();
@@ -65,7 +65,7 @@ DropdownSurface {
       contentPadding: 0
       // A lane of its own for the scroll bar, so it never covers a row
       showScrollBar: listColumn.implicitHeight > scroll.height
-      rightPadding: showScrollBar ? 12 : 0
+      rightPadding: showScrollBar ? Widget.px(12) : 0
 
       ColumnLayout {
         id: listColumn
@@ -122,7 +122,7 @@ DropdownSurface {
                   id: itemRowLayout
                   anchors.fill: parent
                   anchors.leftMargin: Widget.spacing
-                  anchors.rightMargin: 3
+                  anchors.rightMargin: Widget.spacing
                   spacing: 0
 
                   StyledText {
@@ -155,7 +155,7 @@ DropdownSurface {
 
                   FlatIconButton {
                     visible: itemHover.hovered && !item.editing
-                    size: 24
+                    size: Widget.iconButton
                     iconText: "edit"
                     iconSize: Appearance.fontSize - 2
                     tooltipText: I18n.tr("Rename")
@@ -163,7 +163,7 @@ DropdownSurface {
                   }
                   FlatIconButton {
                     visible: itemHover.hovered && !item.editing
-                    size: 24
+                    size: Widget.iconButton
                     iconText: "delete"
                     iconSize: Appearance.fontSize - 2
                     tooltipText: I18n.tr("Delete")

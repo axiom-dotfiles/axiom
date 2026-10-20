@@ -43,7 +43,7 @@ Rectangle {
     spacing: Widget.spacing
 
     Rectangle {
-      Layout.preferredWidth: 4
+      Layout.preferredWidth: Widget.px(4)
       Layout.fillHeight: true
       Layout.topMargin: Widget.spacing / 2
       Layout.bottomMargin: Widget.spacing / 2

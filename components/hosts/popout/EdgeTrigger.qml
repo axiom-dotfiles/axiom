@@ -22,7 +22,7 @@ PanelWindow {
 
   // Depth across the edge, and length along it
   property int triggerWidth: PopoutsConfig.edgeTriggerSize
-  property int triggerLength: 200
+  property int triggerLength: 200 // fixed px: a hover strip on the screen's edge, like edgeTriggerSize
   property int hoverDelay: PopoutsConfig.openDelay
 
   // Integrated edge menus' zones (EdgeMenuManager) move the surfaces this

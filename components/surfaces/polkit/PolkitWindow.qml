@@ -146,7 +146,7 @@ PanelWindow {
 
     visible: root.hasCard
     anchors.centerIn: parent
-    width: Math.min(480, root.width - 32)
+    width: Math.min(Widget.px(480), root.width - 32)
     height: content.implicitHeight + root.pad * 2
     color: Appearance.fill(Theme.background)
     border.color: Theme.border
@@ -176,8 +176,8 @@ PanelWindow {
 
         Item {
           Layout.alignment: Qt.AlignTop
-          implicitWidth: 40
-          implicitHeight: 40
+          implicitWidth: Widget.px(40)
+          implicitHeight: Widget.px(40)
 
           IconImage {
             id: appIcon
@@ -191,7 +191,7 @@ PanelWindow {
             visible: !appIcon.visible
             text: "admin_panel_settings"
             textColor: Theme.accent
-            textSize: 32
+            textSize: Appearance.fontSize + 18
           }
         }
 
@@ -332,7 +332,7 @@ PanelWindow {
 
         Row {
           Layout.fillWidth: true
-          spacing: 14
+          spacing: Widget.padding
 
           KeyHint {
             key: "↵"

@@ -23,8 +23,8 @@ Item {
 
   // -- Implementation --
   // Wide enough for "100%" under the icon
-  implicitWidth: orientation === Qt.Vertical ? Math.max(48, showPercent ? widest.advanceWidth + 16 : 0) : 160
-  implicitHeight: orientation === Qt.Vertical ? 160 : 48
+  implicitWidth: orientation === Qt.Vertical ? Math.max(Widget.px(48), showPercent ? widest.advanceWidth + Widget.spacing * 4 : 0) : Widget.px(160)
+  implicitHeight: Widget.px(orientation === Qt.Vertical ? 160 : 48)
 
   // Anywhere on the bar; a notch is 120, so touchpads step smoothly
   WheelHandler {
@@ -55,9 +55,9 @@ Item {
     readonly property bool isVertical: root.orientation === Qt.Vertical
 
     anchors.fill: parent
-    anchors.margins: 8
-    rowSpacing: 8
-    columnSpacing: 8
+    anchors.margins: Widget.spacing * 2
+    rowSpacing: Widget.spacing * 2
+    columnSpacing: Widget.spacing * 2
 
     Rectangle {
       id: barContainer
@@ -67,8 +67,8 @@ Item {
       Layout.fillHeight: true
       Layout.alignment: Qt.AlignCenter
 
-      implicitWidth: root.orientation === Qt.Vertical ? 12 : 120
-      implicitHeight: root.orientation === Qt.Vertical ? 120 : 12
+      implicitWidth: Widget.px(root.orientation === Qt.Vertical ? 12 : 120)
+      implicitHeight: Widget.px(root.orientation === Qt.Vertical ? 120 : 12)
 
       radius: Widget.radius
       color: Qt.alpha(Theme.foreground, 0.2)
@@ -145,7 +145,7 @@ Item {
         delegate: StyledIcon {
           required property var value
           text: value
-          textSize: 24
+          textSize: Appearance.fontSize + 10
         }
       }
 
@@ -163,7 +163,7 @@ Item {
 
     StyledText {
       text: root.showPercent ? Math.round(root.volumeLevel * 100) + "%" : ""
-      textSize: 12
+      textSize: Appearance.fontSize - 2
       horizontalAlignment: Text.AlignHCenter
       Layout.row: content.isVertical ? 2 : 0
       Layout.column: content.isVertical ? 0 : 2
@@ -177,7 +177,7 @@ Item {
       TextMetrics {
         id: widest
         font.family: Appearance.fontFamily
-        font.pixelSize: 12
+        font.pixelSize: Appearance.fontSize - 2
         text: "100%"
       }
     }

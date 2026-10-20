@@ -49,7 +49,7 @@ Panel {
   readonly property bool sideBySide: root.embedded && root.innerWidth >= Appearance.fontSize * 30 && root.innerWidth >= root.innerHeight * 1.3
   readonly property bool showHeader: root.embedded && !root.strip && root.innerHeight >= Appearance.fontSize * 9
 
-  implicitWidth: 360
+  implicitWidth: Widget.px(360)
   fullMinWidth: Appearance.fontSize * 11
   fullMinHeight: Appearance.fontSize * 3.5
   wantsKeyboardFocus: true
@@ -127,7 +127,7 @@ Panel {
     Layout.fillHeight: true
     Layout.columnSpan: modelData.span ?? 1
     Layout.preferredWidth: (modelData.span ?? 1) * 10
-    Layout.preferredHeight: 10
+    Layout.preferredHeight: 10 // fixed px: a layout weight, not a size
     radius: Widget.radius
     color: key.kind === "equals" ? (key.hot ? Qt.lighter(Theme.accent, 1.1) : Theme.accent) : key.kind === "op" ? Qt.alpha(Theme.accent, key.hot ? 0.3 : 0.16) : key.hot ? Theme.backgroundHighlight : Theme.backgroundAlt
     scale: tap.pressed ? 0.94 : 1
@@ -285,7 +285,7 @@ Panel {
     title: I18n.tr("Calculator")
     FlatIconButton {
       visible: root.history.length > 0
-      size: 24
+      size: Widget.iconButton
       iconText: "delete_sweep"
       tooltipText: I18n.tr("Clear the history")
       onClicked: CalculatorManager.clearHistory()
@@ -451,7 +451,7 @@ Panel {
               onActivated: root.copyAnswer(row.entry)
 
               FlatIconButton {
-                size: 24
+                size: Widget.iconButton
                 iconText: "north_west"
                 tooltipText: I18n.tr("Edit")
                 onClicked: {

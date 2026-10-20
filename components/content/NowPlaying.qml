@@ -35,7 +35,7 @@ Panel {
   readonly property bool large: root.sideBySide && root.innerHeight >= Appearance.fontSize * 20
   // A strip: one row of small art, the track and the buttons
   readonly property bool mini: root.embedded && !root.compact && root.height < Appearance.fontSize * 7
-  readonly property real artSize: 96
+  readonly property real artSize: Widget.px(96)
   // A seek bar is being dragged, so the popout mustn't dismiss
   property bool seeking: false
 
@@ -47,7 +47,7 @@ Panel {
   fullMinHeight: Appearance.fontSize * 3.5
 
   spacing: Widget.spacing
-  implicitWidth: 380
+  implicitWidth: Widget.px(380)
 
   component MediaButton: Rectangle {
     id: button
@@ -123,7 +123,7 @@ Panel {
       RowLayout {
         id: playerRow
         anchors.fill: parent
-        spacing: 4
+        spacing: Widget.spacing
         Item {
           visible: root.stacked
           Layout.fillWidth: true
@@ -204,12 +204,12 @@ Panel {
     StyledSlider {
       id: seek
       Layout.fillWidth: true
-      Layout.preferredHeight: root.short ? 10 : root.large ? 20 : 16
+      Layout.preferredHeight: Widget.px(root.short ? 10 : root.large ? 20 : 16)
       enabled: MediaManager.canSeek
-      troughHeight: root.short ? 4 : root.large ? 8 : 6
-      handleWidth: root.short ? 10 : root.large ? 18 : 14
-      handleHeight: root.short ? 10 : root.large ? 18 : 14
-      handleRadius: root.short ? 5 : root.large ? 9 : 7
+      troughHeight: Widget.px(root.short ? 4 : root.large ? 8 : 6)
+      handleWidth: Widget.px(root.short ? 10 : root.large ? 18 : 14)
+      handleHeight: Widget.px(root.short ? 10 : root.large ? 18 : 14)
+      handleRadius: Widget.px(root.short ? 5 : root.large ? 9 : 7)
       handleColor: Theme.foreground
       fillColor: Theme.accent
       // Not `value`: dragging assigns that, which would drop the binding

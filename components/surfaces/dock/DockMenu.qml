@@ -76,7 +76,7 @@ PopupWindow {
   StyledContainer {
     id: box
     anchors.fill: parent
-    implicitWidth: Math.min(360, Math.max(160, column.implicitWidth + Widget.padding * 2))
+    implicitWidth: Math.min(Widget.px(360), Math.max(Widget.px(160), column.implicitWidth + Widget.padding * 2))
     implicitHeight: column.implicitHeight + Widget.spacing * 2
     backgroundColor: Theme.background
     borderColor: Theme.border

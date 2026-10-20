@@ -7,7 +7,7 @@ import qs.config
 // doesn't stretch in layouts, so every button in a row shares one size and
 // centre line (the chat's and notes' toolbars)
 StyledIconButton {
-  property int size: 28
+  property int size: Widget.iconButton
 
   implicitWidth: size
   implicitHeight: size

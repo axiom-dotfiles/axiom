@@ -68,13 +68,13 @@ RowLayout {
     property color strokeColor: "transparent"
     property color contentColor
     readonly property bool hovered: area.containsMouse
-    readonly property int minWidth: 80
+    readonly property int minWidth: Widget.px(80)
     readonly property real fullWidth: Math.max(button.minWidth, buttonIcon.implicitWidth + buttonText.implicitWidth + buttonRow.spacing + Widget.padding * 2)
 
     signal clicked
 
     Layout.preferredWidth: root.compact ? Layout.preferredHeight : button.fullWidth
-    Layout.preferredHeight: Math.max(Widget.height - 4, buttonRow.implicitHeight + 8)
+    Layout.preferredHeight: Math.max(Widget.height - 4, buttonRow.implicitHeight + Widget.spacing * 2)
     color: button.fillColor
     radius: Widget.radius
     border.color: button.strokeColor
@@ -84,7 +84,7 @@ RowLayout {
     RowLayout {
       id: buttonRow
       anchors.centerIn: parent
-      spacing: 6
+      spacing: Widget.spacing
 
       StyledIcon {
         id: buttonIcon

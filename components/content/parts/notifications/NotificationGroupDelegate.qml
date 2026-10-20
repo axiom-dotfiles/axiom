@@ -128,7 +128,7 @@ Item {
       z: -1 - index
       anchors.horizontalCenter: parent.horizontalCenter
       width: card.width - 16 * (index + 1)
-      height: 20
+      height: Widget.smallHeight
       y: card.height - height + root.stackStep * (index + 1)
       radius: Widget.radius
       color: Theme.backgroundAlt
@@ -162,7 +162,7 @@ Item {
     Rectangle {
       visible: root.group?.critical ?? false
       x: 4
-      width: 3
+      width: Widget.px(3)
       anchors.top: parent.top
       anchors.bottom: parent.bottom
       anchors.margins: Widget.padding
@@ -199,7 +199,7 @@ Item {
           NotificationAvatar {
             appIcon: root.group?.appIcon ?? ""
             desktopEntry: root.group?.desktopEntry ?? ""
-            size: 18
+            size: Widget.px(18)
           }
 
           StyledText {
@@ -212,8 +212,8 @@ Item {
           }
 
           Item {
-            implicitWidth: Math.max(newest.implicitWidth, 20)
-            implicitHeight: 20
+            implicitWidth: Math.max(newest.implicitWidth, Widget.smallHeight)
+            implicitHeight: Widget.smallHeight
 
             StyledText {
               id: newest
@@ -233,13 +233,13 @@ Item {
             StyledIconButton {
               anchors.right: parent.right
               anchors.verticalCenter: parent.verticalCenter
-              width: 20
-              height: 20
+              width: Widget.smallHeight
+              height: Widget.smallHeight
               visible: opacity > 0
               opacity: hover.hovered ? 1 : 0
               iconText: "close"
-              iconSize: 12
-              borderRadius: 10
+              iconSize: Appearance.fontSize - 2
+              borderRadius: width / 2
               iconColor: Theme.foregroundAlt
               hoverColor: Theme.background
               tooltipText: I18n.tr(root.count > 1 ? "Dismiss all" : "Dismiss")

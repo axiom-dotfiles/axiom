@@ -129,8 +129,8 @@ Card {
       readonly property real at: (band.there.getHours() + band.there.getMinutes() / 60) / 24
       x: Math.round(parent.width * at - width / 2)
       anchors.verticalCenter: parent.verticalCenter
-      width: 3
-      height: parent.height + 6
+      width: Widget.px(3)
+      height: parent.height + Widget.px(6)
       radius: 1.5
       color: Theme.accent
     }

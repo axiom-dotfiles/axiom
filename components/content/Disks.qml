@@ -109,7 +109,7 @@ Card {
             }
             Rectangle {
               Layout.fillWidth: true
-              Layout.preferredHeight: 8
+              Layout.preferredHeight: Widget.px(8)
               radius: height / 2
               color: Theme.backgroundAlt
               Rectangle {

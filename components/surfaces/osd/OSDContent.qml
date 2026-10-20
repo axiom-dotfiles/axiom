@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import qs.config
 
 // One OSD's bars, laid out by its settings: vertical bars side by side,
 // horizontal bars as rows; or, along its edge, one line parallel to it
@@ -19,8 +20,8 @@ Item {
 
   // Length of each bar along its axis; the OSD grows with the bar count in
   // the other direction
-  readonly property int barLength: 190
-  readonly property int barSpacing: 20
+  readonly property int barLength: Widget.px(190)
+  readonly property int barSpacing: Widget.padding * 2
   readonly property bool vertical: osd.orientation === "Vertical"
   // What a delegate past the end reads when the bar count drops (a restored
   // or applied config), until the Repeater removes it: no bar, rather than

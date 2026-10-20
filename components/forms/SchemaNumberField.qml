@@ -57,7 +57,7 @@ ColumnLayout {
   signal valueTyped(int value)
 
   Layout.fillWidth: true
-  spacing: 4
+  spacing: Widget.spacing
 
   function clamp(v) {
     const snapped = root.minimum + Math.round((v - root.minimum) / Math.max(1, root.stepSize)) * root.stepSize;
@@ -172,13 +172,13 @@ ColumnLayout {
     StyledSlider {
       Layout.fillWidth: true
       Layout.preferredHeight: root.controlHeight
-      troughHeight: 6
+      troughHeight: Widget.px(6)
       troughColor: Theme.border
       fillColor: Theme.accent
       handleColor: Theme.foreground
-      handleWidth: 14
-      handleHeight: 14
-      handleRadius: 7
+      handleWidth: Widget.px(14)
+      handleHeight: Widget.px(14)
+      handleRadius: Widget.px(7)
       // Not `value`: dragging assigns that, which would drop the binding
       targetValue: root.maximum > root.minimum ? (root.value - root.minimum) / (root.maximum - root.minimum) : 0
       onMoved: ratio => root.value = root.clamp(root.minimum + ratio * (root.maximum - root.minimum))

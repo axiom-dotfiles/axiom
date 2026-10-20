@@ -17,8 +17,8 @@ import qs.components.surfaces.notifications
 Scope {
   id: root
 
-  property int stackSpacing: 10
-  property int toastMaxHeight: 220
+  property int stackSpacing: Widget.padding
+  property int toastMaxHeight: Widget.px(220)
   property real dragDismissThreshold: 150
 
   // A toast the user closed on one screen goes on every screen

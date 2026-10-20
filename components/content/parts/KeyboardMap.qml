@@ -72,7 +72,7 @@ ColumnLayout {
       anchors.left: parent.left
       anchors.right: parent.right
       anchors.bottom: parent.bottom
-      anchors.margins: 3
+      anchors.margins: Widget.spacing
       spacing: 0
 
       StyledIcon {

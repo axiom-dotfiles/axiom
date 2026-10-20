@@ -108,7 +108,7 @@ ColumnLayout {
   }
 
   Layout.fillWidth: true
-  spacing: 4
+  spacing: Appearance.fontSize + 2
 
   StyledText {
     text: I18n.tr(root.label)

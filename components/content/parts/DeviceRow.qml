@@ -82,7 +82,7 @@ Rectangle {
     spacing: Widget.padding
 
     StyledIcon {
-      Layout.preferredWidth: 26
+      Layout.preferredWidth: Widget.iconButton
       horizontalAlignment: Text.AlignHCenter
       text: root.icon
       textSize: Appearance.fontSize * 1.4
@@ -122,7 +122,7 @@ Rectangle {
 
     // Only on hover, but always laid out so showing it moves nothing
     StyledRectButton {
-      size: 28
+      size: Widget.iconButton
       visible: root.known
       enabled: rowHover.hovered && !root.busy
       opacity: rowHover.hovered || root._confirmForget ? 1 : 0
@@ -141,7 +141,7 @@ Rectangle {
     }
 
     StyledRectButton {
-      size: 28
+      size: Widget.iconButton
       enabled: !root.busy
       opacity: enabled ? 1 : 0.5
       iconText: root.connected ? "link_off" : "link"

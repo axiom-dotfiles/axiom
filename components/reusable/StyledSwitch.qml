@@ -8,8 +8,8 @@ Switch {
   id: root
 
   // -- Implementation --
-  implicitWidth: 50
-  implicitHeight: 26
+  implicitWidth: Math.round(implicitHeight * 1.9)
+  implicitHeight: Widget.height - 4
 
   indicator: Rectangle {
     x: root.checked ? root.width - width - 2 : 2
@@ -28,8 +28,8 @@ Switch {
   }
 
   background: Rectangle {
-    implicitWidth: 50
-    implicitHeight: 26
+    implicitWidth: root.implicitWidth
+    implicitHeight: root.implicitHeight
     radius: height / 2
     color: root.checked ? Theme.accent : Theme.backgroundHighlight
     border.color: Theme.border

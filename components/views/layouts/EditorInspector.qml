@@ -132,7 +132,7 @@ Item {
         Item {
           Layout.fillWidth: true
           Layout.fillHeight: true
-          Layout.preferredWidth: 3
+          Layout.preferredWidth: Widget.px(3)
 
           KeyedLoader {
             anchors.fill: parent

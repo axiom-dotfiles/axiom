@@ -53,7 +53,7 @@ FieldGroup {
   component Picture: ClippingRectangle {
     id: picture
     property string source
-    property int sourceWidth: 640
+    property int sourceWidth: Widget.px(640)
     radius: Widget.radius
     color: Theme.backgroundHighlight
 
@@ -132,7 +132,7 @@ FieldGroup {
         Picture {
           Layout.fillWidth: true
           Layout.preferredHeight: width * 9 / 16
-          sourceWidth: 1600
+          sourceWidth: Widget.px(1600)
           // The thumbnail until the full screenshot is downloaded
           source: details.setup ? (CommunitySetupsManager.screenshots[details.setup.id] ?? CommunitySetupsManager.thumbs[details.setup.id] ?? "") : ""
         }

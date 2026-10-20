@@ -154,7 +154,7 @@ Item {
   }
 
   implicitHeight: Widget.height + inlineBox.height
-  implicitWidth: 200
+  implicitWidth: Widget.px(200)
 
   // Followed unless it's being typed over
   onValueChanged: if (!entry.typed || !entry.input.activeFocus)
@@ -214,7 +214,7 @@ Item {
     StyledIcon {
       visible: root.icon !== ""
       anchors.left: parent.left
-      anchors.leftMargin: 10
+      anchors.leftMargin: Widget.padding
       anchors.verticalCenter: parent.verticalCenter
       text: root.icon
       textColor: Theme.accent
@@ -223,7 +223,7 @@ Item {
     StyledIcon {
       visible: !root.readOnly && root.options.length > 0
       anchors.right: parent.right
-      anchors.rightMargin: 8
+      anchors.rightMargin: Widget.smallPadding
       anchors.verticalCenter: parent.verticalCenter
       text: "expand_more"
       opacity: 0.7

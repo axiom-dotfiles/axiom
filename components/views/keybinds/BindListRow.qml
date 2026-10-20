@@ -116,8 +116,7 @@ StyledContainer {
     StyledSwitch {
       checkable: false
       checked: !root.paused
-      implicitWidth: 34
-      implicitHeight: 18
+      implicitHeight: Widget.smallHeight
       Layout.alignment: Qt.AlignVCenter
       onClicked: KeybindManager.setPaused(root.indices, !root.paused)
     }

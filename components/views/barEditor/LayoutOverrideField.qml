@@ -25,7 +25,7 @@ ColumnLayout {
   readonly property bool isSet: root.value !== undefined && root.value !== null
 
   Layout.fillWidth: true
-  spacing: 4
+  spacing: Widget.spacing
 
   RowLayout {
     Layout.fillWidth: true
@@ -53,7 +53,7 @@ ColumnLayout {
 
     StyledTextButton {
       text: I18n.tr("Override")
-      textPadding: 6
+      textPadding: Widget.smallPadding
       onClicked: root.edited(root.initial)
     }
   }

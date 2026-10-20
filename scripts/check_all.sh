@@ -24,6 +24,7 @@ step() {
 }
 
 step "structure" python3 scripts/check_structure.py
+step "sizes" python3 scripts/check_sizes.py
 # Rebuilt rather than checked: locally they follow your edits (the pre-commit
 # hook commits them); CI runs `gen_docs.py --check` to catch a skipped hook
 [[ $docs -eq 1 ]] && step "generated docs" python3 scripts/gen_docs.py

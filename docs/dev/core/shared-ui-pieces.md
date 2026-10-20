@@ -6,6 +6,24 @@
 
 An index of reusable pieces. Reach for one of these before drawing your own; when a pattern appears a second time, it becomes one of these. (Rule: AGENTS.md › UI conventions, "Reuse before building".) Every file in `reusable/`, `forms/` and `content/parts/` is named here or in the docs it links to (`scripts/check_docs.py` checks): add a line when you add a piece.
 
+### Sizes
+Everything outside the bars follows the Interface scale and Density through `Widget` (`config/Widget.qml`); a size written as a number doesn't, and `scripts/check_sizes.py` fails on one of 3 px or more.
+
+| What | Use |
+|---|---|
+| A gap: 3–6 / 8 / 12–14 px | `Widget.spacing` / `Widget.spacing * 2` / `Widget.padding` |
+| Inner margins of a row, field or dropdown (6–8 px) | `Widget.smallPadding` |
+| A panel's or card's padding (10–22 px) | `Widget.padding` (× 2 for 18–22) |
+| A control's height (fields, switches, tabs) | `Widget.height` (or a fixed share of it) |
+| A square icon button | `Widget.iconButton` (`FlatIconButton`'s default) |
+| A chip, pill or small button (18–22 px) | `Widget.smallHeight` |
+| An icon or text size | `Appearance.fontSize ± n` |
+| A width, an avatar, a dot, a thin bar | `Widget.px(n)` (the Interface scale only) |
+| A hairline (0–2 px, `border.width`) | the number |
+| Measured against the screen, a measuring font, a placeholder always set | the number, marked `// fixed px: <reason>` |
+
+Bars size their own widgets (`Bar.enrichBarConfig`) and never use these: a shared piece the bar uses takes its size from the bar (`CountBadge.textSize`, `IconTextWidget.spacing`).
+
 ### Text and structure (`reusable/`)
 - `StyledText` / `StyledIcon`.
 - `SectionHeading`: accent title + muted description.

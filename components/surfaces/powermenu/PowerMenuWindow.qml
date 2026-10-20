@@ -306,7 +306,7 @@ PanelWindow {
         Flow {
           visible: PowerMenuConfig.showHint
           width: parent.width
-          spacing: 14
+          spacing: Widget.padding
 
           // I18n.tr("select") I18n.tr("run") I18n.tr("pick") I18n.tr("close")
           Repeater {

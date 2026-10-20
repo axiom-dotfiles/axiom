@@ -141,7 +141,7 @@ ColumnLayout {
 
           RowLayout {
             Layout.alignment: Qt.AlignHCenter
-            spacing: 4
+            spacing: Widget.spacing
 
             StyledIcon {
               visible: tile.primary

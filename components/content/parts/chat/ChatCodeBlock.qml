@@ -47,7 +47,7 @@ StyledContainer {
       }
 
       FlatIconButton {
-        size: 26
+        size: Widget.iconButton
         iconText: root._copied ? "check" : "content_copy"
         iconSize: Appearance.fontSize - 1
         iconColor: root._copied ? Theme.success : Theme.foregroundAlt

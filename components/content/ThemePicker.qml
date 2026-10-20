@@ -188,16 +188,16 @@ TitledCard {
       }
 
       Row {
-        spacing: 4
+        spacing: Widget.spacing
 
         Repeater {
           model: tile.preview.colors ?? []
 
           delegate: Rectangle {
             required property string modelData
-            width: 12
-            height: 12
-            radius: 6
+            width: Widget.px(12)
+            height: Widget.px(12)
+            radius: width / 2
             color: modelData
           }
         }

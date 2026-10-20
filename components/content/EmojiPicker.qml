@@ -84,7 +84,7 @@ Panel {
     }
   ]
 
-  implicitWidth: 380
+  implicitWidth: Widget.px(380)
   fullMinWidth: Appearance.fontSize * 10
   fullMinHeight: Appearance.fontSize * 3.5
   wantsKeyboardFocus: true
@@ -200,7 +200,7 @@ Panel {
         readonly property bool active: root.group === tab.info.group
         Layout.fillWidth: true
         Layout.preferredWidth: -1
-        size: 26
+        size: Widget.iconButton
         iconText: tab.info.icon
         iconColor: tab.active ? Theme.accent : Theme.foregroundAlt
         backgroundColor: tab.active ? Qt.alpha(Theme.accent, 0.15) : "transparent"

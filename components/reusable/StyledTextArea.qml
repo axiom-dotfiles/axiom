@@ -18,9 +18,9 @@ StyledContainer {
   // of Enter submitting and Shift+Enter being a new line
   property bool newlineOnEnter: false
   // Space around the text
-  property int horizontalMargin: 10
-  property int verticalMargin: 10
-  property int minHeight: 40
+  property int horizontalMargin: Widget.padding
+  property int verticalMargin: Widget.padding
+  property int minHeight: Widget.height + Widget.padding
 
   signal accepted
   // Typed (or put in by the input method): never a value pushed in through

@@ -17,7 +17,7 @@ Item {
   property var windowData: null
   // False while the overview is closed: nothing is captured
   property bool capturing: true
-  property real radius: 4
+  property real radius: Widget.px(4)
   property bool hovered: false
   // Captures every frame, not one per open (hovering or resizing does too)
   property bool live: false
@@ -81,7 +81,7 @@ Item {
       anchors.left: parent.left
       anchors.right: parent.right
       anchors.bottom: parent.bottom
-      height: title.implicitHeight + 6
+      height: title.implicitHeight + Widget.smallPadding
       visible: root.showTitle && root.hovered && !root.resizing && root.height > height * 2.5
       color: Qt.alpha(Theme.background, 0.85)
 
@@ -90,8 +90,8 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        anchors.leftMargin: 6
-        anchors.rightMargin: 6
+        anchors.leftMargin: Widget.smallPadding
+        anchors.rightMargin: Widget.smallPadding
         text: root.windowData?.title || root.windowData?.appId || ""
         textSize: Appearance.fontSize - 3
         elide: Text.ElideRight
@@ -114,9 +114,9 @@ Item {
   Image {
     anchors.right: parent.right
     anchors.bottom: parent.bottom
-    anchors.margins: 4
+    anchors.margins: Widget.spacing
     visible: capture.hasContent && root.height > 40
-    width: Math.min(24, root.height / 4)
+    width: Math.min(Widget.px(24), root.height / 4)
     height: width
     sourceSize: Qt.size(48, 48)
     source: root.iconPath
@@ -127,8 +127,8 @@ Item {
   Rectangle {
     anchors.centerIn: parent
     visible: root.resizing
-    width: sizeLabel.implicitWidth + 12
-    height: sizeLabel.implicitHeight + 6
+    width: sizeLabel.implicitWidth + Widget.smallPadding * 2
+    height: sizeLabel.implicitHeight + Widget.smallPadding
     radius: height / 2
     color: Theme.accent
 

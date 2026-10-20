@@ -147,7 +147,7 @@ ColumnLayout {
 
     ColumnLayout {
       Layout.fillWidth: true
-      spacing: 4
+      spacing: Widget.spacing
 
       StyledText {
         text: I18n.tr("Rotation")
@@ -239,7 +239,7 @@ ColumnLayout {
       RowLayout {
         id: advancedRow
         anchors.fill: parent
-        spacing: 4
+        spacing: Widget.spacing
 
         StyledIcon {
           text: root.advancedOpen ? "expand_more" : "chevron_right"

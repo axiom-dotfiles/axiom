@@ -15,7 +15,7 @@ RowLayout {
   property bool listOpen: false
   property bool pickerOpen: false
 
-  readonly property int rowHeight: 28
+  readonly property int rowHeight: Widget.iconButton
 
   signal toggleList
   signal togglePicker
@@ -43,7 +43,7 @@ RowLayout {
   // Preset and model
   Rectangle {
     Layout.alignment: Qt.AlignVCenter
-    Layout.maximumWidth: 220
+    Layout.maximumWidth: Widget.px(220)
     implicitWidth: chip.implicitWidth + Widget.padding * 1.5
     implicitHeight: root.rowHeight
     radius: height / 2

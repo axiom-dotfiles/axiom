@@ -91,7 +91,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.baseFontSize` (int): At the Interface scale (Widget.scale); bars size their text from baseFontSize, the setting itself
   - in: `config/Bar.qml`
 - `Appearance.fontSize` (int)
-  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/BluetoothDevices.qml`, `components/content/Brightness.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClaudeUsage.qml` (+163 more)
+  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/BluetoothDevices.qml`, `components/content/Brightness.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClaudeUsage.qml` (+164 more)
 - `Appearance.fontSizeLarge` (int)
   - in: `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `components/surfaces/powermenu/PowerMenuWindow.qml`
 - `Appearance.iconFamily` (string): Icons are Material Symbols names drawn in this font (StyledIcon), so they don't depend on the text font

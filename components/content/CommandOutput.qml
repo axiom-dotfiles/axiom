@@ -129,7 +129,7 @@ Card {
       icon: root.icon
       title: root.title || root.command
       FlatIconButton {
-        size: 24
+        size: Widget.iconButton
         iconText: "refresh"
         tooltipText: I18n.tr("Run it again")
         onClicked: CommandManager.refresh(root.command)

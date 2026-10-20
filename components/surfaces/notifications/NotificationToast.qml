@@ -21,8 +21,8 @@ PopupWindow {
   property string uid: ""
   property var anchorWindow: null
 
-  property int toastWidth: 360
-  property int toastMaxHeight: 220
+  property int toastWidth: Widget.px(360)
+  property int toastMaxHeight: Widget.px(220)
   property int dismissDuration: 5000
   property real dragDismissThreshold: 150
   // The corner it stacks from: the anchor window is a 1px point there, so
@@ -181,7 +181,7 @@ PopupWindow {
       Rectangle {
         visible: root.critical
         x: 4
-        width: 3
+        width: Widget.px(3)
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.margins: Widget.padding
@@ -238,7 +238,7 @@ PopupWindow {
               appIcon: root.notification.appIcon ?? ""
               desktopEntry: root.notification.desktopEntry ?? ""
               image: root.notification.image ?? ""
-              size: 40
+              size: Widget.px(40)
               badge: true
             }
 
@@ -273,13 +273,13 @@ PopupWindow {
             StyledIconButton {
               Layout.fillWidth: false
               Layout.fillHeight: false
-              Layout.preferredWidth: 22
-              Layout.preferredHeight: 22
+              Layout.preferredWidth: Widget.smallHeight
+              Layout.preferredHeight: Widget.smallHeight
               Layout.alignment: Qt.AlignTop
 
               iconText: "close"
-              iconSize: 12
-              borderRadius: 11
+              iconSize: Appearance.fontSize - 2
+              borderRadius: width / 2
               iconColor: Theme.foregroundAlt
               hoverColor: Theme.backgroundHighlight
 

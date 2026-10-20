@@ -18,9 +18,9 @@ Item {
 
   Layout.fillWidth: true
   Layout.fillHeight: false
-  Layout.preferredHeight: 32
+  Layout.preferredHeight: Widget.height
   implicitWidth: row.implicitWidth
-  implicitHeight: 32
+  implicitHeight: Widget.height
 
   // From the tabs' (uniform) cells rather than their items, which the
   // Repeater rebuilds whenever a label changes

@@ -80,7 +80,7 @@ ColumnLayout {
 
           RowLayout {
             Layout.fillWidth: true
-            spacing: 4
+            spacing: Widget.spacing
 
             StyledText {
               text: "#" + (entry.index + 1)
@@ -95,9 +95,9 @@ ColumnLayout {
 
             SquareIconButton {
               visible: entry.index > 0
-              size: 24
+              size: Widget.iconButton
               iconText: "expand_less"
-              iconSize: 16
+              iconSize: Appearance.fontSize + 2
 
               onClicked: {
                 root.itemMoved(entry.index, entry.index - 1);
@@ -106,9 +106,9 @@ ColumnLayout {
 
             SquareIconButton {
               visible: entry.index < root.items.length - 1
-              size: 24
+              size: Widget.iconButton
               iconText: "expand_more"
-              iconSize: 16
+              iconSize: Appearance.fontSize + 2
 
               onClicked: {
                 root.itemMoved(entry.index, entry.index + 1);
@@ -116,9 +116,9 @@ ColumnLayout {
             }
 
             SquareIconButton {
-              size: 24
+              size: Widget.iconButton
               iconText: "close"
-              iconSize: 18
+              iconSize: Appearance.fontSize + 4
               hoverColor: Theme.error
 
               onClicked: {
@@ -149,7 +149,7 @@ ColumnLayout {
   StyledContainer {
     visible: root.items.length === 0
     Layout.fillWidth: true
-    Layout.preferredHeight: 80
+    Layout.preferredHeight: Widget.height * 3 - Widget.padding
     backgroundColor: Theme.background
 
     StyledText {

@@ -56,7 +56,7 @@ Card {
           visible: tile.width >= Appearance.fontSize * 3 && tile.height >= Appearance.fontSize * 3
           anchors.left: parent.left
           anchors.top: parent.top
-          anchors.margins: 4
+          anchors.margins: Widget.spacing
           text: tile.modelData
           textSize: Appearance.fontSize - 3
           textColor: tile.active ? Theme.background : Theme.foreground
@@ -69,7 +69,7 @@ Card {
           id: icons
           readonly property int count: Math.min(tile.windows.length, 6)
           readonly property real available: tile.width - 8
-          readonly property int iconSize: Math.floor(Math.max(12, Math.min(tile.height * 0.4, icons.available / Math.max(1, Math.min(icons.count, 3)) - 2)))
+          readonly property int iconSize: Math.floor(Math.max(Widget.px(12), Math.min(tile.height * 0.4, icons.available / Math.max(1, Math.min(icons.count, 3)) - 2)))
           readonly property int fitPerRow: Math.max(1, Math.floor((icons.available + icons.spacing) / (icons.iconSize + icons.spacing)))
           readonly property int rows: icons.count === 0 ? 0 : Math.ceil(icons.count / Math.min(icons.count, icons.fitPerRow))
           readonly property int perRow: icons.rows === 0 ? 0 : Math.ceil(icons.count / icons.rows)

@@ -34,7 +34,7 @@ RowLayout {
 
   Rectangle {
     visible: NotificationManager.count > 0
-    implicitWidth: Math.max(implicitHeight, countLabel.implicitWidth + 12)
+    implicitWidth: Math.max(implicitHeight, countLabel.implicitWidth + Widget.px(12))
     implicitHeight: countLabel.implicitHeight + 4
     radius: height / 2
     color: Theme.accent
@@ -54,7 +54,7 @@ RowLayout {
   }
 
   StyledRectButton {
-    size: 28
+    size: Widget.iconButton
     iconText: NotificationManager.dnd ? "notifications_paused" : "notifications_off"
     iconColor: NotificationManager.dnd ? Theme.background : Theme.foreground
     backgroundColor: Qt.alpha(Theme.accent, NotificationManager.dnd ? 1 : 0)
@@ -64,7 +64,7 @@ RowLayout {
   }
 
   StyledRectButton {
-    size: 28
+    size: Widget.iconButton
     enabled: NotificationManager.count > 0
     opacity: enabled ? 1 : 0.4
     iconText: "clear_all"

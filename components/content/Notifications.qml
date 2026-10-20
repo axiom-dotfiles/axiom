@@ -24,12 +24,12 @@ Panel {
     label: I18n.tr(NotificationManager.dnd ? "muted" : "notifications")
   }
 
-  readonly property int maxListHeight: 440
+  readonly property int maxListHeight: Widget.px(440)
   // A header and a notification, else the figure
   fullMinWidth: Appearance.fontSize * 16
   fullMinHeight: Appearance.fontSize * 11
 
-  implicitWidth: 400
+  implicitWidth: Widget.px(400)
   // Grows to show every group (from compact, to the full layout); empty,
   // back to its place
   wantedHeight: root.groupKeys.length === 0 ? 0 : scroll.height > 0 ? root.height + list.implicitHeight - scroll.height : 1
@@ -130,7 +130,7 @@ Panel {
     Layout.fillHeight: root.embedded
     contentPadding: 0
     showScrollBar: list.implicitHeight > (root.embedded ? scroll.height : root.maxListHeight)
-    rightPadding: showScrollBar ? 12 : 0
+    rightPadding: showScrollBar ? Widget.px(12) : 0
     clip: true
 
     ColumnLayout {

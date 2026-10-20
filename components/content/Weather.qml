@@ -160,7 +160,7 @@ Card {
         Rectangle {
           visible: list.bars
           Layout.preferredWidth: list.width * 0.35
-          Layout.preferredHeight: 4
+          Layout.preferredHeight: Widget.px(4)
           radius: 2
           color: Theme.backgroundAlt
           Rectangle {

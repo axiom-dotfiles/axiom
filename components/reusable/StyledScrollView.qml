@@ -29,8 +29,8 @@ ScrollView {
     }
 
     contentItem: Rectangle {
-      implicitWidth: root.showScrollBar ? 6 : 0
-      radius: 3
+      implicitWidth: root.showScrollBar ? Widget.px(6) : 0
+      radius: width / 2
       color: Theme.accent
       opacity: parent.pressed ? 0.8 : 0.4
       visible: root.showScrollBar
@@ -41,11 +41,11 @@ ScrollView {
     }
 
     background: Rectangle {
-      implicitWidth: root.showScrollBar ? 8 : 0
+      implicitWidth: root.showScrollBar ? Widget.px(8) : 0
       color: Theme.backgroundAlt
       visible: root.showScrollBar
       opacity: 0.2
-      radius: 4
+      radius: width / 2
     }
   }
 }

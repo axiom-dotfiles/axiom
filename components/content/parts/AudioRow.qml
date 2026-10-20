@@ -39,8 +39,8 @@ Item {
     spacing: Widget.padding
 
     Item {
-      Layout.preferredWidth: 26
-      Layout.preferredHeight: 26
+      Layout.preferredWidth: Widget.iconButton
+      Layout.preferredHeight: Widget.iconButton
 
       IconImage {
         id: image
@@ -91,11 +91,11 @@ Item {
 
       StyledSlider {
         Layout.fillWidth: true
-        Layout.preferredHeight: 16
-        troughHeight: 6
-        handleWidth: 14
-        handleHeight: 14
-        handleRadius: 7
+        Layout.preferredHeight: Widget.px(16)
+        troughHeight: Widget.px(6)
+        handleWidth: Widget.px(14)
+        handleHeight: Widget.px(14)
+        handleRadius: Widget.px(7)
         handleColor: root.muted ? Theme.foregroundAlt : Theme.foreground
         fillColor: root.muted ? Theme.foregroundAlt : Theme.accent
         // Not `value`: dragging assigns that, which would drop the binding
@@ -122,7 +122,7 @@ Item {
 
     StyledRectButton {
       visible: root.showMute
-      size: 28
+      size: Widget.iconButton
       iconText: root.muted ? root.mutedGlyph : root.unmutedGlyph
       iconColor: root.muted ? Theme.error : Theme.foreground
       backgroundColor: "transparent"

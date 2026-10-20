@@ -107,11 +107,11 @@ Card {
     }
     StyledSlider {
       Layout.fillWidth: true
-      Layout.preferredHeight: 16
-      troughHeight: 6
-      handleWidth: 14
-      handleHeight: 14
-      handleRadius: 7
+      Layout.preferredHeight: Widget.px(16)
+      troughHeight: Widget.px(6)
+      handleWidth: Widget.px(14)
+      handleHeight: Widget.px(14)
+      handleRadius: Widget.px(7)
       handleColor: Theme.foreground
       fillColor: root.active ? Theme.accent : Theme.foregroundAlt
       // Not `value`: dragging assigns that, which would drop the binding

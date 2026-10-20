@@ -236,9 +236,9 @@ PanelWindow {
     Rectangle {
       readonly property bool below: root.selection.y + root.selection.height + height + 6 < root.height
       x: Math.min(root.width - width, Math.max(0, root.selection.x))
-      y: below ? root.selection.y + root.selection.height + 6 : Math.max(0, root.selection.y - height - 6)
-      width: sizeText.implicitWidth + 12
-      height: sizeText.implicitHeight + 6
+      y: below ? root.selection.y + root.selection.height + Widget.smallPadding : Math.max(0, root.selection.y - height - Widget.smallPadding)
+      width: sizeText.implicitWidth + Widget.smallPadding * 2
+      height: sizeText.implicitHeight + Widget.smallPadding
       radius: Appearance.borderRadius / 2
       color: Theme.background
       visible: root.dragging || root.hoveredWindow !== null
@@ -295,9 +295,9 @@ PanelWindow {
     Rectangle {
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.bottom: parent.bottom
-      anchors.bottomMargin: 40
-      width: controls.implicitWidth + 24
-      height: controls.implicitHeight + 16
+      anchors.bottomMargin: Widget.px(40)
+      width: controls.implicitWidth + Widget.px(24)
+      height: controls.implicitHeight + Widget.px(16)
       radius: Appearance.borderRadius
       color: Theme.background
       border.color: Theme.border

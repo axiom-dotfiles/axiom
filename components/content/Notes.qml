@@ -146,7 +146,7 @@ Card {
       Rectangle {
         visible: root.showHeader
         Layout.fillWidth: true
-        Layout.preferredHeight: 28
+        Layout.preferredHeight: Widget.iconButton
         radius: Widget.radius / 2
         color: !root.locked && (root.browserOpen || chipHover.hovered) ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
 
@@ -325,7 +325,7 @@ Card {
         active: root.browserOpen
         anchors.top: parent.top
         anchors.left: parent.left
-        width: Math.min(parent.width, 320)
+        width: Math.min(parent.width, Widget.px(320))
         sourceComponent: NoteBrowser {
           current: root.path
           maxHeight: editor.height
