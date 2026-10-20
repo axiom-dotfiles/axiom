@@ -36,9 +36,9 @@ PopoutWrapperBase {
   // it does where the compositor stacks by map order alone (no
   // supports.layerOrder: a window mapped as it opens lands over the bar).
   // Followed only while closed, since it changes the window's layer.
-  readonly property bool _wantsUnder: root.barConfig.background === "transparent" && CompositorManager.supports.layerOrder === true && !ShellManager.surfaceOpenOn("overlay", root.screen)
+  // (EdgePlacement.slidesUnder)
   property ClosedLatch _under: ClosedLatch {
-    source: root._wantsUnder
+    source: placement.slidesUnder
     closed: !root.occupied
   }
   readonly property bool underBar: root._under.value ?? false
@@ -226,6 +226,7 @@ PopoutWrapperBase {
     showing: root.occupied && root.claimed
     open: still.showing && !root.isClosing && root.claimed
     onOverlayLayer: root.onOverlayLayer
+    overOverlay: ShellManager.surfaceOpenOn("overlay", root.screen)
     origin: slot.popupScreenOrigin
     attachedSurface: surface
     opens: root._out

@@ -12,7 +12,7 @@ This doc covers the shared host pieces in `components/hosts/popout/`, how a bar 
   - A wrapper may switch an open popout to another payload in place instead of closing it first, via its `canSwitchTo(anchor, data)` and `prepareSwitch(done)` hooks.
 - **`FloatingPopout`:** a box floating in the free area, placed at a fraction across and down inside per-side margins.
   - `xAlign`/`yAlign` say which part of the box sits at that point.
-  - It fades in.
+  - It fades in, once granted its `PopoutClaim` (`claimKey`; its footprint is its box where it's placed).
   - Used by the detached launcher and the window switcher.
 - **`SlideAnimation`.**
 - **`AttachedSurface`:** the content box, connector and `CornerPiece` fillets that make a popout look like it grows out of a bar or the screen border. `edge` is a `Bar.Location`.

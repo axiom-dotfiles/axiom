@@ -160,6 +160,8 @@ Scope {
       closeOnClickOutside: true
       grabEnabled: group.ownsGrab
       grabWindows: group.windows.filter(w => w !== floating.window)
+      // Closes whatever it covers (PopoutManager), as the attached one does
+      claimKey: "launcher:" + (root.screen?.name ?? "")
 
       content: Component {
         LauncherPanel {

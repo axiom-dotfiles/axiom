@@ -86,12 +86,11 @@ PopoutWrapperBase {
   // as a bar popout's: from under a transparent bar on its edge (its outer
   // edge, past the border stroke it lies on inside the border), its window
   // starting there on the bar's layer, ordered under it (HyprlandManager's
-  // layer rules). Not while the overlay is open on its screen
-  // (_overOverlay), nor over a fullscreen window, nor where the compositor
-  // stacks by map order alone (no supports.layerOrder: a window mapped as
-  // it opens lands over the bar). Anything else it opens over, sliding out
-  // within its own window.
-  readonly property real slideDistance: root.detached && root.barConfig?.background === "transparent" && CompositorManager.supports.layerOrder === true && !root._overOverlay && !root._overFullscreen ? Math.max(0, root.attachAt - root.barOuter - (root.barConfig.insideBorder ? Appearance.borderWidth : 0)) : 0
+  // layer rules), when it slides under at all (EdgePlacement.slidesUnder:
+  // not while the overlay is open on its screen, _overOverlay, nor over a
+  // fullscreen window, nor without supports.layerOrder). Anything else it
+  // opens over, sliding out within its own window.
+  readonly property real slideDistance: placement.slidesUnder ? Math.max(0, root.attachAt - root.barOuter - (root.barConfig.insideBorder ? Appearance.borderWidth : 0)) : 0
   readonly property bool slidesUnder: root.slideDistance > 0
   // Its window's layer: Overlay unless it slides under a bar
   readonly property int windowLayer: root.slidesUnder ? WlrLayer.Top : WlrLayer.Overlay
@@ -296,6 +295,7 @@ PopoutWrapperBase {
     showing: root.occupied && root.contentItem !== null && root.claimed
     open: root.isOpen && root.claimed
     onOverlayLayer: root.onOverlayLayer
+    overOverlay: root._overOverlay
     origin: placeOnScreen.origin
     attachedSurface: surface
     opens: surfaceWindow.visible && root.claimed

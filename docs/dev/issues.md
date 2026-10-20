@@ -18,6 +18,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### Surfaces touch a dead screen after the outputs go away
+- **Where:** `config/General.qml` (`outputs`: whatever is built on it while no monitor is connected)
+- **What:** After the monitors drop out (`qt.qpa.wayland` `There are no outputs - creating placeholder screen`, e.g. DPMS off), the log fills with `attempted to use dangling screen object` (68 lines in one session, no file named). Something holds a `ShellScreen` past its removal and reads it. Which surface it is hasn't been found yet: next step, reproduce with a nested compositor dropping its output and bisect by commenting out surfaces in `shell.qml`.
+- **Size:** needs a plan
+- **Found:** 2026-10-20, while reviewing the popouts system
+
 ### ChatProvidersCard runs its own requests
 - **Where:** `components/views/settings/ChatProvidersCard.qml` (Test, Fetch models)
 - **What:** The card creates its own `ChatRequest` for Test and Fetch models, so a UI file owns a process, against the rule that services own every side effect (AGENTS.md › Services). Kept as a known exception; moving the requests into `ChatManager` would end it.

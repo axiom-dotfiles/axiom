@@ -55,8 +55,8 @@ Every popout host can open one submenu beside its box. This doc covers how the s
 - **The popup:** it spans everywhere a submenu of that menu can sit (and keeps the largest size since it opened), masked to the surface.
 
 ### Placement along the parent's side
-- **Placed like a bar popout along a pill:** `EdgeAttach.place` in pill mode, with the parent's box at rest and the slot's `attachBox` as the pill.
-  - Its first item stays level with the hovered one, moved only to stay within reach or nudged (tray submenus use `nudge`; see [Edge attach](edge-attach.md#nudge-tray-submenus)).
+- **Placed like a bar popout along a pill:** `SurfaceContext.submenuPlace` (tested in `tst_SurfaceContext`): `EdgeAttach.place` in pill mode, with the parent's box at rest and the slot's `attachBox` as the pill. It also holds the reach rules below: a fillet and the parent's corner kept clear of a cornered end, the reach to a free or joined end, the screen's limits, and hanging past the top when `growsUp`.
+  - Its first item stays level with the hovered one, moved only to stay within reach or nudged (`place`'s `nudge`; see [Edge attach](edge-attach.md#nudge-submenus)).
 - **No room for its fillet:** the side runs flush to a free end of the parent's side.
   - `side.freeTop`/`freeBottom` are its far edge's ends, plus its bar side too on a detached box.
   - The parent squares its corner there, and a detached box's near corner too (`AttachedSurface.startNearRadius`/`endNearRadius`).

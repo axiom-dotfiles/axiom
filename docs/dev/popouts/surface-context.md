@@ -31,6 +31,7 @@ Every surface that grows out of a screen edge asks one pure helper what each of 
   - `shadow`: how it casts its shadow, taken from what it grows out of. See [Shadows](shadows.md).
   - `opening`: a stroke opening on whole pixels.
   - `submenuJoin`: how a submenu joined at its parent's bar side meets the stroke there, fillet or straight, and the parent's pill stretched for it. See [Submenus](submenus.md#what-the-submenu-hands-back).
+  - `submenuPlace`: where a submenu goes along its parent's side. See [Submenus](submenus.md#placement-along-the-parents-side).
 
 ### One placement for every host
 - `SurfaceContext.frame(p)` gives a surface's ends and the room it has along its edge before its box is known:

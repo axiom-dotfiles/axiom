@@ -32,6 +32,8 @@ Scope {
       layerNamespace: "axiom-switcher"
       // Closes when the switcher does, not on hover loss
       autoDismiss: false
+      // Closes whatever it covers (PopoutManager), ranked as the launcher
+      claimKey: "switcher:" + host.modelData.name
 
       onWantedChanged: host.wanted ? host.show() : host.hide()
 

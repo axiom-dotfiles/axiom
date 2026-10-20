@@ -18,8 +18,8 @@ import qs.components.reusable
  * level with the item that opened it and slid out of the parent. Another
  * submenu of the same popout switches in place (SwitchStill).
  * Along the parent's side it's placed as a bar popout is along a pill
- * (EdgeAttach.place): a side whose fillet has no room before an end of
- * the parent's side runs flush to it where that end is free (the parent
+ * (SurfaceContext.submenuPlace): a side whose fillet has no room before an
+ * end of the parent's side runs flush to it where that end is free (the parent
  * squaring its corner there), or joins the stroke the parent grows from
  * at its bar side (a solid bar's, a pill's, the border's), as a popout
  * joins the perpendicular border; a submenu longer than the side
@@ -122,25 +122,7 @@ Item {
     readonly property rect attachRect: outer.slot?.attachBox ?? Qt.rect(0, 0, 0, 0)
     readonly property real attachEnd: root.attachRect.y + root.attachRect.height
 
-    // Along the parent's side (y in its window), the box with its first
-    // item level with the hovered one, as a bar popout is placed along a
-    // pill: the content stays there, moved only to stay within reach, or
-    // nudged up to an end rather than leave an empty sliver. A side with no
-    // room for its fillet runs flush to a free end (the parent's far
-    // edge's; on an island or a detached box its bar side's too), or joins
-    // the stroke the parent grows from at its bar side, reaching up to it.
-    // Any other end (a joined parent's) keeps the fillet clear of the
-    // parent's own.
     readonly property real boxLength: submenuPopup.contentHeight + surface.contentInset * 2
-    readonly property real _need: EdgeAttach.filletMargin(Appearance.borderWidth, Appearance.borderRadius) + Appearance.borderRadius
-    readonly property real _joinLine: outer.slot?.side?.attachLine ?? 0
-    readonly property bool _joinTop: outer.slot?.side?.joinTop ?? false
-    readonly property bool _joinBottom: outer.slot?.side?.joinBottom ?? false
-    readonly property real reachTop: root._joinTop ? root._joinLine : root.attachRect.y + (outer.slot?.side?.freeTop ? 0 : root._need)
-    readonly property real reachBottom: root._joinBottom ? root._joinLine : root.attachEnd - (outer.slot?.side?.freeBottom ? 0 : root._need)
-    // Longer than the side, it hangs past its far end (up, on a bottom
-    // bar), stretching the parent
-    readonly property real reachFrom: outer.slot?.side?.growsUp ? Math.min(root.reachTop, root.reachBottom - root.boxLength) : root.reachTop
     // The screen's room up and down (y in the parent's window): inside
     // what's reserved at its top and bottom. A box longer than the side
     // stays within it, and content (MenuSubmenu) scrolls past
@@ -149,33 +131,23 @@ Item {
     readonly property real screenFrom: EdgeMenuManager.reservedOn(outer.screen, Bar.Top) - root._placedY
     readonly property real screenTo: (outer.screen?.height ?? 0) - EdgeMenuManager.reservedOn(outer.screen, Bar.Bottom) - root._placedY
     readonly property real maxContentHeight: Math.max(Widget.height, root.screenTo - root.screenFrom - surface.contentInset * 2)
-    readonly property real _wantedBoxStart: root.attachRect.y + root._anchorOffset - surface.contentInset
-    readonly property real alignedBoxStart: {
-      let start = root._wantedBoxStart;
-      if (!root._joinBottom)
-        start = Math.min(start, root.screenTo - root.boxLength);
-      if (!root._joinTop)
-        start = Math.max(start, root.screenFrom);
-      return start;
-    }
-    readonly property var place: EdgeAttach.place({
-      "pills": [
-        {
-          "start": root.attachRect.y,
-          "length": root.attachRect.height,
-          "joinStart": root._joinTop,
-          "joinEnd": root._joinBottom
-        }
-      ],
-      "pillBar": true,
-      "island": false,
-      "merge": 0,
-      "centre": root.alignedBoxStart + root.boxLength / 2,
-      "aligned": root.alignedBoxStart,
+    // Along the parent's side (y in its window), placed as a bar popout is
+    // along a pill (SurfaceContext.submenuPlace)
+    readonly property var place: SurfaceContext.submenuPlace({
+      "attach": {
+        "start": root.attachRect.y,
+        "length": root.attachRect.height
+      },
+      "wanted": root.attachRect.y + root._anchorOffset - surface.contentInset,
       "length": root.boxLength,
-      "joinFrom": root.reachFrom,
-      "joinTo": root.reachBottom,
-      "nudge": true,
+      "joinTop": outer.slot?.side?.joinTop ?? false,
+      "joinBottom": outer.slot?.side?.joinBottom ?? false,
+      "joinLine": outer.slot?.side?.attachLine ?? 0,
+      "freeTop": outer.slot?.side?.freeTop ?? false,
+      "freeBottom": outer.slot?.side?.freeBottom ?? false,
+      "growsUp": outer.slot?.side?.growsUp ?? false,
+      "screenFrom": root.screenFrom,
+      "screenTo": root.screenTo,
       "gap": root.connectorGap,
       "stroke": Appearance.borderWidth,
       "radius": Appearance.borderRadius

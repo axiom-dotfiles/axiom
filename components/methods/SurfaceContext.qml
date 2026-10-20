@@ -278,12 +278,14 @@ QtObject {
    *     reserved (where windows start across it), detachedPush
    *     (Bar.detachedPush for the followed bar), ownBar (whatever bar is on
    *     its edge, for the shadow), across (held: the gap from the frame
-   *     line across the edge)
+   *     line across the edge), layerOrder (the compositor orders layer
+   *     windows by namespace, supports.layerOrder), overOverlay (the
+   *     overlay is open on its screen)
    * Returns EdgeAttach.place's result and: merged, onPill, detached,
    *   straight, backfill, attachClearance, attachAt (across, from the
    *   screen edge), attachFromBar (the same from the followed bar's outer
    *   edge), barOuter, ownSink, shadow, stretchFrom, stretchTo (where a
-   *   joined submenu's reach along its pill stays)
+   *   joined submenu's reach along its pill stays), slidesUnder
    */
   function layout(f, p) {
     const bar = p.bar ?? null;
@@ -362,7 +364,13 @@ QtObject {
       // A joined submenu's reach along the pill it stands on stays between
       // the strokes at the edge's ends
       "stretchFrom": f.strokeFrom,
-      "stretchTo": f.strokeTo
+      "stretchTo": f.strokeTo,
+      // Slides out from under its bar, its window on the bar's layer
+      // ordered under it: a detached box past a transparent bar. Only where
+      // layer rules order windows (else one mapped as it opens lands over
+      // the bar), and not while the overlay, which that layer is under, is
+      // open on its screen
+      "slidesUnder": detached && !p.held && bar?.background === "transparent" && !!p.layerOrder && !p.overOverlay
     });
   }
 
@@ -425,5 +433,55 @@ QtObject {
         "joinEnd": !!own.joinEnd
       }
     };
+  }
+
+  /**
+   * A submenu placed along its parent's side (y in the parent's window), as
+   * a bar popout is along a pill: the parent's box at rest is its pill, and
+   * the content stays level with the hovered item, moved only to stay
+   * within reach or nudged up to an end rather than leave an empty sliver
+   * (EdgeAttach.place's `nudge`). `p`:
+   *   attach ({ start, length }: the parent's side at rest), wanted (where
+   *     the box would start, level with its item), length (the box's)
+   *   joinTop, joinBottom (an end joins the stroke the parent grows from,
+   *     at `joinLine`), freeTop, freeBottom (an end of the side with no
+   *     corner, which a side short of room for its fillet runs flush to),
+   *     growsUp (longer than the side, it hangs past its top instead)
+   *   screenFrom, screenTo (the screen's room inside what's reserved)
+   *   gap, stroke, radius
+   * Any other end (a joined parent's) keeps a fillet and the parent's
+   * corner clear of it. Returns EdgeAttach.place's result.
+   */
+  function submenuPlace(p) {
+    const need = EdgeAttach.filletMargin(p.stroke, p.radius) + p.radius;
+    const top = p.joinTop ? p.joinLine : p.attach.start + (p.freeTop ? 0 : need);
+    const bottom = p.joinBottom ? p.joinLine : p.attach.start + p.attach.length - (p.freeBottom ? 0 : need);
+    let aligned = p.wanted;
+    if (!p.joinBottom)
+      aligned = Math.min(aligned, p.screenTo - p.length);
+    if (!p.joinTop)
+      aligned = Math.max(aligned, p.screenFrom);
+    return EdgeAttach.place({
+      "pills": [
+        {
+          "start": p.attach.start,
+          "length": p.attach.length,
+          "joinStart": !!p.joinTop,
+          "joinEnd": !!p.joinBottom
+        }
+      ],
+      "pillBar": true,
+      "island": false,
+      "merge": 0,
+      "centre": aligned + p.length / 2,
+      "aligned": aligned,
+      "length": p.length,
+      "joinFrom": p.growsUp ? Math.min(top, bottom - p.length) : top,
+      "joinTo": bottom,
+      "nudge": true,
+      "gap": p.gap,
+      "stroke": p.stroke,
+      "radius": p.radius
+    });
   }
 }

@@ -20,7 +20,7 @@ How surfaces meet the three non-solid bar backgrounds. Solid bars, the border, c
   - **Where it grows from:** out of the island's inner stroke (`attachAt`). It never merges (`EdgeAttach.place`, island mode).
   - **Sides that keep their fillet:** a side whose fillet lands on the island keeps it. The same holds when it lands on a neighbour the island stretches to within `pillMerge` of; the two then draw as one while the surface is open.
   - **Other sides:** any other side reaches to the island's end and runs flush into it. Where the box goes past the island, the island is stretched to the box.
-- **Repaint after a stretch:** a stretch changing while a surface is open is drawn by the bar, but wasn't shown until the bar committed again. So `BarContainer` paints a few frames of its own after one changes (`_repaint`).
+- **Repaint after a stretch:** a stretch changing while a surface is open is drawn by the bar, but wasn't shown until the bar committed again. So `BarContainer` paints a few frames of its own after one changes (its `FrameNudge`, `repaint`).
 - **Flush sides:** a flush side runs into the island in one straight line (`AttachedSurface.flushStart`/`flushEnd`).
   - It is a wall continuing the island's end, with its backfill kept off that stroke.
   - The island squares that inner corner (`squareStart`/`squareEnd`, animated).
@@ -68,6 +68,7 @@ How surfaces meet the three non-solid bar backgrounds. Solid bars, the border, c
 - **On a transparent bar, popouts are `detached`:** plain rounded boxes on the bar's own edge.
   - They never join an end; they're clamped clear of it.
 - **Their window:**
+  - Whether it slides under is `EdgePlacement.slidesUnder` (`SurfaceContext.layout`), for bar and edge popouts alike.
   - It is on the bar's layer: the bar popout's window, `BarPopouts.underBar`.
   - Its namespace is `axiom-popout-under`, whose layer rule ([layer stacking](../generated/layers.md)) stacks it under the bars and border.
   - It starts at the bar's outer edge, and the box (`AttachedSurface.detachedOffset`) slides out from beneath the bar.

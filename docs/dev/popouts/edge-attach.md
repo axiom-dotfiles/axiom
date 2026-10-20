@@ -58,8 +58,8 @@
 - **Short of room:** when room runs out (a floating bar owning the corner, its island reaching over the bar it pushes aside), the box moves in. No radius shrinks: fillets and corners are always whole.
 - **Floating bar held clear:** a floating bar held clear of the other bar takes no wall at that end. Its islands, and so its popouts, already keep to the windows there.
 
-### Nudge (tray submenus)
-- **Why tray submenus differ:** their "pill" is the parent's box, so they use `nudge` instead of `place`'s growing.
+### Nudge (submenus)
+- **Why submenus differ:** their "pill" is the parent's box, so `SubPopout` calls `place` with `nudge` set, rather than letting the box grow.
 - **How `nudge` works:** the content moves whichever way is shorter without growing anything. It goes either up to that end, or back far enough for the fillet.
 - **How far:** either move is less than a fillet's room.
 
@@ -96,7 +96,7 @@ How the context a surface needs (a pill to stand on, a pill reaching along a joi
   - `strokeInsetStart`/`End`
   - `lo`/`hi` and `insetStart`/`End`. These come from held gaps, a wall, a floating bar's island reach, or `endRoom` from the frame line.
   - `straightJoinStart`/`End`
-- **Placement outputs:** `place`, `detached`, `straight`, `attachAt`/`attachFromBar`, `backfill`.
+- **Placement outputs:** `place`, `detached`, `straight`, `attachAt`/`attachFromBar`, `backfill`, `slidesUnder` (from `SurfaceContext.layout`: a detached box past a transparent bar with `supports.layerOrder`, the overlay not open over it, given as `overOverlay` and latched by the host).
 - **Look outputs:** `shadow`/`shadowLook`, `backed`/`opaque`, its openings and its `PillStretch`es.
 - **Following the bar:** it follows its bar unless held (`followsBar`), on pills and islands alike.
   - Past a transparent bar, a detached box goes past it (`Bar.detachedPush`).

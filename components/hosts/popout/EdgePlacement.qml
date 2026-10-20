@@ -199,7 +199,9 @@ QtObject {
     "reserved": EdgeMenuManager.reservedOn(root.screen, root.edge),
     "detachedPush": root.barConfig ? Bar.detachedPush(root.barConfig, CompositorManager.gapsOut[root.edgeName] ?? 0, root.connectorGap) : 0,
     "ownBar": root.ownBar,
-    "across": root.gaps?.across ?? 0
+    "across": root.gaps?.across ?? 0,
+    "layerOrder": CompositorManager.supports.layerOrder === true,
+    "overOverlay": root.overOverlay
   }))
   // EdgeAttach.place's answer in the host's coordinates
   readonly property var place: {
@@ -238,6 +240,11 @@ QtObject {
   readonly property real attachAt: root._layout.attachAt
   readonly property real attachFromBar: root._layout.attachFromBar
   readonly property real barOuter: root._layout.barOuter
+  // Whether the overlay is open on its screen (the host latches it while
+  // open), and whether a detached box slides out from under a transparent
+  // bar, its window on that bar's layer ordered under it
+  property bool overOverlay: false
+  readonly property bool slidesUnder: root._layout.slidesUnder
   // On a pill's far stroke the surface covers that stroke's inner fringe
   readonly property int backfill: root._layout.backfill
   // How a joined submenu meets the stroke the box grows from, from where

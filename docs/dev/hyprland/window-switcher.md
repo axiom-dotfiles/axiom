@@ -38,7 +38,7 @@ Alt+Tab is the bind actions `windowSwitcher` and `windowSwitcherReverse`.
 
 ### Drawing
 - It draws only once held for `showDelay` (`shown`), so a tap swaps windows invisibly.
-- `shell/WindowSwitcher` is a `FloatingPopout` per screen (`axiom-switcher`, blurred with the launcher), shown on the monitor it opened on.
+- `shell/WindowSwitcher` is a `FloatingPopout` per screen (`axiom-switcher`, blurred with the launcher), shown on the monitor it opened on. It claims `switcher:<screen>` (ranked `launcher`), so it closes the popouts it covers ([Registry](../popouts/registry.md)).
 - It holds `surfaces/switcher/SwitcherStrip`: a `TileFlow` of `SwitcherTile`s by count, up to 80% of the screen wide.
 - Each tile shows the overview's `WindowPreview` (live while selected), or the app icon when `previews` is off, over the title.
 - It takes no keyboard focus, so focus stays on the window until one is picked.

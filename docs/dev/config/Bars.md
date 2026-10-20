@@ -44,7 +44,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Bars[].background`** · string = "solid" · enum solid|transparent|pills|floating|floatingPills
   - Background: Every bar but a solid one sits inside the screen border. Pills grow out of it; floating bars and pills are held away from it.
   - x-group="Style"
-  - read: `Bar.savedBars` (whole), `barConfig.background` · in: `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/EdgePopout.qml`, `components/surfaces/onboarding/pages/LookPage.qml`, `config/Bar.qml`
+  - read: `Bar.savedBars` (whole), `barConfig.background` · in: `components/surfaces/onboarding/pages/LookPage.qml`, `config/Bar.qml`
 - **`Bars[].floatGap`** · integer = -1 · -1–60 · px
   - Float gap: How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends. Auto keeps the compositor's gap to the screen edges, as your windows do. Windows always keep the compositor's gap between windows from the bar.
   - x-group="Style", x-control="stepper", x-auto={"value":-1,"start":8}, x-showIf={"background":["floating","floatingPills"]}

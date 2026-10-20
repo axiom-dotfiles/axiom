@@ -5,6 +5,7 @@ import Quickshell.Wayland
 
 import qs.config
 import qs.services
+import qs.components.methods
 import qs.components.reusable
 
 /**
@@ -14,7 +15,8 @@ import qs.components.reusable
  * detached launcher and the window switcher.
  *
  * Open/close/queue state and hover-loss dismissal come from
- * PopoutWrapperBase, as for EdgePopout, and the content is a Component in
+ * PopoutWrapperBase, as for EdgePopout, and its place among the popouts
+ * from a PopoutClaim (`claimKey`), and the content is a Component in
  * the same way: loaded while open (unless keepLoaded), optionally exposing
  * `autoDismiss` / `dismissDelay` / `hovered`.
  *
@@ -75,6 +77,28 @@ PopoutWrapperBase {
   currentItem: root.contentItem
   keepAlive: boxHover.hovered || (focusGrab.active && root.wantsKeyboardFocus)
 
+  // Its place among the popouts (PopoutManager), under `claimKey` (none:
+  // it takes no part): it shows once granted, closing what it covers below
+  // it, and closes when a higher popout covers it (or won't open under one)
+  property string claimKey: ""
+  property string claimKind: "launcher"
+  // Granted (or closing after it was, PopoutClaim.held)
+  readonly property bool claimed: root.claimKey === "" || root.claim.held
+  readonly property bool _showing: root.isOpen && root.claimed
+  property PopoutClaim claim: PopoutClaim {
+    key: root.claimKey
+    kind: root.claimKind
+    screen: root.screen?.name ?? ""
+    occupied: root.occupied
+    closing: root.isClosing
+    // Once its window's place is known (LayerOrigin.settled)
+    wanted: root.claimKey !== "" && root.isOpen && root.contentItem !== null && placeOnScreen.settled
+    // The box where it's placed (as tall as it's placed by), on screen
+    footprint: PopoutGeometry.offset([Qt.rect(box.x, box.placedY, box.width, box.placedHeight)], placeOnScreen.placed)
+    onEvicted: root.hide()
+    onRefused: root.hide()
+  }
+
   PanelWindow {
     id: surfaceWindow
     screen: root.screen
@@ -109,6 +133,14 @@ PopoutWrapperBase {
     // Hyprland's layer rules no longer blur it)
     Component.onCompleted: if (CompositorManager.supports.blurRegion === true)
       BackgroundEffect.blurRegion = Qt.binding(() => BlurManager.regions ? boxBlur : null)
+    // Where the window is on screen, for its claim's footprint
+    LayerOrigin {
+      id: placeOnScreen
+      window: surfaceWindow
+      namespace: root.layerNamespace
+      layer: WlrLayer.Overlay
+    }
+
     BoxBlurRegion {
       id: boxBlur
       target: box
@@ -180,8 +212,8 @@ PopoutWrapperBase {
       radius: Appearance.borderRadius
       clip: true
 
-      opacity: root.isOpen ? 1 : 0
-      scale: root.isOpen ? 1 : root.closedScale
+      opacity: root._showing ? 1 : 0
+      scale: root._showing ? 1 : root.closedScale
       transformOrigin: root.growUp ? Item.Bottom : root.maxContentHeight > 0 ? Item.Top : Item.Center
       Glide on opacity {
         duration: Appearance.animNormal
