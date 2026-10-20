@@ -86,12 +86,11 @@ PopoutWrapperBase {
   // as a bar popout's: from under a transparent bar on its edge (its outer
   // edge, past the border stroke it lies on inside the border), its window
   // starting there on the bar's layer, ordered under it (HyprlandManager's
-  // layer rules). Not while the overlay is open on its screen
-  // (_overOverlay), nor over a fullscreen window, nor where the compositor
-  // stacks by map order alone (no supports.layerOrder: a window mapped as
-  // it opens lands over the bar). Anything else it opens over, sliding out
-  // within its own window.
-  readonly property real slideDistance: root.detached && root.barConfig?.background === "transparent" && CompositorManager.supports.layerOrder === true && !root._overOverlay && !root._overFullscreen ? Math.max(0, root.attachAt - root.barOuter - (root.barConfig.insideBorder ? Appearance.borderWidth : 0)) : 0
+  // layer rules), when it slides under at all (EdgePlacement.slidesUnder:
+  // not while the overlay is open on its screen, _overOverlay, nor over a
+  // fullscreen window, nor without supports.layerOrder). Anything else it
+  // opens over, sliding out within its own window.
+  readonly property real slideDistance: placement.slidesUnder ? Math.max(0, root.attachAt - root.barOuter - (root.barConfig?.insideBorder ? Appearance.borderWidth : 0)) : 0
   readonly property bool slidesUnder: root.slideDistance > 0
   // Its window's layer: Overlay unless it slides under a bar
   readonly property int windowLayer: root.slidesUnder ? WlrLayer.Top : WlrLayer.Overlay
@@ -276,6 +275,9 @@ PopoutWrapperBase {
   // (EdgePlacement). Both ends joined, it runs the whole edge, the content
   // centred.
   readonly property real _contentAlong: Math.ceil((vertical ? root.contentItem?.implicitHeight ?? 100 : root.contentItem?.implicitWidth ?? 100) + contentPadding * 2)
+  // ...and across it, on whole pixels too: a far side between two pixels
+  // drew its stroke faint, or dotted with a thin one
+  readonly property real _contentAcross: Math.ceil((vertical ? root.contentItem?.implicitWidth ?? 100 : root.contentItem?.implicitHeight ?? 100) + contentPadding * 2)
   EdgePlacement {
     id: placement
     screen: root.screen
@@ -296,6 +298,7 @@ PopoutWrapperBase {
     showing: root.occupied && root.contentItem !== null && root.claimed
     open: root.isOpen && root.claimed
     onOverlayLayer: root.onOverlayLayer
+    overOverlay: root._overOverlay
     origin: placeOnScreen.origin
     attachedSurface: surface
     opens: surfaceWindow.visible && root.claimed
@@ -385,6 +388,10 @@ PopoutWrapperBase {
 
     // What PopoutAnchors in its content open in
     readonly property var popoutHost: root.submenu
+    // Its content doesn't grow the box (a menu's cards are fixed): a
+    // StyledComboEntry opens its list inline, in what scrolls around it
+    // (BarPopouts' room is a number)
+    readonly property var popoutRoom: null
 
     // Spans the whole edge; the input mask limits it to the surface.
     anchors {
@@ -484,8 +491,8 @@ PopoutWrapperBase {
       // While the blur window backs surfaces, once it knows where this one
       // is (LayerOrigin.settled), so it never shows unbacked beside them
       active: root.isOpen && root.claimed && placement.stretchReady && (!BlurManager.backing || placeOnScreen.settled)
-      boxWidth: root.vertical ? (root.contentItem?.implicitWidth ?? 100) + root.contentPadding * 2 + root.attachClearance : root.boxLength
-      boxHeight: root.vertical ? root.boxLength : (root.contentItem?.implicitHeight ?? 100) + root.contentPadding * 2 + root.attachClearance + slot.shownStretchAcross
+      boxWidth: root.vertical ? root._contentAcross + root.attachClearance : root.boxLength
+      boxHeight: root.vertical ? root.boxLength : root._contentAcross + root.attachClearance + slot.shownStretchAcross
       fillColor: root.fillColor
       strokeColor: root.strokeColor
 

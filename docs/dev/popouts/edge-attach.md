@@ -13,6 +13,7 @@
   - `plain`
   - out of a `pill` or out of an `island`. These follow the same rules: a pill bar's pills are met the way islands are; see [Floating bars](pill-and-floating-bars.md#floating-bars-islands).
   - `merged`: grown from the outer edge of a pill bar that is showing no pills.
+  - `between`: with `between` set (`SurfaceContext.layout` sets it; submenus don't), a box centred between a pill bar's pills or a floating bar's islands grows from the bar's outer edge, over the bar, when it keeps more than `pillMerge` and two fillets' room from every pill. Closer than that, it grows out of the nearest pill as before.
 
   Alongside the mode it returns:
   - the box's `start`/`end`
@@ -33,6 +34,7 @@
   - **Where the pill can't grow:** the side runs flush as before. There are two such cases:
     - a pill that joins the perpendicular edge, which the box then joins too;
     - past where islands may reach (`islandFrom`/`islandTo`).
+  - **With no radius:** a fillet and corner then take no room, so a side reaching the pill's end exactly runs flush into it, whether or not the pill can grow. Its wall continues the pill's edge. Standing on the pill's corner instead, its backfill cut the end of that edge's stroke away: a notch where a submenu met its parent's square corner.
 - **With `pillJoins` (`EdgePlacement`):** a box on a pill bar that `joins` a perpendicular edge joins it from whichever pill it grows out of. Examples are a floating edge menu or a dock running the whole edge.
   - That pill's stretch reaches to the bar's end (`pillFrom`/`pillTo`) and carries `joinStart`/`joinEnd`.
   - So the pill joins the edge too once it gets there (`BarLayout.shownStretches`), rather than ending in a squared cap across the bar.
@@ -58,8 +60,8 @@
 - **Short of room:** when room runs out (a floating bar owning the corner, its island reaching over the bar it pushes aside), the box moves in. No radius shrinks: fillets and corners are always whole.
 - **Floating bar held clear:** a floating bar held clear of the other bar takes no wall at that end. Its islands, and so its popouts, already keep to the windows there.
 
-### Nudge (tray submenus)
-- **Why tray submenus differ:** their "pill" is the parent's box, so they use `nudge` instead of `place`'s growing.
+### Nudge (submenus)
+- **Why submenus differ:** their "pill" is the parent's box, so `SubPopout` calls `place` with `nudge` set, rather than letting the box grow.
 - **How `nudge` works:** the content moves whichever way is shorter without growing anything. It goes either up to that end, or back far enough for the fillet.
 - **How far:** either move is less than a fillet's room.
 
@@ -96,7 +98,7 @@ How the context a surface needs (a pill to stand on, a pill reaching along a joi
   - `strokeInsetStart`/`End`
   - `lo`/`hi` and `insetStart`/`End`. These come from held gaps, a wall, a floating bar's island reach, or `endRoom` from the frame line.
   - `straightJoinStart`/`End`
-- **Placement outputs:** `place`, `detached`, `straight`, `attachAt`/`attachFromBar`, `backfill`.
+- **Placement outputs:** `place`, `detached`, `straight`, `attachAt`/`attachFromBar`, `backfill`, `slidesUnder` (from `SurfaceContext.layout`: a detached box past a transparent bar with `supports.layerOrder`, the overlay not open over it, given as `overOverlay` and latched by the host).
 - **Look outputs:** `shadow`/`shadowLook`, `backed`/`opaque`, its openings and its `PillStretch`es.
 - **Following the bar:** it follows its bar unless held (`followsBar`), on pills and islands alike.
   - Past a transparent bar, a detached box goes past it (`Bar.detachedPush`).

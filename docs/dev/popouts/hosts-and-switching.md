@@ -12,7 +12,7 @@ This doc covers the shared host pieces in `components/hosts/popout/`, how a bar 
   - A wrapper may switch an open popout to another payload in place instead of closing it first, via its `canSwitchTo(anchor, data)` and `prepareSwitch(done)` hooks.
 - **`FloatingPopout`:** a box floating in the free area, placed at a fraction across and down inside per-side margins.
   - `xAlign`/`yAlign` say which part of the box sits at that point.
-  - It fades in.
+  - It fades in, once granted its `PopoutClaim` (`claimKey`; its footprint is its box where it's placed).
   - Used by the detached launcher and the window switcher.
 - **`SlideAnimation`.**
 - **`AttachedSurface`:** the content box, connector and `CornerPiece` fillets that make a popout look like it grows out of a bar or the screen border. `edge` is a `Bar.Location`.
@@ -32,6 +32,7 @@ This doc covers the shared host pieces in `components/hosts/popout/`, how a bar 
 - **Content changing size redraws the scene; it does not resize the Wayland window.** A resize is a compositor round trip, and the outline visibly lagged behind it.
   - **The box animates** to its new size and place (`shownBoxWidth`/`shownBoxHeight`/`shownBoxStart`, `animFast`), starting from the first frame it shows.
   - **The content** sits at its target size, hung from the box's start and bar side, and clipped to the box.
+- **Room to grow:** the window's `popoutRoom` is how much more the box can grow before it meets what's on the screen's far side (along a vertical bar, its ends), from `EdgeMenuManager.frameLineOn`. Content growing on its own reads it through `QsWindow.window`: a `StyledComboEntry` opens its list inline, no taller than that. An `EdgePopout`'s is `null`: its content doesn't grow the box, so the list keeps to what scrolls around it. Nothing yet keeps content that is already taller than the screen on it.
 - **Keyboard:** a popout with a text field sets `wantsKeyboardFocus`.
   - BarPopouts then takes a focus grab and the bar takes keyboard focus on demand.
   - A click outside emits `focusLost`.

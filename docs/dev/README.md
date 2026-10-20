@@ -44,6 +44,7 @@ Dependencies point one way, methods → data owners → readers → services →
 - [file-picker](core/file-picker.md): the desktop's file/folder picker (`FilePickerManager`, `pick_path.py`), folder settings' Browse button.
 - [i18n](core/i18n.md): translation mechanics, language files, `check_i18n.py`.
 - [shared-ui-pieces](core/shared-ui-pieces.md): index of reusable widgets and helpers. Check it before drawing anything.
+- [qml-pitfalls](core/qml-pitfalls.md): traps of QML, its JS engine and URL-loaded files that have each bitten. Read it before writing QML.
 
 ### bar/
 - [composition](bar/composition.md): bars from config, widget hosts, layout math, popout anchors, icons, drawn-not-measured motion.

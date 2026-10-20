@@ -12,7 +12,6 @@ Every popout showing, where it is, and which gives way to which. Each popout hos
 ### Functions
 
 - `entry(id)`
-- `popoutsOn(screen)`: What shows on a screen (a ShellScreen or its name)
 - `claim(c, resuming)`: A claim asks to show: true if it may.
 - `update(c)`: A registered claim changed (its footprint, pin or residence): showing, it closes what it now covers below it (it grew into it), and gives way to what's above as a claim would (its first footprint may…
 - `release(c)`: A claim no longer shows: anything it held off may come back

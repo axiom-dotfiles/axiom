@@ -27,9 +27,12 @@ ColumnLayout {
   readonly property bool readOnly: !root.isNew && !(CalendarConfig.calendar(root.draft?.originalCalendar ?? "")?.writable ?? false)
   property bool busy: false
   property string error: ""
-  // "save" | "delete" while asking which of a recurring event's
+  // "save" | "delete" while asking which of a recurring event's,
+  // "confirm" while confirming a single event's delete
   property string asking: ""
-  property bool confirmDelete: false
+  // How wide the buttons along the bottom need it (the fields and texts
+  // take any width), so a popout can widen for a long translation
+  readonly property real actionsWidth: root.asking !== "" ? askRow.implicitWidth - askText.implicitWidth + Appearance.fontSize * 6 : actionRow.implicitWidth
 
   signal finished
 
@@ -48,7 +51,6 @@ ColumnLayout {
     notesArea.text = draft.description;
     root.error = "";
     root.asking = "";
-    root.confirmDelete = false;
     root.busy = false;
     fields.contentY = 0;
     if (root.isNew)
@@ -112,15 +114,7 @@ ColumnLayout {
   }
 
   function remove() {
-    if (root.draft.recurring && root.asking === "") {
-      root.asking = "delete";
-      return;
-    }
-    if (!root.draft.recurring && !root.confirmDelete) {
-      root.confirmDelete = true;
-      return;
-    }
-    root._remove("series");
+    root.asking = root.draft.recurring ? "delete" : "confirm";
   }
 
   function _remove(scope) {
@@ -138,12 +132,6 @@ ColumnLayout {
       else
         root.error = CalendarManager.errorText(result);
     });
-  }
-
-  Timer {
-    running: root.confirmDelete
-    interval: 3000
-    onTriggered: root.confirmDelete = false
   }
 
   // The fields scroll when the editor is short
@@ -301,22 +289,34 @@ ColumnLayout {
     wrapMode: Text.Wrap
   }
 
-  // Which of a recurring event's: this one, or all of them
+  // Which of a recurring event's: this one, or all of them; or a single
+  // event's delete confirmed
   RowLayout {
+    id: askRow
     visible: root.asking !== ""
     Layout.fillWidth: true
     spacing: Widget.spacing / 2
 
     StyledText {
+      id: askText
       Layout.fillWidth: true
-      text: root.asking === "delete" ? I18n.tr("Delete which?") : I18n.tr("Change which?")
+      text: root.asking === "confirm" ? I18n.tr("Delete this event?") : root.asking === "delete" ? I18n.tr("Delete which?") : I18n.tr("Change which?")
       elide: Text.ElideRight
     }
     StyledTextButton {
+      visible: root.asking === "confirm"
+      text: I18n.tr("Delete")
+      iconText: "delete"
+      textColor: Theme.error
+      onClicked: root._remove("series")
+    }
+    StyledTextButton {
+      visible: root.asking !== "confirm"
       text: I18n.tr("This event")
       onClicked: root.asking === "delete" ? root._remove("occurrence") : root._save("occurrence")
     }
     StyledTextButton {
+      visible: root.asking !== "confirm"
       text: I18n.tr("All events")
       onClicked: root.asking === "delete" ? root._remove("series") : root._save("series")
     }
@@ -327,13 +327,14 @@ ColumnLayout {
   }
 
   RowLayout {
+    id: actionRow
     visible: root.asking === ""
     Layout.fillWidth: true
     spacing: Widget.spacing / 2
 
     StyledTextButton {
       visible: !root.isNew && !root.readOnly
-      text: root.confirmDelete ? I18n.tr("Click again to delete") : I18n.tr("Delete")
+      text: I18n.tr("Delete")
       iconText: "delete"
       textColor: Theme.error
       enabled: !root.busy

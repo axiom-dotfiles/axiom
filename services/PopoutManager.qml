@@ -32,12 +32,6 @@ QtObject {
     return root.entries.find(e => e.id === id) ?? null;
   }
 
-  // What shows on a screen (a ShellScreen or its name)
-  function popoutsOn(screen) {
-    const name = typeof screen === "string" ? screen : screen?.name ?? "";
-    return root.entries.filter(e => e.screen === name && e.phase === "open");
-  }
-
   function _entryOf(c, phase) {
     return {
       "id": c.key,

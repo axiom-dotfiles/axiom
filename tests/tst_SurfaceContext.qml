@@ -201,6 +201,13 @@ TestCase {
         "detached": false
       },
       {
+        "tag": "floating, between islands",
+        "held": false,
+        "bar": "floating",
+        "mode": "between",
+        "detached": false
+      },
+      {
         "tag": "floating, no islands",
         "held": false,
         "bar": "floating",
@@ -540,6 +547,104 @@ TestCase {
     compare(past.attachAt + 24 / 2, 46);
   }
 
+  // Centred between a pill bar's pills (or a floating bar's islands) and
+  // clear of them: grown from the bar's outer edge over the bar, its
+  // content starting there, the border's stroke opened under it
+  function test_layout_between_pills() {
+    const base = params();
+    const f = SurfaceContext.frame(base);
+    const at = (kind, pills, extra) => SurfaceContext.layout(f, Object.assign({}, base, {
+        "bar": Object.assign(bar(kind), {
+          "extent": 40,
+          "pillDepth": 30,
+          "pillMerge": 12
+        }),
+        "pills": pills,
+        "centre": 500,
+        "aligned": 450,
+        "length": 100,
+        "joinStart": false,
+        "joinEnd": false,
+        "frameLine": 40,
+        "reserved": 40
+      }, extra ?? {}));
+    const apart = [
+      {
+        "start": 100,
+        "length": 200
+      },
+      {
+        "start": 700,
+        "length": 200
+      }
+    ];
+    for (const kind of ["pills", "floatingPills"]) {
+      const l = at(kind, apart);
+      compare(l.mode, "between", kind);
+      verify(!l.detached && !l.onPill && !l.merged, kind);
+      compare([l.start, l.end, l.stretch], [450, 550, null], kind);
+      compare([l.attachFromBar, l.attachClearance, l.attachAt], [0, 0, 0], kind);
+      compare(l.ownSink, "border", kind);
+      verify(!l.straight, kind);
+      // With the border off, straight off the screen edge
+      verify(at(kind, apart, {
+        "border": false
+      }).straight, kind);
+    }
+    // Too near a pill for two fillets: out of the nearest, as before
+    const near = at("pills", [
+      {
+        "start": 100,
+        "length": 200
+      },
+      {
+        "start": 560,
+        "length": 200
+      }
+    ]);
+    compare(near.mode, "pill");
+    compare(near.pill.index, 1);
+  }
+
+  // A detached box past a transparent bar slides out from under it, only
+  // where layer rules order windows and the overlay isn't open over it
+  function test_layout_slides_under() {
+    const base = params();
+    const f = SurfaceContext.frame(base);
+    const at = extra => SurfaceContext.layout(f, Object.assign({}, base, {
+        "centre": 500,
+        "aligned": 450,
+        "length": 100,
+        "joinStart": false,
+        "joinEnd": false,
+        "frameLine": 40,
+        "reserved": 40,
+        "layerOrder": true,
+        "bar": Object.assign(bar("transparent"), {
+          "extent": 40
+        })
+      }, extra));
+    verify(at({}).slidesUnder);
+    verify(!at({
+      "layerOrder": false
+    }).slidesUnder);
+    verify(!at({
+      "overOverlay": true
+    }).slidesUnder);
+    verify(!at({
+      "held": true
+    }).slidesUnder);
+    verify(!at({
+      "bar": Object.assign(bar("solid"), {
+        "extent": 40,
+        "innerStroke": true
+      })
+    }).slidesUnder);
+    verify(!at({
+      "bar": null
+    }).slidesUnder);
+  }
+
   // A submenu joined at its parent's bar side, opening toward the end
   // (radius 14, so a fillet and its corner take 28): the parent's island
   // runs 400..600 as its box stretches it, its neighbour 700..900
@@ -699,5 +804,85 @@ TestCase {
       "wall": 40,
       "before": true
     })).fillet);
+  }
+
+  // A submenu along its parent's side (100..500 at rest; radius 14, so a
+  // fillet and the parent's corner take `need`), on a screen 0..1000
+  function test_submenuPlace() {
+    const need = EdgeAttach.filletMargin(2, 14) + 14;
+    const at = extra => SurfaceContext.submenuPlace(Object.assign({
+        "attach": {
+          "start": 100,
+          "length": 400
+        },
+        "wanted": 200,
+        "length": 100,
+        "screenFrom": 0,
+        "screenTo": 1000,
+        "gap": 24,
+        "stroke": 2,
+        "radius": 14
+      }, extra));
+    // Level with its item
+    compare(at({}).start, 200);
+    compare(at({}).end, 300);
+    // Near a cornered end, it keeps its fillet clear of the parent's corner
+    const cornered = at({
+      "wanted": 380
+    });
+    compare(cornered.end, 500 - need);
+    verify(!cornered.flushEnd);
+    // Just short of a free end, nudged up to it, running flush (further
+    // short, nudged back for its fillet, whichever is nearer)
+    const free = at({
+      "wanted": 395,
+      "freeBottom": true
+    });
+    compare(free.end, 500);
+    verify(free.flushEnd);
+    compare(free.grow, 0);
+    const back = at({
+      "wanted": 380,
+      "freeBottom": true
+    });
+    compare(back.end, 500 - need);
+    verify(!back.flushEnd);
+    // Joined at the bar side, it reaches the stroke there
+    const joined = at({
+      "wanted": 110,
+      "joinTop": true,
+      "joinLine": 60
+    });
+    verify(joined.joinStart);
+    compare(joined.start, 60);
+    // Kept on the screen
+    compare(at({
+      "attach": {
+        "start": 800,
+        "length": 400
+      },
+      "wanted": 950
+    }).start, 900);
+    // Longer than the side, growing up it hangs past the side's top
+    const up = at({
+      "attach": {
+        "start": 600,
+        "length": 100
+      },
+      "wanted": 600,
+      "length": 300,
+      "growsUp": true
+    });
+    compare(up.end, 700 - need);
+    verify(up.start < 600);
+    // With radius 0, at a free end it runs flush, its wall continuing the
+    // parent's edge there (not cut short by its backfill)
+    const sharp = at({
+      "wanted": 100,
+      "freeTop": true,
+      "radius": 0
+    });
+    compare(sharp.start, 100);
+    verify(sharp.flushStart);
   }
 }

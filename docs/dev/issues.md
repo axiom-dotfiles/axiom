@@ -18,6 +18,36 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### A popout taller than the screen runs off it
+- **Where:** `components/hosts/popout/BarPopouts.qml` (`popoutRoom`), `components/content/Calendar.qml`
+- **What:** Nothing keeps a bar popout's content within the screen: content taller than the room past the bar (the Calendar popout with its event editor open on a short screen, 1080 px or less with a top bar) draws its box past the screen's far side, and what's there is cut off. `popoutRoom` measures the room left, and only `StyledComboEntry`'s inline list keeps to it. A general guard would hand the content a most height (as `SubPopout.maxContentHeight` does for submenus) for it to scroll within.
+- **Size:** needs a plan
+- **Found:** 2026-10-20, while making dropdowns in popouts open inline
+
+### A dropdown in an edge menu card with nothing scrolling gets two rows
+- **Where:** `components/reusable/StyledComboEntry.qml` (`_roomBelow`), `components/content/parts/PomodoroDial.qml`
+- **What:** In a floating edge menu a `StyledComboEntry` opens inline, capped by the Flickable around it. A card with no Flickable (Pomodoro as a card, its task picker) gets the two-row minimum, and the card's rows below it are pushed out of view while it's open.
+- **Size:** small
+- **Found:** 2026-10-20, while making dropdowns in popouts open inline
+
+### An outside edit of config.json can release a managed compositor config
+- **Where:** `services/CompositorConfigManager.qml` (`apply`, `_leave`), `services/ConfigManager.qml` (its file-watch reload)
+- **What:** Takeover settings (`x-takeover`) are kept from changing only by `SavedConfigsManager`'s load and import. Writing `config.json` from outside while axiom runs, without `Compositor.mode` or with another mode, reloads it; `apply()` takes that as a switch away from managed and releases the compositor's config (`writer.release()`). Seen 2026-10-20: a saved example copied over `config.json` gave `hyprland.lua` back. A hand edit, a sync tool or a restored backup would do the same. A possible guard: hold every `x-takeover` value on a plain file reload, and change one only through its own card.
+- **Size:** small
+- **Found:** 2026-10-20, while testing popout fixes on saved configs
+
+### Surfaces touch a dead screen after the outputs go away
+- **Where:** `config/General.qml` (`outputs`: whatever is built on it while no monitor is connected)
+- **What:** After the monitors drop out (`qt.qpa.wayland` `There are no outputs - creating placeholder screen`, e.g. DPMS off), the log fills with `attempted to use dangling screen object` (68 lines in one session, no file named). Something holds a `ShellScreen` past its removal and reads it. Which surface it is hasn't been found yet: next step, reproduce with a nested compositor dropping its output and bisect by commenting out surfaces in `shell.qml`.
+- **Size:** needs a plan
+- **Found:** 2026-10-20, while reviewing the popouts system
+
+### ChatProvidersCard runs its own requests
+- **Where:** `components/views/settings/ChatProvidersCard.qml` (Test, Fetch models)
+- **What:** The card creates its own `ChatRequest` for Test and Fetch models, so a UI file owns a process, against the rule that services own every side effect (AGENTS.md › Services). Kept as a known exception; moving the requests into `ChatManager` would end it.
+- **Size:** small
+- **Found:** 2026-10-20, while tightening AGENTS.md (it was listed there under Known housekeeping)
+
 ### The community setups' check doesn't take monitor places yet
 - **Where:** `services/SavedConfigsManager.qml` (`exportConfig`'s `places`), `components/views/settings/CommunitySetupsCard.qml` (Export and submit), `components/methods/ConfigExamples.qml` (`pick`'s `monitors`)
 - **What:** An export names each per-monitor part's monitor (`x-monitorRef`: a bar's, dock's, OSD's, edge menu's, strip's, a monitor's own desktop) by its place (`#2`, `@primary`, `*`), so a multi-monitor setup lands on the importer's monitors. Those fields are `machine` scope, and the community-setups repo's CI admits only `look` keys (a walk mirroring `ConfigExamples.pick`), so it would refuse such a file: Export and submit leaves the places out (`exportConfig(false, false, false)`), and a shared setup's second-monitor bar still lands on the importer's bar by position. Its CI needs to admit an `x-monitorRef` field holding a place, and then the card can export with them.

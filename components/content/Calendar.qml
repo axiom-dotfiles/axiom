@@ -37,7 +37,8 @@ Panel {
   wantsKeyboardFocus: pane.editing
   onFocusLost: pane.stopEditing()
 
-  implicitWidth: Appearance.fontSize * 20
+  // Wider while the editor's buttons need it (a long translation)
+  implicitWidth: Math.max(Appearance.fontSize * 20, pane.actionsWidth)
   // In a popout, room for the editor from the start
   maxImplicitHeight: root.embedded ? 0 : root.implicitHeight + pane.growth
   Component.onCompleted: {

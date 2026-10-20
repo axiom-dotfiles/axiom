@@ -26,6 +26,8 @@ Item {
   // make it, so a popout can make room before the editor opens
   // (Panel.maxImplicitHeight)
   readonly property real growth: root.visible ? Math.max(0, editor.implicitHeight - root.height, agenda.implicitHeight - root.height) : 0
+  // How wide the editor's buttons need it (EventEditor.actionsWidth)
+  readonly property real actionsWidth: root._editing ? editor.actionsWidth : 0
 
   function newEvent() {
     if (root.readOnly || !CalendarConfig.newEventCalendar)

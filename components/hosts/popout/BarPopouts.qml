@@ -36,9 +36,9 @@ PopoutWrapperBase {
   // it does where the compositor stacks by map order alone (no
   // supports.layerOrder: a window mapped as it opens lands over the bar).
   // Followed only while closed, since it changes the window's layer.
-  readonly property bool _wantsUnder: root.barConfig.background === "transparent" && CompositorManager.supports.layerOrder === true && !ShellManager.surfaceOpenOn("overlay", root.screen)
+  // (EdgePlacement.slidesUnder)
   property ClosedLatch _under: ClosedLatch {
-    source: root._wantsUnder
+    source: placement.slidesUnder
     closed: !root.occupied
   }
   readonly property bool underBar: root._under.value ?? false
@@ -226,6 +226,7 @@ PopoutWrapperBase {
     showing: root.occupied && root.claimed
     open: still.showing && !root.isClosing && root.claimed
     onOverlayLayer: root.onOverlayLayer
+    overOverlay: ShellManager.surfaceOpenOn("overlay", root.screen)
     origin: slot.popupScreenOrigin
     attachedSurface: surface
     opens: root._out
@@ -429,6 +430,18 @@ PopoutWrapperBase {
     readonly property real depth: wholeDepth ? (root.barConfig.vertical ? root.screen.width : root.screen.height) : _barNear + root.surfaceFrom - surface.backfill + (root.barConfig.vertical ? surface.implicitWidth : surface.implicitHeight) + root.spareAcross
     implicitWidth: root.barConfig.vertical ? depth : 0
     implicitHeight: root.barConfig.vertical ? 0 : depth
+
+    // How much more the box can grow before it meets what's on the
+    // screen's far side (along a vertical bar, its ends'). Content that
+    // grows on its own reads it through its window: StyledComboEntry opens
+    // its list inline here, no taller than this
+    readonly property real popoutRoom: {
+      if (!root.screen)
+        return 0;
+      if (root.barConfig.vertical)
+        return root.screen.height - EdgeMenuManager.frameLineOn(root.screen, Bar.Top) - EdgeMenuManager.frameLineOn(root.screen, Bar.Bottom) - root.targetBoxHeight;
+      return root.screen.height - EdgeMenuManager.frameLineOn(root.screen, root.barConfig.top ? Bar.Bottom : Bar.Top) - mainPopup._barNear - root.surfaceFrom - root._boxAcross;
+    }
     // The surface in this window: where it is in the bar's, moved by where
     // the bar is on the screen
     readonly property real surfaceX: barOrigin.x - windowOrigin.x + barX
