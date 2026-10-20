@@ -45,7 +45,7 @@ Card {
   readonly property string dateText: root.properties.showDate ? I18n.formatDate(root.now, I18n.dateFormat(root.innerWidth < Appearance.fontSize * 14 ? "shortDate" : "longDate")) : ""
   readonly property string label: root.properties.label
   readonly property int captionCount: (root.dateText !== "" ? 1 : 0) + (root.label !== "" ? 1 : 0)
-  readonly property real captionSize: Math.max(Appearance.fontSize - 2, Math.min(Appearance.fontSize * 1.6, root.innerHeight / 12))
+  readonly property real captionSize: Math.max(Appearance.fontSizeBy(-2), Math.min(Appearance.fontSize * 1.6, root.innerHeight / 12))
   readonly property real spacing: Widget.spacing / 2
   readonly property real captionsHeight: root.captionCount * (root.captionSize * root.lineRatio + root.spacing)
 

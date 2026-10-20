@@ -65,7 +65,7 @@ Item {
   FontMetrics {
     id: labelMetrics
     font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 2
+    font.pixelSize: Appearance.fontSizeBy(-2)
   }
 
   GridLayout {
@@ -105,7 +105,7 @@ Item {
         horizontalAlignment: root.wide && root.showIcon ? Text.AlignLeft : Text.AlignHCenter
         elide: Text.ElideRight
         text: root.label
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.6
       }
     }

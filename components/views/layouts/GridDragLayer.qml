@@ -166,7 +166,7 @@ DragLayer {
       StyledIcon {
         text: root.dragging?.icon ?? ""
         textColor: Theme.background
-        textSize: Appearance.fontSize + 2
+        textSize: Appearance.fontSizeBy(2)
       }
       StyledText {
         text: root.hoverTarget?.targetKind === "trash" ? I18n.tr("Remove") : root.hoverTarget && !root.hoverValid ? I18n.tr("Doesn't fit here") : (root.dragging?.label ?? "")

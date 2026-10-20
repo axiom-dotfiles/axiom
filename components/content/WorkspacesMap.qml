@@ -58,7 +58,7 @@ Card {
           anchors.top: parent.top
           anchors.margins: Widget.spacing
           text: tile.modelData
-          textSize: Appearance.fontSize - 3
+          textSize: Appearance.fontSizeBy(-3)
           textColor: tile.active ? Theme.background : Theme.foreground
           opacity: 0.7
         }

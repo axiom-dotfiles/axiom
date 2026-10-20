@@ -65,14 +65,14 @@ Card {
 
       StyledText {
         text: chip.modelData
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         font.bold: true
       }
 
       StyledText {
         Layout.fillWidth: true
         text: chip.value.toString().toUpperCase()
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
         opacity: 0.6
         elide: Text.ElideRight
       }
@@ -83,7 +83,7 @@ Card {
       Layout.fillWidth: true
       text: chip.roles.concat(Array(Math.max(0, root.roleLines - chip.roles.length)).fill("")).join("\n")
       textColor: Theme.accent
-      textSize: Appearance.fontSize - 3
+      textSize: Appearance.fontSizeBy(-3)
       wrapMode: Text.WrapAtWordBoundaryOrAnywhere
     }
   }

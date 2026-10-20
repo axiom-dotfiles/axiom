@@ -174,7 +174,7 @@ Scope {
           anchors.horizontalCenter: parent.horizontalCenter
           text: I18n.tr("Click to go · Drag to move · Right-drag to resize · Middle-click to close")
           textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize - 1
+          textSize: Appearance.fontSizeBy(-1)
         }
       }
     }

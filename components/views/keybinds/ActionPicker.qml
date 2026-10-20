@@ -124,7 +124,7 @@ Item {
       StyledIcon {
         text: "arrow_drop_down"
         textColor: Theme.accent
-        textSize: Appearance.fontSize + 2
+        textSize: Appearance.fontSizeBy(2)
       }
     }
 
@@ -215,7 +215,7 @@ Item {
               visible: row.header
               text: String(row.entry.count ?? "")
               opacity: 0.5
-              textSize: Appearance.fontSize - 2
+              textSize: Appearance.fontSizeBy(-2)
             }
           }
 

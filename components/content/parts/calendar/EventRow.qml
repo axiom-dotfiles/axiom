@@ -68,7 +68,7 @@ Rectangle {
           Layout.rightMargin: Widget.spacing / 2
           text: root.when
           textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize - 1
+          textSize: Appearance.fontSizeBy(-1)
         }
         StyledText {
           Layout.fillWidth: true
@@ -79,7 +79,7 @@ Rectangle {
         StyledIcon {
           visible: root.event?.recurring ?? false
           text: "repeat"
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           textColor: Theme.foregroundAlt
         }
       }
@@ -89,7 +89,7 @@ Rectangle {
         text: root.event?.location ? I18n.tr("{0} · {1}", root.when, root.event.location) : root.when
         textFormat: Text.PlainText
         textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         elide: Text.ElideRight
       }
     }
@@ -100,7 +100,7 @@ Rectangle {
     visible: false
     readonly property string sample: I18n.formatDate(new Date(2000, 0, 1, 22, 58), CalendarConfig.timeFormat)
     text: I18n.tr("{0} – {1}", sample, sample)
-    textSize: Appearance.fontSize - 1
+    textSize: Appearance.fontSizeBy(-1)
   }
 
   MouseArea {

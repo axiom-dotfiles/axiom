@@ -36,6 +36,6 @@ ColumnLayout {
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
     text: root.text
-    textSize: Appearance.fontSize - 1
+    textSize: Appearance.fontSizeBy(-1)
   }
 }

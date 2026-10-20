@@ -22,7 +22,7 @@ ColumnLayout {
     elide: Text.ElideRight
     text: I18n.tr("Drag a module onto the canvas, or click one to add it.")
     opacity: 0.6
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
   }
 
   TypeLibrary {

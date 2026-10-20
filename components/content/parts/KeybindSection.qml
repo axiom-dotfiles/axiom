@@ -74,7 +74,7 @@ StyledContainer {
       StyledText {
         text: root.section.binds.length
         opacity: 0.5
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
     }
 
@@ -82,7 +82,7 @@ StyledContainer {
       visible: root.section.undescribed
       text: I18n.tr("A bind's description sets its label, and a \"Section: Label\" prefix picks its section.")
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       wrapMode: Text.Wrap
       Layout.fillWidth: true
     }
@@ -144,7 +144,7 @@ StyledContainer {
               visible: item.folded
               text: root.section.binds.filter(r => (r.combos[0]?.mods ?? []).join("+") === item.modelData.mods.join("+")).length
               opacity: 0.5
-              textSize: Appearance.fontSize - 2
+              textSize: Appearance.fontSizeBy(-2)
             }
 
             Item {

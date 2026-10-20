@@ -104,7 +104,7 @@ ColumnLayout {
         StyledText {
           text: legend.modelData[1]
           opacity: 0.7
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
       }
     }

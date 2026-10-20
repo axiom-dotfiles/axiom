@@ -130,7 +130,7 @@ DropdownSurface {
                 anchors.verticalCenter: parent.verticalCenter
                 text: "chevron_right"
                 textColor: Theme.foregroundAlt
-                textSize: Appearance.fontSize - 2
+                textSize: Appearance.fontSizeBy(-2)
               }
               Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
@@ -147,7 +147,7 @@ DropdownSurface {
                   anchors.centerIn: parent
                   text: "home"
                   textColor: crumb.last ? Theme.foreground : Theme.foregroundAlt
-                  textSize: Appearance.fontSize + 1
+                  textSize: Appearance.fontSizeBy(1)
                 }
                 StyledText {
                   id: crumbName
@@ -155,7 +155,7 @@ DropdownSurface {
                   anchors.centerIn: parent
                   text: root.crumbs[crumb.index - 1] ?? ""
                   textColor: crumb.last ? Theme.foreground : Theme.foregroundAlt
-                  textSize: Appearance.fontSize - 1
+                  textSize: Appearance.fontSizeBy(-1)
                   font.bold: crumb.last
                 }
                 HoverHandler {
@@ -279,7 +279,7 @@ DropdownSurface {
             Layout.alignment: Qt.AlignTop
             text: hit.byName ? "description" : "notes"
             textColor: hit.result.path === root.current ? Theme.accent : Theme.foregroundAlt
-            textSize: Appearance.fontSize + 1
+            textSize: Appearance.fontSizeBy(1)
           }
           ColumnLayout {
             Layout.fillWidth: true
@@ -290,7 +290,7 @@ DropdownSurface {
               text: root.highlighted(hit.result.title)
               textFormat: Text.StyledText
               textColor: hit.result.path === root.current ? Theme.accent : Theme.foreground
-              textSize: Appearance.fontSize - 1
+              textSize: Appearance.fontSizeBy(-1)
               elide: Text.ElideRight
             }
             StyledText {
@@ -299,7 +299,7 @@ DropdownSurface {
               text: hit.byName ? hit.result.snippet : root.highlighted(hit.result.snippet)
               textFormat: hit.byName ? Text.PlainText : Text.StyledText
               textColor: Theme.foregroundAlt
-              textSize: Appearance.fontSize - 2
+              textSize: Appearance.fontSizeBy(-2)
               elide: Text.ElideRight
             }
           }
@@ -308,7 +308,7 @@ DropdownSurface {
             Layout.alignment: Qt.AlignTop
             text: I18n.tr("line {0}", hit.result.line + 1)
             textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 3
+            textSize: Appearance.fontSizeBy(-3)
           }
         }
       }
@@ -366,7 +366,7 @@ DropdownSurface {
             text: row.fileIsDir ? "folder" : "description"
             fill: row.fileIsDir ? 1 : 0
             textColor: row.fileIsDir ? Theme.accent : row.isCurrent ? Theme.accent : Theme.foregroundAlt
-            textSize: Appearance.fontSize + 1
+            textSize: Appearance.fontSizeBy(1)
           }
 
           StyledText {
@@ -374,7 +374,7 @@ DropdownSurface {
             Layout.fillWidth: true
             text: row.confirming ? (NotesManager.canTrash ? I18n.tr("Move {0} to the trash?", row.fileName) : I18n.tr("Delete {0} for good?", row.fileName)) : row.fileIsDir ? row.fileName : NotesManager.titleOf(row.fileName)
             textColor: row.isCurrent ? Theme.accent : Theme.foreground
-            textSize: Appearance.fontSize - 1
+            textSize: Appearance.fontSizeBy(-1)
             elide: Text.ElideRight
           }
 
@@ -409,7 +409,7 @@ DropdownSurface {
             size: Widget.iconButton
             iconText: "check"
             iconColor: Theme.error
-            iconSize: Appearance.fontSize - 1
+            iconSize: Appearance.fontSizeBy(-1)
             tooltipText: I18n.tr("Delete")
             onClicked: root.remove(row.path)
           }
@@ -417,7 +417,7 @@ DropdownSurface {
             visible: row.confirming
             size: Widget.iconButton
             iconText: "close"
-            iconSize: Appearance.fontSize - 1
+            iconSize: Appearance.fontSizeBy(-1)
             tooltipText: I18n.tr("Cancel")
             onClicked: root.confirming = ""
           }
@@ -426,7 +426,7 @@ DropdownSurface {
             visible: rowHover.hovered && !row.editing && !row.confirming
             size: Widget.iconButton
             iconText: "edit"
-            iconSize: Appearance.fontSize - 2
+            iconSize: Appearance.fontSizeBy(-2)
             tooltipText: I18n.tr("Rename")
             onClicked: {
               root.confirming = "";
@@ -437,7 +437,7 @@ DropdownSurface {
             visible: rowHover.hovered && !row.editing && !row.confirming
             size: Widget.iconButton
             iconText: "delete"
-            iconSize: Appearance.fontSize - 2
+            iconSize: Appearance.fontSizeBy(-2)
             tooltipText: I18n.tr("Delete")
             onClicked: {
               root.renaming = "";
@@ -460,7 +460,7 @@ DropdownSurface {
       horizontalAlignment: Text.AlignHCenter
       text: I18n.tr("No notes match")
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
     }
 
     StyledText {
@@ -472,7 +472,7 @@ DropdownSurface {
       wrapMode: Text.WordWrap
       text: NotesManager.directoryMissing ? I18n.tr("The notes folder doesn't exist: {0}", NotesManager.directory) : root.folder === "" ? I18n.tr("No notes yet") : I18n.tr("This folder is empty")
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
     }
   }
 }

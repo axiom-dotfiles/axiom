@@ -59,7 +59,7 @@ Rectangle {
     StyledIcon {
       anchors.centerIn: parent
       text: "close"
-      textSize: Appearance.fontSize - 3
+      textSize: Appearance.fontSizeBy(-3)
     }
 
     TapHandler {

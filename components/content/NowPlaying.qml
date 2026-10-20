@@ -133,12 +133,12 @@ Panel {
           Layout.maximumWidth: Math.ceil(implicitWidth)
           elide: Text.ElideRight
           text: MediaManager.identity
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
         StyledIcon {
           visible: MediaManager.players.length > 1
           text: "refresh"
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
         Item {
           Layout.fillWidth: true
@@ -166,7 +166,7 @@ Panel {
         horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
         text: value
         textColor: Theme.accent
-        textSize: root.large ? Appearance.fontSize * 2 : root.short ? Appearance.fontSize : Appearance.fontSize + 3
+        textSize: root.large ? Appearance.fontSize * 2 : root.short ? Appearance.fontSize : Appearance.fontSizeBy(3)
         font.bold: true
       }
     }
@@ -179,7 +179,7 @@ Panel {
         elide: Text.ElideRight
         horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
         text: value
-        textSize: root.large ? Appearance.fontSize + 4 : root.short ? Appearance.fontSize - 2 : Appearance.fontSize
+        textSize: root.large ? Appearance.fontSizeBy(4) : root.short ? Appearance.fontSizeBy(-2) : Appearance.fontSize
       }
     }
     CrossFade {
@@ -193,7 +193,7 @@ Panel {
         elide: Text.ElideRight
         horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
         text: value
-        textSize: root.large ? Appearance.fontSize : Appearance.fontSize - 2
+        textSize: root.large ? Appearance.fontSize : Appearance.fontSizeBy(-2)
       }
     }
   }
@@ -222,7 +222,7 @@ Panel {
       Layout.fillWidth: true
       StyledText {
         text: MediaManager.formatTime(seek.pressed ? seek.value * MediaManager.length : MediaManager.position)
-        textSize: root.large ? Appearance.fontSize - 1 : Appearance.fontSize - 3
+        textSize: root.large ? Appearance.fontSizeBy(-1) : Appearance.fontSizeBy(-3)
         opacity: 0.6
       }
       Item {
@@ -230,7 +230,7 @@ Panel {
       }
       StyledText {
         text: MediaManager.formatTime(MediaManager.length)
-        textSize: root.large ? Appearance.fontSize - 1 : Appearance.fontSize - 3
+        textSize: root.large ? Appearance.fontSizeBy(-1) : Appearance.fontSizeBy(-3)
         opacity: 0.6
       }
     }
@@ -374,7 +374,7 @@ Panel {
           required property var value
           elide: Text.ElideRight
           text: value
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
       }
     }

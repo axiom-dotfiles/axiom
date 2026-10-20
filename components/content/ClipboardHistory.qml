@@ -114,7 +114,7 @@ Panel {
     StyledText {
       visible: root.allClips.length > 0
       text: String(root.allClips.length)
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       textColor: Theme.foregroundAlt
     }
     FlatIconButton {
@@ -229,7 +229,7 @@ Panel {
     StyledIcon {
       text: root.copiedId !== "" ? "check" : "content_paste"
       textColor: Theme.accent
-      textSize: Appearance.fontSize + 2
+      textSize: Appearance.fontSizeBy(2)
     }
     StyledText {
       Layout.fillWidth: true

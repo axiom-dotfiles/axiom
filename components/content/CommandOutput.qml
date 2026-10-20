@@ -100,7 +100,7 @@ Card {
     StyledIcon {
       text: root.icon
       textColor: Theme.accent
-      textSize: Appearance.fontSize + 2
+      textSize: Appearance.fontSizeBy(2)
     }
     StyledText {
       visible: root.title !== ""
@@ -161,7 +161,7 @@ Card {
       Layout.fillHeight: true
       text: root.output === "" ? I18n.tr("No output") : root.output
       textFamily: root.textFamily
-      textSize: root.statement ? Math.max(Appearance.fontSize, Math.min(Appearance.fontSize * 1.5, body.height / 5)) : Appearance.fontSize - 1
+      textSize: root.statement ? Math.max(Appearance.fontSize, Math.min(Appearance.fontSize * 1.5, body.height / 5)) : Appearance.fontSizeBy(-1)
       textColor: root.output === "" ? Theme.foregroundAlt : Theme.foreground
       wrapMode: root.properties.monospace && !root.statement ? Text.NoWrap : Text.Wrap
       elide: Text.ElideRight

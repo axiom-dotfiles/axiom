@@ -48,7 +48,7 @@ Flickable {
           id: label
           anchors.centerIn: parent
           text: pill.modelData.text
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           textColor: area.containsMouse ? Theme.background : Theme.foreground
         }
 

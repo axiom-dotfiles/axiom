@@ -26,7 +26,7 @@ Row {
       anchors.centerIn: parent
       text: root.key
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 4
+      textSize: Appearance.fontSizeBy(-4)
     }
   }
 
@@ -34,6 +34,6 @@ Row {
     anchors.verticalCenter: parent.verticalCenter
     text: root.label
     textColor: Theme.foregroundInactive
-    textSize: Appearance.fontSize - 3
+    textSize: Appearance.fontSizeBy(-3)
   }
 }

@@ -250,7 +250,7 @@ PopupWindow {
                 Layout.fillWidth: true
                 text: root.notification.appName || ""
                 textColor: Theme.foregroundAlt
-                textSize: Appearance.fontSize - 2
+                textSize: Appearance.fontSizeBy(-2)
                 font.bold: true
                 elide: Text.ElideRight
               }
@@ -278,7 +278,7 @@ PopupWindow {
               Layout.alignment: Qt.AlignTop
 
               iconText: "close"
-              iconSize: Appearance.fontSize - 2
+              iconSize: Appearance.fontSizeBy(-2)
               borderRadius: width / 2
               iconColor: Theme.foregroundAlt
               hoverColor: Theme.backgroundHighlight

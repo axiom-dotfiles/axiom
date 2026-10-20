@@ -52,7 +52,7 @@ Panel {
       StyledText {
         text: root.source?.details ?? ""
         textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
     }
   }
@@ -79,7 +79,7 @@ Panel {
           Layout.alignment: Qt.AlignHCenter
           text: root.source.dayLabel(day.index)
           textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
         StyledIcon {
           Layout.alignment: Qt.AlignHCenter
@@ -89,7 +89,7 @@ Panel {
         StyledText {
           Layout.alignment: Qt.AlignHCenter
           text: `${Math.round(root.daily.temperature_2m_max[day.index])}° / ${Math.round(root.daily.temperature_2m_min[day.index])}°`
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
       }
     }

@@ -41,7 +41,7 @@ StyledContainer {
         Layout.alignment: Qt.AlignVCenter
         text: root.lang || I18n.tr("code")
         textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
         textFamily: "monospace"
         elide: Text.ElideRight
       }
@@ -49,7 +49,7 @@ StyledContainer {
       FlatIconButton {
         size: Widget.iconButton
         iconText: root._copied ? "check" : "content_copy"
-        iconSize: Appearance.fontSize - 1
+        iconSize: Appearance.fontSizeBy(-1)
         iconColor: root._copied ? Theme.success : Theme.foregroundAlt
         tooltipText: I18n.tr("Copy")
         onClicked: {
@@ -79,7 +79,7 @@ StyledContainer {
       selectionColor: Theme.accent
       selectedTextColor: Theme.background
       font.family: "monospace"
-      font.pixelSize: Appearance.fontSize - 1
+      font.pixelSize: Appearance.fontSizeBy(-1)
 
       HoverHandler {
         cursorShape: Qt.IBeamCursor

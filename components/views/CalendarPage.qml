@@ -75,11 +75,11 @@ BaseView {
           StyledIcon {
             text: "calendar_month"
             textColor: Theme.accent
-            textSize: Appearance.fontSize + 4
+            textSize: Appearance.fontSizeBy(4)
           }
           StyledText {
             text: I18n.formatDate(new Date(month.year, month.month, 1), I18n.dateFormat("monthYear"))
-            textSize: Appearance.fontSize + 4
+            textSize: Appearance.fontSizeBy(4)
             font.bold: true
           }
           Item {
@@ -88,7 +88,7 @@ BaseView {
           StyledText {
             text: CalendarManager.syncing ? I18n.tr("Syncing…") : CalendarManager.lastSync > 0 ? I18n.tr("Synced {0}", I18n.formatDate(new Date(CalendarManager.lastSync), CalendarConfig.timeFormat)) : ""
             textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
           }
           FlatIconButton {
             visible: CalendarManager.hasCalendars

@@ -207,7 +207,7 @@ Item {
             elide: Text.ElideRight
             text: (root.group?.appName ?? "") + (root.count > 1 ? "  ·  " + root.count : "")
             textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             font.bold: true
           }
 
@@ -225,7 +225,7 @@ Item {
                 return I18n.formatRelative(root.group?.newestTime ?? Date.now());
               }
               textColor: Theme.foregroundAlt
-              textSize: Appearance.fontSize - 3
+              textSize: Appearance.fontSizeBy(-3)
 
               Glide on opacity {}
             }
@@ -238,7 +238,7 @@ Item {
               visible: opacity > 0
               opacity: hover.hovered ? 1 : 0
               iconText: "close"
-              iconSize: Appearance.fontSize - 2
+              iconSize: Appearance.fontSizeBy(-2)
               borderRadius: width / 2
               iconColor: Theme.foregroundAlt
               hoverColor: Theme.background
@@ -307,7 +307,7 @@ Item {
         Layout.fillWidth: true
         text: I18n.tr("+{0} more", root.count - 1)
         textColor: Theme.accent
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
 
         TapHandler {
           onTapped: root.expanded = true

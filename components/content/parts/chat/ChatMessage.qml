@@ -192,13 +192,13 @@ Item {
         StyledIcon {
           text: root.message?.state === "stopped" ? "stop_circle" : root.message?.notice === "refusal" ? "block" : "content_cut"
           textColor: Theme.warning
-          textSize: Appearance.fontSize - 1
+          textSize: Appearance.fontSizeBy(-1)
         }
         StyledText {
           Layout.fillWidth: true
           wrapMode: Text.WordWrap
           textColor: Theme.warning
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           text: {
             if (root.message?.state === "stopped")
               return I18n.tr("Stopped");
@@ -254,7 +254,7 @@ Item {
             wrapMode: Text.Wrap
             maximumLineCount: 6
             elide: Text.ElideRight
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             opacity: 0.8
           }
 
@@ -294,14 +294,14 @@ Item {
         Layout.rightMargin: Widget.spacing
         text: root.message?.model ?? ""
         textColor: Theme.foregroundInactive
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
       }
 
       FlatIconButton {
         visible: root.text !== ""
         size: Widget.iconButton
         iconText: "content_copy"
-        iconSize: Appearance.fontSize - 2
+        iconSize: Appearance.fontSizeBy(-2)
         tooltipText: I18n.tr("Copy")
         onClicked: ChatManager.copy(root.text)
       }
@@ -310,7 +310,7 @@ Item {
         visible: !root.isUser && root.isLast && root.message?.state !== "error"
         size: Widget.iconButton
         iconText: "refresh"
-        iconSize: Appearance.fontSize - 2
+        iconSize: Appearance.fontSizeBy(-2)
         tooltipText: I18n.tr("Regenerate")
         onClicked: ChatManager.regenerate()
       }
@@ -318,7 +318,7 @@ Item {
       FlatIconButton {
         size: Widget.iconButton
         iconText: "delete"
-        iconSize: Appearance.fontSize - 2
+        iconSize: Appearance.fontSizeBy(-2)
         tooltipText: I18n.tr("Delete")
         onClicked: ChatManager.removeMessage(root.index)
       }

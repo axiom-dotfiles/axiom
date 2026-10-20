@@ -70,7 +70,7 @@ RowLayout {
         Layout.fillWidth: true
         Layout.alignment: Qt.AlignVCenter
         text: ChatManager.model || I18n.tr("No model")
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         elide: Text.ElideMiddle
       }
       StyledIcon {

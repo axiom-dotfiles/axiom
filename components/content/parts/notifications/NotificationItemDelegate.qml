@@ -176,7 +176,7 @@ Item {
               return I18n.formatRelative(root.entry?.time ?? Date.now());
             }
             textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 3
+            textSize: Appearance.fontSizeBy(-3)
 
             Glide on opacity {}
           }
@@ -189,7 +189,7 @@ Item {
             visible: opacity > 0
             opacity: root.hovered ? 1 : 0
             iconText: "close"
-            iconSize: Appearance.fontSize - 2
+            iconSize: Appearance.fontSizeBy(-2)
             borderRadius: width / 2
             iconColor: Theme.foregroundAlt
             hoverColor: Theme.background

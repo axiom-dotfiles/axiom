@@ -322,7 +322,7 @@ Loader {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: I18n.tr(root.description)
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.7
       }
     }
@@ -369,7 +369,7 @@ Loader {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: I18n.tr(root.description)
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.7
       }
     }
@@ -445,7 +445,7 @@ Loader {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: I18n.tr(root.description)
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.7
       }
     }

@@ -268,7 +268,7 @@ PanelWindow {
               anchors.verticalCenter: parent.verticalCenter
               text: I18n.tr("up {0}", root.uptime)
               textColor: Theme.foregroundInactive
-              textSize: Appearance.fontSize - 1
+              textSize: Appearance.fontSizeBy(-1)
             }
           }
         }

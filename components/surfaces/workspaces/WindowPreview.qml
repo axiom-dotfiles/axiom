@@ -93,7 +93,7 @@ Item {
         anchors.leftMargin: Widget.smallPadding
         anchors.rightMargin: Widget.smallPadding
         text: root.windowData?.title || root.windowData?.appId || ""
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
         elide: Text.ElideRight
         horizontalAlignment: Text.AlignHCenter
       }
@@ -136,7 +136,7 @@ Item {
       id: sizeLabel
       anchors.centerIn: parent
       text: `${root.windowData?.w ?? 0} × ${root.windowData?.h ?? 0}`
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       textColor: Theme.background
     }
   }

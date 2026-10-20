@@ -97,7 +97,7 @@ Rectangle {
         elide: Text.ElideRight
         font.bold: true
         textColor: root.contentColor
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
       }
       StyledText {
         Layout.fillWidth: true
@@ -106,7 +106,7 @@ Rectangle {
         elide: Text.ElideRight
         textColor: root.contentColor
         opacity: 0.75
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
     }
 

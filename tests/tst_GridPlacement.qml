@@ -19,11 +19,11 @@ TestCase {
 
   function test_span() {
     // cardUnit 500, cardSpacing 20: a grid unit is 110
-    compare(GridPlacement.unitOf(), 110);
-    compare(GridPlacement.span(1), 110);
-    compare(GridPlacement.span(2), 240, "two units are half a card");
-    compare(GridPlacement.span(4), 500, "four units are one card");
-    compare(GridPlacement.span(8), 1020, "two cards and the gap between");
+    compare(GridPlacement.unitOf(500), 110);
+    compare(GridPlacement.span(1, 500), 110);
+    compare(GridPlacement.span(2, 500), 240, "two units are half a card");
+    compare(GridPlacement.span(4, 500), 500, "four units are one card");
+    compare(GridPlacement.span(8, 500), 1020, "two cards and the gap between");
     compare(GridPlacement.span(4, 300), 300, "at another card size");
   }
 

@@ -19,7 +19,7 @@ RowLayout {
   StyledIcon {
     text: NotificationManager.dnd ? "notifications_paused" : "notifications"
     textColor: Theme.accent
-    textSize: Appearance.fontSize + 2
+    textSize: Appearance.fontSizeBy(2)
   }
 
   // Shrinks (eliding) before the buttons are pushed out of a narrow card
@@ -43,7 +43,7 @@ RowLayout {
       id: countLabel
       anchors.centerIn: parent
       text: NotificationManager.countLabel
-      textSize: Appearance.fontSize - 3
+      textSize: Appearance.fontSizeBy(-3)
       textColor: Theme.background
       font.bold: true
     }

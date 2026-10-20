@@ -97,7 +97,7 @@ EntryListCard {
       visible: root.pinned.length === 0
       text: I18n.tr("None yet: search below, or right-click a running app on the dock and pick Keep in dock.")
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     },
@@ -214,7 +214,7 @@ EntryListCard {
       visible: row.detail !== ""
       text: row.detail
       textColor: Theme.error
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
     }
 
     RowLayout {

@@ -229,18 +229,18 @@ Panel {
             Layout.fillWidth: true
             text: I18n.tr("Lap {0}", lapRow.lap.number)
             textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 1
+            textSize: Appearance.fontSizeBy(-1)
           }
           StyledText {
             text: StopwatchClock.format(lapRow.lap.split, true, false)
-            textSize: Appearance.fontSize - 1
+            textSize: Appearance.fontSizeBy(-1)
           }
           StyledText {
             Layout.preferredWidth: Appearance.fontSize * 5
             horizontalAlignment: Text.AlignRight
             text: StopwatchClock.format(lapRow.lap.total, true, false)
             textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 1
+            textSize: Appearance.fontSizeBy(-1)
           }
         }
       }

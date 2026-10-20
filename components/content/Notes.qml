@@ -161,7 +161,7 @@ Card {
           StyledIcon {
             text: "sticky_note_2"
             textColor: Theme.accent
-            textSize: Appearance.fontSize + 2
+            textSize: Appearance.fontSizeBy(2)
           }
           StyledText {
             Layout.fillWidth: true
@@ -173,7 +173,7 @@ Card {
             visible: editor.progress.total > 0
             text: editor.progress.done + "/" + editor.progress.total
             textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
           }
           StyledIcon {
             visible: !root.locked
@@ -277,7 +277,7 @@ Card {
         visible: findField.text !== ""
         text: editor.findCount === 0 ? I18n.tr("No matches") : I18n.tr("{0}/{1}", editor.findIndex + 1, editor.findCount)
         textColor: editor.findCount === 0 ? Theme.error : Theme.foregroundAlt
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
       FlatIconButton {
         iconText: "keyboard_arrow_up"
@@ -342,7 +342,7 @@ Card {
       Layout.fillWidth: true
       text: NotesManager.error
       textColor: Theme.error
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       elide: Text.ElideRight
     }
   }

@@ -188,12 +188,12 @@ Card {
             StyledIcon {
               text: entry.day ? "light_mode" : "dark_mode"
               textColor: entry.local ? Theme.accent : Theme.foregroundAlt
-              textSize: Appearance.fontSize - 1
+              textSize: Appearance.fontSizeBy(-1)
             }
             StyledText {
               Layout.fillWidth: true
               text: root.cityOf(entry.place)
-              textSize: Appearance.fontSize - 1
+              textSize: Appearance.fontSizeBy(-1)
               elide: Text.ElideRight
             }
           }
@@ -214,7 +214,7 @@ Card {
               "timezone": entry.place.timezone,
               "date": clock.date
             })
-            textSize: Appearance.fontSize - 3
+            textSize: Appearance.fontSizeBy(-3)
             textColor: Theme.foregroundAlt
             elide: Text.ElideRight
           }
@@ -236,7 +236,7 @@ Card {
             StyledIcon {
               text: entry.day ? "light_mode" : "dark_mode"
               textColor: entry.local ? Theme.accent : Theme.foregroundAlt
-              textSize: Appearance.fontSize + 2
+              textSize: Appearance.fontSizeBy(2)
             }
             ColumnLayout {
               Layout.fillWidth: true
@@ -255,7 +255,7 @@ Card {
                   "timezone": entry.place.timezone,
                   "date": clock.date
                 })
-                textSize: Appearance.fontSize - 3
+                textSize: Appearance.fontSizeBy(-3)
                 textColor: Theme.foregroundAlt
                 elide: Text.ElideRight
               }

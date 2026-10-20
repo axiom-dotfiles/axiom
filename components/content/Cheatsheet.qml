@@ -78,7 +78,7 @@ Panel {
     }
     StyledText {
       text: I18n.tr("{0} binds", root.bindCount)
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       textColor: Theme.foregroundAlt
     }
   }

@@ -55,7 +55,7 @@ ColumnLayout {
         return EdgeMenuManager.canPreview(root.menu) ? I18n.tr("Holds it open beside the menu it opens from while you edit it, showing unsaved changes.") : I18n.tr("Add a Submenu module opening it to an enabled floating menu to show it.");
       return EdgeMenuManager.canPreview(root.menu) ? I18n.tr("Holds the menu open on its screen while you edit it, showing unsaved changes.") : I18n.tr("Enable the menu to show it.");
     }
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     opacity: 0.7
   }
 
@@ -93,7 +93,7 @@ ColumnLayout {
     wrapMode: Text.WordWrap
     readonly property bool opensAnyway: !root.submenu && (root.menu?.openOnHover ?? false)
     text: root.submenu ? I18n.tr("Nothing yet: add a Submenu module to a floating menu and pick this one.") : nothingYet.opensAnyway ? I18n.tr("Nothing else yet: it opens when the pointer rests on its edge.") : I18n.tr("Nothing yet: turn on Open on hover, or add a bar button or keybind.")
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     textColor: nothingYet.opensAnyway ? Theme.foreground : Theme.warning
     opacity: nothingYet.opensAnyway ? 0.7 : 1
   }

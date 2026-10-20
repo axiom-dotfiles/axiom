@@ -88,7 +88,7 @@ ColumnLayout {
         horizontalAlignment: Text.AlignHCenter
         text: keyButton.does
         textColor: keyButton.ink
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
         elide: Text.ElideRight
       }
     }

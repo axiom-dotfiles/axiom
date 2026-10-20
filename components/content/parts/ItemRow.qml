@@ -58,7 +58,7 @@ Rectangle {
       Layout.preferredWidth: Appearance.fontSize * 1.5
       horizontalAlignment: Text.AlignHCenter
       text: root.icon
-      textSize: Appearance.fontSize + 2
+      textSize: Appearance.fontSizeBy(2)
       textColor: root.marked ? Theme.accent : Theme.foregroundAlt
     }
 
@@ -86,7 +86,7 @@ Rectangle {
         Layout.fillWidth: true
         text: root.title
         textFamily: root.titleFamily
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
         elide: Text.ElideRight
         wrapMode: root.titleLines > 1 ? Text.Wrap : Text.NoWrap
         maximumLineCount: root.titleLines
@@ -95,7 +95,7 @@ Rectangle {
         visible: root.subtitle !== ""
         Layout.fillWidth: true
         text: root.subtitle
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
         textColor: Theme.foregroundAlt
         elide: Text.ElideRight
       }

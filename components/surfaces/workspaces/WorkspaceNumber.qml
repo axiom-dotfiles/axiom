@@ -34,7 +34,7 @@ Rectangle {
     id: label
     anchors.centerIn: parent
     text: root.number
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     textColor: root.current ? Theme.background : Theme.foreground
     font.bold: root.current
   }

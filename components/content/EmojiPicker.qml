@@ -255,7 +255,7 @@ Panel {
     visible: root.showFooter
     Layout.fillWidth: true
     text: root.copied !== "" ? I18n.tr("Copied {0}", root.copied) : root.hoveredEntry ? root.nameOf(root.hoveredEntry) : I18n.tr("Click to copy")
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     textColor: root.copied !== "" ? Theme.accent : Theme.foregroundAlt
     elide: Text.ElideRight
   }
@@ -283,7 +283,7 @@ Panel {
       horizontalAlignment: Text.AlignHCenter
       text: I18n.tr("Emoji you copy show up here")
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
     }
 
     Item {

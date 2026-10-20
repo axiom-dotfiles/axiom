@@ -76,7 +76,7 @@ Item {
     anchors.right: box.right
     text: root.windowData?.title || root.windowData?.appId || ""
     textColor: root.selected ? Theme.accent : Theme.foregroundAlt
-    textSize: Appearance.fontSize - 1
+    textSize: Appearance.fontSizeBy(-1)
     elide: Text.ElideRight
     horizontalAlignment: Text.AlignHCenter
   }

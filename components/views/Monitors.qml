@@ -156,7 +156,7 @@ BaseView {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         opacity: 0.6
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         text: root.modeNote
       }
     }

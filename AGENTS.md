@@ -150,7 +150,7 @@ Dependencies point one way:
 - **Data-driven surfaces**: `Bars`, `Overlay.views`, `EdgeMenus`, `Dock.docks`, `OSD.osds` are config arrays; surfaces are `Variants`/Repeaters over them, keyed by stable ids.
 - **Loaded by name**: `bar/widgets/<type>.qml`, `content/<Name>.qml`, `views/<type>.qml`. A new one = the file + its schema `oneOf` entry (see those directories' `AGENTS.md`).
 - **Repeater models and `acquire()` requests come from config and tool availability only, never live values** (model by a count or joined string key). A model re-evaluated per sample once pushed qs past 25 GB.
-- **Sizes** outside the bars come from `Widget` (`height`, `padding`, `spacing`, `iconButton`, `smallHeight`, `smallPadding`) or `Widget.px(n)` for widths and decorations, so they follow the Interface scale and Density; only hairlines (≤2 px) stay numbers (`scripts/check_sizes.py`; table: `docs/dev/core/shared-ui-pieces.md` › Sizes).
+- **Sizes** outside the bars come from `Widget` (`height`, `padding`, `spacing`, `iconButton`, `smallHeight`, `smallPadding`) or `Widget.px(n)` for widths and decorations, and text sizes from `Appearance.fontSize` / `fontSizeBy(n)`, so they follow the Interface scale and Density; only hairlines (≤2 px) stay numbers (`scripts/check_sizes.py`; table: `docs/dev/core/shared-ui-pieces.md` › Sizes).
 - **Radii**: `Appearance.borderRadius` only for outer edges (border, bars, pills, popout surfaces, overlay box, windows); `Widget.radius` inside.
 - **Rounded clipping** is Quickshell.Widgets' `ClippingRectangle` (set its `color`; it defaults to white), never a MultiEffect mask.
 - **Icons**: Material Symbols names drawn by `reusable/StyledIcon`, never sharing a Text with a label.

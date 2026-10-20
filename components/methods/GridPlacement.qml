@@ -10,7 +10,9 @@ QtObject {
   id: root
 
   // Card grid constants: internal design values, not user settings.
-  // cardUnit is the grid's default card size, where none is given.
+  // cardUnit: a card size where there's no screen to work one out from
+  // (a menu whose monitor is gone) or only proportions matter (the
+  // editor canvas, scaled to fit)
   readonly property int cardUnit: 500
   readonly property int cardSpacing: 20
   // The px a screen keeps clear on each side of its short one when
@@ -22,11 +24,10 @@ QtObject {
 
   // A span of n grid units is n units plus the n - 1 gaps between them,
   // so span(4) is one card, span(2) half a card and span(8) two cards plus
-  // the gap between them. `unit` is the card size (the default cardUnit
-  // unless given), `gap` the px between cards (cardSpacing unless given:
-  // a grid drawn at another size than the layout's has gapAt's).
+  // the gap between them. `unit` is the card size, `gap` the px between
+  // cards (cardSpacing unless given: a grid drawn zoomed has gapOf's).
   function unitOf(unit, gap) {
-    return ((unit ?? root.cardUnit) - 3 * (gap ?? root.cardSpacing)) / 4;
+    return (unit - 3 * (gap ?? root.cardSpacing)) / 4;
   }
 
   function span(n, unit, gap) {
@@ -66,7 +67,7 @@ QtObject {
   // scaled by scalePlace keep their size and spot exactly (half the card
   // would leave every span a little larger, the gaps staying the same)
   function fineUnit(unit, gap) {
-    return Math.round(((unit ?? root.cardUnit) - (gap ?? root.cardSpacing)) / 2);
+    return Math.round((unit - (gap ?? root.cardSpacing)) / 2);
   }
 
   // A size in grid units as cards: 4 → "1", 2 → "½", 5 → "1¼"
@@ -945,12 +946,12 @@ QtObject {
   }
 
   // The view of that grid (canvasExtent) drawn centred in an area `width`
-  // × `height` px, scaled from the default card size to fit (at most
+  // × `height` px, scaled from cardUnit to fit (at most
   // `maxScale`): { scale, step (a unit and the gap after it), gap,
   // unitSize, originX, originY (where unit 0, 0 sits) }
   function canvasFit(extent, width, height, maxScale) {
     const view = extent.view;
-    const refStep = root.stepOf();
+    const refStep = root.stepOf(root.cardUnit);
     const scale = Math.max(0.05, Math.min(maxScale, width / (view.w * refStep), height / (view.h * refStep)));
     const step = refStep * scale;
     const gap = root.cardSpacing * scale;

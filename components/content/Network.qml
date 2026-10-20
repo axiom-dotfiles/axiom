@@ -92,7 +92,7 @@ Card {
     StyledIcon {
       text: root.kindIcon
       textColor: Theme.accent
-      textSize: Appearance.fontSize + 2
+      textSize: Appearance.fontSizeBy(2)
     }
     StyledText {
       Layout.fillWidth: true
@@ -128,7 +128,7 @@ Card {
       StyledText {
         visible: root.info.kind === "wifi"
         text: `${root.info.signal}%`
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.7
       }
     }
@@ -139,7 +139,7 @@ Card {
       StyledText {
         visible: root.info.ip !== ""
         text: root.info.ip
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.7
       }
       StyledText {
@@ -147,7 +147,7 @@ Card {
         width: Math.min(implicitWidth, parent.width)
         elide: Text.ElideRight
         text: I18n.tr("Tailscale · {0}", root.tailscale)
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         textColor: root.tailscale.startsWith("Running") ? Theme.success : Theme.foreground
         opacity: 0.8
       }

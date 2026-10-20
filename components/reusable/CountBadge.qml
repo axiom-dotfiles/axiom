@@ -11,7 +11,7 @@ PopInRectangle {
   property string text: ""
   property color textColor: Theme.background
   // Its size follows: a bar's badge takes the bar's text size
-  property int textSize: Appearance.fontSize - 4
+  property int textSize: Appearance.fontSizeBy(-4)
 
   implicitWidth: Math.max(implicitHeight, label.implicitWidth + Math.round(textSize * 0.6))
   implicitHeight: Math.round(textSize * 1.4)

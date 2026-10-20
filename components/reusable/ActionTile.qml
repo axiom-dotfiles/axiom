@@ -58,7 +58,7 @@ Rectangle {
     id: labelMetrics
     text: root.label
     font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 1
+    font.pixelSize: Appearance.fontSizeBy(-1)
   }
 
   Column {
@@ -103,7 +103,7 @@ Rectangle {
       elide: Text.ElideRight
       text: root.label
       textColor: root.contentColor
-      textSize: Appearance.fontSize - 1
+      textSize: Appearance.fontSizeBy(-1)
     }
   }
 

@@ -84,7 +84,7 @@ Item {
       // A space keeps a reserved line's height
       text: root.message || " "
       textColor: root.messageIsError ? Theme.error : Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       horizontalAlignment: root.centered ? Text.AlignHCenter : Text.AlignLeft
       wrapMode: root.wrapMessage ? Text.WordWrap : Text.NoWrap
       elide: root.wrapMessage ? Text.ElideNone : Text.ElideRight

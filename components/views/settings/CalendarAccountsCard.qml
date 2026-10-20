@@ -248,7 +248,7 @@ FoldingCard {
     Layout.fillWidth: true
     text: I18n.tr("iCloud needs an app-specific password: make one at account.apple.com (Sign-In and Security → App-Specific Passwords). Your username is your Apple Account's email.")
     textColor: Theme.foregroundAlt
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
   }
 
@@ -296,7 +296,7 @@ FoldingCard {
       Layout.fillWidth: true
       text: root.isLocal ? I18n.tr("Kept in {0}", Paths.userDataPath + "calendars") : root.result?.busy ? I18n.tr("Connecting…") : root.result?.text ?? ""
       textColor: root.isLocal || root.result?.busy ? Theme.foregroundAlt : root.result?.ok ? Theme.success : Theme.error
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       wrapMode: Text.Wrap
     }
     StyledTextButton {
@@ -452,7 +452,7 @@ FoldingCard {
     Layout.fillWidth: true
     text: I18n.tr("Task lists (such as iCloud's reminders) aren't shown yet.")
     opacity: 0.6
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
   }
 }

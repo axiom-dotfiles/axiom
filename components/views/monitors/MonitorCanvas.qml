@@ -163,7 +163,7 @@ ColumnLayout {
             Layout.maximumWidth: tile.width - Widget.padding
             elide: Text.ElideRight
             opacity: 0.7
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             text: tile.mode ? I18n.tr("{0}×{1} @ {2} Hz", tile.mode.width, tile.mode.height, MonitorLayout.formatRate(tile.mode.rate)) : I18n.tr("Preferred mode")
           }
 
@@ -171,7 +171,7 @@ ColumnLayout {
             visible: !tile.monitor
             Layout.alignment: Qt.AlignHCenter
             opacity: 0.7
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
             text: I18n.tr("Not connected")
           }
         }

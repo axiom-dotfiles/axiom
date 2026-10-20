@@ -63,7 +63,7 @@ ColumnLayout {
       StyledIcon {
         text: "arrow_drop_down"
         textColor: root.swatches ? root._currentTextColor : Theme.accent
-        textSize: Appearance.fontSize + 2
+        textSize: Appearance.fontSizeBy(2)
         Layout.preferredWidth: implicitWidth
       }
     }
@@ -156,7 +156,7 @@ ColumnLayout {
     visible: root.description !== ""
     text: I18n.tr(root.description)
     opacity: 0.7
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }

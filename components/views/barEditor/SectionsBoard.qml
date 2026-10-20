@@ -88,14 +88,14 @@ Item {
         text: root.fitText
         textColor: root.crowded.length > 0 ? Theme.warning : Theme.foreground
         opacity: root.crowded.length > 0 ? 1 : 0.6
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         wrapMode: Text.WordWrap
       }
 
       StyledText {
         Layout.fillWidth: true
         opacity: 0.6
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         wrapMode: Text.WordWrap
         text: I18n.tr("Drag widgets to arrange them, across sections too. Click one to edit it: the bar outlines it. Changes show on the bar as you make them; Save keeps them.")
       }

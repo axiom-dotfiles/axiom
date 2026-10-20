@@ -118,7 +118,7 @@ Card {
           elide: Text.ElideRight
           text: root.source.details
           textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
       }
     }
@@ -249,7 +249,7 @@ Card {
             anchors.horizontalCenter: parent.horizontalCenter
             text: parent.hourly ? I18n.formatDate(new Date(parent.hourly.time[parent.index]), "HH") : ""
             textColor: Theme.foregroundAlt
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
           }
           StyledIcon {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -259,7 +259,7 @@ Card {
           StyledText {
             anchors.horizontalCenter: parent.horizontalCenter
             text: parent.hourly ? `${Math.round(parent.hourly.temperature_2m[parent.index])}°` : ""
-            textSize: Appearance.fontSize - 1
+            textSize: Appearance.fontSizeBy(-1)
           }
         }
       }

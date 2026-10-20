@@ -205,7 +205,7 @@ FoldingCard {
       StyledText {
         text: root.pickerHint
         textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
       }

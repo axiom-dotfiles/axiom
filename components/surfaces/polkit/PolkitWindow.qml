@@ -258,7 +258,7 @@ PanelWindow {
           visible: root.actionId !== ""
           text: root.actionId
           textFamily: "monospace"
-          textSize: Appearance.fontSize - 1
+          textSize: Appearance.fontSizeBy(-1)
           elide: Text.ElideMiddle
         }
 

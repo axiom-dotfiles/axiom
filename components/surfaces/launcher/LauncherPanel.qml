@@ -172,7 +172,7 @@ FocusScope {
         })
       text: glyphs[LauncherManager.mode] ?? glyphs.apps
       textColor: Theme.accent
-      textSize: Appearance.fontSizeLarge + 2
+      textSize: Appearance.fontSizeBy(6)
     }
 
     TextField {
@@ -263,7 +263,7 @@ FocusScope {
         anchors.centerIn: parent
         text: parent.labels[LauncherManager.mode] ?? ""
         textColor: Theme.accent
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
     }
   }
@@ -293,7 +293,7 @@ FocusScope {
       visible: LauncherManager.frequent && list.count > 0
       text: I18n.tr("Frequent")
       textColor: Theme.foregroundInactive
-      textSize: Appearance.fontSize - 3
+      textSize: Appearance.fontSizeBy(-3)
       font.weight: Font.DemiBold
       font.capitalization: Font.AllUppercase
       font.letterSpacing: 1

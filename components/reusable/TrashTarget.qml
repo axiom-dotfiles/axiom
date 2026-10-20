@@ -51,7 +51,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         text: "delete"
         textColor: root.hovered ? Theme.background : Theme.error
-        textSize: Appearance.fontSize + 4
+        textSize: Appearance.fontSizeBy(4)
       }
       StyledText {
         id: label

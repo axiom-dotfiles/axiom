@@ -85,7 +85,7 @@ Panel {
       visible: text !== ""
       text: root.resetText(meter.usage?.resetsAt ?? "")
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
     }
   }
 
@@ -118,7 +118,7 @@ Panel {
         StyledText {
           text: [account.row.org, account.row.plan].filter(s => s).join(" · ")
           textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           elide: Text.ElideRight
           Layout.fillWidth: true
         }
@@ -133,7 +133,7 @@ Panel {
           visible: account.row.status !== "ok"
           text: I18n.tr(labels[account.row.status] ?? "loading…")
           textColor: account.row.status === "pending" ? Theme.foregroundAlt : Theme.warning
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
       }
 
@@ -141,7 +141,7 @@ Panel {
         visible: account.row.status === "expired" || account.row.status === "error" || account.row.status === "missing"
         text: account.row.status === "expired" ? I18n.tr("Run Claude Code with this account to refresh its login.") : (account.row.error ?? "")
         textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         wrapMode: Text.Wrap
         Layout.fillWidth: true
         Layout.maximumWidth: Widget.px(320)
@@ -172,7 +172,7 @@ Panel {
         visible: (account.row.breakdown ?? []).length > 0
         text: I18n.tr("This week: {0}", (account.row.breakdown ?? []).map(b => `${b.name} ${b.percent}%`).join(" · "))
         textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         wrapMode: Text.Wrap
         Layout.fillWidth: true
         Layout.maximumWidth: Widget.px(320)
@@ -182,7 +182,7 @@ Panel {
         visible: (account.row.fetchedAt ?? 0) > 0
         text: I18n.tr("Updated {0} ago", root.duration(root.now - account.row.fetchedAt))
         textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
     }
   }

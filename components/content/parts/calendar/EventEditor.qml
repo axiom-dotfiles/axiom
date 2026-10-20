@@ -213,7 +213,7 @@ ColumnLayout {
           Layout.preferredWidth: Appearance.fontSize * 4.5
           text: I18n.tr("Reminder")
           textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize - 1
+          textSize: Appearance.fontSizeBy(-1)
         }
         StyledComboEntry {
           Layout.fillWidth: true
@@ -285,7 +285,7 @@ ColumnLayout {
     Layout.fillWidth: true
     text: root.error !== "" ? root.error : I18n.tr("This calendar can't be changed.")
     textColor: root.error !== "" ? Theme.error : Theme.foregroundAlt
-    textSize: Appearance.fontSize - 1
+    textSize: Appearance.fontSizeBy(-1)
     wrapMode: Text.Wrap
   }
 

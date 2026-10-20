@@ -45,7 +45,7 @@ ColumnLayout {
         visible: !!root.fieldSchema.description
         text: root.fieldSchema.description ? I18n.tr(root.fieldSchema.description) : ""
         opacity: 0.6
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
       }

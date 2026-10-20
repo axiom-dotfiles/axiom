@@ -103,7 +103,7 @@ Card {
                 readonly property bool narrow: disk.width < Appearance.fontSize * 12
                 visible: disk.width >= Appearance.fontSize * 7
                 text: !disk.usage ? "…" : narrow ? Utils.formatSize(disk.usage.used) : Utils.formatSize(disk.usage.used) + " / " + Utils.formatSize(disk.usage.total)
-                textSize: Appearance.fontSize - 2
+                textSize: Appearance.fontSizeBy(-2)
                 opacity: 0.7
               }
             }

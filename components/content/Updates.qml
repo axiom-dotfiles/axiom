@@ -109,7 +109,7 @@ Panel {
           // dnf doesn't say the installed version
           text: section.narrow || row.modelData.from === "" ? row.modelData.to : `${row.modelData.from} → ${row.modelData.to}`
           textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
       }
     }
@@ -118,7 +118,7 @@ Panel {
       visible: section.packages.length > root.maxRows
       text: I18n.tr("+{0} more", section.packages.length - root.maxRows)
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
     }
   }
 
@@ -129,7 +129,7 @@ Panel {
     StyledText {
       visible: UpdatesManager.checking
       text: I18n.tr("checking…")
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       opacity: 0.6
     }
   }

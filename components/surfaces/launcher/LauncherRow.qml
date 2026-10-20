@@ -145,7 +145,7 @@ Item {
           text: root.modelData.usage ?? ""
           textFormat: Text.PlainText
           textColor: Theme.foregroundInactive
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           elide: Text.ElideRight
         }
       }
@@ -156,7 +156,7 @@ Item {
         text: root.modelData.subtitle ?? ""
         textFormat: Text.PlainText
         textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         elide: Text.ElideRight
       }
     }
@@ -179,7 +179,7 @@ Item {
         verticalAlignment: Text.AlignVCenter
         text: root.modelData.hint ?? ""
         textColor: root.modelData.armed ? Theme.background : Theme.foregroundAlt
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
         elide: Text.ElideRight
       }
     }

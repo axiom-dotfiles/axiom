@@ -247,7 +247,7 @@ PanelWindow {
         id: sizeText
         anchors.centerIn: parent
         text: `${Math.round(root.selection.width * root.pixelRatio)} × ${Math.round(root.selection.height * root.pixelRatio)}`
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
       }
     }
 

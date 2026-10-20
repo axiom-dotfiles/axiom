@@ -116,21 +116,21 @@ ColumnLayout {
       StyledText {
         text: root.section.indices.length
         opacity: 0.5
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
 
       StyledIcon {
         visible: root.issueCount > 0
         text: "warning"
         textColor: Theme.warning
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
       }
 
       StyledText {
         visible: root.issueCount > 0
         text: root.issueCount
         textColor: Theme.warning
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
 
       UnsavedDot {
@@ -144,7 +144,7 @@ ColumnLayout {
       StyledText {
         text: root.allPaused ? I18n.tr("Paused") : ""
         opacity: 0.5
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
 
       // Pauses or resumes the whole section

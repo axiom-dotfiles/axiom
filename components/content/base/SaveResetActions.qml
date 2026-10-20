@@ -98,7 +98,7 @@ RowLayout {
         id: buttonText
         visible: !root.compact
         text: button.label
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
         textColor: button.contentColor
         font.bold: true
         Layout.alignment: Qt.AlignVCenter

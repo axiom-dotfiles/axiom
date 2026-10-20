@@ -109,7 +109,7 @@ FieldGroup {
       visible: text !== ""
       text: CommunitySetupsManager.status || (CommunitySetupsManager.loading && !CommunitySetupsManager.loaded ? I18n.tr("Loading the community setups…") : CommunitySetupsManager.loaded && root.results.length === 0 ? (CommunitySetupsManager.setups.length === 0 ? I18n.tr("No setups have been shared yet.") : I18n.tr("No setups match.")) : "")
       opacity: 0.7
-      textSize: Appearance.fontSize - 1
+      textSize: Appearance.fontSizeBy(-1)
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
@@ -149,7 +149,7 @@ FieldGroup {
               text: details.setup?.title ?? ""
               textFormat: Text.PlainText
               font.bold: true
-              textSize: Appearance.fontSize + 2
+              textSize: Appearance.fontSizeBy(2)
               elide: Text.ElideRight
               Layout.fillWidth: true
             }
@@ -255,7 +255,7 @@ FieldGroup {
               text: wallpaper ? I18n.tr("License: {0} · Source: {1}", wallpaper.license, wallpaper.source) + (wallpaper.credit ? " · " + wallpaper.credit : "") : ""
               textFormat: Text.PlainText
               opacity: 0.6
-              textSize: Appearance.fontSize - 2
+              textSize: Appearance.fontSizeBy(-2)
               elide: Text.ElideRight
               Layout.fillWidth: true
             }
@@ -270,7 +270,7 @@ FieldGroup {
             Layout.fillWidth: true
             text: CommunitySetupsManager.applying === details.setup?.id ? I18n.tr("Applying…") : root.armed === details.setup?.id ? I18n.tr("Your current setup is saved as \"{0}\" first.", "before-" + details.setup.id) : ""
             opacity: 0.7
-            textSize: Appearance.fontSize - 1
+            textSize: Appearance.fontSizeBy(-1)
             elide: Text.ElideRight
           }
 
@@ -346,7 +346,7 @@ FieldGroup {
               text: tile.modelData.compatible ? I18n.tr("by {0}", tile.modelData.author) : I18n.tr("by {0} · needs a newer axiom", tile.modelData.author)
               textFormat: Text.PlainText
               opacity: 0.6
-              textSize: Appearance.fontSize - 2
+              textSize: Appearance.fontSizeBy(-2)
               elide: Text.ElideRight
             }
           }
@@ -376,7 +376,7 @@ FieldGroup {
         Layout.fillWidth: true
         text: SavedConfigsManager.status
         opacity: 0.7
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSizeBy(-1)
         elide: Text.ElideRight
       }
 

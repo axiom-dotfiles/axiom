@@ -272,7 +272,7 @@ Panel {
                   Layout.fillWidth: true
                   text: root.deviceName(deviceRow.node)
                   elide: Text.ElideRight
-                  textSize: Appearance.fontSize - 1
+                  textSize: Appearance.fontSizeBy(-1)
                   textColor: deviceRow.selected ? Theme.foreground : Theme.foregroundAlt
                 }
 

@@ -145,7 +145,7 @@ Item {
         delegate: StyledIcon {
           required property var value
           text: value
-          textSize: Appearance.fontSize + 10
+          textSize: Appearance.fontSizeBy(10)
         }
       }
 
@@ -163,7 +163,7 @@ Item {
 
     StyledText {
       text: root.showPercent ? Math.round(root.volumeLevel * 100) + "%" : ""
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       horizontalAlignment: Text.AlignHCenter
       Layout.row: content.isVertical ? 2 : 0
       Layout.column: content.isVertical ? 0 : 2
@@ -177,7 +177,7 @@ Item {
       TextMetrics {
         id: widest
         font.family: Appearance.fontFamily
-        font.pixelSize: Appearance.fontSize - 2
+        font.pixelSize: Appearance.fontSizeBy(-2)
         text: "100%"
       }
     }

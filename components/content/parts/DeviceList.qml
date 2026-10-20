@@ -42,12 +42,12 @@ Item {
   FontMetrics {
     id: titleMetrics
     font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 1
+    font.pixelSize: Appearance.fontSizeBy(-1)
   }
   FontMetrics {
     id: statusMetrics
     font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 3
+    font.pixelSize: Appearance.fontSizeBy(-3)
   }
 
   EmptyState {

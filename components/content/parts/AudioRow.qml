@@ -74,7 +74,7 @@ Item {
           Layout.maximumWidth: subtitleText.visible ? implicitWidth : -1
           text: root.title
           elide: Text.ElideRight
-          textSize: Appearance.fontSize - 1
+          textSize: Appearance.fontSizeBy(-1)
           textColor: root.muted ? Theme.foregroundAlt : Theme.foreground
         }
 
@@ -84,7 +84,7 @@ Item {
           visible: root.subtitle !== "" && root.subtitle !== root.title
           text: root.subtitle
           elide: Text.ElideRight
-          textSize: Appearance.fontSize - 3
+          textSize: Appearance.fontSizeBy(-3)
           textColor: Theme.foregroundAlt
         }
       }
@@ -109,13 +109,13 @@ Item {
       Layout.preferredWidth: percentMetrics.width
       horizontalAlignment: Text.AlignRight
       text: `${Math.round(root.volume * 100)}%`
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       textColor: Theme.foregroundAlt
 
       TextMetrics {
         id: percentMetrics
         font.family: Appearance.fontFamily
-        font.pixelSize: Appearance.fontSize - 2
+        font.pixelSize: Appearance.fontSizeBy(-2)
         text: "150%"
       }
     }

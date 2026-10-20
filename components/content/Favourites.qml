@@ -75,7 +75,7 @@ Card {
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideRight
             text: app.modelData.name
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
           }
         }
 

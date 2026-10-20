@@ -23,7 +23,7 @@ PopInRectangle {
     anchors.centerIn: parent
     text: root.text
     textColor: Theme.background
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     font.bold: true
   }
 }

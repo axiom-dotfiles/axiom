@@ -161,7 +161,7 @@ Panel {
       visible: !root.recording
       text: "screen_record"
       textColor: Theme.accent
-      textSize: Appearance.fontSize + 2
+      textSize: Appearance.fontSizeBy(2)
     }
     StyledText {
       Layout.fillWidth: true
@@ -300,7 +300,7 @@ Panel {
         StyledText {
           Layout.fillWidth: true
           text: I18n.tr("Recent recordings")
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           textColor: Theme.foregroundAlt
           font.bold: true
           elide: Text.ElideRight

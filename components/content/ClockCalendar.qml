@@ -140,7 +140,7 @@ Card {
             horizontalAlignment: root.clockRow ? Text.AlignLeft : Text.AlignHCenter
             elide: Text.ElideRight
             text: I18n.formatDate(root.now, I18n.dateFormat(root.compact ? "shortDate" : "longDate"))
-            textSize: root.compact ? Appearance.fontSize - 2 : Appearance.fontSize
+            textSize: root.compact ? Appearance.fontSizeBy(-2) : Appearance.fontSize
             opacity: 0.7
           }
         }

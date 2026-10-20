@@ -51,4 +51,5 @@ Reader for the Appearance section. Values are always present: schema defaults ar
 
 ### Functions
 
+- `fontSizeBy(n: real): int`: The font size `n` px bigger (smaller when negative) than the setting, at the Interface scale: the offset grows with the text, where `fontSize + n` would leave it the same at every scale
 - `fill(color)`: A surface fill (a theme color, or a name or "#hex" as Theme.resolveColor gives one) at the surface opacity

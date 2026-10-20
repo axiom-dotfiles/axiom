@@ -129,7 +129,7 @@ TitledCard {
       Layout.fillWidth: true
       text: root.hasDark ? I18n.tr("This theme has no light variant.") : I18n.tr("This theme has no dark variant.")
       opacity: 0.6
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       wrapMode: Text.WordWrap
     }
   ]

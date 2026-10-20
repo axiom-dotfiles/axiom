@@ -105,7 +105,7 @@ Rectangle {
       horizontalAlignment: Text.AlignHCenter
       text: root.dragLayer.moduleIcon(root.type)
       textColor: root.filled ? root.ink : Theme.accent
-      textSize: root.small ? Appearance.fontSize + 2 : Appearance.fontSize + 8
+      textSize: root.small ? Appearance.fontSizeBy(2) : Appearance.fontSizeBy(8)
     }
 
     StyledText {
@@ -115,7 +115,7 @@ Rectangle {
       elide: Text.ElideRight
       text: root.dragLayer.moduleLabel(root.type)
       textColor: root.ink
-      textSize: Appearance.fontSize - 1
+      textSize: Appearance.fontSizeBy(-1)
       font.bold: true
     }
 
@@ -126,7 +126,7 @@ Rectangle {
       elide: Text.ElideRight
       text: root.detail
       textColor: root.ink
-      textSize: Appearance.fontSize - 3
+      textSize: Appearance.fontSizeBy(-3)
       opacity: 0.75
     }
   }
@@ -171,7 +171,7 @@ Rectangle {
       readonly property var place: root.dragLayer.landingPlace ?? root.place
       text: I18n.tr("{0} × {1} cards", GridPlacement.cards(sizeText.place.w), GridPlacement.cards(sizeText.place.h))
       textColor: Theme.background
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       font.bold: true
     }
   }

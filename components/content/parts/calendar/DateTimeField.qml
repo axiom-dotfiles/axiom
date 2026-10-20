@@ -52,7 +52,7 @@ ColumnLayout {
       Layout.preferredWidth: Appearance.fontSize * 4.5
       text: root.label
       textColor: Theme.foregroundAlt
-      textSize: Appearance.fontSize - 1
+      textSize: Appearance.fontSizeBy(-1)
       elide: Text.ElideRight
     }
     StyledTextButton {

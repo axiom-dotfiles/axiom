@@ -97,7 +97,7 @@ RowLayout {
   StyledText {
     text: I18n.tr("Click a spot to place it; fine-tune below. Detached, it floats a distance across the free screen; attached, it grows out of the edge.")
     textColor: Theme.foregroundAlt
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSizeBy(-2)
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
     Layout.alignment: Qt.AlignTop

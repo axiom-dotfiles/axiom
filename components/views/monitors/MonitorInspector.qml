@@ -56,7 +56,7 @@ ColumnLayout {
 
     StyledText {
       text: MonitorManager.labelFor(root.rule)
-      textSize: Appearance.fontSize + 2
+      textSize: Appearance.fontSizeBy(2)
       font.bold: true
       Layout.fillWidth: true
       elide: Text.ElideRight
@@ -65,7 +65,7 @@ ColumnLayout {
     StyledText {
       text: root.monitor ? root.monitor.description : I18n.tr("Not connected")
       opacity: 0.7
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }

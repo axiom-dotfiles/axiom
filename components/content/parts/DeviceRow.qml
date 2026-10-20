@@ -102,7 +102,7 @@ Rectangle {
           Layout.fillWidth: true
           text: root.title
           elide: Text.ElideRight
-          textSize: Appearance.fontSize - 1
+          textSize: Appearance.fontSizeBy(-1)
           textColor: root.connected ? Theme.foreground : Theme.foregroundAlt
         }
 
@@ -115,7 +115,7 @@ Rectangle {
         Layout.fillWidth: true
         text: root._confirmForget ? I18n.tr("Click again to forget") : root.status
         elide: Text.ElideRight
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
         textColor: root._confirmForget || root.failed ? Theme.error : root.busy || root.connected ? Theme.accent : Theme.foregroundAlt
       }
     }

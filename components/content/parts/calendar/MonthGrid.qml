@@ -131,7 +131,7 @@ Item {
           size: Math.round(root.headerHeight * 0.9)
           iconText: modelData[0]
           iconColor: Theme.accent
-          iconSize: Appearance.fontSize + 2
+          iconSize: Appearance.fontSizeBy(2)
           onClicked: root.step(modelData[1])
         }
       }
@@ -155,7 +155,7 @@ Item {
           horizontalAlignment: root.titles ? Text.AlignLeft : Text.AlignHCenter
           verticalAlignment: Text.AlignVCenter
           text: I18n.locale.dayName((root.firstDay + index) % 7, root.titles ? Locale.ShortFormat : Locale.NarrowFormat)
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           opacity: 0.6
         }
       }
@@ -229,7 +229,7 @@ Item {
               textColor: cell.modelData.isToday ? Theme.background : Theme.foreground
               font.bold: cell.modelData.isToday
               opacity: cell.modelData.inMonth ? 1 : 0.35
-              textSize: Appearance.fontSize - 1
+              textSize: Appearance.fontSizeBy(-1)
             }
           }
 
@@ -290,7 +290,7 @@ Item {
                   width: parent.width - x - 2
                   text: chip.event ? (chip.event.allDay || CalendarEvents.spanOn(chip.event, cell.key) !== "single" && CalendarEvents.spanOn(chip.event, cell.key) !== "starts" ? "" : I18n.formatDate(new Date(chip.event.start), CalendarConfig.timeFormat) + " ") + (chip.event.title || I18n.tr("(No title)")) : ""
                   elide: Text.ElideRight
-                  textSize: Appearance.fontSize - 3
+                  textSize: Appearance.fontSizeBy(-3)
                 }
               }
             }
@@ -298,7 +298,7 @@ Item {
               visible: cell.dayEvents.length > cell.shownCount
               x: 4
               text: I18n.tr("+{0} more", cell.dayEvents.length - cell.shownCount)
-              textSize: Appearance.fontSize - 3
+              textSize: Appearance.fontSizeBy(-3)
               textColor: Theme.foregroundAlt
             }
           }

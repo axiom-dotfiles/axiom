@@ -90,7 +90,7 @@ DropdownSurface {
                 leftPadding: Widget.spacing
                 text: row.rowData.header
                 textColor: Theme.foregroundAlt
-                textSize: Appearance.fontSize - 3
+                textSize: Appearance.fontSizeBy(-3)
                 font.bold: true
               }
             }
@@ -130,7 +130,7 @@ DropdownSurface {
                     Layout.fillWidth: true
                     text: item.conversation.title || I18n.tr("Untitled")
                     textColor: item.current ? Theme.accent : Theme.foreground
-                    textSize: Appearance.fontSize - 1
+                    textSize: Appearance.fontSizeBy(-1)
                     elide: Text.ElideRight
                   }
 
@@ -157,7 +157,7 @@ DropdownSurface {
                     visible: itemHover.hovered && !item.editing
                     size: Widget.iconButton
                     iconText: "edit"
-                    iconSize: Appearance.fontSize - 2
+                    iconSize: Appearance.fontSizeBy(-2)
                     tooltipText: I18n.tr("Rename")
                     onClicked: root.renaming = item.conversation.id
                   }
@@ -165,7 +165,7 @@ DropdownSurface {
                     visible: itemHover.hovered && !item.editing
                     size: Widget.iconButton
                     iconText: "delete"
-                    iconSize: Appearance.fontSize - 2
+                    iconSize: Appearance.fontSizeBy(-2)
                     tooltipText: I18n.tr("Delete")
                     onClicked: ChatManager.remove(item.conversation.id)
                   }
@@ -183,7 +183,7 @@ DropdownSurface {
           wrapMode: Text.WordWrap
           text: ChatConfig.keepConversations === 0 ? I18n.tr("Conversations aren't saved (Settings → Chat).") : root.query !== "" ? I18n.tr("No matches") : I18n.tr("No conversations yet")
           textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
         }
       }
     }

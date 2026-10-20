@@ -1052,10 +1052,14 @@ class CheckSizes(unittest.TestCase):
             "  font.pixelSize: 100 // fixed px: a measuring font",
             "  Layout.preferredHeight: 24",
             "  opacity: 50",
+            "  textSize: Appearance.fontSize - 2",
+            "  iconSize: Appearance.fontSize * 2",
+            "  pixelSize: Appearance.fontSizeBy(-2)",
             "}",
         ])
         self.assertEqual([(n, name) for n, name, _ in find_literals(qml)],
-                         [(2, "implicitWidth"), (5, "listMargin"), (9, "Layout.preferredHeight")])
+                         [(2, "implicitWidth"), (5, "listMargin"), (9, "Layout.preferredHeight"),
+                          (11, "fontSize")])
 
 
 class ClaimHyprland(unittest.TestCase):

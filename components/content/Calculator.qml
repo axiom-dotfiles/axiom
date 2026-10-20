@@ -139,7 +139,7 @@ Panel {
       visible: !key.modelData.icon
       anchors.centerIn: parent
       text: key.modelData.label ?? key.modelData.key
-      textSize: Math.max(Appearance.fontSize - 2, Math.min(Appearance.fontSize * 1.5, key.height * 0.38))
+      textSize: Math.max(Appearance.fontSizeBy(-2), Math.min(Appearance.fontSize * 1.5, key.height * 0.38))
       textColor: key.kind === "equals" ? Theme.background : key.kind === "op" ? Theme.accent : Theme.foreground
       font.bold: key.kind !== "digit"
     }
@@ -147,7 +147,7 @@ Panel {
       visible: !!key.modelData.icon
       anchors.centerIn: parent
       text: key.modelData.icon ?? ""
-      textSize: Math.max(Appearance.fontSize - 2, Math.min(Appearance.fontSize * 1.5, key.height * 0.38))
+      textSize: Math.max(Appearance.fontSizeBy(-2), Math.min(Appearance.fontSize * 1.5, key.height * 0.38))
       textColor: Theme.accent
     }
 
@@ -390,7 +390,7 @@ Panel {
               Layout.fillWidth: true
               horizontalAlignment: answerBox.centred ? Text.AlignHCenter : root.strip ? Text.AlignLeft : Text.AlignRight
               text: root.result !== "" ? "= " + root.result : root.expr !== "" && CalculatorManager.busyFor(root.key) ? "…" : ""
-              textSize: root.strip ? Appearance.fontSize + 2 : (answerBox.centred || answerBox.display) && root.innerHeight >= Appearance.fontSize * 12 ? Appearance.fontSize * 2.2 : Appearance.fontSize * 1.6
+              textSize: root.strip ? Appearance.fontSizeBy(2) : (answerBox.centred || answerBox.display) && root.innerHeight >= Appearance.fontSize * 12 ? Appearance.fontSize * 2.2 : Appearance.fontSize * 1.6
               textColor: root.copied !== "" && root.copied === root.result ? Theme.accent : Theme.foreground
               font.bold: true
               wrapMode: answerBox.centred ? Text.Wrap : Text.NoWrap
@@ -411,7 +411,7 @@ Panel {
               Layout.fillWidth: true
               horizontalAlignment: answerBox.centred ? Text.AlignHCenter : Text.AlignRight
               text: root.copied !== "" ? I18n.tr("Copied") : root.result !== "" ? I18n.tr("Enter to copy") : root.expr !== "" && CalculatorManager.answered(root.key, root.expr) ? I18n.tr("No result") : I18n.tr("Math, units and currencies")
-              textSize: Appearance.fontSize - 3
+              textSize: Appearance.fontSizeBy(-3)
               textColor: Theme.foregroundAlt
             }
           }

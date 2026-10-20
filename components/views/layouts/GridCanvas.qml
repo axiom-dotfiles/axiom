@@ -185,7 +185,7 @@ Card {
       StyledIcon {
         text: root.icon
         textColor: Theme.accent
-        textSize: Appearance.fontSize + 6
+        textSize: Appearance.fontSizeBy(6)
       }
 
       ColumnLayout {
@@ -198,7 +198,7 @@ Card {
 
           StyledText {
             text: root.title
-            textSize: Appearance.fontSize + 4
+            textSize: Appearance.fontSizeBy(4)
             font.bold: true
             elide: Text.ElideRight
             Layout.maximumWidth: root.width / 3
@@ -208,7 +208,7 @@ Card {
             visible: root.editable
             text: I18n.tr("{0} modules", root.list.length)
             opacity: 0.6
-            textSize: Appearance.fontSize - 1
+            textSize: Appearance.fontSizeBy(-1)
           }
 
           Item {
@@ -238,7 +238,7 @@ Card {
             Layout.leftMargin: Widget.spacing / 2
             text: root.nudgeText
             opacity: 0.6
-            textSize: Appearance.fontSize - 2
+            textSize: Appearance.fontSizeBy(-2)
           }
           FlatIconButton {
             visible: root.canCentre
@@ -268,7 +268,7 @@ Card {
           text: root.fitText
           textColor: root.fitWarning ? Theme.warning : Theme.foreground
           opacity: root.fitWarning ? 1 : 0.6
-          textSize: Appearance.fontSize - 2
+          textSize: Appearance.fontSizeBy(-2)
           elide: Text.ElideRight
         }
       }
@@ -280,7 +280,7 @@ Card {
         elide: Text.ElideRight
         text: I18n.tr("Drag to move · drag an edge to resize · click to edit")
         opacity: 0.5
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
       }
 
       SaveResetActions {
@@ -523,7 +523,7 @@ Card {
           rotation: root.alongRows && parent.width < width + Widget.padding ? -90 : 0
           text: root.reservedLabel
           textColor: Theme.accent
-          textSize: Appearance.fontSize - 3
+          textSize: Appearance.fontSizeBy(-3)
           opacity: 0.8
         }
       }
@@ -582,7 +582,7 @@ Card {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.topMargin: 2
             text: ghost.info?.name ?? ""
-            textSize: Appearance.fontSize - 3
+            textSize: Appearance.fontSizeBy(-3)
           }
         }
       }
@@ -624,7 +624,7 @@ Card {
         y: Math.max(0, Math.min(area.height - height, root.screenRect.y + root.screenRect.height + 2))
         text: I18n.tr("Screen edge")
         textColor: Theme.warning
-        textSize: Appearance.fontSize - 3
+        textSize: Appearance.fontSizeBy(-3)
       }
 
       StyledText {
@@ -746,7 +746,7 @@ Card {
               anchors.centerIn: parent
               text: margin.info ? (margin.info.exact ? "" : "≈") + GridPlacement.cards(margin.info.units) : ""
               textColor: margin.tint
-              textSize: Appearance.fontSize - 3
+              textSize: Appearance.fontSizeBy(-3)
             }
           }
         }

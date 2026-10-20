@@ -17,7 +17,7 @@ Everything outside the bars follows the Interface scale and Density through `Wid
 | A control's height (fields, switches, tabs) | `Widget.height` (or a fixed share of it) |
 | A square icon button | `Widget.iconButton` (`FlatIconButton`'s default) |
 | A chip, pill or small button (18–22 px) | `Widget.smallHeight` |
-| An icon or text size | `Appearance.fontSize ± n` |
+| An icon or text size | `Appearance.fontSize`, `fontSizeLarge`, or `Appearance.fontSizeBy(n)` for n px more or less (never `fontSize ± n`: the offset wouldn't scale) |
 | A width, an avatar, a dot, a thin bar | `Widget.px(n)` (the Interface scale only) |
 | A hairline (0–2 px, `border.width`) | the number |
 | Measured against the screen, a measuring font, a placeholder always set | the number, marked `// fixed px: <reason>` |

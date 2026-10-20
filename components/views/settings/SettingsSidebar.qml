@@ -112,7 +112,7 @@ Item {
                 anchors.leftMargin: Widget.padding
                 anchors.verticalCenter: parent.verticalCenter
                 text: I18n.tr(link.modelData.title)
-                textSize: Appearance.fontSize - 1
+                textSize: Appearance.fontSizeBy(-1)
                 textColor: linkArea.containsMouse ? Theme.accent : Theme.foreground
                 opacity: linkArea.containsMouse ? 1 : 0.7
                 elide: Text.ElideRight
@@ -137,7 +137,7 @@ Item {
       text: SettingsManager.changedCount > 0 ? I18n.tr("{0} unsaved changes", SettingsManager.changedCount) : I18n.tr("Changes apply as you make them. Save keeps them.")
       textColor: SettingsManager.changedCount > 0 ? Theme.accent : Theme.foreground
       opacity: SettingsManager.changedCount > 0 ? 1 : 0.6
-      textSize: Appearance.fontSize - 2
+      textSize: Appearance.fontSizeBy(-2)
       wrapMode: Text.WordWrap
     }
   }

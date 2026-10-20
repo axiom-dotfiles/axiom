@@ -11,6 +11,9 @@ same at every scale, so next to the text around it it comes out cramped at
     …margin(s), …padding, …radius, …length or …thickness: width,
     Layout.preferredHeight, anchors.leftMargin, textSize), or a
     `property int|real` of that name, set to a number of 3 or more
+  - a font size offset, `Appearance.fontSize + n` (or fontSizeLarge):
+    the offset stays the same at every scale; use
+    `Appearance.fontSizeBy(n)`
 
 Left alone: components/bar/ (each bar sizes its own widgets),
 components/methods/ (pure helpers: sizes are handed in), hairlines
@@ -34,6 +37,8 @@ NUMBER = r"(\d+(?:\.\d+)?)"
 # `name: 12` (an assignment) or `property int name: 12` (a default)
 ASSIGN = re.compile(r"^\s*(?:readonly\s+)?(?:property\s+(?:int|real)\s+)?(" + SIZE_NAME + r")\s*:\s*" + NUMBER + r"\s*(?://.*)?$")
 MARK = "// fixed px:"
+# `Appearance.fontSize - 2`, not `Appearance.fontSize * 2`
+FONT_OFFSET = re.compile(r"Appearance\.(fontSize(?:Large)?)\s*[-+]\s*\d")
 
 
 def find_literals(text):
@@ -45,6 +50,9 @@ def find_literals(text):
         m = ASSIGN.match(line)
         if m and float(m.group(2)) >= 3:
             found.append((n, m.group(1), m.group(2)))
+        offset = FONT_OFFSET.search(line)
+        if offset:
+            found.append((n, offset.group(1), offset.group(0)))
     return found
 
 
@@ -62,7 +70,8 @@ def main():
     if errors:
         print(
             f"\n{len(errors)} literal size(s): use a Widget size (height, padding, spacing, "
-            "iconButton, smallHeight, smallPadding) or Widget.px(n), or mark the line "
+            "iconButton, smallHeight, smallPadding), Widget.px(n) or "
+            "Appearance.fontSizeBy(n), or mark the line "
             "`// fixed px: <reason>` if it's measured against the screen"
         )
         return 1

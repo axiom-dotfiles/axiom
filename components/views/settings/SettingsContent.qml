@@ -328,7 +328,7 @@ Item {
 
             StyledText {
               text: I18n.tr(block.modelData.name)
-              textSize: Appearance.fontSize + 2
+              textSize: Appearance.fontSizeBy(2)
               font.bold: true
             }
 

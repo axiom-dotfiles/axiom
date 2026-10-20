@@ -34,7 +34,7 @@ ColumnLayout {
         anchors.centerIn: parent
         text: root.icon
         textColor: root.filled ? Theme.background : Theme.accent
-        textSize: Appearance.fontSize + 4
+        textSize: Appearance.fontSizeBy(4)
       }
     }
 
@@ -44,7 +44,7 @@ ColumnLayout {
 
       StyledText {
         text: root.title
-        textSize: Appearance.fontSize + 4
+        textSize: Appearance.fontSizeBy(4)
         font.bold: true
         elide: Text.ElideRight
         Layout.fillWidth: true
@@ -53,7 +53,7 @@ ColumnLayout {
       StyledText {
         text: root.subtitle
         opacity: 0.6
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         elide: Text.ElideRight
         Layout.fillWidth: true
       }

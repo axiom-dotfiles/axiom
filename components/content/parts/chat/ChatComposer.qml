@@ -153,7 +153,7 @@ ColumnLayout {
             text: ChatManager.busy ? "stop" : "arrow_upward"
             fill: 1
             textColor: ChatManager.busy ? Theme.foreground : sendButton.canSend ? Theme.background : Theme.foregroundAlt
-            textSize: Appearance.fontSize + 2
+            textSize: Appearance.fontSizeBy(2)
           }
 
           TapHandler {
@@ -174,7 +174,7 @@ ColumnLayout {
     Layout.leftMargin: Widget.spacing
     text: ChatManager.notice
     textColor: Theme.warning
-    textSize: Appearance.fontSize - 3
+    textSize: Appearance.fontSizeBy(-3)
     elide: Text.ElideRight
   }
 }

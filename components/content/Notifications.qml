@@ -189,7 +189,7 @@ Panel {
         horizontalAlignment: Text.AlignHCenter
         text: I18n.tr("Do not disturb is on")
         textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 2
+        textSize: Appearance.fontSizeBy(-2)
         opacity: 0.7
       }
     }
