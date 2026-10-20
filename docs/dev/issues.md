@@ -18,6 +18,18 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### An edge menu can be bigger than its screen
+- **Where:** `services/EdgeMenuManager.qml` (`cardUnitOf`), `components/methods/GridPlacement.qml` (`menuPlacement`)
+- **What:** A menu's cards are the card size on its screen (`OverlayConfig.cardUnitOn`, `Widget.cardSize` up to 150 %) times its own `moduleScale` (up to 200 %), and nothing caps the result to the screen: `menuPlacement` sizes the menu from its modules (`trackSizes`) and only places it along the edge. With a high card size and Module size (a 1080 px screen at 150 % × 200 %: cards of about 1350 px), a menu's depth or length passes the screen and the rest is cut off. A fix would shrink its cards to fit, as `screenArrangement` does for screen layouts.
+- **Size:** small
+- **Found:** 2026-10-21, while reviewing the sizing revamp (overlaySettingsRevamp)
+
+### Text clips on 1080p screens
+- **Where:** `components/views/layouts/MenuOpening.qml` (the Show on screen / Show other menus buttons)
+- **What:** On a 1920×1080 monitor at the default Interface scale, the edge menu editor's two buttons side by side ("Show on screen", "Show other menus", and their Hide labels) don't fit their halves of the inspector and their labels clip. Likely not the only place: much of the UI was laid out on a 1440 px screen, and since the sizing revamp text keeps its size on every monitor while panels and cards follow the screen. Wants a pass over the overlay pages and inspectors at 1080p (`scripts/dev/nested.sh` with a 1080p output), wrapping or stacking what doesn't fit.
+- **Size:** needs a plan
+- **Found:** 2026-10-21, while checking the sizing revamp on 1080p (overlaySettingsRevamp)
+
 ### A popout taller than the screen runs off it
 - **Where:** `components/hosts/popout/BarPopouts.qml` (`popoutRoom`), `components/content/Calendar.qml`
 - **What:** Nothing keeps a bar popout's content within the screen: content taller than the room past the bar (the Calendar popout with its event editor open on a short screen, 1080 px or less with a top bar) draws its box past the screen's far side, and what's there is cut off. `popoutRoom` measures the room left, and only `StyledComboEntry`'s inline list keeps to it. A general guard would hand the content a most height (as `SubPopout.maxContentHeight` does for submenus) for it to scroll within.
