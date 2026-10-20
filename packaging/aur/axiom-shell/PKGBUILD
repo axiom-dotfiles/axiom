@@ -6,7 +6,7 @@
 # (scripts/check_packages.py). docs/dev/packaging.md says how it's laid out.
 
 pkgname=axiom-shell
-pkgver=1.1.10
+pkgver=1.1.11
 pkgrel=1
 pkgdesc='A Quickshell desktop shell for Hyprland, sway and niri: bar, launcher, notifications, lock and login screens, overlay pages'
 arch=('any')
@@ -48,7 +48,7 @@ optdepends=(
 )
 install=axiom-shell.install
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('7612994fc7b5615ff6007117e64efbb21b7b5a075e8a00be7ff44bfd70c4acd8')
+sha256sums=('781e3419b4b3397ab5103a826fd4838f61299c951fc925987219db07574a3e6c')
 
 package() {
   cd "axiom-$pkgver"
