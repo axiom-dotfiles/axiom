@@ -343,6 +343,32 @@ QtObject {
     return all.slice(0, lead).concat(rest.filter(group => !group.wide), rest.filter(group => group.wide));
   }
 
+  // Where the settings page shows a setting (a key path, as an array or
+  // dotted: "Appearance.font.size"), or a section or object ("BarStyle",
+  // "Appearance.shape"): { category, key, title, row } for the first card
+  // holding it in page order (`key` its group key, `title` the setting's
+  // or card's, `row` the exact row's path, or null for a section or
+  // object), or null when no card shows it. `valueOf` as `categories`
+  function locate(schema, path, valueOf) {
+    const target = Array.isArray(path) ? path : String(path).split(".");
+    const within = p => target.length <= p.length && target.every((key, i) => p[i] === key);
+    for (const category of root.categories(schema, valueOf)) {
+      for (const group of root.categoryGroups(schema, category)) {
+        const row = group.rows.find(row => within(row.path));
+        if (!row && !(group.path.length > 0 && within(group.path)))
+          continue;
+        const exact = row && row.path.length === target.length ? row : null;
+        return {
+          "category": category.name,
+          "key": group.key,
+          "title": exact ? exact.title : group.title,
+          "row": exact ? exact.path : null
+        };
+      }
+    }
+    return null;
+  }
+
   // [{ name, icon, card, cardTitle, sections: [key], links: [page type] }]:
   // the root's `x-categories` in order (`icon`, and `card`, a hand-built
   // card of the category's own: settings/<card>Card.qml, wide, titled

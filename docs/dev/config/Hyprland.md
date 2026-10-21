@@ -16,7 +16,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-scope="personal"
 - **`Hyprland.managed.layout`** · string = "dwindle" · enum dwindle|master
   - Layout: How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.
-  - x-group="Hyprland layout", x-hypr="general.layout", x-hyprAlways=true
+  - x-link={"setting":"Workspaces"}, x-group="Hyprland layout", x-hypr="general.layout", x-hyprAlways=true
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.preserveSplit`** · boolean = true
   - Keep split direction: Dwindle keeps a split's direction when the window is resized or moved.
@@ -64,7 +64,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.animationPreset`** · string = "axiom" · enum hyprland|axiom|instant|snappy|bouncy|lightning|custom
   - Style: Follow axiom's motion uses Look & Feel → Motion's speed, and turns Hyprland's animations off with axiom's.
-  - x-scope="look", x-group="Hyprland animations", x-showIf={"animations":true}
+  - x-link={"setting":"Appearance.motion"}, x-scope="look", x-group="Hyprland animations", x-showIf={"animations":true}
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 - **`Hyprland.managed.workspaceWraparound`** · boolean = false
   - Wrap workspace animations: Going from the last workspace to the first slides forward, not back.

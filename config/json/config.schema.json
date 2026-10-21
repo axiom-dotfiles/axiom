@@ -42,7 +42,7 @@
       "type": "object",
       "x-category": "Screen & Power",
       "title": "Lockscreen",
-      "x-links": ["Layouts"],
+      "x-links": ["Layouts:lockscreen"],
       "description": "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in one.",
       "additionalProperties": false,
       "properties": {
@@ -85,7 +85,7 @@
       "x-category": "Screen & Power",
       "x-card": "GreeterStatus",
       "x-cardTitle": "greetd",
-      "x-links": ["Layouts"],
+      "x-links": ["Layouts:greeter"],
       "title": "Login screen",
       "description": "Axiom as your login screen (a greetd greeter), laid out on the Layouts page like the lock screen. It runs as greetd's own user from a copy of axiom installed for it, and shows what axiom exports for it here: no root is needed to change it once it's set up.",
       "additionalProperties": false,
@@ -250,6 +250,7 @@
       "x-order": ["monitors", "edge", "position", "detached", "distance", "reverse", "width", "maxResults", "iconSize", "showBackdrop", "backdrop", "showDescriptions", "showRecent", "showHint", "windows", "calculator", "commands", "runCommands", "webSearch", "searchEngine", "chat", "clipboard", "clipboardSource", "clipboardMaxEntries", "emoji", "hiddenApps"],
       "properties": {
         "monitors": {
+          "x-link": { "setting": "General.monitors" },
           "x-scope": "look",
           "type": "string",
           "title": "Monitors",
@@ -310,7 +311,7 @@
         "runCommands": { "x-group": "Launcher search", "type": "boolean", "title": "Run commands (>)", "default": true, "description": "Type > and a command to run it. Shift+Enter runs it in the terminal." },
         "webSearch": { "x-group": "Launcher search", "type": "boolean", "title": "Web search (?)", "default": true, "description": "Offer a web search for what you typed, last in the list (or first after ?)." },
         "searchEngine": { "x-group": "Launcher search", "type": "string", "title": "Search engine URL", "default": "https://duckduckgo.com/?q={}", "description": "{} is replaced by the search terms.", "x-showIf": { "webSearch": true } },
-        "chat": { "x-group": "Launcher search", "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." },
+        "chat": { "x-link": { "setting": "Chat" }, "x-group": "Launcher search", "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." },
         "clipboard": { "x-group": "Launcher search", "type": "boolean", "title": "Clipboard history (:)", "default": true, "description": "Type : (or /clipboard) to search what you've copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don't; turning it off clears the history." },
         "clipboardSource": { "x-scope": "machine", "x-group": "Launcher search", "type": "string", "title": "Clipboard history source", "default": "axiom", "enum": ["axiom", "cliphist"], "x-enumLabels": { "axiom": "axiom (in memory)", "cliphist": "cliphist" }, "description": "axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).", "x-showIf": { "clipboard": true } },
         "clipboardMaxEntries": { "x-group": "Launcher search", "type": "integer", "title": "Clipboard history size", "default": 100, "minimum": 10, "maximum": 1000, "description": "How many clips axiom keeps.", "x-showIf": { "clipboard": true, "clipboardSource": "axiom" } },
@@ -342,6 +343,7 @@
       "additionalProperties": false,
       "properties": {
         "monitors": {
+          "x-link": { "setting": "General.monitors" },
           "x-scope": "look",
           "type": "string",
           "title": "Monitors",
@@ -396,6 +398,7 @@
       "x-order": ["monitors", "position", "evenGaps", "gap", "gapTop", "gapBottom", "gapLeft", "gapRight", "timeout", "appTimeouts", "criticalStays", "maxToasts", "width", "quietFullscreen", "clearOnFocus", "removeOnClick", "closeRemoves", "maxEntries", "maxAgeDays"],
       "properties": {
         "monitors": {
+          "x-link": { "setting": "General.monitors" },
           "x-scope": "look",
           "type": "string",
           "title": "Monitors",
@@ -609,7 +612,7 @@
           "additionalProperties": false,
           "x-order": ["layout", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "dimSpecial", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "floatSwitchOverrideFocus", "resizeOnBorder", "hideLogo", "backgroundThemed", "backgroundColor", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling"],
           "properties": {
-            "layout": { "type": "string", "title": "Layout", "x-group": "Hyprland layout", "enum": ["dwindle", "master"], "x-enumLabels": { "dwindle": "Dwindle (binary splits)", "master": "Master and stack" }, "default": "dwindle", "description": "How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.", "x-hypr": "general.layout", "x-hyprAlways": true },
+            "layout": { "x-link": { "setting": "Workspaces" }, "type": "string", "title": "Layout", "x-group": "Hyprland layout", "enum": ["dwindle", "master"], "x-enumLabels": { "dwindle": "Dwindle (binary splits)", "master": "Master and stack" }, "default": "dwindle", "description": "How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.", "x-hypr": "general.layout", "x-hyprAlways": true },
             "preserveSplit": { "type": "boolean", "title": "Keep split direction", "x-group": "Hyprland layout", "default": true, "description": "Dwindle keeps a split's direction when the window is resized or moved.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.preserve_split", "x-hyprAlways": true },
             "smartSplit": { "type": "boolean", "title": "Split by cursor position", "x-group": "Hyprland layout", "default": false, "description": "Dwindle splits towards the side of the window the cursor is on.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_split" },
             "smartResizing": { "type": "boolean", "title": "Resize by cursor position", "x-group": "Hyprland layout", "default": true, "description": "Resizing moves the edge nearest the cursor.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_resizing" },
@@ -621,7 +624,7 @@
             "snap": { "type": "boolean", "title": "Snap floating windows", "x-group": "Hyprland layout", "default": false, "description": "Floating windows snap to each other and the screen edges.", "x-hypr": "general.snap.enabled" },
             "dimSpecial": { "x-scope": "look", "type": "integer", "title": "Dim behind special workspaces", "x-unit": "%", "x-group": "Hyprland behaviour", "default": 20, "minimum": 0, "maximum": 100, "x-hypr": "decoration.dim_special", "x-hyprScale": 0.01 },
             "animations": { "x-scope": "look", "type": "boolean", "title": "Animations", "x-group": "Hyprland animations", "default": true, "x-hypr": "animations.enabled", "x-hyprAlways": true },
-            "animationPreset": { "x-scope": "look", "type": "string", "title": "Style", "x-group": "Hyprland animations", "enum": ["hyprland", "axiom", "instant", "snappy", "bouncy", "lightning", "custom"], "x-enumLabels": { "hyprland": "Hyprland's defaults", "axiom": "Follow axiom's motion", "instant": "Instant", "snappy": "Snappy", "bouncy": "Bouncy", "lightning": "Lightning", "custom": "Custom" }, "default": "axiom", "description": "Follow axiom's motion uses Look & Feel → Motion's speed, and turns Hyprland's animations off with axiom's.", "x-showIf": { "animations": true } },
+            "animationPreset": { "x-link": { "setting": "Appearance.motion" }, "x-scope": "look", "type": "string", "title": "Style", "x-group": "Hyprland animations", "enum": ["hyprland", "axiom", "instant", "snappy", "bouncy", "lightning", "custom"], "x-enumLabels": { "hyprland": "Hyprland's defaults", "axiom": "Follow axiom's motion", "instant": "Instant", "snappy": "Snappy", "bouncy": "Bouncy", "lightning": "Lightning", "custom": "Custom" }, "default": "axiom", "description": "Follow axiom's motion uses Look & Feel → Motion's speed, and turns Hyprland's animations off with axiom's.", "x-showIf": { "animations": true } },
             "workspaceWraparound": { "type": "boolean", "title": "Wrap workspace animations", "x-group": "Hyprland animations", "default": false, "description": "Going from the last workspace to the first slides forward, not back.", "x-showIf": { "animations": true }, "x-hypr": "animations.workspace_wraparound" },
             "curves": {
               "x-scope": "look",
@@ -838,13 +841,13 @@
         "activeColor": { "type": "string", "title": "Focused border", "x-options": "colors", "x-emptyLabel": "Theme", "default": "", "description": "Empty follows the theme's focused border color.", "x-showIf": { "borders": true }, "x-enabledIf": { "/$supports.windowBorders": true } },
         "inactiveColor": { "type": "string", "title": "Unfocused border", "x-options": "colors", "x-emptyLabel": "Theme", "default": "", "description": "Empty follows the theme's border color.", "x-showIf": { "borders": true }, "x-enabledIf": { "/$supports.windowBorders": true } },
         "shape": { "type": "boolean", "title": "Set border width and corners", "default": false, "description": "The width of window borders and the rounding of their corners. Sway draws square corners, so there only the width applies.", "x-enabledIf": { "/$supports.windowShape": true } },
-        "matchShell": { "type": "boolean", "title": "Match axiom's shape", "default": true, "description": "Follow Look & Feel → Shape: its border width and corner radius (only the width on sway, which can't round corners).", "x-showIf": { "shape": true }, "x-enabledIf": { "/$supports.windowShape": true } },
+        "matchShell": { "x-link": { "setting": "Appearance.shape" }, "type": "boolean", "title": "Match axiom's shape", "default": true, "description": "Follow Look & Feel → Shape: its border width and corner radius (only the width on sway, which can't round corners).", "x-showIf": { "shape": true }, "x-enabledIf": { "/$supports.windowShape": true } },
         "borderSize": { "type": "integer", "x-control": "stepper", "title": "Border width", "x-unit": "px", "default": 2, "minimum": 0, "maximum": 20, "x-showIf": { "shape": true, "matchShell": false }, "x-enabledIf": { "/$supports.windowShape": true } },
         "rounding": { "type": "integer", "x-control": "stepper", "title": "Corner rounding", "x-unit": "px", "default": 8, "minimum": 0, "maximum": 50, "x-showIf": { "shape": true, "matchShell": false }, "x-enabledIf": { "/$supports.windowShape": true, "/$supports.windowRounding": true } },
         "gaps": { "type": "boolean", "title": "Set window gaps", "default": false, "description": "Floating bars and detached surfaces set to Automatic keep these gaps too.", "x-enabledIf": { "/$supports.windowGaps": true } },
         "gapsIn": { "type": "integer", "x-control": "stepper", "title": "Gaps between windows", "x-unit": "px", "default": 3, "minimum": 0, "maximum": 50, "x-showIf": { "gaps": true }, "x-enabledIf": { "/$supports.windowGaps": true } },
         "gapsOut": { "type": "integer", "x-control": "stepper", "title": "Gaps to the edges", "x-unit": "px", "default": 6, "minimum": 0, "maximum": 100, "x-showIf": { "gaps": true }, "x-enabledIf": { "/$supports.windowGaps": true } },
-        "surfaceBlur": { "type": "boolean", "title": "Blur behind axiom's surfaces", "x-group": "Blur", "default": true, "description": "The compositor blurs what shows through axiom's translucent surfaces (Look & Feel → Translucency), with its blur below. It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.", "x-showIf": { "/Appearance.surface.opacity": { "not": 100 } }, "x-enabledIf": { "/$supports.blur": true } },
+        "surfaceBlur": { "x-link": { "setting": "Appearance.surface" }, "type": "boolean", "title": "Blur behind axiom's surfaces", "x-group": "Blur", "default": true, "description": "The compositor blurs what shows through axiom's translucent surfaces (Look & Feel → Translucency), with its blur below. It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.", "x-showIf": { "/Appearance.surface.opacity": { "not": 100 } }, "x-enabledIf": { "/$supports.blur": true } },
         "surfaceBlurThroughWindows": { "type": "boolean", "title": "Blur windows behind surfaces", "x-group": "Blur", "default": true, "description": "Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Tooltips and menus always blur what's behind them.", "x-showIf": { "/Appearance.surface.opacity": { "not": 100 }, "surfaceBlur": true }, "x-enabledIf": { "/$supports.blur": true } },
         "surfaceBlurBackdrops": { "type": "boolean", "title": "Blur backdrops", "x-group": "Blur", "default": false, "description": "Also blur the whole screen behind the overlay, launcher, power menu and workspace overview. Costs more while they open.", "x-showIf": { "/Appearance.surface.opacity": { "not": 100 }, "surfaceBlur": true }, "x-enabledIf": { "/$supports.blur": true } },
         "surfaceBlurPauseFullscreen": { "x-scope": "machine", "type": "boolean", "title": "Pause blur over fullscreen apps", "x-group": "Blur", "default": true, "description": "While a fullscreen window (a game, a video) is open, nothing blurs, so a volume popup or notification over it costs nothing extra. Surfaces on that monitor turn opaque; elsewhere they stay translucent, unblurred.", "x-showIf": { "/Appearance.surface.opacity": { "not": 100 }, "surfaceBlur": true }, "x-enabledIf": { "/$supports.blur": true } },
@@ -861,14 +864,14 @@
         "blurPopups": { "type": "boolean", "title": "Blur menus and popups", "x-group": "Blur", "default": false, "x-showIf": { "blur": true, "windowBlur": true }, "x-enabledIf": { "/$supports.windowBlur": true, "/$compositor": "hyprland" }, "x-hypr": "decoration.blur.popups", "x-hyprIf": "blur" },
         "blurSpecial": { "type": "boolean", "title": "Blur behind special workspaces", "x-group": "Blur", "default": false, "description": "Expensive: redraws the blur on every frame.", "x-showIf": { "blur": true }, "x-enabledIf": { "/$supports.windowBlur": true, "/$compositor": "hyprland" }, "x-hypr": "decoration.blur.special", "x-hyprIf": "blur" },
         "shadow": { "type": "boolean", "title": "Window shadows", "x-group": "Window shadows", "default": false, "x-enabledIf": { "/$supports.windowShadow": true } },
-        "shadowMatchShell": { "type": "boolean", "title": "Match axiom's shadow", "x-group": "Window shadows", "default": true, "description": "Follow Look & Feel → Surface shadow: its color and size. With it off there, windows cast none.", "x-showIf": { "shadow": true }, "x-enabledIf": { "/$supports.windowShadow": true } },
+        "shadowMatchShell": { "x-link": { "setting": "BarStyle.shadow" }, "type": "boolean", "title": "Match axiom's shadow", "x-group": "Window shadows", "default": true, "description": "Follow Look & Feel → Surface shadow: its color and size. With it off there, windows cast none.", "x-showIf": { "shadow": true }, "x-enabledIf": { "/$supports.windowShadow": true } },
         "shadowSize": { "type": "integer", "x-control": "stepper", "title": "Shadow size", "x-unit": "px", "x-group": "Window shadows", "default": 10, "minimum": 0, "maximum": 100, "x-showIf": { "shadow": true, "shadowMatchShell": false }, "x-enabledIf": { "/$supports.windowShadow": true } },
         "shadowPower": { "type": "integer", "title": "Shadow falloff", "x-group": "Window shadows", "default": 3, "minimum": 1, "maximum": 4, "description": "1 fades slowly, 4 ends sharply.", "x-showIf": { "shadow": true, "shadowMatchShell": false }, "x-enabledIf": { "/$supports.windowShadow": true, "/$compositor": "hyprland" } },
         "shadowColor": { "type": "string", "title": "Shadow color", "x-group": "Window shadows", "x-options": "colors", "x-emptyLabel": "Compositor's", "default": "", "description": "Unfocused windows cast it too.", "x-showIf": { "shadow": true, "shadowMatchShell": false }, "x-enabledIf": { "/$supports.windowShadow": true } },
         "shadowStrength": { "type": "integer", "x-control": "stepper", "title": "Shadow strength", "x-unit": "%", "x-group": "Window shadows", "default": 100, "minimum": 10, "maximum": 400, "description": "How strong windows cast it, matching axiom's or not. The compositor's own color keeps its strength.", "x-showIf": { "shadow": true }, "x-enabledIf": { "/$supports.windowShadow": true } },
         "dim": { "type": "boolean", "title": "Dim unfocused windows", "x-group": "Window dimming", "default": false, "x-enabledIf": { "/$supports.windowDim": true } },
         "dimStrength": { "type": "integer", "title": "Dim strength", "x-unit": "%", "x-group": "Window dimming", "default": 8, "minimum": 0, "maximum": 100, "x-showIf": { "dim": true }, "x-enabledIf": { "/$supports.windowDim": true } },
-        "opacity": { "type": "boolean", "title": "Set window opacity", "x-group": "Window opacity", "default": false, "description": "Your apps' windows; the shell's own surfaces are Look & Feel → Translucency. Off, your own config's applies.", "x-enabledIf": { "/$supports.windowOpacity": true } },
+        "opacity": { "x-link": { "setting": "Appearance.surface.opacity" }, "type": "boolean", "title": "Set window opacity", "x-group": "Window opacity", "default": false, "description": "Your apps' windows; the shell's own surfaces are Look & Feel → Translucency. Off, your own config's applies.", "x-enabledIf": { "/$supports.windowOpacity": true } },
         "activeOpacity": { "type": "integer", "title": "Focused window opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-enabledIf": { "/$supports.windowOpacity": true }, "x-hypr": "decoration.active_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" },
         "inactiveOpacity": { "type": "integer", "title": "Unfocused window opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-enabledIf": { "/$supports.windowOpacity": true }, "x-hypr": "decoration.inactive_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" },
         "fullscreenOpacity": { "type": "integer", "title": "Fullscreen opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-enabledIf": { "/$supports.windowOpacity": true }, "x-hypr": "decoration.fullscreen_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" }
@@ -1006,6 +1009,7 @@
           "additionalProperties": false,
           "properties": {
             "radius": {
+              "x-link": { "setting": "Widget.radius" },
               "type": "integer",
               "x-control": "stepper",
               "title": "Corner radius",
@@ -1052,6 +1056,7 @@
           "x-order": ["opacity"],
           "properties": {
             "opacity": {
+              "x-link": [{ "setting": "WindowLook.opacity" }, { "setting": "WindowLook.surfaceBlur" }],
               "type": "integer",
               "title": "Surface opacity",
               "x-unit": "%",
@@ -1129,6 +1134,7 @@
           "description": "How tightly controls, padding and gaps are packed in panels and cards."
         },
         "overrideRadius": {
+          "x-link": { "setting": "Appearance.shape.radius" },
           "type": "boolean",
           "title": "Own corner radius",
           "default": false,
@@ -1154,6 +1160,7 @@
       "x-scope": "look",
       "type": "object",
       "x-category": "Look & Feel",
+      "x-links": ["BarEditor"],
       "title": "Bar style",
       "description": "How every bar draws its widgets, accents and shadow. A bar can take its own of any of these in the bar editor.",
       "x-order": ["widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "widgetEnds", "groupColor", "widgetTextColor", "separatorStyle", "separatorColor", "separatorThickness", "separatorGap", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "shadow", "shadowColor", "shadowSize"],
@@ -1652,6 +1659,7 @@
     "Calendar": {
       "type": "object",
       "x-category": "Calendar",
+      "x-links": ["CalendarPage"],
       "x-card": "CalendarAccounts",
       "x-cardTitle": "Accounts",
       "x-cardWide": true,
@@ -1734,7 +1742,7 @@
       "properties": {
         "includeAur": { "type": "boolean", "title": "Include AUR", "default": false, "description": "Also count outdated AUR packages.", "x-showIf": { "/$distro": "arch" } },
         "aurHelper": { "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": { "includeAur": true, "/$distro": "arch" } },
-        "terminal": { "x-scope": "commands", "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
+        "terminal": { "x-link": { "setting": "Apps.terminal" }, "x-scope": "commands", "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
         "upgradeCommand": { "x-scope": "commands", "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu." }
       }
     },
@@ -1909,6 +1917,7 @@
       "additionalProperties": false,
       "properties": {
         "monitors": {
+          "x-link": { "setting": "General.monitors" },
           "x-scope": "look",
           "type": "string",
           "title": "Monitors",
@@ -1918,6 +1927,7 @@
           "description": "Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "moduleScale": {
+          "x-link": { "setting": "Widget.cardSize" },
           "x-scope": "look",
           "x-group": "Size",
           "type": "integer",
@@ -2455,7 +2465,7 @@
         "columns": { "type": "integer", "x-settings": false, "default": 16, "minimum": 1, "maximum": 256, "description": "Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it." },
         "rows": { "type": "integer", "x-settings": false, "default": 9, "minimum": 1, "maximum": 256, "description": "Grid units down of the grid the modules were last placed on." },
         "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
-        "moduleScale": { "x-group": "Grid", "type": "integer", "x-control": "stepper", "title": "Module size", "default": 100, "minimum": 50, "maximum": 200, "x-unit": "%", "description": "Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds." },
+        "moduleScale": { "x-link": { "setting": "Widget.cardSize" }, "x-group": "Grid", "type": "integer", "x-control": "stepper", "title": "Module size", "default": 100, "minimum": 50, "maximum": 200, "x-unit": "%", "description": "Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds." },
         "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": false, "description": "Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper." },
         "modules": {
           "type": "array",
@@ -2474,7 +2484,7 @@
         "columns": { "type": "integer", "x-settings": false, "default": 16, "minimum": 1, "maximum": 256, "description": "Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it." },
         "rows": { "type": "integer", "x-settings": false, "default": 9, "minimum": 1, "maximum": 256, "description": "Grid units down of the grid the modules were last placed on." },
         "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
-        "moduleScale": { "x-group": "Grid", "type": "integer", "x-control": "stepper", "title": "Module size", "default": 100, "minimum": 50, "maximum": 200, "x-unit": "%", "description": "Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds." },
+        "moduleScale": { "x-link": { "setting": "Widget.cardSize" }, "x-group": "Grid", "type": "integer", "x-control": "stepper", "title": "Module size", "default": 100, "minimum": 50, "maximum": 200, "x-unit": "%", "description": "Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds." },
         "otherScreens": {
           "x-group": "Grid",
           "type": "string",
@@ -2516,6 +2526,7 @@
         "name": { "type": "string", "title": "Name", "default": "", "description": "Shown on its tab here. Empty names it by its edge." },
         "enabled": { "type": "boolean", "title": "Enabled", "default": true },
         "monitors": {
+          "x-link": { "setting": "General.monitors" },
           "type": "string",
           "title": "Monitors",
           "enum": ["general", "primary", "focused", "all", "monitor"],
@@ -2673,6 +2684,7 @@
         "name": { "type": "string", "title": "Name", "default": "", "description": "Shown on its tab here. Empty names it by its bars." },
         "enabled": { "type": "boolean", "title": "Enabled", "default": true },
         "monitors": {
+          "x-link": { "setting": "General.monitors" },
           "type": "string",
           "title": "Monitors",
           "enum": ["general", "primary", "focused", "all", "monitor"],
@@ -2805,6 +2817,7 @@
         "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
         "enabled": { "x-group": "General", "type": "boolean", "title": "Enabled", "default": true },
         "monitor": {
+          "x-link": { "setting": "General.primaryMonitor" },
           "x-monitorRef": "off",
           "x-scope": "machine",
           "x-group": "General",
@@ -2861,6 +2874,7 @@
           "x-showIf": { "mode": "floating", "length": "content" }
         },
         "moduleScale": {
+          "x-link": { "setting": "Widget.cardSize" },
           "x-group": "Placement",
           "type": "integer",
           "x-control": "stepper",
@@ -2903,6 +2917,7 @@
           "x-showIf": { "mode": "integrated" }
         },
         "padding": {
+          "x-link": { "setting": "Popouts.padding" },
           "x-group": "Style",
           "type": "integer",
           "x-control": "stepper",
@@ -2988,6 +3003,7 @@
         "id": { "x-group": "General", "type": "string", "title": "Id" },
         "enabled": { "x-group": "General", "type": "boolean", "title": "Enabled", "default": true },
         "monitor": {
+          "x-link": { "setting": "General.primaryMonitor" },
           "x-monitorRef": "off",
           "x-scope": "machine",
           "x-group": "General",
@@ -3038,6 +3054,7 @@
           "description": "Every bar but a solid one sits inside the screen border. Pills grow out of it; floating bars and pills are held away from it."
         },
         "floatGap": {
+          "x-link": { "setting": "WindowLook.gapsOut" },
           "x-group": "Style",
           "type": "integer",
           "x-control": "stepper",
@@ -3122,6 +3139,7 @@
           "description": "Gap between items inside a widget."
         },
         "overrideFontSize": {
+          "x-link": { "setting": "Appearance.font.size" },
           "x-group": "Style",
           "type": "boolean",
           "title": "Own font size",
@@ -3142,6 +3160,7 @@
           }
         },
         "overrideRadius": {
+          "x-link": [{ "setting": "Widget.radius" }, { "setting": "Appearance.shape.radius" }],
           "x-group": "Style",
           "type": "boolean",
           "title": "Own corner radius",
@@ -3162,6 +3181,7 @@
           }
         },
         "overrideWidgetStyle": {
+          "x-link": { "setting": "BarStyle.widgetStyle" },
           "x-group": "Widgets",
           "type": "boolean",
           "title": "Own widget style",
@@ -3328,6 +3348,7 @@
           }
         },
         "overrideAccents": {
+          "x-link": { "setting": "BarStyle.separatorStyle" },
           "x-group": "Accents",
           "type": "boolean",
           "title": "Own accents",
@@ -3476,6 +3497,7 @@
           }
         },
         "overrideShadow": {
+          "x-link": { "setting": "BarStyle.shadow" },
           "x-group": "Shadow",
           "type": "boolean",
           "title": "Own shadow",
@@ -3753,6 +3775,7 @@
       ]
     },
     "ThemePickerOverlayModule": {
+      "x-link": { "page": "Themes" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "palette",
@@ -3893,6 +3916,7 @@
       }
     },
     "UpdatesOverlayModule": {
+      "x-link": { "setting": "Updates" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "upload",
@@ -3960,6 +3984,7 @@
       }
     },
     "WorkspacesMapOverlayModule": {
+      "x-link": { "setting": "Workspaces" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "grid_view",
@@ -3980,6 +4005,7 @@
       }
     },
     "NotificationsOverlayModule": {
+      "x-link": { "setting": "Notifications" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "notifications",
@@ -4038,6 +4064,7 @@
       }
     },
     "ScreenshotOverlayModule": {
+      "x-link": { "setting": "Screenshots" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "camera",
@@ -4076,6 +4103,7 @@
       }
     },
     "PasswordOverlayModule": {
+      "x-link": { "setting": "Lockscreen" },
       "type": "object",
       "x-icon": "password",
       "x-libraryGroup": "Session",
@@ -4100,6 +4128,7 @@
       }
     },
     "LoginOverlayModule": {
+      "x-link": { "setting": "Greeter" },
       "type": "object",
       "x-icon": "login",
       "x-libraryGroup": "Session",
@@ -4126,6 +4155,7 @@
       }
     },
     "SessionOverlayModule": {
+      "x-link": { "setting": "Greeter" },
       "type": "object",
       "x-icon": "desktop_windows",
       "x-libraryGroup": "Session",
@@ -4272,6 +4302,7 @@
       }
     },
     "NightLightControlsOverlayModule": {
+      "x-link": { "setting": "NightLight" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "bedtime",
@@ -4311,6 +4342,7 @@
       }
     },
     "ScreenRecordOverlayModule": {
+      "x-link": { "setting": "Screenshots" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "screen_record",
@@ -4331,6 +4363,7 @@
       }
     },
     "CheatsheetOverlayModule": {
+      "x-link": { "page": "Keybinds" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-keyboard": true,
@@ -4355,6 +4388,7 @@
       }
     },
     "KeyboardLayoutOverlayModule": {
+      "x-link": { "setting": "Input.kbLayout" },
       "type": "object",
       "x-icon": "keyboard",
       "x-libraryGroup": "Session",
@@ -4368,6 +4402,7 @@
       }
     },
     "ClockCalendarOverlayModule": {
+      "x-link": { "setting": "Calendar" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-keyboard": false,
@@ -4426,6 +4461,7 @@
       }
     },
     "CalendarOverlayModule": {
+      "x-link": { "setting": "Calendar" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-keyboard": true,
@@ -4440,6 +4476,7 @@
       }
     },
     "AgendaOverlayModule": {
+      "x-link": { "setting": "Calendar" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-keyboard": true,
@@ -4463,6 +4500,7 @@
       }
     },
     "WeatherOverlayModule": {
+      "x-link": { "setting": "Weather" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "partly_cloudy_day",
@@ -4475,6 +4513,7 @@
       }
     },
     "BatteryOverlayModule": {
+      "x-link": { "setting": "Battery" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "battery_full",
@@ -4522,6 +4561,7 @@
       }
     },
     "ChatOverlayModule": {
+      "x-link": { "setting": "Chat" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-keyboard": true,
@@ -4536,6 +4576,7 @@
       }
     },
     "StopwatchOverlayModule": {
+      "x-link": { "setting": "Stopwatch" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "timer_play",
@@ -4557,6 +4598,7 @@
       }
     },
     "TodoOverlayModule": {
+      "x-link": { "setting": "Todo" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "checklist",
@@ -4578,6 +4620,7 @@
       }
     },
     "PomodoroOverlayModule": {
+      "x-link": { "setting": "Pomodoro" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "timer",
@@ -4623,6 +4666,7 @@
       }
     },
     "NotesOverlayModule": {
+      "x-link": { "setting": "Notes" },
       "type": "object",
       "x-icon": "sticky_note_2",
       "x-libraryGroup": "Tools",
@@ -4648,6 +4692,7 @@
       }
     },
     "WallpaperPickerOverlayModule": {
+      "x-link": { "page": "Themes" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "photo_library",
@@ -4661,6 +4706,7 @@
       }
     },
     "PaletteOverlayModule": {
+      "x-link": { "page": "Themes" },
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "palette",
@@ -4792,6 +4838,7 @@
       }
     },
     "WorkspacesWidget": {
+      "x-link": { "setting": "Workspaces" },
       "type": "object",
       "x-icon": "grid_view",
       "x-libraryGroup": "Desktop",
@@ -4931,6 +4978,7 @@
       }
     },
     "NotificationsWidget": {
+      "x-link": { "setting": "Notifications" },
       "type": "object",
       "x-icon": "notifications",
       "x-libraryGroup": "Desktop",
@@ -4990,6 +5038,7 @@
       }
     },
     "BatteryWidget": {
+      "x-link": { "setting": "Battery" },
       "type": "object",
       "x-icon": "battery_full",
       "x-libraryGroup": "System",
@@ -5008,8 +5057,8 @@
             "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
             "backgroundColor": { "type": "string", "title": "Color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "chargingColor": { "type": "string", "title": "Charging color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
-            "lowColor": { "type": "string", "title": "Low color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "description": "At or below Battery > Low at (in settings).", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
-            "criticalColor": { "type": "string", "title": "Critical color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical", "description": "At or below Battery > Critical at (in settings).", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "lowColor": { "x-link": { "setting": "Battery.lowThreshold" }, "type": "string", "title": "Low color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "description": "At or below Battery > Low at (in settings).", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
+            "criticalColor": { "x-link": { "setting": "Battery.criticalThreshold" }, "type": "string", "title": "Critical color", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical", "description": "At or below Battery > Critical at (in settings).", "x-showIf": { "$bar.widgetStyle": { "not": "plain" } } },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "x-showIf": { "$bar.widgetStyle": "filled", "$bar.widgetGrouping": { "not": "merged" }, "$bar.widgetTextColor": "" } }
           }
         }
@@ -5048,6 +5097,7 @@
       }
     },
     "KeyboardLayoutWidget": {
+      "x-link": { "setting": "Input.kbLayout" },
       "type": "object",
       "x-icon": "keyboard",
       "x-libraryGroup": "System",
@@ -5072,6 +5122,7 @@
       }
     },
     "StopwatchWidget": {
+      "x-link": { "setting": "Stopwatch" },
       "type": "object",
       "x-icon": "timer_play",
       "x-libraryGroup": "Tools",
@@ -5097,6 +5148,7 @@
       }
     },
     "TodoWidget": {
+      "x-link": { "setting": "Todo" },
       "type": "object",
       "x-icon": "checklist",
       "x-libraryGroup": "Tools",
@@ -5120,6 +5172,7 @@
       }
     },
     "PomodoroWidget": {
+      "x-link": { "setting": "Pomodoro" },
       "type": "object",
       "x-icon": "timer",
       "x-libraryGroup": "Tools",
@@ -5145,6 +5198,7 @@
       }
     },
     "IdleInhibitorWidget": {
+      "x-link": { "setting": "Idle" },
       "type": "object",
       "x-icon": "coffee",
       "x-libraryGroup": "System",
@@ -5195,6 +5249,7 @@
       }
     },
     "ScreenRecordWidget": {
+      "x-link": { "setting": "Screenshots" },
       "type": "object",
       "x-icon": "radio_button_checked",
       "x-libraryGroup": "Tools",
@@ -5218,6 +5273,7 @@
       }
     },
     "UpdatesWidget": {
+      "x-link": { "setting": "Updates" },
       "type": "object",
       "x-icon": "package_2",
       "x-libraryGroup": "System",
@@ -5244,6 +5300,7 @@
       }
     },
     "ClaudeUsageWidget": {
+      "x-link": { "setting": "ClaudeUsage" },
       "type": "object",
       "x-icon": "data_usage",
       "x-libraryGroup": "System",
@@ -5275,6 +5332,7 @@
       }
     },
     "WeatherWidget": {
+      "x-link": { "setting": "Weather" },
       "type": "object",
       "x-icon": "partly_cloudy_day",
       "x-libraryGroup": "Time & weather",
@@ -5298,6 +5356,7 @@
       }
     },
     "NextEventWidget": {
+      "x-link": { "setting": "Calendar" },
       "type": "object",
       "x-icon": "event",
       "x-libraryGroup": "Time & weather",

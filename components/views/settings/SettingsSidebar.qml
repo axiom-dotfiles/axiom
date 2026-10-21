@@ -27,6 +27,7 @@ Item {
 
   TitledCard {
     title: I18n.tr("Settings")
+    scrollKey: "Settings/sidebar"
     showActions: false
     contentSpacing: Widget.spacing / 2
 
@@ -54,7 +55,7 @@ Item {
       delegate: ColumnLayout {
         id: entry
         required property var modelData
-        readonly property bool current: SettingsManager.query === "" && root.selected === entry.modelData.name
+        readonly property bool current: SettingsManager.query === "" && !SettingsManager.changedOnly && root.selected === entry.modelData.name
         Layout.fillWidth: true
         spacing: 0
 
@@ -65,6 +66,7 @@ Item {
           changed: entry.modelData.sections.some(section => SettingsManager.hasChangesUnder(section))
           onClicked: {
             SettingsManager.query = "";
+            SettingsManager.changedOnly = false;
             SettingsManager.category = entry.modelData.name;
           }
         }
@@ -128,6 +130,30 @@ Item {
             }
           }
         }
+      }
+    }
+
+    StyledSeparator {
+      Layout.fillWidth: true
+      Layout.topMargin: Widget.spacing / 2
+      Layout.bottomMargin: Widget.spacing / 2
+      separatorHeight: 1
+      opacity: 0.3
+    }
+
+    // Every setting not at its default, from all categories
+    ListEntryRow {
+      id: changedEntry
+      icon: "difference"
+      label: I18n.tr("Changed from default")
+      selected: SettingsManager.query === "" && SettingsManager.changedOnly
+      onClicked: SettingsManager.showChanged()
+
+      badges: StyledText {
+        text: SettingsManager.nonDefaultPaths.length
+        textColor: changedEntry.ink
+        textSize: Appearance.fontSizeBy(-2)
+        opacity: 0.7
       }
     }
 

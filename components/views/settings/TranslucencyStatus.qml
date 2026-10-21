@@ -58,8 +58,7 @@ ColumnLayout {
       onClicked: {
         if (root.off && !WindowLookConfig.look.blur)
           SettingsManager.setValue(["WindowLook", "blur"], true);
-        SettingsManager.openSection("WindowLook");
-        Qt.callLater(() => SettingsManager.jumpTo("WindowLook:Blur"));
+        SettingsManager.openSetting("WindowLook.blur");
       }
     }
   }

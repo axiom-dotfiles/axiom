@@ -2,7 +2,7 @@
 # OverlayModules: ThemePicker
 
 > **File:** `components/content/ThemePicker.qml` · **Schema:** `definitions.ThemePickerOverlayModule` · **Label:** Themes
-> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="palette", x-libraryGroup="Look & layout", x-defaultSize=[4,8]
+> **Annotations:** x-link={"page":"Themes"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="palette", x-libraryGroup="Look & layout", x-defaultSize=[4,8]
 
 Settings are read as `properties.<key>`.
 

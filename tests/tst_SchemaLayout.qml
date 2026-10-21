@@ -650,4 +650,103 @@ TestCase {
       visit(schema.definitions[name], null, name);
     compare(bad, []);
   }
+
+  function test_locate() {
+    const schema = {
+      "x-categories": [
+        {
+          "name": "Look",
+          "icon": "palette"
+        }
+      ],
+      "properties": {
+        "Style": {
+          "type": "object",
+          "title": "Style",
+          "x-category": "Look",
+          "properties": {
+            "size": {
+              "type": "integer",
+              "title": "Size"
+            },
+            "shadow": {
+              "type": "boolean",
+              "title": "Shadow",
+              "x-group": "Shadows"
+            },
+            "font": {
+              "type": "object",
+              "title": "Font",
+              "properties": {
+                "family": {
+                  "type": "string",
+                  "title": "Family"
+                }
+              }
+            }
+          }
+        },
+        "Cards": {
+          "type": "object",
+          "title": "Cards",
+          "x-category": "Look",
+          "x-card": "CardList",
+          "properties": {
+            "on": {
+              "type": "boolean",
+              "title": "On"
+            }
+          }
+        }
+      }
+    };
+    compare(SchemaLayout.locate(schema, "Style.size"), {
+      "category": "Look",
+      "key": "Style",
+      "title": "Size",
+      "row": ["Style", "size"]
+    });
+    compare(SchemaLayout.locate(schema, ["Style", "shadow"]).key, "Style:Shadows");
+    compare(SchemaLayout.locate(schema, "Style.font.family").key, "Style.font");
+    // An object: its card, no row
+    compare(SchemaLayout.locate(schema, "Style.font"), {
+      "category": "Look",
+      "key": "Style.font",
+      "title": "Font",
+      "row": null
+    });
+    // A section: its first card, the hand-built one when it has one
+    compare(SchemaLayout.locate(schema, "Style").key, "Style");
+    compare(SchemaLayout.locate(schema, "Cards").key, "Cards:CardList");
+    compare(SchemaLayout.locate(schema, "Cards.on").key, "Cards");
+    compare(SchemaLayout.locate(schema, "Style.nope"), null);
+    compare(SchemaLayout.locate(schema, "Nope"), null);
+  }
+
+  // Every `x-link` leads to a setting the settings page shows, or a page
+  // the overlay can have; every `x-links` to such a page
+  function test_real_schema_links_resolve() {
+    const views = schema.definitions.OverlayView.oneOf.map(option => schema.definitions[option.$ref.replace("#/definitions/", "")].properties.type.const);
+    const pageOk = link => {
+      const parts = link.split(":");
+      return (parts[0] === "Layouts" || views.includes(parts[0])) && (parts.length === 1 || (parts[0] === "Layouts" && ["lockscreen", "greeter", "desktop"].includes(parts[1])));
+    };
+    const bad = [];
+    const visit = (node, where) => {
+      if (!node || typeof node !== "object")
+        return;
+      for (const link of [].concat(node["x-link"] ?? [])) {
+        if (link.setting !== undefined ? SchemaLayout.locate(schema, link.setting) === null : !pageOk(link.page ?? ""))
+          bad.push(`${where}: ${JSON.stringify(link)}`);
+      }
+      for (const link of node["x-links"] ?? [])
+        if (!pageOk(link))
+          bad.push(`${where}: x-links ${link}`);
+      for (const key in node)
+        if (key !== "x-link" && typeof node[key] === "object")
+          visit(node[key], `${where}.${key}`);
+    };
+    visit(schema, "");
+    compare(bad, []);
+  }
 }

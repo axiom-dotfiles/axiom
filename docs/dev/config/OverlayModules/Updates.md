@@ -2,7 +2,7 @@
 # OverlayModules: Updates
 
 > **File:** `components/content/Updates.qml` · **Schema:** `definitions.UpdatesOverlayModule` · **Label:** Package updates
-> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="upload", x-libraryGroup="System"
+> **Annotations:** x-link={"setting":"Updates"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="upload", x-libraryGroup="System"
 
 Settings are read as `properties.<key>`.
 

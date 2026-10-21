@@ -1,6 +1,6 @@
 # Settings page
 
-> **Files:** `components/views/Settings.qml`, `components/methods/SchemaLayout.qml`, `components/methods/ColumnSplit.qml`, `components/views/settings/` (`SettingsGroupCard`, `EntryListCard`, `FoldingCard`, `SettingsSidebar`, `SettingsContent`), `components/forms/`, `services/SettingsManager.qml`
+> **Files:** `components/views/Settings.qml`, `components/methods/SchemaLayout.qml`, `components/methods/ColumnSplit.qml`, `components/views/settings/` (`SettingsGroupCard`, `EntryListCard`, `FoldingCard`, `SettingsSidebar`, `SettingsContent`), `components/forms/`, `components/reusable/ScrollMemory.qml`, `services/SettingsManager.qml`
 > **Config:** every section with settings (`x-settings` not false); fold state in `~/.local/state/axiom/ui/settings.json`
 > **Related:** [Schema annotations](schema-annotations.md), [Editors pattern](editors-pattern.md), [Shared UI pieces](shared-ui-pieces.md)
 
@@ -45,13 +45,23 @@ How the schema becomes the settings page: layout, cards, folding, sidebar and se
 - The sidebar is `SettingsSidebar`: a `TitledCard` of `ListEntryRow`s, with search in its header.
 - It lists the selected category's shown cards (`SettingsContent.shownGroups`, one per title) under its row.
   - They sit in a `FoldingColumn` that holds the links it opened with while it folds shut (by then `cardLinks` is the next category's).
-- Clicking a card link calls `SettingsManager.jumpTo(key)`, which unfolds the card and emits `jumpRequested`.
-  - The content scrolls to it (`TitledCard.scrollTo`, after the unfold animation) and outlines it in the accent for a moment.
+- Clicking a card link calls `SettingsManager.jumpTo(key)`, which unfolds the card, keeps the jump as `pendingJump` and emits `jumpRequested`.
+  - The content makes the jump once the card is laid out (`SettingsContent._takeJump`): at once, after the unfold animation, or when its block settles (the page or category was just built). A jump made before the page exists still lands.
+  - It scrolls to the card (`TitledCard.scrollTo`) and outlines it in the accent for a moment (`FlashOutline`); a jump to a setting (`row`) centres and outlines that row instead (`SettingsGroupCard.rowItem`).
+- The sidebar ends with **Changed from default** (`SettingsManager.changedOnly`): every setting whose draft value differs from its schema default (`nonDefaultPaths`, against `defaults`, limited to settings rows in the sections the page shows), from every category, listed like search results (`SettingsContent.listing`).
+  - The set is taken when the list is asked for (`SettingsManager.showChanged`, into `changedSet`; clicking it again retakes it), not followed, so a row put back to its default stays until the list is asked for again, and edits don't rebuild the cards. A search narrows it further.
+
+### Scroll memory
+- Each category keeps where it was scrolled to (`TitledCard.scrollKey` `"Settings/<category>"`, `reusable/ScrollMemory`), across category switches and the overlay closing; search and the changed list start at the top. The sidebar keeps its own.
+- A jump cancels a restore still waiting for the page to grow.
 
 ### Transitions and search
 - A new category, or entering/leaving search, fades the content in, sliding from the side of the sidebar it was picked from (`_pageIndex`).
 - Search results are grouped by category (`blocks`): a heading with the category's icon, then its own two columns.
 
 ### Opening it from elsewhere
-- Other services open the page on a section's category with `SettingsManager.openSection(key)`, so they don't depend on category names.
+- `SettingsManager.openSetting(path, link)` opens the page on the card showing a setting, object or section (`"Appearance.font.size"`, `"Calendar"`), found by `SchemaLayout.locate` (cached per path in `SettingsManager.locate` until the schema or the sections shown change), and jumps to it. So callers don't depend on category names or card keys.
+  - `link` true: followed from another overlay page (`ShellManager.followLink`), which the navigator then offers to go back to. Services opening it from outside (a notification, the launcher) leave it off.
+  - In the schema, `x-link` puts such links under fields and on widget/module types (`SettingsLink`, `FieldLinks`: [Schema annotations](schema-annotations.md)); `x-links` puts page links in a category's header.
+- The launcher's `/config <setting>` lists **Show in settings** last, which calls `openSetting`.
 - A category has no IPC; for testing use a temporary `IpcHandler` (AGENTS.md › Running / reloading).

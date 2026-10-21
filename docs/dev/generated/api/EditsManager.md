@@ -3,7 +3,7 @@
 
 > **File:** `services/EditsManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The editors' unsaved edits, by overlay page: which pages hold a dirty draft (the navigator's dots and the unsaved-changes strip), and saving or discarding them all at once. Drafts survive leaving a page or closing the overlay, so this reminds rather than blocks. Also the text or number box holding typed text not committed yet (only the focused one can): its page shows Save at once, and Save / Reset commit or drop it first, while it reaches the running shell only on Enter or focus loss (a half-typed command or folder never runs). Also how the editors are laid out, which outlives their pages (saved in state/editors.json): whether the libraries group their types, and whether the bar editor stacks a horizontal bar's sections.
+The editors' unsaved edits, by overlay page: which pages hold a dirty draft (the navigator's dots and the unsaved-changes strip), and saving or discarding them all at once. Drafts survive leaving a page or closing the overlay, so this reminds rather than blocks. Also the text or number box holding typed text not committed yet (only the focused one can): its page shows Save at once, and Save / Reset commit or drop it first, while it reaches the running shell only on Enter or focus loss (a half-typed command or folder never runs). Also how the editors are laid out, which outlives their pages (saved in state/editors.json): whether the libraries group their types, and whether the bar editor stacks a horizontal bar's sections. And, in memory, where each panel was scrolled to (ScrollMemory).
 
 ### Properties
 
@@ -21,6 +21,8 @@ The editors' unsaved edits, by overlay page: which pages hold a dirty draft (the
 - `setLibraryGrouped(value)`
 - `setBarStacked(value)`
 - `setKeybindsFolded(section, folded)`
+- `scrollOf(key)`
+- `rememberScroll(key, y)`: Not a notifying write: nothing binds to it, it's read on restore
 - `holdTyping(field, window)`
 - `releaseTyping(field)`
 - `commitTyping()`: Before a save: the typed text commits (dropped if it isn't valid yet)

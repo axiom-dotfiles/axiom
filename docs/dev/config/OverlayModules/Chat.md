@@ -2,7 +2,7 @@
 # OverlayModules: Chat
 
 > **File:** `components/content/Chat.qml` · **Schema:** `definitions.ChatOverlayModule` · **Label:** AI chat
-> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="smart_toy", x-libraryGroup="Tools", x-defaultSize=[4,8]
+> **Annotations:** x-link={"setting":"Chat"}, x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="smart_toy", x-libraryGroup="Tools", x-defaultSize=[4,8]
 
 Settings are read as `properties.<key>`.
 

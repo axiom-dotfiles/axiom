@@ -218,13 +218,30 @@ Item {
       ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
       contentWidth: availableWidth
 
-      OptionsGroup {
+      // Each module keeps its place across the overlay closing
+      property ScrollMemory memory: ScrollMemory {
+        flickable: optionsScroll.contentItem as Flickable
+        key: "Layouts/" + root.selectionKey
+      }
+
+      ColumnLayout {
         width: optionsScroll.availableWidth
-        propertiesSchema: OverlayConfig.moduleInfo(root.moduleType)?.propertiesSchema ?? ({})
-        order: OverlayConfig.moduleInfo(root.moduleType)?.propertiesOrder ?? []
-        values: root.module?.properties ?? ({})
-        emptyText: I18n.tr("This module has no options")
-        onEdited: (path, value) => root.editor.updateModuleProperty(root.index, path[0], value)
+        spacing: Widget.spacing
+
+        // Where its feature is set (the type's `x-link`)
+        FieldLinks {
+          Layout.fillWidth: true
+          links: OverlayConfig.moduleInfo(root.moduleType)?.link
+        }
+
+        OptionsGroup {
+          Layout.fillWidth: true
+          propertiesSchema: OverlayConfig.moduleInfo(root.moduleType)?.propertiesSchema ?? ({})
+          order: OverlayConfig.moduleInfo(root.moduleType)?.propertiesOrder ?? []
+          values: root.module?.properties ?? ({})
+          emptyText: I18n.tr("This module has no options")
+          onEdited: (path, value) => root.editor.updateModuleProperty(root.index, path[0], value)
+        }
       }
     }
   }

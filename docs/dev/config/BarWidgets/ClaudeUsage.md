@@ -2,7 +2,7 @@
 # BarWidgets: ClaudeUsage
 
 > **File:** `components/bar/widgets/ClaudeUsage.qml` · **Schema:** `definitions.ClaudeUsageWidget` · **Label:** Claude Usage
-> **Annotations:** x-icon="data_usage", x-libraryGroup="System"
+> **Annotations:** x-link={"setting":"ClaudeUsage"}, x-icon="data_usage", x-libraryGroup="System"
 
 Settings are read as `properties.<key>`.
 

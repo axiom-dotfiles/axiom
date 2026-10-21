@@ -2,7 +2,7 @@
 # OverlayModules: Todo
 
 > **File:** `components/content/Todo.qml` · **Schema:** `definitions.TodoOverlayModule` · **Label:** Todo list
-> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="checklist", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6]
+> **Annotations:** x-link={"setting":"Todo"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="checklist", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6]
 
 Settings are read as `properties.<key>`.
 

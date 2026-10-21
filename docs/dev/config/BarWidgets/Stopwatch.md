@@ -2,7 +2,7 @@
 # BarWidgets: Stopwatch
 
 > **File:** `components/bar/widgets/Stopwatch.qml` · **Schema:** `definitions.StopwatchWidget` · **Label:** Timer & stopwatch
-> **Annotations:** x-icon="timer_play", x-libraryGroup="Tools"
+> **Annotations:** x-link={"setting":"Stopwatch"}, x-icon="timer_play", x-libraryGroup="Tools"
 
 Settings are read as `properties.<key>`.
 

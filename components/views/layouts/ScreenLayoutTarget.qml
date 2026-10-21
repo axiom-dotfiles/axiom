@@ -36,5 +36,9 @@ EditTarget {
       "h": root.grid.rows
     }) : null
   fitText: root.stretchText
+  // Smaller cards fit more on the screen
+  fitLink: root.screenEditor.shrunk ? {
+    "setting": "Widget.cardSize"
+  } : null
   editable: root.layout !== null
 }

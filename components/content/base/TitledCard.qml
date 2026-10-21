@@ -25,6 +25,9 @@ Card {
   // Children go into the scrolling body (Card's own `content` holds this
   // file's column)
   default property alias bodyContent: body.data
+  // Remembers where the body was scrolled to under this key (ScrollMemory),
+  // so it comes back there when the overlay reopens; empty keeps nothing
+  property alias scrollKey: scrollMemory.key
 
   signal save
   signal reset
@@ -32,11 +35,17 @@ Card {
   // Scrolls the body so `item` (one of its descendants) sits at the top,
   // or in the middle with `center`, as near as the body's length allows
   function scrollTo(item, center) {
+    scrollMemory.cancel();
     // Lays out rows built or shown this frame before measuring
     body.ensurePolished();
     const top = item.mapToItem(body, 0, 0).y - (center === true ? Math.max(0, (scroll.availableHeight - item.height) / 2) : 0);
     scrollAnimation.to = Math.max(0, Math.min(top, scroll.contentHeight - scroll.availableHeight));
     scrollAnimation.restart();
+  }
+
+  ScrollMemory {
+    id: scrollMemory
+    flickable: scroll.contentItem as Flickable
   }
 
   NumberAnimation {

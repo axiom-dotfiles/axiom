@@ -78,7 +78,10 @@ QtObject {
         // The property shown on its layouts editor tile (`x-canvasDetail`),
         // and the color property filling it (`x-canvasFill`), else ""
         "canvasDetail": def["x-canvasDetail"] ?? "",
-        "canvasFill": def["x-canvasFill"] ?? ""
+        "canvasFill": def["x-canvasFill"] ?? "",
+        // Where its feature is set (`x-link`), shown in the layouts
+        // editor's inspector; undefined for none
+        "link": def["x-link"]
       };
     }).filter(t => t !== null);
   }
@@ -134,6 +137,11 @@ QtObject {
   // A page's icon: a Custom page's own, else its type's
   function pageIcon(view) {
     return (view?.type === "Custom" && view.icon) || viewIcon(view?.type);
+  }
+  // Whether the overlay has a page of this type to go to (a link's): the
+  // pinned pages always, others while they're in Overlay.views and shown
+  function hasPage(type) {
+    return pinnedPages.some(page => page.type === type) || views.some(view => view.type === type && view.visible !== false);
   }
   function isTool(type) {
     return viewInfo(type)?.tool ?? false;

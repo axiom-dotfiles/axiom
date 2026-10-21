@@ -76,7 +76,8 @@ Which edge menus (EdgeMenusConfig) are open and which are pinned. The menus them
 - `moveMenu(from, to)`: The selected menu stays selected wherever it ends up
 - `removeMenu(index)`
 - `updateMenuField(key, value)`: One of the selected menu's own fields (not its columns)
-- `references(id)`: What opens menu `id` besides hovering its edge: bar Buttons and widgets opening it as their popout (in the bar editor's draft) and keybinds (in the keybind editor's). [{ kind: "bar" | "bind", label }]
+- `references(id)`: What opens menu `id` besides hovering its edge: bar Buttons and widgets opening it as their popout (in the bar editor's draft) and keybinds (in the keybind editor's). [{ kind: "bar" | "bind" | "subme…
+- `goToReference(ref)`: Goes to where a reference is: the bar editor on its widget, the keybind editor on its bind (as links: the navigator offers the way back), or the menu holding the Submenu module
 - `isSaved(menu)`: Whether `menu` is saved under its id: bar buttons and keybinds are saved by other editors, so they may only point at a saved menu
 - `addBarButton(barIndex, zone)`: Adds a Button that toggles the selected menu to bar `barIndex`'s `zone`, in the bar editor's draft (saved from there or with Save all), then opens the bar editor on that bar
 - `addKeybind()`: Adds a keybind that toggles the selected menu, then opens the keybinds page's editor recording its key

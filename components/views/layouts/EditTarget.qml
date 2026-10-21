@@ -23,6 +23,9 @@ QtObject {
   // How it fits, under the canvas title
   property string fitText: ""
   property bool fitWarning: false
+  // Where to change what the fit line says, beside it (an `x-link`: {
+  // setting } or { page }), or null
+  property var fitLink: null
   // Arrows under the canvas title moving it along its edge (an edge
   // menu's): what they say ("" for no arrows), whether they run up and
   // down, which way they can go, and what they and recentring do

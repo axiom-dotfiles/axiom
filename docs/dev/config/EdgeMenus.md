@@ -26,7 +26,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `EdgeMenusConfig.menus` (whole) · in: `services/EdgeMenuManager.qml`, `services/OverlayManager.qml`
 - **`EdgeMenus[].monitor`** · string = ""
   - Monitor: Monitor this menu is shown on. Empty uses the primary monitor.
-  - x-monitorRef="off", x-scope="machine", x-group="General", x-options="screens", x-showIf={"mode":{"not":"submenu"}}
+  - x-link={"setting":"General.primaryMonitor"}, x-monitorRef="off", x-scope="machine", x-group="General", x-options="screens", x-showIf={"mode":{"not":"submenu"}}
   - read: entry field, name match · in: `config/EdgeMenusConfig.qml`
 - **`EdgeMenus[].edge`** · string = "Left" · enum Top|Bottom|Left|Right
   - Edge
@@ -54,7 +54,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match · in: `components/surfaces/edgemenu/FloatingEdgeMenu.qml`
 - **`EdgeMenus[].moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the menu's modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them.
-  - x-group="Placement", x-control="stepper"
+  - x-link={"setting":"Widget.cardSize"}, x-group="Placement", x-control="stepper"
   - read: `EdgeMenusConfig.menus` (whole) · in: `services/EdgeMenuManager.qml`
 - **`EdgeMenus[].fineGrid`** · boolean = false
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
@@ -74,7 +74,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match · in: `components/surfaces/edgemenu/EdgeMenuSync.qml`, `components/surfaces/edgemenu/FloatingEdgeMenu.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`
 - **`EdgeMenus[].padding`** · integer = -1 · -1–64 · px
   - Padding: Space between the menu's box and its modules. Auto uses the Popouts padding.
-  - x-group="Style", x-control="stepper", x-auto={"value":-1,"start":12}, x-showIf={"mode":{"not":"submenu"}}
+  - x-link={"setting":"Popouts.padding"}, x-group="Style", x-control="stepper", x-auto={"value":-1,"start":12}, x-showIf={"mode":{"not":"submenu"}}
   - read: entry field, name match · in: `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/EdgeMenusConfig.qml`
 - **`EdgeMenus[].moduleBorders`** · boolean = true
   - Module borders: Draw each module's card box. Turn off to show modules straight on the menu's background, e.g. a menu with a single module.

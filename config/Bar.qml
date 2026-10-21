@@ -442,7 +442,10 @@ QtObject {
         "group": def["x-libraryGroup"] ?? "",
         "propertiesSchema": def.properties?.properties?.properties || null,
         // Its options shown first, in order (their `x-order`)
-        "propertiesOrder": def.properties?.properties?.["x-order"] ?? []
+        "propertiesOrder": def.properties?.properties?.["x-order"] ?? [],
+        // Where its feature is set (`x-link`), shown in the widget
+        // inspector; undefined for none
+        "link": def["x-link"]
       };
     }).filter(t => t !== null);
   }

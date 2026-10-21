@@ -98,6 +98,14 @@ ColumnLayout {
     }
   }
 
+  // What the primary monitor decides
+  SettingsLink {
+    id: primaryLink
+    visible: primaryLink.available && !!root.monitor
+    Layout.fillWidth: true
+    setting: "General.primaryMonitor"
+  }
+
   // Everything else only applies to a monitor that's on
   ColumnLayout {
     visible: !!root.rule && !root.rule.disabled

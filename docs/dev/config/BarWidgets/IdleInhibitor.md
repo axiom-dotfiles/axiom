@@ -2,7 +2,7 @@
 # BarWidgets: IdleInhibitor
 
 > **File:** `components/bar/widgets/IdleInhibitor.qml` · **Schema:** `definitions.IdleInhibitorWidget` · **Label:** Idle Inhibitor
-> **Annotations:** x-icon="coffee", x-libraryGroup="System"
+> **Annotations:** x-link={"setting":"Idle"}, x-icon="coffee", x-libraryGroup="System"
 
 Settings are read as `properties.<key>`.
 

@@ -28,14 +28,27 @@ Item {
   // new page slides in from, so wrapping past the end still slides onward
   property int direction: 1
 
+  // The user's own navigation (the navigator): a link's way back is gone
   function step(by) {
+    ShellManager.setLinkOrigin("");
     root.direction = by;
     root.currentIndex = (root.currentIndex + by + root.pageCount) % root.pageCount;
   }
 
   function goTo(index) {
+    ShellManager.setLinkOrigin("");
+    root._show(index);
+  }
+
+  function _show(index) {
     root.direction = index < root.currentIndex ? -1 : 1;
     root.currentIndex = index;
+  }
+
+  // Closing ends a link's way back too
+  onOpenChanged: {
+    if (!root.open)
+      ShellManager.setLinkOrigin("");
   }
   // The configured views, then the pages that aren't in config
   readonly property var pinnedPages: OverlayConfig.pinnedPages
@@ -78,13 +91,18 @@ Item {
     target: ShellManager
     function onShowOverlayPage(type) {
       const pinned = root.pinnedPages.findIndex(page => page.type === type);
-      if (pinned >= 0)
-        root.goTo(root.editorIndex + pinned);
-      else {
-        const index = root.viewsModel.findIndex(view => view.viewConfig.type === type || view.viewConfig.name === type);
-        if (index >= 0)
-          root.goTo(index);
-      }
+      const index = pinned >= 0 ? root.editorIndex + pinned : root.viewsModel.findIndex(view => view.viewConfig.type === type || view.viewConfig.name === type);
+      if (index < 0)
+        return;
+      // A link keeps the page it left, for the navigator's way back; any
+      // other switch (IPC, a keybind, a module's button) drops it. A link
+      // within a page keeps the way back it already has
+      const from = root.pages[root.currentIndex]?.type ?? "";
+      if (!ShellManager.followingLink)
+        ShellManager.setLinkOrigin("");
+      else if (root.open && index !== root.currentIndex)
+        ShellManager.setLinkOrigin(from);
+      root._show(index);
     }
   }
 

@@ -110,6 +110,67 @@ QtObject {
     GreeterManager.editor.ensureLoaded();
   }
 
+  // --- Links to a page (`x-link`'s and `x-links`' `page`) ---
+
+  // A page link is a view type ("Themes"), or the layouts editor on what it
+  // edits ("Layouts:lockscreen", "Layouts:greeter", "Layouts:desktop").
+  // I18n.tr("Lock screen") I18n.tr("Login screen") I18n.tr("Desktop")
+  readonly property var _linkTargets: ({
+      "lockscreen": {
+        "label": "Lock screen",
+        "icon": "lock"
+      },
+      "greeter": {
+        "label": "Login screen",
+        "icon": "login"
+      },
+      "desktop": {
+        "label": "Desktop",
+        "icon": "wallpaper"
+      }
+    })
+
+  function _linkTarget(link) {
+    const parts = link.split(":");
+    return parts[0] === "Layouts" ? root._linkTargets[parts[1] ?? ""] ?? null : null;
+  }
+
+  // Whether a page link leads anywhere: the page is in the overlay, and
+  // what it edits can be edited
+  function pageLinkAvailable(link) {
+    const target = link.split(":")[1] ?? "";
+    if (target === "lockscreen" && !root.lockscreenEditable)
+      return false;
+    if (target === "greeter" && !root.greeterEditable)
+      return false;
+    return OverlayConfig.hasPage(link.split(":")[0]);
+  }
+
+  function pageLinkLabel(link) {
+    const target = root._linkTarget(link);
+    const page = OverlayConfig.viewLabel({
+      "type": link.split(":")[0]
+    }, 0);
+    return target ? I18n.tr("{0} in {1}", I18n.tr(target.label), page) : page;
+  }
+
+  function pageLinkIcon(link) {
+    return root._linkTarget(link)?.icon ?? OverlayConfig.viewIcon(link.split(":")[0]);
+  }
+
+  // Follows a page link from the current page (the navigator offers the
+  // way back), showing what it edits first
+  function followPageLink(link) {
+    const target = link.split(":")[1] ?? "";
+    if (target === "lockscreen")
+      root.editLockscreen();
+    else if (target === "greeter")
+      root.editGreeter();
+    else if (target === "desktop")
+      root.editDesktop();
+    ShellManager.followLink(link.split(":")[0]);
+  }
+
   // The pages, or the menus, keeping what was selected in each
   function editPages() {
     root._editTarget = "page";
@@ -334,7 +395,7 @@ QtObject {
       root.editMenu(target.index);
     else
       root.editPage(target.index);
-    ShellManager.showOverlayPage("Layouts");
+    ShellManager.followLink("Layouts");
   }
 
   // --- Save / reset ---

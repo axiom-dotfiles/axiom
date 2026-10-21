@@ -2,7 +2,7 @@
 # BarWidgets: Workspaces
 
 > **File:** `components/bar/widgets/Workspaces.qml` · **Schema:** `definitions.WorkspacesWidget` · **Label:** Workspace Switcher
-> **Annotations:** x-icon="grid_view", x-libraryGroup="Desktop"
+> **Annotations:** x-link={"setting":"Workspaces"}, x-icon="grid_view", x-libraryGroup="Desktop"
 
 Settings are read as `properties.<key>`.
 

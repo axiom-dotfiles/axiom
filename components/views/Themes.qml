@@ -60,6 +60,7 @@ BaseView {
 
       TitledCard {
         title: I18n.tr("Look")
+        scrollKey: "Themes"
         showActions: false
 
         SettingRows {
@@ -72,7 +73,7 @@ BaseView {
           text: I18n.tr("More in Look & Feel")
           iconText: "chevron_right"
           iconAfter: true
-          onClicked: SettingsManager.openSection("Appearance")
+          onClicked: SettingsManager.openSetting("Appearance", true)
         }
       }
     }

@@ -35,6 +35,7 @@ The settings, bar, layouts, keybinds and monitors editors share one shape; a new
   - Both skip `separate` pages: Monitors, which applies with a keep/revert step.
 - A new editor adds its manager to both lists.
 - `EditsManager` also keeps how the editors lay themselves out, past their pages (`state/editors.json`): `libraryGrouped` (both libraries) and `barStacked`.
+- And, in memory, where each panel was scrolled to (`scrollOf` / `rememberScroll`): a page's `TitledCard` takes a `scrollKey`, an inspector's ScrollView a `reusable/ScrollMemory` keyed by its selection, so they come back where they were when the overlay reopens.
 
 ### Text fields
 - Fields bound to draft values follow the push pattern (AGENTS.md › QML pitfalls).

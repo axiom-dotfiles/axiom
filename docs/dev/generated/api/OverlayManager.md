@@ -29,6 +29,10 @@ OverlayManager holds the layouts editor's working copy of Overlay.views (the edi
 - `editDesktop()`
 - `editLockscreen()`
 - `editGreeter()`
+- `pageLinkAvailable(link)`: Whether a page link leads anywhere: the page is in the overlay, and what it edits can be edited
+- `pageLinkLabel(link)`
+- `pageLinkIcon(link)`
+- `followPageLink(link)`: Follows a page link from the current page (the navigator offers the way back), showing what it edits first
 - `editPages()`: The pages, or the menus, keeping what was selected in each
 - `editMenus()`
 - `reportArea(screenName, width, height, unit)`

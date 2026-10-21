@@ -2,7 +2,7 @@
 # BarWidgets: KeyboardLayout
 
 > **File:** `components/bar/widgets/KeyboardLayout.qml` · **Schema:** `definitions.KeyboardLayoutWidget` · **Label:** Keyboard Layout
-> **Annotations:** x-icon="keyboard", x-libraryGroup="System"
+> **Annotations:** x-link={"setting":"Input.kbLayout"}, x-icon="keyboard", x-libraryGroup="System"
 
 Settings are read as `properties.<key>`.
 

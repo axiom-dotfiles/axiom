@@ -168,7 +168,7 @@ BaseView {
             FlatIconButton {
               iconText: "settings"
               tooltipText: I18n.tr("Calendar settings")
-              onClicked: SettingsManager.openSection("Calendar")
+              onClicked: SettingsManager.openSetting("Calendar", true)
             }
           }
           Flickable {

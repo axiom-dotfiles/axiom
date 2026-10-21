@@ -2,7 +2,7 @@
 # OverlayModules: KeyboardLayout
 
 > **File:** `components/content/KeyboardLayout.qml` · **Schema:** `definitions.KeyboardLayoutOverlayModule` · **Label:** Keyboard layout
-> **Annotations:** x-icon="keyboard", x-libraryGroup="Session", x-defaultSize=[2,1], x-hosts=["greeter"]
+> **Annotations:** x-link={"setting":"Input.kbLayout"}, x-icon="keyboard", x-libraryGroup="Session", x-defaultSize=[2,1], x-hosts=["greeter"]
 
 Settings are read as `properties.<key>`.
 

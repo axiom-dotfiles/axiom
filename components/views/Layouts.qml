@@ -60,6 +60,7 @@ BaseView {
     canvas.ghosts: root.target.ghosts
     canvas.fitText: root.target.fitText
     canvas.fitWarning: root.target.fitWarning
+    canvas.fitLink: root.target.fitLink
     canvas.nudgeText: root.target.nudgeText
     canvas.nudgeVertical: root.target.nudgeVertical
     canvas.canNudgeBack: root.target.canNudgeBack

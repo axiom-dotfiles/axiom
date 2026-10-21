@@ -225,7 +225,7 @@ QtObject {
     if (page)
       ShellManager.openOverlayPage(page);
     else
-      SettingsManager.openSection("Calendar");
+      SettingsManager.openSetting("Calendar");
   }
 
   // The pending request, once (null when there's none)

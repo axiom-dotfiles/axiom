@@ -30,6 +30,17 @@ FoldingCard {
   marked: root.group.rows.some(row => SettingsManager.hasChangesUnder(row.path.join(".")))
   onToggled: SettingsManager.setCollapsed(root.group.key, !root.collapsed)
 
+  // The row showing a setting (a key path), or null (a jump flashes it)
+  function rowItem(path) {
+    const key = path.join(".");
+    for (let i = 0; i < fieldRows.count; i++) {
+      const row = fieldRows.itemAt(i) as SettingsField;
+      if (row && row.row.path.join(".") === key)
+        return row;
+    }
+    return null;
+  }
+
   // Discard: only this card's unsaved edits (and text typed in it), the
   // rest of the page's kept
   headerExtras: StyledTextButton {
@@ -63,6 +74,7 @@ FoldingCard {
     rowSpacing: Widget.spacing * 1.5
 
     Repeater {
+      id: fieldRows
       model: root.group.rows
 
       delegate: SettingsField {

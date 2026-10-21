@@ -2,7 +2,7 @@
 # OverlayModules: Session
 
 > **File:** `components/content/Session.qml` · **Schema:** `definitions.SessionOverlayModule` · **Label:** Session
-> **Annotations:** x-icon="desktop_windows", x-libraryGroup="Session", x-defaultSize=[4,1], x-hosts=["greeter"]
+> **Annotations:** x-link={"setting":"Greeter"}, x-icon="desktop_windows", x-libraryGroup="Session", x-defaultSize=[4,1], x-hosts=["greeter"]
 
 Settings are read as `properties.<key>`.
 

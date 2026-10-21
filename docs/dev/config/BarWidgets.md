@@ -9,27 +9,27 @@ Every `BarWidget` type, one page each: its file, annotations, and its own settin
 |---|---|---|
 | [Window](BarWidgets/Window.md) | Window Title | x-icon="wrap_text", x-libraryGroup="Desktop" |
 | [Media](BarWidgets/Media.md) | Media Player | x-icon="music_note", x-libraryGroup="Media & audio" |
-| [Workspaces](BarWidgets/Workspaces.md) | Workspace Switcher | x-icon="grid_view", x-libraryGroup="Desktop" |
+| [Workspaces](BarWidgets/Workspaces.md) | Workspace Switcher | x-link={"setting":"Workspaces"}, x-icon="grid_view", x-libraryGroup="Desktop" |
 | [Time](BarWidgets/Time.md) | Clock | x-icon="schedule", x-libraryGroup="Time & weather" |
-| [NextEvent](BarWidgets/NextEvent.md) | Next Event | x-icon="event", x-libraryGroup="Time & weather" |
+| [NextEvent](BarWidgets/NextEvent.md) | Next Event | x-link={"setting":"Calendar"}, x-icon="event", x-libraryGroup="Time & weather" |
 | [Tailscale](BarWidgets/Tailscale.md) | Tailscale Status | x-icon="vpn_lock", x-libraryGroup="Network & devices" |
 | [Network](BarWidgets/Network.md) | Network Status | x-icon="wifi", x-libraryGroup="Network & devices" |
 | [SystemTray](BarWidgets/SystemTray.md) | System Tray | x-icon="apps", x-libraryGroup="Desktop" |
-| [Notifications](BarWidgets/Notifications.md) | Notification Center | x-icon="notifications", x-libraryGroup="Desktop" |
+| [Notifications](BarWidgets/Notifications.md) | Notification Center | x-link={"setting":"Notifications"}, x-icon="notifications", x-libraryGroup="Desktop" |
 | [Button](BarWidgets/Button.md) | Button / Command | x-icon="terminal", x-libraryGroup="Tools" |
-| [Battery](BarWidgets/Battery.md) | Battery Status | x-icon="battery_full", x-libraryGroup="System" |
+| [Battery](BarWidgets/Battery.md) | Battery Status | x-link={"setting":"Battery"}, x-icon="battery_full", x-libraryGroup="System" |
 | [SystemStats](BarWidgets/SystemStats.md) | System Stats | x-icon="memory_alt", x-libraryGroup="System" |
-| [KeyboardLayout](BarWidgets/KeyboardLayout.md) | Keyboard Layout | x-icon="keyboard", x-libraryGroup="System" |
-| [IdleInhibitor](BarWidgets/IdleInhibitor.md) | Idle Inhibitor | x-icon="coffee", x-libraryGroup="System" |
+| [KeyboardLayout](BarWidgets/KeyboardLayout.md) | Keyboard Layout | x-link={"setting":"Input.kbLayout"}, x-icon="keyboard", x-libraryGroup="System" |
+| [IdleInhibitor](BarWidgets/IdleInhibitor.md) | Idle Inhibitor | x-link={"setting":"Idle"}, x-icon="coffee", x-libraryGroup="System" |
 | [Privacy](BarWidgets/Privacy.md) | Privacy Indicators | x-icon="visibility", x-libraryGroup="System" |
-| [ScreenRecord](BarWidgets/ScreenRecord.md) | Screen Recording | x-icon="radio_button_checked", x-libraryGroup="Tools" |
-| [Updates](BarWidgets/Updates.md) | Package Updates | x-icon="package_2", x-libraryGroup="System" |
-| [ClaudeUsage](BarWidgets/ClaudeUsage.md) | Claude Usage | x-icon="data_usage", x-libraryGroup="System" |
-| [Weather](BarWidgets/Weather.md) | Weather | x-icon="partly_cloudy_day", x-libraryGroup="Time & weather" |
+| [ScreenRecord](BarWidgets/ScreenRecord.md) | Screen Recording | x-link={"setting":"Screenshots"}, x-icon="radio_button_checked", x-libraryGroup="Tools" |
+| [Updates](BarWidgets/Updates.md) | Package Updates | x-link={"setting":"Updates"}, x-icon="package_2", x-libraryGroup="System" |
+| [ClaudeUsage](BarWidgets/ClaudeUsage.md) | Claude Usage | x-link={"setting":"ClaudeUsage"}, x-icon="data_usage", x-libraryGroup="System" |
+| [Weather](BarWidgets/Weather.md) | Weather | x-link={"setting":"Weather"}, x-icon="partly_cloudy_day", x-libraryGroup="Time & weather" |
 | [Separator](BarWidgets/Separator.md) | Separator / Spacer | x-icon="more_vert", x-libraryGroup="Look & layout" |
 | [Volume](BarWidgets/Volume.md) | Volume | x-icon="volume_up", x-libraryGroup="Media & audio" |
 | [Microphone](BarWidgets/Microphone.md) | Microphone | x-icon="mic", x-libraryGroup="Media & audio" |
 | [Bluetooth](BarWidgets/Bluetooth.md) | Bluetooth | x-icon="bluetooth", x-libraryGroup="Network & devices" |
-| [Todo](BarWidgets/Todo.md) | Todo list | x-icon="checklist", x-libraryGroup="Tools" |
-| [Pomodoro](BarWidgets/Pomodoro.md) | Pomodoro timer | x-icon="timer", x-libraryGroup="Tools" |
-| [Stopwatch](BarWidgets/Stopwatch.md) | Timer & stopwatch | x-icon="timer_play", x-libraryGroup="Tools" |
+| [Todo](BarWidgets/Todo.md) | Todo list | x-link={"setting":"Todo"}, x-icon="checklist", x-libraryGroup="Tools" |
+| [Pomodoro](BarWidgets/Pomodoro.md) | Pomodoro timer | x-link={"setting":"Pomodoro"}, x-icon="timer", x-libraryGroup="Tools" |
+| [Stopwatch](BarWidgets/Stopwatch.md) | Timer & stopwatch | x-link={"setting":"Stopwatch"}, x-icon="timer_play", x-libraryGroup="Tools" |

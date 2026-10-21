@@ -2,7 +2,7 @@
 # OverlayModules: Login
 
 > **File:** `components/content/Login.qml` · **Schema:** `definitions.LoginOverlayModule` · **Label:** Login
-> **Annotations:** x-icon="login", x-libraryGroup="Session", x-defaultSize=[6,3], x-hosts=["greeter"], x-required=true
+> **Annotations:** x-link={"setting":"Greeter"}, x-icon="login", x-libraryGroup="Session", x-defaultSize=[6,3], x-hosts=["greeter"], x-required=true
 
 Settings are read as `properties.<key>`.
 

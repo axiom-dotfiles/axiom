@@ -2,7 +2,7 @@
 # OverlayModules: ClockCalendar
 
 > **File:** `components/content/ClockCalendar.qml` · **Schema:** `definitions.ClockCalendarOverlayModule` · **Label:** Clock & calendar
-> **Annotations:** x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-keyboard=false, x-icon="calendar_clock", x-libraryGroup="Time & weather"
+> **Annotations:** x-link={"setting":"Calendar"}, x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-keyboard=false, x-icon="calendar_clock", x-libraryGroup="Time & weather"
 
 Settings are read as `properties.<key>`.
 
