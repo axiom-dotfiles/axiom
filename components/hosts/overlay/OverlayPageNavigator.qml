@@ -50,7 +50,7 @@ Rectangle {
   readonly property var backPage: ShellManager.linkOrigin === "" || ShellManager.linkOrigin === root.currentType ? null : root.pages.find(page => page.type === ShellManager.linkOrigin) ?? null
   // Everything but the tabs: arrows, the gaps beside them and the insets,
   // the back chip and the edit actions while they show
-  readonly property real chrome: root.controlHeight * 2 + row.spacing * 2 + root.inset * 2 + (root.showEditActions ? editActions.implicitWidth + row.spacing : 0) + (root.backPage ? backChip.implicitWidth + row.spacing : 0)
+  readonly property real chrome: root.controlHeight * 2 + row.spacing * 2 + root.inset * 2 + (root.showEditActions ? editActions.implicitWidth + row.spacing : 0) + (root.backPage ? backChip.implicitWidth + backChip.Layout.leftMargin + row.spacing : 0)
   // Only the current tab keeps its name when all of them don't fit
   readonly property bool compact: root.maxWidth > 0 && root.chrome + measureRow.fullWidth > root.maxWidth
   readonly property color onAccent: Theme.background
@@ -157,6 +157,8 @@ Rectangle {
       implicitWidth: backContent.implicitWidth + root.tabPadding * 2
       Layout.preferredWidth: backChip.implicitWidth
       Layout.preferredHeight: root.controlHeight
+      // Clear of the navigator's rounded left end
+      Layout.leftMargin: Widget.spacing
       radius: root.innerRadius
       color: backArea.containsMouse ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
       border.color: Qt.alpha(Theme.accent, 0.6)
