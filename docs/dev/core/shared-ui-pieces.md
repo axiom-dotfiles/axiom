@@ -85,6 +85,8 @@ Bars size their own widgets (`Bar.enrichBarConfig`) and never use these: a share
 - `SettingRows`: dotted config paths as rows, saved debounced.
 - `OptionsGroup`: an inspector's Options card (problem, form, empty text).
 - `IntegrationHookup`: a theme integration's hookup (text to copy, what Apply does, Apply).
+- `SettingsLink`: an accent text link to where something else is set: a `setting` (a key path: `SettingsManager.openSetting`, which opens its card and outlines its row) or a `page` (a view type, or `Layouts:lockscreen` / `greeter` / `desktop`: `OverlayManager.followPageLink`). Named from its target unless `text` is set, and followed as a link, so the navigator offers the way back. It hides itself when its target isn't there; a host hiding it on its own condition binds `visible` to `available` and that.
+- `FieldLinks`: a schema's `x-link` (one or a list) as `SettingsLink`s, hidden while none shows. Form rows (`SettingsField`, `SchemaPropertiesForm`) put one under each field; the bar widget and module inspectors one for the type's own.
 - `GreeterSetup`: setting up the login screen (what Install changes, Install/Update/Remove, the commands left to run). Used by Settings' `GreeterStatusCard` and the onboarder.
 
 ### Bar pieces (`bar/`)
@@ -117,6 +119,8 @@ Bars size their own widgets (`Bar.enrichBarConfig`) and never use these: a share
 - **Last found** (`reusable/LastFound`): the last non-null `source`, for an entry looked up by id whose delegates must never be handed null as it's removed (`shell/Dock`, `shell/OSD`).
 - **Frame nudge** (`reusable/FrameNudge`): `burst()` makes its window draw and commit a few more frames. For where Hyprland keeps showing a layer's frame from before a change (a bar's stretches, the blur window's shapes).
 - **Backdrop** (`reusable/BackdropRequest`): a full-screen surface's dim background (overlay, overview, launcher, power menu, onboarding), under the bars and the border. It's drawn by the screen's one backdrop window (`surfaces/backdrop/ScreenBackdrop`, built by `shell/Backdrops`), which shows the request that showed last there (`BackdropManager`).
+- **Scroll memory** (`reusable/ScrollMemory`): keeps where a Flickable was scrolled to, by `key` (`EditsManager.scrollOf`, in memory), and puts it back when it's rebuilt (overlay pages are unloaded while it's closed), applied as soon as its content is long enough while it settles. A user's scroll or `cancel()` (a jump) stops it. `TitledCard.scrollKey` sets one up for a panel; an empty key keeps nothing.
+- **Flash outline** (`reusable/FlashOutline`): an accent outline that shows for a moment on `flash()`: what a jump to a settings card or row lands on.
 - **Surface group** (`reusable/SurfaceGroup`): keeps a surface's instances on every monitor in step when its `monitors` mode is `all`.
 - **Folding** (`reusable/FoldingColumn`): a column whose height animates open and shut on `open` (not when built), clipped, its content fading with it, with paddings that fold too. `shown` stays true until fully shut, so content can be held until then. `reusable/FoldingSection` puts a `reusable/FoldHeader` (a clickable `SectionHeading` and chevron, with the unsaved dot and a section line when asked) over one, for a folding section inside a card (the theme list's groups); `FoldingCard` is the card version, on the same header.
 

@@ -67,21 +67,42 @@ ColumnLayout {
   Repeater {
     model: root.references.length
 
-    RowLayout {
+    // Goes to it: the bar editor, the keybind editor or the menu
+    Item {
       id: reference
       required property int index
       readonly property var ref: root.references[reference.index] ?? ({})
       Layout.fillWidth: true
-      spacing: Widget.spacing
+      implicitHeight: referenceRow.implicitHeight
 
-      StyledIcon {
-        text: reference.ref.kind === "bind" ? "keyboard" : reference.ref.kind === "submenu" ? "menu_open" : "toolbar"
-        textColor: Theme.accent
+      RowLayout {
+        id: referenceRow
+        anchors.fill: parent
+        spacing: Widget.spacing
+
+        StyledIcon {
+          text: reference.ref.kind === "bind" ? "keyboard" : reference.ref.kind === "submenu" ? "menu_open" : "toolbar"
+          textColor: Theme.accent
+        }
+        StyledText {
+          Layout.fillWidth: true
+          text: reference.ref.label ?? ""
+          font.underline: referenceArea.containsMouse
+          elide: Text.ElideRight
+        }
+        StyledIcon {
+          text: "arrow_forward"
+          textColor: Theme.accent
+          opacity: referenceArea.containsMouse ? 1 : 0.5
+        }
       }
-      StyledText {
-        Layout.fillWidth: true
-        text: reference.ref.label ?? ""
-        elide: Text.ElideRight
+
+      MouseArea {
+        id: referenceArea
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: EdgeMenuManager.goToReference(reference.ref)
       }
     }
   }

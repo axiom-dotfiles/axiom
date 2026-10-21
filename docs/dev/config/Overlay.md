@@ -11,11 +11,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Overlay.monitors`** · string = "general" · enum general|primary|focused|all
   - Monitors: Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
-  - x-scope="look"
+  - x-link={"setting":"General.monitors"}, x-scope="look"
   - read: `OverlayConfig.monitors` · in: `components/hosts/overlay/OverlayPanel.qml`, `shell/Overlay.qml`
 - **`Overlay.moduleScale`** · integer = 100 · 50–100 · %
   - Module size: Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content shrink with them. For bigger cards, raise the card size.
-  - x-scope="look", x-group="Size", x-control="stepper"
+  - x-link={"setting":"Widget.cardSize"}, x-scope="look", x-group="Size", x-control="stepper"
   - read: `OverlayConfig.moduleScale` · in: `config/OverlayConfig.qml`
 - **`Overlay.navigator`** · string = "bottom" · enum bottom|top
   - Position: The screen edge the page switcher sits on.
@@ -46,7 +46,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Overlay.views`** · array<OverlayViews> = [{"type":"Custom","name":"Home","modules":[{"type":"ClockCalendar","p…
   - Pages shown in the overlay, in order: your Custom pages, each a grid of modules, and the tool pages (shown as icons after them).
   - x-scope="look", x-settings=false
-  - read: `OverlayConfig.views` · in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/settings/SettingsContent.qml`, `services/CalendarManager.qml`, `services/KeybindManager.qml`, `services/LauncherCommands.qml`, `services/OverlayManager.qml`, `services/SystemManager.qml`
+  - read: `OverlayConfig.views` · in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `services/CalendarManager.qml`, `services/KeybindManager.qml`, `services/LauncherCommands.qml`, `services/OverlayManager.qml`, `services/SystemManager.qml`
 - **`Overlay.views[]`**: one of the [OverlayViews](OverlayViews.md) types (discriminated by `type`)
 
 ### Reader members
@@ -54,7 +54,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `OverlayConfig`, with the files that use it.
 
 - `OverlayConfig.views` (var)
-  - in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/settings/SettingsContent.qml`, `services/CalendarManager.qml`, `services/KeybindManager.qml`, `services/LauncherCommands.qml`, `services/OverlayManager.qml`, `services/SystemManager.qml`
+  - in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `services/CalendarManager.qml`, `services/KeybindManager.qml`, `services/LauncherCommands.qml`, `services/OverlayManager.qml`, `services/SystemManager.qml`
 - `OverlayConfig.moduleScale` (int): The overlay's own Module size, in %: its cards are the card size (cardUnitOn) times it, and their content drawn at it (see layoutFor)
   - in: only inside the reader
 - `OverlayConfig.navigator` (string): The page switcher's edge, "bottom" | "top", and which tabs show their names: "auto" (all while they fit) | "current" | "icons"
@@ -96,13 +96,15 @@ Every public member of `OverlayConfig`, with the files that use it.
 - `OverlayConfig.viewInfo(type)`
   - in: `components/hosts/overlay/OverlayPages.qml`, `services/LauncherCommands.qml`
 - `OverlayConfig.viewLabel(view, index)`: How a page is named and drawn in the page navigator and the overlay editor: a Custom page by its name (or its place), others by type (i18n: keys from the schem…
-  - in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/views/layouts/PageTarget.qml`, `components/views/layouts/PagesSection.qml`, `components/views/settings/SettingsContent.qml`, `services/OverlayManager.qml`
+  - in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/views/layouts/PageTarget.qml`, `components/views/layouts/PagesSection.qml`, `services/OverlayManager.qml`
 - `OverlayConfig.pageKey(view)`: What opens a page by name (`openOverlayPage`, a bar Button or bind's `overlayPage` action): a Custom page's name, other pages' type; "" for a Custom page with …
   - in: `components/forms/SchemaField.qml`, `services/OverlayManager.qml`, `services/SettingsManager.qml`
 - `OverlayConfig.viewIcon(type)`
-  - in: `components/views/layouts/PagesSection.qml`, `components/views/settings/SettingsContent.qml`, `services/LauncherCommands.qml`
+  - in: `components/views/layouts/PagesSection.qml`, `services/LauncherCommands.qml`, `services/OverlayManager.qml`
 - `OverlayConfig.pageIcon(view)`: A page's icon: a Custom page's own, else its type's
   - in: `components/hosts/overlay/OverlayPages.qml`, `components/views/layouts/PageTarget.qml`, `components/views/layouts/PagesSection.qml`, `services/OverlayManager.qml`
+- `OverlayConfig.hasPage(type)`: Whether the overlay has a page of this type to go to (a link's): the pinned pages always, others while they're in Overlay.views and shown
+  - in: `services/OverlayManager.qml`
 - `OverlayConfig.isTool(type)`
   - in: `components/hosts/overlay/OverlayPages.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/layouts/PagesSection.qml`
 - `OverlayConfig.pageWithModule(type)`: The page to open for a module type (what openOverlayPage takes): the named Custom page where it's biggest, "" when no page has it

@@ -2,7 +2,7 @@
 # OverlayModules: WallpaperPicker
 
 > **File:** `components/content/WallpaperPicker.qml` · **Schema:** `definitions.WallpaperPickerOverlayModule` · **Label:** Wallpapers
-> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="photo_library", x-libraryGroup="Look & layout", x-defaultSize=[4,8]
+> **Annotations:** x-link={"page":"Themes"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="photo_library", x-libraryGroup="Look & layout", x-defaultSize=[4,8]
 
 Settings are read as `properties.<key>`.
 

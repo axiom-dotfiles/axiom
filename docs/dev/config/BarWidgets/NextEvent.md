@@ -2,7 +2,7 @@
 # BarWidgets: NextEvent
 
 > **File:** `components/bar/widgets/NextEvent.qml` · **Schema:** `definitions.NextEventWidget` · **Label:** Next Event
-> **Annotations:** x-icon="event", x-libraryGroup="Time & weather"
+> **Annotations:** x-link={"setting":"Calendar"}, x-icon="event", x-libraryGroup="Time & weather"
 
 Settings are read as `properties.<key>`.
 

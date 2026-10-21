@@ -25,6 +25,7 @@ Item {
   // I18n.tr("Behaviour") I18n.tr("Other")
   TitledCard {
     title: I18n.tr("Bar Editor")
+    scrollKey: "BarEditor"
     showActions: false
 
     headerExtras: ColumnLayout {

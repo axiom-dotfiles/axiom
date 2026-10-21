@@ -2,7 +2,7 @@
 # OverlayModules: Calendar
 
 > **File:** `components/content/Calendar.qml` · **Schema:** `definitions.CalendarOverlayModule` · **Label:** Calendar
-> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="calendar_month", x-libraryGroup="Time & weather", x-defaultSize=[4,8]
+> **Annotations:** x-link={"setting":"Calendar"}, x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="calendar_month", x-libraryGroup="Time & weather", x-defaultSize=[4,8]
 
 Settings are read as `properties.<key>`.
 

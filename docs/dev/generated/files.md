@@ -200,6 +200,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 ## components/forms/
 
+- `FieldLinks.qml`: The links under a form row or an inspector (`x-link`: { setting } or { page }, or a list of them), one SettingsLink each, hidden while none of them shows.
 - `GreeterSetup.qml`: Setting axiom up as the login screen (GreeterManager), shared by Settings → Login screen (GreeterStatusCard) and the onboarder: what Install changes, Install / Update / Remove (one password prompt each), what's left for…
 - `IntegrationHookup.qml`: i18n: keys from the schema (x-hookup `where`, x-hookupNote) Hooking a theme integration up to its app (its schema `x-hookup`): per config file, the text that loads axiom's file, to copy, and what Apply does to that file…
 - `OptionsGroup.qml`: An editor inspector's "Options" card for a bar widget's or an overlay module's `properties`: a `problem` in the error colour, the form, or `emptyText` when the type has no options
@@ -212,6 +213,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SchemaSwitch.qml`: i18n: keys from callers and the schema (titles, descriptions, type labels)
 - `SchemaTextField.qml`: i18n: keys from callers and the schema (titles, descriptions, type labels)
 - `SettingRows.qml`: Settings by dotted config path ("Apps.terminal"), each a SchemaField row as on the settings page, saved as they change (SettingsManager.commitValues), for pages that apply as the user goes (the onboarder, the Themes pag…
+- `SettingsLink.qml`: i18n: keys from the schema (titles, categories) and view labels A link to where something else is set: a setting on the settings page (`setting`, a key path: opens its card and outlines its row) or another overlay page …
 
 ## components/hosts/overlay/
 
@@ -342,6 +344,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `DragLayer.qml`: An editor area that carries one drag at a time over its content (`content`, the default property): the bar editor's (BarDragLayer) and the layouts editor's (GridDragLayer).
 - `DropdownSurface.qml`: The box of something that drops down over other content (a picker, a list opened from a header): bordered, rounded, with a shadow while `floating`
 - `FieldGroup.qml`: A titled group of fields, as on the settings page (editor inspectors)
+- `FlashOutline.qml`: An accent outline over what it fills that shows for a moment on flash(): what a jump to a settings card or row lands on.
 - `FlatIconButton.qml`: A flat icon button (no fill until hovered) of a fixed square size that doesn't stretch in layouts, so every button in a row shares one size and centre line (the chat's and notes' toolbars)
 - `FoldHeader.qml`: A fold's clickable header (FoldingCard, FoldingSection): a SectionHeading with its description only while unfolded, an optional line above it, the unsaved-edits dot while folded with `marked`, and a chevron.
 - `FoldingColumn.qml`: A column that folds open and shut: its height runs between its content's and nothing, clipped on the way, its content fading with it, and it hides once shut.
@@ -361,6 +364,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `PipewireVolumeBar.qml`: A StyledVolumeBar bound to a Pipewire stream (by app name) or the system volume: shows and sets its level and mute; the OSD's audio bars.
 - `PopInRectangle.qml`: A small mark that pops in and out (CountBadge, StatusChip, UnsavedDot): set `shown` rather than `visible`, and it grows in from its centre and shrinks away, staying visible (and laid out) until it has.
 - `RowAction.qml`: A small flat button on a ListEntryRow, faint until the row is hovered or selected.
+- `ScrollMemory.qml`: Keeps where a Flickable was scrolled to (EditsManager, by `key`), so a panel rebuilt when the overlay reopens comes back to the same spot.
 - `SectionHeading.qml`: A section's title in the accent, with an optional muted description under it (FieldGroup, the theme list)
 - `SegmentButton.qml`: One button of a segmented choice (Dark/Light, a wallpaper mode): the chosen one is filled with the accent; one that can't be chosen is dimmed.
 - `SegmentRow.qml`: A single choice as one control: SegmentButtons on a shared track, with the chosen one's accent sliding from button to button.

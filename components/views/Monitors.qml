@@ -39,6 +39,7 @@ BaseView {
 
     TitledCard {
       title: I18n.tr("Monitors")
+      scrollKey: "Monitors"
       dirty: MonitorManager.isDirty
       canSave: MonitorManager.canApply && !MonitorManager.pending
       saveLabel: MonitorManager.selectedIsLive ? I18n.tr("Apply") : I18n.tr("Save")
@@ -138,6 +139,11 @@ BaseView {
             width: inspectorScroll.availableWidth
           }
         }
+
+        ScrollMemory {
+          flickable: inspectorScroll.contentItem as Flickable
+          key: "Monitors/inspector"
+        }
       }
 
       StyledText {
@@ -158,6 +164,11 @@ BaseView {
         opacity: 0.6
         textSize: Appearance.fontSizeBy(-2)
         text: root.modeNote
+      }
+
+      SettingsLink {
+        Layout.fillWidth: true
+        setting: "Compositor.mode"
       }
     }
   }

@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
+import qs.components.forms
 
 // The Keybinds page's list of axiom's own binds (Keybinds.binds), the body
 // of its left card: what the last merge did, the binds' issues, the strip
@@ -156,6 +157,13 @@ ColumnLayout {
       iconText: "delete_sweep"
       text: I18n.tr("Remove {0} binds your compositor config also has", KeybindManager.userConflicts.length)
       onClicked: KeybindManager.removeUserConflicts()
+    }
+
+    // Managed mode merges them instead
+    SettingsLink {
+      id: modeLink
+      visible: modeLink.available && removeConflicts.visible
+      setting: "Compositor.mode"
     }
 
     // Managed mode: the user's binds move in instead

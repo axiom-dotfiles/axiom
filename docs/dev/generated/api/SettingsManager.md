@@ -15,19 +15,27 @@ The settings page's working copy of the config. Edits are applied live (in memor
 - `cursorThemes` (readonly var): Installed cursor themes (XCursor or hyprcursor), for the "cursorThemes" options; listed once, when this is first used
 - `category` (string): The settings page's selected category and search text
 - `query` (string)
+- `changedOnly` (bool): The page lists only the settings that differ from their defaults (`changedSet`), from every category, as search results
+- `changedSet` (var): The settings that differed from their defaults when the list was last asked for (`showChanged`), as a set of dotted paths: taken then, not followed, so a setting put back to its default stays listed …
+- `defaults` (readonly var): Every default filled in, from the schema alone
+- `nonDefaultPaths` (readonly var): Key paths ("Appearance.font.size") of settings whose value in the draft differs from the schema default, in the sections the page shows; arrays count as one value
+- `pendingJump` (readonly var): The jump the page hasn't made yet: { key, row } (`row` a setting's key path to outline, or null for the card).
 - `collapsed` (var): Settings cards the user folded, by SchemaLayout group key; saved in state/settings.json so they stay folded across restarts
 - `settingPaths` (readonly var): Every value the settings page shows, as { path, key, schema }, with key the dotted path.
 - `showIfValue` (readonly var): A `/`-rooted `x-showIf` key's value (configValueAt)
 
 ### Signals
 
-- `jumpRequested(string key, bool unfolded)`: The page scrolls to a card (by SchemaLayout group key), unfolding it first; `unfolded` says it had to, so the page waits for it to open
+- `jumpRequested(string key, bool unfolded)`: The page scrolls to a card (by SchemaLayout group key), unfolding it first; `unfolded` says it had to, so the page waits for it to open.
 
 ### Functions
 
+- `showChanged()`: Lists the settings changed from their defaults, as they are now
 - `openCategory(name)`: Opens the overlay's settings page on a category (its sidebar name)
-- `openSection(key)`: Opens it on the category holding a config section ("Chat")
-- `jumpTo(key)`
+- `openSetting(path, link)`: Opens the page on the card showing a setting (a key path, dotted or an array: "Appearance.font.size"), or a section's or object's first card ("BarStyle"), scrolls to it and outlines the setting's row.
+- `locate(path)`: Where the page shows a setting (SchemaLayout.locate: { category, key, title, row }, or null), remembered per path, since links ask for it as they're drawn and it lays out the whole schema.
+- `jumpTo(key, row)`
+- `jumpDone()`: The page made the jump, or found it can't
 - `isCollapsed(key)`
 - `setCollapsed(keys, value)`: `keys`: one group key or a list of them
 - `isChanged(path)`

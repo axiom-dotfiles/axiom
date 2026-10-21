@@ -48,6 +48,8 @@ Card {
   // How the result fits, under the title (e.g. per monitor)
   property string fitText: ""
   property bool fitWarning: false
+  // A link beside it (EditTarget.fitLink), or null
+  property var fitLink: null
   // Arrows under the title moving it along its edge (EditTarget's nudge
   // fields): hidden while `nudgeText` is ""
   property string nudgeText: ""
@@ -262,14 +264,27 @@ Card {
           }
         }
 
-        StyledText {
+        RowLayout {
           visible: root.editable && root.fitText !== ""
           Layout.fillWidth: true
-          text: root.fitText
-          textColor: root.fitWarning ? Theme.warning : Theme.foreground
-          opacity: root.fitWarning ? 1 : 0.6
-          textSize: Appearance.fontSizeBy(-2)
-          elide: Text.ElideRight
+          spacing: Widget.spacing
+
+          StyledText {
+            Layout.fillWidth: fitLinks.visible ? false : true
+            Layout.maximumWidth: fitLinks.visible ? implicitWidth : -1
+            Layout.minimumWidth: 0
+            text: root.fitText
+            textColor: root.fitWarning ? Theme.warning : Theme.foreground
+            opacity: root.fitWarning ? 1 : 0.6
+            textSize: Appearance.fontSizeBy(-2)
+            elide: Text.ElideRight
+          }
+
+          FieldLinks {
+            id: fitLinks
+            Layout.fillWidth: true
+            links: root.fitLink ?? undefined
+          }
         }
       }
 

@@ -66,16 +66,15 @@ ColumnLayout {
       id: fields
       model: root.rows
 
-      // Loaded by URL: SchemaField (through SchemaObjectArray and
-      // SchemaArrayItem) instantiates this type, so naming it here would make
-      // the types depend on each other
-      delegate: Loader {
+      // The field, then its `x-link`s
+      delegate: ColumnLayout {
+        id: cell
         required property var modelData
         required property int index
         // SchemaField hides itself for `x-showIf`; follow it so the layout
         // doesn't keep its space (`shown`, not `visible`: that would read
-        // false forever once this Loader hides)
-        readonly property bool shown: item?.shown ?? false
+        // false forever once this cell hides)
+        readonly property bool shown: field.item?.shown ?? false
         readonly property bool _beside: modelData.schema?.["x-beside"] === true
         // Read again once every field exists (`count` changes after the
         // Repeater made them): itemAt doesn't notify, and the field after
@@ -87,10 +86,24 @@ ColumnLayout {
         Layout.preferredWidth: 1
         Layout.alignment: Qt.AlignTop
         visible: shown
-        Component.onCompleted: setSource(Qt.resolvedUrl("SchemaField.qml"), {
-          "row": modelData,
-          "form": root
-        })
+        spacing: Widget.spacing / 2
+
+        // Loaded by URL: SchemaField (through SchemaObjectArray and
+        // SchemaArrayItem) instantiates this type, so naming it here would
+        // make the types depend on each other
+        Loader {
+          id: field
+          Layout.fillWidth: true
+          Component.onCompleted: setSource(Qt.resolvedUrl("SchemaField.qml"), {
+            "row": cell.modelData,
+            "form": root
+          })
+        }
+
+        FieldLinks {
+          Layout.fillWidth: true
+          links: cell.modelData.schema?.["x-link"]
+        }
       }
     }
   }

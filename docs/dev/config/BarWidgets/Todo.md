@@ -2,7 +2,7 @@
 # BarWidgets: Todo
 
 > **File:** `components/bar/widgets/Todo.qml` · **Schema:** `definitions.TodoWidget` · **Label:** Todo list
-> **Annotations:** x-icon="checklist", x-libraryGroup="Tools"
+> **Annotations:** x-link={"setting":"Todo"}, x-icon="checklist", x-libraryGroup="Tools"
 
 Settings are read as `properties.<key>`.
 

@@ -2,7 +2,7 @@
 # BarWidgets: Battery
 
 > **File:** `components/bar/widgets/Battery.qml` · **Schema:** `definitions.BatteryWidget` · **Label:** Battery Status
-> **Annotations:** x-icon="battery_full", x-libraryGroup="System"
+> **Annotations:** x-link={"setting":"Battery"}, x-icon="battery_full", x-libraryGroup="System"
 
 Settings are read as `properties.<key>`.
 
@@ -26,11 +26,11 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/Battery.qml`
 - **`lowColor`** · string = ""
   - Low color: At or below Battery > Low at (in settings).
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="warning", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
+  - x-link={"setting":"Battery.lowThreshold"}, x-options="colors", x-emptyLabel="Auto", x-autoColor="warning", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Battery.qml`
 - **`criticalColor`** · string = ""
   - Critical color: At or below Battery > Critical at (in settings).
-  - x-options="colors", x-emptyLabel="Auto", x-autoColor="critical", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
+  - x-link={"setting":"Battery.criticalThreshold"}, x-options="colors", x-emptyLabel="Auto", x-autoColor="critical", x-showIf={"$bar.widgetStyle":{"not":"plain"}}
   - in: `components/bar/widgets/Battery.qml`
 - **`foregroundColor`** · string = "base00"
   - Text color

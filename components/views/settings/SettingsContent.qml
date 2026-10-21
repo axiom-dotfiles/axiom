@@ -21,6 +21,11 @@ Item {
   readonly property var schema: ConfigManager.configSchema
   readonly property string query: SettingsManager.query.trim().toLowerCase()
   readonly property bool searching: query !== ""
+  // Listing matches from every category: a search, or the settings
+  // changed from their defaults (SettingsManager.changedOnly), or both
+  readonly property bool listing: root.searching || SettingsManager.changedOnly
+
+  Component.onCompleted: root._lastPageIndex = root._pageIndex
 
   signal edited(var path, var value)
   onEdited: (path, value) => SettingsManager.setValue(path, value)
@@ -58,15 +63,18 @@ Item {
     return row.kind !== "group" && (_matches(row.title) || _matches(row.schema?.description) || row.path[row.path.length - 1].toLowerCase().includes(root.query));
   }
 
-  // From the schema, category and search only: never from config values,
-  // so editing doesn't rebuild the cards. Search results carry their
-  // category's name
+  // From the schema, category, search and the changed set only: never
+  // from config values, so editing doesn't rebuild the cards. Listed
+  // results carry their category's name
   readonly property var groups: {
-    if (!root.searching)
+    if (!root.listing)
       return SchemaLayout.categoryGroups(root.schema, root.category);
+    const changed = SettingsManager.changedSet;
+    const changedOnly = SettingsManager.changedOnly;
     // Hand-built cards have no rows to search
     return [].concat(...root.categories.map(category => SchemaLayout.categoryGroups(root.schema, category).filter(group => group.kind !== "card").map(group => {
-        const rows = root._matches(group.title) || root._matches(group.section) ? group.rows : group.rows.filter(row => root._rowMatches(row));
+        const titleMatches = root.searching && (root._matches(group.title) || root._matches(group.section));
+        const rows = group.rows.filter(row => (!root.searching || titleMatches || root._rowMatches(row)) && (!changedOnly || (row.kind !== "group" && changed[row.path.join(".")] === true)));
         return rows.length > 0 ? Object.assign({}, group, {
           "rows": rows,
           "category": category.name,
@@ -81,7 +89,7 @@ Item {
 
   // The selected category's shown cards, for the sidebar to jump to
   readonly property var shownGroups: {
-    if (root.searching)
+    if (root.listing)
       return [];
     const shown = root._shownKey;
     return root.groups.filter((group, i) => shown[i] === "1");
@@ -90,7 +98,7 @@ Item {
   // The shown cards that can fold (hand-built ones only with `x-cardFolds`,
   // and none while searching)
   readonly property var foldableKeys: {
-    if (root.searching)
+    if (root.listing)
       return [];
     const shown = root._shownKey;
     return root.groups.filter((group, i) => shown[i] === "1" && (group.kind === "rows" || group.folds)).map(group => group.key);
@@ -132,7 +140,6 @@ Item {
   Connections {
     target: SettingsManager
     function onJumpRequested(key, unfolded) {
-      jumpDelay.key = key;
       jumpDelay.interval = unfolded ? Appearance.animNormal : 0;
       jumpDelay.restart();
     }
@@ -142,30 +149,47 @@ Item {
   // bring it to the top
   Timer {
     id: jumpDelay
-    property string key
-    onTriggered: {
-      const card = root._cards[jumpDelay.key];
-      if (!card)
-        return;
+    onTriggered: root._takeJump()
+  }
+
+  // Makes SettingsManager's pending jump once its card is laid out: now,
+  // or when its block settles (the page was just built, or the category
+  // just changed). Its row centred and outlined, else the card at the top
+  function _takeJump() {
+    const jump = SettingsManager.pendingJump;
+    if (!jump)
+      return;
+    const card = root._cards[jump.key];
+    if (card?.settling)
+      return;
+    // No such card shown (hidden, or listing results): nothing to wait for once
+    // every block has settled
+    if (!card) {
+      for (let i = 0; i < blocksRepeater.count; i++)
+        if (blocksRepeater.itemAt(i)?.settling)
+          return;
+      SettingsManager.jumpDone();
+      return;
+    }
+    SettingsManager.jumpDone();
+    const row = jump.row ? card.rowItem(jump.row) : null;
+    if (row && row.visible) {
+      titledCard.scrollTo(row, true);
+      row.flash();
+    } else {
       titledCard.scrollTo(card);
       card.flash();
     }
   }
 
-  // Pages the category links to: the pinned layouts editor always exists,
-  // others only while they're in Overlay.views
-  function _linkAvailable(type) {
-    return type === "Layouts" || OverlayConfig.views.some(view => view.type === type && view.visible !== false);
-  }
-
-  readonly property var links: root.searching ? [] : (root.category?.links ?? []).filter(type => root._linkAvailable(type))
+  // Pages the category links to that lead anywhere
+  readonly property var links: root.listing ? [] : (root.category?.links ?? []).filter(link => OverlayManager.pageLinkAvailable(link))
 
   // The category's place in the sidebar (-1 while searching): a new one
   // slides in from the side of the list it was picked from
-  readonly property int _pageIndex: root.searching ? -1 : root.categories.indexOf(root.category)
+  readonly property int _pageIndex: root.listing ? -1 : root.categories.indexOf(root.category)
   property int _lastPageIndex: -1
 
-  Component.onCompleted: root._lastPageIndex = root._pageIndex
   on_PageIndexChanged: {
     slide.from = (root._pageIndex > root._lastPageIndex ? 1 : -1) * Widget.spacing * 4;
     root._lastPageIndex = root._pageIndex;
@@ -198,7 +222,10 @@ Item {
     id: titledCard
     // I18n.tr("Search results"); category names come from the schema's
     // x-categories
-    title: root.searching ? I18n.tr("Search results") : (root.category ? I18n.tr(root.category.name) : "")
+    // Each category keeps its own place; search results start at the top
+    scrollKey: root.listing ? "" : "Settings/" + (root.category?.name ?? "")
+    // I18n.tr("Changed from default")
+    title: root.searching ? I18n.tr("Search results") : SettingsManager.changedOnly ? I18n.tr("Changed from default") : (root.category ? I18n.tr(root.category.name) : "")
     dirty: SettingsManager.isDirty
     onSave: SettingsManager.saveChanges()
     onReset: SettingsManager.resetChanges()
@@ -233,11 +260,9 @@ Item {
         delegate: StyledTextButton {
           required property string modelData
           Layout.preferredHeight: Widget.height - Widget.px(4)
-          text: OverlayConfig.viewLabel({
-            "type": modelData
-          }, 0)
-          iconText: OverlayConfig.viewIcon(modelData)
-          onClicked: ShellManager.showOverlayPage(modelData)
+          text: OverlayManager.pageLinkLabel(modelData)
+          iconText: OverlayManager.pageLinkIcon(modelData)
+          onClicked: OverlayManager.followPageLink(modelData)
         }
       }
     }
@@ -252,14 +277,15 @@ Item {
       }
 
       StyledText {
-        visible: root.searching && root.groups.length === 0
-        text: I18n.tr("No settings match \"{0}\"", SettingsManager.query)
+        visible: root.listing && root.groups.length === 0
+        text: root.searching ? I18n.tr("No settings match \"{0}\"", SettingsManager.query) : I18n.tr("Every setting is at its default")
         opacity: 0.6
         Layout.fillWidth: true
         Layout.topMargin: Widget.padding
       }
 
       Repeater {
+        id: blocksRepeater
         model: root.blocks
 
         delegate: ColumnLayout {
@@ -303,7 +329,10 @@ Item {
             id: settle
             interval: 150
             running: true
-            onTriggered: block.settling = false
+            onTriggered: {
+              block.settling = false;
+              root._takeJump();
+            }
           }
 
           Connections {
@@ -367,7 +396,7 @@ Item {
                 y: card.place.y
                 onImplicitHeightChanged: block.setHeight(card.index, card.implicitHeight)
                 Component.onCompleted: {
-                  if (!root.searching)
+                  if (!root.listing)
                     root._cards[card.modelData.key] = card;
                   // Its title from the schema (`x-cardTitle`, or the
                   // category's `cardTitle`), as the sidebar names it
@@ -386,40 +415,24 @@ Item {
                     delete root._cards[card.modelData.key];
                 }
 
+                // Its block's columns are still settling: a jump to it
+                // waits, or it would scroll to where the card was
+                readonly property bool settling: block.settling
+
                 // Outlines the card for a moment (jumped to from the
                 // sidebar)
                 function flash() {
-                  flashAnimation.restart();
+                  outline.flash();
                 }
 
-                Rectangle {
+                // The row showing a setting (a key path), or null
+                function rowItem(path) {
+                  return card.item?.rowItem?.(path) ?? null;
+                }
+
+                FlashOutline {
                   id: outline
                   anchors.fill: parent
-                  z: 1
-                  radius: Widget.radius
-                  color: "transparent"
-                  border.color: Theme.accent
-                  border.width: Appearance.borderWidth + 1
-                  opacity: 0
-                }
-
-                SequentialAnimation {
-                  id: flashAnimation
-                  NumberAnimation {
-                    target: outline
-                    property: "opacity"
-                    to: 1
-                    duration: Appearance.animFast
-                  }
-                  PauseAnimation {
-                    duration: Appearance.animSlow
-                  }
-                  NumberAnimation {
-                    target: outline
-                    property: "opacity"
-                    to: 0
-                    duration: Appearance.animSlow
-                  }
                 }
 
                 Component {
@@ -427,7 +440,7 @@ Item {
                   SettingsGroupCard {
                     group: card.modelData
                     form: root
-                    showSection: root.searching
+                    showSection: root.listing
                   }
                 }
               }

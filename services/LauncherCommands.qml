@@ -774,6 +774,17 @@ QtObject {
             set: parsed.value
           }
         });
+    // Last, so Enter still sets the first value; only while a card shows it
+    const showRows = SettingsManager.locate(entry.key) ? [
+      {
+        title: I18n.tr("Show in settings"),
+        subtitle: I18n.tr("Open the settings page on {0}", I18n.tr(schema.title ?? entry.key)),
+        glyph: "settings",
+        value: {
+          show: entry.key
+        }
+      }
+    ] : [];
     const typed = rest.trim();
     if (typed === "" && !choices)
       return [
@@ -784,7 +795,7 @@ QtObject {
             next: entry.key + " "
           }
         }
-      ];
+      ].concat(showRows);
     let rows = [];
     // Typed text that isn't (the start of) a choice gets a row of its own,
     // so free values, and why one is rejected, show
@@ -795,7 +806,7 @@ QtObject {
         const text = choice === "" ? "\"\"" : choice;
         return setRow(text, SettingsManager.parseValue(schema, text));
       }));
-    return rows;
+    return rows.concat(showRows);
   }
 
   function _configRun(value) {
@@ -815,6 +826,11 @@ QtObject {
     }
     if (value?.community) {
       CommunitySetupsManager.apply(value.community, false);
+      return;
+    }
+    // After the launcher has closed, so the overlay gets the keyboard
+    if (value?.show) {
+      Qt.callLater(() => SettingsManager.openSetting(value.show));
       return;
     }
     if (value?.key !== undefined && !SettingsManager.commitValue(value.key, value.set))

@@ -2,7 +2,7 @@
 # OverlayModules: Battery
 
 > **File:** `components/content/Battery.qml` · **Schema:** `definitions.BatteryOverlayModule` · **Label:** Battery
-> **Annotations:** x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="battery_full", x-libraryGroup="System", x-defaultSize=[2,2]
+> **Annotations:** x-link={"setting":"Battery"}, x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="battery_full", x-libraryGroup="System", x-defaultSize=[2,2]
 
 Settings are read as `properties.<key>`.
 

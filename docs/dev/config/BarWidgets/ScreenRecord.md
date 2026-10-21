@@ -2,7 +2,7 @@
 # BarWidgets: ScreenRecord
 
 > **File:** `components/bar/widgets/ScreenRecord.qml` · **Schema:** `definitions.ScreenRecordWidget` · **Label:** Screen Recording
-> **Annotations:** x-icon="radio_button_checked", x-libraryGroup="Tools"
+> **Annotations:** x-link={"setting":"Screenshots"}, x-icon="radio_button_checked", x-libraryGroup="Tools"
 
 Settings are read as `properties.<key>`.
 

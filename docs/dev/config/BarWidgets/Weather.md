@@ -2,7 +2,7 @@
 # BarWidgets: Weather
 
 > **File:** `components/bar/widgets/Weather.qml` · **Schema:** `definitions.WeatherWidget` · **Label:** Weather
-> **Annotations:** x-icon="partly_cloudy_day", x-libraryGroup="Time & weather"
+> **Annotations:** x-link={"setting":"Weather"}, x-icon="partly_cloudy_day", x-libraryGroup="Time & weather"
 
 Settings are read as `properties.<key>`.
 

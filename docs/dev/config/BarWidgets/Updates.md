@@ -2,7 +2,7 @@
 # BarWidgets: Updates
 
 > **File:** `components/bar/widgets/Updates.qml` · **Schema:** `definitions.UpdatesWidget` · **Label:** Package Updates
-> **Annotations:** x-icon="package_2", x-libraryGroup="System"
+> **Annotations:** x-link={"setting":"Updates"}, x-icon="package_2", x-libraryGroup="System"
 
 Settings are read as `properties.<key>`.
 

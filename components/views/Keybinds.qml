@@ -58,6 +58,7 @@ BaseView {
     TitledCard {
       id: listCard
       title: I18n.tr("Keybinds")
+      scrollKey: "Keybinds"
       showActions: false
 
       headerExtras: [
@@ -364,6 +365,8 @@ BaseView {
 
     TitledCard {
       title: KeybindManager.selectedIndex >= 0 ? I18n.tr("Bind") : I18n.tr("Key map")
+      // The key map keeps its place; a bind starts at its top
+      scrollKey: KeybindManager.selectedIndex >= 0 ? "" : "Keybinds/map"
       showActions: true
       dirty: KeybindManager.isDirty
       onSave: KeybindManager.save()

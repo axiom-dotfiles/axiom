@@ -35,27 +35,117 @@ QtObject {
   // The settings page's selected category and search text
   property string category: ""
   property string query: ""
+  // The page lists only the settings that differ from their defaults
+  // (`changedSet`), from every category, as search results
+  property bool changedOnly: false
+  // The settings that differed from their defaults when the list was last
+  // asked for (`showChanged`), as a set of dotted paths: taken then, not
+  // followed, so a setting put back to its default stays listed (and new
+  // edits don't rebuild the cards) until it's asked for again
+  property var changedSet: ({})
+
+  // Lists the settings changed from their defaults, as they are now
+  function showChanged() {
+    root.query = "";
+    root.changedSet = root.nonDefaultPaths.reduce((set, path) => {
+      set[path] = true;
+      return set;
+    }, {});
+    root.changedOnly = true;
+  }
+
+  // Every default filled in, from the schema alone
+  readonly property var defaults: SchemaValidation.applyDefaults({}, ConfigManager.configSchema)
+  // The key paths the settings page has a row for (not `x-settings: false`)
+  readonly property var _settingsPaths: SchemaLayout.rows(ConfigManager.configSchema, []).filter(row => row.kind !== "group").reduce((set, row) => {
+    set[row.path.join(".")] = true;
+    return set;
+  }, {})
+  // Key paths ("Appearance.font.size") of settings whose value in the
+  // draft differs from the schema default, in the sections the page
+  // shows; arrays count as one value
+  readonly property var nonDefaultPaths: _diff(draft.local, root.defaults, []).filter(path => root._settingsPaths[path] === true && root._shownSections.includes(path.split(".")[0]))
+
+  // The sections the page shows: some show only with a compositor or a
+  // config mode (their `x-showIf`), which moves where a setting is
+  readonly property var _shownSections: [].concat(...SchemaLayout.categories(ConfigManager.configSchema, root.showIfValue).map(category => category.sections))
+  readonly property string _shownKey: root._shownSections.join(",")
 
   // Opens the overlay's settings page on a category (its sidebar name)
   function openCategory(name) {
     root.query = "";
+    root.changedOnly = false;
     root.category = name;
     ShellManager.openOverlayPage("Settings");
   }
 
-  // Opens it on the category holding a config section ("Chat")
-  function openSection(key) {
-    root.openCategory(SchemaLayout.categories(ConfigManager.configSchema, root.showIfValue).find(c => c.sections.includes(key))?.name ?? "");
+  // Opens the page on the card showing a setting (a key path, dotted or
+  // an array: "Appearance.font.size"), or a section's or object's first
+  // card ("BarStyle"), scrolls to it and outlines the setting's row. `link`:
+  // followed from another page, which the navigator then offers to go back
+  // to (ShellManager.followLink). False when no card shows it
+  function openSetting(path, link) {
+    const found = root.locate(path);
+    if (!found) {
+      console.warn(`SettingsManager: no settings card shows ${path}`);
+      return false;
+    }
+    root.query = "";
+    root.changedOnly = false;
+    root.category = found.category;
+    if (link === true)
+      ShellManager.followLink("Settings");
+    else
+      ShellManager.openOverlayPage("Settings");
+    root.jumpTo(found.key, found.row);
+    return true;
   }
 
+  // Where the page shows a setting (SchemaLayout.locate: { category, key,
+  // title, row }, or null), remembered per path, since links ask for it
+  // as they're drawn and it lays out the whole schema. Filled in place,
+  // which doesn't notify (a binding asking would otherwise loop); a schema
+  // reload, or a section showing or hiding, starts a new one, which does
+  function locate(path) {
+    const key = Array.isArray(path) ? path.join(".") : String(path);
+    const located = root._located;
+    if (!(key in located))
+      located[key] = SchemaLayout.locate(ConfigManager.configSchema, key, root.showIfValue);
+    return located[key];
+  }
+  property var _located: ({})
+  on_ShownKeyChanged: root._located = {}
+  property Connections _schemaWatch: Connections {
+    target: ConfigManager
+    function onConfigSchemaChanged() {
+      root._located = {};
+    }
+  }
+
+  // The jump the page hasn't made yet: { key, row } (`row` a setting's key
+  // path to outline, or null for the card). Kept until the page has the
+  // card laid out, so a jump made before the page is built still lands
+  readonly property var pendingJump: root._pendingJump
+  property var _pendingJump: null
+
   // The page scrolls to a card (by SchemaLayout group key), unfolding it
-  // first; `unfolded` says it had to, so the page waits for it to open
+  // first; `unfolded` says it had to, so the page waits for it to open.
+  // `row` (a key path): the row in it to outline
   signal jumpRequested(string key, bool unfolded)
-  function jumpTo(key) {
+  function jumpTo(key, row) {
     const unfolded = root.isCollapsed(key);
     if (unfolded)
       root.setCollapsed(key, false);
+    root._pendingJump = {
+      "key": key,
+      "row": row ?? null
+    };
     root.jumpRequested(key, unfolded);
+  }
+
+  // The page made the jump, or found it can't
+  function jumpDone() {
+    root._pendingJump = null;
   }
 
   // Settings cards the user folded, by SchemaLayout group key; saved in

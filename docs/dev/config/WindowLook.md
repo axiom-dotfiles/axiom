@@ -32,7 +32,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.matchShell`** · boolean = true
   - Match axiom's shape: Follow Look & Feel → Shape: its border width and corner radius (only the width on sway, which can't round corners).
-  - x-showIf={"shape":true}, x-enabledIf={"/$supports.windowShape":true}
+  - x-link={"setting":"Appearance.shape"}, x-showIf={"shape":true}, x-enabledIf={"/$supports.windowShape":true}
   - read: `WindowLookConfig.borderWidth` (computed), `WindowLookConfig.radius` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.borderSize`** · integer = 2 · 0–20 · px
   - Border width
@@ -56,7 +56,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.surfaceBlur`** · boolean = true
   - Blur behind axiom's surfaces: The compositor blurs what shows through axiom's translucent surfaces (Look & Feel → Translucency), with its blur below. It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.
-  - x-group="Blur", x-showIf={"/Appearance.surface.opacity":{"not":100}}, x-enabledIf={"/$supports.blur":true}
+  - x-link={"setting":"Appearance.surface"}, x-group="Blur", x-showIf={"/Appearance.surface.opacity":{"not":100}}, x-enabledIf={"/$supports.blur":true}
   - read: `Appearance.blur` (computed) · in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/settings/TranslucencyStatus.qml`, `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - **`WindowLook.surfaceBlurThroughWindows`** · boolean = true
   - Blur windows behind surfaces: Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Tooltips and menus always blur what's behind them.
@@ -124,7 +124,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `WindowLookConfig.shadowOn` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shadowMatchShell`** · boolean = true
   - Match axiom's shadow: Follow Look & Feel → Surface shadow: its color and size. With it off there, windows cast none.
-  - x-group="Window shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
+  - x-link={"setting":"BarStyle.shadow"}, x-group="Window shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
   - read: `WindowLookConfig.shadowAlpha` (computed), `WindowLookConfig.shadowColor` (computed), `WindowLookConfig.shadowOn` (computed), `WindowLookConfig.shadowSize` (computed), `WindowLookConfig.shadowSoft` (computed), `WindowLookConfig.shadowThemed` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shadowSize`** · integer = 10 · 0–100 · px
   - Shadow size
@@ -152,7 +152,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.opacity`** · boolean = false
   - Set window opacity: Your apps' windows; the shell's own surfaces are Look & Feel → Translucency. Off, your own config's applies.
-  - x-group="Window opacity", x-enabledIf={"/$supports.windowOpacity":true}
+  - x-link={"setting":"Appearance.surface.opacity"}, x-group="Window opacity", x-enabledIf={"/$supports.windowOpacity":true}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.activeOpacity`** · integer = 100 · 10–100 · %
   - Focused window opacity
@@ -214,7 +214,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.fontSizeLarge` (int)
   - in: `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `components/surfaces/powermenu/PowerMenuWindow.qml`
 - `Appearance.fontSizeBy(n: real): int`: The font size `n` px bigger (smaller when negative) than the setting, at the Interface scale: the offset grows with the text, where `fontSize + n` would leave …
-  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Cheatsheet.qml`, `components/content/ClaudeUsage.qml`, `components/content/ClipboardHistory.qml`, `components/content/Clock.qml`, `components/content/ClockCalendar.qml` (+127 more)
+  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Cheatsheet.qml`, `components/content/ClaudeUsage.qml`, `components/content/ClipboardHistory.qml`, `components/content/Clock.qml`, `components/content/ClockCalendar.qml` (+128 more)
 - `Appearance.iconFamily` (string): Icons are Material Symbols names drawn in this font (StyledIcon), so they don't depend on the text font
   - in: `components/content/TopProcesses.qml`, `components/reusable/StyledIcon.qml`, `components/surfaces/onboarding/pages/ChecksPage.qml`, `services/DependencyManager.qml`
 - `Appearance.borderRadius` (int): --- Shape ---
@@ -254,6 +254,6 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.animNormal` (int)
   - in: `components/bar/BarContainer.qml`, `components/bar/WidgetBackground.qml`, `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/bar/widgets/workspaces/WorkspaceCell.qml`, `components/content/AudioMixer.qml`, `components/content/Notifications.qml`, `components/content/WorkspaceGrid.qml`, `components/content/base/TitledCard.qml`, `components/content/parts/DeviceList.qml` (+46 more)
 - `Appearance.animSlow` (int)
-  - in: `components/bar/widgets/Battery.qml`, `components/content/ScreenRecord.qml`, `components/content/parts/RadioHeader.qml`, `components/content/parts/chat/ChatThinking.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/reusable/PasswordEntry.qml`, `components/reusable/PercentageCircle.qml`, `components/surfaces/backdrop/ScreenBackdrop.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/surfaces/wallpaper/WallpaperWindow.qml` (+3 more)
+  - in: `components/bar/widgets/Battery.qml`, `components/content/ScreenRecord.qml`, `components/content/parts/RadioHeader.qml`, `components/content/parts/chat/ChatThinking.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/reusable/FlashOutline.qml`, `components/reusable/PasswordEntry.qml`, `components/reusable/PercentageCircle.qml`, `components/surfaces/backdrop/ScreenBackdrop.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml` (+3 more)
 - `Appearance.easing` (int)
   - in: `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/content/Clock.qml`, `components/content/ScreenRecord.qml`, `components/content/parts/calendar/EventRow.qml`, `components/content/parts/calendar/MonthGrid.qml`, `components/hosts/overlay/OverlayPage.qml`, `components/hosts/popout/SlideAnimation.qml`, `components/hosts/popout/SwitchStill.qml`, `components/reusable/ColorGlide.qml` (+10 more)

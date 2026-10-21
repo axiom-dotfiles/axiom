@@ -2,7 +2,7 @@
 # OverlayModules: Notifications
 
 > **File:** `components/content/Notifications.qml` · **Schema:** `definitions.NotificationsOverlayModule` · **Label:** Notifications
-> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="notifications", x-libraryGroup="Desktop"
+> **Annotations:** x-link={"setting":"Notifications"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="notifications", x-libraryGroup="Desktop"
 
 Settings are read as `properties.<key>`.
 

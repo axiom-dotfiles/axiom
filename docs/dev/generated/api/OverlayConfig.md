@@ -39,6 +39,7 @@ Overlay: the configured views, plus the card grid's layout constants. (Named Ove
 - `pageKey(view)`: What opens a page by name (`openOverlayPage`, a bar Button or bind's `overlayPage` action): a Custom page's name, other pages' type; "" for a Custom page with no name
 - `viewIcon(type)`
 - `pageIcon(view)`: A page's icon: a Custom page's own, else its type's
+- `hasPage(type)`: Whether the overlay has a page of this type to go to (a link's): the pinned pages always, others while they're in Overlay.views and shown
 - `isTool(type)`
 - `pageWithModule(type)`: The page to open for a module type (what openOverlayPage takes): the named Custom page where it's biggest, "" when no page has it
 - `cardPad(compact, bare)`: The inner padding a module lays its content out within (Card/Panel `pad`): none when bare, less in a quarter slot (Widget's density)

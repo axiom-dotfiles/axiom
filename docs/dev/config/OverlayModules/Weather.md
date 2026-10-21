@@ -2,7 +2,7 @@
 # OverlayModules: Weather
 
 > **File:** `components/content/Weather.qml` · **Schema:** `definitions.WeatherOverlayModule` · **Label:** Weather
-> **Annotations:** x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="partly_cloudy_day", x-libraryGroup="Time & weather"
+> **Annotations:** x-link={"setting":"Weather"}, x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="partly_cloudy_day", x-libraryGroup="Time & weather"
 
 Settings are read as `properties.<key>`.
 

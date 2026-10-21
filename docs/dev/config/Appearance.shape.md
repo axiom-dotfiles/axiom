@@ -14,7 +14,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-scope="look"
 - **`Appearance.shape.radius`** · integer = 6 · 0–50 · px
   - Corner radius: Roundness of outer edges: the screen border, bars, popouts and windows (px). Everything inside follows it unless Panels & controls sets its own.
-  - x-control="stepper"
+  - x-link={"setting":"Widget.radius"}, x-control="stepper"
   - read: `Appearance.borderRadius` · in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/EdgeSurface.qml`, `components/hosts/popout/FloatingPopout.qml`, `components/hosts/popout/PillBarJoin.qml`, `components/hosts/popout/SubPopout.qml`, `components/reusable/CornerPiece.qml`, `components/surfaces/border/RoundedBorders.qml` (+10 more)
 - **`Appearance.shape.borderWidth`** · integer = 1 · 0–10 · px
   - Border width: Thickness of every outline (px).

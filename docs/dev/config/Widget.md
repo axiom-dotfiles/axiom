@@ -18,13 +18,14 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Widget.cardSize`** · integer = 100 · 50–150 · %
   - Card size: How big module cards are, as a share of the screen: at 100 two cards fill its shorter side. The overlay, edge menus, desktop, lock screen and greeter all start from it, and each can be made bigger or smaller with its own Module size. Text stays the Interface scale's size, so on a smaller screen a higher card size gives modules back their room. The overlay never grows past filling its screen.
   - x-scope="personal"
-  - read: `Widget.cardSize` · in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/OverlayConfig.qml`
+  - read: `Widget.cardSize` · in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `components/views/layouts/GreeterTarget.qml`, `components/views/layouts/LockscreenTarget.qml`, `components/views/layouts/ScreenLayoutTarget.qml`, `config/OverlayConfig.qml`
 - **`Widget.density`** · string = "normal" · enum compact|normal|roomy
   - Density: How tightly controls, padding and gaps are packed in panels and cards.
   - x-scope="personal"
   - read: `Widget.density` · in: `components/methods/ConfigMigration.qml`
 - **`Widget.overrideRadius`** · boolean = false
   - Own corner radius: Off: follows the corner radius in Look & Feel.
+  - x-link={"setting":"Appearance.shape.radius"}
   - read: `Widget.radius` (computed) · in: `components/content/AudioMixer.qml`, `components/content/Calculator.qml`, `components/content/Chat.qml`, `components/content/EmojiPicker.qml`, `components/content/Favourites.qml`, `components/content/Login.qml`, `components/content/Notes.qml`, `components/content/NowPlaying.qml`, `components/content/Palette.qml`, `components/content/Password.qml`, `components/content/Submenu.qml`, `components/content/ThemePicker.qml`, `components/content/TopProcesses.qml`, `components/content/WallpaperPicker.qml` (+71 more)
 - **`Widget.radius`** · integer = 6 · 0–50 · px
   - Interior corner radius: Roundness of what sits inside panels, cards and bars: buttons, fields, rows, cells and bar widgets. Outer edges (screen border, bars, popouts, the overlay's outer box) keep the main radius.
@@ -38,7 +39,7 @@ Every public member of `Widget`, with the files that use it.
 - `Widget.scale` (real): The Interface scale, as a factor: text (Appearance.fontSize) and the sizes below grow with it
   - in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/Appearance.qml`
 - `Widget.cardSize` (int): How big module cards are, in % of two filling the screen's short side (OverlayConfig.cardUnitOn)
-  - in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/OverlayConfig.qml`
+  - in: `components/methods/ConfigMigration.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `components/views/layouts/GreeterTarget.qml`, `components/views/layouts/LockscreenTarget.qml`, `components/views/layouts/ScreenLayoutTarget.qml`, `config/OverlayConfig.qml`
 - `Widget.density` (string): "compact" | "normal" | "roomy"
   - in: `components/methods/ConfigMigration.qml`
 - `Widget.height` (int): Height of buttons, fields and other controls
@@ -46,7 +47,7 @@ Every public member of `Widget`, with the files that use it.
 - `Widget.padding` (int): Inner padding of panels, cards and controls
   - in: `components/content/AudioMixer.qml`, `components/content/Chat.qml`, `components/content/ClaudeUsage.qml`, `components/content/Login.qml`, `components/content/Notifications.qml`, `components/content/Password.qml`, `components/content/ThemePicker.qml`, `components/content/Updates.qml`, `components/content/Weather.qml`, `components/content/WeatherForecast.qml` (+89 more)
 - `Widget.spacing` (int): Gap between items inside panels, cards and controls
-  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/Clock.qml`, `components/content/ClockCalendar.qml` (+188 more)
+  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml`, `components/content/Clock.qml`, `components/content/ClockCalendar.qml` (+190 more)
 - `Widget.cardPadding` (int): A module card's padding (OverlayConfig.cardPad)
   - in: `config/OverlayConfig.qml`
 - `Widget.iconButton` (int): Side of a square icon button (FlatIconButton)

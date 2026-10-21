@@ -126,6 +126,12 @@ Item {
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
         contentWidth: availableWidth
 
+        // Each widget keeps its place across the overlay closing
+        property ScrollMemory memory: ScrollMemory {
+          flickable: scroll.contentItem as Flickable
+          key: "BarEditor/" + root.selectionKey
+        }
+
         RowLayout {
           width: scroll.availableWidth
           spacing: Widget.spacing * 2
@@ -142,6 +148,12 @@ Item {
               text: I18n.tr("Edit {0} in Layouts", editorRoot.opens?.label ?? "")
               textPadding: Widget.smallPadding
               onClicked: OverlayManager.editOpenedBy(editorRoot.widget)
+            }
+
+            // Where its feature is set (the type's `x-link`)
+            FieldLinks {
+              Layout.fillWidth: true
+              links: root.dragLayer.typeInfo(editorRoot.widget.type)?.link
             }
 
             OptionsGroup {

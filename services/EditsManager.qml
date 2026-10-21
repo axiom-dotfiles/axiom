@@ -13,7 +13,8 @@ import QtQuick
 //
 // Also how the editors are laid out, which outlives their pages (saved in
 // state/editors.json): whether the libraries group their types, and
-// whether the bar editor stacks a horizontal bar's sections.
+// whether the bar editor stacks a horizontal bar's sections. And, in
+// memory, where each panel was scrolled to (ScrollMemory).
 QtObject {
   id: root
 
@@ -74,6 +75,20 @@ QtObject {
       return;
     root._keybindsFolded = folded ? root._keybindsFolded.concat([section]) : root._keybindsFolded.filter(s => s !== section);
     root._saveState();
+  }
+
+  // Where each scrolling panel was scrolled to, by its ScrollMemory key, so
+  // it comes back there when the overlay reopens (its pages are unloaded
+  // while it's closed). In memory only: a restart starts at the top
+  property var _scroll: ({})
+
+  function scrollOf(key) {
+    return root._scroll[key] ?? 0;
+  }
+
+  // Not a notifying write: nothing binds to it, it's read on restore
+  function rememberScroll(key, y) {
+    root._scroll[key] = y;
   }
 
   function _saveState() {

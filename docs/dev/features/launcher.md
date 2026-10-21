@@ -73,6 +73,7 @@ The first character picks the provider:
 - It works inside the options contract: each option's title is the whole argument, so matching and Tab work unchanged.
 - It offers `SettingsManager.settingPaths` only: the settings page's fields, minus `x-applyOnSave` ones and anything under `_blockedPrefixes` (`Bars`, `Overlay.views`). It can never edit bars or overlays. (Rule: AGENTS.md › UI conventions.)
 - Values are parsed and checked by `SettingsManager.parseValue`. Choices come from `SettingsManager.optionsFor`, shared with `SchemaField`.
+- Once a setting is typed, its last row is **Show in settings** (while a settings card shows it) (`{ show: key }`): it opens the settings page on that setting (`SettingsManager.openSetting`) after the launcher closes.
 
 ### IPC and pages
 - **IPC target** `appLauncher`: `open` / `close` / `toggle` / `search <text>`.

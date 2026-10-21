@@ -16,6 +16,12 @@ ScreenLayoutTarget {
   icon: "login"
   title: I18n.tr("Login screen")
   description: I18n.tr("What greetd shows before anyone logs in. Modules here can't open apps or run anything; Power can suspend, restart and shut down.")
-  fitText: root.outdated ? I18n.tr("The login screen needs an update to show new modules: Settings → Login screen") : root.stretchText
+  fitText: root.outdated ? I18n.tr("The login screen needs an update to show new modules") : root.stretchText
   fitWarning: root.outdated || root.screenEditor.shrunk
+  // Its status card has Update
+  fitLink: root.outdated ? {
+    "setting": "Greeter"
+  } : root.screenEditor.shrunk ? {
+    "setting": "Widget.cardSize"
+  } : null
 }

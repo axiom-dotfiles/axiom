@@ -2,7 +2,7 @@
 # OverlayModules: Password
 
 > **File:** `components/content/Password.qml` · **Schema:** `definitions.PasswordOverlayModule` · **Label:** Password
-> **Annotations:** x-icon="password", x-libraryGroup="Session", x-defaultSize=[6,1], x-hosts=["lockscreen"], x-required=true
+> **Annotations:** x-link={"setting":"Lockscreen"}, x-icon="password", x-libraryGroup="Session", x-defaultSize=[6,1], x-hosts=["lockscreen"], x-required=true
 
 Settings are read as `properties.<key>`.
 

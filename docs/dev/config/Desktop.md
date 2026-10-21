@@ -35,7 +35,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`, `config/OverlayConfig.qml`
 - **`Desktop.all.moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
-  - x-group="Grid", x-control="stepper"
+  - x-link={"setting":"Widget.cardSize"}, x-group="Grid", x-control="stepper"
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `config/DesktopConfig.qml`, `config/OverlayConfig.qml`
 - **`Desktop.all.moduleBorders`** · boolean = false
   - Module borders: Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper.
@@ -72,7 +72,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`, `config/OverlayConfig.qml`
 - **`Desktop.primary.moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
-  - x-group="Grid", x-control="stepper"
+  - x-link={"setting":"Widget.cardSize"}, x-group="Grid", x-control="stepper"
   - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `config/DesktopConfig.qml`, `config/OverlayConfig.qml`
 - **`Desktop.primary.moduleBorders`** · boolean = false
   - Module borders: Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper.
@@ -116,8 +116,8 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match, `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/OverlayConfig.qml`
 - **`Desktop.monitors[].moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
-  - x-group="Grid", x-control="stepper"
-  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/ConfigMigration.qml`, `config/OverlayConfig.qml`, `services/EdgeMenuManager.qml`
+  - x-link={"setting":"Widget.cardSize"}, x-group="Grid", x-control="stepper"
+  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/ConfigMigration.qml`, `components/views/layouts/PageTarget.qml`, `config/OverlayConfig.qml`, `services/EdgeMenuManager.qml`
 - **`Desktop.monitors[].moduleBorders`** · boolean = false
   - Module borders: Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper.
   - x-group="Style"

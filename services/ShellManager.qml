@@ -18,6 +18,36 @@ QtObject {
   signal openOverlayPage(string type)
   // Closes the overlay wherever it's open
   signal closeOverlay
+
+  // The overlay page a link was last followed from (a view type, or ""):
+  // the navigator offers to go back to it until the user navigates
+  // themselves or the overlay closes (OverlayPages keeps it)
+  readonly property string linkOrigin: _linkOrigin
+  property string _linkOrigin: ""
+  // Whether the page switch under way is a link being followed
+  readonly property bool followingLink: _followingLink
+  property bool _followingLink: false
+
+  // Opens a page as a link from the current one (SettingsLink, a page
+  // button), so the navigator offers the way back
+  function followLink(type) {
+    _followingLink = true;
+    openOverlayPage(type);
+    _followingLink = false;
+  }
+
+  // Sets or ("") drops the way back (OverlayPages, as it switches pages)
+  function setLinkOrigin(type) {
+    _linkOrigin = type;
+  }
+
+  // Back to the page the last link was followed from
+  function followLinkBack() {
+    const origin = _linkOrigin;
+    _linkOrigin = "";
+    if (origin !== "")
+      showOverlayPage(origin);
+  }
   // Opens an OSD by id where it would open for a change (the settings
   // page's Show button)
   signal showOsd(string id)

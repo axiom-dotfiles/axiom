@@ -136,7 +136,7 @@ QtObject {
   }
 
   function openSettings() {
-    SettingsManager.openSection("Greeter");
+    SettingsManager.openSetting("Greeter");
   }
 
   // --- Private ---

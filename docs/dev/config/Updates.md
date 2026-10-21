@@ -21,7 +21,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `UpdatesConfig.aurHelper` · in: `config/UpdatesConfig.qml`
 - **`Updates.terminal`** · string = ""
   - Terminal: Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal.
-  - x-scope="commands"
+  - x-link={"setting":"Apps.terminal"}, x-scope="commands"
   - read: `UpdatesConfig.terminal` · in: `components/bar/widgets/Updates.qml`
 - **`Updates.upgradeCommand`** · string = ""
   - Upgrade command: Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu.

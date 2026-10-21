@@ -27,7 +27,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `Bar.savedBars` (whole), `barConfig.enabled` · in: `components/bar/BarPanel.qml`, `config/Bar.qml`, `services/EdgeMenuManager.qml`, `services/ShellManager.qml`
 - **`Bars[].monitor`** · string = ""
   - Monitor: Monitor this bar is shown on. Empty uses the primary monitor; All monitors puts an identical copy on each.
-  - x-monitorRef="off", x-scope="machine", x-group="General", x-options="screens", x-allScreens=true
+  - x-link={"setting":"General.primaryMonitor"}, x-monitorRef="off", x-scope="machine", x-group="General", x-options="screens", x-allScreens=true
   - read: `Bar.savedBars` (whole), `barConfig.monitor` · in: `components/bar/BarPanel.qml`, `config/Bar.qml`
 - **`Bars[].location`** · string = "Top" · enum Top|Bottom|Left|Right
   - Location
@@ -47,7 +47,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `Bar.savedBars` (whole), `barConfig.background` · in: `components/surfaces/onboarding/pages/LookPage.qml`, `config/Bar.qml`
 - **`Bars[].floatGap`** · integer = -1 · -1–60 · px
   - Float gap: How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends. Auto keeps the compositor's gap to the screen edges, as your windows do. Windows always keep the compositor's gap between windows from the bar.
-  - x-group="Style", x-control="stepper", x-auto={"value":-1,"start":8}, x-showIf={"background":["floating","floatingPills"]}
+  - x-link={"setting":"WindowLook.gapsOut"}, x-group="Style", x-control="stepper", x-auto={"value":-1,"start":8}, x-showIf={"background":["floating","floatingPills"]}
   - read: `Bar.savedBars` (whole), `barConfig.floatGap` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
 - **`Bars[].pillPadding`** · integer = 4 · 0–20 · px
   - Pill padding: Extra space around a pill's widgets (px). They sit the screen margin plus this from the screen edge, and as far from the pill's other edges.
@@ -79,7 +79,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `Bar.savedBars` (whole), `barConfig.widgetSpacing` · in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/SystemStats.qml`, `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/Time.qml`, `components/bar/widgets/Workspaces.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `components/bar/widgets/workspaces/StripWindows.qml`, `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `config/Bar.qml`
 - **`Bars[].overrideFontSize`** · boolean = false
   - Own font size: Off: the bar follows the font size in Look & Feel.
-  - x-group="Style"
+  - x-link={"setting":"Appearance.font.size"}, x-group="Style"
   - read: `barConfig.overrideFontSize`, entry field, name match · in: `config/Bar.qml`
 - **`Bars[].fontSize`** · integer = 14 · 8–32 · px
   - Font size
@@ -87,7 +87,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `Bar.savedBars` (whole), `barConfig.fontSize` · in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/SystemStats.qml`, `components/bar/widgets/Time.qml`, `components/bar/widgets/workspaces/WorkspaceCell.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `config/Bar.qml`
 - **`Bars[].overrideRadius`** · boolean = false
   - Own corner radius: Off: widgets follow the interior corner radius in Panels & controls. Pills follow the corner radius in Look & Feel.
-  - x-group="Style"
+  - x-link=[{"setting":"Widget.radius"},{"setting":"Appearance.shape.radius"}], x-group="Style"
   - read: `barConfig.overrideRadius`, entry field, name match · in: `config/Bar.qml`
 - **`Bars[].widgetRadius`** · integer = 6 · 0–50 · px
   - Widget corner radius
@@ -95,7 +95,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `barConfig.widgetRadius`, entry field, name match · in: `config/Bar.qml`
 - **`Bars[].overrideWidgetStyle`** · boolean = false
   - Own widget style: Off: the bar follows the Bar style settings in Look & Feel.
-  - x-group="Widgets"
+  - x-link={"setting":"BarStyle.widgetStyle"}, x-group="Widgets"
   - read: `barConfig.overrideWidgetStyle`, entry field, name match, `// reads:` marker · in: `config/Bar.qml`
 - **`Bars[].widgetStyle`** · string = "filled" · enum filled|tinted|outline|underline|accentText|plain
   - Widget style: How each widget shows its color: as its background, a faint tint, an outline, a line beside it, or on its icon. Plain text draws them straight onto the bar.
@@ -139,7 +139,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `barConfig.widgetTextColor`, entry field, name match · in: `config/Bar.qml`
 - **`Bars[].overrideAccents`** · boolean = false
   - Own accents: Off: the bar follows the Bar style settings in Look & Feel.
-  - x-group="Accents"
+  - x-link={"setting":"BarStyle.separatorStyle"}, x-group="Accents"
   - read: `barConfig.overrideAccents`, entry field, name match, `// reads:` marker · in: `config/Bar.qml`
 - **`Bars[].separatorStyle`** · string = "none" · enum none|line|dot|slash|chevron
   - Separators: Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing.
@@ -175,7 +175,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `Bar.savedBars` (whole), `barConfig.accentLineWidth` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
 - **`Bars[].overrideShadow`** · boolean = false
   - Own shadow: Off: the bar follows the Bar style settings in Look & Feel.
-  - x-group="Shadow"
+  - x-link={"setting":"BarStyle.shadow"}, x-group="Shadow"
   - read: `barConfig.overrideShadow`, entry field, name match, `// reads:` marker · in: `config/Bar.qml`
 - **`Bars[].shadow`** · boolean = false
   - Shadow: Spread evenly round the bar, or its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.

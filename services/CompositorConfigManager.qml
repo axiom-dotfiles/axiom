@@ -495,7 +495,7 @@ Singleton {
     if (_session[flag])
       return;
     _session[flag] = true;
-    const all = actions.concat([["settings", I18n.tr("Open settings"), () => SettingsManager.openSection("Compositor")]]);
+    const all = actions.concat([["settings", I18n.tr("Open settings"), () => SettingsManager.openSetting("Compositor")]]);
     const command = ["notify-send", "-a", "axiom", "-u", "critical"].concat(...all.map(action => ["-A", `${action[0]}=${action[1]}`]), ["--", title, body]);
     CommandManager.run(command, (code, out) => {
       // (not `picked?.[2]()`: Qt 6.12's compiler crashes on it)

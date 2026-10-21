@@ -7,6 +7,8 @@ Shell manager manages global options and signals
 
 ### Properties
 
+- `linkOrigin` (readonly string): The overlay page a link was last followed from (a view type, or ""): the navigator offers to go back to it until the user navigates themselves or the overlay closes (OverlayPages keeps it)
+- `followingLink` (readonly bool): Whether the page switch under way is a link being followed
 - `surfaceWindows` (var): `{ group, kind, window }`: each instance's window, which the one holding the focus grab lets input through to
 - `openSurfaces` (var): SurfaceGroups open anywhere, `{ group, kind }`: whether a launcher, overlay or power menu is up (a hover-activated button won't close it)
 - `borderOpenings` (var): `{ owner, screen, edge, start, end }` (a screen name, a Bar.edgeName, screen px along the edge): surfaces joined to the border's inner stroke, which leaves it open under them while surfaces are trans…
@@ -34,6 +36,9 @@ Shell manager manages global options and signals
 
 ### Functions
 
+- `followLink(type)`: Opens a page as a link from the current one (SettingsLink, a page button), so the navigator offers the way back
+- `setLinkOrigin(type)`: Sets or ("") drops the way back (OverlayPages, as it switches pages)
+- `followLinkBack()`: Back to the page the last link was followed from
 - `openModule(types)`: Opens the overlay page with the biggest module of the first of `types` any page has, else an edge menu with one (the first of `types` again); false with none
 - `modeFor(mode)`: A surface's `monitors` mode with "general" resolved: "primary" | "focused" | "all"
 - `targetFor(mode, name)`: The screen whose instance of a surface answers a shortcut or IPC call and holds the keyboard: the focused monitor when it opens there or everywhere, else the one it's built on (`name` for a "monitor"…

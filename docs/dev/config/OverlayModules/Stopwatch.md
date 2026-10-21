@@ -2,7 +2,7 @@
 # OverlayModules: Stopwatch
 
 > **File:** `components/content/Stopwatch.qml` · **Schema:** `definitions.StopwatchOverlayModule` · **Label:** Timer & stopwatch
-> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="timer_play", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6]
+> **Annotations:** x-link={"setting":"Stopwatch"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="timer_play", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6]
 
 Settings are read as `properties.<key>`.
 

@@ -2,7 +2,7 @@
 # BarWidgets: Notifications
 
 > **File:** `components/bar/widgets/Notifications.qml` · **Schema:** `definitions.NotificationsWidget` · **Label:** Notification Center
-> **Annotations:** x-icon="notifications", x-libraryGroup="Desktop"
+> **Annotations:** x-link={"setting":"Notifications"}, x-icon="notifications", x-libraryGroup="Desktop"
 
 Settings are read as `properties.<key>`.
 

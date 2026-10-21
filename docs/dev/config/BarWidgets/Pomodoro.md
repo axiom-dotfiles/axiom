@@ -2,7 +2,7 @@
 # BarWidgets: Pomodoro
 
 > **File:** `components/bar/widgets/Pomodoro.qml` · **Schema:** `definitions.PomodoroWidget` · **Label:** Pomodoro timer
-> **Annotations:** x-icon="timer", x-libraryGroup="Tools"
+> **Annotations:** x-link={"setting":"Pomodoro"}, x-icon="timer", x-libraryGroup="Tools"
 
 Settings are read as `properties.<key>`.
 

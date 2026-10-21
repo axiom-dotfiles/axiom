@@ -56,6 +56,7 @@ Item {
   // I18n.tr("Grid") I18n.tr("Background")
   TitledCard {
     title: I18n.tr("Layouts")
+    scrollKey: "Layouts"
     showActions: false
 
     PagesSection {
@@ -98,6 +99,11 @@ Item {
         values: root.view ?? ({})
         onEdited: (path, value) => OverlayManager.updateViewField(OverlayManager.selectedViewIndex, path[0], value)
       }
+
+      SettingsLink {
+        Layout.fillWidth: true
+        setting: "Overlay.navigator"
+      }
     }
 
     // A tool page
@@ -111,6 +117,12 @@ Item {
         label: I18n.tr("Show in the navigator")
         checked: root.view?.visible !== false
         onToggled: newValue => OverlayManager.setViewVisible(OverlayManager.selectedViewIndex, newValue)
+      }
+
+      // Goes to it (only while it's shown)
+      SettingsLink {
+        Layout.fillWidth: true
+        page: root.view?.type ?? ""
       }
     }
 

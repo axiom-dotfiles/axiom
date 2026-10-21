@@ -610,7 +610,8 @@ Singleton {
   // What opens menu `id` besides hovering its edge: bar Buttons and
   // widgets opening it as their popout (in the bar editor's draft) and
   // keybinds (in the keybind editor's).
-  // [{ kind: "bar" | "bind", label }]
+  // [{ kind: "bar" | "bind" | "submenu", label, and where it is: bar,
+  // zone, index (a bar widget), index (a bind), menu (a submenu's menu) }]
   function references(id) {
     if (!id)
       return [];
@@ -622,24 +623,47 @@ Singleton {
           const type = Bar.availableWidgetTypes.find(t => t?.type === widget.type);
           out.push({
             "kind": "bar",
-            "label": widget.type === "Button" && !(widget.properties?.showPopout && widget.properties.popoutMenu === id) ? I18n.tr("Button on {0}", barLabel) : I18n.tr("{0} popout on {1}", I18n.tr(type?.label ?? widget.type), barLabel)
+            "label": widget.type === "Button" && !(widget.properties?.showPopout && widget.properties.popoutMenu === id) ? I18n.tr("Button on {0}", barLabel) : I18n.tr("{0} popout on {1}", I18n.tr(type?.label ?? widget.type), barLabel),
+            "bar": b,
+            "zone": zone,
+            "index": bar.widgets[zone].indexOf(widget)
           });
         })));
     (root.localMenus ?? EdgeMenusConfig.menus).forEach((menu, m) => {
       if (menu.id !== id && (menu.modules ?? []).some(module => module?.type === "Submenu" && module.properties?.menu === id))
         out.push({
           "kind": "submenu",
-          "label": I18n.tr("Submenu module in {0}", root.menuLabel(menu, m))
+          "label": I18n.tr("Submenu module in {0}", root.menuLabel(menu, m)),
+          "menu": m
         });
     });
-    (KeybindManager.isDirty ? KeybindManager.binds : KeybindsConfig.binds).forEach(bind => {
+    (KeybindManager.isDirty ? KeybindManager.binds : KeybindsConfig.binds).forEach((bind, i) => {
       if (bind?.action === "edgeMenu" && bind.argument === id)
         out.push({
           "kind": "bind",
-          "label": bind.key ? I18n.tr("Keybind {0}", KeybindManager.displayKey(bind.key)) : I18n.tr("Keybind (no key yet)")
+          "label": bind.key ? I18n.tr("Keybind {0}", KeybindManager.displayKey(bind.key)) : I18n.tr("Keybind (no key yet)"),
+          "index": i
         });
     });
     return out;
+  }
+
+  // Goes to where a reference is: the bar editor on its widget, the
+  // keybind editor on its bind (as links: the navigator offers the way
+  // back), or the menu holding the Submenu module
+  function goToReference(ref) {
+    if (ref.kind === "bar") {
+      BarManager.ensureLoaded();
+      BarManager.selectBar(ref.bar);
+      BarManager.selectWidget(ref.zone, ref.index);
+      ShellManager.followLink("BarEditor");
+    } else if (ref.kind === "bind") {
+      KeybindManager.ensureLoaded();
+      KeybindManager.selectBind(ref.index);
+      ShellManager.followLink("Keybinds");
+    } else if (ref.kind === "submenu") {
+      root.selectMenu(ref.menu);
+    }
   }
 
   // Whether `menu` is saved under its id: bar buttons and keybinds are

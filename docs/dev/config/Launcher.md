@@ -13,7 +13,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Launcher.monitors`** · string = "general" · enum general|primary|focused|all
   - Monitors: Where the launcher opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
-  - x-scope="look"
+  - x-link={"setting":"General.monitors"}, x-scope="look"
   - read: `LauncherConfig.monitors` · in: `components/surfaces/launcher/Launcher.qml`, `services/LauncherCommands.qml`, `shell/AppLauncher.qml`
 - **`Launcher.edge`** · string = "Top" · enum Top|Bottom|Left|Right
   - Screen edge: Screen edge the launcher opens from, or is held off when detached.
@@ -97,7 +97,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `LauncherConfig.searchEngine` · in: `services/LauncherManager.qml`
 - **`Launcher.chat`** · boolean = true
   - Ask chat (@): Type @ and a question to ask it in the overlay's Chat module, with the default preset.
-  - x-group="Launcher search"
+  - x-link={"setting":"Chat"}, x-group="Launcher search"
   - read: `LauncherConfig.chat` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherManager.qml`
 - **`Launcher.clipboard`** · boolean = true
   - Clipboard history (:): Type : (or /clipboard) to search what you've copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don't; turning it off clears the history.

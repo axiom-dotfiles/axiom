@@ -29,6 +29,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match · in: `config/DockConfig.qml`
 - **`Dock.docks[].monitors`** · string = "general" · enum general|primary|focused|all|monitor
   - Monitors: Where the dock appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse), and the dock moves with it; every monitor shows it on all of them at once; a specific monitor is the one picked below.
+  - x-link={"setting":"General.monitors"}
   - read: `DockConfig.docks` (whole) · in: `services/DockManager.qml`
 - **`Dock.docks[].monitor`** · string = ""
   - Monitor: Monitor the dock is shown on. Empty uses the primary monitor.

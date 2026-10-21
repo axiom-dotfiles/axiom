@@ -15,6 +15,8 @@ import qs.components.reusable
 // Pages with unsaved edits get a dot, and while another page has some,
 // Save all / Discard all follow the arrows (EditsManager: a reminder, as
 // drafts survive leaving a page or closing the overlay).
+// After a link took the user to another page (ShellManager.followLink), a
+// back chip leads the arrows: back arrow and that page's icon.
 // Kept as its own item, anchored directly to the overlay's screen edge,
 // so it doesn't move when the current page's content height changes.
 Rectangle {
@@ -44,9 +46,11 @@ Rectangle {
   // Save all / Discard all: while a page other than this one has edits
   // they'd act on (the current page has its own buttons)
   readonly property bool showEditActions: EditsManager.canActOnAll && EditsManager.unsaved.some(type => type !== root.currentType && !EditsManager.separate.includes(type))
+  // The page a link was followed from, while it isn't the current one
+  readonly property var backPage: ShellManager.linkOrigin === "" || ShellManager.linkOrigin === root.currentType ? null : root.pages.find(page => page.type === ShellManager.linkOrigin) ?? null
   // Everything but the tabs: arrows, the gaps beside them and the insets,
-  // and the edit actions while they show
-  readonly property real chrome: root.controlHeight * 2 + row.spacing * 2 + root.inset * 2 + (root.showEditActions ? editActions.implicitWidth + row.spacing : 0)
+  // the back chip and the edit actions while they show
+  readonly property real chrome: root.controlHeight * 2 + row.spacing * 2 + root.inset * 2 + (root.showEditActions ? editActions.implicitWidth + row.spacing : 0) + (root.backPage ? backChip.implicitWidth + backChip.Layout.leftMargin + row.spacing : 0)
   // Only the current tab keeps its name when all of them don't fit
   readonly property bool compact: root.maxWidth > 0 && root.chrome + measureRow.fullWidth > root.maxWidth
   readonly property color onAccent: Theme.background
@@ -145,6 +149,59 @@ Rectangle {
     id: row
     anchors.centerIn: parent
     spacing: root.tabSpacing
+
+    // Back to the page a link was followed from
+    Rectangle {
+      id: backChip
+      visible: root.backPage !== null
+      implicitWidth: backContent.implicitWidth + root.tabPadding * 2
+      Layout.preferredWidth: backChip.implicitWidth
+      Layout.preferredHeight: root.controlHeight
+      // Clear of the navigator's rounded left end
+      Layout.leftMargin: Widget.spacing
+      radius: root.innerRadius
+      color: backArea.containsMouse ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
+      border.color: Qt.alpha(Theme.accent, 0.6)
+      border.width: Appearance.borderWidth
+
+      Row {
+        id: backContent
+        anchors.centerIn: parent
+        spacing: root.labelSpacing
+
+        StyledIcon {
+          anchors.verticalCenter: parent.verticalCenter
+          text: "arrow_back"
+          textSize: root.iconSize
+          textColor: Theme.accent
+        }
+
+        StyledIcon {
+          anchors.verticalCenter: parent.verticalCenter
+          text: root.backPage?.icon ?? ""
+          textSize: root.iconSize
+        }
+      }
+
+      MouseArea {
+        id: backArea
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: ShellManager.followLinkBack()
+      }
+
+      LazyLoader {
+        active: backArea.containsMouse
+        StyledToolTip {
+          target: backChip
+          text: I18n.tr("Back to {0}", root.backPage?.label ?? "")
+          edges: Edges.Top
+        }
+      }
+
+      ColorGlide on color {}
+    }
 
     ArrowButton {
       icon: "chevron_left"

@@ -24,8 +24,19 @@ Item {
   readonly property bool atDefault: defaultValue === undefined || JSON.stringify(field.current) === JSON.stringify(defaultValue)
 
   Layout.fillWidth: true
-  implicitHeight: field.implicitHeight + hookup.shownHeight
+  implicitHeight: field.implicitHeight + hookup.shownHeight + (links.shows ? links.implicitHeight + Widget.spacing : 0)
   visible: field.shown
+
+  // Outlines the row for a moment (a link to this setting)
+  function flash() {
+    outline.flash();
+  }
+
+  FlashOutline {
+    id: outline
+    anchors.fill: parent
+    anchors.margins: -Widget.spacing / 2
+  }
 
   SchemaField {
     id: field
@@ -51,6 +62,14 @@ Item {
       integration: root.row.path[root.row.path.length - 1]
       active: field.current === true
     }
+  }
+
+  // `x-link`: where something it follows or names is set
+  FieldLinks {
+    id: links
+    y: field.implicitHeight + hookup.shownHeight + Widget.spacing
+    width: root.width
+    links: root.isValue ? root.row.schema?.["x-link"] : undefined
   }
 
   Row {

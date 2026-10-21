@@ -2,7 +2,7 @@
 # OverlayModules: Palette
 
 > **File:** `components/content/Palette.qml` · **Schema:** `definitions.PaletteOverlayModule` · **Label:** Palette
-> **Annotations:** x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="palette", x-libraryGroup="Look & layout", x-defaultSize=[8,4]
+> **Annotations:** x-link={"page":"Themes"}, x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="palette", x-libraryGroup="Look & layout", x-defaultSize=[8,4]
 
 Settings are read as `properties.<key>`.
 

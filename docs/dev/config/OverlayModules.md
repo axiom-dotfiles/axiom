@@ -7,7 +7,7 @@ Every `OverlayModule` type, one page each: its file, annotations, and its own se
 
 | Type | Label | Annotations |
 |---|---|---|
-| [ThemePicker](OverlayModules/ThemePicker.md) | Themes | x-hosts=["overlay","edgeMenu","desktop"], x-icon="palette", x-libraryGroup="Look & layout", x-defaultSize=[4,8] |
+| [ThemePicker](OverlayModules/ThemePicker.md) | Themes | x-link={"page":"Themes"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="palette", x-libraryGroup="Look & layout", x-defaultSize=[4,8] |
 | [NowPlaying](OverlayModules/NowPlaying.md) | Now playing | x-hosts=["overlay","edgeMenu","lockscreen","desktop"], x-icon="music_note", x-libraryGroup="Media & audio", x-defaultSize=[4,2] |
 | [AudioMixer](OverlayModules/AudioMixer.md) | Audio mixer | x-hosts=["overlay","edgeMenu","desktop"], x-icon="tune", x-libraryGroup="Media & audio" |
 | [Brightness](OverlayModules/Brightness.md) | Brightness | x-hosts=["overlay","edgeMenu","desktop"], x-icon="brightness_medium", x-libraryGroup="System", x-defaultSize=[4,1] |
@@ -15,42 +15,42 @@ Every `OverlayModule` type, one page each: its file, annotations, and its own se
 | [SystemGraphs](OverlayModules/SystemGraphs.md) | System graphs | x-hosts=["overlay","edgeMenu","lockscreen","desktop"], x-icon="show_chart", x-libraryGroup="System", x-canvasDetail="metrics" |
 | [Disks](OverlayModules/Disks.md) | Disk usage | x-hosts=["overlay","edgeMenu","lockscreen","desktop"], x-icon="hard_drive", x-libraryGroup="System", x-canvasDetail="paths", x-defaultSize=[4,2] |
 | [TopProcesses](OverlayModules/TopProcesses.md) | Top processes | x-hosts=["overlay","edgeMenu","desktop"], x-icon="format_list_bulleted", x-libraryGroup="System" |
-| [Updates](OverlayModules/Updates.md) | Package updates | x-hosts=["overlay","edgeMenu","desktop"], x-icon="upload", x-libraryGroup="System" |
+| [Updates](OverlayModules/Updates.md) | Package updates | x-link={"setting":"Updates"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="upload", x-libraryGroup="System" |
 | [QuickActions](OverlayModules/QuickActions.md) | Quick actions | x-hosts=["overlay","edgeMenu","desktop"], x-icon="toggle_on", x-libraryGroup="Tools", x-defaultSize=[4,2] |
-| [WorkspacesMap](OverlayModules/WorkspacesMap.md) | Workspaces | x-hosts=["overlay","edgeMenu","desktop"], x-icon="grid_view", x-libraryGroup="Desktop", x-defaultSize=[4,2] |
-| [Notifications](OverlayModules/Notifications.md) | Notifications | x-hosts=["overlay","edgeMenu","desktop"], x-icon="notifications", x-libraryGroup="Desktop" |
+| [WorkspacesMap](OverlayModules/WorkspacesMap.md) | Workspaces | x-link={"setting":"Workspaces"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="grid_view", x-libraryGroup="Desktop", x-defaultSize=[4,2] |
+| [Notifications](OverlayModules/Notifications.md) | Notifications | x-link={"setting":"Notifications"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="notifications", x-libraryGroup="Desktop" |
 | [BluetoothDevices](OverlayModules/BluetoothDevices.md) | Bluetooth devices | x-hosts=["overlay","edgeMenu","desktop"], x-icon="bluetooth", x-libraryGroup="Network & devices" |
 | [WifiNetworks](OverlayModules/WifiNetworks.md) | Wi-Fi networks | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="wifi", x-libraryGroup="Network & devices" |
-| [Screenshot](OverlayModules/Screenshot.md) | Screenshot | x-hosts=["overlay","edgeMenu","desktop"], x-icon="camera", x-libraryGroup="Tools", x-defaultSize=[4,2] |
-| [ClockCalendar](OverlayModules/ClockCalendar.md) | Clock & calendar | x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-keyboard=false, x-icon="calendar_clock", x-libraryGroup="Time & weather" |
+| [Screenshot](OverlayModules/Screenshot.md) | Screenshot | x-link={"setting":"Screenshots"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="camera", x-libraryGroup="Tools", x-defaultSize=[4,2] |
+| [ClockCalendar](OverlayModules/ClockCalendar.md) | Clock & calendar | x-link={"setting":"Calendar"}, x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-keyboard=false, x-icon="calendar_clock", x-libraryGroup="Time & weather" |
 | [Clock](OverlayModules/Clock.md) | Clock | x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="schedule", x-libraryGroup="Time & weather", x-defaultSize=[4,3], x-canvasDetail="style" |
-| [Calendar](OverlayModules/Calendar.md) | Calendar | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="calendar_month", x-libraryGroup="Time & weather", x-defaultSize=[4,8] |
-| [Agenda](OverlayModules/Agenda.md) | Agenda | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="event_note", x-libraryGroup="Time & weather", x-defaultSize=[4,4] |
-| [Weather](OverlayModules/Weather.md) | Weather | x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="partly_cloudy_day", x-libraryGroup="Time & weather" |
-| [Battery](OverlayModules/Battery.md) | Battery | x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="battery_full", x-libraryGroup="System", x-defaultSize=[2,2] |
+| [Calendar](OverlayModules/Calendar.md) | Calendar | x-link={"setting":"Calendar"}, x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="calendar_month", x-libraryGroup="Time & weather", x-defaultSize=[4,8] |
+| [Agenda](OverlayModules/Agenda.md) | Agenda | x-link={"setting":"Calendar"}, x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="event_note", x-libraryGroup="Time & weather", x-defaultSize=[4,4] |
+| [Weather](OverlayModules/Weather.md) | Weather | x-link={"setting":"Weather"}, x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="partly_cloudy_day", x-libraryGroup="Time & weather" |
+| [Battery](OverlayModules/Battery.md) | Battery | x-link={"setting":"Battery"}, x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="battery_full", x-libraryGroup="System", x-defaultSize=[2,2] |
 | [Network](OverlayModules/Network.md) | Network | x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="wifi", x-libraryGroup="Network & devices", x-defaultSize=[4,2] |
 | [Favourites](OverlayModules/Favourites.md) | Favourite apps | x-hosts=["overlay","edgeMenu","desktop"], x-icon="star", x-libraryGroup="Tools", x-defaultSize=[4,2] |
-| [Chat](OverlayModules/Chat.md) | AI chat | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="smart_toy", x-libraryGroup="Tools", x-defaultSize=[4,8] |
-| [Notes](OverlayModules/Notes.md) | Notes | x-icon="sticky_note_2", x-libraryGroup="Tools", x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-defaultSize=[4,8] |
-| [WallpaperPicker](OverlayModules/WallpaperPicker.md) | Wallpapers | x-hosts=["overlay","edgeMenu","desktop"], x-icon="photo_library", x-libraryGroup="Look & layout", x-defaultSize=[4,8] |
+| [Chat](OverlayModules/Chat.md) | AI chat | x-link={"setting":"Chat"}, x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="smart_toy", x-libraryGroup="Tools", x-defaultSize=[4,8] |
+| [Notes](OverlayModules/Notes.md) | Notes | x-link={"setting":"Notes"}, x-icon="sticky_note_2", x-libraryGroup="Tools", x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-defaultSize=[4,8] |
+| [WallpaperPicker](OverlayModules/WallpaperPicker.md) | Wallpapers | x-link={"page":"Themes"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="photo_library", x-libraryGroup="Look & layout", x-defaultSize=[4,8] |
 | [ColorSwatch](OverlayModules/ColorSwatch.md) | Theme color swatch | x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="palette", x-libraryGroup="Look & layout", x-defaultSize=[2,2], x-canvasDetail="color", x-canvasFill="color" |
-| [Palette](OverlayModules/Palette.md) | Palette | x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="palette", x-libraryGroup="Look & layout", x-defaultSize=[8,4] |
+| [Palette](OverlayModules/Palette.md) | Palette | x-link={"page":"Themes"}, x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"], x-icon="palette", x-libraryGroup="Look & layout", x-defaultSize=[8,4] |
 | [Greeting](OverlayModules/Greeting.md) | Greeting | x-icon="waving_hand", x-libraryGroup="Time & weather", x-defaultSize=[8,2], x-canvasDetail="text", x-hosts=["overlay","edgeMenu","lockscreen","greeter","desktop"] |
-| [Password](OverlayModules/Password.md) | Password | x-icon="password", x-libraryGroup="Session", x-defaultSize=[6,1], x-hosts=["lockscreen"], x-required=true |
-| [Login](OverlayModules/Login.md) | Login | x-icon="login", x-libraryGroup="Session", x-defaultSize=[6,3], x-hosts=["greeter"], x-required=true |
-| [Session](OverlayModules/Session.md) | Session | x-icon="desktop_windows", x-libraryGroup="Session", x-defaultSize=[4,1], x-hosts=["greeter"] |
+| [Password](OverlayModules/Password.md) | Password | x-link={"setting":"Lockscreen"}, x-icon="password", x-libraryGroup="Session", x-defaultSize=[6,1], x-hosts=["lockscreen"], x-required=true |
+| [Login](OverlayModules/Login.md) | Login | x-link={"setting":"Greeter"}, x-icon="login", x-libraryGroup="Session", x-defaultSize=[6,3], x-hosts=["greeter"], x-required=true |
+| [Session](OverlayModules/Session.md) | Session | x-link={"setting":"Greeter"}, x-icon="desktop_windows", x-libraryGroup="Session", x-defaultSize=[4,1], x-hosts=["greeter"] |
 | [Power](OverlayModules/Power.md) | Power | x-icon="power_settings_new", x-libraryGroup="Session", x-defaultSize=[3,1], x-canvasDetail="actions", x-hosts=["lockscreen","greeter"] |
 | [Calculator](OverlayModules/Calculator.md) | Calculator | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="calculate", x-libraryGroup="Tools", x-defaultSize=[4,4] |
 | [EmojiPicker](OverlayModules/EmojiPicker.md) | Emoji | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="add_reaction", x-libraryGroup="Tools", x-defaultSize=[4,6] |
 | [ClipboardHistory](OverlayModules/ClipboardHistory.md) | Clipboard history | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="content_paste", x-libraryGroup="Tools", x-defaultSize=[4,6] |
 | [WorldClocks](OverlayModules/WorldClocks.md) | World clocks | x-hosts=["overlay","edgeMenu","desktop"], x-icon="travel_explore", x-libraryGroup="Time & weather", x-defaultSize=[4,4] |
-| [NightLightControls](OverlayModules/NightLightControls.md) | Night light | x-hosts=["overlay","edgeMenu","desktop"], x-icon="bedtime", x-libraryGroup="System", x-defaultSize=[4,2] |
+| [NightLightControls](OverlayModules/NightLightControls.md) | Night light | x-link={"setting":"NightLight"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="bedtime", x-libraryGroup="System", x-defaultSize=[4,2] |
 | [CommandOutput](OverlayModules/CommandOutput.md) | Command output | x-hosts=["overlay","edgeMenu","desktop"], x-icon="terminal", x-libraryGroup="Tools", x-defaultSize=[4,2] |
-| [ScreenRecord](OverlayModules/ScreenRecord.md) | Screen recording | x-hosts=["overlay","edgeMenu","desktop"], x-icon="screen_record", x-libraryGroup="Tools", x-defaultSize=[4,4] |
-| [Cheatsheet](OverlayModules/Cheatsheet.md) | Keybind cheat sheet | x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="keyboard", x-libraryGroup="Tools", x-defaultSize=[8,6] |
-| [KeyboardLayout](OverlayModules/KeyboardLayout.md) | Keyboard layout | x-icon="keyboard", x-libraryGroup="Session", x-defaultSize=[2,1], x-hosts=["greeter"] |
+| [ScreenRecord](OverlayModules/ScreenRecord.md) | Screen recording | x-link={"setting":"Screenshots"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="screen_record", x-libraryGroup="Tools", x-defaultSize=[4,4] |
+| [Cheatsheet](OverlayModules/Cheatsheet.md) | Keybind cheat sheet | x-link={"page":"Keybinds"}, x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="keyboard", x-libraryGroup="Tools", x-defaultSize=[8,6] |
+| [KeyboardLayout](OverlayModules/KeyboardLayout.md) | Keyboard layout | x-link={"setting":"Input.kbLayout"}, x-icon="keyboard", x-libraryGroup="Session", x-defaultSize=[2,1], x-hosts=["greeter"] |
 | [Submenu](OverlayModules/Submenu.md) | Submenu | x-hosts=["edgeMenu"], x-icon="menu_open", x-libraryGroup="Look & layout", x-defaultSize=[4,1], x-minSize=[2,1], x-canvasDetail="label" |
-| [Todo](OverlayModules/Todo.md) | Todo list | x-hosts=["overlay","edgeMenu","desktop"], x-icon="checklist", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6] |
-| [Pomodoro](OverlayModules/Pomodoro.md) | Pomodoro timer | x-hosts=["overlay","edgeMenu","desktop"], x-icon="timer", x-libraryGroup="Tools", x-defaultSize=[4,4] |
+| [Todo](OverlayModules/Todo.md) | Todo list | x-link={"setting":"Todo"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="checklist", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6] |
+| [Pomodoro](OverlayModules/Pomodoro.md) | Pomodoro timer | x-link={"setting":"Pomodoro"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="timer", x-libraryGroup="Tools", x-defaultSize=[4,4] |
 | [Focus](OverlayModules/Focus.md) | Focus | x-hosts=["overlay","edgeMenu","desktop"], x-icon="center_focus_strong", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[8,8], x-minSize=[4,6] |
-| [Stopwatch](OverlayModules/Stopwatch.md) | Timer & stopwatch | x-hosts=["overlay","edgeMenu","desktop"], x-icon="timer_play", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6] |
+| [Stopwatch](OverlayModules/Stopwatch.md) | Timer & stopwatch | x-link={"setting":"Stopwatch"}, x-hosts=["overlay","edgeMenu","desktop"], x-icon="timer_play", x-libraryGroup="Tools", x-keyboard=true, x-defaultSize=[4,6] |

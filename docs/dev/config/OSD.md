@@ -38,6 +38,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match · in: `config/OSDConfig.qml`
 - **`OSD.osds[].monitors`** · string = "general" · enum general|primary|focused|all|monitor
   - Monitors: Where the OSD appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once; a specific monitor is the one picked below.
+  - x-link={"setting":"General.monitors"}
   - read: entry field, name match · in: `components/surfaces/osd/OSDTriggers.qml`, `shell/OSD.qml`
 - **`OSD.osds[].monitor`** · string = ""
   - Monitor: Monitor the OSD is shown on. Empty uses the primary monitor.
