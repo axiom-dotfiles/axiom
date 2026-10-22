@@ -45,11 +45,6 @@ Item {
     root.currentIndex = index;
   }
 
-  // Closing ends a link's way back too
-  onOpenChanged: {
-    if (!root.open)
-      ShellManager.setLinkOrigin("");
-  }
   // The configured views, then the pages that aren't in config
   readonly property var pinnedPages: OverlayConfig.pinnedPages
   readonly property int editorIndex: viewsModel.length
@@ -79,7 +74,11 @@ Item {
   // which isn't the user being on them.
   // Which pinned page the user is on (index into pinnedPages), or -1
   property int _onPinned: -1
-  onCurrentIndexChanged: root._onPinned = root.viewsModel.length > 0 && root.currentIndex >= root.editorIndex ? root.currentIndex - root.editorIndex : -1
+  onCurrentIndexChanged: {
+    root._onPinned = root.viewsModel.length > 0 && root.currentIndex >= root.editorIndex ? root.currentIndex - root.editorIndex : -1;
+    if (root.open)
+      settleTimer.restart();
+  }
   onPageCountChanged: {
     if (root._onPinned >= 0)
       root.currentIndex = root.editorIndex + root._onPinned;
@@ -138,10 +137,34 @@ Item {
   // Only the current page and its neighbours (navigation wraps around) are
   // loaded, and only while the overlay is open, so hidden pages don't keep
   // polling. Neighbours stay loaded so the slide in has something to show.
+  // They follow the page the user settled on (`_settled`, a slide after
+  // opening or navigating), so opening or switching builds only the page
+  // shown, and its neighbours once it has slid in
+  property int _settled: -1
+  onOpenChanged: {
+    root._settled = -1;
+    if (root.open) {
+      settleTimer.restart();
+    } else {
+      settleTimer.stop();
+      // Closing ends a link's way back too
+      ShellManager.setLinkOrigin("");
+    }
+  }
+  Timer {
+    id: settleTimer
+    interval: Appearance.animSlow
+    onTriggered: root._settled = root.currentIndex
+  }
+
   function isLoaded(pageIndex) {
     if (!root.open)
       return false;
-    const distance = Math.abs(pageIndex - root.currentIndex);
+    if (pageIndex === root.currentIndex)
+      return true;
+    if (root._settled < 0)
+      return false;
+    const distance = Math.abs(pageIndex - root._settled);
     return Math.min(distance, root.pageCount - distance) <= 1;
   }
 

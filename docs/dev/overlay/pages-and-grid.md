@@ -33,6 +33,7 @@ Pure, tested by `tst_GridPlacement`.
 - `bounds(modules)`: how far they reach.
 - `canPlace` / `overlaps`: keep modules apart (holes are fine).
 - `firstFree(modules, w, h)`: finds a spot in reading order, else beside (or below a wide grid).
+- `revealOrder(modules)`: each module's rank when a page streams them in, by diagonal (`x + y`), then the higher.
 - `normalize`: shifts a grid so its top left module sits at 0, 0.
 - `trackSizes(bounds, unit, stretch)`: one unit's width and height and the grid's size, growing either axis evenly into `stretch` room (never shrinking).
 - `rectPx(place, sizes)`: places a module.
@@ -84,6 +85,10 @@ Cards follow the screen; text and controls don't. A monitor's cards are its card
   - The workspace overview and launcher use it too.
 - Its focus grab (`HyprlandGrab`) also whitelists `ShellManager.grabPartnersFor(screen)`. The bars, bar popouts and submenus register themselves there (`registerGrabPartner(window, screenName)`), so they keep working while it's open.
 - Only the current page and its neighbours (navigation wraps) are instantiated, and only while the overlay is open (`OverlayPages.isLoaded` → `OverlayPage.loaded`). (Rule: AGENTS.md › UI conventions, Overlay lifetime.)
+  - Opening or switching builds only the page shown. Its neighbours follow the page the user settled on (`OverlayPages._settled`, set `Appearance.animSlow` after the open or the switch), so they're built once it has slid in, not in the same frame.
+  - A Custom page's modules stream in (`ModuleGrid.stream`): the grid and its box are built at once, sized from the places, and the modules a few per 16 ms step (a 6 ms budget, at least one a step), top left to bottom right (`GridPlacement.revealOrder`), each fading in (`OverlaySlot.active` / `ready`). Edge menus, the lock screen, the greeter, the desktop and screen layouts build all of theirs with the grid.
+  - The panel keeps the page area's last mapped size (`pageArea.roomWidth` / `roomHeight` in `OverlayPanel`): the window has no size while unmapped, and building at an estimate laid every page out twice per open. Before the first map it estimates from the screen less the window's margins.
+  - Timing: each page logs `Overlay page N built in X ms`, a streamed grid `Overlay modules streamed in X ms`, and a module that alone takes over 16 ms `Overlay module <Type> built in X ms` (`--debug`). `scripts/dev/bench_overlay.sh [PAGE…]` opens the overlay, steps through the pages given and prints them with each IPC call's blocking time (a no-op call is ~25 ms).
 - Page order (`OverlayPages.buildViewsModel`; `viewsModel[i].index` is the view's place in config):
   1. the user's own (Custom) pages, in config order;
   2. the tool pages (view types with `x-tool`: Settings, BarEditor, Themes, Keybinds, Monitors, CalendarPage), in config order;

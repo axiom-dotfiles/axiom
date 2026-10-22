@@ -70,11 +70,6 @@ Panel {
     selected: row.asking
     expanded: row.asking
     onNetworkChanged: row.reset()
-    onAskingChanged: {
-      passwordField.text = "";
-      if (asking)
-        Qt.callLater(() => passwordField.input.forceActiveFocus());
-    }
     onActivated: {
       if (row.asking)
         NetworkingManager.cancelPassword();
@@ -91,32 +86,38 @@ Panel {
       textColor: Theme.foregroundAlt
     }
 
-    // The password, for a secured network not saved yet
-    RowLayout {
+    // The password, for a secured network not saved yet: built only while
+    // asked for (each new ask starts empty), as every row would carry one
+    Loader {
       width: parent.width
-      spacing: Widget.spacing
+      active: row.asking
 
-      StyledTextEntry {
-        id: passwordField
-        Layout.fillWidth: true
-        placeholderText: I18n.tr("Password")
-        input.echoMode: TextInput.Password
-        input.wrapMode: Text.NoWrap
-        onAccepted: NetworkingManager.connectWithPsk(row.network, passwordField.text)
-        // The field leaves Escape to its parents
-        Keys.onEscapePressed: NetworkingManager.cancelPassword()
-      }
+      sourceComponent: RowLayout {
+        spacing: Widget.spacing
 
-      StyledRectButton {
-        size: Widget.iconButton
-        enabled: passwordField.text !== ""
-        opacity: enabled ? 1 : 0.5
-        iconText: "link"
-        iconColor: Theme.accent
-        backgroundColor: "transparent"
-        borderHoverColor: Theme.accent
-        tooltipText: I18n.tr("Connect")
-        onClicked: NetworkingManager.connectWithPsk(row.network, passwordField.text)
+        StyledTextEntry {
+          id: passwordField
+          Layout.fillWidth: true
+          placeholderText: I18n.tr("Password")
+          input.echoMode: TextInput.Password
+          input.wrapMode: Text.NoWrap
+          onAccepted: NetworkingManager.connectWithPsk(row.network, passwordField.text)
+          // The field leaves Escape to its parents
+          Keys.onEscapePressed: NetworkingManager.cancelPassword()
+          Component.onCompleted: Qt.callLater(() => passwordField.input.forceActiveFocus())
+        }
+
+        StyledRectButton {
+          size: Widget.iconButton
+          enabled: passwordField.text !== ""
+          opacity: enabled ? 1 : 0.5
+          iconText: "link"
+          iconColor: Theme.accent
+          backgroundColor: "transparent"
+          borderHoverColor: Theme.accent
+          tooltipText: I18n.tr("Connect")
+          onClicked: NetworkingManager.connectWithPsk(row.network, passwordField.text)
+        }
       }
     }
   }

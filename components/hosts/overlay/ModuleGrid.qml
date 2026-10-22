@@ -89,6 +89,40 @@ Item {
   // Slots glide to new places once first laid out
   property bool _settled: false
 
+  // Streaming: the modules are built a few at a time over the frames after
+  // the grid is, top left to bottom right (GridPlacement.revealOrder), each
+  // fading in, so showing a page doesn't wait on all of its modules.
+  // Without it (the lock screen, the greeter, the desktop, a screen
+  // layout) all are built with the grid
+  property bool stream: false
+  readonly property var _order: GridPlacement.revealOrder(root.modules)
+  // How many modules (in reveal order) are built
+  property int revealed: 0
+  readonly property int _count: root.modules?.length ?? 0
+  // The time each step may spend building, in ms: at least one module a
+  // step, however long it takes
+  readonly property int _budget: 6
+  Timer {
+    interval: 16
+    repeat: true
+    running: root.stream && root.revealed < root._count
+    onTriggered: {
+      const start = Date.now();
+      do {
+        const before = Date.now();
+        root.revealed++;
+        // A module that alone blows the frame: a hitch while streaming
+        if (Date.now() - before > 16) {
+          const index = root._order.indexOf(root.revealed - 1);
+          console.log(`Overlay module ${root.modules[index]?.type} built in ${Date.now() - before} ms`);
+        }
+      } while (root.revealed < root._count && Date.now() - start < root._budget)
+      if (root.revealed >= root._count)
+        console.log(`Overlay modules streamed in ${Date.now() - root._streamStart} ms (${root._count} modules)`);
+    }
+  }
+  property real _streamStart: Date.now()
+
   // A module's detail grown over the others (ExpandedModule): { type,
   // properties, from: [x, y, w, h] px in the grid }, null for none. Only on
   // overlay pages and edge menus, and only types allowed on the host
@@ -177,6 +211,12 @@ Item {
         width: slot.r.width
         height: slot.r.height
         clip: true
+        opacity: moduleSlot.ready || !root.stream ? 1 : 0
+
+        Glide on opacity {
+          enabled: root.stream
+          duration: Appearance.animFast
+        }
 
         Glide on y {
           enabled: root._settled
@@ -198,6 +238,7 @@ Item {
           host: root.host
           expander: root.expandable ? root : null
           zoom: root.zoom
+          active: !root.stream || (root._order[slot.index] ?? 0) < root.revealed
         }
       }
     }

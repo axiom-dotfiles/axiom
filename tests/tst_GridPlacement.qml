@@ -62,6 +62,18 @@ TestCase {
     });
   }
 
+  function test_revealOrder() {
+    compare(GridPlacement.revealOrder([]), []);
+    // Diagonals first (x + y), the higher of a diagonal first, then config order
+    compare(GridPlacement.revealOrder([at(4, 0, 4, 4), at(0, 0, 4, 4), at(0, 4, 4, 4), at(4, 4, 4, 4), at(2, 2, 2, 2)]), [1, 0, 3, 4, 2]);
+    // Infinity - Infinity is NaN: placeless modules keep config order, last
+    compare(GridPlacement.revealOrder([
+      {},
+      at(0, 0, 2, 2),
+      {}
+    ]), [1, 0, 2]);
+  }
+
   function test_canPlace() {
     const modules = [at(0, 0, 2, 2), at(2, 0, 2, 1)];
     verify(GridPlacement.canPlace(modules, {

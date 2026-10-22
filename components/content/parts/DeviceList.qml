@@ -65,10 +65,15 @@ Item {
     contentPadding: 0
     showScrollBar: list.implicitHeight > scroll.height
 
-    ColumnLayout {
+    // A ListView, so only the rows in view are built: Wi-Fi can see
+    // dozens of networks, and a row is a few dozen items
+    ListView {
       id: list
-      width: scroll.availableWidth
+      implicitHeight: list.contentHeight
       spacing: 2
+      boundsBehavior: Flickable.StopAtBounds
+      model: root.count
+      delegate: root.delegate
 
       NumberAnimation on opacity {
         id: fade
@@ -76,22 +81,16 @@ Item {
         to: 1
         duration: Appearance.animNormal
       }
-
-      Repeater {
-        model: root.count
-        delegate: root.delegate
-      }
-
-      StyledText {
-        Layout.fillWidth: true
-        Layout.preferredHeight: scroll.availableHeight
-        visible: root.count === 0
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-        wrapMode: Text.WordWrap
-        text: root.emptyText
-        textColor: Theme.foregroundAlt
-      }
     }
+  }
+
+  StyledText {
+    anchors.fill: parent
+    visible: root.on && root.count === 0
+    horizontalAlignment: Text.AlignHCenter
+    verticalAlignment: Text.AlignVCenter
+    wrapMode: Text.WordWrap
+    text: root.emptyText
+    textColor: Theme.foregroundAlt
   }
 }

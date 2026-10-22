@@ -44,8 +44,22 @@ Item {
   Loader {
     id: contentLoader
     anchors.centerIn: parent
-    active: root.loaded || root._leaving
+    active: false
     sourceComponent: root.content
+    onLoaded: console.log(`Overlay page ${root.pageIndex} built in ${Date.now() - root._started} ms`)
+  }
+
+  // Set from here, not bound, so the build can be timed (the Loader builds
+  // before it notifies `active`), for scripts/dev/bench_overlay.sh
+  readonly property bool _wanted: root.loaded || root._leaving
+  property real _started: 0
+  on_WantedChanged: root._activate()
+  Component.onCompleted: root._activate()
+  function _activate() {
+    if (root._wanted === contentLoader.active)
+      return;
+    root._started = Date.now();
+    contentLoader.active = root._wanted;
   }
 
   transform: Translate {

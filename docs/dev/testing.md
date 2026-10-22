@@ -1,6 +1,6 @@
 # Testing and debugging the running shell
 
-> **Files:** `scripts/dev/verify.sh`, `scripts/dev/shot.sh`, `scripts/log.sh`, `scripts/bug_info.sh`, `scripts/check_all.sh`, `scripts/run_tests.sh`, `scripts/dev/popout_matrix.py`
+> **Files:** `scripts/dev/verify.sh`, `scripts/dev/shot.sh`, `scripts/dev/bench_overlay.sh`, `scripts/log.sh`, `scripts/bug_info.sh`, `scripts/check_all.sh`, `scripts/run_tests.sh`, `scripts/dev/popout_matrix.py`
 > **Config:** none
 > **Related:** [Developer docs](README.md), [AGENTS.md](../../AGENTS.md) (Running / reloading, Never while testing, Checks)
 
@@ -8,6 +8,7 @@ How to look at, exercise and debug the live shell without breaking the user's se
 
 ### The loop
 - `scripts/dev/verify.sh` after every change: formats the changed QML in place (keeping the inode), runs `check_structure`, regenerates the docs, lints, runs the affected unit tests (a changed `methods/<Name>` runs `tst_<Name>`, a schema or migration change runs `Config` and `ConfigExamples`, a changed script its `tests/scripts/test_scripts.py` classes, mapped in verify.sh), shellchecks changed scripts, and prints the shell's log since the reload. `--all` runs `check_all.sh`.
+- `scripts/dev/bench_overlay.sh [-w SECONDS] [PAGE…]` times the overlay: how long opening and each page switch blocked, and how long each page and its modules took to build (see [pages-and-grid.md › Loading](overlay/pages-and-grid.md)).
 - `scripts/dev/shot.sh` takes a screenshot of a surface and closes it again, printing the PNG's path: `page <ViewType>`, `launcher [text]`, `ipc <target> <open> [close]`, `screen`; `-m MONITOR` (default the focused one), `-w SECONDS`.
 
 ### Reloads and logs
