@@ -24,6 +24,7 @@ Monitor layouts saved per set of connected monitors, edited on the Monitors page
 
 ### Editing
 - The page edits a `ConfigDraft`.
+- `MonitorCanvas` and `MonitorInspector` are streamed in as the page opens (`StreamedLoader`, [streamed building](../core/streamed-building.md)).
 - **Detection.** Opening the page detects the current setup (`_detect`):
   - when no profile matches, a new profile is made from the live state
   - otherwise the matching profile gains any output it doesn't list.

@@ -210,7 +210,7 @@ QtObject {
   // whenever the overlay reopens)
   function ensureLoaded() {
     if (!draft.isDirty)
-      draft.load();
+      draft.loadIfStale();
   }
 
   function _valueAt(object, path) {

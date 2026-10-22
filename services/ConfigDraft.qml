@@ -29,10 +29,22 @@ QtObject {
 
   // Start over from the current config
   function load() {
-    root.local = Utils.clone(_read());
+    root._loadedFrom = _read();
+    root.local = Utils.clone(root._loadedFrom);
     root.saved = Utils.clone(root.local);
     root.isDirty = false;
   }
+
+  // load(), unless the draft already holds the current config unedited: a
+  // page reopening (an editor's ensureLoaded) then rebuilds nothing. The
+  // config is a new object on every change, so the one it was loaded from
+  // tells whether it's current
+  function loadIfStale() {
+    if (root.isDirty || root.local === null || _read() !== root._loadedFrom)
+      load();
+  }
+
+  property var _loadedFrom: null
 
   // After mutating `local` in place: update isDirty, and re-assign it (next
   // tick) so bindings on it see the change, since in-place mutation doesn't

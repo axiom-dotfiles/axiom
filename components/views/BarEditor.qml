@@ -1,7 +1,9 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Layouts
 import qs.config
 import qs.services
+import qs.components.reusable
 import qs.components.views.barEditor
 
 // The bar editor page: the bars and the selected one's settings on the
@@ -36,9 +38,13 @@ BaseView {
       BarManager.unwatch(root);
   }
 
-  BarsPanel {
-    implicitWidth: root.sideWidth
-    implicitHeight: root.pageHeight
+  // Each panel is built a moment after the page (StreamedLoader), at its
+  // size from the start
+  StreamedLoader {
+    Layout.preferredWidth: root.sideWidth
+    Layout.preferredHeight: root.pageHeight
+    label: "bars panel"
+    sourceComponent: BarsPanel {}
   }
 
   BarDragLayer {
@@ -46,21 +52,27 @@ BaseView {
     implicitWidth: root.editorWidth
     implicitHeight: root.pageHeight
 
-    SectionsBoard {
+    StreamedLoader {
       id: board
       x: root.side === "Right" ? barDragLayer.width - width : 0
       y: root.side === "Bottom" ? barDragLayer.height - height : 0
       width: root.vertical ? root.stripDepth : barDragLayer.width
       height: root.vertical ? barDragLayer.height : root.stripDepth
-      dragLayer: barDragLayer
+      label: "bar sections board"
+      sourceComponent: SectionsBoard {
+        dragLayer: barDragLayer
+      }
     }
 
-    WidgetInspector {
+    StreamedLoader {
       x: root.side === "Left" ? root.stripDepth + OverlayConfig.cardSpacing : 0
       y: root.side === "Top" ? root.stripDepth + OverlayConfig.cardSpacing : 0
       width: root.vertical ? barDragLayer.width - root.stripDepth - OverlayConfig.cardSpacing : barDragLayer.width
       height: root.vertical ? barDragLayer.height : barDragLayer.height - root.stripDepth - OverlayConfig.cardSpacing
-      dragLayer: barDragLayer
+      label: "widget inspector"
+      sourceComponent: WidgetInspector {
+        dragLayer: barDragLayer
+      }
     }
   }
 }

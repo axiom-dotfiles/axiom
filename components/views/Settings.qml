@@ -1,7 +1,9 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Layouts
 import qs.services
 import qs.components.methods
+import qs.components.reusable
 import qs.components.views.settings
 
 // The settings page, generated from the config schema: categories (in
@@ -20,12 +22,18 @@ BaseView {
 
   Component.onCompleted: SettingsManager.ensureLoaded()
 
-  SettingsSidebar {
-    implicitWidth: root.grid.unit * 0.6
-    implicitHeight: root.pageHeight
-    categories: root.categories
-    selected: root.category.name
-    cards: content.shownGroups
+  // Streamed in as the page opens (StreamedLoader), as are the content's
+  // cards
+  StreamedLoader {
+    Layout.preferredWidth: root.grid.unit * 0.6
+    Layout.preferredHeight: root.pageHeight
+    label: "settings sidebar"
+
+    sourceComponent: SettingsSidebar {
+      categories: root.categories
+      selected: root.category.name
+      cards: content.shownGroups
+    }
   }
 
   SettingsContent {

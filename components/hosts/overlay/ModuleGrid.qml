@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
+import qs.services
 import qs.components.methods
 import qs.components.reusable
 
@@ -89,39 +90,32 @@ Item {
   // Slots glide to new places once first laid out
   property bool _settled: false
 
-  // Streaming: the modules are built a few at a time over the frames after
-  // the grid is, top left to bottom right (GridPlacement.revealOrder), each
-  // fading in, so showing a page doesn't wait on all of its modules.
-  // Without it (the lock screen, the greeter, the desktop, a screen
-  // layout) all are built with the grid
+  // Streaming: the modules are built over the frames after the grid is,
+  // a job each in BuildQueueManager's queue, top left to bottom right
+  // (GridPlacement.revealOrder), each fading in, so showing a page doesn't
+  // wait on all of its modules. Without it (the lock screen, the greeter,
+  // the desktop, a screen layout) all are built with the grid
   property bool stream: false
   readonly property var _order: GridPlacement.revealOrder(root.modules)
-  // How many modules (in reveal order) are built
+  // How many modules (in reveal order) are built, and queued
   property int revealed: 0
+  property int _queued: 0
   readonly property int _count: root.modules?.length ?? 0
-  // The time each step may spend building, in ms: at least one module a
-  // step, however long it takes
-  readonly property int _budget: 6
-  Timer {
-    interval: 16
-    repeat: true
-    running: root.stream && root.revealed < root._count
-    onTriggered: {
-      const start = Date.now();
-      do {
-        const before = Date.now();
+  property real _streamStart: Date.now()
+  on_CountChanged: root._queueModules()
+  function _queueModules() {
+    if (!root.stream)
+      return;
+    for (; root._queued < root._count; root._queued++) {
+      const type = root.modules[root._order.indexOf(root._queued)]?.type ?? "";
+      BuildQueueManager.request(root, () => {
         root.revealed++;
-        // A module that alone blows the frame: a hitch while streaming
-        if (Date.now() - before > 16) {
-          const index = root._order.indexOf(root.revealed - 1);
-          console.log(`Overlay module ${root.modules[index]?.type} built in ${Date.now() - before} ms`);
-        }
-      } while (root.revealed < root._count && Date.now() - start < root._budget)
-      if (root.revealed >= root._count)
-        console.log(`Overlay modules streamed in ${Date.now() - root._streamStart} ms (${root._count} modules)`);
+        if (root.revealed === root._count)
+          console.log(`Overlay modules streamed in ${Date.now() - root._streamStart} ms (${root._count} modules)`);
+      }, `overlay module ${type}`);
     }
   }
-  property real _streamStart: Date.now()
+  Component.onDestruction: BuildQueueManager.cancel(root)
 
   // A module's detail grown over the others (ExpandedModule): { type,
   // properties, from: [x, y, w, h] px in the grid }, null for none. Only on
@@ -154,6 +148,7 @@ Item {
   readonly property string _checkKey: JSON.stringify((root.modules ?? []).map(module => [module?.type, module?.place]))
   on_CheckKeyChanged: root._check()
   Component.onCompleted: {
+    root._queueModules();
     root._check();
     Qt.callLater(() => root._settled = true);
   }

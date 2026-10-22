@@ -4,7 +4,8 @@
 # order. For each step it prints how long the IPC call blocked (what was
 # built synchronously; a no-op call is ~25 ms) and the pages built during
 # it and the wait after, as the overlay logs them (OverlayPage: "Overlay page
-# N built in X ms"), then closes the overlay.
+# N built in X ms"; a streamed grid; and anything BuildQueueManager built
+# that alone took over a frame), then closes the overlay.
 #
 # Usage: scripts/dev/bench_overlay.sh [-w SECONDS] [PAGE...]
 #   PAGE      a view type or a page's name, as `ipc call overlay page` takes
@@ -21,7 +22,7 @@ fi
 repo="$(cd "$(dirname "$0")/../.." && pwd)"
 export LC_ALL=C.UTF-8
 
-built() { "$repo/scripts/log.sh" --debug -g 'Overlay (page [0-9]+ built|modules streamed|module [A-Za-z]+ built) in' | sed 's/^.*qml: //'; }
+built() { "$repo/scripts/log.sh" --debug -g 'Overlay (page [0-9]+ built|modules streamed) in|Built .* in [0-9]+ ms' | sed 's/^.*qml: //'; }
 
 step() {
   local before after start end

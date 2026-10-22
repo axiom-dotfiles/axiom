@@ -381,9 +381,13 @@ Item {
             Repeater {
               model: block.modelData.groups
 
-              // A hand-built card (`x-card`: settings/<name>Card.qml) or rows
-              delegate: Loader {
+              // A hand-built card (`x-card`: settings/<name>Card.qml) or rows,
+              // streamed in on opening a category; search results build at
+              // once, so typing doesn't fade them in again
+              delegate: StreamedLoader {
                 id: card
+                always: !root.listing
+                label: `settings card ${card.modelData.key}`
                 required property var modelData
                 required property int index
                 readonly property var place: block.placed.cards[card.index] ?? ({

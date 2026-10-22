@@ -99,6 +99,7 @@ CalDAV accounts, read-only .ics feeds and local calendars: syncing through a Pyt
 - Fired ids are kept for two days in `~/.local/state/axiom/ui/calendar.json`.
 
 ### Opening the page
+- The month's 42 day cells (`MonthGrid`, also the Clock/Calendar module's) are streamed in (`StreamedLoader`, [streamed building](../core/streamed-building.md)), each keeping its place in the grid. Paging a month updates them in place.
 - `request` (`{ kind: "new" | "day", key }`) is what `openPage(request)` asked for. It opens:
   - the CalendarPage view;
   - else the page with a Calendar module;

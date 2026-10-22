@@ -187,95 +187,103 @@ BaseView {
             opacity: 0.6
           }
         },
-        FilterChips {
+        StreamedLoader {
           visible: !root.editing && !root.keyboard
           Layout.fillWidth: true
-          groups: [
-            {
-              "id": "section",
-              "options": KeybindManager.keybindings.filter(section => section.binds.length > 0).map(section => ({
-                    "value": KeybindFilter.sectionKey(section),
-                    "label": (section.undescribed ? I18n.tr("Undescribed") : (section.title ? I18n.tr(section.title) : I18n.tr("Other"))) + "  " + section.binds.length
-                  }))
-            },
-            {
-              "id": "mod",
-              "options": KeybindManager.modOptions.map(mod => ({
-                    "value": mod,
-                    "label": KeyNames.modifierLabel(mod)
-                  }))
-            },
-            {
-              "id": "source",
-              "options": [
-                {
-                  "value": "axiom",
-                  "label": I18n.tr("Axiom binds")
-                },
-                {
-                  "value": "user",
-                  "label": I18n.tr("Your binds")
-                }
-              ]
-            }
-          ]
-          selection: ({
-              "section": KeybindManager.sectionFilter,
-              "mod": KeybindManager.modFilter,
-              "source": KeybindManager.sourceFilter
-            })
-          filtering: KeybindManager.filtering
-          onToggled: (group, value) => KeybindManager.toggleFilter(group, value)
-          onCleared: KeybindManager.clearFilters()
+          label: "keybind filter chips"
+
+          sourceComponent: FilterChips {
+            groups: [
+              {
+                "id": "section",
+                "options": KeybindManager.keybindings.filter(section => section.binds.length > 0).map(section => ({
+                      "value": KeybindFilter.sectionKey(section),
+                      "label": (section.undescribed ? I18n.tr("Undescribed") : (section.title ? I18n.tr(section.title) : I18n.tr("Other"))) + "  " + section.binds.length
+                    }))
+              },
+              {
+                "id": "mod",
+                "options": KeybindManager.modOptions.map(mod => ({
+                      "value": mod,
+                      "label": KeyNames.modifierLabel(mod)
+                    }))
+              },
+              {
+                "id": "source",
+                "options": [
+                  {
+                    "value": "axiom",
+                    "label": I18n.tr("Axiom binds")
+                  },
+                  {
+                    "value": "user",
+                    "label": I18n.tr("Your binds")
+                  }
+                ]
+              }
+            ]
+            selection: ({
+                "section": KeybindManager.sectionFilter,
+                "mod": KeybindManager.modFilter,
+                "source": KeybindManager.sourceFilter
+              })
+            filtering: KeybindManager.filtering
+            onToggled: (group, value) => KeybindManager.toggleFilter(group, value)
+            onCleared: KeybindManager.clearFilters()
+          }
         },
-        FilterChips {
+        StreamedLoader {
           visible: root.editing && KeybindManager.binds.length > 0
           Layout.fillWidth: true
-          groups: [
-            {
-              "id": "editSection",
-              "options": KeybindManager.editSectionOptions.map(option => ({
-                    "value": option.key,
-                    "label": I18n.tr(option.title) + "  " + option.count
-                  }))
-            },
-            {
-              "id": "editMod",
-              "options": KeybindManager.editModOptions.map(mod => ({
-                    "value": mod,
-                    "label": KeyNames.modifierLabel(mod)
-                  }))
-            },
-            {
-              "id": "editState",
-              "options": (KeybindManager.pausedCount > 0 || KeybindManager.editPausedOnly ? [
+          label: "keybind filter chips"
+
+          sourceComponent: FilterChips {
+            groups: [
+              {
+                "id": "editSection",
+                "options": KeybindManager.editSectionOptions.map(option => ({
+                      "value": option.key,
+                      "label": I18n.tr(option.title) + "  " + option.count
+                    }))
+              },
+              {
+                "id": "editMod",
+                "options": KeybindManager.editModOptions.map(mod => ({
+                      "value": mod,
+                      "label": KeyNames.modifierLabel(mod)
+                    }))
+              },
+              {
+                "id": "editState",
+                "options": (KeybindManager.pausedCount > 0 || KeybindManager.editPausedOnly ? [
+                    {
+                      "value": "paused",
+                      "label": I18n.tr("Paused") + "  " + KeybindManager.pausedCount
+                    }
+                  ] : []).concat(KeybindManager.issueCount > 0 || KeybindManager.editIssuesOnly ? [
                   {
-                    "value": "paused",
-                    "label": I18n.tr("Paused") + "  " + KeybindManager.pausedCount
+                    "value": "issues",
+                    "label": I18n.tr("With issues") + "  " + KeybindManager.issueCount
                   }
-                ] : []).concat(KeybindManager.issueCount > 0 || KeybindManager.editIssuesOnly ? [
-                {
-                  "value": "issues",
-                  "label": I18n.tr("With issues") + "  " + KeybindManager.issueCount
-                }
-              ] : [])
+                ] : [])
+              }
+            ]
+            selection: ({
+                "editSection": KeybindManager.editSectionFilter,
+                "editMod": KeybindManager.editModFilter,
+                "editState": (KeybindManager.editPausedOnly ? ["paused"] : []).concat(KeybindManager.editIssuesOnly ? ["issues"] : [])
+              })
+            filtering: KeybindManager.editFiltering
+            onToggled: (group, value) => {
+              if (group === "editState" && value === "paused")
+                KeybindManager.editPausedOnly = !KeybindManager.editPausedOnly;
+              else if (group === "editState")
+                KeybindManager.editIssuesOnly = !KeybindManager.editIssuesOnly;
+              else
+                KeybindManager.toggleFilter(group, value);
             }
-          ]
-          selection: ({
-              "editSection": KeybindManager.editSectionFilter,
-              "editMod": KeybindManager.editModFilter,
-              "editState": (KeybindManager.editPausedOnly ? ["paused"] : []).concat(KeybindManager.editIssuesOnly ? ["issues"] : [])
-            })
-          filtering: KeybindManager.editFiltering
-          onToggled: (group, value) => {
-            if (group === "editState" && value === "paused")
-              KeybindManager.editPausedOnly = !KeybindManager.editPausedOnly;
-            else if (group === "editState")
-              KeybindManager.editIssuesOnly = !KeybindManager.editIssuesOnly;
-            else
-              KeybindManager.toggleFilter(group, value);
+            onCleared: KeybindManager.clearEditFilters()
           }
-          onCleared: KeybindManager.clearEditFilters()
         }
       ]
 
@@ -311,11 +319,17 @@ BaseView {
         }
       }
 
-      KeyboardReference {
+      // Built only while shown
+      StreamedLoader {
         visible: root.keyboard
+        wanted: root.keyboard
         Layout.fillWidth: true
-        sections: KeybindManager.keybindings
-        onEditRequested: bindIndex => KeybindManager.editBind(bindIndex)
+        label: "keyboard reference"
+
+        sourceComponent: KeyboardReference {
+          sections: KeybindManager.keybindings
+          onEditRequested: bindIndex => KeybindManager.editBind(bindIndex)
+        }
       }
 
       RowLayout {
@@ -335,12 +349,21 @@ BaseView {
             spacing: Widget.spacing * 2
 
             Repeater {
-              model: root.columns[column.index]
+              // By count: a model of the sections themselves is copied for
+              // every delegate
+              model: root.columns[column.index]?.length ?? 0
 
-              delegate: KeybindSection {
-                required property var modelData
-                section: modelData
-                onEditRequested: bindIndex => KeybindManager.editBind(bindIndex)
+              delegate: StreamedLoader {
+                id: sectionLoader
+                required property int index
+                readonly property var modelData: root.columns[column.index]?.[sectionLoader.index] ?? null
+                Layout.fillWidth: true
+                label: "keybind section"
+
+                sourceComponent: KeybindSection {
+                  section: sectionLoader.modelData
+                  onEditRequested: bindIndex => KeybindManager.editBind(bindIndex)
+                }
               }
             }
           }
@@ -348,22 +371,36 @@ BaseView {
       }
     }
 
-    PresetSheet {
+    // A Popup, closed until asked, streamed in (StreamedLoader) as the page
+    // opens; the loader covers the list, so it's placed as over it
+    StreamedLoader {
       id: presetSheet
-      width: listSide.width - Widget.padding * 4
-      height: listSide.height * 0.8
-      x: (listSide.width - width) / 2
-      y: (listSide.height - height) / 2
+      anchors.fill: parent
+      label: "keybind presets"
+
+      function open() {
+        (presetSheet.item as PresetSheet)?.open();
+      }
+
+      sourceComponent: PresetSheet {
+        width: listSide.width - Widget.padding * 4
+        height: listSide.height * 0.8
+        x: (listSide.width - width) / 2
+        y: (listSide.height - height) / 2
+      }
     }
   }
 
-  // The selected bind, or the key map; Save and Discard for the page
-  Item {
+  // The selected bind, or the key map; Save and Discard for the page.
+  // Built only while editing, streamed in (StreamedLoader)
+  StreamedLoader {
     visible: root.editing
-    implicitWidth: root.inspectorWidth
-    implicitHeight: root.pageHeight
+    wanted: root.editing
+    Layout.preferredWidth: root.inspectorWidth
+    Layout.preferredHeight: root.pageHeight
+    label: "keybind inspector"
 
-    TitledCard {
+    sourceComponent: TitledCard {
       title: KeybindManager.selectedIndex >= 0 ? I18n.tr("Bind") : I18n.tr("Key map")
       // The key map keeps its place; a bind starts at its top
       scrollKey: KeybindManager.selectedIndex >= 0 ? "" : "Keybinds/map"
@@ -382,9 +419,13 @@ BaseView {
         }
       }
 
-      KeyMapPanel {
+      StreamedLoader {
         visible: root.editing && KeybindManager.selectedIndex < 0
+        wanted: root.editing && KeybindManager.selectedIndex < 0
         Layout.fillWidth: true
+        label: "key map"
+
+        sourceComponent: KeyMapPanel {}
       }
     }
   }

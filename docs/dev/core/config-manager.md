@@ -51,6 +51,7 @@ Editors create new entries at their definition's defaults with `withDefaults(val
 - A draft is a working copy of one config path:
   - `changed()` after in-place edits
   - `save()` merges onto the latest config via `commit`.
+  - `load()` starts over from the config; `loadIfStale()` only when it's dirty, empty, or the config isn't the object it was loaded from (every change makes a new one).
 - Shape of an editor built on it: [Editors pattern](editors-pattern.md).
 
 ### Previews
