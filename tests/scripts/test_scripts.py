@@ -1994,9 +1994,22 @@ class GreeterInstall(unittest.TestCase):
         link = self.root / "etc/systemd/system/display-manager.service"
         link.parent.mkdir(parents=True)
         link.symlink_to("/usr/lib/systemd/system/sddm.service")
+        # go, as the build of a git copy's binary runs it: `build -o OUT`
+        # writes "built" (fails while go-fails exists)
+        tools = self.tmp / "tools"
+        tools.mkdir()
+        go = tools / "go"
+        go.write_text(f'#!/bin/sh\n[ -e "{self.tmp}/go-fails" ] && exit 1\n[ "$1" = build ] || exit 0\n'
+                      'while [ $# -gt 0 ]; do [ "$1" = -o ] && { echo built >"$2"; exit 0; }; shift; done\nexit 1\n')
+        go.chmod(0o755)
+        self.env["PATH"] = f"{tools}:{self.env['PATH']}"
+        # The binary the shell runs, which a local copy takes
+        self.binary = self.tmp / "axiom-bin"
+        self.binary.write_bytes(b"\x7fELF local binary")
+        self.binary.chmod(0o755)
         self.repo = self.tmp / "repo"
         for name in ["greeter.qml", "shell.qml", "scripts/greeter/greeter-session.sh", "tests/tst_x.qml",
-                     "docs/notes.md"]:
+                     "docs/notes.md", "backend/go.mod"]:
             (self.repo / name).parent.mkdir(parents=True, exist_ok=True)
             (self.repo / name).write_text(name)
         policy = self.repo / "scripts/greeter/org.axiom.greeter.policy"
@@ -2032,10 +2045,10 @@ class GreeterInstall(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp)
 
-    def run_script(self, action, ok=True, source="git", channel="tags", staged=""):
+    def run_script(self, action, ok=True, source="git", channel="tags", staged="", binary=None):
         args = [str(SCRIPTS / "greeter" / "greeter_install.sh"), action, str(self.repo)]
         if action in ("install", "update"):
-            args += [self.user, staged, source, channel]
+            args += [self.user, staged, source, channel, str(self.binary) if binary is None else binary]
         elif action == "uninstall":
             args.append(self.user)
         else:
@@ -2233,6 +2246,51 @@ class GreeterInstall(unittest.TestCase):
         report = self.run_script("check", source="local")
         self.assertEqual(report["installedHash"], report["currentHash"])
 
+    def installed_binary(self):
+        return (self.root / "usr/share/axiom-greeter/bin/axiom").read_bytes()
+
+    def test_local_copies_the_shells_binary(self):
+        self.run_script("install", source="local")
+        self.assertEqual(self.installed_binary(), b"\x7fELF local binary")
+        self.assertTrue(self.run_script("check")["binaries"])
+        self.assertIn("no axiom binary given", self.run_script("update", ok=False, source="local", binary="")["error"])
+        script = self.tmp / "not-a-program"
+        script.write_text("#!/bin/sh\n")
+        script.chmod(0o755)
+        self.assertIn("isn't a program", self.run_script("update", ok=False, source="local", binary=str(script))["error"])
+        # A failed update leaves the copy as it was
+        self.assertEqual(self.installed_binary(), b"\x7fELF local binary")
+
+    def test_git_builds_the_binary_without_a_release(self):
+        self.run_script("install")
+        self.assertEqual(self.installed_binary(), b"built\n")
+
+    def release(self, tag, data, sums=None):
+        """A release of `tag` with axiom-linux-<arch> (`data`) and its SHA256SUMS."""
+        arch = {"x86_64": "amd64", "aarch64": "arm64"}.get(os.uname().machine, os.uname().machine)
+        folder = self.tmp / "releases" / tag
+        folder.mkdir(parents=True)
+        (folder / f"axiom-linux-{arch}").write_bytes(data)
+        digest = sums or hashlib.sha256(data).hexdigest()
+        (folder / "SHA256SUMS").write_text(f"{digest}  axiom-linux-{arch}\n")
+        self.env["AXIOM_GREETER_RELEASES"] = (self.tmp / "releases").as_uri()
+
+    def test_git_takes_a_releases_binary(self):
+        self.release("v1.0", b"\x7fELF released")
+        (self.tmp / "go-fails").touch()
+        self.run_script("install")
+        self.assertEqual(self.installed_binary(), b"\x7fELF released")
+
+    def test_git_refuses_a_binary_its_sums_dont_match(self):
+        self.release("v1.0", b"\x7fELF released", sums="0" * 64)
+        self.assertIn("doesn't match its SHA256SUMS", self.run_script("install", ok=False)["error"])
+        self.assertFalse((self.root / "usr/share/axiom-greeter").exists())
+
+    def test_git_without_release_or_go(self):
+        (self.tmp / "go-fails").touch()
+        self.assertIn("no axiom binary", self.run_script("install", ok=False)["error"])
+        self.assertFalse((self.root / "usr/share/axiom-greeter").exists())
+
     def test_switching_source(self):
         self.run_script("install", source="local")
         self.assertEqual(self.run_script("check")["installedSource"], "local")
@@ -2350,6 +2408,17 @@ class GreeterSession(unittest.TestCase):
         self.fake("sway", 1)
         self.fake("agreety")
         self.assertEqual(self.run_session(), ["sway", "agreety"])
+
+    def test_shell_runs_axiom_greeter_then_its_safe_mode(self):
+        self.fake("axiom", 1)
+        self.fake("hyprctl")
+        env = {"PATH": str(self.bin), "XDG_RUNTIME_DIR": str(self.tmp)}
+        subprocess.run(["/bin/sh", str(SCRIPTS / "greeter/greeter-session.sh"), "shell"], env=env,
+                       capture_output=True, text=True, timeout=10)
+        calls = self.calls.read_text().splitlines()
+        tree = str(SCRIPTS.parent)
+        self.assertEqual(calls[:2], [f"axiom greeter --tree {tree}", f"axiom greeter --tree {tree} --safe"])
+        self.assertTrue((self.tmp / "axiom-greeter-failed").exists())
 
     def test_agreety_when_the_greeter_failed_twice(self):
         # The greeter's `shell` leaves the marker, then sway exits cleanly

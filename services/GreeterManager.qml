@@ -142,8 +142,9 @@ QtObject {
 
   readonly property string _script: Paths.scriptsPath + "greeter/greeter_install.sh"
   readonly property string _source: Paths.packaged ? "package" : GreeterConfig.source
-  // The script's <source> <channel>
-  readonly property var _sourceArgs: [_source, SelfUpdate.channel]
+  // The script's <source> <channel> <binary> (the binary the shell runs,
+  // which a local copy takes: $AXIOM_BIN, set by axiom run)
+  readonly property var _sourceArgs: [_source, SelfUpdate.channel, Quickshell.env("AXIOM_BIN") ?? ""]
   // The installed copy's, which org.axiom.greeter.policy names
   readonly property string _helper: "/usr/share/axiom-greeter/scripts/greeter/greeter_install.sh"
   readonly property string _desktopEntry: "axiom-greeter-update"
@@ -186,8 +187,10 @@ QtObject {
     if (external)
       ShellManager.beginStepAside("greeter");
     // Once installed, root's own copy of the script, by its polkit action
-    // (its prompt says what it's for); before, the clone's, through bash
-    const program = root._report?.helper === true ? [root._helper] : ["/usr/bin/bash", root._script];
+    // (its prompt says what it's for); before, or while that copy is from
+    // before the copy got the axiom binary too (`binaries`), the clone's,
+    // through bash
+    const program = root._report?.helper === true && root._report?.binaries === true ? [root._helper] : ["/usr/bin/bash", root._script];
     const args = ["pkexec"].concat(program, [action, Paths.axiomPath, Quickshell.env("USER")], action === "uninstall" ? [] : [staging].concat(root._sourceArgs));
     CommandManager.run(args, (exitCode, out, err) => {
       ShellManager.endStepAside("greeter");

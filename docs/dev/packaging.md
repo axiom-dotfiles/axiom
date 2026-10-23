@@ -41,6 +41,7 @@ Not on the AUR yet: AUR account registration is closed, so they wait in `packagi
   - The marker `/usr/share/axiom/.packaged`, holding `pkgver-pkgrel`.
 - Nothing writes under the code ([config-manager.md](core/config-manager.md) › Where files live). Python's bytecode cache can't be written there either, which Python ignores; the package ships none, since bytecode for one Python version goes stale on the next.
 - `axiom-shell.install` prints the autostart lines on install, and to restart axiom on upgrade (pacman replaces files, which qs's watcher can miss).
+- **Release binaries** (none are published yet): a release's assets are to hold `axiom-linux-amd64`, `axiom-linux-arm64` (static, `CGO_ENABLED=0 go build -trimpath`) and a `SHA256SUMS` listing them, as `sha256sum` writes it. The greeter install takes the binary from there for a tag, else builds it ([greeter-install.md](features/greeter-install.md)).
 - **Releases:** `scripts/release.sh`, after pushing the tag, sets the release PKGBUILD's `pkgver`, `pkgrel=1` and the tarball's `sha256sums`, and regenerates `.SRCINFO` (`makepkg --printsrcinfo`). Committing that and pushing it to the AUR is the maintainer's step.
 - **Testing:** `makepkg` in a scratch copy of the folder, `namcap` on the PKGBUILD and the package (in an `archlinux` container if it isn't installed: its QML-module and `bash`/`sh` warnings are expected), and `tar -tf` the package to see its files.
 

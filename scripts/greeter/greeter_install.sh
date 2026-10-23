@@ -12,7 +12,7 @@
 #              by the copy being replaced: its arguments stay compatible.
 # Usage:       greeter_install.sh check <repo> [<source> [<channel>]]
 #              greeter_install.sh hash <repo> [<source> [<channel>]]
-#              greeter_install.sh install|update <repo> <user> [<staged bundle> [<source> [<channel>]]]
+#              greeter_install.sh install|update <repo> <user> [<staged bundle> [<source> [<channel> [<binary>]]]]
 #              greeter_install.sh uninstall <repo> <user>
 #              <source> is where the copy's code comes from (Greeter.source):
 #                git    (default) root fetches it into its own mirror
@@ -29,6 +29,13 @@
 #                       <repo> is: the greeter runs that copy itself, so
 #                       the package manager updates it; the install folder
 #                       holds only scripts/greeter/ and the snapshot
+#              The axiom binary the greeter runs (axiom greeter) goes in the
+#              copy's bin/: for local, <binary> (the one the user's shell
+#              runs, read as the user); for git, the release's prebuilt
+#              axiom-linux-<arch> for a tag (GitHub releases, checked
+#              against the release's SHA256SUMS), else built from root's
+#              mirror with go, as greetd's user; for package, none (the
+#              package's own, on PATH)
 #                check      (no root) what's set up: prints { greetd,
 #                           agreety, compositor (what the login screen
 #                           runs in, as greeter-session.sh picks it:
@@ -70,6 +77,7 @@ user=${3:-}
 staged=${4:-}
 source=${5:-git}
 channel=${6:-tags}
+binary=${7:-}
 if [[ "$action" == check || "$action" == hash ]]; then
   # No user: these run as whoever calls them (as_user must never take the
   # source for a user name, which as root would run nothing)
@@ -117,6 +125,13 @@ fail() {
 # What the greeter never runs
 # (backend/ is the axiom binary's source: an install copies the built binary)
 pathspec=(':!:tests/' ':!:.github/' ':!:docs/' ':!:backend/' ':!:install.sh' ':!:*.md')
+# What a local copy's hash covers: that, and the binary's source
+hashspec=()
+for spec in "${pathspec[@]}"; do
+  [[ "$spec" == ':!:backend/' ]] || hashspec+=("$spec")
+done
+# (This helper installs the axiom binary too: `check` reports it as
+# binaries, so axiom runs an older installed helper's replacement instead)
 
 # A command as the user: as root (pkexec), their clone, its git config and
 # any filters it names stay theirs
@@ -140,10 +155,10 @@ local_archive() {
     tar --null --ignore-failed-read -T - -cf - 2>/dev/null' _ "$repo" "${pathspec[@]}"
 }
 
-# The hash of those files' content
+# The hash of those files' content, and of the binary's source
 local_hash() {
   as_user bash -c 'cd "$1" && shift && git ls-files -z --cached -- "$@" |
-    xargs -0 -r sha256sum -- 2>/dev/null | sha256sum | cut -d" " -f1' _ "$repo" "${pathspec[@]}"
+    xargs -0 -r sha256sum -- 2>/dev/null | sha256sum | cut -d" " -f1' _ "$repo" "${hashspec[@]}"
 }
 
 # --- git: root's mirror of the clone's upstream ---
@@ -228,6 +243,81 @@ current_hash() {
   fi
 }
 
+# --- The axiom binary ---
+
+# A command as greetd's user (as root); the build runs the release's code,
+# which only ever runs as that user anyway
+as_greeter() {
+  if [[ $EUID -eq 0 ]]; then
+    runuser -u "$greeter_user" -- "$@"
+  else
+    "$@"
+  fi
+}
+
+# local: the user's binary, read as the user (root follows no link of
+# theirs), into $1
+user_binary() {
+  [[ -n "$binary" ]] || fail "no axiom binary given (the one the shell runs)"
+  as_user test -f "$binary" -a -x "$binary" || fail "$binary isn't an executable file"
+  as_user cat -- "$binary" >"$1" || fail "reading $binary failed"
+  [[ "$(head -c 4 "$1")" == $'\x7fELF' ]] || fail "$binary isn't a program (axiom's binary)"
+}
+
+# git: the tag's prebuilt binary for this machine from its release, into
+# $1. 1: there is none (not a GitHub repository, not a tag, no such
+# asset); a download that doesn't match the release's SHA256SUMS fails the
+# install. AXIOM_GREETER_RELEASES replaces the releases' base url, for tests.
+release_binary() {
+  [[ "$channel" == tags ]] || return 1
+  local tag=${target#* refs/tags/} arch base dir want
+  case "$(uname -m)" in
+  x86_64) arch=amd64 ;;
+  aarch64 | arm64) arch=arm64 ;;
+  *) return 1 ;;
+  esac
+  base=${AXIOM_GREETER_RELEASES:-}
+  if [[ -z "$base" ]]; then
+    local path=${url#https://github.com/}
+    path=${path%/}
+    path=${path%.git}
+    [[ "$url" == https://github.com/* && "$path" == */* && "$path" != */*/* ]] || return 1
+    base="https://github.com/$path/releases/download"
+  fi
+  dir=$(mktemp -d) || return 1
+  if ! curl -fsSL --max-time 60 -o "$dir/SHA256SUMS" "$base/$tag/SHA256SUMS" 2>/dev/null ||
+    ! curl -fsSL --max-time 300 -o "$dir/axiom" "$base/$tag/axiom-linux-$arch" 2>/dev/null; then
+    rm -rf "$dir"
+    return 1
+  fi
+  want=$(awk -v name="axiom-linux-$arch" '$2 == name || $2 == "*" name { print $1; exit }' "$dir/SHA256SUMS")
+  if [[ -z "$want" || "$(sha256sum <"$dir/axiom" | cut -d" " -f1)" != "$want" ]]; then
+    rm -rf "$dir"
+    fail "the $tag release's axiom-linux-$arch doesn't match its SHA256SUMS"
+  fi
+  mv "$dir/axiom" "$1" && rm -rf "$dir"
+}
+
+# git: built from the mirror's target with go, as greetd's user in a
+# folder of its own, into $1. 1: go isn't installed or the build failed
+# (its log in the greeter's state folder)
+built_binary() {
+  command -v go >/dev/null || return 1
+  local dir log="$var_dir/state/binary-build.log"
+  dir=$(mktemp -d) || return 1
+  mkdir "$dir/src" && git_mirror archive --format=tar 'refs/axiom/target^{tree}' | tar -x -C "$dir/src" --no-same-owner ||
+    { rm -rf "$dir"; return 1; }
+  [[ $EUID -eq 0 ]] && chown -R "$greeter_user:" "$dir"
+  if ! as_greeter env -i PATH="$PATH" HOME="$dir" GOPATH="$dir/go" GOCACHE="$dir/cache" GOMODCACHE="$dir/mod" \
+    GOTOOLCHAIN=local GOFLAGS=-modcacherw CGO_ENABLED=0 timeout 900 \
+    bash -c 'cd "$1/src/backend" && go generate ./internal/assets && go build -trimpath -o "$1/axiom" ./cmd/axiom' _ "$dir" \
+    >"$log" 2>&1; then
+    rm -rf "$dir"
+    return 1
+  fi
+  cp -- "$dir/axiom" "$1" && rm -rf "$dir"
+}
+
 # The compositor greeter-session.sh starts the login screen in: sway, else
 # Hyprland (start-hyprland), where greetd's user finds them; "" for neither
 greeter_compositor() {
@@ -303,6 +393,9 @@ check)
   [[ -w "$var_dir/config" ]] && writable=true
   has_helper=false
   [[ -x "$helper" && -f "$policy" ]] && has_helper=true
+  # Whether that helper installs the binary too (an older one doesn't)
+  binaries=false
+  grep -q '^# (This helper installs the axiom binary too' "$helper" 2>/dev/null && binaries=true
   recorded=$(installed_source)
   installed_from=""
   case "$recorded" in
@@ -319,11 +412,11 @@ check)
     --argjson installed "$installed" --argjson configured "$configured" --argjson helper "$has_helper" \
     --arg installedSource "$installed_from" --arg url "$url" \
     --arg installedHash "$installed_hash" --arg currentHash "$(current_hash)" \
-    --arg greeterUser "$(greetd_value user)" --argjson bundleWritable "$writable" \
+    --arg greeterUser "$(greetd_value user)" --argjson bundleWritable "$writable" --argjson binaries "$binaries" \
     '{greetd: $greetd, agreety: $agreety, compositor: $compositor, displayManager: $dm, installed: $installed,
       configured: $configured, helper: $helper, installedSource: $installedSource, url: $url,
       installedHash: $installedHash, currentHash: $currentHash, greeterUser: $greeterUser,
-      bundleWritable: $bundleWritable, error: ""}'
+      bundleWritable: $bundleWritable, binaries: $binaries, error: ""}'
   ;;
 
 hash)
@@ -412,6 +505,17 @@ install | update)
       fail "$label has no login screen (no $file): follow main, or use local"
     fi
   done
+  # The binary (a package's is its own, on PATH)
+  if [[ "$source" == local ]]; then
+    mkdir -p "$stage/bin" && user_binary "$stage/bin/axiom"
+  elif [[ "$source" == git ]]; then
+    mkdir -p "$stage/bin"
+    if ! release_binary "$stage/bin/axiom" && ! built_binary "$stage/bin/axiom"; then
+      rm -rf "$stage"
+      fail "no axiom binary for $label: its release has none, and building one needs go (see $var_dir/state/binary-build.log)"
+    fi
+  fi
+  [[ -f "$stage/bin/axiom" ]] && chmod 755 "$stage/bin/axiom"
   printf '%s\n' "$hash" >"$stage/.greeter-hash"
   printf '%s\n' "$origin" >"$stage/.greeter-source"
   # What the user's axiom exported, as the copy's fallback config: written
