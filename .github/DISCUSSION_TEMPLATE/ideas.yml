@@ -2,7 +2,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        A place to shape an idea before it's a request. Once it's clear what you want, open the [issue form](https://github.com/axiom-dotfiles/axiom/issues/new/choose) that fits (a feature, a widget or module, an app to theme, …) and link this discussion.
+        A place to shape an idea before it's a request. Once it's clear what you want, open the [issue form](https://github.com/axiom-shell/axiom/issues/new/choose) that fits (a feature, a widget or module, an app to theme, …) and link this discussion.
   - type: textarea
     id: idea
     attributes:

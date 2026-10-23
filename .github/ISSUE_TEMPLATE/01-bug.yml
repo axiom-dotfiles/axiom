@@ -7,7 +7,7 @@ body:
       value: |
         Thanks for reporting! Two commands give us most of what we need: `bug_info.sh` (your versions and setup) and `log.sh` (the shell's log). Both are in axiom's `scripts/` folder: `~/.config/quickshell/axiom/scripts/` for a clone, `/usr/share/axiom/scripts/` for a distribution package.
 
-        Asking how to do something? [Discussions](https://github.com/axiom-dotfiles/axiom/discussions/categories/q-a) is the place.
+        Asking how to do something? [Discussions](https://github.com/axiom-shell/axiom/discussions/categories/q-a) is the place.
   - type: textarea
     id: what
     attributes:

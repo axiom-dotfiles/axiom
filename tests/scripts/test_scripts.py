@@ -2125,8 +2125,8 @@ class GreeterInstall(unittest.TestCase):
                                                    timeout=60).stdout)["url"], str(self.upstream))
 
     def test_https_for_ssh_remotes(self):
-        self.git("remote", "set-url", "origin", "git@github.com:axiom-dotfiles/axiom.git")
-        self.assertEqual(self.run_script("check")["url"], "https://github.com/axiom-dotfiles/axiom.git")
+        self.git("remote", "set-url", "origin", "git@github.com:axiom-shell/axiom.git")
+        self.assertEqual(self.run_script("check")["url"], "https://github.com/axiom-shell/axiom.git")
         self.git("remote", "set-url", "origin", "ssh://git@example.org/me/axiom.git")
         self.assertEqual(self.run_script("check")["url"], "https://example.org/me/axiom.git")
 

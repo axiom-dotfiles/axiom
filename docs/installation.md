@@ -46,7 +46,7 @@ The whole shell runs on five things. Everything else is optional and only needed
 On Arch Linux, Fedora, or a distribution based on either (CachyOS, EndeavourOS, Manjaro, Nobara, …), run the installer:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/axiom-shell/axiom/main/install.sh | bash
 ```
 
 It first prints its plan: the distribution, the compositor and each step. Then:
@@ -63,7 +63,7 @@ Run from a text console (a TTY) outside a graphical session, it last offers to s
 <details>
 <summary><b>From the AUR</b> (Arch, not published yet)</summary>
 
-> **Not on the AUR yet.** The packages are ready (`packaging/aur/`), but AUR account registration is closed for now, so they can't be published. Until then, use install.sh above, or build one yourself with `makepkg -si` in `packaging/aur/axiom-shell-git/`. Follow [#76](https://github.com/axiom-dotfiles/axiom/issues/76) for news, or to help.
+> **Not on the AUR yet.** The packages are ready (`packaging/aur/`), but AUR account registration is closed for now, so they can't be published. Until then, use install.sh above, or build one yourself with `makepkg -si` in `packaging/aur/axiom-shell-git/`. Follow [#76](https://github.com/axiom-shell/axiom/issues/76) for news, or to help.
 
 `axiom-shell` follows releases and `axiom-shell-git` the main branch:
 
@@ -81,7 +81,7 @@ It installs axiom to `/usr/share/axiom` with the required packages; the composit
 Install the [requirements](#requirements), then clone into Quickshell's config directory:
 
 ```bash
-git clone https://github.com/axiom-dotfiles/axiom.git ~/.config/quickshell/axiom
+git clone https://github.com/axiom-shell/axiom.git ~/.config/quickshell/axiom
 ```
 
 `qs -c axiom` starts it once. To start it with your session, add its line to your compositor's config (`-n` keeps a second copy from starting):

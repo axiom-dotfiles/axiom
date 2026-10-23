@@ -6,9 +6,9 @@
 
 Runs on [Hyprland](https://hypr.land), [niri](https://github.com/YaLTeR/niri) and [sway](https://swaywm.org). Bars, menus, a launcher, notifications, settings, theming, desktop widgets, the lock screen and the login screen are all one application, laid out by dragging and set from the UI.
 
-<a href="https://github.com/axiom-dotfiles/axiom/stargazers"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=8c6c3e&labelColor=e1e2e7"><img alt="Stars" src="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=e0af68&labelColor=1a1b26"></picture></a>
-<a href="https://github.com/axiom-dotfiles/axiom/tags"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=b15c00&labelColor=e1e2e7"><img alt="Version" src="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=ff9e64&labelColor=1a1b26"></picture></a>
-<a href="https://github.com/axiom-dotfiles/axiom/commits/main"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/last-commit/axiom-dotfiles/axiom?style=for-the-badge&color=587539&labelColor=e1e2e7"><img alt="Latest Commit" src="https://img.shields.io/github/last-commit/axiom-dotfiles/axiom?style=for-the-badge&color=9ece6a&labelColor=1a1b26"></picture></a>
+<a href="https://github.com/axiom-shell/axiom/stargazers"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/stars/axiom-shell/axiom?style=for-the-badge&color=8c6c3e&labelColor=e1e2e7"><img alt="Stars" src="https://img.shields.io/github/stars/axiom-shell/axiom?style=for-the-badge&color=e0af68&labelColor=1a1b26"></picture></a>
+<a href="https://github.com/axiom-shell/axiom/tags"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/v/tag/axiom-shell/axiom?sort=semver&label=version&style=for-the-badge&color=b15c00&labelColor=e1e2e7"><img alt="Version" src="https://img.shields.io/github/v/tag/axiom-shell/axiom?sort=semver&label=version&style=for-the-badge&color=ff9e64&labelColor=1a1b26"></picture></a>
+<a href="https://github.com/axiom-shell/axiom/commits/main"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/last-commit/axiom-shell/axiom?style=for-the-badge&color=587539&labelColor=e1e2e7"><img alt="Latest Commit" src="https://img.shields.io/github/last-commit/axiom-shell/axiom?style=for-the-badge&color=9ece6a&labelColor=1a1b26"></picture></a>
 <a href="#compositors"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/Wayland-Hyprland%20%C2%B7%20niri%20%C2%B7%20sway-2e7de9?style=for-the-badge&labelColor=e1e2e7"><img alt="Hyprland, niri and sway" src="https://img.shields.io/badge/Wayland-Hyprland%20%C2%B7%20niri%20%C2%B7%20sway-7aa2f7?style=for-the-badge&labelColor=1a1b26"></picture></a>
 <a href="https://quickshell.org"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/Quickshell-0.3.2%2B-9854f1?style=for-the-badge&labelColor=e1e2e7"><img alt="Quickshell" src="https://img.shields.io/badge/Quickshell-0.3.2%2B-bb9af7?style=for-the-badge&labelColor=1a1b26"></picture></a>
 <a href="LICENSE"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/License-MIT-118c74?style=for-the-badge&labelColor=e1e2e7"><img alt="License" src="https://img.shields.io/badge/License-MIT-73daca?style=for-the-badge&labelColor=1a1b26"></picture></a>
@@ -107,7 +107,7 @@ See **[all the features](docs/features.md)**, with screenshots of every surface.
 >
 > Your own setup travels the same way: **Settings → Maintenance → Share** exports its look and layout to a file, leaving out monitors, wallpapers, accounts and paths. **Import…** applies anyone's file just as an example applies. Keybinds, apps and commands come along only if you ask, since a shared command runs as you.
 >
-> **More from the community:** browse and apply setups other people shared at [**community-setups**](https://github.com/axiom-dotfiles/community-setups) from **Settings → Maintenance → Community setups** (or `/config community`), and submit yours there.
+> **More from the community:** browse and apply setups other people shared at [**community-setups**](https://github.com/axiom-shell/community-setups) from **Settings → Maintenance → Community setups** (or `/config community`), and submit yours there.
 
 <details>
 <summary><b>See all nine</b></summary>
@@ -165,7 +165,7 @@ Your config moves between them as it is. Log in to another compositor and your b
 On Arch Linux, Fedora, or a distribution based on either (CachyOS, EndeavourOS, Manjaro, Nobara, …), run the installer:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/axiom-shell/axiom/main/install.sh | bash
 ```
 
 It uses the compositor you're running or have installed, or asks which one to install (Hyprland, niri or sway). Before anything runs as root it shows each command and why: one `sudo pacman` or `sudo dnf`, plus on Fedora each COPR it needs. It asks before adding axiom's start-up line to your compositor's config, and backs that file up first. `--dry-run` prints what it would do and changes nothing. On first start, a short setup walks you through the look, monitors, workspaces, apps and integrations.
@@ -178,7 +178,7 @@ Install the requirements: a compositor (above), [Quickshell](https://quickshell.
 Clone into Quickshell's config directory, and try it with `qs -c axiom`:
 
 ```bash
-git clone https://github.com/axiom-dotfiles/axiom.git ~/.config/quickshell/axiom
+git clone https://github.com/axiom-shell/axiom.git ~/.config/quickshell/axiom
 ```
 
 To start it with your session, add one line to your compositor's config (`-n` keeps a second copy from starting):
@@ -203,11 +203,11 @@ By default axiom runs *detached*: it applies its keybinds and settings at runtim
 
 ## Contributing
 
-Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) and pick the form that fits (a bug, a feature, a bar widget or module, an app to theme, a compositor or distribution, a translation), or fork the repository and open a pull request against `main`. CI runs the same checks as `scripts/check_all.sh`.
+Contributions are welcome. [Open an issue](https://github.com/axiom-shell/axiom/issues/new/choose) and pick the form that fits (a bug, a feature, a bar widget or module, an app to theme, a compositor or distribution, a translation), or fork the repository and open a pull request against `main`. CI runs the same checks as `scripts/check_all.sh`.
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers setting up, the workflow, and where in the docs to start. There's no build step: `qs` interprets the QML and hot-reloads on save.
 
-**Looking to help?** axiom is built and tested on one machine, so people running Hyprland, sway or niri on other hardware, packagers (`axiom-shell` for the AUR, COPR and Nix) and translators are especially welcome: see [Help wanted](https://github.com/orgs/axiom-dotfiles/discussions/67), the [translations tracker](https://github.com/axiom-dotfiles/axiom/issues/66) and the [good first issues](https://github.com/axiom-dotfiles/axiom/labels/good%20first%20issue).
+**Looking to help?** axiom is built and tested on one machine, so people running Hyprland, sway or niri on other hardware, packagers (`axiom-shell` for the AUR, COPR and Nix) and translators are especially welcome: see [Help wanted](https://github.com/orgs/axiom-shell/discussions/67), the [translations tracker](https://github.com/axiom-shell/axiom/issues/66) and the [good first issues](https://github.com/axiom-shell/axiom/labels/good%20first%20issue).
 
 ## Roadmap
 
@@ -217,7 +217,7 @@ Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axi
 - **More translations**
 - **Performance Improvements**
 - **Community Config Library and Showcase**
-- **Packages**: `axiom-shell` and `axiom-shell-git` for the AUR and COPR, and Nix. The AUR packages are ready but wait on AUR account registration reopening ([#76](https://github.com/axiom-dotfiles/axiom/issues/76))
+- **Packages**: `axiom-shell` and `axiom-shell-git` for the AUR and COPR, and Nix. The AUR packages are ready but wait on AUR account registration reopening ([#76](https://github.com/axiom-shell/axiom/issues/76))
 
 ## Acknowledgments
 

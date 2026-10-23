@@ -56,13 +56,13 @@ axiom ships the setups from the README in `examples/`. Apply one from **Settings
 
 ### Community setups
 
-Setups other people built and shared at [axiom-dotfiles/community-setups](https://github.com/axiom-dotfiles/community-setups). Browse them in **Settings → Maintenance → Community setups**, or search with `/config community <text>` in the launcher.
+Setups other people built and shared at [axiom-shell/community-setups](https://github.com/axiom-shell/community-setups). Browse them in **Settings → Maintenance → Community setups**, or search with `/config community <text>` in the launcher.
 
 - Nothing is downloaded until you open the gallery. Every file is checked against the catalog's checksum.
 - Applying one works like an import with keybinds, apps and commands off: only the look and layout change, and your current config is saved first as `before-<id>`. Shared setups never contain commands, monitors, accounts or paths, and the repository's checks refuse any that try.
 - A setup may bring its own palette, installed as the theme `community/<id>` (in `~/.local/share/axiom/themes/`, listed on the Themes page), and a wallpaper, which you get only with **Also use its wallpaper**.
 - A setup lists the compositors its author ran it on and the fonts it uses; a missing font is flagged, and the text falls back to another.
-- To share yours: **Export and submit…** under the gallery exports your look and opens the submission form. See the repository's [contributing guide](https://github.com/axiom-dotfiles/community-setups/blob/main/CONTRIBUTING.md).
+- To share yours: **Export and submit…** under the gallery exports your look and opens the submission form. See the repository's [contributing guide](https://github.com/axiom-shell/community-setups/blob/main/CONTRIBUTING.md).
 - Turn the gallery off, or point it at a mirror, under **Community gallery** on the same page.
 
 ### Themes

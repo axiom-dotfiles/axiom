@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 74
+  readonly property int currentVersion: 75
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -173,6 +173,8 @@ QtObject {
       result = _v71ToV73(result, changes);
     if (version < 74)
       result = _v73ToV74(result, changes);
+    if (version < 75)
+      result = _v74ToV75(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2442,6 +2444,17 @@ QtObject {
       return config;
     [1, 2, 3].forEach(i => modules[i].place.y += 1);
     changes.push("Greeter.layout: the default's Greeting, Login and Session a row down");
+    return config;
+  }
+
+  // v75: the GitHub organization moved from axiom-dotfiles to axiom-shell.
+  // Only the old default community index follows it; a custom one stays
+  function _v74ToV75(config, changes) {
+    const setups = config.CommunitySetups;
+    if (setups?.indexUrl !== "https://raw.githubusercontent.com/axiom-dotfiles/community-setups/catalog/index.json")
+      return config;
+    setups.indexUrl = "https://raw.githubusercontent.com/axiom-shell/community-setups/catalog/index.json";
+    changes.push("CommunitySetups.indexUrl: moved to github.com/axiom-shell");
     return config;
   }
 }
