@@ -1,0 +1,31 @@
+# The ColorSwatchOverlayModule definition (#/definitions/ColorSwatchOverlayModule).
+
+type: object
+x-hosts: [overlay, edgeMenu, lockscreen, greeter, desktop]
+x-icon: palette
+x-libraryGroup: Look & layout
+x-defaultSize: [2, 2]
+x-canvasDetail: color
+x-canvasFill: color
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: ColorSwatch
+    description: Theme color swatch
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      color:
+        type: string
+        title: Color
+        default: base00
+        x-options: colors
+      label:
+        type: string
+        title: Label
+        default: ""
+        description: Secondary label, e.g. the semantic role.

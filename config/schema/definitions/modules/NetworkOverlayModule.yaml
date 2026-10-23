@@ -1,0 +1,15 @@
+# The NetworkOverlayModule definition (#/definitions/NetworkOverlayModule).
+
+type: object
+x-hosts: [overlay, edgeMenu, lockscreen, greeter, desktop]
+x-icon: wifi
+x-libraryGroup: Network & devices
+x-defaultSize: [4, 2]
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: Network
+    description: Network

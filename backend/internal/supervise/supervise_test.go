@@ -1,0 +1,154 @@
+package supervise
+
+import (
+	"context"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"syscall"
+	"testing"
+	"time"
+)
+
+func fast(opts Options) Options {
+	opts.Backoff = []time.Duration{5 * time.Millisecond, 20 * time.Millisecond}
+	opts.Window = time.Second
+	opts.StopGrace = 300 * time.Millisecond
+	return opts
+}
+
+func run(t *testing.T, s *Supervisor) (context.CancelFunc, chan struct{}) {
+	t.Helper()
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() { s.Run(ctx); close(done) }()
+	t.Cleanup(func() { cancel(); <-done })
+	return cancel, done
+}
+
+func eventually(t *testing.T, cond func() bool) {
+	t.Helper()
+	for i := 0; i < 200; i++ {
+		if cond() {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatal("timed out")
+}
+
+func TestCrashesRestartThenGiveUp(t *testing.T) {
+	t.Parallel()
+	s := New(fast(Options{Command: []string{"sh", "-c", "exit 3"}, GiveUp: 4}))
+	run(t, s)
+	eventually(t, func() bool { return s.Status().GaveUp })
+	if st := s.Status(); st.Restarts < 4 || st.Running {
+		t.Errorf("status %+v", st)
+	}
+	// Asking starts it again
+	if err := s.Restart(context.Background(), nil); err != nil {
+		t.Fatal(err)
+	}
+	if s.Status().GaveUp {
+		t.Error("still given up after a restart")
+	}
+}
+
+func TestCleanExitWaitsForRestart(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	count := filepath.Join(dir, "count")
+	s := New(fast(Options{Command: []string{"sh", "-c", "echo x >> " + count}}))
+	run(t, s)
+	eventually(t, func() bool { data, _ := os.ReadFile(count); return len(data) > 0 })
+	time.Sleep(100 * time.Millisecond)
+	if data, _ := os.ReadFile(count); strings.Count(string(data), "x") != 1 {
+		t.Errorf("a clean exit was restarted: %q", data)
+	}
+	s.Restart(context.Background(), nil)
+	eventually(t, func() bool { data, _ := os.ReadFile(count); return strings.Count(string(data), "x") == 2 })
+}
+
+func TestEnvironmentIsTheDaemonsWithItsAxiomValues(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	out := filepath.Join(dir, "env")
+	s := New(fast(Options{
+		Command: []string{"sh", "-c", "env > " + out + "; sleep 10"},
+		Environ: []string{"HOME=/h", "PATH=" + os.Getenv("PATH"), "AXIOM_REEXEC=evil", "AXIOM_SOCKET=/wrong", "EDITOR=vi"},
+		Env:     map[string]string{"AXIOM_SOCKET": "/right"},
+	}))
+	run(t, s)
+	s.Restart(context.Background(), map[string]string{"AXIOM_LOCK_ON_START": "1"})
+	eventually(t, func() bool {
+		data, _ := os.ReadFile(out)
+		return strings.Contains(string(data), "AXIOM_LOCK_ON_START=1")
+	})
+	data, _ := os.ReadFile(out)
+	env := string(data)
+	for _, want := range []string{"HOME=/h", "EDITOR=vi", "AXIOM_SOCKET=/right"} {
+		if !strings.Contains(env, want) {
+			t.Errorf("missing %s", want)
+		}
+	}
+	for _, bad := range []string{"AXIOM_REEXEC", "/wrong"} {
+		if strings.Contains(env, bad) {
+			t.Errorf("leaked %s", bad)
+		}
+	}
+}
+
+func TestStopEscalatesToKill(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	pidFile := filepath.Join(dir, "child.pid")
+	s := New(fast(Options{Command: []string{"sh", "-c", "trap '' TERM; while :; do sleep 0.05; done"}, PIDFile: pidFile}))
+	cancel, done := run(t, s)
+	eventually(t, func() bool { return s.Status().Running })
+	pid := s.Status().PID
+	cancel()
+	select {
+	case <-done:
+	case <-time.After(3 * time.Second):
+		t.Fatal("didn't stop")
+	}
+	if syscall.Kill(pid, 0) == nil {
+		t.Error("the child survived")
+	}
+	if _, err := os.Stat(pidFile); err == nil {
+		t.Error("pid file left behind")
+	}
+}
+
+func TestOrphanOfAnEarlierDaemonIsStopped(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	pidFile := filepath.Join(dir, "child.pid")
+	command := []string{"sleep", "30"}
+	orphan := exec.Command(command[0], command[1:]...)
+	if err := orphan.Start(); err != nil {
+		t.Fatal(err)
+	}
+	go orphan.Wait()
+	os.WriteFile(pidFile, []byte(strconv.Itoa(orphan.Process.Pid)), 0o600)
+	// A pid file naming an unrelated process must leave it alone
+	other := exec.Command("sleep", "31")
+	other.Start()
+	defer other.Process.Kill()
+
+	s := New(fast(Options{Command: command, PIDFile: pidFile}))
+	run(t, s)
+	eventually(t, func() bool { return syscall.Kill(orphan.Process.Pid, 0) != nil })
+	if syscall.Kill(other.Process.Pid, 0) != nil {
+		t.Error("an unrelated process was stopped")
+	}
+}
+
+func TestMissingBinaryCountsAsCrash(t *testing.T) {
+	t.Parallel()
+	s := New(fast(Options{Command: []string{filepath.Join(t.TempDir(), "no-such-qs")}, GiveUp: 3}))
+	run(t, s)
+	eventually(t, func() bool { return s.Status().GaveUp })
+}

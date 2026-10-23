@@ -6,9 +6,17 @@
 
 The owner of the runtime config: how it is loaded, written, drafted and previewed. Read before writing config from anywhere.
 
+### Run by axiom
+When the shell runs under `axiom run` (`BackendManager.active`), the binary owns config.json ([The axiom binary](../backend/README.md)).
+- **Loading:** `ConfigManager` reads the config from the snapshot the binary wrote (`$AXIOM_CONFIG`, already migrated and filled) and the schema it built (`$AXIOM_SCHEMA`). `config.changed` pushes replace it; `config.state` sets `savesBlocked`.
+- **Writing:** every write path (`saveConfig`, `commit`, `restoreConfig`, `setTheme`, `setWallpaper(s)`) still validates here with the same pipeline as the binary (kept equal by the shared fixtures). It applies the result at once and sends it (`config.restore`). If the binary refuses, the running config is read back from it.
+- **What it no longer does:** the file watch, the 5 s poll and the first-run check. First run comes from the hello, acknowledged so a QML reload doesn't repeat it.
+
+Started by hand (no `$AXIOM_SOCKET`), it works as described below.
+
 ### What it owns
 - `_config`: the parsed `~/.config/axiom/config.json`.
-- `_configSchema`: `config/json/config.schema.json`.
+- `_configSchema`: `config/json/config.schema.json` (built from `config/schema/`).
 - Both are loaded eagerly at creation. The active theme's data belongs to ThemeManager, not here.
 
 ### Where files live

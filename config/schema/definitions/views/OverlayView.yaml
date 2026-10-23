@@ -1,0 +1,12 @@
+# The OverlayView definition (#/definitions/OverlayView).
+
+type: object
+required: [type]
+oneOf:
+  - $ref: '#/definitions/CustomOverlayView'
+  - $ref: '#/definitions/KeybindsOverlayView'
+  - $ref: '#/definitions/BarEditorOverlayView'
+  - $ref: '#/definitions/SettingsOverlayView'
+  - $ref: '#/definitions/ThemesOverlayView'
+  - $ref: '#/definitions/MonitorsOverlayView'
+  - $ref: '#/definitions/CalendarOverlayView'

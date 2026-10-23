@@ -1,0 +1,32 @@
+# The Compositor section of the config (config.json's "Compositor").
+
+type: object
+x-category: Compositor
+x-showIf: {/$supports.configModes: true}
+x-links: [Keybinds, Monitors]
+x-card: CompositorStatus
+x-cardTitle: Compositor status
+title: Compositor
+description: 'How axiom sets your compositor up: its keybinds, monitors, window look and input.'
+additionalProperties: false
+properties:
+  mode:
+    x-takeover: true
+    type: string
+    title: Mode
+    x-group: Compositor setup
+    enum: [detached, included, managed]
+    x-enumLabels:
+      detached: Detached (nothing to set up)
+      included: Included from your config
+      managed: Managed by axiom
+    default: detached
+    x-applyOnSave: true
+    description: Applies on Save. The status card says what the change will do.
+  requiredSettings:
+    type: boolean
+    title: Required settings
+    x-group: Compositor setup
+    default: true
+    description: Lock restore after a shell restart, ignoring apps' requests to maximize themselves, and a workspace slide animation.
+    x-enabledIf: {/$compositor: hyprland}

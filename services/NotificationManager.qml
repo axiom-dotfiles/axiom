@@ -454,7 +454,7 @@ Singleton {
   }
 
   // qs -c axiom ipc call notifications clear | toggleDnd
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "notifications"
     function clear(): void {
       root.clearAll();

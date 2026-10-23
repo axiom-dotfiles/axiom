@@ -1,7 +1,6 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell.Io
 import qs.config
 import qs.components.methods
 
@@ -483,7 +482,7 @@ QtObject {
     };
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "calendar"
     enabled: !Paths.greeter
 

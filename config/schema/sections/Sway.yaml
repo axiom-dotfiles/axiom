@@ -1,0 +1,88 @@
+# The Sway section of the config (config.json's "Sway").
+
+x-scope: personal
+type: object
+x-category: Compositor
+x-showIf: {/$compositor: sway, /Compositor.mode: managed}
+title: Sway
+description: Sway's own options, written while axiom manages its config. Anything else goes in ~/.config/sway/user/.
+additionalProperties: false
+x-order:
+  - workspaceLayout
+  - hideEdgeBorders
+  - smartGaps
+  - focusWrapping
+  - popupDuringFullscreen
+  - xwayland
+  - font
+properties:
+  workspaceLayout:
+    type: string
+    title: New workspaces
+    enum: [default, stacking, tabbed]
+    x-enumLabels: {default: Tiled, stacking: Stacked, tabbed: Tabbed}
+    default: default
+    x-sway: workspace_layout {}
+  hideEdgeBorders:
+    x-scope: look
+    type: string
+    title: Hide borders at the screen edges
+    enum: [none, vertical, horizontal, both, smart, smart_no_gaps]
+    x-enumLabels:
+      none: Never
+      vertical: Left and right
+      horizontal: Top and bottom
+      both: All
+      smart: With one window
+      smart_no_gaps: With one window and no gaps
+    default: none
+    x-sway: hide_edge_borders {}
+  smartGaps:
+    x-scope: look
+    type: string
+    title: Smart gaps
+    enum: ["off", "on", inverse_outer]
+    x-enumLabels:
+      "off": "Off"
+      "on": No gaps around a lone window
+      inverse_outer: Outer gaps only around a lone window
+    default: "off"
+    x-sway: smart_gaps {}
+  focusWrapping:
+    type: string
+    title: Focus wraps around
+    enum: ["yes", "no", force, workspace]
+    x-enumLabels:
+      "yes": Within a container
+      "no": Never
+      force: Always
+      workspace: Within the workspace
+    default: "yes"
+    x-sway: focus_wrapping {}
+  popupDuringFullscreen:
+    type: string
+    title: Popups over a fullscreen window
+    enum: [smart, ignore, leave_fullscreen]
+    x-enumLabels:
+      smart: Show its own
+      ignore: Never show
+      leave_fullscreen: Leave fullscreen
+    default: smart
+    x-sway: popup_during_fullscreen {}
+  xwayland:
+    x-scope: machine
+    type: string
+    title: X11 apps (Xwayland)
+    enum: [enable, disable, force]
+    x-enumLabels: {enable: When one starts, disable: "Off", force: Always running}
+    default: enable
+    x-sway: xwayland {}
+  font:
+    x-scope: look
+    type: string
+    title: Title bar font
+    default: ""
+    description: A Pango font, e.g. pango:Inter 10. Empty keeps sway's.
+    x-sway: font {}
+    x-swayValue: raw
+    x-swaySkip: ""

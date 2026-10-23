@@ -1,0 +1,74 @@
+# The MonitorRule definition (#/definitions/MonitorRule).
+
+type: object
+additionalProperties: false
+properties:
+  output:
+    type: string
+    default: ""
+    description: desc:<description>, or a connector name (DP-1).
+  label:
+    type: string
+    default: ""
+    description: The connector it was last seen on, for display.
+  mode:
+    type: string
+    default: preferred
+    description: WIDTHxHEIGHT@HZ, or preferred.
+  x:
+    type: integer
+    default: 0
+  "y":
+    type: integer
+    default: 0
+  scale:
+    type: number
+    default: 1
+    exclusiveMinimum: 0
+    maximum: 8
+  transform:
+    type: integer
+    default: 0
+    minimum: 0
+    maximum: 7
+    description: Rotation in quarter turns, plus 4 when flipped.
+  disabled:
+    type: boolean
+    default: false
+  mirror:
+    type: string
+    default: ""
+    description: The output (as in `output`) this one mirrors, or empty.
+  vrr:
+    type: integer
+    default: 0
+    minimum: 0
+    maximum: 3
+    description: "0 off, 1 on, 2 fullscreen only, 3 fullscreen games and video."
+  bitdepth:
+    type: integer
+    enum: [8, 10]
+    default: 8
+  cm:
+    type: string
+    enum:
+      - auto
+      - srgb
+      - dcip3
+      - dp3
+      - adobe
+      - wide
+      - edid
+      - hdr
+      - hdredid
+    default: auto
+  sdrBrightness:
+    type: number
+    default: 1
+    minimum: 0.5
+    maximum: 2
+  sdrSaturation:
+    type: number
+    default: 1
+    minimum: 0.5
+    maximum: 2

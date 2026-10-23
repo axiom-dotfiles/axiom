@@ -1,0 +1,13 @@
+# The BarEditorOverlayView definition (#/definitions/BarEditorOverlayView).
+
+type: object
+x-icon: toolbar
+x-tool: true
+required: [type]
+additionalProperties: false
+properties:
+  type:
+    const: BarEditor
+    description: Bar Editor
+  visible:
+    type: boolean

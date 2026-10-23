@@ -1,0 +1,15 @@
+# The Monitors section of the config (config.json's "Monitors").
+
+type: object
+x-category: Compositor
+x-settings: false
+title: Monitors
+description: Edited on the Monitors page.
+additionalProperties: false
+properties:
+  profiles:
+    type: array
+    default: []
+    description: Monitor layouts, one per set of connected monitors.
+    items:
+      $ref: '#/definitions/MonitorProfile'

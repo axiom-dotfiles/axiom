@@ -6,9 +6,18 @@ import Quickshell.Io
 
 import qs.components.methods
 
-/* ConfigManager handles loading, saving, and monitoring the configuration file */
+/* ConfigManager handles loading, saving, and monitoring the configuration file.
+ * Run by axiom (`axiom run`, BackendManager.active) the binary owns
+ * config.json: the config comes from the snapshot it wrote and its
+ * pushes, and writes are checked here (the same pipeline the binary runs,
+ * kept equal by the shared fixtures), applied at once and sent to it,
+ * whose answer stands. Started by hand, this reads and writes the file
+ * itself. */
 QtObject {
   id: root
+
+  // The binary owns config.json (never in the greeter)
+  readonly property bool backed: BackendManager.active && !greeter
 
   // --- Public ---
   readonly property var config: _config
@@ -248,6 +257,9 @@ QtObject {
      * @brief Manually triggers the file checker, simulating a file-system change.
      */
   function forceReload() {
+    // Run by axiom, what it writes comes back as a push
+    if (root.backed)
+      return;
     _fileHashes = {};
     _checkConfigFile();
   }
@@ -257,6 +269,13 @@ QtObject {
      * Keeps the current config if the file is unusable.
      */
   function hardResetConfig() {
+    if (root.backed) {
+      BackendManager.call("config.get", null, (error, result) => {
+        if (!error && result?.config)
+          root._config = result.config;
+      });
+      return;
+    }
     const result = _readConfig();
     if (result.status === "ok")
       root._config = result.config;
@@ -264,9 +283,67 @@ QtObject {
 
   // --- Private Implementation ---
   Component.onCompleted: {
-    console.log("[ConfigManager] ♻ ConfigManager service started.");
-    if (!root.greeter)
+    console.log("[ConfigManager] ♻ ConfigManager service started" + (root.backed ? " (config owned by axiom)." : "."));
+    if (!root.greeter && !root.backed)
       _checkConfigFile();
+  }
+
+  // Run by axiom: what it pushes
+  function _listen() {
+    BackendManager.listen("config.changed", params => {
+      console.log("[ConfigManager] axiom pushed the config, revision", params.revision);
+      root._config = params.config;
+    });
+    BackendManager.listen("config.state", params => root._applyState(params));
+    // `axiom run --dev` rebuilt the schema from config/schema/
+    BackendManager.listen("schema.changed", () => {
+      console.log("[ConfigManager] The schema was rebuilt; reading it again.");
+      root._configSchema = root._loadSchema();
+    });
+    BackendManager.listen("schema.error", params => console.error("[ConfigManager] config/schema/ doesn't build:", params.message));
+  }
+
+  property Connections _backend: Connections {
+    target: root.backed ? BackendManager : null
+
+    function onGreeted() {
+      const state = BackendManager.hello?.state ?? {};
+      root._applyState(state);
+      // The first run is this session's: acknowledged, so a QML reload
+      // doesn't start the onboarding again
+      if (state.firstRun) {
+        root._firstRun = true;
+        BackendManager.call("config.ackFirstRun", null, null);
+      }
+      // A push missed while disconnected (a re-exec): read it again
+      BackendManager.call("config.get", null, (error, result) => {
+        if (!error && result?.config)
+          root._config = result.config;
+      });
+    }
+  }
+
+  function _applyState(state) {
+    if (state.blocked && !root._savesBlocked)
+      console.error("[ConfigManager] config.json doesn't load; axiom keeps the last good config and blocks saves until it's fixed.", (state.issues ?? []).map(i => i.path + ": " + i.message).join("; "));
+    root._savesBlocked = !!state.blocked;
+  }
+
+  // Sends a config to the binary, which writes it (or says why not, and
+  // what's running stays its)
+  function _send(config) {
+    BackendManager.call("config.restore", {
+      "config": config,
+      "takeover": true
+    }, (error, result) => {
+      if (!error)
+        return;
+      console.error("[ConfigManager] axiom refused the config:", error.message, (error.issues ?? []).map(i => i.path + ": " + i.message).join("; "));
+      BackendManager.call("config.get", null, (e, r) => {
+        if (!e && r?.config)
+          root._config = r.config;
+      });
+    });
   }
 
   // Loaded eagerly (synchronous reads) so the config readers never see a
@@ -279,7 +356,8 @@ QtObject {
   // Whether the running config came from config.json (vs schema defaults)
   property bool _haveFileConfig: false
 
-  property string _configSchemaPath: "../config/json/config.schema.json"
+  // Run by axiom, the schema it built from the tree (config/schema/)
+  property string _configSchemaPath: root.backed && Quickshell.env("AXIOM_SCHEMA") ? "file://" + Quickshell.env("AXIOM_SCHEMA") : "../config/json/config.schema.json"
   property string _configPath: root.configDir + root.configFile
 
   // FileView only for writing the config
@@ -295,7 +373,7 @@ QtObject {
   // Change notification for config.json. The slow poll is only a safety
   // net in case the watch is lost (e.g. to an editor's atomic rename).
   property FileView _configWatch: FileView {
-    path: root.greeter ? "" : root._configPath
+    path: root.greeter || root.backed ? "" : root._configPath
     watchChanges: true
     printErrors: false
     onFileChanged: {
@@ -308,7 +386,7 @@ QtObject {
 
   property Timer _pollTimer: Timer {
     interval: 5000
-    running: !root.greeter
+    running: !root.greeter && !root.backed
     repeat: true
     onTriggered: root._checkConfigFile()
   }
@@ -396,6 +474,8 @@ QtObject {
   function _initialConfig(schema) {
     if (root.greeter)
       return _greeterConfig(schema);
+    if (root.backed)
+      return _snapshotConfig(schema);
     console.log("[ConfigManager] Loading configuration from", configDir + configFile);
     const result = _readConfig(schema);
     if (result.status !== "ok")
@@ -407,6 +487,19 @@ QtObject {
       Qt.callLater(() => _write(result.config));
     console.log("[ConfigManager] Configuration loaded and validated successfully.");
     return result.config;
+  }
+
+  // Run by axiom: the config it wrote for the shell's first read, already
+  // migrated and filled (the defaults until it answers, if unreadable)
+  function _snapshotConfig(schema) {
+    const text = FileManager.read("file://" + (Quickshell.env("AXIOM_CONFIG") ?? ""));
+    try {
+      if (text)
+        return JSON.parse(text);
+    } catch (e) {
+      console.error("[ConfigManager] axiom's config snapshot isn't JSON:", e);
+    }
+    return SchemaValidation.applyDefaults({}, schema);
   }
 
   // Migrate → prune unknown keys → fill defaults → validate a parsed config.
@@ -437,7 +530,10 @@ QtObject {
   function _write(config) {
     if (root.greeter || root._savesHeld)
       return;
-    _configFileView.setText(JSON.stringify(config, null, 2));
+    if (root.backed)
+      _send(config);
+    else
+      _configFileView.setText(JSON.stringify(config, null, 2));
   }
 
   // The greeter's config: the bundle (unless AXIOM_GREETER_SAFE, the

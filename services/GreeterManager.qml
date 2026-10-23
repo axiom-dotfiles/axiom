@@ -1,7 +1,6 @@
 pragma Singleton
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.config
 import qs.components.methods
@@ -336,7 +335,7 @@ chmod -R go+rX "$dir"`, "sh", dir.replace(/\/$/, ""), root._bundleText, root._th
     NotificationManager.registerHandler(root._desktopEntry, () => root.openSettings());
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "greeter"
 
     // Settings → Login screen

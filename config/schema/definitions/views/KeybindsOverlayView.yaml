@@ -1,0 +1,14 @@
+# The KeybindsOverlayView definition (#/definitions/KeybindsOverlayView).
+
+type: object
+x-icon: keyboard
+x-tool: true
+x-needs: keybinds
+required: [type]
+additionalProperties: false
+properties:
+  type:
+    const: Keybinds
+    description: Keybinds
+  visible:
+    type: boolean

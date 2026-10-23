@@ -1,0 +1,15 @@
+# The WeatherOverlayModule definition (#/definitions/WeatherOverlayModule).
+
+x-link: {setting: Weather}
+type: object
+x-hosts: [overlay, edgeMenu, lockscreen, greeter, desktop]
+x-icon: partly_cloudy_day
+x-libraryGroup: Time & weather
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: Weather
+    description: Weather

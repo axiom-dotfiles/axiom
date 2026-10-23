@@ -1,0 +1,542 @@
+// Package store owns config.json: it holds the writer lock, loads and
+// normalizes the file, watches it for edits made outside (an editor, a
+// dotfiles checkout), and is the only thing that writes it. Every change
+// gets a new revision and is announced to subscribers (the daemon pushes
+// it to the shell as config.changed).
+//
+// A file that doesn't load (bad JSON, invalid) blocks writes until it is
+// fixed, so a broken hand edit is never overwritten by the shell; the last
+// good config keeps running meanwhile. A file deleted while running is not
+// recreated until the next write.
+package store
+
+import (
+	"bytes"
+	"context"
+	"errors"
+	"io/fs"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/fsnotify/fsnotify"
+
+	"github.com/axiom-shell/axiom/backend/internal/axerr"
+	"github.com/axiom-shell/axiom/backend/internal/config"
+	"github.com/axiom-shell/axiom/backend/internal/fsx"
+	"github.com/axiom-shell/axiom/backend/internal/jsonx"
+	"github.com/axiom-shell/axiom/backend/internal/share"
+)
+
+// FileName is the config's name in its folder.
+const FileName = "config.json"
+
+// Options configure a Store.
+type Options struct {
+	Dir      string // the config folder ($XDG_CONFIG_HOME/axiom)
+	Pipeline config.Pipeline
+	Log      *slog.Logger
+	// Debounce is how long a burst of file events settles before a reload
+	Debounce time.Duration
+	// OnSecrets receives secrets a migration pulled out of the file, before
+	// the migrated file is written back
+	OnSecrets func(*jsonx.Object) error
+}
+
+// State is what subscribers are told besides the config.
+type State struct {
+	Revision int64         `json:"revision"`
+	Blocked  bool          `json:"blocked"`
+	Issues   []axerr.Issue `json:"issues,omitempty"`
+	Missing  bool          `json:"missing"`
+	FirstRun bool          `json:"firstRun"`
+}
+
+// Event is one change: the config (nil when only the state changed).
+type Event struct {
+	State  State
+	Config *jsonx.Object
+}
+
+// Store is the open config.
+type Store struct {
+	opts Options
+	path string
+	lock *fsx.Lock
+
+	// changeMu serializes changes (writes, reloads) through their
+	// announcement, so subscribers see revisions in order
+	changeMu sync.Mutex
+
+	mu        sync.Mutex
+	config    *jsonx.Object
+	state     State
+	written   []byte // what we last wrote, to tell our writes from others'
+	takeovers [][]string
+	subs      map[int]func(Event)
+	nextSub   int
+}
+
+// Open takes the writer lock and loads the config (writing the defaults
+// when there is no file yet: a first run).
+func Open(opts Options) (*Store, error) {
+	if opts.Log == nil {
+		opts.Log = slog.New(slog.DiscardHandler)
+	}
+	if opts.Debounce == 0 {
+		opts.Debounce = 150 * time.Millisecond
+	}
+	if err := os.MkdirAll(opts.Dir, 0o700); err != nil {
+		return nil, axerr.Wrap(axerr.Unavailable, err, "making %s", opts.Dir)
+	}
+	lock, err := fsx.TryLock(filepath.Join(opts.Dir, FileName+".lock"))
+	if err != nil {
+		if axerr.KindOf(err) == axerr.Running {
+			return nil, &axerr.Error{Kind: axerr.Running, Message: "another axiom is writing " + filepath.Join(opts.Dir, FileName), Err: err}
+		}
+		return nil, err
+	}
+	s := &Store{
+		opts:      opts,
+		path:      filepath.Join(opts.Dir, FileName),
+		lock:      lock,
+		subs:      map[int]func(Event){},
+		takeovers: share.TakeoverPaths(opts.Pipeline.Schema()),
+	}
+	if err := s.loadInitial(); err != nil {
+		lock.Release()
+		return nil, err
+	}
+	return s, nil
+}
+
+// Close releases the writer lock.
+func (s *Store) Close() error { return s.lock.Release() }
+
+// Path is config.json's path.
+func (s *Store) Path() string { return s.path }
+
+// Config is the current config (the caller must not modify it) and its
+// state.
+func (s *Store) Config() (*jsonx.Object, State) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.config, s.state
+}
+
+// Subscribe calls fn after every change, until the returned func is
+// called. fn runs with no lock held, in change order.
+func (s *Store) Subscribe(fn func(Event)) func() {
+	s.mu.Lock()
+	id := s.nextSub
+	s.nextSub++
+	s.subs[id] = fn
+	s.mu.Unlock()
+	return func() {
+		s.mu.Lock()
+		delete(s.subs, id)
+		s.mu.Unlock()
+	}
+}
+
+// AckFirstRun clears the first-run flag (the shell has started its
+// onboarding).
+func (s *Store) AckFirstRun() {
+	s.changeMu.Lock()
+	defer s.changeMu.Unlock()
+	s.mu.Lock()
+	changed := s.state.FirstRun
+	s.state.FirstRun = false
+	ev := Event{State: s.state}
+	s.mu.Unlock()
+	if changed {
+		s.publish(ev)
+	}
+}
+
+// SetOptions qualify a write.
+type SetOptions struct {
+	// Takeover allows changing x-takeover settings (only their own card
+	// asks for it)
+	Takeover bool
+}
+
+// Set applies ops to the current config, validates and writes it, and
+// returns the new revision. Nothing changes when any op fails, the result
+// is invalid, writes are blocked, or a takeover setting would change
+// without SetOptions.Takeover.
+func (s *Store) Set(ops []config.Op, opts SetOptions) (int64, error) {
+	return s.write(func(current *jsonx.Object) (*jsonx.Object, error) {
+		next := jsonx.Clone(current).(*jsonx.Object)
+		if err := config.ApplyOps(next, ops); err != nil {
+			return nil, err
+		}
+		return next, nil
+	}, opts)
+}
+
+// Replace writes cfg whole (an import or restore), keeping the takeover
+// settings as they are unless opts.Takeover.
+func (s *Store) Replace(cfg *jsonx.Object, opts SetOptions) (int64, error) {
+	return s.write(func(current *jsonx.Object) (*jsonx.Object, error) {
+		next := jsonx.Clone(cfg).(*jsonx.Object)
+		if !opts.Takeover {
+			kept, _ := share.KeepTakeovers(next, current, s.takeovers).(*jsonx.Object)
+			next = kept
+		}
+		return next, nil
+	}, SetOptions{Takeover: true})
+}
+
+func (s *Store) write(change func(*jsonx.Object) (*jsonx.Object, error), opts SetOptions) (int64, error) {
+	s.changeMu.Lock()
+	defer s.changeMu.Unlock()
+	s.mu.Lock()
+	if s.state.Blocked {
+		issues := s.state.Issues
+		s.mu.Unlock()
+		return 0, &axerr.Error{Kind: axerr.Conflict, Message: s.path + " doesn't load: fix it (or restore a saved config) before anything is saved", Issues: issues}
+	}
+	current := s.config
+	next, err := change(current)
+	if err != nil {
+		s.mu.Unlock()
+		return 0, err
+	}
+	checked, problems := s.opts.Pipeline.Check(next)
+	if len(problems) > 0 {
+		s.mu.Unlock()
+		return 0, &axerr.Error{Kind: axerr.InvalidConfig, Message: "the change makes the config invalid", Issues: issues(problems)}
+	}
+	if !opts.Takeover {
+		for _, path := range s.takeovers {
+			before, _ := at(current, path)
+			after, _ := at(checked, path)
+			if !jsonx.Equal(before, after) {
+				s.mu.Unlock()
+				return 0, axerr.New(axerr.TakeoverRefused, "%s takes something over on this PC: change it from its own card", joinPath(path))
+			}
+		}
+	}
+	if jsonx.Equal(checked, current) {
+		rev := s.state.Revision
+		s.mu.Unlock()
+		return rev, nil
+	}
+	data := jsonx.Marshal(checked)
+	if err := fsx.WriteFile(s.path, data, 0o600); err != nil {
+		s.mu.Unlock()
+		return 0, axerr.Wrap(axerr.Unavailable, err, "saving the config")
+	}
+	s.written = data
+	s.config = checked
+	s.state.Revision++
+	s.state.Missing = false
+	ev := Event{State: s.state, Config: checked}
+	s.mu.Unlock()
+	s.publish(ev)
+	return ev.State.Revision, nil
+}
+
+// Watch reloads the file whenever something else changes it, until ctx
+// ends.
+func (s *Store) Watch(ctx context.Context) error {
+	w, err := fsnotify.NewWatcher()
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+	dirs := map[string]bool{filepath.Dir(s.path): true}
+	// A config symlinked into a dotfiles repo changes in the target's folder
+	if target, err := filepath.EvalSymlinks(s.path); err == nil {
+		dirs[filepath.Dir(target)] = true
+	}
+	for d := range dirs {
+		if err := w.Add(d); err != nil {
+			return err
+		}
+	}
+	var timer *time.Timer
+	fire := make(chan struct{}, 1)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case ev, ok := <-w.Events:
+			if !ok {
+				return nil
+			}
+			if filepath.Base(ev.Name) != FileName && !isTarget(s.path, ev.Name) {
+				continue
+			}
+			if timer == nil {
+				timer = time.AfterFunc(s.opts.Debounce, func() { fire <- struct{}{} })
+			} else {
+				timer.Reset(s.opts.Debounce)
+			}
+		case err, ok := <-w.Errors:
+			if !ok {
+				return nil
+			}
+			s.opts.Log.Warn("watching the config", "err", err)
+		case <-fire:
+			s.reload()
+		}
+	}
+}
+
+func isTarget(path, name string) bool {
+	target, err := filepath.EvalSymlinks(path)
+	return err == nil && target == name
+}
+
+func (s *Store) loadInitial() error {
+	data, err := os.ReadFile(s.path)
+	if errors.Is(err, fs.ErrNotExist) {
+		defaults := s.opts.Pipeline.Defaults()
+		out := jsonx.Marshal(defaults)
+		if err := fsx.WriteFile(s.path, out, 0o600); err != nil {
+			return axerr.Wrap(axerr.Unavailable, err, "writing the first config")
+		}
+		s.config, s.written = defaults, out
+		s.state = State{Revision: 1, FirstRun: true}
+		s.opts.Log.Info("no config yet: wrote the defaults", "path", s.path)
+		return nil
+	}
+	if err != nil {
+		return axerr.Wrap(axerr.Unavailable, err, "reading the config")
+	}
+	loaded, problems := s.load(data)
+	s.state.Revision = 1
+	if problems != nil {
+		// Run on the defaults, writes blocked, until the file is fixed
+		s.config = s.opts.Pipeline.Defaults()
+		s.state.Blocked, s.state.Issues = true, problems
+		s.opts.Log.Warn("the config doesn't load: running on the defaults, saves blocked until it's fixed", "path", s.path, "issues", len(problems))
+		return nil
+	}
+	s.config = loaded
+	return nil
+}
+
+// load parses and normalizes file content: the config, or the issues
+// that keep it from loading. A migrated file is written back.
+func (s *Store) load(data []byte) (*jsonx.Object, []axerr.Issue) {
+	parsed, err := jsonx.Unmarshal(bytes.TrimPrefix(data, []byte("\xef\xbb\xbf")))
+	if err != nil {
+		return nil, []axerr.Issue{{Path: FileName, Message: err.Error()}}
+	}
+	loaded, err := s.opts.Pipeline.Load(parsed)
+	if err != nil {
+		return nil, []axerr.Issue{{Path: FileName, Message: err.Error()}}
+	}
+	for _, key := range loaded.Removed {
+		s.opts.Log.Warn("ignoring an unknown config key", "key", key)
+	}
+	for _, change := range loaded.Changes {
+		s.opts.Log.Info("migrated the config", "change", change)
+	}
+	if len(loaded.Errors) > 0 {
+		return nil, issues(loaded.Errors)
+	}
+	if loaded.Migrated {
+		if loaded.Secrets != nil && loaded.Secrets.Len() > 0 && s.opts.OnSecrets != nil {
+			if err := s.opts.OnSecrets(loaded.Secrets); err != nil {
+				// Writing the file back would lose them: keep the old file
+				s.opts.Log.Error("storing migrated secrets failed; the file isn't rewritten", "err", err)
+				return loaded.Config, nil
+			}
+		}
+		out := jsonx.Marshal(loaded.Config)
+		if err := fsx.WriteFile(s.path, out, 0o600); err != nil {
+			s.opts.Log.Error("writing the migrated config", "err", err)
+		} else {
+			s.written = out
+		}
+	}
+	return loaded.Config, nil
+}
+
+func (s *Store) reload() {
+	s.changeMu.Lock()
+	defer s.changeMu.Unlock()
+	data, err := os.ReadFile(s.path)
+	s.mu.Lock()
+	if errors.Is(err, fs.ErrNotExist) {
+		changed := !s.state.Missing
+		s.state.Missing = true
+		ev := Event{State: s.state}
+		s.mu.Unlock()
+		if changed {
+			s.opts.Log.Warn("the config file is gone: running on the last one, until the next save writes it", "path", s.path)
+			s.publish(ev)
+		}
+		return
+	}
+	if err != nil || bytes.Equal(data, s.written) {
+		s.mu.Unlock()
+		return
+	}
+	s.mu.Unlock()
+
+	loaded, problems := s.load(data)
+
+	s.mu.Lock()
+	s.state.Missing = false
+	var ev Event
+	if problems != nil {
+		s.state.Blocked, s.state.Issues = true, problems
+		ev = Event{State: s.state}
+		s.opts.Log.Warn("the config was edited into one that doesn't load: keeping the last good one, saves blocked", "issues", len(problems))
+	} else {
+		s.state.Blocked, s.state.Issues = false, nil
+		if !jsonx.Equal(loaded, s.config) {
+			s.config = loaded
+			s.state.Revision++
+			ev = Event{State: s.state, Config: loaded}
+		} else {
+			ev = Event{State: s.state}
+		}
+	}
+	s.mu.Unlock()
+	s.publish(ev)
+}
+
+func (s *Store) publish(ev Event) {
+	s.mu.Lock()
+	subs := make([]func(Event), 0, len(s.subs))
+	for _, fn := range s.subs {
+		subs = append(subs, fn)
+	}
+	s.mu.Unlock()
+	for _, fn := range subs {
+		fn(ev)
+	}
+}
+
+func issues(lines []string) []axerr.Issue {
+	out := make([]axerr.Issue, 0, len(lines))
+	for _, l := range lines {
+		path, msg, ok := cut(l)
+		if !ok {
+			path, msg = "", l
+		}
+		out = append(out, axerr.Issue{Path: path, Message: msg})
+	}
+	return out
+}
+
+// cut splits "path: message" (validation's form) at its first ": ".
+func cut(line string) (string, string, bool) {
+	for i := 0; i+1 < len(line); i++ {
+		if line[i] == ':' && line[i+1] == ' ' {
+			return line[:i], line[i+2:], true
+		}
+	}
+	return "", "", false
+}
+
+func at(v any, path []string) (any, bool) {
+	for _, k := range path {
+		obj, ok := v.(*jsonx.Object)
+		if !ok {
+			return nil, false
+		}
+		if v, ok = obj.Get(k); !ok {
+			return nil, false
+		}
+	}
+	return v, true
+}
+
+func joinPath(path []string) string { return strings.Join(path, ".") }
+
+// Peek loads the config without taking the writer lock or writing
+// anything (a migrated file is not written back): what `axiom config get`
+// reads when no daemon runs.
+func Peek(opts Options) (*jsonx.Object, State, error) {
+	if opts.Log == nil {
+		opts.Log = slog.New(slog.DiscardHandler)
+	}
+	path := filepath.Join(opts.Dir, FileName)
+	data, err := os.ReadFile(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return opts.Pipeline.Defaults(), State{Missing: true}, nil
+	}
+	if err != nil {
+		return nil, State{}, axerr.Wrap(axerr.Unavailable, err, "reading the config")
+	}
+	parsed, err := jsonx.Unmarshal(bytes.TrimPrefix(data, []byte("\xef\xbb\xbf")))
+	if err != nil {
+		return nil, State{Blocked: true}, &axerr.Error{Kind: axerr.InvalidConfig, Message: path + " isn't JSON", Issues: []axerr.Issue{{Path: FileName, Message: err.Error()}}}
+	}
+	loaded, err := opts.Pipeline.Load(parsed)
+	if err != nil {
+		return nil, State{}, err
+	}
+	if len(loaded.Errors) > 0 {
+		return loaded.Config, State{Blocked: true, Issues: issues(loaded.Errors)}, nil
+	}
+	return loaded.Config, State{}, nil
+}
+
+// Reschema switches to another pipeline (the schema changed: `axiom run
+// --dev` rebuilt it) and loads the file again through it.
+func (s *Store) Reschema(p config.Pipeline) {
+	s.changeMu.Lock()
+	defer s.changeMu.Unlock()
+	s.mu.Lock()
+	s.opts.Pipeline = p
+	s.takeovers = share.TakeoverPaths(p.Schema())
+	s.written = nil
+	s.mu.Unlock()
+	data, err := os.ReadFile(s.path)
+	if err != nil {
+		return
+	}
+	loaded, problems := s.load(data)
+	s.mu.Lock()
+	var ev Event
+	if problems != nil {
+		s.state.Blocked, s.state.Issues = true, problems
+		ev = Event{State: s.state}
+	} else {
+		s.state.Blocked, s.state.Issues = false, nil
+		s.config = loaded
+		s.state.Revision++
+		ev = Event{State: s.state, Config: loaded}
+	}
+	s.mu.Unlock()
+	s.publish(ev)
+}
+
+// LockFile is the writer lock's descriptor, for a re-exec to keep it.
+func (s *Store) LockFile() *os.File { return s.lock.File() }
+
+// OpenAdopting is Open with the writer lock inherited from the image
+// before a re-exec.
+func OpenAdopting(opts Options, lockFile *os.File) (*Store, error) {
+	if opts.Log == nil {
+		opts.Log = slog.New(slog.DiscardHandler)
+	}
+	if opts.Debounce == 0 {
+		opts.Debounce = 150 * time.Millisecond
+	}
+	path := filepath.Join(opts.Dir, FileName)
+	lock, err := fsx.Adopt(lockFile, path+".lock")
+	if err != nil {
+		return nil, err
+	}
+	s := &Store{opts: opts, path: path, lock: lock, subs: map[int]func(Event){}, takeovers: share.TakeoverPaths(opts.Pipeline.Schema())}
+	if err := s.loadInitial(); err != nil {
+		lock.Release()
+		return nil, err
+	}
+	return s, nil
+}
+
+// Freeze holds the store so nothing more is written (a re-exec follows).
+func (s *Store) Freeze() { s.changeMu.Lock() }

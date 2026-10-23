@@ -1,0 +1,75 @@
+# The TailscaleWidget definition (#/definitions/TailscaleWidget).
+
+type: object
+x-icon: vpn_lock
+x-libraryGroup: Network & devices
+required: [type]
+additionalProperties: false
+properties:
+  type:
+    const: Tailscale
+    description: Tailscale Status
+  visible:
+    type: boolean
+  layout:
+    $ref: '#/definitions/WidgetLayout'
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      showLabel:
+        type: boolean
+        title: Show label
+        default: true
+      label:
+        type: string
+        title: Label
+        default: ""
+        description: Text shown while connected. Empty shows the tailnet name.
+      interval:
+        type: integer
+        title: Poll interval
+        x-unit: ms
+        default: 2000
+        minimum: 250
+        maximum: 60000
+      showPopout:
+        type: boolean
+        title: Menu popout
+        default: false
+        description: Open an edge menu when hovered.
+      popoutMenu:
+        type: string
+        title: Menu
+        default: ""
+        x-options: edgeMenus
+        x-emptyLabel: None
+        description: The edge menu to open.
+        x-showIf: {showPopout: true}
+      connectedColor:
+        type: string
+        title: Connected color
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: accent
+        x-showIf:
+          $bar.widgetStyle: {not: plain}
+      disconnectedColor:
+        type: string
+        title: Disconnected color
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: "off"
+        x-showIf:
+          $bar.widgetStyle: {not: plain}
+      foregroundColor:
+        type: string
+        title: Text color
+        x-options: colors
+        default: base00
+        x-showIf:
+          $bar.widgetStyle: filled
+          $bar.widgetGrouping: {not: merged}
+          $bar.widgetTextColor: ""

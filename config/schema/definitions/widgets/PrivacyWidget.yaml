@@ -1,0 +1,70 @@
+# The PrivacyWidget definition (#/definitions/PrivacyWidget).
+
+type: object
+x-icon: visibility
+x-libraryGroup: System
+required: [type]
+additionalProperties: false
+properties:
+  type:
+    const: Privacy
+    description: Privacy Indicators
+  visible:
+    type: boolean
+  layout:
+    $ref: '#/definitions/WidgetLayout'
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      showMic:
+        type: boolean
+        title: Microphone
+        default: true
+      showScreen:
+        type: boolean
+        title: Screen share
+        default: true
+      showCamera:
+        type: boolean
+        title: Camera
+        default: true
+      ignoreApps:
+        x-scope: personal
+        type: array
+        items:
+          type: string
+        title: Ignored apps
+        default: [cava]
+        description: App names that never trigger an indicator, comma-separated.
+      showPopout:
+        type: boolean
+        title: Menu popout
+        default: false
+        description: Open an edge menu when hovered.
+      popoutMenu:
+        type: string
+        title: Menu
+        default: ""
+        x-options: edgeMenus
+        x-emptyLabel: None
+        description: The edge menu to open.
+        x-showIf: {showPopout: true}
+      activeColor:
+        type: string
+        title: Color
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: critical
+        x-showIf:
+          $bar.widgetStyle: {not: plain}
+      foregroundColor:
+        type: string
+        title: Text color
+        x-options: colors
+        default: base00
+        x-showIf:
+          $bar.widgetStyle: filled
+          $bar.widgetGrouping: {not: merged}
+          $bar.widgetTextColor: ""

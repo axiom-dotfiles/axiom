@@ -1,0 +1,50 @@
+# The NotesOverlayModule definition (#/definitions/NotesOverlayModule).
+
+x-link: {setting: Notes}
+type: object
+x-icon: sticky_note_2
+x-libraryGroup: Tools
+x-hosts: [overlay, edgeMenu, desktop]
+x-keyboard: true
+x-defaultSize: [4, 8]
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: Notes
+    description: Notes
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      note:
+        x-scope: machine
+        type: string
+        title: Note
+        default: ""
+        x-options: notes
+        description: The note to open, as a path in the notes folder (e.g. todo.md or work/ideas.md). Empty opens the last note this module showed.
+      lockNote:
+        type: boolean
+        title: Only this note
+        default: false
+        description: 'Always show this note, with no note list: a clean scratchpad for an edge menu.'
+        x-showIf:
+          note: {not: ""}
+      showHeader:
+        type: boolean
+        title: Header
+        default: true
+        description: The note's name, the note list and the new note button.
+      showToolbar:
+        type: boolean
+        title: Toolbar
+        default: true
+        description: The checklist and bullet buttons.
+      showCompleted:
+        type: boolean
+        title: Show completed items
+        default: true
+        description: Hidden completed items stay in the note.

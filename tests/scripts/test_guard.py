@@ -131,6 +131,40 @@ class Bash(unittest.TestCase):
         self.allows("/usr/lib/qt6/bin/qmlformat shell.qml")
 
 
+class Axiom(unittest.TestCase):
+    def denied(self, cmd):
+        try:
+            guard.check({"tool_name": "Bash", "tool_input": {"command": cmd}})
+        except guard.Denied:
+            return True
+        return False
+
+    def test_live_shell_lifecycle_refused(self):
+        for cmd in ("axiom run", "axiom run --dev --tree .", "axiom quit", "axiom restart", "./axiom daemon reexec",
+                    "/usr/bin/axiom --json quit"):
+            self.assertTrue(self.denied(cmd), cmd)
+
+    def test_scratch_instances_pass(self):
+        for cmd in ("XDG_RUNTIME_DIR=$R axiom run --no-shell --tree .", "XDG_RUNTIME_DIR=/tmp/x axiom quit",
+                    "axiom --socket /tmp/x/axiom.sock restart", "XDG_RUNTIME_DIR=/tmp/x axiom lock"):
+            self.assertFalse(self.denied(cmd), cmd)
+
+    def test_live_lock_refused(self):
+        for cmd in ("axiom lock", "axiom ipc lockscreen lock", "axiom --json ipc lockscreen lock",
+                    "env -i bash -c 'axiom lock'", "axiom ipc monitors keep", "axiom ipc selfUpdate update"):
+            self.assertTrue(self.denied(cmd), cmd)
+
+    def test_takeover_refused_on_live_config(self):
+        self.assertTrue(self.denied("axiom config set Idle.enabled on --takeover"))
+        self.assertTrue(self.denied("axiom config set Compositor.mode managed --takeover --offline"))
+        self.assertFalse(self.denied("XDG_RUNTIME_DIR=/tmp/r XDG_CONFIG_HOME=/tmp/c axiom config set Idle.enabled on --takeover"))
+
+    def test_reads_pass(self):
+        for cmd in ("axiom ping", "axiom config get Bars", "axiom ipc list", "axiom launcher toggle",
+                    "axiom config set Battery.notify off", "axiom debug wayland-globals", "axiom schema build"):
+            self.assertFalse(self.denied(cmd), cmd)
+
+
 class ConfigEdits(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.TemporaryDirectory()
@@ -163,6 +197,25 @@ class ConfigEdits(unittest.TestCase):
 
     def test_other_files_pass(self):
         guard.check({"tool_name": "Write", "tool_input": {"file_path": os.devnull, "content": "{}"}})
+
+
+class GeneratedEdits(unittest.TestCase):
+    def denied(self, path):
+        try:
+            guard.check({"tool_name": "Edit", "tool_input": {"file_path": str(REPO / path), "old_string": "a", "new_string": "b"}})
+        except guard.Denied:
+            return True
+        return False
+
+    def test_generated_and_frozen_refused(self):
+        for path in ("config/json/config.schema.json", "components/methods/ConfigMigration.qml",
+                     "backend/internal/migrate/legacy/legacy.js", "tests/fixtures/shared/legacy/Config/x.0.json",
+                     "tests/fixtures/shared/blobs/abc.json", "backend/internal/assets/data/config/json/backend.json"):
+            self.assertTrue(self.denied(path), path)
+
+    def test_sources_pass(self):
+        for path in ("config/schema/sections/Bars.yaml", "components/methods/SchemaValidation.qml", "tests/fixtures/configs/v1.json"):
+            self.assertFalse(self.denied(path), path)
 
 
 class Hook(unittest.TestCase):

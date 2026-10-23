@@ -1,0 +1,77 @@
+# The ClockOverlayModule definition (#/definitions/ClockOverlayModule).
+
+type: object
+x-hosts: [overlay, edgeMenu, lockscreen, greeter, desktop]
+x-icon: schedule
+x-libraryGroup: Time & weather
+x-defaultSize: [4, 3]
+x-canvasDetail: style
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: Clock
+    description: Clock
+  properties:
+    type: object
+    additionalProperties: false
+    x-order:
+      - style
+      - use24Hour
+      - showSeconds
+      - showDate
+      - timezone
+      - label
+      - color
+      - accentColor
+    properties:
+      style:
+        type: string
+        title: Style
+        enum: [digital, stacked, analog]
+        x-enumLabels: {digital: Digital, stacked: Stacked, analog: Analog}
+        default: stacked
+        description: 'Digital: the time in one large line. Stacked: the hours over the minutes. Analog: a clock face with hands.'
+      use24Hour:
+        type: boolean
+        title: "24-hour clock"
+        default: true
+        x-showIf:
+          style: {not: analog}
+      showSeconds:
+        type: boolean
+        title: Show seconds
+        default: false
+      showDate:
+        type: boolean
+        title: Show the date
+        default: true
+      timezone:
+        x-scope: personal
+        type: string
+        title: Time zone
+        x-options: timezones
+        x-control: search
+        x-emptyLabel: System
+        default: ""
+        description: Show the time in another time zone (e.g. Asia/Tokyo). Empty follows the system's.
+      label:
+        type: string
+        title: Label
+        default: ""
+        description: A caption under the clock, e.g. the city of its time zone.
+      color:
+        type: string
+        title: Color
+        x-options: colors
+        x-emptyLabel: Text
+        default: ""
+      accentColor:
+        type: string
+        title: Accent color
+        x-options: colors
+        x-emptyLabel: Accent
+        default: ""
+        description: The stacked clock's minutes and the analog clock's second hand.

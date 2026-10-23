@@ -1,0 +1,62 @@
+# The DesktopLayout definition (#/definitions/DesktopLayout).
+
+description: A desktop's overlay modules on a bounded grid, fitted to each monitor inside its bars and border at the card size (Desktop).
+type: object
+additionalProperties: false
+x-order: [moduleScale, fineGrid, moduleBorders]
+properties:
+  enabled:
+    type: boolean
+    x-settings: false
+    default: true
+    description: Shown. Off on a monitor's own layout leaves that monitor's desktop empty.
+  monitor:
+    x-scope: machine
+    x-monitorRef: drop
+    type: string
+    x-settings: false
+    default: ""
+    description: The monitor (connector name) a layout in Desktop.monitors is for.
+  columns:
+    type: integer
+    x-settings: false
+    default: 16
+    minimum: 1
+    maximum: 256
+    description: Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it.
+  rows:
+    type: integer
+    x-settings: false
+    default: 9
+    minimum: 1
+    maximum: 256
+    description: Grid units down of the grid the modules were last placed on.
+  fineGrid:
+    x-group: Grid
+    type: boolean
+    title: Double grid
+    default: false
+    description: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
+  moduleScale:
+    x-link: {setting: Widget.cardSize}
+    x-group: Grid
+    type: integer
+    x-control: stepper
+    title: Module size
+    default: 100
+    minimum: 50
+    maximum: 200
+    x-unit: '%'
+    description: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
+  moduleBorders:
+    x-group: Style
+    type: boolean
+    title: Module borders
+    default: false
+    description: Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper.
+  modules:
+    type: array
+    x-settings: false
+    default: []
+    items:
+      $ref: '#/definitions/OverlayModule'

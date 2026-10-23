@@ -1,0 +1,53 @@
+# The CalendarAccount definition (#/definitions/CalendarAccount).
+
+type: object
+additionalProperties: false
+x-order: [name, kind, preset, url, username]
+properties:
+  id:
+    type: string
+    default: ""
+    x-settings: false
+    description: Names the account's password in the keyring and its calendars' events.
+  name:
+    type: string
+    title: Name
+    default: ""
+  kind:
+    type: string
+    title: Type
+    enum: [caldav, ics, local]
+    x-enumLabels:
+      caldav: CalDAV account
+      ics: Subscription (.ics)
+      local: On this computer
+    default: caldav
+  preset:
+    type: string
+    title: Provider
+    x-showIf: {kind: caldav}
+    enum: [icloud, fastmail, nextcloud, custom]
+    x-enumLabels:
+      icloud: iCloud
+      fastmail: Fastmail
+      nextcloud: Nextcloud
+      custom: Other CalDAV server
+    default: custom
+  url:
+    type: string
+    title: Address
+    default: ""
+    description: 'The server''s address (any page on it: its calendars are found from there), or the feed''s URL.'
+    x-showIf:
+      kind: {not: local}
+  username:
+    type: string
+    title: Username
+    default: ""
+    x-showIf: {kind: caldav}
+  calendars:
+    type: array
+    x-settings: false
+    default: []
+    items:
+      $ref: '#/definitions/CalendarEntry'

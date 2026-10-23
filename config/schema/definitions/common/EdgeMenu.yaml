@@ -1,0 +1,279 @@
+# The EdgeMenu definition (#/definitions/EdgeMenu).
+
+type: object
+required: [id]
+additionalProperties: false
+x-order:
+  - name
+  - enabled
+  - monitor
+  - openOnHover
+  - openDelay
+  - triggerSize
+  - triggerLength
+  - mode
+  - edge
+  - offset
+  - gridOffset
+  - length
+  - popoutAtWidget
+  - moduleScale
+  - fineGrid
+  - detached
+  - gap
+  - frame
+  - padding
+  - moduleBorders
+  - pinButton
+  - backgroundColor
+  - borderColor
+  - closeOnLeave
+  - closeDelay
+  - closeOnOutsideClick
+  - id
+properties:
+  id:
+    x-group: Advanced
+    type: string
+    title: Id
+    x-control: readonly
+    description: What bar buttons, keybinds and IPC calls open this menu by. Set when the menu is made.
+  name:
+    x-group: General
+    type: string
+    title: Name
+    default: ""
+  enabled:
+    x-group: General
+    type: boolean
+    title: Enabled
+    default: true
+  monitor:
+    x-link: {setting: General.primaryMonitor}
+    x-monitorRef: "off"
+    x-scope: machine
+    x-group: General
+    type: string
+    title: Monitor
+    default: ""
+    description: Monitor this menu is shown on. Empty uses the primary monitor.
+    x-options: screens
+    x-showIf:
+      mode: {not: submenu}
+  edge:
+    x-group: Placement
+    type: string
+    title: Edge
+    default: Left
+    enum: [Top, Bottom, Left, Right]
+    x-showIf:
+      mode: {not: submenu}
+  mode:
+    x-group: Placement
+    type: string
+    title: Mode
+    default: floating
+    enum: [floating, integrated, submenu]
+    x-enumLabels: {floating: Floating, integrated: Integrated, submenu: Submenu}
+    description: 'Floating opens over your windows. Integrated opens outside the screen border and bars, pushing them and your windows inwards. Submenu has no edge of its own: it opens beside a floating menu, from a Submenu module there.'
+  offset:
+    x-settings: false
+    type: integer
+    default: 0
+    minimum: -200
+    maximum: 200
+    description: Cells of its lattice the menu sits from centred along its edge, positive towards the end (right or down), kept on the screen. Set by the arrows on the layouts editor's grid.
+  gridOffset:
+    x-settings: false
+    type: integer
+    default: 0
+    minimum: -200
+    maximum: 200
+    x-unit: px
+    description: Shifts the lattice the menu's modules sit on along its edge (centred on the screen) by this many px, positive towards the end. Set beside the arrows on the layouts editor's grid.
+  length:
+    x-group: Placement
+    type: string
+    title: Length
+    default: content
+    enum: [content, edge]
+    x-enumLabels: {content: Fit its modules, edge: Whole edge}
+    description: Whole edge stretches the menu along its edge, sharing the room evenly between its rows (or columns on a top or bottom edge).
+    x-showIf:
+      mode: {not: submenu}
+  popoutAtWidget:
+    x-group: Placement
+    type: boolean
+    title: Popout at its widget
+    default: false
+    description: Opened as a bar widget's popout, it opens at that widget, as bar popouts do, rather than where its layout places it. Only when that bar is on the menu's edge and monitor; opened any other way, it keeps its place.
+    x-showIf: {mode: floating, length: content}
+  moduleScale:
+    x-link: {setting: Widget.cardSize}
+    x-group: Placement
+    type: integer
+    x-control: stepper
+    title: Module size
+    default: 100
+    minimum: 50
+    maximum: 200
+    x-unit: '%'
+    description: Size of the menu's modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them.
+  fineGrid:
+    x-group: Placement
+    x-beside: true
+    type: boolean
+    title: Double grid
+    default: false
+    description: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
+  detached:
+    x-group: Placement
+    type: boolean
+    title: Detach from edge
+    default: false
+    description: A separate box held off the edge, instead of growing out of it.
+    x-showIf: {mode: floating}
+  gap:
+    x-group: Placement
+    type: integer
+    x-control: stepper
+    x-auto: {value: -1, start: 8}
+    x-beside: true
+    title: Gap
+    default: -1
+    minimum: -1
+    maximum: 200
+    x-unit: px
+    description: Space between the menu and the border or bar on its edge, and at its ends. Auto lines it up with a floating bar on its edge, else with your windows.
+    x-showIf: {mode: floating, detached: true}
+  frame:
+    x-group: Style
+    type: boolean
+    title: Frame
+    default: true
+    description: Draw a rounded box along the whole edge, with the modules inside it, lined up with the screen border.
+    x-showIf: {mode: integrated}
+  padding:
+    x-link: {setting: Popouts.padding}
+    x-group: Style
+    type: integer
+    x-control: stepper
+    x-auto: {value: -1, start: 12}
+    title: Padding
+    default: -1
+    minimum: -1
+    maximum: 64
+    x-unit: px
+    description: Space between the menu's box and its modules. Auto uses the Popouts padding.
+    x-showIf:
+      mode: {not: submenu}
+  moduleBorders:
+    x-group: Style
+    type: boolean
+    title: Module borders
+    default: true
+    description: Draw each module's card box. Turn off to show modules straight on the menu's background, e.g. a menu with a single module.
+  pinButton:
+    x-group: Style
+    type: boolean
+    title: Pin button
+    default: false
+    description: Show a pin in the menu's corner. A pinned menu stays open until you unpin it.
+    x-showIf:
+      mode: {not: submenu}
+  backgroundColor:
+    x-group: Style
+    type: string
+    title: Background
+    x-options: colors
+    default: base00
+    x-showIf:
+      mode: {not: submenu}
+  borderColor:
+    x-group: Style
+    type: string
+    title: Border
+    x-options: colors
+    default: base05
+    x-showIf:
+      mode: {not: submenu}
+  openOnHover:
+    x-group: Opening
+    type: boolean
+    title: Open on hover
+    default: false
+    description: Open when the pointer rests on the screen edge.
+    x-showIf:
+      mode: {not: submenu}
+  openDelay:
+    x-group: Opening
+    type: integer
+    title: Open delay
+    default: 10
+    minimum: 0
+    maximum: 2000
+    x-unit: ms
+    description: How long the pointer rests on the edge before the menu opens.
+    x-showIf:
+      mode: {not: submenu}
+      openOnHover: true
+  triggerSize:
+    x-group: Opening
+    type: integer
+    x-control: stepper
+    title: Trigger size
+    default: 5
+    minimum: 1
+    maximum: 50
+    x-unit: px
+    description: How far in from the screen edge the hover strip reaches.
+    x-showIf:
+      mode: {not: submenu}
+      openOnHover: true
+  triggerLength:
+    x-group: Opening
+    type: integer
+    x-auto: {value: 0, start: 300}
+    title: Trigger length
+    default: 0
+    minimum: 0
+    maximum: 4000
+    x-unit: px
+    description: Length of the hover strip along the edge, centred on the menu. Auto matches the menu's own length.
+    x-showIf:
+      mode: {not: submenu}
+      openOnHover: true
+  closeOnLeave:
+    x-group: Closing
+    type: boolean
+    title: Close when the pointer leaves
+    default: true
+    description: Close shortly after the pointer leaves the menu. A pinned menu stays open.
+    x-showIf:
+      mode: {not: submenu}
+  closeDelay:
+    x-group: Closing
+    type: integer
+    title: Close delay
+    default: 250
+    minimum: 0
+    maximum: 5000
+    x-unit: ms
+    description: How long after the pointer leaves the menu closes.
+    x-showIf:
+      mode: {not: submenu}
+      closeOnLeave: true
+  closeOnOutsideClick:
+    x-group: Closing
+    type: boolean
+    title: Close on outside click
+    default: false
+    x-showIf: {mode: floating}
+  modules:
+    type: array
+    title: Modules
+    default: []
+    x-settings: false
+    description: Placed on a grid of quarter cards, like a Custom overlay page's.
+    items:
+      $ref: '#/definitions/OverlayModule'

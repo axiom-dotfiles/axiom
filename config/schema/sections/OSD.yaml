@@ -1,0 +1,37 @@
+# The OSD section of the config (config.json's "OSD").
+
+x-scope: look
+type: object
+x-category: Dock & OSD
+x-card: OSDList
+x-cardTitle: OSDs
+x-cardWide: true
+x-cardFolds: true
+title: OSD
+description: On-screen displays of volume, microphone and brightness bars, shown when one of their bars changes.
+additionalProperties: false
+x-order: [scrollToChange, scrollStep, osds]
+properties:
+  scrollToChange:
+    type: boolean
+    title: Scroll to change
+    default: true
+    description: Scrolling over a bar raises or lowers its level.
+  scrollStep:
+    type: integer
+    title: Scroll step
+    x-unit: '%'
+    default: 5
+    minimum: 1
+    maximum: 25
+    x-showIf: {scrollToChange: true}
+    description: How much one wheel notch changes the level.
+  osds:
+    type: array
+    title: OSDs
+    x-settings: false
+    description: Each OSD has its own place and bars. A change opens every OSD holding that bar.
+    default:
+      - {id: main}
+    items:
+      $ref: '#/definitions/OSDEntry'

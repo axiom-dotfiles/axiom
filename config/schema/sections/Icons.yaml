@@ -1,0 +1,15 @@
+# The Icons section of the config (config.json's "Icons").
+
+x-scope: look
+type: object
+x-category: Look & Feel
+title: Icons
+additionalProperties: false
+properties:
+  overrides:
+    type: object
+    default: {}
+    description: App name → icon path/URL, for apps whose tray or window icon doesn't resolve.
+    additionalProperties:
+      type: string
+    x-settings: false

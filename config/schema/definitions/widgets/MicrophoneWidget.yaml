@@ -1,0 +1,100 @@
+# The MicrophoneWidget definition (#/definitions/MicrophoneWidget).
+
+type: object
+x-icon: mic
+x-libraryGroup: Media & audio
+required: [type]
+additionalProperties: false
+properties:
+  type:
+    const: Microphone
+    description: Microphone
+  visible:
+    type: boolean
+  layout:
+    $ref: '#/definitions/WidgetLayout'
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      showPercentage:
+        type: boolean
+        title: Show percentage
+        default: false
+      scrollStep:
+        type: integer
+        title: Scroll step
+        x-unit: '%'
+        default: 5
+        minimum: 1
+        maximum: 25
+        description: Volume change per scroll notch.
+      maxVolume:
+        type: integer
+        title: Maximum volume
+        x-unit: '%'
+        default: 100
+        minimum: 100
+        maximum: 150
+        description: Highest volume scrolling and the mixer sliders allow.
+      showPopout:
+        type: boolean
+        title: Popout
+        default: true
+        description: Open the input mixer when hovered.
+      popoutMenu:
+        type: string
+        title: Open instead
+        default: ""
+        x-options: edgeMenus
+        x-emptyLabel: Its own popout
+        description: An edge menu to open in place of the popout.
+        x-showIf: {showPopout: true}
+      middleCommand:
+        x-scope: commands
+        type: string
+        title: Middle-click command
+        default: pavucontrol
+        description: Shell command run on middle click. Empty does nothing.
+      activeColor:
+        type: string
+        title: In-use color
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: alt
+        description: Used while an app is recording from the microphone.
+        x-showIf:
+          $bar.widgetStyle: {not: plain}
+      hideWhenIdle:
+        type: boolean
+        title: Hide when idle
+        default: false
+        description: Only show the widget while the microphone is in use or muted.
+      backgroundColor:
+        type: string
+        title: Color
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: accent
+        x-showIf:
+          $bar.widgetStyle: {not: plain}
+      mutedColor:
+        type: string
+        title: Muted color
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: "off"
+        x-showIf:
+          $bar.widgetStyle: {not: plain}
+      foregroundColor:
+        type: string
+        title: Text color
+        x-options: colors
+        default: base00
+        x-showIf:
+          $bar.widgetStyle: filled
+          $bar.widgetGrouping: {not: merged}
+          $bar.widgetTextColor: ""

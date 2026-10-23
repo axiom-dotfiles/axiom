@@ -1,7 +1,6 @@
 pragma Singleton
 
 import QtQuick
-import Quickshell.Io
 import Quickshell.Services.Pipewire
 
 import qs.config
@@ -52,7 +51,7 @@ QtObject {
   }
 
   // Volume keys (keybind actions volumeUp, ...): the OSD shows the change
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "audio"
 
     function volumeUp(): void {

@@ -194,7 +194,7 @@ Singleton {
     onDue: light => root._setLight(light)
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "wallpaper"
 
     function next(): void {

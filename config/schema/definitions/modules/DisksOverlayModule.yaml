@@ -1,0 +1,28 @@
+# The DisksOverlayModule definition (#/definitions/DisksOverlayModule).
+
+type: object
+x-hosts: [overlay, edgeMenu, lockscreen, desktop]
+x-icon: hard_drive
+x-libraryGroup: System
+x-canvasDetail: paths
+x-defaultSize: [4, 2]
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: Disks
+    description: Disk usage
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      paths:
+        x-scope: machine
+        type: array
+        title: Mount points
+        default: [/]
+        items:
+          type: string
+        description: Comma-separated, e.g. /, /home

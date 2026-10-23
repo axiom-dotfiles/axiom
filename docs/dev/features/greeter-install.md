@@ -39,7 +39,7 @@ Axiom as greetd's login screen, laid out like the lock screen. This doc covers t
 - **Source `local`:**
   - It archives the clone's tracked files as they are in the working tree: whatever branch, uncommitted changes included.
   - It uses `git ls-files` + `tar`, run as the user through `runuser`, so the clone's config and filters never run as root.
-  - The hash is the files' content, so docs-only edits are not an update.
+  - The hash is the files' content, so docs-only edits are not an update. The binary's Go source (`backend/`) is left out of both the archive and the hash.
 - **Source `package`** (always, for a packaged axiom: `GreeterManager.wantedSource` ignores `Greeter.source`, which is hidden; [packaging.md](../packaging.md)):
   - The greeter runs `/usr/share/axiom` itself (always that path, never `<repo>`), and the package manager updates it.
   - The install folder gets only `scripts/greeter/` (what greetd and polkit name by path), `.greeter-source` and the snapshot. The session script reads `.greeter-source` to find the code.

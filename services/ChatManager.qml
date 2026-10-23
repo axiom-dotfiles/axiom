@@ -607,7 +607,7 @@ Singleton {
     }
   }
 
-  IpcHandler {
+  IpcTarget {
     target: "chat"
 
     // The overlay, on the chat page

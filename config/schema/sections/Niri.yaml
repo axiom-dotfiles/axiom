@@ -1,0 +1,124 @@
+# The Niri section of the config (config.json's "Niri").
+
+x-scope: personal
+type: object
+x-category: Compositor
+x-showIf: {/$compositor: niri, /Compositor.mode: managed}
+title: niri
+description: niri's own options, written while axiom manages its config. Anything else goes in ~/.config/niri/user/.
+additionalProperties: false
+x-order:
+  - centerFocusedColumn
+  - alwaysCenterSingleColumn
+  - emptyWorkspaceAboveFirst
+  - defaultColumnDisplay
+  - preferNoCsd
+  - hotCorner
+  - overviewZoom
+  - animations
+  - animationSlowdown
+  - skipHotkeyOverlay
+  - primaryClipboard
+  - xwayland
+properties:
+  centerFocusedColumn:
+    type: string
+    title: Center the focused column
+    enum: [never, always, on-overflow]
+    x-enumLabels:
+      never: Never
+      always: Always
+      on-overflow: When it doesn't fit beside the last one
+    default: never
+    x-niri: layout.center-focused-column
+  alwaysCenterSingleColumn:
+    type: boolean
+    title: Center a lone column
+    default: false
+    description: A column alone on its workspace sits in the middle.
+    x-niri: layout.always-center-single-column
+    x-niriValue: flag
+  emptyWorkspaceAboveFirst:
+    type: boolean
+    title: Empty workspace above the first
+    default: false
+    description: Keeps an empty workspace above the first one, as well as below the last.
+    x-niri: layout.empty-workspace-above-first
+    x-niriValue: flag
+  defaultColumnDisplay:
+    x-scope: look
+    type: string
+    title: New columns show
+    enum: [normal, tabbed]
+    x-enumLabels: {normal: Windows stacked, tabbed: Windows as tabs}
+    default: normal
+    x-niri: layout.default-column-display
+  hotCorner:
+    type: boolean
+    title: Top-left corner opens niri's overview
+    default: false
+    description: Pushing the cursor into the top-left corner opens niri's own overview.
+    x-niri: gestures.hot-corners.off
+    x-niriValue: offFlag
+  overviewZoom:
+    x-scope: look
+    type: integer
+    title: Overview zoom
+    x-unit: '%'
+    default: 50
+    minimum: 10
+    maximum: 75
+    description: How large workspaces show in niri's overview.
+    x-niri: overview.zoom
+    x-niriScale: 0.01
+    x-niriValue: float
+  animations:
+    x-scope: look
+    type: boolean
+    title: Animations
+    default: true
+    x-niri: animations.off
+    x-niriValue: offFlag
+  animationSlowdown:
+    x-scope: look
+    type: integer
+    title: Animation length
+    x-unit: '%'
+    default: 100
+    minimum: 10
+    maximum: 1000
+    description: "100 is niri's own speed; more is slower."
+    x-showIf: {animations: true}
+    x-niri: animations.slowdown
+    x-niriScale: 0.01
+    x-niriValue: float
+    x-niriSkip: 100
+  preferNoCsd:
+    type: boolean
+    title: No title bars on windows
+    default: false
+    description: Asks apps to leave out their own title bar (with its close and maximize buttons) and window shadow. Apps that don't agree keep theirs; open ones change once restarted.
+    x-niri: prefer-no-csd
+    x-niriValue: flag
+  skipHotkeyOverlay:
+    type: boolean
+    title: Skip the hotkey help at start
+    default: true
+    description: niri's list of important keys shows when it starts; axiom's binds aren't niri's.
+    x-niri: hotkey-overlay.skip-at-startup
+    x-niriValue: flag
+  primaryClipboard:
+    type: boolean
+    title: Middle-click paste
+    default: true
+    description: Selected text pastes with the middle mouse button.
+    x-niri: clipboard.disable-primary
+    x-niriValue: offFlag
+  xwayland:
+    x-scope: machine
+    type: boolean
+    title: X11 apps (xwayland-satellite)
+    default: true
+    description: Runs X11 apps through xwayland-satellite, when it's installed.
+    x-niri: xwayland-satellite.off
+    x-niriValue: offFlag

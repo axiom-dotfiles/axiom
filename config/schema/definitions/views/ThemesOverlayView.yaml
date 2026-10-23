@@ -1,0 +1,13 @@
+# The ThemesOverlayView definition (#/definitions/ThemesOverlayView).
+
+type: object
+x-icon: palette
+x-tool: true
+required: [type]
+additionalProperties: false
+properties:
+  type:
+    const: Themes
+    description: Themes
+  visible:
+    type: boolean

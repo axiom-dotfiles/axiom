@@ -1,0 +1,30 @@
+# The CalendarEntry definition (#/definitions/CalendarEntry).
+
+type: object
+additionalProperties: false
+properties:
+  href:
+    type: string
+    default: ""
+  name:
+    type: string
+    default: ""
+  serverColor:
+    type: string
+    default: ""
+    description: The color the server gives it (#rrggbb).
+  color:
+    type: string
+    default: ""
+    description: A theme color name overriding the server's, or empty.
+  enabled:
+    type: boolean
+    default: true
+  readOnly:
+    type: boolean
+    default: false
+  components:
+    type: array
+    default: [VEVENT]
+    items:
+      type: string

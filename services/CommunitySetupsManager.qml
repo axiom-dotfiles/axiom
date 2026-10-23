@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell.Io
 
 import qs.config
 import qs.components.methods
@@ -320,7 +319,7 @@ QtObject {
     onDone: output => root._finishApply(output.trim() !== "" && root._failures(output).length === 0, output)
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "community"
     enabled: root.enabled
 

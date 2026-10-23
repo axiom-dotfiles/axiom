@@ -224,7 +224,7 @@ Singleton {
     onExited: exitCode => root._onApplied(root._parse(_applyOut.text), exitCode)
   }
 
-  IpcHandler {
+  IpcTarget {
     target: "selfUpdate"
 
     function check(): void {

@@ -6,7 +6,14 @@ import qs.components.methods
 // config, every oneOf variant's defaults are valid, and old configs load
 // the way ConfigManager loads them (migrate → prune → defaults → validate).
 TestCase {
+  id: test
   name: "Config"
+
+  // Records the helper calls as shared fixtures (Shared.qml)
+  Shared {
+    id: shared
+    testCase: test
+  }
 
   RepoFiles {
     id: files
@@ -15,7 +22,7 @@ TestCase {
   property var schema
 
   function initTestCase() {
-    schema = files.json("config/json/config.schema.json");
+    schema = shared.legacySchema;
   }
 
   function errors(value, subSchema) {
@@ -24,7 +31,7 @@ TestCase {
 
   // What ConfigManager does with a parsed config.json
   function load(parsed) {
-    const migration = ConfigMigration.migrate(parsed);
+    const migration = shared.migrate(parsed);
     const config = migration.config;
     const removed = SchemaValidation.pruneUnknown(config, schema);
     return {
@@ -187,7 +194,7 @@ TestCase {
   }
 
   function test_v20_adds_app_binds_on_free_keys() {
-    const result = ConfigMigration.migrate({
+    const result = shared.migrate({
       "version": 19,
       "Hyprland": {
         "binds": [
@@ -206,11 +213,11 @@ TestCase {
     // (v22 adds SUPER + CTRL + S)
     compare(binds.filter(bind => bind.action === "screenshot").length, 4);
     compare(binds.filter(bind => bind.action === "exitSession").length, 1, "renamed in v60");
-    compare(ConfigMigration.migrate(result.config).config.Keybinds.binds.length, binds.length);
+    compare(shared.migrate(result.config).config.Keybinds.binds.length, binds.length);
   }
 
   function test_v28_adds_wasd_binds_on_free_keys() {
-    const result = ConfigMigration.migrate({
+    const result = shared.migrate({
       "version": 27,
       "Hyprland": {
         "binds": [
@@ -229,11 +236,11 @@ TestCase {
     compare(binds[0].argument, "pavucontrol");
     compare(binds.filter(bind => bind.action === "workspaceStep").map(bind => bind.argument).sort(), ["down", "right", "up"]);
     compare(binds.filter(bind => bind.action === "moveWindowStep").length, 4);
-    compare(ConfigMigration.migrate(result.config).config.Keybinds.binds.length, binds.length);
+    compare(shared.migrate(result.config).config.Keybinds.binds.length, binds.length);
   }
 
   function test_v26_moves_pywal_themes_to_tonal() {
-    const migrate = theme => ConfigMigration.migrate({
+    const migrate = theme => shared.migrate({
         "version": 25,
         "Appearance": {
           "theme": theme
@@ -246,7 +253,7 @@ TestCase {
   }
 
   function test_v27_bars_keep_widget_sizing() {
-    const config = ConfigMigration.migrate({
+    const config = shared.migrate({
       "version": 26,
       "Widget": {
         "padding": 7,
@@ -267,7 +274,7 @@ TestCase {
     compare(config.Bars[1].widgetPadding, 12);
     compare(config.Bars[1].widgetSpacing, 3);
     // Left out of Widget: the bar gets the schema default
-    const plain = ConfigMigration.migrate({
+    const plain = shared.migrate({
       "version": 26,
       "Bars": [
         {
@@ -694,7 +701,7 @@ TestCase {
   }
 
   function test_v38_adds_split_and_special_binds_on_free_keys() {
-    const free = ConfigMigration.migrate({
+    const free = shared.migrate({
       "version": 37,
       "Hyprland": {
         "binds": [
@@ -711,7 +718,7 @@ TestCase {
     compare(free[1].action, "toggleSplit");
     compare([free[2].key, free[2].action, free[2].argument], ["SUPER + V", "toggleSpecial", "magic"]);
     compare([free[3].key, free[3].action, free[3].argument], ["SUPER + SHIFT + V", "moveToSpecial", "magic"]);
-    const taken = ConfigMigration.migrate({
+    const taken = shared.migrate({
       "version": 37,
       "Hyprland": {
         "binds": [
@@ -1620,7 +1627,7 @@ TestCase {
 
   function test_migration_is_idempotent() {
     const once = load(files.json("tests/fixtures/configs/v1.json")).config;
-    const again = ConfigMigration.migrate(once);
+    const again = shared.migrate(once);
     compare(again.migrated, false);
     compare(again.changes, []);
     compare(JSON.stringify(again.config), JSON.stringify(once));
@@ -1629,12 +1636,12 @@ TestCase {
   function test_migrate_does_not_modify_its_input() {
     const input = files.json("tests/fixtures/configs/v1.json");
     const before = JSON.stringify(input);
-    ConfigMigration.migrate(input);
+    shared.migrate(input);
     compare(JSON.stringify(input), before);
   }
 
   function test_newer_version_is_kept() {
-    const result = ConfigMigration.migrate({
+    const result = shared.migrate({
       "version": ConfigMigration.currentVersion + 1
     });
     compare(result.config.version, ConfigMigration.currentVersion + 1);
@@ -1705,7 +1712,7 @@ TestCase {
     compare(migrated.removed, []);
     compare(errors(config), []);
     // Idempotent: a config already moved keeps its WindowLook
-    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, config, {
+    const again = shared.migrate(JSON.parse(JSON.stringify(Object.assign({}, config, {
       "version": 55
     })))).config;
     compare(again.WindowLook.gapsIn, 7);
@@ -1732,7 +1739,7 @@ TestCase {
     compare(migrated.removed, []);
     compare(errors(config), []);
     // Idempotent: an already moved config keeps its Compositor values
-    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, config, {
+    const again = shared.migrate(JSON.parse(JSON.stringify(Object.assign({}, config, {
       "version": 56
     })))).config;
     compare(again.Compositor.mode, "managed");
@@ -1768,7 +1775,7 @@ TestCase {
     compare(managed.removed, []);
     compare(errors(managed.config), []);
     // Idempotent
-    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, managed.config, {
+    const again = shared.migrate(JSON.parse(JSON.stringify(Object.assign({}, managed.config, {
       "version": 57
     })))).config;
     compare(again.WindowLook.rounding, 4);
@@ -1844,7 +1851,7 @@ TestCase {
     compare(managed.removed, []);
     compare(errors(config), []);
     // Idempotent
-    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, config, {
+    const again = shared.migrate(JSON.parse(JSON.stringify(Object.assign({}, config, {
       "version": 58
     })))).config;
     compare(again.Input.kbLayout, "de");
@@ -1903,7 +1910,7 @@ TestCase {
     compare(migrated.removed, []);
     compare(errors(migrated.config), []);
     // Idempotent
-    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
+    const again = shared.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
       "version": 59
     })))).config;
     compare(again.Keybinds.binds[1].action, "raw");
@@ -1939,7 +1946,7 @@ TestCase {
     compare(migrated.config.Hyprland.monitors, undefined);
     compare(migrated.removed, []);
     compare(errors(migrated.config), []);
-    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
+    const again = shared.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
       "version": 60
     })))).config;
     compare(again.Monitors.profiles.length, 1);
@@ -1966,7 +1973,7 @@ TestCase {
     compare(migrated.config.Hyprland.managed.followMouse, undefined);
     compare(migrated.removed, []);
     compare(errors(migrated.config), []);
-    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
+    const again = shared.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
       "version": 61
     })))).config;
     compare(again.WindowBehaviour.followMouse, false);
@@ -2035,7 +2042,7 @@ TestCase {
     }).config.WindowLook;
     compare([detached.shadow, detached.shadowColor, detached.dim], [false, "", false]);
     // Twice is once
-    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
+    const again = shared.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
       "version": 62
     })))).config;
     compare(again.WindowLook.surfaceBlur, false);
@@ -2304,7 +2311,7 @@ TestCase {
     compare([binds[2].key, binds[2].action, binds[2].locked], ["XF86AudioStop", "mediaStop", true]);
     compare(errors(migrated.config), []);
     // Once is enough: a config at v70 isn't touched again
-    compare(ConfigMigration.migrate(migrated.config).config.Keybinds.binds.length, 3);
+    compare(shared.migrate(migrated.config).config.Keybinds.binds.length, 3);
   }
 
   function test_v67_blur_wallpaper_is_per_layout() {

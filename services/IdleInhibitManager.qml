@@ -1,7 +1,6 @@
 pragma Singleton
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 // Shared on/off state for keeping the session awake. The Wayland idle
 // inhibitor itself needs a mapped surface, so shell/IdleInhibit holds one
@@ -24,7 +23,7 @@ Singleton {
     root.enabled = !root.enabled;
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "idleInhibit"
 
     function toggle(): void {

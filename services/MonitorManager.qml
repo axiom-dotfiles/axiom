@@ -1,7 +1,6 @@
 pragma Singleton
 
 import QtQuick
-import Quickshell.Io
 
 import qs.config
 import qs.components.methods
@@ -458,7 +457,7 @@ QtObject {
 
   // Recovers from a layout that can't be seen: `qs -c axiom ipc call
   // monitors revert`
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "monitors"
 
     function open(): void {

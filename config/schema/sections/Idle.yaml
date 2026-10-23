@@ -1,0 +1,146 @@
+# The Idle section of the config (config.json's "Idle").
+
+x-scope: personal
+type: object
+x-category: Screen & Power
+x-card: IdleStatus
+x-cardTitle: hypridle
+title: Idle
+description: 'What happens when you step away: dimming, locking, turning the screens off and suspending, run by hypridle.'
+additionalProperties: false
+x-order:
+  - enabled
+  - dimTimeout
+  - dimMode
+  - dimLevel
+  - dimBy
+  - lockTimeout
+  - screenOffTimeout
+  - suspendTimeout
+  - lockBeforeSleep
+  - screenOnAfterSleep
+  - respectInhibitors
+  - listeners
+properties:
+  enabled:
+    x-scope: machine
+    type: boolean
+    x-takeover: true
+    title: Manage hypridle
+    default: false
+    description: axiom runs hypridle with a config of its own (~/.local/state/axiom/hypridle.conf) and stops any other hypridle while this is on. Your own hypridle.conf is never touched; remove your own hypridle autostart line.
+  dimTimeout:
+    type: integer
+    title: Dim the screens after
+    x-unit: s
+    default: 150
+    minimum: 0
+    maximum: 7200
+    description: "0 never dims. Brightness comes back when you return."
+    x-showIf: {enabled: true}
+  dimMode:
+    type: string
+    title: Dim
+    default: to
+    enum: [to, by]
+    x-enumLabels: {to: To a set brightness, by: By a share of the current brightness}
+    description: A set brightness leaves screens already darker as they are. A share always dims, unless a screen is already at 0.
+    x-showIf: {enabled: true}
+  dimLevel:
+    type: integer
+    title: Dim to
+    x-unit: '%'
+    default: 30
+    minimum: 5
+    maximum: 100
+    description: Screens already darker stay as they are.
+    x-showIf: {enabled: true, dimMode: to}
+  dimBy:
+    type: integer
+    title: Dim by
+    x-unit: '%'
+    default: 50
+    minimum: 5
+    maximum: 95
+    description: 'How much of each screen''s current brightness to take away: 50% takes 80% down to 40%.'
+    x-showIf: {enabled: true, dimMode: by}
+  lockTimeout:
+    type: integer
+    title: Lock after
+    x-unit: s
+    default: 300
+    minimum: 0
+    maximum: 7200
+    description: "0 never locks on idle. Locks with the Lockscreen settings' locker."
+    x-showIf: {enabled: true}
+  screenOffTimeout:
+    type: integer
+    title: Turn the screens off after
+    x-unit: s
+    default: 330
+    minimum: 0
+    maximum: 7200
+    description: "0 keeps them on."
+    x-showIf: {enabled: true}
+  suspendTimeout:
+    type: integer
+    title: Suspend after
+    x-unit: s
+    default: 0
+    minimum: 0
+    maximum: 14400
+    description: "0 never suspends on idle."
+    x-showIf: {enabled: true}
+  lockBeforeSleep:
+    type: boolean
+    title: Lock before sleep
+    x-group: Sleep
+    default: true
+    description: Lock the session before the computer suspends or hibernates.
+    x-showIf: {enabled: true}
+  screenOnAfterSleep:
+    type: boolean
+    title: Screens on after sleep
+    x-group: Sleep
+    default: true
+    description: Turn the screens back on when the computer wakes.
+    x-showIf: {enabled: true}
+  respectInhibitors:
+    type: boolean
+    title: Respect apps that keep the screen on
+    x-group: Sleep
+    default: true
+    description: Video players and browsers can ask to stay awake over D-Bus and systemd. The caffeine widget works either way.
+    x-showIf: {enabled: true}
+  listeners:
+    x-scope: commands
+    type: array
+    title: Extra listeners
+    x-group: Idle listeners
+    default: []
+    description: Commands of your own to run after a time idle, and when you return.
+    x-showIf: {enabled: true}
+    items:
+      type: object
+      additionalProperties: false
+      x-order: [timeout, onTimeout, onResume, enabled]
+      properties:
+        timeout:
+          type: integer
+          title: After
+          x-unit: s
+          default: 600
+          minimum: 1
+          maximum: 14400
+        onTimeout:
+          type: string
+          title: Run
+          default: ""
+        onResume:
+          type: string
+          title: On return
+          default: ""
+        enabled:
+          type: boolean
+          title: "On"
+          default: true

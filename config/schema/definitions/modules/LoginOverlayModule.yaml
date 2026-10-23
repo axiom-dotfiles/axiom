@@ -1,0 +1,48 @@
+# The LoginOverlayModule definition (#/definitions/LoginOverlayModule).
+
+x-link: {setting: Greeter}
+type: object
+x-icon: login
+x-libraryGroup: Session
+x-defaultSize: [6, 3]
+x-hosts: [greeter]
+x-required: true
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: Login
+    description: Login
+  properties:
+    type: object
+    additionalProperties: false
+    x-order: [userField, showAvatar, placeholder, centered, showMessages]
+    properties:
+      userField:
+        type: string
+        title: User
+        enum: [list, typed]
+        x-enumLabels: {list: 'Pick from a list, or type', typed: Type the name}
+        default: list
+        description: Typed only shows no one's name before they type it.
+      showAvatar:
+        type: boolean
+        title: Picture
+        default: true
+        description: The user's picture (AccountsService's), when they have one.
+      placeholder:
+        type: string
+        title: Placeholder
+        default: ""
+        description: Shown in the empty password field. Empty says Enter password...
+      centered:
+        type: boolean
+        title: Centre the text
+        default: true
+      showMessages:
+        type: boolean
+        title: Messages
+        default: true
+        description: 'Show what the login checks say under the field: prompts, failures and errors.'

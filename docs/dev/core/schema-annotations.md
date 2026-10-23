@@ -1,10 +1,12 @@
 # Schema and its annotations
 
-> **Files:** `config/json/config.schema.json`, `components/methods/SchemaLayout.qml`, `components/methods/SchemaValidation.qml`, `components/forms/SchemaField.qml`, `components/methods/HyprLua.qml`
+> **Files:** `config/schema/`, `config/json/config.schema.json`, `components/methods/SchemaLayout.qml`, `components/methods/SchemaValidation.qml`, `components/forms/SchemaField.qml`, `components/methods/HyprLua.qml`
 > **Config:** every section
 > **Related:** [Settings page](settings-page.md), [Saved configs and sharing](saved-configs-sharing.md), [Config manager](config-manager.md), [Config readers](config-readers.md), [Hyprland config modes](../hyprland/config-modes.md)
 
-The schema is the single source of truth for config: shape, `default`s (there is no separate defaults file) and the generated settings page (`views/Settings.qml`). This doc is the complete list of `x-*` annotations: `scripts/check_docs.py` fails on one the schema uses that isn't named here. (Rule: AGENTS.md › Config.)
+The schema is the single source of truth for config: shape, `default`s (there is no separate defaults file) and the generated settings page (`views/Settings.qml`). This doc is the complete list of `x-*` annotations: `scripts/check_docs.py` fails on one the schema uses that isn't named here, and building the schema (`axiom schema build`) refuses one missing from `config/schema/annotations.yaml`, the registry with a line on each.
+
+The schema is written in YAML (`config/schema/`): `index.yaml` is the root and lists the sections and definitions in order; `sections/<Section>.yaml` and `definitions/{widgets,modules,views,common}/<Name>.yaml` hold one each. The YAML is read strictly (no anchors, aliases, merge keys or tags; quote `on`/`off`/`yes`/`no`, which YAML 1.1 reads as booleans; write `null` out), and every key of a schema node must be a draft-07 keyword the validators read or a registered annotation, so a typo fails the build with its file and line. (Rule: AGENTS.md › Config.)
 
 ### Basics
 - Adding a setting = a schema entry with a `default` + a reader property.

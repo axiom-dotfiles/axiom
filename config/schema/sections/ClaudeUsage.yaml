@@ -1,0 +1,37 @@
+# The ClaudeUsage section of the config (config.json's "ClaudeUsage").
+
+type: object
+x-category: Modules
+title: Claude usage
+description: The Claude Code logins every Claude usage widget reports on.
+additionalProperties: false
+x-order: [accounts, intervalMinutes]
+properties:
+  accounts:
+    type: array
+    title: Accounts
+    default:
+      - {label: Personal, configDir: ~/.claude}
+    description: 'One per Claude Code login: the CLAUDE_CONFIG_DIR it uses (~/.claude when unset). Usage is read with that login''s token, which is never changed.'
+    items:
+      type: object
+      additionalProperties: false
+      x-order: [label, configDir]
+      properties:
+        label:
+          type: string
+          title: Label
+          default: ""
+          description: Shown in the popout; its first letter tells accounts apart on the bar.
+        configDir:
+          type: string
+          title: Config directory
+          x-control: folder
+          default: ~/.claude
+  intervalMinutes:
+    type: integer
+    title: Check interval
+    x-unit: min
+    default: 5
+    minimum: 2
+    maximum: 60

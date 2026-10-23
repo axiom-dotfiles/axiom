@@ -5,7 +5,7 @@
 > **Docs:** [config-readers](../dev/core/config-readers.md), [config-manager](../dev/core/config-manager.md), [schema-annotations](../dev/core/schema-annotations.md), [settings-page](../dev/core/settings-page.md)
 
 ## Files to touch
-1. `config/json/config.schema.json` → root `properties.<Section>`: an object with `x-category`, `title`, `description`, `additionalProperties: false`, `properties` (each with a `default`), optionally `x-order`.
+1. `config/schema/sections/<Section>.yaml` (and the name in `config/schema/index.yaml`'s `sections`, where it sits in the order): an object with `x-category`, `title`, `description`, `additionalProperties: false`, `properties` (each with a `default`), optionally `x-order`.
 2. `config/<Section>.qml`, or `config/<Section>Config.qml` when `<Section>` is also a type name (a bar widget, module, view or Quickshell type), as with `BatteryConfig`, `OSDConfig`, `LauncherConfig`.
 3. The service and UI that use it.
 4. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template.

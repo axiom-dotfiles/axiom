@@ -18,6 +18,18 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### BlurManager.paused is undefined on a reload
+- **Where:** `services/BlurManager.qml` (`paused`), `config/Appearance.qml` (`blurPauseFullscreen`)
+- **What:** Every reload of the live shell logs `Unable to assign [undefined] to bool` at `BlurManager.qml[30:3]` (the `paused` binding), though the config has `WindowLook.surfaceBlurPauseFullscreen`. One of the `&&` operands is undefined while the singletons are created (likely `Appearance.blurPauseFullscreen` or `CompositorManager.hasFullscreen` read before they exist); a `=== true` on the operand, or finding which one, fixes it.
+- **Size:** trivial
+- **Found:** 2026-10-23, while gitignoring the generated files for the Go backend
+
+### The schema root's description contradicts the annotations doc
+- **Where:** `config/schema/index.yaml` (root `description`), `docs/dev/core/schema-annotations.md` (`x-hosts`)
+- **What:** The root `description` is a hand-kept prose copy of the annotations list, and it has drifted: it says `x-hosts` defaults to "the first two" (overlay, edgeMenu) and that the desktop only takes modules listing it, while `schema-annotations.md` says overlay, edgeMenu and desktop are the default. It also predates many annotations in `config/schema/annotations.yaml`. It reaches `config/json/config.schema.json`, so editors showing the schema's description show the stale text. Generating it from `annotations.yaml`, or dropping it, removes the copy (planned in [config v2](core/config-v2.md)).
+- **Size:** trivial
+- **Found:** 2026-10-23, while reviewing the config v2 proposal
+
 ### Compact cards still build their full layout
 - **Where:** `components/content/base/Card.qml` (`full`), `components/content/base/Panel.qml` (`column`, `background`)
 - **What:** A module's children go into `Card.full` / `Panel.column` (a default property alias), which is only hidden while `compactContent` shows, so a compact card builds its whole layout as well as its figure. On the Tiny page (34 modules in quarter-card slots) this is most of what's left of its build: WifiNetworks about 65 ms, each ClockCalendar about 45 ms (`Built overlay module <Type> in X ms` with `--debug`). It also slows the bar popouts using those panels. A fix is an optional `fullContent: Component` on both roots, loaded only while not compact, then moving the heavy modules to it one by one (their ids are referenced from the module root, so each needs its own pass): see [streamed-building](core/streamed-building.md).
@@ -165,7 +177,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-17, while auditing the niri branch for merge
 
 ### Hyprland's own options are several cards that don't say they're Hyprland's
-- **Where:** `config/json/config.schema.json` (`Hyprland.managed`: its `x-group`s), `components/methods/SchemaLayout.qml` (`groups`)
+- **Where:** `config/schema/sections/Hyprland.yaml` (`managed`: its `x-group`s), `components/methods/SchemaLayout.qml` (`groups`)
 - **What:** Sway's and niri's own options are one card each, titled by the compositor. Hyprland's managed options are split by `x-group` into Layout, Decoration, Animations, Windows and Behaviour cards beside the compositor-neutral ones (Windows and focus, Mouse & cursor), and nothing on them says they're Hyprland's. Either one Hyprland card (about 30 rows), or group titles naming it.
 - **Size:** small
 - **Found:** 2026-10-17, while making niri's options one card
@@ -261,7 +273,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-16, while auditing the sway branch
 
 ### `noWarps` off maps to sway's `mouse_warping output`
-- **Where:** `config/json/config.schema.json` (`WindowBehaviour.noWarps`, `x-swayMap`)
+- **Where:** `config/schema/sections/WindowBehaviour.yaml` (`noWarps`, `x-swayMap`)
 - **What:** Hyprland with `cursor.no_warps` off moves the cursor to a window focused by keybind; sway's `mouse_warping output` only moves it when focus changes output (`container` would match Hyprland). Decide which sway value matches what the setting promises.
 - **Size:** trivial
 - **Found:** 2026-10-16, while auditing the sway branch
@@ -303,7 +315,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-18, while fixing shadow seams where a wall runs on into another surface
 
 ### niri's flags can't be turned off from axiom
-- **Where:** `components/methods/NiriConf.qml` (`_niriArgs`), `config/json/config.schema.json` (`x-niriValue: "flag"`)
+- **Where:** `components/methods/NiriConf.qml` (`_niriArgs`), `config/schema/` (`x-niriValue: "flag"`)
 - **What:** A niri flag (`tap`, `natural-scroll`, `numlock`, `focus-follows-mouse`) is on by being there and has no `false`; axiom writes one on and leaves it out off. Off in axiom while the user's own config has it on, it stays on.
 - **Size:** small
 - **Found:** 2026-10-17, while adding the niri backend

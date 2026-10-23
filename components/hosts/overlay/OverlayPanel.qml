@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
 
 import qs.config
@@ -88,7 +87,7 @@ ReservedAreaWindow {
     }
   }
 
-  IpcHandler {
+  IpcTarget {
     target: "overlay"
     // One handler per target name: the target screen's
     enabled: ShellManager.isTarget(root.screen, OverlayConfig.monitors)

@@ -1,0 +1,41 @@
+# The GreetingOverlayModule definition (#/definitions/GreetingOverlayModule).
+
+type: object
+x-icon: waving_hand
+x-libraryGroup: Time & weather
+x-defaultSize: [8, 2]
+x-canvasDetail: text
+x-hosts: [overlay, edgeMenu, lockscreen, greeter, desktop]
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: Greeting
+    description: Greeting
+  properties:
+    type: object
+    additionalProperties: false
+    x-order: [text, color, alignment, bold]
+    properties:
+      text:
+        type: string
+        title: Text
+        default: ""
+        description: What it says. {name} is your display name, {user} your user name and {greeting} good morning, afternoon or evening. Empty says hey to your display name. On the login screen, the names are those of the user logging in.
+      color:
+        type: string
+        title: Color
+        x-options: colors
+        default: base05
+      alignment:
+        type: string
+        title: Alignment
+        enum: [left, center, right]
+        x-enumLabels: {left: Left, center: Centre, right: Right}
+        default: center
+      bold:
+        type: boolean
+        title: Bold
+        default: false

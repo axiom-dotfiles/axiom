@@ -35,7 +35,7 @@ Not on the AUR yet: AUR account registration is closed, so they wait in `packagi
 - `axiom-shell` (a release's tag tarball) and `axiom-shell-git` (main, `pkgver()` from `git describe`, `provides`/`conflicts` `axiom-shell`). The same `package()` otherwise.
 - **No compositor in `depends`:** pacman has no "one of"; `hyprland`, `sway` (which `swayfx` provides) and `niri` are `optdepends`. The package is the shell, not the session.
 - **Layout:**
-  - The code in `/usr/share/axiom`, less what only development needs (tests, docs, CI, git hooks, `install.sh`, the check scripts, every `*.md`).
+  - The code in `/usr/share/axiom`, less what only development needs (tests, docs, CI, git hooks, `install.sh`, the check scripts, every `*.md`, and `backend/`, the axiom binary's Go source).
   - `/etc/xdg/quickshell/axiom` → `/usr/share/axiom`, so `qs -c axiom` finds it after `~/.config/quickshell/axiom` (a clone there still wins).
   - The license in `/usr/share/licenses/<pkgname>/`.
   - The marker `/usr/share/axiom/.packaged`, holding `pkgver-pkgrel`.

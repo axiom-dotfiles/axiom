@@ -1,7 +1,6 @@
 pragma Singleton
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.config
 
@@ -24,6 +23,33 @@ QtObject {
 
   // The built-in lock is up (set by shell/Lockscreen.qml, which owns it)
   property bool builtinLocked: false
+  // …and the compositor has acknowledged it (the session is locked)
+  property bool builtinSecure: false
+
+  // Run by axiom: it hears of every change, to confirm `axiom lock` and to
+  // relock a shell that dies while locked. Never the other way: nothing
+  // axiom says unlocks
+  onBuiltinSecureChanged: _report()
+  onBuiltinLockedChanged: _report()
+
+  function _report() {
+    if (!BackendManager.active)
+      return;
+    const outputs = Quickshell.screens.length;
+    BackendManager.call("lock.state", {
+      "locked": root.builtinLocked && root.builtinSecure,
+      "surfaces": root.builtinSecure ? outputs : 0,
+      "outputs": outputs
+    }, null);
+  }
+
+  property Connections _backend: Connections {
+    target: BackendManager
+    // A reconnect (axiom re-exec'd): tell it again
+    function onGreeted() {
+      root._report();
+    }
+  }
 
   // For the built-in locker
   signal lockRequested
@@ -52,7 +78,7 @@ QtObject {
     name: I18n.tr("Lock screen")
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "lockscreen"
     enabled: root.mode !== "none"
 

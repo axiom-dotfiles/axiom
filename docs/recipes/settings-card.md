@@ -11,7 +11,7 @@
 - `x-intro: "<Name>"` on a section or an object property: loads `components/views/settings/<Name>.qml` at the top of that group's card, above its fields; it hides while its `shown` (if it declares one) is false.
 
 ## Files to touch
-1. `config/json/config.schema.json`: the annotation on the section (or property).
+1. `config/schema/sections/<Section>.yaml`: the annotation on the section (or property).
 2. `components/views/settings/<Name>Card.qml` (or `<Name>.qml` for an intro).
 3. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template.
 

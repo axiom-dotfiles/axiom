@@ -31,6 +31,9 @@ Dependencies point one way, methods → data owners → readers → services →
 ### Testing
 - [testing.md](testing.md): how to look at, exercise and debug the running shell safely; the testing sections of every doc.
 
+### backend/: the axiom binary
+- [backend](backend/README.md): the Go binary (parent of the shell, owner of the config, the command line): what exists so far, building and checking it, its security rules, and the shared fixtures both sides replay.
+
 ### core/: config, services, schema, shared UI
 - [services-pattern](core/services-pattern.md): one singleton per domain, acquire/release for anything polled, CommandManager, the other domain services.
 - [config-manager](core/config-manager.md): load pipeline, write API, `ConfigDraft`, previews.

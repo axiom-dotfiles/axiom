@@ -1,0 +1,15 @@
+# The VolumeDialsOverlayModule definition (#/definitions/VolumeDialsOverlayModule).
+
+type: object
+x-hosts: [overlay, edgeMenu, lockscreen, desktop]
+x-icon: volume_up
+x-libraryGroup: Media & audio
+x-defaultSize: [4, 2]
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: VolumeDials
+    description: Volume dials

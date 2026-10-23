@@ -22,7 +22,7 @@ A review stays **under ~200k tokens in all**, done by you alone. Reading is what
 - `AGENTS.md` is already in your context. Never read it, a doc or a file twice.
 - Command output to `$SCRATCH/review-system/` (`$SCRATCH` = this session's scratchpad), then read only what you need.
 - Deep reading: the enclosing function (`grep -n` its bounds, `sed -n`), not whole files, except small ones or the system's core. Everything else by outline: `grep -n 'function \|property \|signal \|Connections\|Process\|Timer\|IpcHandler' <file>`.
-- Tests and `.json` data: grep for what you need, never read whole. `config.schema.json`: only the system's definitions (`grep -n` then `sed -n`).
+- Tests and `.json` data: grep for what you need, never read whole. The schema: read the system's own files under `config/schema/` (`sections/<Section>.yaml`, `definitions/**/<Name>.yaml`), never the generated `config.schema.json`.
 - Past ~150k, stop opening new files and say in Coverage what you only outlined.
 
 ## Phase 0: scope

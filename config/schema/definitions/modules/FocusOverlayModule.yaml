@@ -1,0 +1,35 @@
+# The FocusOverlayModule definition (#/definitions/FocusOverlayModule).
+
+type: object
+x-hosts: [overlay, edgeMenu, desktop]
+x-icon: center_focus_strong
+x-libraryGroup: Tools
+x-keyboard: true
+x-defaultSize: [8, 8]
+x-minSize: [4, 6]
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: Focus
+    description: Focus
+  properties:
+    type: object
+    additionalProperties: false
+    x-order: [showTimer, showTodos, showAgenda]
+    properties:
+      showTimer:
+        type: boolean
+        title: Pomodoro timer
+        default: true
+      showTodos:
+        type: boolean
+        title: Todo list
+        default: true
+      showAgenda:
+        type: boolean
+        title: Today's events
+        default: true
+        description: Today in the shown calendars, with + to add an event.

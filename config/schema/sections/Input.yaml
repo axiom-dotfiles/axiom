@@ -1,0 +1,270 @@
+# The Input section of the config (config.json's "Input").
+
+type: object
+x-category: Compositor
+x-showIf: {/$supports.inputConfig: true}
+title: Input
+description: Keyboard, mouse, touchpad and cursor. A part that's on wins over your compositor's own config; the login screen follows it too.
+additionalProperties: false
+x-order:
+  - keyboard
+  - kbLayout
+  - kbVariant
+  - kbOptions
+  - repeatRate
+  - repeatDelay
+  - numlockByDefault
+  - mouse
+  - accelProfile
+  - sensitivity
+  - leftHanded
+  - touchpad
+  - naturalScroll
+  - tapToClick
+  - disableWhileTyping
+  - scrollFactor
+  - cursor
+  - cursorTheme
+  - cursorSize
+properties:
+  keyboard:
+    x-greeter: true
+    type: boolean
+    title: Set the keyboard
+    x-group: Keyboard
+    default: false
+    description: Layout and key repeat. Off, your compositor's own config applies.
+  kbLayout:
+    x-scope: personal
+    x-greeter: true
+    type: string
+    title: Keyboard layout
+    x-group: Keyboard
+    default: us
+    description: XKB layouts, comma-separated (e.g. us,de).
+    x-hypr: input.kb_layout
+    x-sway: input type:keyboard xkb_layout {}
+    x-niri: input.keyboard.xkb.layout
+    x-showIf: {keyboard: true}
+    x-hyprIf: keyboard
+  kbVariant:
+    x-scope: personal
+    x-greeter: true
+    type: string
+    title: Layout variant
+    x-group: Keyboard
+    default: ""
+    description: XKB variants, one per layout (e.g. colemak).
+    x-hypr: input.kb_variant
+    x-sway: input type:keyboard xkb_variant {}
+    x-niri: input.keyboard.xkb.variant
+    x-showIf: {keyboard: true}
+    x-hyprIf: keyboard
+  kbOptions:
+    x-scope: personal
+    x-greeter: true
+    type: string
+    title: XKB options
+    x-group: Keyboard
+    default: ""
+    description: e.g. caps:escape,grp:alt_shift_toggle.
+    x-hypr: input.kb_options
+    x-sway: input type:keyboard xkb_options {}
+    x-niri: input.keyboard.xkb.options
+    x-showIf: {keyboard: true}
+    x-hyprIf: keyboard
+  repeatRate:
+    x-scope: personal
+    x-greeter: true
+    type: integer
+    x-control: stepper
+    title: Key repeat rate
+    x-group: Keyboard
+    default: 50
+    minimum: 1
+    maximum: 100
+    x-hypr: input.repeat_rate
+    x-sway: input type:keyboard repeat_rate {}
+    x-niri: input.keyboard.repeat-rate
+    x-showIf: {keyboard: true}
+    x-hyprIf: keyboard
+  repeatDelay:
+    x-scope: personal
+    x-greeter: true
+    type: integer
+    title: Key repeat delay
+    x-group: Keyboard
+    default: 300
+    minimum: 100
+    maximum: 2000
+    x-hypr: input.repeat_delay
+    x-sway: input type:keyboard repeat_delay {}
+    x-niri: input.keyboard.repeat-delay
+    x-showIf: {keyboard: true}
+    x-hyprIf: keyboard
+  numlockByDefault:
+    x-scope: personal
+    x-greeter: true
+    type: boolean
+    title: Num Lock on at start
+    x-group: Keyboard
+    default: true
+    x-hypr: input.numlock_by_default
+    x-sway: input type:keyboard xkb_numlock {}
+    x-niri: input.keyboard.numlock
+    x-niriValue: flag
+    x-swayValue: enabled
+    x-swayConfigOnly: true
+    x-showIf: {keyboard: true}
+    x-hyprIf: keyboard
+  mouse:
+    x-greeter: true
+    type: boolean
+    title: Set the mouse
+    x-group: Mouse & cursor
+    default: false
+    description: Acceleration, speed and buttons. Off, your compositor's own config applies.
+  accelProfile:
+    x-greeter: true
+    type: string
+    title: Pointer acceleration
+    x-group: Mouse & cursor
+    enum: [default, flat, adaptive]
+    x-enumLabels: {default: Device default, flat: Flat (none), adaptive: Adaptive}
+    default: default
+    x-hypr: input.accel_profile
+    x-hyprValue: emptyIsDefault
+    x-sway: input type:pointer accel_profile {}
+    x-niri: input.mouse.accel-profile
+    x-niriSkip: default
+    x-swaySkip: default
+    x-showIf: {mouse: true}
+    x-hyprIf: mouse
+  sensitivity:
+    x-greeter: true
+    type: integer
+    title: Pointer speed
+    x-group: Mouse & cursor
+    default: 0
+    minimum: -100
+    maximum: 100
+    description: "-100 to 100; 0 leaves it as the device reports."
+    x-hypr: input.sensitivity
+    x-hyprScale: 0.01
+    x-sway: input type:pointer pointer_accel {}
+    x-niri: input.mouse.accel-speed
+    x-niriScale: 0.01
+    x-niriValue: float
+    x-swayScale: 0.01
+    x-showIf: {mouse: true}
+    x-hyprIf: mouse
+  leftHanded:
+    x-scope: personal
+    x-greeter: true
+    type: boolean
+    title: Left-handed buttons
+    x-group: Mouse & cursor
+    default: false
+    x-hypr: input.left_handed
+    x-sway: input type:pointer left_handed {}
+    x-niri: input.mouse.left-handed
+    x-niriValue: flag
+    x-swayValue: enabled
+    x-showIf: {mouse: true}
+    x-hyprIf: mouse
+  touchpad:
+    x-greeter: true
+    type: boolean
+    title: Set the touchpad
+    x-group: Touchpad
+    default: false
+    description: Off, your compositor's own config applies.
+  naturalScroll:
+    x-scope: personal
+    x-greeter: true
+    type: boolean
+    title: Natural scrolling
+    x-group: Touchpad
+    default: false
+    x-hypr: input.touchpad.natural_scroll
+    x-sway: input type:touchpad natural_scroll {}
+    x-niri: input.touchpad.natural-scroll
+    x-niriValue: flag
+    x-swayValue: enabled
+    x-showIf: {touchpad: true}
+    x-hyprIf: touchpad
+  tapToClick:
+    x-scope: personal
+    x-greeter: true
+    type: boolean
+    title: Tap to click
+    x-group: Touchpad
+    default: true
+    x-hypr: input.touchpad.tap_to_click
+    x-sway: input type:touchpad tap {}
+    x-niri: input.touchpad.tap
+    x-niriValue: flag
+    x-swayValue: enabled
+    x-showIf: {touchpad: true}
+    x-hyprIf: touchpad
+  disableWhileTyping:
+    x-scope: personal
+    x-greeter: true
+    type: boolean
+    title: Off while typing
+    x-group: Touchpad
+    default: true
+    x-hypr: input.touchpad.disable_while_typing
+    x-sway: input type:touchpad dwt {}
+    x-niri: input.touchpad.dwt
+    x-niriValue: flag
+    x-swayValue: enabled
+    x-showIf: {touchpad: true}
+    x-hyprIf: touchpad
+  scrollFactor:
+    x-greeter: true
+    type: integer
+    title: Scroll speed
+    x-unit: '%'
+    x-group: Touchpad
+    default: 100
+    minimum: 10
+    maximum: 500
+    x-hypr: input.touchpad.scroll_factor
+    x-hyprScale: 0.01
+    x-sway: input type:touchpad scroll_factor {}
+    x-niri: input.touchpad.scroll-factor
+    x-niriScale: 0.01
+    x-niriValue: float
+    x-swayScale: 0.01
+    x-showIf: {touchpad: true}
+    x-hyprIf: touchpad
+  cursor:
+    x-greeter: true
+    type: boolean
+    title: Set the cursor
+    x-group: Mouse & cursor
+    default: false
+    description: An installed cursor theme and its size. Off, the cursor is left alone.
+  cursorTheme:
+    x-scope: look
+    x-greeter: true
+    type: string
+    title: Cursor theme
+    x-group: Mouse & cursor
+    x-options: cursorThemes
+    x-enumLabels: {"": None}
+    default: ""
+    description: An installed cursor theme.
+    x-showIf: {cursor: true}
+  cursorSize:
+    x-scope: look
+    x-greeter: true
+    type: integer
+    x-control: stepper
+    title: Cursor size
+    x-group: Mouse & cursor
+    default: 24
+    minimum: 8
+    maximum: 128
+    x-showIf: {cursor: true}

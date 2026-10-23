@@ -8,7 +8,7 @@ Everything is configured from inside the shell (see [Features](features.md)). Op
 
 - Settings are saved to `~/.config/axiom/config.json`. You never need to open it, but the shell watches that file and reloads when it changes, so editing it by hand also works.
 - Configs from older versions are migrated automatically.
-- `config/json/config.schema.json` defines every option and its default. It also generates the Settings page.
+- The schema defines every option and its default, and generates the Settings page. Its source is YAML under `config/schema/` (one file per section and definition), built into `config/json/config.schema.json`.
 - Chat API keys are entered in **Settings → Modules → Chat** and stored in your keyring (or `$XDG_STATE_HOME/axiom/secrets.json`, mode 600, without one). A provider's environment variable (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`) wins over a stored key. Conversations are saved in `$XDG_STATE_HOME/axiom/chats/`.
 
 > [!IMPORTANT]

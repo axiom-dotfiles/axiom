@@ -1,0 +1,56 @@
+# The WeatherWidget definition (#/definitions/WeatherWidget).
+
+x-link: {setting: Weather}
+type: object
+x-icon: partly_cloudy_day
+x-libraryGroup: Time & weather
+required: [type]
+additionalProperties: false
+properties:
+  type:
+    const: Weather
+    description: Weather
+  visible:
+    type: boolean
+  layout:
+    $ref: '#/definitions/WidgetLayout'
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      showCondition:
+        type: boolean
+        title: Show condition
+        default: false
+        description: Show the condition (e.g. Rain) next to the temperature.
+      showPopout:
+        type: boolean
+        title: Popout
+        default: true
+        description: Show the forecast when hovered.
+      popoutMenu:
+        type: string
+        title: Open instead
+        default: ""
+        x-options: edgeMenus
+        x-emptyLabel: Its own popout
+        description: An edge menu to open in place of the popout.
+        x-showIf: {showPopout: true}
+      backgroundColor:
+        type: string
+        title: Color
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: accent
+        x-showIf:
+          $bar.widgetStyle: {not: plain}
+      foregroundColor:
+        type: string
+        title: Text color
+        x-options: colors
+        default: base00
+        x-showIf:
+          $bar.widgetStyle: filled
+          $bar.widgetGrouping: {not: merged}
+          $bar.widgetTextColor: ""

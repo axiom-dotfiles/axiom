@@ -1,0 +1,73 @@
+# The PowerMenu section of the config (config.json's "PowerMenu").
+
+type: object
+x-category: Screen & Power
+title: Power menu
+description: 'The power menu: lock, suspend, hibernate, log out, reboot and power off, opened by the power button, a keybind or `qs -c axiom ipc call powermenu toggle`.'
+additionalProperties: false
+properties:
+  monitors:
+    x-link: {setting: General.monitors}
+    x-scope: look
+    type: string
+    title: Monitors
+    enum: [general, primary, focused, all]
+    x-enumLabels:
+      general: As in General
+      primary: Primary monitor
+      focused: Focused monitor
+      all: Every monitor
+    default: general
+    description: Where the power menu opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
+  actions:
+    x-scope: look
+    type: array
+    title: Actions
+    default: [lock, suspend, hibernate, logout, reboot, poweroff]
+    items:
+      type: string
+      enum: [lock, suspend, hibernate, logout, reboot, poweroff]
+    description: Which actions the menu shows, in order.
+  confirm:
+    x-scope: look
+    type: boolean
+    title: Confirm destructive actions
+    default: true
+    description: Log out, reboot and power off ask for a second click (or Enter) first.
+  tileSize:
+    x-scope: look
+    type: integer
+    title: Tile size
+    x-unit: px
+    default: 120
+    minimum: 80
+    maximum: 200
+    description: Width and height of each action's tile.
+  showHeader:
+    x-scope: look
+    type: boolean
+    title: Greeting and uptime
+    default: true
+    description: Show a greeting and how long the computer has been up above the actions.
+  showHint:
+    x-scope: look
+    type: boolean
+    title: Controls hint
+    default: true
+    description: Show the keys under the actions.
+  showBackdrop:
+    x-scope: look
+    type: boolean
+    title: Dim background
+    default: true
+    description: Dim the whole screen behind the power menu, under the bars and border.
+  backdrop:
+    x-scope: look
+    type: integer
+    title: Backdrop darkness
+    x-unit: '%'
+    default: 36
+    minimum: 0
+    maximum: 90
+    description: How dark the screen behind the power menu goes.
+    x-showIf: {showBackdrop: true}

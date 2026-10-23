@@ -1,0 +1,24 @@
+# The GridPlace definition (#/definitions/GridPlace).
+
+type: object
+additionalProperties: false
+description: 'Where a module sits on its page''s or menu''s grid, in quarter cards: x and y from the top left, w and h its size.'
+properties:
+  x:
+    type: integer
+    default: 0
+    minimum: 0
+  "y":
+    type: integer
+    default: 0
+    minimum: 0
+  w:
+    type: integer
+    default: 4
+    minimum: 1
+    maximum: 32
+  h:
+    type: integer
+    default: 4
+    minimum: 1
+    maximum: 32

@@ -1,0 +1,521 @@
+# The Bar definition (#/definitions/Bar).
+
+type: object
+x-order:
+  - id
+  - enabled
+  - monitor
+  - location
+  - widgetSize
+  - padding
+  - spacing
+  - widgetPadding
+  - widgetSpacing
+  - background
+  - floatGap
+  - pillPadding
+  - pillMerge
+  - overrideFontSize
+  - fontSize
+  - overrideRadius
+  - widgetRadius
+  - overrideWidgetStyle
+  - widgetStyle
+  - tintOpacity
+  - outlineWidth
+  - lineWidth
+  - lineSide
+  - widgetShape
+  - widgetGrouping
+  - widgetEnds
+  - groupColor
+  - widgetTextColor
+  - overrideAccents
+  - separatorStyle
+  - separatorColor
+  - separatorThickness
+  - separatorGap
+  - accentLine
+  - accentLineColor
+  - accentLineFade
+  - accentLineWidth
+  - overrideShadow
+  - shadow
+  - shadowColor
+  - shadowSize
+  - lockCenter
+  - reserveSpace
+required: [id]
+additionalProperties: false
+properties:
+  id:
+    x-group: General
+    type: string
+    title: Id
+  enabled:
+    x-group: General
+    type: boolean
+    title: Enabled
+    default: true
+  monitor:
+    x-link: {setting: General.primaryMonitor}
+    x-monitorRef: "off"
+    x-scope: machine
+    x-group: General
+    type: string
+    title: Monitor
+    default: ""
+    description: Monitor this bar is shown on. Empty uses the primary monitor; All monitors puts an identical copy on each.
+    x-options: screens
+    x-allScreens: true
+  location:
+    x-group: General
+    type: string
+    title: Location
+    default: Top
+    enum: [Top, Bottom, Left, Right]
+  widgetSize:
+    x-group: Size
+    type: integer
+    x-control: stepper
+    title: Widget size
+    default: 26
+    minimum: 10
+    maximum: 150
+    x-unit: px
+    description: How thick the widgets are across the bar. The bar grows to fit them, their padding, and any border it shares an edge with.
+  padding:
+    x-group: Size
+    type: integer
+    x-control: stepper
+    title: Padding
+    default: 4
+    minimum: 0
+    maximum: 50
+    x-unit: px
+    x-showIf:
+      background: {not: pills}
+    description: Space between the widgets and the bar's visible edges, on both sides.
+  background:
+    x-group: Style
+    type: string
+    title: Background
+    default: solid
+    enum: [solid, transparent, pills, floating, floatingPills]
+    x-enumLabels:
+      solid: Solid
+      transparent: Transparent
+      pills: Pill per group
+      floating: Floating bar
+      floatingPills: Floating pills
+    description: Every bar but a solid one sits inside the screen border. Pills grow out of it; floating bars and pills are held away from it.
+  floatGap:
+    x-link: {setting: WindowLook.gapsOut}
+    x-group: Style
+    type: integer
+    x-control: stepper
+    x-auto: {value: -1, start: 8}
+    title: Float gap
+    default: -1
+    minimum: -1
+    maximum: 60
+    x-unit: px
+    x-showIf:
+      background: [floating, floatingPills]
+    description: How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends. Auto keeps the compositor's gap to the screen edges, as your windows do. Windows always keep the compositor's gap between windows from the bar.
+  pillPadding:
+    x-group: Style
+    type: integer
+    x-control: stepper
+    title: Pill padding
+    default: 4
+    minimum: 0
+    maximum: 20
+    x-showIf: {background: pills}
+    x-unit: px
+    description: Extra space around a pill's widgets (px). They sit the screen margin plus this from the screen edge, and as far from the pill's other edges.
+  pillMerge:
+    x-group: Style
+    type: integer
+    x-control: stepper
+    title: Merge distance
+    default: 12
+    minimum: 0
+    maximum: 200
+    x-showIf:
+      background: [pills, floatingPills]
+    x-unit: px
+    description: Groups closer than this share one pill (px).
+  spacing:
+    x-group: Size
+    type: integer
+    x-control: stepper
+    title: Spacing
+    default: 4
+    minimum: 0
+    maximum: 50
+    x-unit: px
+    description: Gap between widgets (px).
+  lockCenter:
+    x-group: Behaviour
+    type: boolean
+    title: Lock center
+    default: false
+    description: Keep the center section dead center on the bar. The other sections shrink or hide widgets on their own side instead of pushing it.
+  reserveSpace:
+    x-group: Behaviour
+    type: boolean
+    title: Reserve space
+    default: true
+    description: Keep windows from tiling underneath the bar.
+  widgetPadding:
+    x-group: Size
+    type: integer
+    x-control: stepper
+    title: Widget padding
+    default: 10
+    minimum: 0
+    maximum: 40
+    x-unit: px
+    description: Space inside each widget, before its icon or text.
+  widgetSpacing:
+    x-group: Size
+    type: integer
+    x-control: stepper
+    title: Inner spacing
+    default: 4
+    minimum: 0
+    maximum: 20
+    x-unit: px
+    description: Gap between items inside a widget.
+  overrideFontSize:
+    x-link: {setting: Appearance.font.size}
+    x-group: Style
+    type: boolean
+    title: Own font size
+    default: false
+    description: 'Off: the bar follows the font size in Look & Feel.'
+  fontSize:
+    x-group: Style
+    type: integer
+    x-control: stepper
+    title: Font size
+    default: 14
+    minimum: 8
+    maximum: 32
+    x-unit: px
+    x-showIf: {overrideFontSize: true}
+  overrideRadius:
+    x-link:
+      - {setting: Widget.radius}
+      - {setting: Appearance.shape.radius}
+    x-group: Style
+    type: boolean
+    title: Own corner radius
+    default: false
+    description: 'Off: widgets follow the interior corner radius in Panels & controls. Pills follow the corner radius in Look & Feel.'
+  widgetRadius:
+    x-group: Style
+    type: integer
+    x-control: stepper
+    title: Widget corner radius
+    default: 6
+    minimum: 0
+    maximum: 50
+    x-unit: px
+    x-showIf: {overrideRadius: true}
+  overrideWidgetStyle:
+    x-link: {setting: BarStyle.widgetStyle}
+    x-group: Widgets
+    type: boolean
+    title: Own widget style
+    default: false
+    description: 'Off: the bar follows the Bar style settings in Look & Feel.'
+  widgetStyle:
+    x-group: Widgets
+    type: string
+    title: Widget style
+    default: filled
+    enum: [filled, tinted, outline, underline, accentText, plain]
+    x-enumLabels:
+      filled: Filled
+      tinted: Tinted
+      outline: Outline
+      underline: Underline
+      accentText: Colored icons
+      plain: Plain text
+    description: 'How each widget shows its color: as its background, a faint tint, an outline, a line beside it, or on its icon. Plain text draws them straight onto the bar.'
+    x-showIf: {overrideWidgetStyle: true}
+  tintOpacity:
+    x-group: Widgets
+    type: integer
+    x-control: slider
+    title: Tint strength
+    default: 20
+    minimum: 5
+    maximum: 100
+    x-unit: '%'
+    x-showIf: {overrideWidgetStyle: true, widgetStyle: tinted}
+  outlineWidth:
+    x-group: Widgets
+    type: integer
+    x-control: stepper
+    title: Outline width
+    default: 2
+    minimum: 1
+    maximum: 6
+    x-unit: px
+    x-showIf: {overrideWidgetStyle: true, widgetStyle: outline}
+  lineWidth:
+    x-group: Widgets
+    type: integer
+    x-control: stepper
+    title: Line width
+    default: 2
+    minimum: 1
+    maximum: 8
+    x-unit: px
+    x-showIf: {overrideWidgetStyle: true, widgetStyle: underline}
+  lineSide:
+    x-group: Widgets
+    type: string
+    title: Line side
+    default: inner
+    enum: [inner, outer]
+    x-enumLabels: {inner: Toward the windows, outer: Toward the screen edge}
+    x-beside: true
+    x-showIf: {overrideWidgetStyle: true, widgetStyle: underline}
+  widgetShape:
+    x-group: Widgets
+    type: string
+    title: Shape
+    default: rounded
+    enum: [rounded, capsule, slant, arrow]
+    x-enumLabels:
+      rounded: Rounded
+      capsule: Capsule
+      slant: Slanted
+      arrow: Arrow
+    description: Rounded follows the widget corner radius. Capsule always gives fully round pill ends, whatever the radius. Slanted and arrow widgets take a little more room for their points.
+    x-showIf:
+      overrideWidgetStyle: true
+      widgetStyle: [filled, tinted, outline]
+  widgetGrouping:
+    x-group: Widgets
+    type: string
+    title: Grouping
+    default: separate
+    enum: [separate, merged, powerline]
+    x-enumLabels: {separate: Separate, merged: Merged, powerline: Powerline}
+    x-beside: true
+    description: 'Merged: neighbouring widgets share one background. Powerline: each widget''s shape runs into the next.'
+    x-showIf:
+      overrideWidgetStyle: true
+      widgetStyle: [filled, tinted, outline]
+  widgetEnds:
+    x-group: Widgets
+    type: string
+    title: Ends
+    default: shaped
+    enum: [shaped, pointed, rounded]
+    x-enumLabels: {shaped: Shaped, pointed: Pointed, rounded: Rounded}
+    x-showIf:
+      overrideWidgetStyle: true
+      widgetStyle: [filled, tinted, outline]
+      widgetShape: [slant, arrow]
+    x-enumShowIf:
+      pointed: {widgetShape: arrow}
+    description: 'The ends of a slanted or arrow widget, or of a run of them: as shaped, rounded, or (arrows) pointed at both.'
+  groupColor:
+    x-group: Widgets
+    type: string
+    title: Merged background
+    x-options: colors
+    default: backgroundAlt
+    description: Widget colors show on their icons instead.
+    x-showIf:
+      overrideWidgetStyle: true
+      widgetStyle: [filled, tinted, outline]
+      widgetGrouping: merged
+  widgetTextColor:
+    x-group: Widgets
+    type: string
+    title: Text color
+    x-options: colors
+    x-emptyLabel: Auto
+    default: ""
+    description: 'One color for every widget''s text and icons. Auto: each widget''s own on a filled background, its color when tinted or outlined, else one that contrasts with the bar.'
+    x-showIf: {overrideWidgetStyle: true}
+  overrideAccents:
+    x-link: {setting: BarStyle.separatorStyle}
+    x-group: Accents
+    type: boolean
+    title: Own accents
+    default: false
+    description: 'Off: the bar follows the Bar style settings in Look & Feel.'
+  separatorStyle:
+    x-group: Accents
+    type: string
+    title: Separators
+    default: none
+    enum: [none, line, dot, slash, chevron]
+    x-enumLabels:
+      none: None
+      line: Line
+      dot: Dot
+      slash: Slash
+      chevron: Chevron
+    description: Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing.
+    x-showIf:
+      overrideAccents: true
+      anyOf:
+        - widgetGrouping: {not: powerline}
+        - widgetStyle: [underline, accentText, plain]
+  separatorColor:
+    x-group: Accents
+    type: string
+    title: Separator color
+    x-options: colors
+    default: base03
+    x-showIf:
+      overrideAccents: true
+      anyOf:
+        - widgetGrouping: {not: powerline}
+        - widgetStyle: [underline, accentText, plain]
+      separatorStyle: {not: none}
+  separatorThickness:
+    x-group: Accents
+    type: integer
+    x-control: stepper
+    title: Separator thickness
+    default: 2
+    minimum: 1
+    maximum: 6
+    x-unit: px
+    x-showIf:
+      overrideAccents: true
+      anyOf:
+        - widgetGrouping: {not: powerline}
+        - widgetStyle: [underline, accentText, plain]
+      separatorStyle: {not: none}
+  separatorGap:
+    x-group: Accents
+    type: integer
+    x-control: stepper
+    title: Separator margin
+    default: 2
+    minimum: 0
+    maximum: 24
+    x-unit: px
+    description: Room between a separator and the widgets on either side of it.
+    x-showIf:
+      overrideAccents: true
+      anyOf:
+        - widgetGrouping: {not: powerline}
+        - widgetStyle: [underline, accentText, plain]
+      separatorStyle: {not: none}
+  accentLine:
+    x-group: Accents
+    type: string
+    title: Accent line
+    default: none
+    enum: [none, inner, outer]
+    x-enumLabels: {none: None, inner: Inner edge, outer: Outer edge}
+    description: A line along the bar's edge toward the windows (inner) or the screen edge (outer); on pills, along each pill.
+    x-showIf: {overrideAccents: true}
+  accentLineColor:
+    x-group: Accents
+    type: string
+    title: Line color
+    x-options: colors
+    default: accent
+    x-showIf:
+      overrideAccents: true
+      accentLine: {not: none}
+  accentLineFade:
+    x-group: Accents
+    type: string
+    title: Fade to
+    x-options: colors
+    x-emptyLabel: None
+    default: ""
+    x-beside: true
+    description: Runs the line from its color into this one along the bar.
+    x-showIf:
+      overrideAccents: true
+      accentLine: {not: none}
+  accentLineWidth:
+    x-group: Accents
+    type: integer
+    x-control: stepper
+    title: Line width
+    default: 2
+    minimum: 1
+    maximum: 8
+    x-unit: px
+    x-showIf:
+      overrideAccents: true
+      accentLine: {not: none}
+  overrideShadow:
+    x-link: {setting: BarStyle.shadow}
+    x-group: Shadow
+    type: boolean
+    title: Own shadow
+    default: false
+    description: 'Off: the bar follows the Bar style settings in Look & Feel.'
+  shadow:
+    x-group: Shadow
+    type: boolean
+    title: Shadow
+    default: false
+    description: Spread evenly round the bar, or its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.
+    x-showIf: {overrideShadow: true}
+  shadowColor:
+    x-group: Shadow
+    type: string
+    title: Shadow color
+    x-options: colors
+    x-emptyLabel: Auto
+    default: ""
+    description: 'Auto: the theme''s accent.'
+    x-showIf: {overrideShadow: true, shadow: true}
+  shadowSize:
+    x-group: Shadow
+    type: integer
+    x-control: stepper
+    title: Shadow size
+    default: 12
+    minimum: 2
+    maximum: 64
+    x-unit: px
+    x-beside: true
+    x-showIf: {overrideShadow: true, shadow: true}
+  widgets:
+    type: object
+    additionalProperties: false
+    properties:
+      left:
+        type: array
+        default: []
+        items:
+          $ref: '#/definitions/BarWidget'
+      leftCenter:
+        type: array
+        default: []
+        items:
+          $ref: '#/definitions/BarWidget'
+      center:
+        type: array
+        default: []
+        items:
+          $ref: '#/definitions/BarWidget'
+      rightCenter:
+        type: array
+        default: []
+        items:
+          $ref: '#/definitions/BarWidget'
+      right:
+        type: array
+        default: []
+        items:
+          $ref: '#/definitions/BarWidget'

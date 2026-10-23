@@ -1,0 +1,95 @@
+# The TimeWidget definition (#/definitions/TimeWidget).
+
+type: object
+x-icon: schedule
+x-libraryGroup: Time & weather
+required: [type]
+additionalProperties: false
+properties:
+  type:
+    const: Time
+    description: Clock
+  visible:
+    type: boolean
+  layout:
+    $ref: '#/definitions/WidgetLayout'
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      use24Hour:
+        type: boolean
+        title: "24-hour"
+        default: false
+      showSeconds:
+        type: boolean
+        title: Seconds
+        default: true
+      showDate:
+        type: boolean
+        title: Date
+        default: true
+      timezone:
+        x-scope: personal
+        type: string
+        title: Time zone
+        x-options: timezones
+        x-control: search
+        x-emptyLabel: System
+        default: ""
+        description: Show the time in another time zone (e.g. Asia/Tokyo). Empty follows the system's.
+      timeFormat:
+        type: string
+        title: Time format
+        default: ""
+        description: Custom Qt time format (e.g. HH:mm). Empty uses the language's format.
+      dateFormat:
+        type: string
+        title: Date format
+        default: ""
+        description: Custom Qt date format (e.g. ddd d MMM). Empty uses the language's format.
+      verticalDate:
+        type: string
+        title: Vertical date
+        default: day
+        enum: [day, monthDay, numeric]
+        x-enumLabels:
+          day: Day and weekday
+          monthDay: Month, day and weekday
+          numeric: Day over month number
+        description: The date's lines on a vertical bar, when no date format is set.
+        x-showIf: {showDate: true}
+      showPopout:
+        type: boolean
+        title: Popout
+        default: true
+        description: Open the calendar when hovered.
+      popoutMenu:
+        type: string
+        title: Open instead
+        default: ""
+        x-options: edgeMenus
+        x-emptyLabel: Its own popout
+        description: An edge menu to open in place of the popout.
+        x-showIf: {showPopout: true}
+      backgroundColor:
+        type: string
+        title: Color
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: accent
+        x-showIf:
+          anyOf:
+            - $bar.widgetStyle: [filled, tinted, outline]
+              $bar.widgetGrouping: {not: merged}
+            - {$bar.widgetStyle: underline}
+      foregroundColor:
+        type: string
+        title: Text color
+        x-options: colors
+        default: base00
+        x-showIf:
+          $bar.widgetStyle: filled
+          $bar.widgetGrouping: {not: merged}
+          $bar.widgetTextColor: ""

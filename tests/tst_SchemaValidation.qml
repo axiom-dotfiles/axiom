@@ -3,7 +3,14 @@ import QtTest
 import qs.components.methods
 
 TestCase {
+  id: test
   name: "SchemaValidation"
+
+  // Records the helper calls as shared fixtures (Shared.qml)
+  Shared {
+    id: shared
+    testCase: test
+  }
 
   readonly property var schema: ({
       "type": "object",
@@ -86,11 +93,11 @@ TestCase {
     })
 
   function errors(value) {
-    return SchemaValidation.validationErrors(value, schema);
+    return shared.validationErrors(value, schema);
   }
 
   function test_defaults_fill_everything() {
-    const filled = SchemaValidation.applyDefaults({}, schema);
+    const filled = shared.applyDefaults({}, schema);
     compare(filled.size, 10);
     compare(filled.mode, "a");
     compare(filled.nested.on, true);
@@ -105,14 +112,14 @@ TestCase {
         "on": false
       }
     };
-    const filled = SchemaValidation.applyDefaults(input, schema);
+    const filled = shared.applyDefaults(input, schema);
     compare(filled.size, 3);
     compare(filled.nested.on, false);
     compare(input.mode, undefined);
   }
 
   function test_defaults_follow_oneOf_by_type() {
-    const filled = SchemaValidation.applyDefaults({
+    const filled = shared.applyDefaults({
       "widgets": [
         {
           "type": "Clock"
@@ -205,7 +212,7 @@ TestCase {
         "kept": 1
       }
     };
-    const removed = SchemaValidation.pruneUnknown(value, schema);
+    const removed = shared.pruneUnknown(value, schema);
     compare(removed.sort(), ["nested.old", "stray", "widgets[0].gone"]);
     compare(value.stray, undefined);
     compare(value.free.kept, 1);
@@ -215,7 +222,7 @@ TestCase {
   // Keys beside a $ref override the definition's: one definition, two
   // defaults (Lockscreen.layout and Greeter.layout share ScreenLayout)
   function test_ref_siblings_override_the_definition() {
-    const shared = {
+    const twoDefaults = {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -255,25 +262,25 @@ TestCase {
         }
       }
     };
-    const filled = SchemaValidation.applyDefaults({}, shared);
+    const filled = shared.applyDefaults({}, twoDefaults);
     compare(filled.a.items, ["a"]);
     compare(filled.b.items, ["b"]);
     compare(filled.a.size, 2);
     compare(filled.plain.items, []);
     // A value that is there keeps its own, and fills only what's missing
-    compare(SchemaValidation.applyDefaults({
+    compare(shared.applyDefaults({
       "a": {
         "size": 5
       }
-    }, shared).a.items, []);
-    compare(SchemaValidation.validationErrors(filled, shared), []);
+    }, twoDefaults).a.items, []);
+    compare(shared.validationErrors(filled, twoDefaults), []);
     const stray = {
       "a": {
         "size": 1,
         "gone": true
       }
     };
-    compare(SchemaValidation.pruneUnknown(stray, shared), ["a.gone"]);
+    compare(shared.pruneUnknown(stray, twoDefaults), ["a.gone"]);
   }
 
   function test_getSchemaProperty() {

@@ -1,0 +1,242 @@
+# The Chat section of the config (config.json's "Chat").
+
+type: object
+x-category: Modules
+x-card: ChatProviders
+x-cardTitle: Chat API keys
+x-cardWide: true
+title: Chat
+description: 'The Chat overlay module, and the launcher''s @ prefix. API keys are never stored here: set them on the card above (they go to your keyring, or $XDG_STATE_HOME/axiom/secrets.json without one), or in each provider''s environment variable.'
+additionalProperties: false
+properties:
+  defaultProvider:
+    type: string
+    title: Default provider
+    x-group: Chat conversations
+    default: anthropic
+    x-options: chatProviders
+    description: Used by presets that don't name a provider of their own.
+  defaultPreset:
+    x-scope: personal
+    type: string
+    title: Default preset
+    x-group: Chat conversations
+    default: Default
+    x-options: chatPresets
+    description: What a new conversation starts with.
+  maxTokens:
+    type: integer
+    title: Longest reply
+    x-unit: tokens
+    x-group: Chat conversations
+    default: 16000
+    minimum: 256
+    maximum: 128000
+    description: A reply that reaches this is cut off, with a note saying so.
+  keepConversations:
+    x-scope: personal
+    type: integer
+    title: Conversations kept
+    x-group: Chat conversations
+    default: 50
+    minimum: 0
+    maximum: 500
+    description: 'Older ones are deleted. 0 keeps none: conversations last until the shell restarts.'
+  showThinking:
+    x-scope: personal
+    type: boolean
+    title: Show thinking
+    x-group: Chat display
+    default: true
+    description: Ask models that reason for a summary of it, shown folded above the reply.
+  renderMarkdown:
+    x-scope: personal
+    type: boolean
+    title: Format replies
+    x-group: Chat display
+    default: true
+    description: Draw Markdown (headings, lists, tables, code blocks) instead of the raw text.
+  sendKey:
+    x-scope: personal
+    type: string
+    title: Send with
+    x-group: Chat display
+    enum: [enter, ctrlEnter]
+    x-enumLabels:
+      enter: Enter (Shift+Enter for a new line)
+      ctrlEnter: Ctrl+Enter (Enter for a new line)
+    default: enter
+  providers:
+    x-wide: true
+    type: array
+    title: Providers
+    description: 'Where chats are sent. The OpenAI kind also covers Ollama, LM Studio, llama.cpp, OpenRouter, Groq and anything else with an OpenAI-style API: set its address.'
+    default:
+      - id: anthropic
+        name: Anthropic
+        kind: anthropic
+        baseUrl: https://api.anthropic.com/v1
+        auth: key
+        keyEnv: ANTHROPIC_API_KEY
+        models:
+          - claude-opus-5
+          - claude-sonnet-5
+          - claude-haiku-4-5
+          - claude-fable-5-1
+          - claude-opus-5-5
+        defaultModel: claude-opus-5
+        fallbacks: true
+      - id: openai
+        name: OpenAI
+        kind: openai
+        baseUrl: https://api.openai.com/v1
+        auth: key
+        keyEnv: OPENAI_API_KEY
+        models: [gpt-5, gpt-5-mini]
+        defaultModel: gpt-5
+        fallbacks: false
+      - id: gemini
+        name: Gemini
+        kind: gemini
+        baseUrl: https://generativelanguage.googleapis.com/v1beta
+        auth: key
+        keyEnv: GEMINI_API_KEY
+        models: [gemini-2.5-pro, gemini-2.5-flash]
+        defaultModel: gemini-2.5-flash
+        fallbacks: false
+      - id: ollama
+        name: Ollama
+        kind: openai
+        baseUrl: http://localhost:11434/v1
+        auth: none
+        keyEnv: ""
+        models: []
+        defaultModel: ""
+        fallbacks: false
+    items:
+      type: object
+      additionalProperties: false
+      x-order:
+        - name
+        - id
+        - kind
+        - baseUrl
+        - auth
+        - keyEnv
+        - models
+        - defaultModel
+        - fallbacks
+      properties:
+        id:
+          type: string
+          title: ID
+          default: ""
+          description: Names the provider's key in the keyring and presets' provider field. Lowercase letters, digits and dashes.
+        name:
+          type: string
+          title: Name
+          default: ""
+        kind:
+          type: string
+          title: API
+          enum: [anthropic, openai, gemini]
+          x-enumLabels:
+            anthropic: Anthropic Messages
+            openai: OpenAI-compatible
+            gemini: Google Gemini
+          default: openai
+        baseUrl:
+          type: string
+          title: Address
+          default: ""
+          description: The API's base URL, up to and including its version (e.g. http://localhost:11434/v1).
+        auth:
+          type: string
+          title: Key
+          enum: [key, none]
+          x-enumLabels: {key: Needs an API key, none: No key (local server)}
+          default: key
+        keyEnv:
+          type: string
+          title: Key variable
+          default: ""
+          description: An environment variable that holds the key, if you keep it there. It wins over a stored key.
+          x-showIf: {auth: key}
+        models:
+          type: array
+          title: Models
+          default: []
+          items:
+            type: string
+          description: Model ids to choose from, comma-separated. Fetch models on the card above fills this in.
+        defaultModel:
+          type: string
+          title: Default model
+          default: ""
+          description: Empty uses the first of the models.
+        fallbacks:
+          type: boolean
+          title: Refusal fallback
+          default: true
+          description: When the model declines a request, the API retries it on another model within the same reply.
+          x-showIf: {kind: anthropic}
+  presets:
+    x-scope: personal
+    type: array
+    title: Presets
+    description: 'Saved setups to start a conversation with: a system prompt, and optionally a provider, model and effort of their own.'
+    default:
+      - name: Default
+        icon: chat
+        systemPrompt: You are a helpful assistant built into the user's Linux desktop. Answer concisely, and use Markdown when it helps.
+        provider: ""
+        model: ""
+        effort: default
+      - name: Coder
+        icon: code
+        systemPrompt: You are an expert programmer. Lead with working code, then explain briefly. Prefer small, idiomatic changes.
+        provider: ""
+        model: ""
+        effort: high
+    items:
+      type: object
+      additionalProperties: false
+      x-order: [name, icon, systemPrompt, provider, model, effort]
+      properties:
+        name:
+          type: string
+          title: Name
+          default: ""
+        icon:
+          type: string
+          title: Icon
+          default: chat
+          description: A Material Symbols name (fonts.google.com/icons).
+        systemPrompt:
+          type: string
+          title: System prompt
+          default: ""
+          x-multiline: true
+        provider:
+          type: string
+          title: Provider
+          default: ""
+          description: A provider ID. Empty uses the default provider.
+        model:
+          type: string
+          title: Model
+          default: ""
+          description: Empty uses the provider's default model.
+        effort:
+          type: string
+          title: Effort
+          enum: [default, low, medium, high, xhigh, max]
+          x-enumLabels:
+            default: Model default
+            low: Low
+            medium: Medium
+            high: High
+            xhigh: Extra high
+            max: Max
+          default: default
+          description: How hard a reasoning model thinks. Models that don't reason ignore it.

@@ -6,7 +6,7 @@
 
 ## Files to touch
 1. `components/bar/widgets/<Type>.qml`: the widget. The file name is the type const.
-2. `config/json/config.schema.json`: a `<Type>Widget` entry in `definitions`, and `{ "$ref": "#/definitions/<Type>Widget" }` appended to `definitions.BarWidget.oneOf`.
+2. `config/schema/definitions/widgets/<Type>Widget.yaml` (and its name in `config/schema/index.yaml`'s `definitions`), and `{$ref: "#/definitions/<Type>Widget"}` appended to the `oneOf` of `config/schema/definitions/widgets/BarWidget.yaml`.
 3. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template (the title, descriptions and the type's `description`, which is its library label, are keys).
 4. If it opens a popout of its own: `components/content/<Name>.qml` ([bar-popout](bar-popout.md)).
 5. If it needs data that's polled: the service's `acquire`/`release` ([service](service.md)).
@@ -70,7 +70,7 @@ Schema entry (in `definitions`):
 Without a popout of its own, `showPopout` is `"title": "Menu popout", "default": false, "description": "Open an edge menu when hovered."` and `popoutMenu` has `"title": "Menu", "x-emptyLabel": "None", "description": "The edge menu to open."` (as `IdleInhibitorWidget`).
 
 ## Steps
-1. Write the schema entry first and add its `$ref` to `definitions.BarWidget.oneOf`. Pick `x-libraryGroup` from the root's `x-libraryGroups` (`Desktop`, `Time & weather`, `Media & audio`, `Network & devices`, `System`, `Tools`, `Look & layout`, `Session`).
+1. Write the schema entry first and add its `$ref` to `BarWidget.yaml`'s `oneOf`. Pick `x-libraryGroup` from the root's `x-libraryGroups` (`Desktop`, `Time & weather`, `Media & audio`, `Network & devices`, `System`, `Tools`, `Look & layout`, `Session`).
 2. Write `components/bar/widgets/<Type>.qml` with its purpose comment above the root.
 3. Read every setting as `properties.<key>` (always present: defaults are filled at load).
 4. Polled data: a request built from `properties` only (copy `Updates.qml`'s `updatesRequest`), acquired in `Component.onCompleted` and on its change, released in `onDestruction`.

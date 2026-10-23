@@ -1,0 +1,293 @@
+# The ThemeIntegrations section of the config (config.json's "ThemeIntegrations").
+
+type: object
+x-category: Theme integrations
+x-cardPerField: true
+x-links: [Themes]
+title: Theme integrations
+description: Re-theme external apps whenever the shell theme changes. Each writes its own axiom file; turned on, it shows the line that loads that file from the app's config, to copy or to apply (which backs your config up first).
+additionalProperties: false
+properties:
+  gtk:
+    type: boolean
+    title: GTK
+    default: false
+    description: Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (adw-gtk-theme on Arch, adw-gtk3-theme on Fedora).
+    x-hookup:
+      - file: '{config}/gtk-3.0/gtk.css'
+        place: start
+        text: '@import url("axiom.css");'
+        accept: ^@import url\(["']?axiom\.css
+      - file: '{config}/gtk-4.0/gtk.css'
+        place: start
+        text: '@import url("axiom.css");'
+        accept: ^@import url\(["']?axiom\.css
+        wrapLink: '@import url("file://{link}");'
+  qt:
+    type: boolean
+    title: Qt and KDE apps
+    default: false
+    description: Writes an "axiom" color scheme for qt5ct and qt6ct, and an "Axiom" KDE color scheme (Dolphin, Gwenview, Okular, Kate…).
+    x-hookupNote: 'Qt apps take the palette from qt5ct / qt6ct only with QT_QPA_PLATFORMTHEME=qt5ct, which a managed compositor config sets while this is on (apps started from your next login get it); otherwise set it in your compositor''s environment. KDE apps read most of their colors from kdeglobals instead: once its ColorScheme is Axiom, axiom keeps its color groups a copy of the scheme on every theme change, as Plasma does. Apps with a color scheme menu of their own (Okular, Dolphin, Kate, Gwenview) pick Breeze outside Plasma unless kdeglobals'' UiSettings names one: the last line does, for every app whose own menu is left at Default. Those apps load the scheme when they start, so restart them after a theme change.'
+    x-hookup:
+      - file: '{config}/qt5ct/qt5ct.conf'
+        place: section
+        section: Appearance
+        comment: ;
+        requires: qt5ct
+        text: |-
+          custom_palette=true
+          color_scheme_path={config}/qt5ct/colors/axiom.conf
+      - file: '{config}/qt6ct/qt6ct.conf'
+        place: section
+        section: Appearance
+        comment: ;
+        requires: qt6ct
+        text: |-
+          custom_palette=true
+          color_scheme_path={config}/qt6ct/colors/axiom.conf
+      - file: '{config}/kdeglobals'
+        title: KDE apps
+        place: section
+        section: General
+        text: ColorScheme=Axiom
+      - file: '{config}/kdeglobals'
+        title: KDE apps with a color scheme menu (Okular, Dolphin, Kate…)
+        place: section
+        section: UiSettings
+        text: ColorScheme=Axiom
+  kitty:
+    type: boolean
+    title: Kitty
+    default: false
+    description: Writes kitty/axiom.conf. Reloads kitty when allow_remote_control is on.
+    x-hookup:
+      - file: '{config}/kitty/kitty.conf'
+        place: end
+        text: include axiom.conf
+        accept: ^include\s+\S*axiom\.conf
+  alacritty:
+    type: boolean
+    title: Alacritty
+    default: false
+    description: Writes alacritty/axiom.toml. Alacritty reloads it by itself.
+    x-hookupNote: 'Alacritty loads imported files before its own, so colors set in alacritty.toml still win: remove them to use axiom''s.'
+    x-hookup:
+      - file: '{config}/alacritty/alacritty.toml'
+        place: section
+        section: general
+        replace: conflict
+        text: import = ["{config}/alacritty/axiom.toml"]
+        accept: ^(general\.)?import\s*=.*axiom\.toml
+  foot:
+    type: boolean
+    title: Foot
+    default: false
+    description: Writes foot/axiom.ini. Applies to new windows.
+    x-hookup:
+      - file: '{config}/foot/foot.ini'
+        place: top
+        replace: keep
+        text: include={config}/foot/axiom.ini
+        accept: ^include\s*=\s*\S*axiom\.ini
+  wezterm:
+    type: boolean
+    title: WezTerm
+    default: false
+    description: Writes the "axiom" color scheme. WezTerm picks it up on its next config reload.
+    x-hookup:
+      - text: config.color_scheme = "axiom"
+        where: In wezterm.lua, before the final 'return config'.
+  ghostty:
+    type: boolean
+    title: Ghostty
+    default: false
+    description: Writes the "axiom" theme. Ghostty 1.2+ reloads it.
+    x-hookup:
+      - file: ['{config}/ghostty/config', '{config}/ghostty/config.ghostty']
+        place: end
+        text: theme = axiom
+        accept: ^theme\s*=\s*axiom\s*$
+  nvim:
+    type: boolean
+    title: Neovim
+    default: false
+    description: Writes the theme for the axiom_theme module, and reloads running instances.
+    x-hookupNote: Neovim has no single line to add. Its colors come from colorscheme plugins your config loads, often lazily through a plugin manager and after init.lua has run, so a file read at startup would be overridden. axiom writes the theme to $XDG_STATE_HOME/axiom/nvim-theme.json; the axiom_theme module reads it, picks a colorscheme you map to it (or builds one from the palette) and reloads when the theme changes. Copy the module into your config, then call its setup() once your plugins are loaded.
+    x-hookup:
+      - file: '{config}/nvim/lua/axiom_theme.lua'
+        place: copy
+        from: templates/nvim/axiom_theme.lua
+      - text: require("axiom_theme").setup()
+        where: In init.lua, after your plugin manager's setup (with lazy.nvim, after require("lazy").setup(…)).
+  helix:
+    type: boolean
+    title: Helix
+    default: false
+    description: Writes the "axiom" theme. Helix 23.10+ reloads it.
+    x-hookup:
+      - file: '{config}/helix/config.toml'
+        place: top
+        text: theme = "axiom"
+        accept: ^theme\s*=\s*"axiom"
+  vscode:
+    type: boolean
+    title: VS Code / VSCodium
+    default: false
+    description: Installs a local "Axiom" color theme extension.
+    x-hookup:
+      - text: '"workbench.colorTheme": "Axiom"'
+        where: 'In settings.json (Preferences: Open User Settings (JSON)), or pick Axiom under Preferences: Color Theme.'
+  zed:
+    type: boolean
+    title: Zed
+    default: false
+    description: Writes the "Axiom" theme, which follows light/dark. Zed reloads it.
+    x-hookup:
+      - text: '"theme": "Axiom"'
+        where: 'In Zed''s settings.json (zed: open settings), or pick Axiom in the theme selector (ctrl-k ctrl-t). With "mode": "system", set both "light" and "dark" to Axiom.'
+  vesktop:
+    type: boolean
+    title: Vesktop / Vencord
+    default: false
+    description: Writes the axiom.theme.css Vencord theme for Vesktop (and Vencord, Equibop, Equicord). Discord re-colors live.
+    x-hookup:
+      - text: axiom.theme.css
+        where: 'In Vesktop: Settings → Vencord → Themes, switch it on.'
+  firefox:
+    type: boolean
+    title: Firefox / LibreWolf / Zen
+    default: false
+    description: Writes chrome/axiom.css into every profile of Firefox and its forks (LibreWolf, Zen, Floorp, Waterfox; Flatpak too), recoloring the browser's tabs, toolbars, menus and sidebar. Applies from each browser's next start; websites only follow light/dark.
+    x-hookupNote: 'Apply sets up every profile it finds: it imports axiom.css at the top of each profile''s chrome/userChrome.css, and turns on toolkit.legacyUserProfileCustomizations.stylesheets in its user.js, which Firefox needs before it reads userChrome.css. Restart the browser afterwards.'
+    x-profiles:
+      - '{home}/.mozilla/firefox/profiles.ini'
+      - '{config}/mozilla/firefox/profiles.ini'
+      - '{home}/.var/app/org.mozilla.firefox/.mozilla/firefox/profiles.ini'
+      - '{home}/.var/app/org.mozilla.firefox/config/mozilla/firefox/profiles.ini'
+      - '{home}/.librewolf/profiles.ini'
+      - '{config}/librewolf/librewolf/profiles.ini'
+      - '{home}/.var/app/io.gitlab.librewolf-community/.librewolf/profiles.ini'
+      - '{home}/.zen/profiles.ini'
+      - '{config}/zen/profiles.ini'
+      - '{home}/.var/app/app.zen_browser.zen/.zen/profiles.ini'
+      - '{home}/.floorp/profiles.ini'
+      - '{home}/.var/app/one.ablaze.floorp/.floorp/profiles.ini'
+      - '{home}/.waterfox/profiles.ini'
+      - '{home}/.var/app/net.waterfox.waterfox/.waterfox/profiles.ini'
+    x-hookup:
+      - perProfile: true
+        file: chrome/userChrome.css
+        place: start
+        text: '@import url("axiom.css");'
+        accept: ^@import url\(["']?axiom\.css
+      - perProfile: true
+        file: user.js
+        place: end
+        comment: //
+        text: user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
+        accept: ^user_pref\("toolkit\.legacyUserProfileCustomizations\.stylesheets",\s*true\)
+  k9s:
+    type: boolean
+    title: k9s
+    default: false
+    description: Writes the "axiom" skin. k9s reloads it by itself.
+    x-hookup:
+      - text: |-
+          k9s:
+            ui:
+              skin: axiom
+        where: 'In ~/.config/k9s/config.yaml, merged into its k9s: section.'
+  cava:
+    type: boolean
+    title: Cava
+    default: false
+    description: Writes cava/colors/axiom.conf (and a Cava config including it, when there is none). Reloads running Cava.
+    x-hookup:
+      - file: '{config}/cava/config'
+        place: top
+        replace: keep
+        text: include = {config}/cava/colors/axiom.conf
+        accept: ^include\s*=\s*\S*axiom\.conf
+  btop:
+    type: boolean
+    title: btop
+    default: false
+    description: Writes the "axiom" theme. Applies from btop's next start.
+    x-hookup:
+      - file: '{config}/btop/btop.conf'
+        place: top
+        text: color_theme = "axiom"
+        accept: ^color_theme\s*=\s*"(axiom|\S*/axiom\.theme)"
+  ncspot:
+    type: boolean
+    title: ncspot
+    default: false
+    description: Writes the colors into the [theme] table of ncspot's config.toml, between axiom's markers. Reloads running ncspot.
+    x-hookupNote: 'ncspot can''t load a separate theme file, so unlike the other integrations this one edits your config.toml: Apply adds two marker lines to its [theme] table, and every theme change rewrites the lines between them. Keep your own edits outside the markers. A key you set in [theme] yourself wins over axiom''s.'
+    x-hookup:
+      - file: '{config}/ncspot/config.toml'
+        place: section
+        section: theme
+        replace: keep
+        text: |-
+          # axiom theme: begin (rewritten on every theme change)
+          # axiom theme: end
+  fzf:
+    type: boolean
+    title: fzf
+    default: false
+    description: Writes --color options to $XDG_STATE_HOME/axiom/fzf-colors (fzf 0.49+).
+    x-hookup:
+      - place: shellrc
+        replace: keep
+        text: export FZF_DEFAULT_OPTS_FILE="{state}/axiom/fzf-colors"
+        accept: FZF_DEFAULT_OPTS_FILE[= ].*axiom/fzf-colors
+  lazygit:
+    type: boolean
+    title: lazygit
+    default: false
+    description: Writes lazygit/axiom.yml. Applies from lazygit's next start.
+    x-hookupNote: 'This sets LG_CONFIG_FILE, which takes the place of any value you set yourself: add your own files to it.'
+    x-hookup:
+      - place: shellrc
+        replace: keep
+        text: export LG_CONFIG_FILE="{config}/lazygit/config.yml,{config}/lazygit/axiom.yml"
+        accept: LG_CONFIG_FILE[= ].*axiom\.yml
+  bat:
+    type: boolean
+    title: bat / delta
+    default: false
+    description: Writes the "axiom" syntax theme for bat and delta, and rebuilds bat's cache.
+    x-hookup:
+      - file: '{config}/bat/config'
+        place: end
+        text: "--theme=axiom"
+        accept: ^--theme[= ]"?axiom"?\s*$
+      - file: ['{home}/.gitconfig', '{config}/git/config']
+        place: section
+        section: delta
+        requires: delta
+        text: syntax-theme = axiom
+  yazi:
+    type: boolean
+    title: Yazi
+    default: false
+    description: Writes the "axiom" flavor (Yazi 25.5+).
+    x-hookup:
+      - file: '{config}/yazi/theme.toml'
+        place: section
+        section: flavor
+        text: |-
+          dark = "axiom"
+          light = "axiom"
+  zathura:
+    type: boolean
+    title: zathura
+    default: false
+    description: 'Writes zathura/axiom: the interface, search highlights and recolor mode''s page colors. Reloads running zathura.'
+    x-hookup:
+      - file: '{config}/zathura/zathurarc'
+        place: end
+        text: include axiom
+        accept: ^include\s+\S*axiom\s*$

@@ -1,0 +1,141 @@
+# The Keybinds section of the config (config.json's "Keybinds").
+
+type: object
+x-category: Compositor
+x-settings: false
+title: Keybinds
+description: Edited on the Keybinds page.
+additionalProperties: false
+properties:
+  binds:
+    x-scope: personal
+    type: array
+    title: Keybinds
+    description: Edited on the Keybinds page.
+    default:
+      - {key: SUPER + space, action: launcher}
+      - {key: SUPER + Tab, action: overlay}
+      - {key: SUPER + SHIFT + space, action: workspaceOverview}
+      - {key: ALT + Tab, action: windowSwitcher}
+      - {key: ALT + SHIFT + Tab, action: windowSwitcherReverse}
+      - {key: SUPER + Escape, action: powerMenu}
+      - {key: SUPER + CTRL + L, action: lock}
+      - {key: SUPER + CTRL + R, action: restartShell, release: true}
+      - {key: SUPER + SHIFT + Escape, action: exitSession, release: true}
+      - {key: SUPER + Return, action: terminal}
+      - {key: SUPER + Q, action: terminal}
+      - {key: SUPER + E, action: fileManager}
+      - {key: SUPER + B, action: browser}
+      - {key: Print, action: screenshot, argument: region}
+      - {key: SHIFT + Print, action: screenshot, argument: window}
+      - {key: SUPER + Print, action: screenshot, argument: screen}
+      - {key: SUPER + CTRL + S, action: screenshot, argument: region}
+      - {key: SUPER + SHIFT + Print, action: screenRecord}
+      - {key: SUPER + 1, action: workspaceNth, argument: "1"}
+      - {key: SUPER + SHIFT + 1, action: moveWindowNth, argument: "1"}
+      - {key: SUPER + 2, action: workspaceNth, argument: "2"}
+      - {key: SUPER + SHIFT + 2, action: moveWindowNth, argument: "2"}
+      - {key: SUPER + 3, action: workspaceNth, argument: "3"}
+      - {key: SUPER + SHIFT + 3, action: moveWindowNth, argument: "3"}
+      - {key: SUPER + 4, action: workspaceNth, argument: "4"}
+      - {key: SUPER + SHIFT + 4, action: moveWindowNth, argument: "4"}
+      - {key: SUPER + 5, action: workspaceNth, argument: "5"}
+      - {key: SUPER + SHIFT + 5, action: moveWindowNth, argument: "5"}
+      - {key: SUPER + 6, action: workspaceNth, argument: "6"}
+      - {key: SUPER + SHIFT + 6, action: moveWindowNth, argument: "6"}
+      - {key: SUPER + 7, action: workspaceNth, argument: "7"}
+      - {key: SUPER + SHIFT + 7, action: moveWindowNth, argument: "7"}
+      - {key: SUPER + 8, action: workspaceNth, argument: "8"}
+      - {key: SUPER + SHIFT + 8, action: moveWindowNth, argument: "8"}
+      - {key: SUPER + 9, action: workspaceNth, argument: "9"}
+      - {key: SUPER + SHIFT + 9, action: moveWindowNth, argument: "9"}
+      - {key: SUPER + 0, action: workspaceNth, argument: "10"}
+      - {key: SUPER + SHIFT + 0, action: moveWindowNth, argument: "10"}
+      - {key: SUPER + W, action: workspaceStep, argument: up}
+      - {key: SUPER + SHIFT + W, action: moveWindowStep, argument: up}
+      - {key: SUPER + A, action: workspaceStep, argument: left}
+      - {key: SUPER + SHIFT + A, action: moveWindowStep, argument: left}
+      - {key: SUPER + S, action: workspaceStep, argument: down}
+      - {key: SUPER + SHIFT + S, action: moveWindowStep, argument: down}
+      - {key: SUPER + D, action: workspaceStep, argument: right}
+      - {key: SUPER + SHIFT + D, action: moveWindowStep, argument: right}
+      - {key: SUPER + H, action: focusDir, argument: left}
+      - {key: SUPER + SHIFT + H, action: moveWindowDir, argument: left}
+      - {key: SUPER + J, action: focusDir, argument: down}
+      - {key: SUPER + SHIFT + J, action: moveWindowDir, argument: down}
+      - {key: SUPER + K, action: focusDir, argument: up}
+      - {key: SUPER + SHIFT + K, action: moveWindowDir, argument: up}
+      - {key: SUPER + L, action: focusDir, argument: right}
+      - {key: SUPER + SHIFT + L, action: moveWindowDir, argument: right}
+      - key: SUPER + ALT + H
+        action: resizeWindow
+        argument: "-50 0"
+        repeating: true
+      - key: SUPER + ALT + J
+        action: resizeWindow
+        argument: "0 50"
+        repeating: true
+      - key: SUPER + ALT + K
+        action: resizeWindow
+        argument: "0 -50"
+        repeating: true
+      - key: SUPER + ALT + L
+        action: resizeWindow
+        argument: "50 0"
+        repeating: true
+      - {key: SUPER + C, action: closeWindow}
+      - {key: SUPER + F, action: fullscreen}
+      - {key: SUPER + Z, action: toggleFloat}
+      - {key: SUPER + X, action: toggleSplit}
+      - {key: SUPER + V, action: toggleSpecial, argument: magic}
+      - {key: SUPER + SHIFT + V, action: moveToSpecial, argument: magic}
+      - {key: 'SUPER + mouse:272', action: mouseDrag}
+      - {key: 'SUPER + mouse:273', action: mouseResize}
+      - {key: SUPER + mouse_down, action: scrollStep, argument: right}
+      - {key: SUPER + mouse_up, action: scrollStep, argument: left}
+      - key: XF86AudioRaiseVolume
+        action: volumeUp
+        locked: true
+        repeating: true
+      - key: XF86AudioLowerVolume
+        action: volumeDown
+        locked: true
+        repeating: true
+      - {key: XF86AudioMute, action: toggleMute, locked: true}
+      - {key: XF86AudioMicMute, action: toggleMicMute, locked: true}
+      - key: XF86MonBrightnessUp
+        action: brightnessUp
+        locked: true
+        repeating: true
+      - key: XF86MonBrightnessDown
+        action: brightnessDown
+        locked: true
+        repeating: true
+      - {key: XF86AudioPlay, action: mediaPlayPause, locked: true}
+      - {key: XF86AudioPause, action: mediaPlayPause, locked: true}
+      - {key: XF86AudioNext, action: mediaNext, locked: true}
+      - {key: XF86AudioPrev, action: mediaPrevious, locked: true}
+      - {key: XF86AudioStop, action: mediaStop, locked: true}
+    items:
+      $ref: '#/definitions/Keybind'
+  presets:
+    x-scope: personal
+    type: array
+    title: Saved keybind presets
+    description: Sets of binds saved from the Keybinds page, to restore or merge later. Edited on the Keybinds page.
+    default: []
+    items:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          default: ""
+        name:
+          type: string
+          default: ""
+        binds:
+          type: array
+          default: []
+          items:
+            $ref: '#/definitions/Keybind'

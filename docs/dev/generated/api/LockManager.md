@@ -9,6 +9,7 @@ The one way to lock the session, whatever locks it (Lockscreen.mode): "quickshel
 
 - `mode` (readonly string)
 - `builtinLocked` (bool): The built-in lock is up (set by shell/Lockscreen.qml, which owns it)
+- `builtinSecure` (bool): …and the compositor has acknowledged it (the session is locked)
 - `editor` (ScreenLayoutEditor)
 
 ### Signals

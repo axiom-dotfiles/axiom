@@ -1,0 +1,16 @@
+# The KeyboardLayoutOverlayModule definition (#/definitions/KeyboardLayoutOverlayModule).
+
+x-link: {setting: Input.kbLayout}
+type: object
+x-icon: keyboard
+x-libraryGroup: Session
+x-defaultSize: [2, 1]
+x-hosts: [greeter]
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: KeyboardLayout
+    description: Keyboard layout

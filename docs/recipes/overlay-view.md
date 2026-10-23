@@ -6,9 +6,9 @@
 
 ## Files to touch
 1. `components/views/<Type>.qml`: the page; its pieces in `components/views/<type>/` (lower-case folder).
-2. `config/json/config.schema.json`: a `<X>OverlayView` definition, its `$ref` in `definitions.OverlayView.oneOf`.
+2. `config/schema/definitions/views/<X>OverlayView.yaml` (and its name in `config/schema/index.yaml`'s `definitions`), its `$ref` in the `oneOf` of `config/schema/definitions/views/OverlayView.yaml`.
 3. Tool page only:
-   - the schema's `Overlay.views` `default` array: append `{ "type": "<Type>" }`;
+   - `config/schema/sections/Overlay.yaml`'s `views` `default` array: append `{ "type": "<Type>" }`;
    - `components/methods/ConfigMigration.qml`: a step appending it to existing configs, plus a `version` bump ([migration](migration.md));
    - `tests/tst_Config.qml`: a `test_v<N>_adds_the_<x>_page_once` case;
    - `services/LauncherCommands.qml`: a way to open it (below);

@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.components.hosts.popout
 import qs.components.reusable
@@ -77,7 +76,7 @@ Scope {
     }
   }
 
-  IpcHandler {
+  IpcTarget {
     target: "appLauncher"
     enabled: ShellManager.isTarget(root.screen, LauncherConfig.monitors)
 

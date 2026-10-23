@@ -1,0 +1,138 @@
+# The Overlay section of the config (config.json's "Overlay").
+
+x-scope: personal
+type: object
+x-category: Overlay & Popouts
+x-links: [Layouts]
+x-order:
+  - monitors
+  - moduleScale
+  - navigator
+  - navigatorLabels
+  - animation
+  - showBackdrop
+  - backdrop
+  - closeOnEscape
+  - closeOnOutsideClick
+title: Overlay
+additionalProperties: false
+properties:
+  monitors:
+    x-link: {setting: General.monitors}
+    x-scope: look
+    type: string
+    title: Monitors
+    enum: [general, primary, focused, all]
+    x-enumLabels:
+      general: As in General
+      primary: Primary monitor
+      focused: Focused monitor
+      all: Every monitor
+    default: general
+    description: Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
+  moduleScale:
+    x-link: {setting: Widget.cardSize}
+    x-scope: look
+    x-group: Size
+    type: integer
+    x-control: stepper
+    title: Module size
+    default: 100
+    minimum: 50
+    maximum: 100
+    x-unit: '%'
+    description: Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content shrink with them. For bigger cards, raise the card size.
+  navigator:
+    x-scope: look
+    x-group: Page switcher
+    type: string
+    title: Position
+    enum: [bottom, top]
+    x-enumLabels: {bottom: Bottom, top: Top}
+    default: bottom
+    description: The screen edge the page switcher sits on.
+  navigatorLabels:
+    x-scope: look
+    x-group: Page switcher
+    type: string
+    title: Page names
+    enum: [auto, current, icons]
+    x-enumLabels:
+      auto: All, while they fit
+      current: Current page only
+      icons: Icons only
+    default: auto
+    description: Which pages show their name beside their icon. Tool pages are always icons, named in a tooltip.
+  animation:
+    x-scope: look
+    x-group: Look
+    type: string
+    title: Opening animation
+    enum: [top, bottom, fade]
+    x-enumLabels:
+      top: Slide from the top
+      bottom: Slide from the bottom
+      fade: Fade
+    default: top
+    description: How the overlay and its dim background come in and go.
+  showBackdrop:
+    x-scope: look
+    x-group: Look
+    type: boolean
+    title: Dim background
+    default: true
+    description: Dim the whole screen behind the overlay, under the bars and border.
+  backdrop:
+    x-scope: look
+    x-group: Look
+    type: integer
+    title: Backdrop darkness
+    x-unit: '%'
+    default: 85
+    minimum: 0
+    maximum: 90
+    description: How dark the screen behind the overlay goes.
+    x-showIf: {showBackdrop: true}
+  closeOnEscape:
+    type: boolean
+    title: Close on Escape
+    default: false
+    description: Close the overlay when Escape is pressed (unless something in it, like a popup, uses the key first).
+  closeOnOutsideClick:
+    type: boolean
+    title: Close on outside click
+    default: false
+    description: 'Close the overlay when you click outside it: on a bar, the screen border or another monitor.'
+  views:
+    x-scope: look
+    type: array
+    x-settings: false
+    description: 'Pages shown in the overlay, in order: your Custom pages, each a grid of modules, and the tool pages (shown as icons after them).'
+    default:
+      - type: Custom
+        name: Home
+        modules:
+          - type: ClockCalendar
+            place: {x: 0, "y": 0, w: 4, h: 8}
+          - type: QuickActions
+            place: {x: 4, "y": 0, w: 4, h: 2}
+          - type: QuickActions
+            properties:
+              actions: [lock, suspend, hibernate, logout, reboot, poweroff]
+            place: {x: 4, "y": 2, w: 4, h: 2}
+          - type: SystemGraphs
+            place: {x: 4, "y": 4, w: 4, h: 4}
+          - type: NowPlaying
+            place: {x: 8, "y": 0, w: 8, h: 4}
+          - type: Notifications
+            place: {x: 8, "y": 4, w: 4, h: 4}
+          - type: VolumeDials
+            place: {x: 12, "y": 4, w: 4, h: 4}
+      - {type: Settings}
+      - {type: Keybinds}
+      - {type: BarEditor}
+      - {type: Themes}
+      - {type: Monitors}
+      - {type: CalendarPage}
+    items:
+      $ref: '#/definitions/OverlayView'

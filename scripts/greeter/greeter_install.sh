@@ -115,7 +115,8 @@ fail() {
 }
 
 # What the greeter never runs
-pathspec=(':!:tests/' ':!:.github/' ':!:docs/' ':!:install.sh' ':!:*.md')
+# (backend/ is the axiom binary's source: an install copies the built binary)
+pathspec=(':!:tests/' ':!:.github/' ':!:docs/' ':!:backend/' ':!:install.sh' ':!:*.md')
 
 # A command as the user: as root (pkexec), their clone, its git config and
 # any filters it names stay theirs

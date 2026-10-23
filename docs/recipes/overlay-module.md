@@ -6,7 +6,7 @@
 
 ## Files to touch
 1. `components/content/<Type>.qml`: the module. The file name is the type const.
-2. `config/json/config.schema.json`: a `<Type>OverlayModule` entry in `definitions`, and its `$ref` appended to `definitions.OverlayModule.oneOf`.
+2. `config/schema/definitions/modules/<Type>OverlayModule.yaml` (and its name in `config/schema/index.yaml`'s `definitions`), and its `$ref` appended to the `oneOf` of `config/schema/definitions/modules/OverlayModule.yaml`.
 3. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template.
 4. A service, if it needs data ([service](service.md)): modules only read and acquire.
 

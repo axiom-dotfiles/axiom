@@ -1,0 +1,47 @@
+# The NightLight section of the config (config.json's "NightLight").
+
+x-scope: personal
+type: object
+x-category: Screen & Power
+x-intro: NightLightStatus
+title: Night light
+description: Warmer screen colors in the evening, through hyprsunset (or wlsunset). The Night light quick action, `/nightlight` in the launcher and `qs -c axiom ipc call nightLight toggle` switch it by hand; that lasts until the next scheduled change.
+additionalProperties: false
+x-order: [schedule, startAt, endAt, temperature, gamma]
+properties:
+  schedule:
+    type: boolean
+    title: On a schedule
+    default: false
+    description: Turn the night light on and off at set times.
+  startAt:
+    type: string
+    title: Turn on at
+    default: "20:00"
+    pattern: ^([01]?\d|2[0-3]):[0-5]\d$
+    description: "24-hour time, like 20:00."
+    x-showIf: {schedule: true}
+  endAt:
+    type: string
+    title: Turn off at
+    default: "07:00"
+    pattern: ^([01]?\d|2[0-3]):[0-5]\d$
+    description: "24-hour time, like 07:00. Earlier than the start runs past midnight."
+    x-showIf: {schedule: true}
+  temperature:
+    type: integer
+    title: Color temperature
+    x-unit: K
+    default: 4500
+    minimum: 1000
+    maximum: 6500
+    multipleOf: 100
+    description: Lower is warmer. 6500 K is the screens' own color.
+  gamma:
+    type: integer
+    title: Gamma
+    x-unit: '%'
+    default: 100
+    minimum: 20
+    maximum: 100
+    description: Dims the screens a little further while the night light is on. 100% leaves them as they are.

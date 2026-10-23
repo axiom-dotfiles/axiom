@@ -292,6 +292,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `HyprState.qml`: Hyprland's JSON replies (HyprlandManager) as the shapes the rest of the shell reads, which don't depend on the compositor: what another compositor's service would hand back too.
 - `HypridleConf.qml`: The hypridle config axiom runs hypridle with (HypridleManager), from the Idle section: a general block, then one listener per step whose timeout isn't 0 (dim, lock, screen off, suspend) in timeout order, then the user's…
 - `IconResolver.qml`: Resolves icon names for window classes: desktop entries first, then known substitutions, then name variants that exist in the icon theme.
+- `JsonRpc.qml`: JSON-RPC 2.0, one message per line (NDJSON): how the shell talks to the axiom binary (BackendManager; docs/dev/backend/README.md).
 - `KeyMap.qml`: The Keybinds editor's key map: a US keyboard as rows of keys (by the names binds use, KeyNames), and which of them a set of modifiers leaves free, given axiom's binds and the user's own.
 - `KeyNames.qml`: Keys as Hyprland writes them ("SUPER + SHIFT + space"): turning a Qt key event into one (for recording a bind), and splitting one for display.
 - `KeybindFilter.qml`: The Keybinds page's filter over KeybindManager.keybindings: a search plus toggle chips in three groups (sections, modifiers, source).
@@ -631,6 +632,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `AudioManager.qml`: Pipewire audio state: the default output (sink) and input (source), every device and app stream, and helpers to control them.
 - `AuthManager.qml`: PAM authentication (Quickshell's PamContext, "login" stack) for the built-in lockscreen. authenticationSucceeded is the only thing that may unlock it (see shell/Lockscreen.qml).
 - `BackdropManager.qml`: The dim backgrounds full-screen surfaces ask for (the overlay, launcher, power menu, workspace overview, onboarding: reusable/BackdropRequest).
+- `BackendManager.qml`: The shell's connection to the axiom binary, its parent (`axiom run`, docs/dev/backend/README.md): JSON-RPC over the socket the binary names in $AXIOM_SOCKET.
 - `BarManager.qml`: BarManager holds the bar editor's working copy of the Bars config.
 - `BatteryManager.qml`: The laptop battery (UPower's display device, when it is one) and the power-saver profile, for the Battery widget and module, and the low battery notifications (at BatteryConfig's levels).
 - `BluetoothManager.qml`: Bluetooth state and actions over the default adapter (BlueZ via Quickshell.Bluetooth).
@@ -649,7 +651,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `CompositorConfigManager.qml`: Sets the compositor up for axiom (the Compositor section's mode, CompositorConfig.mode), through its backend's config writer (CompositorManager.backend.configWriter, docs/dev/compositor/ config-modes.md).
 - `CompositorManager.qml`: The running compositor, for the rest of axiom: its windows, outputs and workspaces in shapes that don't depend on it, what it supports, and every workspace switch and window focus (docs/dev/compositor/README.md).
 - `ConfigDraft.qml`: A working copy of one config section for an editor (settings, bar, overlay, edge menu, keybind and monitor editors).
-- `ConfigManager.qml`: ConfigManager handles loading, saving, and monitoring the configuration file
+- `ConfigManager.qml`: ConfigManager handles loading, saving, and monitoring the configuration file.
 - `ConfigTakeover.qml`: Taking a compositor's config over for the managed mode, and giving it back, through its claim script (scripts/claim_<compositor>.sh, every one with the same verbs and results), for that compositor's config writer, which…
 - `ConsumerRegistry.qml`: Reference-counted consumers of a shared poller (SystemManager, UpdatesManager, ...): each owner registers one request, and the service polls for the union of them, stopping when there are none.
 - `CursorThemeManager.qml`: The cursor theme as XCursor readers get it (the compositor's xcursor-theme, XCURSOR_THEME, GTK's cursor-theme).
@@ -676,6 +678,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `IdleInhibitManager.qml`: Shared on/off state for keeping the session awake.
 - `InstanceManager.qml`: Keeps one axiom per display.
 - `IntegrationHookupManager.qml`: Hooks theme integrations into their apps' configs: each ThemeIntegrations switch's `x-hookup` targets (the line that loads its axiom file, where it goes), run by scripts/integration_hookup.py.
+- `IpcTarget.qml`: An IPC target: Quickshell's IpcHandler (so `qs ipc call` reaches it as before) that also registers with axiom (BackendManager), so `axiom ipc <target> <fn>` and the named commands reach it over the shell's own connectio…
 - `KeybindManager.qml`: KeybindManager reads the keybinds the compositor has registered (CompositorManager.withBinds).
 - `KeyboardLayoutManager.qml`: Active xkb layout of the main keyboard, shared by every KeyboardLayout widget.
 - `LauncherCommands.qml`: The launcher's slash commands, one per shell feature.

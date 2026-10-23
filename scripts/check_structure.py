@@ -95,6 +95,22 @@ def main():
             if f.stem not in types and not used_as_type(f.stem, rel(f)):
                 warnings.append(f"{rel(f)}: not a {definition} type and not used anywhere")
 
+    # IPC targets are IpcTargets (an IpcHandler that registers with axiom,
+    # which reaches it without a process per call): a bare IpcHandler is
+    # out of `axiom ipc`'s fast path and of ipc.md
+    for path, text in sources.items():
+        if path != "services/IpcTarget.qml" and re.search(r"\bIpcHandler\s*\{", text):
+            errors.append(f"{path}: an IpcHandler: use IpcTarget (services/IpcTarget.qml)")
+
+    # An optional call on a computed member crashes V4's compiler (Qt 6.12)
+    # when the file loads: a hot reload of the live shell segfaults it
+    optional_call = re.compile(r"\]\s*\?\.\(")
+    for path, text in sources.items():
+        for n, line in enumerate(text.split("\n"), 1):
+            code = line.split("//", 1)[0]
+            if optional_call.search(code):
+                errors.append(f"{path}:{n}: an optional call on a computed member (x[k]?.()) crashes Qt's QML compiler: take it into a const first (docs/dev/core/qml-pitfalls.md)")
+
     # Every library type joins one of the root's `x-libraryGroups` (the
     # editors' libraries group by them); required modules aren't offered
     library_groups = schema.get("x-libraryGroups", [])
@@ -163,7 +179,7 @@ def main():
     # no target that's gone
     targets = {}
     for path, text in sources.items():
-        for m in re.finditer(r"IpcHandler\s*\{", text):
+        for m in re.finditer(r"\bIpcTarget\s*\{", text):
             found = re.search(r'target:\s*"(\w+)"', text[m.end():m.end() + 400])
             if found:
                 targets.setdefault(found.group(1), path)
@@ -175,7 +191,7 @@ def main():
         if target not in listed:
             errors.append(f"{path}: IPC target {target!r} is missing from the IPC table in docs/usage.md")
     for target in sorted(listed - set(targets)):
-        errors.append(f"docs/usage.md: IPC target {target!r} has no IpcHandler")
+        errors.append(f"docs/usage.md: IPC target {target!r} has no IpcTarget")
 
     # Every file says what it's for above its root object (docs/dev/generated/files.md)
     for path, text in sources.items():

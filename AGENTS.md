@@ -58,6 +58,7 @@ Enforced by `.claude/hooks/guard.py` (PreToolUse hook plus `permissions.deny` in
 - Make the live niri session quit, load another config or change outputs (`niri msg action quit` / `load-config-file` / `output`): only a nested one's `NIRI_SOCKET`.
 - Apply a theme integration's hookup to the real configs: run `integration_hookup.py` with a scratch `HOME`/`XDG_CONFIG_HOME`.
 - Install, update or remove the greeter for real, or restart greetd (it ends the session). Test `scripts/greeter/greeter_install.sh` with a scratch `AXIOM_GREETER_ROOT`; view the greeter with `AXIOM_GREETER=1 AXIOM_GREETER_WINDOWED=1 AXIOM_GREETER_DIR=<scratch> qs -p "$PWD/greeter.qml"` (`qs kill` only that instance).
+- Run, quit, restart or re-exec the live `axiom` daemon (`axiom run|quit|restart`, `axiom daemon stop|restart|reexec`), lock through it (`axiom lock`, `axiom ipc lockscreen …`), or pass `--takeover` against the live config: point it at a scratch instance instead (`XDG_RUNTIME_DIR=<scratch>`, `--socket`, `--config-dir`). A test lock screen's fallback must never be `loginctl lock-session`, which locks the real session.
 - Open a GitHub issue (`gh issue create`, or `gh api` posting one).
 
 ## Checks
@@ -68,8 +69,10 @@ All run in CI; `scripts/dev/verify.sh --all` (= `scripts/check_all.sh`) runs eve
 - `scripts/check_qmllint.py` fails on warnings not in `scripts/qmllint-baseline.json`: fix new ones. `--update-baseline` only for Quickshell type-info gaps or baselined warnings gone.
 - **Agents never translate**, however easy it looks, and never run `scripts/check_i18n.py --fill`/`--prune`: the pre-commit hook adds new keys empty (shown in English) to every `config/i18n/<code>.json` and drops unused ones. `config/i18n/template/language.json` is generated. Edit i18n files only through the checker's format (2-space JSON; `--format` fixes it).
 - `scripts/check_docs.py` fails on a hand-written doc citing a path or `Singleton.member` that's gone (fix the doc with the code), and on an `x-*` annotation missing from `docs/dev/core/schema-annotations.md`.
+- `scripts/check_go.sh`: the Go checks for `backend/` (`--fix` regenerates and formats); rules in `backend/AGENTS.md`.
+- **Built, never committed** (`.gitignore`; `scripts/generate.sh` builds them when stale, and verify.sh, check_all.sh, check_go.sh and CI run it first; a fresh clone runs it once): `config/json/config.schema.json` (from `config/schema/`), the binary's embedded copies `backend/internal/assets/data/`, and with `--fixtures` the shared fixtures `tests/fixtures/shared/` (recorded from the JS helpers; needs qmltestrunner and the whole git history).
 - `scripts/check_packages.py`: a new dependency goes in install.sh's table, `Packages.packages` and the AUR PKGBUILDs (`docs/dev/packaging.md`).
-- Generated, never edited by hand: `config/themes/template/theme.json` (`scripts/gen_theme_template.py`), `docs/dev/config/` and `docs/dev/generated/` (`scripts/gen_docs.py`; CI fails when stale; verify.sh warns if the hook isn't set up: `git config core.hooksPath .githooks`).
+- Generated, never edited by hand: those, `config/themes/template/theme.json` (`scripts/gen_theme_template.py`), `docs/dev/config/` and `docs/dev/generated/` (`scripts/gen_docs.py`; CI fails when stale; verify.sh warns if the hook isn't set up: `git config core.hooksPath .githooks`).
 - `scripts/check_doc_drift.py` (warnings) lists docs whose `Files:` changed in 5+ commits since the doc did: reread one against the code before relying on it, and touch it to reset the count.
 
 ## Formatting
@@ -95,6 +98,7 @@ components/
 services/       pragma Singleton managers: state and side effects
 config/         reader singletons; json/ (schema, theme defaults), themes/, i18n/
 scripts/        external scripts and the dev checks
+backend/        the axiom binary (Go): its own AGENTS.md
 tests/          qmltestrunner tests, fixtures, tests/scripts/
 docs/dev/       developer docs
 ```
@@ -126,7 +130,7 @@ Dependencies point one way:
 
 ## Config
 
-- `config/json/config.schema.json` is the single source of truth: shape, defaults, the generated settings page. A new setting = schema entry with a `default` + a reader property. Reshaping existing config = bump `version` + a `ConfigMigration` step + a test. **Edit the schema before the migration**: a migration saved first hot-reloads against the old schema and loses the user's values.
+- The schema is the single source of truth: shape, defaults, the generated settings page. Its source is YAML, `config/schema/` (`index.yaml`, `sections/`, `definitions/`, `annotations.yaml`), built into `config/json/config.schema.json` (never committed) by `axiom schema build` (`scripts/generate.sh`, which verify.sh runs): never edit the JSON. A new setting = schema entry with a `default` + a reader property. Reshaping existing config waits for config v2: the format-1 migrations (`ConfigMigration.qml`, run by the binary as `backend/internal/migrate/legacy/legacy.js`) are frozen at v75 and never change.
 - Every default is filled at load, so **readers use no `??` fallbacks**. Readers are named for their section, `Config`-suffixed where the name is a type (`OSDConfig`). A reader exposing the saved config says so (`Bar.savedBars`).
 - **Schema annotations drive the UI; prefer a new annotation to a hand-kept list in QML** (complete list: `docs/dev/core/schema-annotations.md`). With rules attached:
   - `x-scope` (`look`/`personal`/`commands`/`machine`, inherited, root `machine`) decides what an example, import or export carries: a setting in a look section naming a monitor, path or account is `machine`, one that runs something `commands`, a preference meaningful on any PC `personal`. A setting moved out of `machine` goes in `ConfigExamples.movedKeys` with a version bump, or older files reset it.

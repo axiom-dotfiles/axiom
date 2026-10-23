@@ -128,7 +128,7 @@ QtObject {
     }
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "todo"
     enabled: !Paths.greeter
 

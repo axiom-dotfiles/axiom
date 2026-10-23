@@ -142,7 +142,7 @@ Singleton {
       root._apply()
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "nightLight"
 
     function toggle(): void {

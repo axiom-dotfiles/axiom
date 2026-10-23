@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Io
 
 import qs.components.reusable
 import qs.config
@@ -99,7 +98,7 @@ PanelWindow {
     }
   }
 
-  IpcHandler {
+  IpcTarget {
     target: "powermenu"
     enabled: ShellManager.isTarget(root.screen, PowerMenuConfig.monitors)
     function toggle() {

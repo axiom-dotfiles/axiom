@@ -1,0 +1,27 @@
+# The StopwatchOverlayModule definition (#/definitions/StopwatchOverlayModule).
+
+x-link: {setting: Stopwatch}
+type: object
+x-hosts: [overlay, edgeMenu, desktop]
+x-icon: timer_play
+x-libraryGroup: Tools
+x-keyboard: true
+x-defaultSize: [4, 6]
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: Stopwatch
+    description: Timer & stopwatch
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      mode:
+        type: string
+        title: Opens on
+        default: auto
+        enum: [auto, timer, stopwatch]
+        x-enumLabels: {auto: Whichever is running, timer: Timer, stopwatch: Stopwatch}

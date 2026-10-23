@@ -3,10 +3,11 @@
 
 > **File:** `services/ConfigManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-ConfigManager handles loading, saving, and monitoring the configuration file
+ConfigManager handles loading, saving, and monitoring the configuration file. Run by axiom (`axiom run`, BackendManager.active) the binary owns config.json: the config comes from the snapshot it wrote and its pushes, and writes are checked here (the same pipeline the binary runs, kept equal by the shared fixtures), applied at once and sent to it, whose answer stands. Started by hand, this reads and writes the file itself.
 
 ### Properties
 
+- `backed` (readonly bool): The binary owns config.json (never in the greeter)
 - `config` (readonly var): --- Public ---
 - `configSchema` (readonly var)
 - `takeoverPaths` (readonly var): The `x-takeover` settings' paths ([key, …]), which loading a config never changes (ConfigExamples.keepTakeovers)

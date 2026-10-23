@@ -1,0 +1,287 @@
+[
+  {
+    "name": 34,
+    "interface": "ext_data_control_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 40,
+    "interface": "ext_foreign_toplevel_image_capture_source_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 25,
+    "interface": "ext_foreign_toplevel_list_v1",
+    "version": 1
+  },
+  {
+    "name": 10,
+    "interface": "ext_idle_notifier_v1",
+    "version": 2
+  },
+  {
+    "name": 31,
+    "interface": "ext_image_copy_capture_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 32,
+    "interface": "ext_output_image_capture_source_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 27,
+    "interface": "ext_session_lock_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 54,
+    "interface": "ext_transient_seat_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 28,
+    "interface": "ext_workspace_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 15,
+    "interface": "org_kde_kwin_server_decoration_manager",
+    "version": 1
+  },
+  {
+    "name": 5,
+    "interface": "wl_compositor",
+    "version": 6
+  },
+  {
+    "name": 7,
+    "interface": "wl_data_device_manager",
+    "version": 3
+  },
+  {
+    "name": 1,
+    "interface": "wl_fixes",
+    "version": 1
+  },
+  {
+    "name": 58,
+    "interface": "wl_output",
+    "version": 4
+  },
+  {
+    "name": 55,
+    "interface": "wl_seat",
+    "version": 9
+  },
+  {
+    "name": 2,
+    "interface": "wl_shm",
+    "version": 2
+  },
+  {
+    "name": 6,
+    "interface": "wl_subcompositor",
+    "version": 1
+  },
+  {
+    "name": 20,
+    "interface": "wp_alpha_modifier_v1",
+    "version": 1
+  },
+  {
+    "name": 49,
+    "interface": "wp_color_representation_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 38,
+    "interface": "wp_content_type_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 48,
+    "interface": "wp_cursor_shape_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 39,
+    "interface": "wp_fractional_scale_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 4,
+    "interface": "wp_linux_drm_syncobj_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 19,
+    "interface": "wp_presentation",
+    "version": 2
+  },
+  {
+    "name": 35,
+    "interface": "wp_security_context_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 37,
+    "interface": "wp_single_pixel_buffer_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 41,
+    "interface": "wp_tearing_control_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 36,
+    "interface": "wp_viewporter",
+    "version": 1
+  },
+  {
+    "name": 46,
+    "interface": "xdg_activation_v1",
+    "version": 1
+  },
+  {
+    "name": 47,
+    "interface": "xdg_toplevel_tag_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 13,
+    "interface": "xdg_wm_base",
+    "version": 5
+  },
+  {
+    "name": 33,
+    "interface": "zwlr_data_control_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 29,
+    "interface": "zwlr_export_dmabuf_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 26,
+    "interface": "zwlr_foreign_toplevel_manager_v1",
+    "version": 3
+  },
+  {
+    "name": 8,
+    "interface": "zwlr_gamma_control_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 12,
+    "interface": "zwlr_layer_shell_v1",
+    "version": 5
+  },
+  {
+    "name": 21,
+    "interface": "zwlr_output_manager_v1",
+    "version": 4
+  },
+  {
+    "name": 22,
+    "interface": "zwlr_output_power_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 30,
+    "interface": "zwlr_screencopy_manager_v1",
+    "version": 3
+  },
+  {
+    "name": 51,
+    "interface": "zwlr_virtual_pointer_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 11,
+    "interface": "zwp_idle_inhibit_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 23,
+    "interface": "zwp_input_method_manager_v2",
+    "version": 1
+  },
+  {
+    "name": 52,
+    "interface": "zwp_keyboard_shortcuts_inhibit_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 3,
+    "interface": "zwp_linux_dmabuf_v1",
+    "version": 5
+  },
+  {
+    "name": 18,
+    "interface": "zwp_pointer_constraints_v1",
+    "version": 1
+  },
+  {
+    "name": 53,
+    "interface": "zwp_pointer_gestures_v1",
+    "version": 3
+  },
+  {
+    "name": 57,
+    "interface": "zwp_primary_selection_device_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 17,
+    "interface": "zwp_relative_pointer_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 14,
+    "interface": "zwp_tablet_manager_v2",
+    "version": 1
+  },
+  {
+    "name": 24,
+    "interface": "zwp_text_input_manager_v3",
+    "version": 1
+  },
+  {
+    "name": 50,
+    "interface": "zwp_virtual_keyboard_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 16,
+    "interface": "zxdg_decoration_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 42,
+    "interface": "zxdg_exporter_v1",
+    "version": 1
+  },
+  {
+    "name": 44,
+    "interface": "zxdg_exporter_v2",
+    "version": 1
+  },
+  {
+    "name": 43,
+    "interface": "zxdg_importer_v1",
+    "version": 1
+  },
+  {
+    "name": 45,
+    "interface": "zxdg_importer_v2",
+    "version": 1
+  },
+  {
+    "name": 9,
+    "interface": "zxdg_output_manager_v1",
+    "version": 3
+  }
+]

@@ -1,0 +1,64 @@
+# The IdleInhibitorWidget definition (#/definitions/IdleInhibitorWidget).
+
+x-link: {setting: Idle}
+type: object
+x-icon: coffee
+x-libraryGroup: System
+required: [type]
+additionalProperties: false
+properties:
+  type:
+    const: IdleInhibitor
+    description: Idle Inhibitor
+  visible:
+    type: boolean
+  layout:
+    $ref: '#/definitions/WidgetLayout'
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      showLabel:
+        type: boolean
+        title: Show label
+        default: false
+      showPopout:
+        type: boolean
+        title: Menu popout
+        default: false
+        description: Open an edge menu when hovered.
+      popoutMenu:
+        type: string
+        title: Menu
+        default: ""
+        x-options: edgeMenus
+        x-emptyLabel: None
+        description: The edge menu to open.
+        x-showIf: {showPopout: true}
+      activeColor:
+        type: string
+        title: Active color
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: accent
+        x-showIf:
+          $bar.widgetStyle: {not: plain}
+      inactiveColor:
+        type: string
+        title: Inactive color
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: "off"
+        x-showIf:
+          $bar.widgetStyle: {not: plain}
+      foregroundColor:
+        type: string
+        title: Text color
+        x-options: colors
+        default: base00
+        x-showIf:
+          $bar.widgetStyle: filled
+          $bar.widgetGrouping: {not: merged}
+          $bar.widgetTextColor: ""

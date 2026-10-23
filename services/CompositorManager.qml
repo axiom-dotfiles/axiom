@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.config
 import qs.components.methods
@@ -699,7 +698,7 @@ Singleton {
 
   // `qs -c axiom ipc call workspaces …`, for workspace keybinds. mode:
   // "go", "move" (take the focused window along) or "moveSilent"
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "workspaces"
 
     function go(id: string): void {

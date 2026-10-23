@@ -1,0 +1,34 @@
+# The Bars section of the config (config.json's "Bars").
+
+x-scope: look
+type: array
+description: Bars, edited in the overlay's bar editor.
+x-settings: false
+default:
+  - id: primary
+    location: Top
+    widgetSize: 26
+    padding: 4
+    background: pills
+    lockCenter: true
+    widgets:
+      left:
+        - type: Button
+          properties: {action: overlay, icon: menu, tooltip: Overlay}
+        - {type: Workspaces}
+        - {type: Window}
+      center:
+        - type: Time
+          properties: {showSeconds: false}
+      right:
+        - {type: SystemTray}
+        - {type: Volume}
+        - {type: Network}
+        - type: Bluetooth
+          properties: {hideWhenOff: true}
+        - {type: Battery}
+        - {type: Notifications}
+        - type: Button
+          properties: {action: powerMenu, tooltip: Power}
+items:
+  $ref: '#/definitions/Bar'

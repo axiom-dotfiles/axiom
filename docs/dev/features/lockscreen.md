@@ -12,6 +12,14 @@ This doc covers the three lock modes, how the built-in lock screen's layout of m
   - Idle daemons call it through the `lockscreen` IPC target.
 - `lock()` ends a running preview first.
 
+### Under axiom (`axiom lock`)
+Run by `axiom run`, the binary makes locking dependable (`backend/internal/lock`):
+- `axiom lock` (and `axiom ipc lockscreen lock`) asks the shell. It exits 0 only once `shell/Lockscreen.qml`'s session lock is `secure` (the compositor acknowledged it), which `LockManager` reports as `lock.state`.
+- If that doesn't come within 3 s, the binary restarts the shell with `AXIOM_LOCK_ON_START=1`, which locks before anything else shows. If that fails too, `axiom lock` fails: the built-in locker has nothing to fall back on.
+- A shell that dies while locked is restarted at once, locked. The compositor keeps the session locked meanwhile.
+- Nothing goes the other way: `lock.state` only informs, `lockscreen` takes no function but `lock`, and only PAM unlocks.
+- With `Lockscreen.mode` `none`, `axiom lock` runs `Lockscreen.lockCommand`, except `loginctl lock-session`, which would come back to axiom through the idle daemon.
+
 ### Modes (`Lockscreen.mode`)
 
 #### `quickshell` (default)

@@ -50,6 +50,21 @@ Scope {
     value: lockState.locked
   }
 
+  // The compositor has acknowledged the lock: what axiom waits for before
+  // `axiom lock` succeeds
+  Binding {
+    target: LockManager
+    property: "builtinSecure"
+    value: lockState.locked && sessionLock.secure
+  }
+
+  // axiom restarts a shell that died while locked with this set: it locks
+  // before anything else shows
+  Component.onCompleted: {
+    if (Quickshell.env("AXIOM_LOCK_ON_START") === "1")
+      LockManager.lock();
+  }
+
   WlSessionLock {
     id: sessionLock
     locked: lockState.locked

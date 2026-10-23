@@ -6,7 +6,7 @@
                          member that exposes it and the files that use it;
                          plus BarWidgets / OverlayModules / OverlayViews
   docs/dev/generated/    files.md (every QML file's purpose comment),
-                         ipc.md (every IpcHandler), layers.md (layer-rule
+                         ipc.md (every IpcTarget), layers.md (layer-rule
                          stacking, from LayerStack.layers), api/<Name>.md (the
                          public members of each service and config reader)
 
@@ -641,12 +641,12 @@ def files_page():
     return "\n".join(out).rstrip() + "\n", missing
 
 
-IPC_BLOCK = re.compile(r"IpcHandler\s*\{")
+IPC_BLOCK = re.compile(r"\bIpcTarget\s*\{")
 
 
 def ipc_page():
     out = [NOTICE, "# IPC targets", "",
-           "Every `IpcHandler`: call with `qs -c axiom ipc call <target> <function> [args]`. "
+           "Every `IpcTarget` (an `IpcHandler` that also registers with axiom): call with `axiom ipc <target> <function> [args]` (or `qs -c axiom ipc call …`). "
            "`enabled` handlers answer only on their target instance (AGENTS.md › UI conventions, Screen targeting). "
            "`show` is a qs keyword, so a function named `show` can't be called.", ""]
     rows = []

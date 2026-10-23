@@ -1,0 +1,25 @@
+# The EmojiPickerOverlayModule definition (#/definitions/EmojiPickerOverlayModule).
+
+type: object
+x-hosts: [overlay, edgeMenu, desktop]
+x-keyboard: true
+x-icon: add_reaction
+x-libraryGroup: Tools
+x-defaultSize: [4, 6]
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: EmojiPicker
+    description: Emoji
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      showGroups:
+        type: boolean
+        title: Show the groups
+        default: true
+        description: Tabs for Unicode's groups (smileys, animals, food, …) over the grid, when there's room.

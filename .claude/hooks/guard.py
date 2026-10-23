@@ -145,6 +145,65 @@ def scratch(value):
     return real != HOME and real != HOME / ".config" and real != Path("/")
 
 
+# What `axiom` runs against: the live display's daemon unless the command
+# names a scratch socket, runtime dir or config dir
+AXIOM_VALUE_OPTS = {"--socket", "--config-dir", "--tree", "--qs", "-o"}
+LIVE_RUNTIME = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+
+
+def axiom_flag(args, flag):
+    for i, a in enumerate(args):
+        if a == flag and i + 1 < len(args):
+            return args[i + 1]
+        if a.startswith(flag + "="):
+            return a.split("=", 1)[1]
+    return ""
+
+
+def axiom_live_display(env, args):
+    """Whether an axiom command reaches the live session's daemon."""
+    socket = axiom_flag(args, "--socket") or env.get("AXIOM_SOCKET", "")
+    if socket:
+        return not scratch(socket) or resolve(socket, "/").is_relative_to(Path(LIVE_RUNTIME))
+    runtime = env.get("XDG_RUNTIME_DIR", "")
+    return not runtime or resolve(runtime, "/") == Path(LIVE_RUNTIME)
+
+
+def axiom_words(args):
+    """The subcommand words of an axiom command line, flags left out."""
+    words, skip = [], False
+    for a in args:
+        if skip:
+            skip = False
+            continue
+        if a in AXIOM_VALUE_OPTS:
+            skip = True
+            continue
+        if not a.startswith("-"):
+            words.append(a)
+    return words
+
+
+def check_axiom(env, args):
+    words = axiom_words(args)
+    if not words:
+        return
+    live = axiom_live_display(env, args)
+    sub = words[0]
+    if live and sub in {"run", "quit", "restart"}:
+        deny("Running / reloading", f"`axiom {sub}` starts or stops the live shell; never from this session (test with a scratch XDG_RUNTIME_DIR, or nested.sh).")
+    if live and sub == "daemon" and words[1:2] and words[1] in {"stop", "restart", "reexec"}:
+        deny("Running / reloading", f"`axiom daemon {words[1]}` stops or replaces the live daemon; never from this session.")
+    if live and (sub == "lock" or sub == "ipc" and words[1:2] == ["lockscreen"]):
+        deny("Never, while testing", "don't lock the session; only the user can type the password (lock a scratch instance: XDG_RUNTIME_DIR=<scratch>).")
+    if live and sub == "ipc" and words[1:3] in (["monitors", "keep"], ["selfUpdate", "update"]):
+        deny("Never, while testing", f"`{' '.join(words[1:3])}` changes the live system; ask the user.")
+    if sub == "config" and "--takeover" in args:
+        config_dir = axiom_flag(args, "--config-dir") or env.get("XDG_CONFIG_HOME", "")
+        if not scratch(config_dir) or live:
+            deny("Never, while testing", "`--takeover` changes a setting that takes something over on this PC (compositor mode, locker, idle, polkit, greeter); ask the user.")
+
+
 def gh_api_opens_issue(args):
     """`gh api` creating an issue: GraphQL's createIssue, or a POST to a repo's
     issues (gh posts when given a field, -f/-F/--input, unless told GET)."""
@@ -178,6 +237,10 @@ def check_argv(env, argv, cwd):
     # The shell itself, and its IPC
     if name in QS:
         check_qs(env, args)
+
+    # The axiom binary: it is the shell's parent and its command line
+    if name == "axiom":
+        check_axiom(env, args)
 
     # Opening a GitHub issue: problems go in docs/dev/issues.md
     if name == "gh" and (args[:2] == ["issue", "create"] or args[:1] == ["api"] and gh_api_opens_issue(args[1:])):
@@ -336,6 +399,37 @@ def check_config_edit(tool, tool_input):
             deny("Never, while testing", f"`{'.'.join(path)}` takes something over on this PC (x-takeover: compositor mode, locker, idle, polkit, greeter). Ask the user before changing it in the live config.")
 
 
+# ------------------------------------------- Edit/Write generated or frozen
+
+# Files built from a source (edit the source) and frozen ones (never edit)
+GENERATED = {
+    REPO / "config/json/config.schema.json": "it's built from config/schema/ (edit the YAML there; scripts/generate.sh rebuilds it)",
+}
+# Generated directories (scripts/generate.sh), never committed
+GENERATED_DIRS = {
+    REPO / "backend/internal/assets/data": "the binary's embedded copies (go generate writes them from the repo files)",
+    REPO / "tests/fixtures/shared": "the shared fixtures, recorded from the shell's JS helpers (scripts/dev/fixtures.py record)",
+}
+FROZEN = {
+    REPO / "components/methods/ConfigMigration.qml": "the format-1 migrations are frozen (docs/recipes/migration.md)",
+    REPO / "backend/internal/migrate/legacy/legacy.js": "the format-1 migrations are frozen (docs/recipes/migration.md)",
+}
+
+
+def check_generated_edit(tool_input):
+    path = tool_input.get("file_path", "")
+    if not path:
+        return
+    resolved = Path(path).resolve()
+    if resolved in GENERATED:
+        deny("Checks", f"`{resolved.relative_to(REPO)}` is generated: {GENERATED[resolved]}.")
+    if resolved in FROZEN:
+        deny("Checks", f"`{resolved.relative_to(REPO)}` is frozen: {FROZEN[resolved]}.")
+    for generated, why in GENERATED_DIRS.items():
+        if resolved.is_relative_to(generated):
+            deny("Checks", f"`{resolved.relative_to(REPO)}` is generated: {why}.")
+
+
 # ------------------------------------------------------------------ main
 
 def check(call):
@@ -344,6 +438,7 @@ def check(call):
         for env, argv in split_commands(tool_input.get("command", "")):
             check_argv(env, argv, call.get("cwd") or str(REPO))
     elif tool in {"Edit", "Write"}:
+        check_generated_edit(tool_input)
         check_config_edit(tool, tool_input)
 
 

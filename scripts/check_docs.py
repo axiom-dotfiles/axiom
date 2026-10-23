@@ -36,7 +36,7 @@ from qml_modules import ROOT
 
 GENERATED = ("docs/dev/config/", "docs/dev/generated/")
 PATH_ROOTS = ("components/", "services/", "config/", "scripts/", "shell/", "tests/", "docs/",
-              "examples/", ".github/", ".claude/", "shell.qml", "greeter.qml", "install.sh")
+              "examples/", "backend/", ".github/", ".claude/", "shell.qml", "greeter.qml", "install.sh")
 # Names a rename retired: a doc still citing one is stale (old -> new)
 RETIRED = {"IconConfig": "IconsConfig", "PopoutConfig": "PopoutsConfig"}
 # Backticked text that looks like a member access but isn't one of ours

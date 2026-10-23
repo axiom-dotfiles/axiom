@@ -1,7 +1,6 @@
 pragma Singleton
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import qs.config
 import qs.components.methods
 
@@ -214,7 +213,7 @@ Singleton {
     NotificationManager.registerHandler(root._desktopEntry, () => root.openModule());
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "stopwatch"
     enabled: !Paths.greeter
 

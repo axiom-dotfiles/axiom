@@ -1,0 +1,26 @@
+# The SystemGraphsOverlayModule definition (#/definitions/SystemGraphsOverlayModule).
+
+type: object
+x-hosts: [overlay, edgeMenu, lockscreen, desktop]
+x-icon: show_chart
+x-libraryGroup: System
+x-canvasDetail: metrics
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: SystemGraphs
+    description: System graphs
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      metrics:
+        type: array
+        title: Metrics
+        default: [cpu, mem]
+        items:
+          type: string
+          enum: [cpu, mem, gpu, cpuTemp, net]

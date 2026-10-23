@@ -1,0 +1,26 @@
+# The TodoOverlayModule definition (#/definitions/TodoOverlayModule).
+
+x-link: {setting: Todo}
+type: object
+x-hosts: [overlay, edgeMenu, desktop]
+x-icon: checklist
+x-libraryGroup: Tools
+x-keyboard: true
+x-defaultSize: [4, 6]
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: Todo
+    description: Todo list
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      showHeader:
+        type: boolean
+        title: Header
+        default: true
+        description: The title, the open count and Clear completed.

@@ -1,0 +1,76 @@
+# The MediaWidget definition (#/definitions/MediaWidget).
+
+type: object
+x-icon: music_note
+x-libraryGroup: Media & audio
+required: [type]
+additionalProperties: false
+properties:
+  type:
+    const: Media
+    description: Media Player
+  visible:
+    type: boolean
+  layout:
+    $ref: '#/definitions/WidgetLayout'
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      showArtist:
+        type: boolean
+        title: Show artist
+        default: true
+      artistLength:
+        type: integer
+        x-control: stepper
+        title: Artist length
+        default: 10
+        minimum: 0
+        maximum: 100
+        description: Longest artist name shown before it is shortened (characters).
+      idleText:
+        type: string
+        title: Idle text
+        default: No player
+        description: Shown when nothing is playing.
+      showPopout:
+        type: boolean
+        title: Popout
+        default: true
+        description: Open the media controls when hovered.
+      popoutMenu:
+        type: string
+        title: Open instead
+        default: ""
+        x-options: edgeMenus
+        x-emptyLabel: Its own popout
+        description: An edge menu to open in place of the popout.
+        x-showIf: {showPopout: true}
+      playingColor:
+        type: string
+        title: Playing color
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: accent
+        x-showIf:
+          $bar.widgetStyle: {not: plain}
+      pausedColor:
+        type: string
+        title: Paused color
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: "off"
+        x-showIf:
+          $bar.widgetStyle: {not: plain}
+      foregroundColor:
+        type: string
+        title: Text color
+        x-options: colors
+        default: base00
+        x-showIf:
+          $bar.widgetStyle: filled
+          $bar.widgetGrouping: {not: merged}
+          $bar.widgetTextColor: ""

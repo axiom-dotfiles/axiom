@@ -1,0 +1,36 @@
+# The Weather section of the config (config.json's "Weather").
+
+type: object
+x-category: Modules
+title: Weather
+description: Where and how every weather widget and module gets its weather, from Open-Meteo (no account needed).
+additionalProperties: false
+x-order: [location, latitude, longitude, units, intervalMinutes]
+properties:
+  location:
+    type: string
+    title: Location
+    default: ""
+    description: City name to look up. Empty uses your IP's location.
+  latitude:
+    type: string
+    title: Latitude
+    default: ""
+    description: Exact coordinates; with longitude, overrides the location lookup.
+  longitude:
+    type: string
+    title: Longitude
+    default: ""
+  units:
+    x-scope: personal
+    type: string
+    title: Units
+    default: celsius
+    enum: [celsius, fahrenheit]
+  intervalMinutes:
+    type: integer
+    title: Refresh interval
+    x-unit: min
+    default: 15
+    minimum: 5
+    maximum: 1440

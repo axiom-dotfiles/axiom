@@ -1,0 +1,50 @@
+# The SystemTrayWidget definition (#/definitions/SystemTrayWidget).
+
+type: object
+x-icon: apps
+x-libraryGroup: Desktop
+required: [type]
+additionalProperties: false
+properties:
+  type:
+    const: SystemTray
+    description: System Tray
+  visible:
+    type: boolean
+  layout:
+    $ref: '#/definitions/WidgetLayout'
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      iconSize:
+        type: integer
+        x-control: stepper
+        title: Icon size
+        default: 18
+        minimum: 8
+        maximum: 64
+        x-unit: px
+        description: Size of tray icons (px).
+      showPassive:
+        type: boolean
+        title: Show passive
+        default: true
+        description: Also show items that report themselves as passive (idle).
+      showPopout:
+        type: boolean
+        title: Menus
+        default: true
+        description: Open an item's menu when it's hovered.
+      backgroundColor:
+        type: string
+        title: Background
+        x-options: colors
+        default: ""
+        x-emptyLabel: Auto
+        x-autoColor: neutral
+        x-showIf:
+          anyOf:
+            - $bar.widgetStyle: [filled, tinted, outline]
+              $bar.widgetGrouping: {not: merged}
+            - {$bar.widgetStyle: underline}

@@ -1,0 +1,33 @@
+# The ClockCalendarOverlayModule definition (#/definitions/ClockCalendarOverlayModule).
+
+x-link: {setting: Calendar}
+type: object
+x-hosts: [overlay, edgeMenu, lockscreen, greeter, desktop]
+x-keyboard: false
+x-icon: calendar_clock
+x-libraryGroup: Time & weather
+required: [type]
+additionalProperties: false
+properties:
+  place:
+    $ref: '#/definitions/GridPlace'
+  type:
+    const: ClockCalendar
+    description: Clock & calendar
+  properties:
+    type: object
+    additionalProperties: false
+    properties:
+      use24Hour:
+        type: boolean
+        title: "24-hour clock"
+        default: true
+      showSeconds:
+        type: boolean
+        title: Show seconds
+        default: false
+      showEvents:
+        type: boolean
+        title: Events
+        default: true
+        description: Dots on days with events, and the day's events under the calendar (under the clock when wide) where they fit; a click on a day shows its events. On the lock screen only with Calendar's Events on the lock screen; never on the login screen.

@@ -1,0 +1,174 @@
+# The OSDEntry definition (#/definitions/OSDEntry).
+
+type: object
+additionalProperties: false
+x-order:
+  - name
+  - enabled
+  - monitors
+  - monitor
+  - edge
+  - position
+  - detached
+  - gap
+  - orientation
+  - alongEdge
+  - openOnHover
+  - timeout
+  - showPercent
+  - bars
+properties:
+  id:
+    type: string
+    title: ID
+    default: main
+    x-settings: false
+  name:
+    type: string
+    title: Name
+    default: ""
+    description: Shown on its tab here. Empty names it by its bars.
+  enabled:
+    type: boolean
+    title: Enabled
+    default: true
+  monitors:
+    x-link: {setting: General.monitors}
+    type: string
+    title: Monitors
+    enum: [general, primary, focused, all, monitor]
+    x-enumLabels:
+      general: As in General
+      primary: Primary monitor
+      focused: Focused monitor
+      all: Every monitor
+      monitor: A specific monitor
+    default: general
+    description: Where the OSD appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once; a specific monitor is the one picked below.
+  monitor:
+    x-monitorRef: "off"
+    x-scope: machine
+    type: string
+    title: Monitor
+    default: ""
+    description: Monitor the OSD is shown on. Empty uses the primary monitor.
+    x-options: screens
+    x-showIf: {monitors: monitor}
+  edge:
+    type: string
+    title: Screen edge
+    default: Bottom
+    enum: [Top, Bottom, Left, Right]
+    description: Screen edge the OSD slides out of.
+  position:
+    type: integer
+    title: Position along edge
+    x-unit: '%'
+    default: 50
+    minimum: 0
+    maximum: 100
+    description: 'Where along the edge it opens: 0 is the start (left/top), 100 the end.'
+  detached:
+    type: boolean
+    title: Detach from edge
+    default: false
+    description: A separate box held off the edge. Off, the OSD grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge.
+  gap:
+    type: integer
+    x-control: stepper
+    x-auto: {value: -1, start: 8}
+    x-beside: true
+    title: Gap
+    default: -1
+    minimum: -1
+    maximum: 200
+    x-unit: px
+    description: Space between the OSD and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows.
+    x-showIf: {detached: true}
+  orientation:
+    type: string
+    title: Bar orientation
+    default: Vertical
+    enum: [Vertical, Horizontal]
+    description: Vertical bars sit side by side; horizontal bars stack as rows.
+  alongEdge:
+    type: boolean
+    title: Line up along the edge
+    default: false
+    x-showIf:
+      anyOf:
+        - edge: [Top, Bottom]
+          orientation: Horizontal
+        - edge: [Left, Right]
+          orientation: Vertical
+    description: 'Put the bars end to end in one line along the edge, instead of stacked away from it: the OSD is longer but sticks out less. Shown only while the bars run along the edge.'
+  openOnHover:
+    type: boolean
+    title: Open on hover
+    default: false
+    description: Also open the OSD when the mouse touches the screen edge where it appears.
+  timeout:
+    type: integer
+    title: Timeout
+    x-unit: ms
+    default: 1000
+    minimum: 250
+    maximum: 10000
+    description: How long the OSD stays open after the last change.
+  showPercent:
+    type: boolean
+    title: Show percentages
+    default: true
+    description: Show each bar's level as a percentage beside its icon.
+  bars:
+    type: array
+    title: Bars
+    description: One bar per entry, in order. System volume is the output device's volume, Other apps is the first playing stream no App bar (in any OSD) matches, Microphone is the input device's volume, and Brightness is the monitor's own (a laptop panel through brightnessctl, an external monitor over DDC/CI through ddcutil; left out on a monitor that has neither).
+    default:
+      - {type: other, icon: music_note, showOsd: true}
+      - {type: master, icon: "", showOsd: true}
+    items:
+      x-scopeIf:
+        when: {type: app}
+        scope: personal
+      type: object
+      additionalProperties: false
+      x-order: [type, apps, allMonitors, icon, showOsd]
+      properties:
+        type:
+          type: string
+          title: Shows
+          enum: [master, other, microphone, brightness, app]
+          x-enumLabels:
+            master: System volume
+            other: Other apps
+            microphone: Microphone
+            brightness: Brightness
+            app: An app
+          default: app
+        apps:
+          x-scope: personal
+          type: array
+          items:
+            type: string
+          title: Apps
+          default: []
+          x-showIf: {type: app}
+          x-suggestions: audioApps
+          description: Comma-separated; each matched as a substring of a stream's binary or name. The bar shows the first listed app with a stream open, and a change sets every matching stream.
+        icon:
+          type: string
+          title: Icon
+          default: ""
+          description: 'Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness.'
+        allMonitors:
+          type: boolean
+          title: All monitors
+          default: false
+          x-showIf: {type: brightness}
+          description: The bar sets every monitor with a brightness control at once, instead of only the one the OSD is on.
+        showOsd:
+          type: boolean
+          title: Opens the OSD
+          default: true
+          description: A change on this bar opens the OSD (it always keeps an open one open).
