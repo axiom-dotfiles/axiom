@@ -1,0 +1,66 @@
+# The base every widget type's schema.yaml is expanded into (index.yaml's kinds).
+
+type: object
+required: [type, id]
+additionalProperties: false
+x-settingsAt: /properties/properties/properties
+x-parts:
+  popout:
+    own:
+      popout:
+        type: object
+        title: Popout
+        additionalProperties: false
+        properties:
+          enabled: {type: boolean, title: Popout, default: true}
+          menu:
+            type: string
+            title: Open instead
+            default: ''
+            x-options: edgeMenus
+            x-emptyLabel: Its own popout
+            description: An edge menu to open in place of the popout.
+            x-showIf: {enabled: true}
+    menu:
+      popout:
+        type: object
+        title: Popout
+        additionalProperties: false
+        properties:
+          enabled:
+            type: boolean
+            title: Menu popout
+            default: false
+            description: Open an edge menu when hovered.
+          menu:
+            type: string
+            title: Menu
+            default: ''
+            x-options: edgeMenus
+            x-emptyLabel: None
+            description: The edge menu to open.
+            x-showIf: {enabled: true}
+    plain:
+      popout:
+        type: object
+        title: Popout
+        additionalProperties: false
+        properties: {enabled: {type: boolean, title: Popout, default: true}}
+  colors:
+    standard:
+      backgroundColor: {$ref: '#/definitions/WidgetColor'}
+      foregroundColor:
+        type: string
+        title: Text color
+        x-options: colors
+        default: base00
+        x-showIf:
+          $bar.widgetStyle: filled
+          $bar.widgetGrouping: {not: merged}
+          $bar.widgetTextColor: ''
+properties:
+  type: {}
+  id: {$ref: '#/definitions/ItemId'}
+  visible: {type: boolean}
+  layout: {$ref: '#/definitions/WidgetLayout'}
+  properties: {type: object, additionalProperties: false, properties: {}}

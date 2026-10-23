@@ -20,7 +20,7 @@ QtObject {
   function poke(force) {
     if (root.host.isOpen)
       root.host.updateDismissTimer();
-    else if (force && ShellManager.showsOn(root.host.screen, root.osd.monitors, root.osd.monitor))
+    else if (force && ShellManager.showsOn(root.host.screen, root.osd.screen))
       root.host.show();
   }
 

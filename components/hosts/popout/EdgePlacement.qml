@@ -309,7 +309,7 @@ QtObject {
   readonly property var shadow: root._layout.shadow
   // (BarStyle's while the bar is gone: bars changing, the decision may
   // lag a moment)
-  readonly property var shadowLook: root.shadow.look === "bar" && root.ownBar ? root.ownBar : BarStyle.values
+  readonly property var shadowLook: root.shadow.look === "bar" && root.ownBar ? root.ownBar : BarStyle.look
 
   // --- Its fill (BlurManager) ---
   // Whether its window is on the Overlay layer, and where it is on screen

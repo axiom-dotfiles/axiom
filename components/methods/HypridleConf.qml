@@ -8,7 +8,7 @@ import QtQuick
 QtObject {
   id: root
 
-  // `idle` is the Idle config section; `ctx` is { lockCmd, shellCommand,
+  // `idle` is the Idle reader (timeouts in ms); `ctx` is { lockCmd, shellCommand,
   // dpmsOff, dpmsOn } (lockCmd "" leaves lock_cmd out; dpmsOff "", where
   // the compositor has no DPMS command, the screen-off step)
   function render(idle, ctx) {
@@ -26,7 +26,7 @@ QtObject {
     lines.push("}");
 
     for (const listener of listeners(idle, ctx)) {
-      lines.push("", "listener {", `  timeout = ${listener.timeout}`, `  on-timeout = ${_value(listener.onTimeout)}`);
+      lines.push("", "listener {", `  timeout = ${seconds(listener.timeout)}`, `  on-timeout = ${_value(listener.onTimeout)}`);
       if (listener.onResume)
         lines.push(`  on-resume = ${_value(listener.onResume)}`);
       lines.push("}");
@@ -39,8 +39,8 @@ QtObject {
     const steps = [
       {
         "timeout": idle.dimTimeout,
-        "onTimeout": idle.dimMode === "by" ? `${ctx.shellCommand} ipc call brightness dimBy ${idle.dimBy}` : `${ctx.shellCommand} ipc call brightness dim ${idle.dimLevel}`,
-        "onResume": `${ctx.shellCommand} ipc call brightness undim`
+        "onTimeout": idle.dimMode === "by" ? `${ctx.shellCommand} ipc brightness dimBy ${idle.dimBy}` : `${ctx.shellCommand} ipc brightness dim ${idle.dimLevel}`,
+        "onResume": `${ctx.shellCommand} ipc brightness undim`
       },
       {
         "timeout": idle.lockTimeout,
@@ -72,6 +72,12 @@ QtObject {
           "onTimeout": step.onTimeout,
           "onResume": step.onResume
         })).concat(own);
+  }
+
+  // hypridle's timeouts are whole seconds: a timeout (ms) rounded, at
+  // least 1
+  function seconds(ms) {
+    return Math.max(1, Math.round(ms / 1000));
   }
 
   // One line, with hyprlang's comment character escaped

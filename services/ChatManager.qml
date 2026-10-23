@@ -23,10 +23,10 @@ import qs.components.methods
  * Saved as $XDG_STATE_HOME/axiom/chats/<id>.json, with index.json listing
  * them and <id>/ holding attachments, up to Chat.keepConversations.
  *
- *   qs -c axiom ipc call chat open
- *   qs -c axiom ipc call chat newChat
- *   qs -c axiom ipc call chat ask "question"
- *   qs -c axiom ipc call chat settings
+ *   axiom ipc chat open
+ *   axiom ipc chat newChat
+ *   axiom ipc chat ask "question"
+ *   axiom ipc chat settings
  */
 Singleton {
   id: root

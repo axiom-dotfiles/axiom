@@ -1,27 +1,21 @@
 # The Desktop section of the config (config.json's "Desktop").
 
-x-scope: look
 type: object
+x-scope: look
 x-settings: false
-description: Overlay modules on the desktop, under the windows, edited on the overlay's Layouts page. Each monitor shows its own layout if it has one, else the primary monitor's (on the primary monitor), else the one for all monitors; each is fitted inside the bars and the border.
+title: Desktop
 additionalProperties: false
 properties:
-  all:
-    $ref: '#/definitions/DesktopLayout'
-    title: All monitors
-    default: {enabled: false}
-  primary:
-    $ref: '#/definitions/DesktopLayout'
-    title: Primary monitor
-    default:
-      modules:
-        - type: Clock
-          place: {x: 1, "y": 1, w: 3, h: 3}
-  monitors:
-    x-scope: look
+  items:
     type: array
-    title: Monitors
-    description: Layouts of monitors by name (their connector), ahead of the primary monitor's and the one for all.
-    default: []
-    items:
-      $ref: '#/definitions/DesktopLayout'
+    default:
+      - id: all
+        enabled: false
+        screen: {mode: all, names: []}
+      - id: primary
+        modules:
+          - id: clock
+            type: Clock
+            place: {x: 1, 'y': 1, w: 3, h: 3}
+        screen: {mode: primary, names: []}
+    items: {$ref: '#/definitions/DesktopLayout'}

@@ -13,27 +13,27 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`WindowBehaviour.followMouse`** · boolean = true
   - Focus follows mouse
-  - x-hypr="input.follow_mouse", x-hyprValue="int", x-hyprAlways=true, x-sway="focus_follows_mouse {}", x-niri="input.focus-follows-mouse", x-niriValue="flag", x-swayValue="yesNo"
+  - x-compositor={"hyprland":{"key":"input.follow_mouse","value":"int","always":true},…
   - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`WindowBehaviour.focusOnActivate`** · boolean = true
   - Focus windows that ask for it: e.g. a browser window opened from a link.
-  - x-hypr="misc.focus_on_activate", x-hyprAlways=true, x-sway="focus_on_window_activation {}", x-swayMap={"true":"focus","false":"urgent"}
+  - x-compositor={"hyprland":{"key":"misc.focus_on_activate","always":true},"sway":{"k…
   - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`WindowBehaviour.workspaceBackAndForth`** · boolean = false
   - Workspace back and forth: Going to the current workspace goes back to the previous one.
-  - x-hypr="binds.workspace_back_and_forth", x-sway="workspace_auto_back_and_forth {}", x-niri="input.workspace-auto-back-and-forth", x-niriValue="flag", x-swayValue="yesNo"
+  - x-compositor={"hyprland":{"key":"binds.workspace_back_and_forth"},"sway":{"key":"w…
   - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
-- **`WindowBehaviour.cursorHideTimeout`** · integer = 0 · 0–600 · s
+- **`WindowBehaviour.cursorHideTimeout`** · integer = 0 · 0–600000 · s
   - Hide the cursor after: 0 never hides it.
-  - x-hypr="cursor.inactive_timeout", x-sway="seat * hide_cursor {}", x-niri="cursor.hide-after-inactive-ms", x-niriScale=1000, x-niriSkip=0, x-swayScale=1000
+  - x-compositor={"hyprland":{"key":"cursor.inactive_timeout","scale":0.001},"sway":{"…
   - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`WindowBehaviour.hideCursorOnKeyPress`** · boolean = false
   - Hide the cursor while typing
-  - x-hypr="cursor.hide_on_key_press", x-sway="seat * hide_cursor when-typing {}", x-niri="cursor.hide-when-typing", x-niriValue="flag", x-swayValue="enableDisable"
+  - x-compositor={"hyprland":{"key":"cursor.hide_on_key_press"},"sway":{"key":"seat * …
   - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`WindowBehaviour.noWarps`** · boolean = false
   - Never move the cursor: The compositor won't move the cursor to a window it focuses.
-  - x-hypr="cursor.no_warps", x-sway="mouse_warping {}", x-swayMap={"true":"none","false":"output"}, x-niri="input.warp-mouse-to-focus", x-niriValue="offFlag"
+  - x-compositor={"hyprland":{"key":"cursor.no_warps"},"sway":{"key":"mouse_warping {}…
   - read: `WindowBehaviourConfig.behaviour` (whole), `// reads:` marker · in: `config/WindowBehaviourConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 
 ### Reader members

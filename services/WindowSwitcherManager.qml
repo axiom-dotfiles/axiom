@@ -107,7 +107,7 @@ Singleton {
     }
   }
 
-  // `qs -c axiom ipc call windowSwitcher …`, for scripts and testing: it
+  // `axiom ipc windowSwitcher …`, for scripts and testing: it
   // doesn't enter the submap, so nothing picks on a release here
   IpcTarget {
     target: "windowSwitcher"

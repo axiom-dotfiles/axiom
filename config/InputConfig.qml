@@ -3,9 +3,10 @@ import QtQuick
 import qs.services
 
 // Reader for the Input section: the keyboard, mouse, touchpad and cursor
-// axiom sets on the compositor, a part at a time ({ keyboard, kbLayout, …,
-// mouse, …, touchpad, …, cursor, cursorTheme, cursorSize }), through
-// CompositorLayer.input. Named InputConfig as the section is a whole object.
+// axiom sets on the compositor, a part at a time ({ keyboard: { enabled,
+// layout, … }, mouse, touchpad, cursor }, each set only while `enabled`),
+// through CompositorLayer.input. Named InputConfig as the section is a
+// whole object.
 QtObject {
   id: root
 
@@ -17,5 +18,5 @@ QtObject {
   readonly property var input: JSON.parse(_inputJson)
 
   // The cursor theme picked, set or not ("" for none)
-  readonly property string cursorTheme: _c.cursorTheme
+  readonly property string cursorTheme: _c.cursor.theme
 }

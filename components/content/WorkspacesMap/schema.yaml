@@ -1,0 +1,6 @@
+label: Workspaces
+link: {setting: Workspaces}
+icon: grid_view
+group: Desktop
+defaultSize: [4, 2]
+settings: {showEmpty: {type: boolean, title: Show empty workspaces, default: true}}

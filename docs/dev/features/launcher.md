@@ -1,6 +1,6 @@
 # Launcher
 
-> **Files:** `services/LauncherManager.qml`, `services/LauncherCommands.qml`, `components/surfaces/launcher/Launcher.qml`, `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/launcher/LauncherRow.qml`, `components/views/settings/LauncherPlace.qml`
+> **Files:** `services/LauncherManager.qml`, `services/LauncherCommands.qml`, `components/surfaces/launcher/Launcher.qml`, `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/launcher/LauncherRow.qml`, `components/views/Settings/LauncherPlace.qml`
 > **Config:** `Launcher.*` (reader `LauncherConfig`)
 > **Related:** [Launcher providers](launcher-providers.md), [Saved configs](../core/saved-configs-sharing.md), [Edge attach](../popouts/edge-attach.md), [Dock](dock.md), [OSD](osd.md)
 

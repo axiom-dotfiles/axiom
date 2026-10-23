@@ -1,0 +1,19 @@
+label: Password
+link: {setting: Lockscreen}
+icon: password
+group: Session
+defaultSize: [6, 1]
+required: true
+hosts: {only: [lockscreen]}
+settings:
+  placeholder:
+    type: string
+    title: Placeholder
+    default: ''
+    description: Shown in the empty field. Empty says Enter password...
+  centered: {type: boolean, title: Centre the text, default: true}
+  showMessages:
+    type: boolean
+    title: Messages
+    default: true
+    description: 'Show what the login checks say under the field: prompts, failures and errors.'

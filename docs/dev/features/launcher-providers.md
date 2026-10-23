@@ -1,6 +1,6 @@
 # Launcher providers: calculator, clipboard, emoji
 
-> **Files:** `services/CalculatorManager.qml`, `services/ClipboardManager.qml`, `services/EmojiManager.qml`, `config/json/emoji.json`, `scripts/generate_emoji.py`, `components/methods/Search.qml`, `components/content/Calculator.qml`, `components/content/ClipboardHistory.qml`, `components/content/EmojiPicker.qml`
+> **Files:** `services/CalculatorManager.qml`, `services/ClipboardManager.qml`, `services/EmojiManager.qml`, `config/json/emoji.json`, `scripts/generate_emoji.py`, `components/methods/Search.qml`, `components/content/Calculator/Calculator.qml`, `components/content/ClipboardHistory/ClipboardHistory.qml`, `components/content/EmojiPicker/EmojiPicker.qml`
 > **Config:** `Launcher.clipboard`, `Launcher.clipboardSource`, `Launcher.clipboardMaxEntries`, `Launcher.emoji` (reader `LauncherConfig`)
 > **Related:** [Launcher](launcher.md), [Utility modules](../overlay/utility-modules.md)
 

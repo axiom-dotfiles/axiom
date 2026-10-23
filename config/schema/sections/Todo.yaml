@@ -6,7 +6,6 @@ x-scope: personal
 title: Todo list
 description: The one todo list every todo widget and module shows. The items themselves are kept in your data folder, not in the config.
 additionalProperties: false
-x-order: [showCompleted]
 properties:
   showCompleted:
     type: boolean

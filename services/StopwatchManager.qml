@@ -12,7 +12,7 @@ import qs.components.methods
 // acquire(owner, interval) a `now` ticking at the shortest interval asked
 // (a stopwatch's tenths want 100 ms), only while one runs.
 //
-//   qs -c axiom ipc call stopwatch timer "10m tea"
+//   axiom ipc stopwatch timer "10m tea"
 Singleton {
   id: root
 

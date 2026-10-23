@@ -3,14 +3,10 @@
 x-scope: look
 type: object
 x-category: Dock & OSD
-x-card: OSDList
-x-cardTitle: OSDs
-x-cardWide: true
-x-cardFolds: true
+x-card: {file: OSDList, title: OSDs, wide: true, folds: true}
 title: OSD
 description: On-screen displays of volume, microphone and brightness bars, shown when one of their bars changes.
 additionalProperties: false
-x-order: [scrollToChange, scrollStep, osds]
 properties:
   scrollToChange:
     type: boolean
@@ -26,12 +22,12 @@ properties:
     maximum: 25
     x-showIf: {scrollToChange: true}
     description: How much one wheel notch changes the level.
-  osds:
+  items:
     type: array
     title: OSDs
     x-settings: false
     description: Each OSD has its own place and bars. A change opens every OSD holding that bar.
     default:
-      - {id: main}
-    items:
-      $ref: '#/definitions/OSDEntry'
+      - id: main
+        screen: {mode: inherit, names: []}
+    items: {$ref: '#/definitions/OSDEntry'}

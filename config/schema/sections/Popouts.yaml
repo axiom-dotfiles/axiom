@@ -8,31 +8,17 @@ title: Popouts
 description: Behaviour shared by bar popouts and screen-edge popouts (side panel, OSD).
 additionalProperties: false
 properties:
-  openDelay:
-    type: integer
-    title: Open delay
-    x-unit: ms
-    default: 10
-    minimum: 0
-    maximum: 2000
-    description: How long to hover a bar widget or screen edge before its popout opens.
-  dismissDelay:
-    type: integer
-    title: Dismiss delay
-    x-unit: ms
-    default: 250
-    minimum: 0
-    maximum: 5000
-    description: How long after the mouse leaves a popout before it closes.
-  edgeTriggerSize:
-    type: integer
-    x-control: stepper
-    title: Edge trigger size
-    x-unit: px
-    default: 5
-    minimum: 1
-    maximum: 50
-    description: Thickness of the hover strip at the screen edge that opens edge popouts.
+  timing:
+    $ref: '#/definitions/Timing'
+    x-properties:
+      closeDelay:
+        type: integer
+        title: Close delay
+        x-unit: ms
+        default: 250
+        minimum: 0
+        maximum: 5000
+  trigger: {$ref: '#/definitions/Trigger', x-properties: {length: null}}
   padding:
     type: integer
     x-control: stepper
@@ -41,4 +27,4 @@ properties:
     default: 16
     minimum: 0
     maximum: 64
-    description: 'Space between a popout''s box and its content: bar popouts, OSDs, and edge menus that don''t set their own.'
+    description: "Space between a popout's box and its content: bar popouts, OSDs, and edge menus that don't set their own."

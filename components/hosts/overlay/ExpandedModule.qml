@@ -4,8 +4,6 @@ import QtQuick.Layouts
 
 import qs.config
 import qs.components.reusable
-// Loaded by URL, as in OverlaySlot
-import qs.components.content // qmllint disable unused-imports
 
 // A module's detail grown over its grid (ModuleGrid.expand): a card box
 // opening out of the tile or strip that asked for it to the grid less
@@ -182,7 +180,7 @@ Item {
           // The content draws a box of its own (SlotContext.drawsBox)
           readonly property var content: loader.item
           readonly property bool drawsBox: loader.content?.drawsBox ?? false
-          readonly property string componentPath: root._shownRequest?.type ? Qt.resolvedUrl("../../content/" + root._shownRequest.type + ".qml") : ""
+          readonly property string componentPath: root._shownRequest?.type ? Paths.contentUrl(root._shownRequest.type) : ""
           onComponentPathChanged: {
             if (!loader.componentPath)
               return;

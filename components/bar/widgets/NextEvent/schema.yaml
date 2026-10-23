@@ -1,0 +1,28 @@
+label: Next Event
+link: {setting: Calendar}
+icon: event
+group: Time & weather
+popout: {variant: own, enabled: {description: Open the calendar when hovered.}}
+colors: standard
+settings:
+  lookahead:
+    type: integer
+    title: Look ahead
+    x-unit: min
+    default: 43200000
+    minimum: 900000
+    maximum: 604800000
+    description: Shows the next event starting within this long (or happening now). Hidden when there's none.
+  showAllDay:
+    type: boolean
+    title: All-day events
+    default: false
+    description: Count all-day events as the next event.
+  maxLength:
+    type: integer
+    x-control: stepper
+    title: Title length
+    default: 24
+    minimum: 4
+    maximum: 100
+    description: Longest title shown before it is shortened (characters).

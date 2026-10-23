@@ -1,0 +1,178 @@
+package saved
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/axiom-shell/axiom/backend/internal/config"
+	"github.com/axiom-shell/axiom/backend/internal/jsonx"
+	"github.com/axiom-shell/axiom/backend/internal/schema"
+	"github.com/axiom-shell/axiom/backend/internal/store"
+	"github.com/axiom-shell/axiom/backend/internal/testkit"
+	"github.com/axiom-shell/axiom/backend/internal/tree"
+)
+
+type fixture struct {
+	svc   *Service
+	store *store.Store
+	dir   string
+	home  string
+	ex    string
+}
+
+func setup(t *testing.T) fixture {
+	t.Helper()
+	data, err := tree.BuildSchema(testkit.RepoRoot())
+	if err != nil {
+		t.Fatal(err)
+	}
+	root, err := jsonx.Unmarshal(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pipeline := config.V2Pipeline{S: schema.New(root)}
+	dir, home, ex := t.TempDir(), t.TempDir(), t.TempDir()
+	st, err := store.Open(store.Options{Dir: dir, Pipeline: pipeline, Debounce: 20 * time.Millisecond})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { st.Close() })
+	svc := New(Options{
+		Dir: dir, Examples: ex, Home: home, UIState: filepath.Join(dir, "ui", "savedconfigs.json"),
+		Store: st, Pipeline: func() config.Pipeline { return pipeline },
+		Now: func() time.Time { return time.Date(2026, 10, 23, 12, 0, 0, 0, time.UTC) },
+	})
+	return fixture{svc: svc, store: st, dir: dir, home: home, ex: ex}
+}
+
+func set(t *testing.T, st *store.Store, path string, value any) {
+	t.Helper()
+	p, err := config.ParsePath(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := st.Set([]config.Op{config.SetValue(p, value)}, store.SetOptions{}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func get(t *testing.T, st *store.Store, path string) any {
+	t.Helper()
+	cfg, _ := st.Config()
+	p, _ := config.ParsePath(path)
+	v, _ := config.Lookup(cfg, p)
+	return v
+}
+
+func TestSaveRestoreModified(t *testing.T) {
+	t.Parallel()
+	f := setup(t)
+	set(t, f.store, "Bars.style.widgetStyle", "outline")
+	name, err := f.svc.Save("My look", "")
+	if err != nil || name != "My look" {
+		t.Fatalf("save: %q %v", name, err)
+	}
+	if st := f.svc.State(); st.Active != "My look" || st.Modified {
+		t.Errorf("state after save: %+v", st)
+	}
+	saved, _ := os.ReadFile(filepath.Join(f.dir, "saved", "My look.json"))
+	if !strings.Contains(string(saved), `"format": 2`) || !strings.Contains(string(saved), `"outline"`) {
+		t.Errorf("saved file:\n%s", saved)
+	}
+	set(t, f.store, "Bars.style.widgetStyle", "plain")
+	f.svc.Changed()
+	if !f.svc.State().Modified {
+		t.Error("not modified after a change")
+	}
+	if err := f.svc.Restore("My look"); err != nil {
+		t.Fatal(err)
+	}
+	if v := get(t, f.store, "Bars.style.widgetStyle"); v != "outline" {
+		t.Errorf("restored widgetStyle %v", v)
+	}
+	if st := f.svc.State(); st.Modified {
+		t.Errorf("modified right after restoring: %+v", st)
+	}
+	// Remembered across a restart
+	again := New(Options{Dir: f.dir, UIState: filepath.Join(f.dir, "ui", "savedconfigs.json"), Store: f.store, Pipeline: f.svc.opts.Pipeline})
+	if again.State().Active != "My look" {
+		t.Errorf("active after a restart: %+v", again.State())
+	}
+}
+
+// An example of format 1 (as examples/ ship today) applies converted, after
+// a backup, and is saved as example-<name>; takeovers stay.
+func TestApplyExampleFormat1(t *testing.T) {
+	t.Parallel()
+	f := setup(t)
+	os.WriteFile(filepath.Join(f.ex, "tall.json"), []byte(`{"_example": {"title": "Tall"}, "version": 60,
+		"Bars": [{"id": "primary", "location": "Left", "widgetSize": 40}], "Compositor": {"mode": "managed"}}`), 0o644)
+	applied, err := f.svc.ApplyExample("tall", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if applied.Backup != "before-tall" || applied.Saved != "example-tall" {
+		t.Errorf("applied %+v", applied)
+	}
+	if v := get(t, f.store, "Bars.items[primary].location"); v != "left" {
+		t.Errorf("location %v", v)
+	}
+	if v := get(t, f.store, "Compositor.mode"); v != "detached" {
+		t.Errorf("a takeover changed: %v", v)
+	}
+	if _, err := os.Stat(filepath.Join(f.dir, "saved", "before-tall.json")); err != nil {
+		t.Error("no backup")
+	}
+	if got := f.svc.Examples(); len(got) != 1 || got[0].Title != "Tall" {
+		t.Errorf("examples %+v", got)
+	}
+}
+
+func TestOpenAndImport(t *testing.T) {
+	t.Parallel()
+	f := setup(t)
+	path := filepath.Join(f.home, "shared.json")
+	os.WriteFile(path, []byte(`{"format": 2, "version": 76, "meta": {"title": "Shared look", "description": "d"},
+		"Appearance": {"theme": {"name": "nord"}}, "Keybinds": {"binds": [{"id": "x", "key": "SUPER + X", "action": "launcher"}]}}`), 0o644)
+	preview, err := f.svc.Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if preview.Title != "Shared look" || !preview.HasPersonal || preview.HasCommands {
+		t.Errorf("preview %+v", preview)
+	}
+	if _, err := f.svc.Import(path, false, false, nil); err != nil {
+		t.Fatal(err)
+	}
+	if v := get(t, f.store, "Appearance.theme.name"); v != "nord" {
+		t.Errorf("theme %v", v)
+	}
+	if binds := get(t, f.store, "Keybinds.binds").(*jsonx.Array); binds.Len() > 0 && binds.Items[0].(*jsonx.Object).Value("key") == "SUPER + X" {
+		t.Error("personal parts taken without asking")
+	}
+	// A newer one is refused
+	os.WriteFile(path, []byte(`{"format": 2, "version": 999}`), 0o644)
+	if _, err := f.svc.Open(path); err == nil || !strings.Contains(err.Error(), "newer") {
+		t.Errorf("newer: %v", err)
+	}
+}
+
+func TestExport(t *testing.T) {
+	t.Parallel()
+	f := setup(t)
+	set(t, f.store, "Bars.style.widgetStyle", "tinted")
+	path, err := f.svc.Export(false, false, true, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if filepath.Base(path) != "axiom-2026-10-23-120000.json" {
+		t.Errorf("path %s", path)
+	}
+	data, _ := os.ReadFile(path)
+	if !strings.Contains(string(data), `"tinted"`) || strings.Contains(string(data), `"detached"`) {
+		t.Errorf("export:\n%s", data)
+	}
+}

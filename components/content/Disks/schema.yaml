@@ -1,0 +1,14 @@
+label: Disk usage
+icon: hard_drive
+group: System
+canvasDetail: paths
+defaultSize: [4, 2]
+hosts: [lockscreen]
+settings:
+  paths:
+    x-scope: machine
+    type: array
+    title: Mount points
+    default: [/]
+    items: {type: string}
+    description: Comma-separated, e.g. /, /home

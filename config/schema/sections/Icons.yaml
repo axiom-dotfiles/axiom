@@ -10,6 +10,5 @@ properties:
     type: object
     default: {}
     description: App name → icon path/URL, for apps whose tray or window icon doesn't resolve.
-    additionalProperties:
-      type: string
+    additionalProperties: {type: string}
     x-settings: false

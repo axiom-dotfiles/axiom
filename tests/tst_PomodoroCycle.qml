@@ -5,13 +5,13 @@ import qs.components.methods
 TestCase {
   name: "PomodoroCycle"
 
+  readonly property int minute: 60000
   readonly property var settings: ({
-      "workMinutes": 25,
-      "shortBreakMinutes": 5,
-      "longBreakMinutes": 15,
+      "work": 25 * minute,
+      "shortBreak": 5 * minute,
+      "longBreak": 15 * minute,
       "longBreakEvery": 2
     })
-  readonly property int minute: 60000
 
   function test_start_pause_resume() {
     let state = PomodoroCycle.idle;

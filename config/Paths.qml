@@ -13,11 +13,17 @@ QtObject {
   // Shell root (this repo), always with a trailing slash. Read-only: axiom
   // writes nothing under it (a package installs it where it can't)
   readonly property string axiomPath: decodeURIComponent(Quickshell.shellDir.toString().replace("file://", "")).replace(/\/?$/, "/")
-  // How compositors, binds and idle daemons start or call axiom
-  readonly property string shellCommand: `qs -p '${root.axiomPath.replace(/\/$/, "")}'`
-  // The restart binds' command: ends every axiom on the display and starts
-  // one (scripts/restart.sh)
-  readonly property string restartCommand: `'${root.axiomPath}scripts/restart.sh'`
+  // How compositors, binds and idle daemons call axiom: the binary that
+  // runs this shell ($AXIOM_BIN), by its path (a compositor's PATH may not
+  // have it). `<shellCommand> ipc <target> <fn>` calls the shell.
+  readonly property string axiomBin: Quickshell.env("AXIOM_BIN") || "axiom"
+  readonly property string shellCommand: `'${root.axiomBin}'`
+  // The restart binds' command: axiom restarts the shell it runs
+  readonly property string restartCommand: `${root.shellCommand} restart`
+  // A line in a compositor config that starts axiom (Python regex, for
+  // integration_hookup.py's `accept`): `axiom run`, or the `qs -c axiom` /
+  // `qs -p …axiom` of before the binary
+  readonly property string startPattern: "(qs|quickshell) .*(-c +['\"]?axiom|-p +['\"]?\\S*axiom)|(^|[\\s'\"/])axiom['\"]? +run\\b"
   readonly property string themePath: root.axiomPath + "config/themes/"
   readonly property string scriptsPath: root.axiomPath + "scripts/"
   // What ships with axiom in config/: json/ (schema, theme defaults,
@@ -96,6 +102,20 @@ QtObject {
     if (!prefixed)
       return root.themePath + name + ".json";
     return (prefixed[1] === "generated" ? root.generatedThemesPath : root.communityThemesPath) + prefixed[2] + ".json";
+  }
+
+  // The file a type is loaded from (docs/dev/core/config-v2.md, rule 11):
+  // a type is a folder <root>/<Type>/ with <Type>.qml. A content name with
+  // a slash names another file in a type's folder ("Submenu/MenuSubmenu").
+  function widgetUrl(type) {
+    return "file://" + root.axiomPath + "components/bar/widgets/" + type + "/" + type + ".qml";
+  }
+  function contentUrl(name) {
+    const file = String(name).includes("/") ? name : name + "/" + name;
+    return "file://" + root.axiomPath + "components/content/" + file + ".qml";
+  }
+  function viewUrl(type) {
+    return "file://" + root.axiomPath + "components/views/" + type + "/" + type + ".qml";
   }
 
   // A path from config or the user: trimmed, a leading ~ as home, no

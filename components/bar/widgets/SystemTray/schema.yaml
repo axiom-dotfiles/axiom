@@ -1,0 +1,32 @@
+label: System Tray
+icon: apps
+group: Desktop
+popout:
+  variant: plain
+  enabled: {title: Menus, description: Open an item's menu when it's hovered.}
+settings:
+  iconSize:
+    type: integer
+    x-control: stepper
+    title: Icon size
+    default: 18
+    minimum: 8
+    maximum: 64
+    x-unit: px
+    description: Size of tray icons (px).
+  showPassive:
+    type: boolean
+    title: Show passive
+    default: true
+    description: Also show items that report themselves as passive (idle).
+  backgroundColor:
+    type: string
+    title: Background
+    x-options: colors
+    default: ''
+    x-emptyLabel: Auto
+    x-autoColor: neutral
+    x-showIf:
+      anyOf:
+        - {$bar.widgetStyle: [filled, tinted, outline], $bar.widgetGrouping: {not: merged}}
+        - {$bar.widgetStyle: underline}

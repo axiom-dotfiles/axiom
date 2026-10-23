@@ -9,5 +9,5 @@ Reader for the Lockscreen section: which locker locks the session, and what the 
 
 - `mode` (readonly string): "quickshell" (built-in) | "none"
 - `lockCommand` (readonly string): What lock buttons run in "none" mode
-- `layout` (readonly var): The built-in lock screen: { columns, rows (its grid, fitted to each monitor; fineGrid splits its units in two), otherScreens ("layout": the modules without the password | "background"), background ("…
+- `layout` (readonly var): The built-in lock screen, a ScreenLayout: { grid: { columns, rows, fine } (fitted to each monitor; `fine` splits its units in two), moduleScale, moduleBorders, modules, otherScreens ("layout": the mo…
 - `fieldGroups` (readonly var): The layout's own fields in groups (`x-group`), for the layouts editor

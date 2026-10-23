@@ -1,0 +1,16 @@
+# The Timing definition (#/definitions/Timing).
+
+x-inline: true
+type: object
+title: Timing
+description: How long the pointer rests before it opens, and how long it may be away before it closes.
+additionalProperties: false
+properties:
+  openDelay: {type: integer, title: Open delay, x-unit: ms, default: 10, minimum: 0, maximum: 2000}
+  closeDelay:
+    type: integer
+    title: Close delay
+    x-unit: ms
+    default: 250
+    minimum: 0
+    maximum: 5000

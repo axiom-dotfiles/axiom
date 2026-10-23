@@ -14,8 +14,8 @@ QtObject {
 
   // Names the surface: instances with the same kind act together
   required property string kind
-  // The surface's `monitors` mode ("" is General's)
-  property string mode: ""
+  // The surface's ScreenTarget (null is General's)
+  property var target: null
   required property var screen
   // This instance's window (null while it has none)
   property var window: null
@@ -25,7 +25,7 @@ QtObject {
   // Open (true) or close this instance to match the others
   signal syncRequested(bool shown)
 
-  readonly property bool everywhere: ShellManager.everywhere(root.mode)
+  readonly property bool everywhere: ShellManager.everywhere(root.target)
   // Set when it opens: the target screen's instance
   property bool ownsGrab: true
   // Windows the grab lets input through to
@@ -38,7 +38,7 @@ QtObject {
   onShownChanged: {
     ShellManager.setSurfaceOpen(root, root.kind, root.shown);
     if (root.shown)
-      root.ownsGrab = !root.everywhere || ShellManager.isTarget(root.screen, root.mode);
+      root.ownsGrab = !root.everywhere || ShellManager.isTarget(root.screen, root.target);
     if (root.everywhere)
       ShellManager.surfaceShown(root.kind, root.shown);
   }

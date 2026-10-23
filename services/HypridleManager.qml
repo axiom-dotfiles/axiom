@@ -41,7 +41,7 @@ Singleton {
   // in "none" mode (except loginctl lock-session, which would loop)
   readonly property string lockCmd: {
     if (LockscreenConfig.mode !== "none")
-      return `${Paths.shellCommand} ipc call lockscreen lock`;
+      return `${Paths.shellCommand} lock`;
     const command = LockscreenConfig.lockCommand.trim();
     return command === "loginctl lock-session" ? "" : command;
   }

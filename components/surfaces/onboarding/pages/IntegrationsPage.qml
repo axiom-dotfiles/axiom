@@ -138,7 +138,7 @@ OnboardingPage {
     }
 
     CodeLine {
-      text: "lock_cmd = qs -c axiom ipc call lockscreen lock\nbefore_sleep_cmd = loginctl lock-session"
+      text: "lock_cmd = axiom lock\nbefore_sleep_cmd = loginctl lock-session"
     }
   }
 

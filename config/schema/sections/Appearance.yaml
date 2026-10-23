@@ -7,126 +7,126 @@ title: Appearance
 additionalProperties: false
 properties:
   theme:
+    type: object
+    title: Theme
     x-scope: look
-    type: string
-    default: gruvbox-dark
-    description: Active theme (set on the overlay's Themes page).
-    x-settings: false
+    additionalProperties: false
+    properties:
+      name:
+        type: string
+        default: gruvbox-dark
+        description: Active theme (set on the overlay's Themes page).
+        x-settings: false
+      schedule:
+        type: object
+        title: Light and dark by time
+        additionalProperties: false
+        properties:
+          enabled:
+            type: boolean
+            title: Switch by time of day
+            default: false
+            description: Use the theme's light variant during the day and its dark one at night. Switching by hand lasts until the next change.
+          lightAt:
+            type: string
+            title: Light from
+            default: '07:00'
+            pattern: '^([01]?\d|2[0-3]):[0-5]\d$'
+            description: '24-hour time, like 07:00.'
+            x-showIf: {enabled: true}
+          darkAt:
+            type: string
+            title: Dark from
+            default: '19:00'
+            pattern: '^([01]?\d|2[0-3]):[0-5]\d$'
+            description: '24-hour time, like 19:00.'
+            x-showIf: {enabled: true}
   wallpaper:
-    type: string
-    x-snapshot: true
-    default: ""
-    description: The primary monitor's wallpaper file URL, used by the lockscreen (set on the overlay's Themes page).
-    x-settings: false
-  wallpapers:
     type: object
-    x-snapshot: true
-    default: {}
-    description: Monitor name → wallpaper file URL (set on the overlay's Themes page). A monitor with no entry shows `wallpaper`.
-    additionalProperties:
-      type: string
-    x-settings: false
-  wallpaperBackend:
-    type: string
-    title: Wallpaper backend
-    enum: [quickshell, awww]
-    x-enumLabels: {quickshell: Axiom (built in), awww: awww}
-    default: quickshell
-    description: What draws the wallpaper. Axiom needs nothing installed and crossfades; awww (AUR) adds wipe and wave transitions.
-  wallpaperDaemon:
-    x-scope: machine
-    type: boolean
-    title: Start awww
-    default: true
-    description: Start awww-daemon for the wallpaper picker.
-    x-showIf: {wallpaperBackend: awww}
-  wallpaperFolder:
-    type: string
-    x-snapshot: true
-    title: Wallpaper folder
-    x-control: folder
-    default: ~/Pictures/wallpapers
-    pattern: \S
-    description: Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder.
-  wallpaperMode:
-    type: string
-    x-snapshot: true
-    title: Wallpaper mode
-    enum: [fixed, rotate, variant]
-    x-enumLabels:
-      fixed: Fixed
-      rotate: Rotate on a timer
-      variant: One for light, one for dark
-    default: fixed
-    description: Fixed keeps the wallpaper you pick. Rotate changes it on a timer, from the wallpaper folder. One for light, one for dark shows the wallpaper you picked for the theme's current variant on every monitor. A generated theme follows the wallpaper as it changes. Also set on the overlay's Themes page.
-  wallpaperRotation:
-    type: object
-    x-snapshot: true
-    title: Wallpaper rotation
+    title: Wallpaper
     additionalProperties: false
-    x-showIf: {wallpaperMode: rotate}
-    x-order: [interval, order, sameOnAll]
     properties:
-      interval:
-        type: integer
-        title: Change every
-        x-unit: min
-        default: 30
-        minimum: 1
-        maximum: 1440
-        description: How long each wallpaper stays up.
-      order:
+      mode:
         type: string
-        title: Order
-        enum: [random, sequential]
-        x-enumLabels: {random: Random, sequential: 'In order, by name'}
-        default: random
-        description: Random never picks the wallpaper already showing.
-      sameOnAll:
+        x-snapshot: true
+        title: Wallpaper mode
+        enum: [fixed, rotate, variant]
+        x-enumLabels:
+          fixed: Fixed
+          rotate: Rotate on a timer
+          variant: One for light, one for dark
+        default: fixed
+        description: Fixed keeps the wallpaper you pick. Rotate changes it on a timer, from the wallpaper folder. One for light, one for dark shows the wallpaper you picked for the theme's current variant on every monitor. A generated theme follows the wallpaper as it changes. Also set on the overlay's Themes page.
+      file:
+        type: string
+        x-snapshot: true
+        default: ''
+        description: The primary monitor's wallpaper file URL, used by the lockscreen (set on the overlay's Themes page).
+        x-settings: false
+      perScreen:
+        type: object
+        x-snapshot: true
+        default: {}
+        description: Monitor name → wallpaper file URL (set on the overlay's Themes page). A monitor with no entry shows `wallpaper`.
+        additionalProperties: {type: string}
+        x-settings: false
+      folder:
+        type: string
+        x-snapshot: true
+        title: Wallpaper folder
+        x-control: folder
+        default: '~/Pictures/wallpapers'
+        pattern: '\S'
+        description: Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder.
+      rotation:
+        type: object
+        x-snapshot: true
+        title: Wallpaper rotation
+        additionalProperties: false
+        x-showIf: {mode: rotate}
+        properties:
+          interval:
+            type: integer
+            title: Change every
+            x-unit: min
+            default: 1800000
+            minimum: 60000
+            maximum: 86400000
+            description: How long each wallpaper stays up.
+          order:
+            type: string
+            title: Order
+            enum: [random, sequential]
+            x-enumLabels: {random: Random, sequential: 'In order, by name'}
+            default: random
+            description: Random never picks the wallpaper already showing.
+          sameOnAll:
+            type: boolean
+            title: Same on every monitor
+            default: false
+            description: Show one wallpaper on all monitors. Off, each monitor gets its own.
+      variants:
+        type: object
+        x-snapshot: true
+        default: {}
+        description: The wallpapers for the light and dark variants, as file URLs (set on the overlay's Themes page).
+        additionalProperties: false
+        properties: {dark: {type: string, default: ''}, light: {type: string, default: ''}}
+        x-settings: false
+      backend:
+        type: string
+        title: Wallpaper backend
+        enum: [quickshell, awww]
+        x-enumLabels: {quickshell: Axiom (built in), awww: awww}
+        default: quickshell
+        description: What draws the wallpaper. Axiom needs nothing installed and crossfades; awww (AUR) adds wipe and wave transitions.
+      daemon:
+        x-scope: machine
         type: boolean
-        title: Same on every monitor
-        default: false
-        description: Show one wallpaper on all monitors. Off, each monitor gets its own.
-  variantWallpapers:
-    type: object
-    x-snapshot: true
-    default: {}
-    description: The wallpapers for the light and dark variants, as file URLs (set on the overlay's Themes page).
-    additionalProperties: false
-    properties:
-      dark:
-        type: string
-        default: ""
-      light:
-        type: string
-        default: ""
-    x-settings: false
-  themeSchedule:
-    x-scope: look
-    type: object
-    title: Light and dark by time
-    additionalProperties: false
-    x-order: [enabled, lightAt, darkAt]
-    properties:
-      enabled:
-        type: boolean
-        title: Switch by time of day
-        default: false
-        description: Use the theme's light variant during the day and its dark one at night. Switching by hand lasts until the next change.
-      lightAt:
-        type: string
-        title: Light from
-        default: "07:00"
-        pattern: ^([01]?\d|2[0-3]):[0-5]\d$
-        description: "24-hour time, like 07:00."
-        x-showIf: {enabled: true}
-      darkAt:
-        type: string
-        title: Dark from
-        default: "19:00"
-        pattern: ^([01]?\d|2[0-3]):[0-5]\d$
-        description: "24-hour time, like 19:00."
-        x-showIf: {enabled: true}
+        title: Start awww
+        default: true
+        description: Start awww-daemon for the wallpaper picker.
+        x-showIf: {backend: awww}
   font:
     x-scope: look
     type: object
@@ -154,7 +154,7 @@ properties:
     additionalProperties: false
     properties:
       radius:
-        x-link: {setting: Widget.radius}
+        x-link: {setting: Interface.radius}
         type: integer
         x-control: stepper
         title: Corner radius
@@ -192,7 +192,6 @@ properties:
     title: Translucency
     x-intro: TranslucencyStatus
     additionalProperties: false
-    x-order: [opacity]
     properties:
       opacity:
         x-link:
@@ -204,7 +203,7 @@ properties:
         default: 100
         minimum: 60
         maximum: 100
-        description: 'How solid the shell''s surfaces are: bars, the screen border, popouts, menus and panels (not your apps'' windows: Compositor → Window look → Window opacity). 100 is fully solid. A translucent surface needs the compositor to blur behind it (Compositor → Window look → Blur).'
+        description: "How solid the shell's surfaces are: bars, the screen border, popouts, menus and panels (not your apps' windows: Compositor → Window look → Window opacity). 100 is fully solid. A translucent surface needs the compositor to blur behind it (Compositor → Window look → Blur)."
         x-enabledIf: {/$supports.blur: true}
   motion:
     x-scope: look

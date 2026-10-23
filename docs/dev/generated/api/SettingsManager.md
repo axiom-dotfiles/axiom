@@ -47,6 +47,7 @@ The settings page's working copy of the config. Edits are applied live (in memor
 - `discard(paths)`: Puts the settings at these key paths back as saved (one card's Discard)
 - `setDraftValue(path, value)`: Sets one value in the draft only (a text field being typed in), so it shows as unsaved; setValue applies it
 - `schemaAt(path)`: The schema of the setting at a key path
+- `inheritedValue(fieldSchema)`: What a setting marked `x-inherit` (a dotted path) is while it's null: the setting it follows, followed on while that is null too (widgetRadius → Interface.radius → Appearance.shape.radius); null if n…
 - `optionsFor(fieldSchema)`: The choices for a string setting (`enum` or `x-options`), else null
 - `suggestionsFor(fieldSchema)`: Values offered as chips beside a free-text setting (`x-suggestions`): it still takes anything typed
 - `settingFor(key)`

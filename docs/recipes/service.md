@@ -2,7 +2,7 @@
 
 > **Use when:** a feature needs state, a process, polling, file writes or Hyprland dispatches. UI never does those itself.
 > **Copy from:**
-> - `services/TailscaleManager.qml`: polled state through a `ConsumerRegistry`; its consumer is `components/bar/widgets/Tailscale.qml`.
+> - `services/TailscaleManager.qml`: polled state through a `ConsumerRegistry`; its consumer is `components/bar/widgets/Tailscale/Tailscale.qml`.
 > - `services/IdleInhibitManager.qml`: an IPC handler, and state kept across reloads in `PersistentProperties`.
 > **Docs:** [services-pattern](../dev/core/services-pattern.md), `services/AGENTS.md`, generated API `docs/dev/generated/api/<Name>.md`
 

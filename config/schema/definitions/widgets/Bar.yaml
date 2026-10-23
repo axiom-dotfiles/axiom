@@ -1,0 +1,149 @@
+# The Bar definition (#/definitions/Bar).
+
+type: object
+required: [id]
+additionalProperties: false
+properties:
+  id: {$ref: '#/definitions/ItemId'}
+  enabled: {x-group: General, type: boolean, title: Enabled, default: true}
+  screen:
+    $ref: '#/definitions/ScreenTarget'
+    x-group: General
+    title: Monitor
+    description: Which monitors the bar is on. Every monitor puts an identical copy on each.
+    x-properties:
+      mode:
+        x-scope: look
+        type: string
+        title: Monitors
+        enum: [primary, all, named]
+        default: primary
+        x-enumLabels: {primary: Primary monitor, all: Every monitor, named: These monitors}
+        x-link: {setting: General.screen}
+  location:
+    x-group: General
+    type: string
+    title: Location
+    default: top
+    enum: [top, bottom, left, right]
+  widgetSize:
+    x-group: Size
+    type: integer
+    x-control: stepper
+    title: Widget size
+    default: 26
+    minimum: 10
+    maximum: 150
+    x-unit: px
+    description: How thick the widgets are across the bar. The bar grows to fit them, their padding, and any border it shares an edge with.
+  padding:
+    x-group: Size
+    type: integer
+    x-control: stepper
+    title: Padding
+    default: 4
+    minimum: 0
+    maximum: 50
+    x-unit: px
+    x-showIf: {background: {not: pills}}
+    description: Space between the widgets and the bar's visible edges, on both sides.
+  spacing:
+    x-group: Size
+    type: integer
+    x-control: stepper
+    title: Spacing
+    default: 4
+    minimum: 0
+    maximum: 50
+    x-unit: px
+    description: Gap between widgets (px).
+  widgetPadding:
+    x-group: Size
+    type: integer
+    x-control: stepper
+    title: Widget padding
+    default: 10
+    minimum: 0
+    maximum: 40
+    x-unit: px
+    description: Space inside each widget, before its icon or text.
+  widgetSpacing:
+    x-group: Size
+    type: integer
+    x-control: stepper
+    title: Inner spacing
+    default: 4
+    minimum: 0
+    maximum: 20
+    x-unit: px
+    description: Gap between items inside a widget.
+  background:
+    x-group: Style
+    type: string
+    title: Background
+    default: solid
+    enum: [solid, transparent, pills, floating, floatingPills]
+    x-enumLabels:
+      solid: Solid
+      transparent: Transparent
+      pills: Pill per group
+      floating: Floating bar
+      floatingPills: Floating pills
+    description: Every bar but a solid one sits inside the screen border. Pills grow out of it; floating bars and pills are held away from it.
+  floatGap:
+    x-link: {setting: WindowLook.gaps.outer}
+    x-group: Style
+    type: integer
+    x-control: stepper
+    x-auto: {value: -1, start: 8}
+    title: Float gap
+    default: -1
+    minimum: -1
+    maximum: 60
+    x-unit: px
+    x-showIf: {background: [floating, floatingPills]}
+    description: How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends. Auto keeps the compositor's gap to the screen edges, as your windows do. Windows always keep the compositor's gap between windows from the bar.
+  pillPadding:
+    x-group: Style
+    type: integer
+    x-control: stepper
+    title: Pill padding
+    default: 4
+    minimum: 0
+    maximum: 20
+    x-showIf: {background: pills}
+    x-unit: px
+    description: Extra space around a pill's widgets (px). They sit the screen margin plus this from the screen edge, and as far from the pill's other edges.
+  pillMerge:
+    x-group: Style
+    type: integer
+    x-control: stepper
+    title: Merge distance
+    default: 12
+    minimum: 0
+    maximum: 200
+    x-showIf: {background: [pills, floatingPills]}
+    x-unit: px
+    description: Groups closer than this share one pill (px).
+  lockCenter:
+    x-group: Behaviour
+    type: boolean
+    title: Lock center
+    default: false
+    description: Keep the center section dead center on the bar. The other sections shrink or hide widgets on their own side instead of pushing it.
+  reserveSpace:
+    x-group: Behaviour
+    type: boolean
+    title: Reserve space
+    default: true
+    description: Keep windows from tiling underneath the bar.
+  style: {$ref: '#/definitions/BarStyle', x-inherit: Bars.style, title: Widget style}
+  widgets:
+    type: object
+    additionalProperties: false
+    properties:
+      left: {type: array, default: [], items: {$ref: '#/definitions/BarWidget'}}
+      leftCenter: {type: array, default: [], items: {$ref: '#/definitions/BarWidget'}}
+      center: {type: array, default: [], items: {$ref: '#/definitions/BarWidget'}}
+      rightCenter: {type: array, default: [], items: {$ref: '#/definitions/BarWidget'}}
+      right: {type: array, default: [], items: {$ref: '#/definitions/BarWidget'}}

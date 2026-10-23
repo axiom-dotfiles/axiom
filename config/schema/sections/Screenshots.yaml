@@ -3,19 +3,18 @@
 type: object
 x-category: General
 title: Screenshots & recordings
-description: 'Where screenshots and screen recordings are saved, whichever way they''re taken: the screenshot and screenRecord binds, the launcher, the Screenshot and Screen recording cards.'
+description: "Where screenshots and screen recordings are saved, whichever way they're taken: the screenshot and screenRecord binds, the launcher, the Screenshot and Screen recording cards."
 additionalProperties: false
-x-order: [folder, recordingFolder]
 properties:
   folder:
     type: string
     title: Screenshot folder
     x-control: folder
-    default: ""
+    default: ''
     description: Where screenshots are saved (~ is your home). Empty uses Pictures/Screenshots.
   recordingFolder:
     type: string
     title: Recording folder
     x-control: folder
-    default: ""
+    default: ''
     description: Where recordings are saved, and listed from by the Screen recording card. Empty saves them with the screenshots.

@@ -1,6 +1,6 @@
 # Keybinds (actions and the Keybinds page)
 
-> **Files:** `services/KeybindManager.qml`, `config/KeybindsConfig.qml`, `components/methods/BindActions.qml` (what each action is, its argument kinds), `components/methods/HyprConfigLua.qml` (`bindLua`, `dispatcherLua`), `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/views/Keybinds.qml`, `components/views/keybinds/` (`BindEditor`, `BindSection`, `BindListRow`, `BindInspector`, `KeyMapPanel`, `PresetSheet`, `KeyRecorder`, `FilterChips`), `components/methods/KeyNames.qml`, `components/methods/KeybindFilter.qml`, `components/methods/BindKeys.qml`, `components/methods/BindGroups.qml`, `components/methods/KeyMap.qml`, `components/methods/BindRows.qml`, `components/content/parts/` (`KeybindSection`, `KeybindRow`, `KeyboardMap`, `KeyboardReference`)
+> **Files:** `services/KeybindManager.qml`, `config/KeybindsConfig.qml`, `components/methods/BindActions.qml` (what each action is, its argument kinds), `components/methods/HyprConfigLua.qml` (`bindLua`, `dispatcherLua`), `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/views/Keybinds/Keybinds.qml`, `components/views/Keybinds/` (`BindEditor`, `BindSection`, `BindListRow`, `BindInspector`, `KeyMapPanel`, `PresetSheet`, `KeyRecorder`, `FilterChips`), `components/methods/KeyNames.qml`, `components/methods/KeybindFilter.qml`, `components/methods/BindKeys.qml`, `components/methods/BindGroups.qml`, `components/methods/KeyMap.qml`, `components/methods/BindRows.qml`, `components/content/parts/` (`KeybindSection`, `KeybindRow`, `KeyboardMap`, `KeyboardReference`)
 > **Config:** `Keybinds.binds`, `Keybinds.presets`, `Apps.terminal`/`fileManager`/`browser`
 > **Related:** [Bind merge](bind-merge.md), [Config modes](config-modes.md), [Window switcher](window-switcher.md), [Screenshots and recording](../features/screenshots-recording.md), [Workspace strips](workspace-strips.md)
 
@@ -79,4 +79,4 @@ What a bind can do, and how the Keybinds page lists the compositor's binds and e
   - Its own chips: `editSectionFilter`, `editModFilter`, and a state group of `editPausedOnly` (Paused, `pausedCount`) and `editIssuesOnly` (With issues), either when both are on; options `editSectionOptions`/`editModOptions`.
   - Cleared by `clearEditFilters()`, which Add bind also calls.
   - Applied in `visibleKey`. Turning any of them on, or searching, turns `reorderable` off.
-- Both tabs draw their chips with `views/keybinds/FilterChips`: groups of `{ value, label }` options, a `selection` map, and `toggled`/`cleared` signals.
+- Both tabs draw their chips with `views/Keybinds/FilterChips`: groups of `{ value, label }` options, a `selection` map, and `toggled`/`cleared` signals.

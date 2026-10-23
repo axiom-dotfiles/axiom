@@ -13,7 +13,7 @@ import qs.components.methods
 // Displays acquire(owner) the once-a-second `now`; the end itself needs
 // no one.
 //
-//   qs -c axiom ipc call pomodoro toggle
+//   axiom ipc pomodoro toggle
 Singleton {
   id: root
 

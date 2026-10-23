@@ -275,7 +275,7 @@ Item {
                   id: chip
                   required property int index
                   readonly property var event: cell.dayEvents[index] ?? null
-                  readonly property color calendarColor: CalendarConfig.colors[chip.event?.calendar] ?? Theme.accent
+                  readonly property color calendarColor: CalendarManager.colors[chip.event?.calendar] ?? Theme.accent
                   width: parent?.width ?? 0
                   height: cell.lineHeight
                   radius: Widget.radius / 2

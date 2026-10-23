@@ -5,32 +5,28 @@ x-category: Modules
 title: Weather
 description: Where and how every weather widget and module gets its weather, from Open-Meteo (no account needed).
 additionalProperties: false
-x-order: [location, latitude, longitude, units, intervalMinutes]
 properties:
   location:
     type: string
     title: Location
-    default: ""
+    default: ''
     description: City name to look up. Empty uses your IP's location.
   latitude:
     type: string
     title: Latitude
-    default: ""
+    default: ''
     description: Exact coordinates; with longitude, overrides the location lookup.
-  longitude:
-    type: string
-    title: Longitude
-    default: ""
+  longitude: {type: string, title: Longitude, default: ''}
   units:
     x-scope: personal
     type: string
     title: Units
     default: celsius
     enum: [celsius, fahrenheit]
-  intervalMinutes:
+  interval:
     type: integer
     title: Refresh interval
     x-unit: min
-    default: 15
-    minimum: 5
-    maximum: 1440
+    default: 900000
+    minimum: 300000
+    maximum: 86400000

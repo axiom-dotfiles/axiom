@@ -6,7 +6,6 @@ x-category: Workspaces
 title: Window switcher
 description: Your windows, most recently used first, while the switch windows keys are held (ALT + Tab and ALT + SHIFT + Tab on the Keybinds page). Releasing the modifier focuses the chosen window; Escape keeps the current one.
 additionalProperties: false
-x-order: [scope, previews, tileSize, showDelay]
 properties:
   scope:
     type: string

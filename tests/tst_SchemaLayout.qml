@@ -214,7 +214,84 @@ TestCase {
     compare(groups.map(group => group.intro), ["", "Status", ""]);
   }
 
-  // `x-cardPerField`: the section's description, then a card per direct
+  // A nested object with `x-group` joins that card under its own title,
+  // its `x-showIf` on its group row and (from its parent) on its rows
+  function test_object_joins_group_card() {
+    const groups = SchemaLayout.groups({
+      "properties": {
+        "S": {
+          "type": "object",
+          "title": "Sec",
+          "properties": {
+            "a": {
+              "type": "boolean",
+              "title": "A"
+            },
+            "n": {
+              "type": "object",
+              "title": "Nested",
+              "x-group": "Sec",
+              "x-showIf": {
+                "a": true
+              },
+              "properties": {
+                "b": {
+                  "type": "boolean",
+                  "title": "B"
+                }
+              }
+            },
+            "m": {
+              "type": "object",
+              "title": "More",
+              "x-group": "Elsewhere",
+              "properties": {
+                "c": {
+                  "type": "boolean",
+                  "title": "C"
+                }
+              }
+            }
+          }
+        }
+      }
+    }, "S");
+    compare(groups.map(group => group.title), ["Sec", "Elsewhere"]);
+    compare(groups[0].rows.map(row => row.kind), ["field", "group", "field"]);
+    compare(groups[0].rows[1].showIf, {
+      "a": true
+    });
+    compare(groups[0].rows[2].groupShowIf, [
+      {
+        "condition": {
+          "a": true
+        },
+        "path": ["S"]
+      }
+    ]);
+    compare(groups[1].key, "S:Elsewhere");
+    compare(groups[1].rows.map(row => row.title), ["More", "C"]);
+  }
+
+  // Durations are stored in ms and shown in their unit
+  function test_unitScale() {
+    compare(SchemaLayout.unitScale("s"), 1000);
+    compare(SchemaLayout.unitScale("min"), 60000);
+    compare(SchemaLayout.unitScale("d"), 86400000);
+    compare(SchemaLayout.unitScale("ms"), 1);
+    compare(SchemaLayout.unitScale("px"), 1);
+    compare(SchemaLayout.unitScale(""), 1);
+  }
+
+  // A condition key may be dotted and climb with `../`
+  function test_keyPath() {
+    compare(SchemaLayout.keyPath(["A", "b"], "c"), ["A", "b", "c"]);
+    compare(SchemaLayout.keyPath(["A", "b"], "open.onHover"), ["A", "b", "open", "onHover"]);
+    compare(SchemaLayout.keyPath(["A", "b"], "../c"), ["A", "c"]);
+    compare(SchemaLayout.keyPath(["A", "b"], "../../c.d"), ["c", "d"]);
+  }
+
+  // `x-card.perField`: the section's description, then a card per direct
   // field by title (with its description, a switch's row labelled
   // "Enabled"), then nested objects
   function test_card_per_field() {
@@ -224,7 +301,9 @@ TestCase {
           "type": "object",
           "title": "Sec",
           "description": "About",
-          "x-cardPerField": true,
+          "x-card": {
+            "perField": true
+          },
           "properties": {
             "z": {
               "type": "boolean",
@@ -263,15 +342,17 @@ TestCase {
     compare(groups[4].rows[0].label, undefined);
   }
 
-  // A hand-built card goes first; with `x-cardFolds` it folds, and the
+  // A hand-built card goes first; with `x-card.folds` it folds, and the
   // real cards that fold take their key as `foldKey` (EntryListCards do)
   function test_card_folds() {
     const groups = SchemaLayout.groups({
       "properties": {
         "S": {
           "type": "object",
-          "x-card": "List",
-          "x-cardFolds": true,
+          "x-card": {
+            "file": "List",
+            "folds": true
+          },
           "properties": {}
         }
       }
@@ -281,12 +362,12 @@ TestCase {
     verify(groups[0].folds);
     for (const key in schema.properties) {
       const section = schema.properties[key];
-      if (section["x-cardFolds"])
-        verify(/^EntryListCard \{|property string foldKey/m.test(files.text("components/views/settings/" + section["x-card"] + "Card.qml")), key);
+      if (section["x-card"]?.folds)
+        verify(/^EntryListCard \{|property string foldKey/m.test(files.text("components/views/Settings/" + section["x-card"].file + "Card.qml")), key);
     }
   }
 
-  // `x-cardWide` widens a hand-built card; a field's `x-wide` the
+  // `x-card.wide` widens a hand-built card; a field's `x-wide` the
   // generated card it lands on, and only that one
   function test_wide() {
     const groups = SchemaLayout.groups({
@@ -294,8 +375,10 @@ TestCase {
         "S": {
           "type": "object",
           "title": "S",
-          "x-card": "List",
-          "x-cardWide": true,
+          "x-card": {
+            "file": "List",
+            "wide": true
+          },
           "properties": {
             "a": {
               "type": "string"
@@ -340,8 +423,10 @@ TestCase {
         "S": {
           "type": "object",
           "title": "S",
-          "x-card": "Status",
-          "x-cardWide": true,
+          "x-card": {
+            "file": "Status",
+            "wide": true
+          },
           "properties": {
             "a": {
               "type": "string",
@@ -369,7 +454,7 @@ TestCase {
     compare(groups.map(group => group.wide), [true, false, false, true, true]);
   }
 
-  // A hand-built card is titled by `x-cardTitle`, which every real one has
+  // A hand-built card is titled by `x-card.title`, which every real one has
   // (its QML sets none)
   function test_card_titles() {
     const groups = SchemaLayout.groups({
@@ -377,8 +462,10 @@ TestCase {
         "S": {
           "type": "object",
           "title": "Section",
-          "x-card": "List",
-          "x-cardTitle": "Entries",
+          "x-card": {
+            "file": "List",
+            "title": "Entries"
+          },
           "properties": {}
         }
       }
@@ -386,8 +473,8 @@ TestCase {
     compare(groups[0].title, "Entries");
     for (const key in schema.properties) {
       const section = schema.properties[key];
-      if (section["x-card"])
-        verify(typeof section["x-cardTitle"] === "string" && section["x-cardTitle"] !== "", key);
+      if (section["x-card"]?.file)
+        verify(typeof section["x-card"].title === "string" && section["x-card"].title !== "", key);
     }
   }
 
@@ -413,17 +500,19 @@ TestCase {
     }, ["skip"]);
     compare(groups.map(g => g.title + ":" + g.keys.join(",")), ["Two:b", "One:a", "Other:c"]);
     compare(Object.keys(groups[1].schema), ["a"]);
-    const bar = SchemaLayout.objectGroups(schema.definitions.Bar, ["widgets"]);
-    compare(bar.map(g => g.title), ["General", "Size", "Style", "Widgets", "Accents", "Shadow", "Behaviour"]);
-    const menu = SchemaLayout.objectGroups(schema.definitions.EdgeMenu, ["modules"]);
-    compare(menu.map(g => g.title), ["General", "Opening", "Placement", "Style", "Closing", "Advanced"]);
+    const bar = SchemaLayout.objectGroups(schema.definitions.Bar, ["widgets", "style"]);
+    compare(bar.map(g => g.title), ["General", "Size", "Style", "Behaviour"]);
+    const style = SchemaLayout.objectGroups(schema.definitions.BarStyle, []);
+    compare(style.map(g => g.title), ["Bar widgets", "Bar accents", "Surface shadow"]);
+    const menu = SchemaLayout.objectGroups(schema.definitions.EdgeMenu, ["layout.modules"]);
+    compare(menu.map(g => g.title), ["General", "Opening", "Placement", "Style", "Closing"]);
   }
 
   function test_real_schema_intros_exist() {
     for (const key in schema.properties) {
       const intro = schema.properties[key]["x-intro"];
       if (intro)
-        verify(files.text("components/views/settings/" + intro + ".qml").includes("x-intro"), intro);
+        verify(files.text("components/views/Settings/" + intro + ".qml").includes("x-intro"), intro);
     }
   }
 
@@ -598,22 +687,23 @@ TestCase {
     for (const category of categories) {
       verify(declared.includes(category.name), "declared in x-categories: " + category.name);
       if (category.card !== "") {
-        verify(files.text("components/views/settings/" + category.card + "Card.qml").length > 0, category.card);
+        verify(files.text("components/views/Settings/" + category.card + "Card.qml").length > 0, category.card);
         continue;
       }
       verify(category.sections.length > 0, category.name);
       for (const key of category.sections)
         verify(SchemaLayout.groups(schema, key).length > 0, key);
     }
-    verify(!categories.some(c => c.sections.includes("Bars")), "Bars is edited by the bar editor");
+    // The bars themselves are the bar editor's; their shared style is here
+    verify(!SchemaLayout.groups(schema, "Bars").some(group => group.rows.some(row => row.path[1] === "items")), "Bars.items is edited by the bar editor");
   }
 
   function test_real_schema_showIf_targets_exist() {
     const bad = [];
-    const visit = (node, siblings, where) => {
-      if (!node || typeof node !== "object")
-        return;
-      if (node.$ref)
+    const resolve = node => node?.$ref ? schema.definitions[node.$ref.replace("#/definitions/", "")] : node;
+    // `parents`: the objects holding `node`, outermost first, for `../`
+    const visit = (node, parents, where) => {
+      if (!node || typeof node !== "object" || node.$ref)
         return;
       for (const key in node.properties ?? {}) {
         const prop = node.properties[key];
@@ -626,28 +716,34 @@ TestCase {
           // The look of the bar a widget sits on (Bar.lookContext): only
           // a bar widget's options have it, and it names a BarStyle field
           if (target.startsWith("$")) {
-            if (!/^\w+Widget\.properties$/.test(where) || !target.startsWith("$bar.") || !(target.slice(5) in schema.properties.BarStyle.properties))
+            if (!/^\w+Widget\.properties$/.test(where) || !target.startsWith("$bar.") || !(target.slice(5) in schema.definitions.BarStyle.properties))
               bad.push(`${where}.${key}: ${target}`);
             continue;
           }
+          let found;
           if (target.startsWith("/")) {
-            const path = target.slice(1).split(".");
-            let s = schema;
-            for (const part of path)
-              s = s?.properties?.[part];
-            if (!s)
-              bad.push(`${where}.${key}: ${target}`);
-          } else if (!(target in node.properties)) {
-            bad.push(`${where}.${key}: ${target}`);
+            found = target.slice(1).split(".").reduce((s, part) => resolve(s)?.properties?.[part], schema);
+          } else {
+            // A sibling, dotted into one, or (`../`) the parent's
+            let base = node;
+            let rest = target;
+            let up = parents.length;
+            while (rest.startsWith("../")) {
+              base = parents[--up];
+              rest = rest.slice(3);
+            }
+            found = rest.split(".").reduce((s, part) => resolve(s)?.properties?.[part], base);
           }
+          if (!found)
+            bad.push(`${where}.${key}: ${target}`);
         }
-        visit(prop, node.properties, `${where}.${key}`);
-        visit(prop.items, null, `${where}.${key}[]`);
+        visit(prop, parents.concat([node]), `${where}.${key}`);
+        visit(prop.items, [], `${where}.${key}[]`);
       }
     };
-    visit(schema, null, "");
+    visit(schema, [], "");
     for (const name in schema.definitions)
-      visit(schema.definitions[name], null, name);
+      visit(schema.definitions[name], [], name);
     compare(bad, []);
   }
 
@@ -690,7 +786,9 @@ TestCase {
           "type": "object",
           "title": "Cards",
           "x-category": "Look",
-          "x-card": "CardList",
+          "x-card": {
+            "file": "CardList"
+          },
           "properties": {
             "on": {
               "type": "boolean",

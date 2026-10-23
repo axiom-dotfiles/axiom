@@ -1,0 +1,40 @@
+label: World clocks
+icon: travel_explore
+group: Time & weather
+defaultSize: [4, 4]
+settings:
+  clocks:
+    x-scope: personal
+    type: array
+    title: Places
+    default:
+      - {timezone: Europe/London, label: ''}
+      - {timezone: America/New_York, label: ''}
+      - {timezone: Asia/Tokyo, label: ''}
+    items:
+      type: object
+      additionalProperties: false
+      properties:
+        timezone:
+          type: string
+          title: Time zone
+          x-options: timezones
+          x-control: search
+          default: UTC
+          description: e.g. Asia/Tokyo
+        label:
+          type: string
+          title: Label
+          default: ''
+          description: The place's name. Empty uses the time zone's city.
+  showLocal:
+    type: boolean
+    title: Show the time here
+    default: true
+    description: The system's time first, for comparison.
+  use24Hour: {type: boolean, title: '24-hour clock', default: true}
+  showTimeline:
+    type: boolean
+    title: Show the day
+    default: true
+    description: A band under each place showing its day and night, with a mark at now, when there's room.

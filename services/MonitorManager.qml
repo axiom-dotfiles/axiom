@@ -455,7 +455,7 @@ QtObject {
   on_CanReadChanged: refresh()
   Component.onCompleted: refresh()
 
-  // Recovers from a layout that can't be seen: `qs -c axiom ipc call
+  // Recovers from a layout that can't be seen: `axiom ipc
   // monitors revert`
   property IpcTarget _ipc: IpcTarget {
     target: "monitors"

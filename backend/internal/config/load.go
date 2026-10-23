@@ -16,6 +16,9 @@ type Loaded struct {
 	Errors  []string // why it is invalid; empty when it is valid
 	// Migrated says the file was of an older version (written back once)
 	Migrated bool
+	// FromFormat1 says it was converted from format 1: the file as it was
+	// is kept beside it before it's written back (config.format1.json)
+	FromFormat1 bool
 }
 
 // LoadLegacy runs what the shell's ConfigManager did with a parsed

@@ -20,7 +20,9 @@ Scope {
   }
 
   Variants {
-    model: General.screensFor("focused")
+    model: General.screensFor({
+      "mode": "focused"
+    })
 
     delegate: FloatingPopout {
       id: host

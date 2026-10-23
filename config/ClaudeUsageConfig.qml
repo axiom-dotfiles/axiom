@@ -9,7 +9,8 @@ QtObject {
 
   readonly property var _c: ConfigManager.config.ClaudeUsage
 
-  // [{ label, configDir }], configDir as typed (may hold ~)
-  readonly property var accounts: _c.accounts
-  readonly property int intervalMinutes: _c.intervalMinutes
+  // [{ id, label, configDir }], configDir as typed (may hold ~)
+  readonly property var accounts: _c.items
+  // How often usage is fetched (ms)
+  readonly property int interval: _c.interval
 }

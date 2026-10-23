@@ -4,7 +4,7 @@ import QtQuick
 import qs.config
 import qs.components.methods
 
-/* OverlayManager holds the layouts editor's working copy of Overlay.views
+/* OverlayManager holds the layouts editor's working copy of Overlay.items
  * (the editor is the pinned last page). Edits only affect localViews and
  * the editor's canvas; the real overlay pages and config.json are
  * untouched until saveChanges(). Mirrors BarManager.
@@ -21,7 +21,7 @@ QtObject {
 
   property ConfigDraft _draft: ConfigDraft {
     id: draft
-    path: ["Overlay", "views"]
+    path: ["Overlay", "items"]
   }
   readonly property alias localViews: draft.local
   readonly property alias savedViews: draft.saved
@@ -42,8 +42,8 @@ QtObject {
 
   property GridEditor layout: GridEditor {
     host: "overlay"
-    sizeScale: root.localViews?.[root.selectedViewIndex]?.fineGrid ? 2 : 1
-    modulesOf: () => root.selectedView()?.type === "Custom" ? root.selectedView().modules : null
+    sizeScale: root.localViews?.[root.selectedViewIndex]?.layout?.grid?.fine ? 2 : 1
+    modulesOf: () => root.selectedView()?.type === "Custom" ? root.selectedView().layout.modules : null
     scopeKey: String(root.selectedViewIndex)
     onEdited: root.applyChanges()
   }
@@ -53,7 +53,7 @@ QtObject {
     const out = [];
     (root.localViews ?? []).forEach((view, v) => {
       if (view.type === "Custom")
-        out.push(...root.layout.problemsFor(view.modules, OverlayConfig.viewLabel(view, v)));
+        out.push(...root.layout.problemsFor(view.layout.modules, OverlayConfig.viewLabel(view, v)));
     });
     return out;
   }
@@ -208,7 +208,7 @@ QtObject {
   // How much each screen's overlay shrinks a Custom page: [{ screen,
   // scale }], 1 where it fits
   function fitOf(view) {
-    const bounds = GridPlacement.bounds(view.modules);
+    const bounds = GridPlacement.bounds(view.layout?.modules);
     return Object.keys(root.areas).sort().map(screenName => {
       const area = root.areas[screenName];
       return {
@@ -236,10 +236,14 @@ QtObject {
     let n = 1;
     while (taken.includes(I18n.tr("Page {0}", n)))
       n++;
+    const name = I18n.tr("Page {0}", n);
     root.localViews.push(ConfigManager.withDefaults({
+      "id": Utils.newId(Utils.slug(name) || "page", root.localViews),
       "type": "Custom",
-      "name": I18n.tr("Page {0}", n),
-      "modules": []
+      "name": name,
+      "layout": {
+        "modules": []
+      }
     }, "OverlayView"));
     root.editPage(root.localViews.length - 1);
     applyChanges();
@@ -252,6 +256,7 @@ QtObject {
       return;
     const copy = Utils.clone(view);
     copy.name = I18n.tr("{0} (copy)", OverlayConfig.viewLabel(view, index));
+    copy.id = Utils.newId(view.id, root.localViews);
     root.localViews.splice(index + 1, 0, copy);
     root.editPage(index + 1);
     applyChanges();
@@ -280,21 +285,29 @@ QtObject {
     applyChanges();
   }
 
-  // One of a page's own fields (name, icon, visible, fineGrid). Doubling
-  // the grid (fineGrid) rescales the modules' places so they stay put
+  // One of a page's own fields (name, icon, visible), or its double grid
+  // ("fineGrid": layout.grid.fine), which rescales the modules' places so
+  // they stay put
   function updateViewField(index, key, value) {
     const view = root.localViews?.[index];
-    if (!view || JSON.stringify(view[key]) === JSON.stringify(value))
+    if (!view)
       return;
     if (key === "fineGrid") {
-      (view.modules ?? []).forEach(module => {
+      if (!!view.layout.grid.fine === value)
+        return;
+      (view.layout.modules ?? []).forEach(module => {
         if (module?.place)
           module.place = GridPlacement.scalePlace(module.place, value);
       });
+      view.layout.grid.fine = value;
       // Older snapshots are on the other grid
       if (index === root.selectedViewIndex)
         root.layout.clearHistory();
+      applyChanges();
+      return;
     }
+    if (JSON.stringify(view[key]) === JSON.stringify(value))
+      return;
     view[key] = value;
     applyChanges();
   }

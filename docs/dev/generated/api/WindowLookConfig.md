@@ -3,7 +3,7 @@
 
 > **File:** `config/WindowLookConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the WindowLook section: settings that make windows match axiom ({ borders, activeColor, shape, matchShell, gaps, surfaceBlur…, blur…, shadow…, dim…, opacity… }), applied by the compositor's backend (its config writer's look layer) through CompositorLayer.look. Named WindowLookConfig as the section is a whole object.
+Reader for the WindowLook section: settings that make windows match axiom ({ borders, shape, gaps, surfaceBlur, blur, shadow, dim, opacity }, each an object with its `enabled`), applied by the compositor's backend (its config writer's look layer) through CompositorLayer.look. Named WindowLookConfig as the section is a whole object.
 
 ### Properties
 

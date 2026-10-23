@@ -16,7 +16,7 @@ niri's config writer (docs/dev/compositor/config-modes.md), reached as NiriManag
 - `detachedPath` (readonly string): The detached mode's module and the wrapper loading it after the user's config
 - `wrapperPath` (readonly string)
 - `includeLines` (readonly string): What the user's niri config needs for the included mode, at its end
-- `autostartLines` (readonly string): What a niri config needs to start axiom with niri, for the detached and included modes. -n (--no-duplicate) exits at once if axiom already runs.
+- `autostartLines` (readonly string): What a niri config needs to start axiom with niri, for the detached and included modes.
 - `includeTarget` (readonly var): The lines above as integration_hookup.py targets in the user's niri config (IntegrationHookupManager's "compositorInclude" and "compositorAutostart"), both at the end: niri keeps the last of a settin…
 - `autostartTarget` (readonly var)
 - `shellCommand` (readonly string)

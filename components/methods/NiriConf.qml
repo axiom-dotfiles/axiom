@@ -177,7 +177,7 @@ QtObject {
   /**
    * The niri action (a node) of a compositor action (BindActions.
    * compositorActions) for `argument`, or null when niri can't do it or
-   * the argument doesn't fit. `ctx`: { axiomPath, shellCommand, restartCommand, terminal,
+   * the argument doesn't fit. `ctx`: { axiomPath, axiomBin, shellCommand, restartCommand, terminal,
    * fileManager, browser }
    */
   function actionNode(action, argument, ctx) {
@@ -260,7 +260,7 @@ QtObject {
 
   // An axiom IPC call (`words`) spawned as niri runs it: argv, no shell
   function _ipc(ctx, words) {
-    return node("spawn", ["qs", "-p", ctx.axiomPath, "ipc", "call"].concat(words));
+    return node("spawn", [ctx.axiomBin, "ipc"].concat(words));
   }
 
   // A configured bind's action node, or null when it's incomplete or niri
@@ -439,38 +439,39 @@ QtObject {
 
   // --- Input and options ---
 
-  // A field's value as its x-niri node takes it ([args]), or null to leave
-  // it out (a flag that's off: niri can only turn a flag on; an offFlag
-  // is a flag written when the setting is off, like `animations { off }`)
-  function _niriArgs(fieldSchema, value) {
-    if (fieldSchema["x-niriSkip"] !== undefined && value === fieldSchema["x-niriSkip"])
+  // A field's value as its niri node takes it ([args], by its
+  // x-compositor.niri `spec`), or null to leave it out (a flag that's off:
+  // niri can only turn a flag on; an offFlag is a flag written when the
+  // setting is off, like `animations { off }`)
+  function _niriArgs(spec, value) {
+    if (spec.skip !== undefined && value === spec.skip)
       return null;
-    if (fieldSchema["x-niriValue"] === "flag")
+    if (spec.value === "flag")
       return value ? [] : null;
-    if (fieldSchema["x-niriValue"] === "offFlag")
+    if (spec.value === "offFlag")
       return value ? null : [];
-    const scaled = fieldSchema["x-niriScale"] !== undefined ? Math.round(value * fieldSchema["x-niriScale"] * 1000) / 1000 : value;
-    return [fieldSchema["x-niriValue"] === "float" ? real(scaled) : scaled];
+    const scaled = spec.scale !== undefined ? Math.round(value * spec.scale * 1000) / 1000 : value;
+    return [spec.value === "float" ? real(scaled) : scaled];
   }
 
   /**
-   * A section's fields with an `x-niri` path as nodes: every one of them
-   * (`gated` false: a managed config says them all), or with `gated` each
-   * written when its x-hyprIf part is on, else once changed from its
-   * default (CompositorLayer.annotatedFields).
+   * A section's fields with a niri node (x-compositor.niri's `key`, its
+   * dotted path) as nodes: every one of them (`gated` false: a managed
+   * config says them all), or with `gated` each written when its part is
+   * on, else once changed from its default (CompositorLayer.annotatedFields).
    */
   function optionNodes(sectionSchema, values, gated) {
     const nodes = [];
-    for (const field of CompositorLayer.annotatedFields(sectionSchema, values, "x-niri", gated)) {
-      const args = _niriArgs(field.schema, field.value);
+    for (const field of CompositorLayer.annotatedFields(sectionSchema, values, "niri", gated)) {
+      const args = _niriArgs(field.spec, field.value);
       if (args !== null)
-        setPath(nodes, field.schema["x-niri"], args);
+        setPath(nodes, field.spec.key, args);
     }
     return nodes;
   }
 
   // The input (CompositorLayer.input) as nodes: Input's fields by their
-  // x-niri path, then the cursor theme
+  // niri path, then the cursor theme
   function inputNodes(input, inputSchema) {
     const nodes = optionNodes(inputSchema, input?.values ?? {}, true);
     if (input?.cursor) {

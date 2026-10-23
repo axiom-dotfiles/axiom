@@ -73,34 +73,35 @@ QtObject {
     return false;
   }
 
-  // A surface's `monitors` mode with "general" resolved: "primary" |
-  // "focused" | "all"
-  function modeFor(mode) {
-    return !mode || mode === "general" ? General.monitors : mode;
+  // A surface's ScreenTarget mode with "inherit" resolved: "primary" |
+  // "focused" | "all" | "named" (no target is General's)
+  function modeFor(target) {
+    const mode = target?.mode ?? "inherit";
+    return mode === "inherit" ? General.screen.mode : mode;
   }
 
   // The screen whose instance of a surface answers a shortcut or IPC call
   // and holds the keyboard: the focused monitor when it opens there or
-  // everywhere, else the one it's built on (`name` for a "monitor" mode)
-  function targetFor(mode, name) {
-    const resolved = modeFor(mode);
+  // everywhere, else the first it's built on
+  function targetFor(target) {
+    const resolved = modeFor(target);
     if (resolved === "focused" || resolved === "all")
       return CompositorManager.focusedOutput || General.primaryMonitor;
-    return General.screensFor(resolved, name)[0]?.name ?? "";
+    return General.screensFor(target)[0]?.name ?? "";
   }
 
-  function isTarget(screen, mode, name) {
-    return !!screen && screen.name === targetFor(mode, name);
+  function isTarget(screen, target) {
+    return !!screen && screen.name === targetFor(target);
   }
 
   // Opens on every monitor at once (SurfaceGroup keeps the instances in step)
-  function everywhere(mode) {
-    return modeFor(mode) === "all";
+  function everywhere(target) {
+    return modeFor(target) === "all";
   }
 
   // Whether a surface opened for its target also shows on `screen`
-  function showsOn(screen, mode, name) {
-    return !!screen && (everywhere(mode) || isTarget(screen, mode, name));
+  function showsOn(screen, target) {
+    return !!screen && (everywhere(target) || isTarget(screen, target));
   }
 
   // Surfaces on every monitor at once act as one: each SurfaceGroup

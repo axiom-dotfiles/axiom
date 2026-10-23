@@ -10,9 +10,9 @@ import qs.components.reusable
 // i18n: keys from callers and the schema (titles, descriptions, type labels)
 // One row of a schema-driven form: picks the control for the row's schema
 // type (or a list editor for an array of objects), hidden while its
-// `x-showIf` doesn't hold. `form` provides valueAt(path) and an
-// edited(path, value) signal (SchemaPropertiesForm, or the settings page's
-// SettingsContent).
+// `x-showIf` doesn't hold. `form` provides valueAt(path) and
+// edit(path, value) (SchemaPropertiesForm, SettingRows, or the settings
+// page's SettingsContent).
 Loader {
   id: root
 
@@ -23,14 +23,19 @@ Loader {
 
   readonly property var fieldSchema: row.schema ?? ({})
   readonly property var current: form?.valueAt(row.path)
-  // A row may relabel its field (`x-cardPerField`'s, whose card carries
+  // Null on a setting marked `x-inherit`: it follows another, shown here
+  readonly property bool inheriting: root.current === null && !!fieldSchema["x-inherit"]
+  // A row may relabel its field (`x-card.perField`'s, whose card carries
   // the title and description)
   readonly property string label: row.label ?? row.title
   readonly property string description: {
     const own = row.description ?? fieldSchema.description ?? "";
-    if (root.disabledNote === "")
+    // I18n.tr("Follows {0} until set.")
+    const follows = root.inheriting ? I18n.tr("Follows {0} until set.", I18n.tr(SettingsManager.schemaAt(fieldSchema["x-inherit"].split("."))?.title ?? fieldSchema["x-inherit"])) : "";
+    const notes = [root.disabledNote, follows].filter(note => note !== "").join("\n");
+    if (notes === "")
       return own;
-    return own !== "" ? root.disabledNote + "\n" + I18n.tr(own) : root.disabledNote;
+    return own !== "" ? notes + "\n" + I18n.tr(own) : notes;
   }
   readonly property bool isColor: fieldSchema["x-options"] === "colors"
   // `x-enumShowIf` hides options whose condition doesn't hold (the current
@@ -74,7 +79,7 @@ Loader {
       };
     // I18n.tr("The first calendar")
     if (fieldSchema["x-options"] === "calendars")
-      return CalendarConfig.calendars.reduce((labels, calendar) => {
+      return CalendarManager.calendars.reduce((labels, calendar) => {
         labels[calendar.id] = CalendarConfig.accounts.length > 1 ? I18n.tr("{0} · {1}", calendar.name, calendar.accountName) : calendar.name;
         return labels;
       }, {
@@ -82,7 +87,12 @@ Loader {
       });
     // Schema labels are English, translated like titles; `x-emptyLabel`
     // names an empty value (a color picked automatically: I18n.tr("Auto"))
-    const labels = Object.assign({}, fieldSchema["x-enumLabels"] ?? {});
+    // An enum value without a label shows as words (Utils.enumLabel)
+    const values = fieldSchema.enum ?? fieldSchema.items?.enum ?? [];
+    const labels = Object.assign(Array.prototype.reduce.call(values, (out, value) => {
+      out[value] = Utils.enumLabel(value);
+      return out;
+    }, {}), fieldSchema["x-enumLabels"] ?? {});
     if (fieldSchema["x-emptyLabel"])
       labels[""] = fieldSchema["x-emptyLabel"];
     const out = Object.keys(labels).reduce((out, value) => {
@@ -95,19 +105,24 @@ Loader {
     return out;
   }
 
-  // A sibling key of this row's path (or a `/`-rooted config path, or a
-  // `$` key from the form's `context`), for `x-showIf` and `x-enumShowIf`,
-  // in any form
+  // A sibling key of this row's path (dotted, or climbing with `../`:
+  // SchemaLayout.keyPath), or a `/`-rooted config path, or a `$` key from
+  // the form's `context`, for `x-showIf` and `x-enumShowIf`, in any form
   function _valueOf(key) {
+    return root._valueFrom(root.row.path.slice(0, -1), key);
+  }
+
+  function _valueFrom(parent, key) {
     if (key.startsWith("/"))
       return SettingsManager.configValueAt(key.slice(1));
     if (key.startsWith("$"))
       return root.form?.context?.[key];
-    return root.form?.valueAt(root.row.path.slice(0, -1).concat(key));
+    return root.form?.valueAt(SchemaLayout.keyPath(parent, key));
   }
 
-  // `x-showIf`, checked against _valueOf
-  readonly property bool shown: SchemaLayout.showIfHolds(fieldSchema["x-showIf"], root._valueOf)
+  // `x-showIf` (a group row's object's own), and those of the objects the
+  // row is inside (`groupShowIf`), checked against _valueOf
+  readonly property bool shown: SchemaLayout.showIfHolds(row.kind === "group" ? row.showIf : fieldSchema["x-showIf"], root._valueOf) && (row.groupShowIf ?? []).every(outer => SchemaLayout.showIfHolds(outer.condition, key => root._valueFrom(outer.path, key)))
 
   // `x-enabledIf` (as x-showIf): while it doesn't hold the row is greyed
   // out, its value kept, and says why (`x-disabledNote`, else what the
@@ -148,7 +163,7 @@ Loader {
     // A typed number commits as it loses focus, which can be as its form
     // is torn down
     if (!same && root.form)
-      root.form.edited(root.row.path, value);
+      root.form.edit(root.row.path, value);
   }
 
   // A text or number box's keystroke, for a form with `typed` (the
@@ -163,7 +178,7 @@ Loader {
   // `typed` may have put the value in already
   function commitTyped(value) {
     if (root.form)
-      root.form.edited(root.row.path, value);
+      root.form.edit(root.row.path, value);
   }
 
   // Array rows: every edit commits a modified copy of the whole array
@@ -244,12 +259,13 @@ Loader {
     SchemaNumberField {
       label: root.label
       description: root.description
-      currentConfigValue: root.current ?? 0
+      currentConfigValue: root.current ?? SettingsManager.inheritedValue(root.fieldSchema) ?? 0
       minimum: root.fieldSchema.minimum ?? 0
       maximum: root.fieldSchema.maximum ?? 9999
       stepSize: root.fieldSchema.multipleOf ?? 1
       headerInset: root.headerInset
       unit: root.fieldSchema["x-unit"] ?? ""
+      unitScale: SchemaLayout.unitScale(unit)
       mode: root.form?.numberMode || (root.fieldSchema["x-control"] ?? "auto")
       onValueTyped: value => root.type(value)
       onCommitted: (value, typed) => typed ? root.commitTyped(value) : root.commit(value)
@@ -285,6 +301,7 @@ Loader {
         stepSize: root.fieldSchema.multipleOf ?? 1
         headerInset: root.headerInset
         unit: root.fieldSchema["x-unit"] ?? ""
+        unitScale: SchemaLayout.unitScale(unit)
         mode: root.form?.numberMode || (root.fieldSchema["x-control"] ?? "auto")
         onValueTyped: value => root.type(value)
         onCommitted: (value, typed) => typed ? root.commitTyped(value) : root.commit(value)

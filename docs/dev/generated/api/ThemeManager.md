@@ -14,7 +14,7 @@ ThemeManager owns the active theme's data (loaded from its file, watched, with d
 - `foldedGroups` (readonly var): The theme list's groups ("builtin", "imported", "generated") folded shut
 - `currentTheme` (readonly var): The active theme's JSON ({ name, variant, paired, colors, semantic }), read through config/Theme
 - `activeTheme` (readonly string): The theme showing: Appearance.theme, or the variant the light/dark schedule last switched it to.
-- `shownWallpapers` (readonly var): The wallpapers showing ({ wallpaper, wallpapers }): the fixed ones, the rotation's or the light/dark ones, by Appearance.wallpaperMode
+- `shownWallpapers` (readonly var): The wallpapers showing ({ wallpaper, wallpapers }): the fixed ones, the rotation's or the light/dark ones, by Appearance.wallpaper.mode
 - `wallpaper` (readonly string): The primary monitor's (the lockscreen's)
 - `defaults` (readonly var): config/json/theme-defaults.json: fallback palette and semantic maps, shared with scripts/generate_theme.py
 - `generationUnavailable` (bool): Theme generation's Python packages (numpy, Pillow) aren't installed: set by the last run, which said so once (generate_theme.py exits 3)

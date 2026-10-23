@@ -2,8 +2,8 @@ pragma Singleton
 import QtQuick
 import qs.services
 
-// Reader for the Monitors section: the monitor profiles ({ name, outputs:
-// [MonitorRule] }), edited on the Monitors page (MonitorManager) and
+// Reader for the Monitors section: the monitor profiles ({ id, name,
+// outputs: [MonitorRule] }), edited on the Monitors page (MonitorManager) and
 // applied by the compositor's config writer
 QtObject {
   id: root
@@ -12,6 +12,6 @@ QtObject {
 
   // Goes through a string so a reload that leaves them unchanged doesn't
   // re-apply them
-  readonly property string _profilesJson: JSON.stringify(_c.profiles)
+  readonly property string _profilesJson: JSON.stringify(_c.items)
   readonly property var profiles: JSON.parse(_profilesJson)
 }

@@ -4,7 +4,7 @@
 > **Config:** every section
 > **Related:** [Settings page](settings-page.md), [Saved configs and sharing](saved-configs-sharing.md), [Config manager](config-manager.md), [Config readers](config-readers.md), [Hyprland config modes](../hyprland/config-modes.md)
 
-The schema is the single source of truth for config: shape, `default`s (there is no separate defaults file) and the generated settings page (`views/Settings.qml`). This doc is the complete list of `x-*` annotations: `scripts/check_docs.py` fails on one the schema uses that isn't named here, and building the schema (`axiom schema build`) refuses one missing from `config/schema/annotations.yaml`, the registry with a line on each.
+The schema is the single source of truth for config: shape, `default`s (there is no separate defaults file) and the generated settings page (`views/Settings/Settings.qml`). This doc is the complete list of `x-*` annotations: `scripts/check_docs.py` fails on one the schema uses that isn't named here, and building the schema (`axiom schema build`) refuses one missing from `config/schema/annotations.yaml`, the registry with a line on each.
 
 The schema is written in YAML (`config/schema/`): `index.yaml` is the root and lists the sections and definitions in order; `sections/<Section>.yaml` and `definitions/{widgets,modules,views,common}/<Name>.yaml` hold one each. The YAML is read strictly (no anchors, aliases, merge keys or tags; quote `on`/`off`/`yes`/`no`, which YAML 1.1 reads as booleans; write `null` out), and every key of a schema node must be a draft-07 keyword the validators read or a registered annotation, so a typo fails the build with its file and line. (Rule: AGENTS.md › Config.)
 
@@ -21,7 +21,7 @@ The schema is written in YAML (`config/schema/`): `index.yaml` is the root and l
 - `x-settings: false`: hides a key from the settings page (edited elsewhere, or UI-owned state).
 - `x-category` (on a top-level section): names its sidebar category.
 - `x-categories` (root, `[{ name, icon, card, cardTitle }]`): orders the categories and gives their icons (`SchemaLayout.categories`). A category left out comes last, with a generic icon.
-  - `card` is a hand-built card of the category's own (`views/settings/<card>Card.qml`), always wide, after its sections' cards; `cardTitle` titles it, on the card and in the sidebar. A category with one can have no sections. Example: Maintenance's `SavedConfigsCard`; see [Saved configs and sharing](saved-configs-sharing.md).
+  - `card` is a hand-built card of the category's own (`views/Settings/<card>Card.qml`), always wide, after its sections' cards; `cardTitle` titles it, on the card and in the sidebar. A category with one can have no sections. Example: Maintenance's `SavedConfigsCard`; see [Saved configs and sharing](saved-configs-sharing.md).
 - `x-links` (on a section): pages its category's header links to: a view type (`Themes`, `BarEditor`), `Layouts`, or the layouts editor on a screen (`Layouts:lockscreen`, `Layouts:greeter`, `Layouts:desktop`). Labels, icons, availability and following go through `OverlayManager.pageLinkLabel` / `pageLinkIcon` / `pageLinkAvailable` / `followPageLink`.
 - `x-link` (on a field, or a widget/module definition): where something it follows or names is set, drawn as a `SettingsLink` under the field in every form (`FieldLinks`), or in the bar widget / module inspector for a definition. `{ "setting": "<key path>" }` (a field, an object or a section: `SchemaLayout.locate` finds its card) or `{ "page": "<page link>" }` (as `x-links`), or a list of them. A link hides itself when its setting has no card or its page isn't shown. Examples: a bar's `overrideShadow` → `BarStyle.shadow`, every `moduleScale` → `Widget.cardSize`, the Battery widget → `Battery`. `tst_SchemaLayout`'s `test_real_schema_links_resolve` checks every target.
 - `x-order` (on an object): the keys shown first, in order. This applies to its form, or to its settings cards, whose order is their first field's.
@@ -37,12 +37,12 @@ The schema is written in YAML (`config/schema/`): `index.yaml` is the root and l
   - `check_structure.py` errors on an unknown group.
 
 ### Hand-built parts
-- `x-card: "<Name>"` (section): adds `views/settings/<Name>Card.qml` as its first card.
+- `x-card: "<Name>"` (section): adds `views/Settings/<Name>Card.qml` as its first card.
   - `x-cardFolds: true`: it folds like the generated cards and joins Fold all, getting its group key `<Section>:<Name>` as `foldKey`.
   - `x-cardTitle`: its title, on the card and in the sidebar (the card's QML sets none). Every `x-card` has one.
   - `x-cardWide: true`: it spans both columns (the calendar accounts, chat API keys, the Dock and OSD lists).
   - `check_structure.py` does not verify the file exists: a typo only shows in `scripts/log.sh`.
-- `x-intro: "<Name>"`: puts `views/settings/<Name>.qml` at the top of the section's own card, above its fields (NightLight's `NightLightStatus`).
+- `x-intro: "<Name>"`: puts `views/Settings/<Name>.qml` at the top of the section's own card, above its fields (NightLight's `NightLightStatus`).
 
 ### Behaviour
 - `x-showIf`: hides a field unless a condition holds. `SchemaField` evaluates it (`SchemaLayout.showIfHolds`), so it works in every form; on a nested object it hides that object's cards.

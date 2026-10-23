@@ -3,28 +3,14 @@
 type: object
 additionalProperties: false
 properties:
-  href:
-    type: string
-    default: ""
+  href: {type: string, default: ''}
   name:
     type: string
-    default: ""
-  serverColor:
-    type: string
-    default: ""
-    description: The color the server gives it (#rrggbb).
+    default: ''
+    description: A name overriding the server's, or empty (a local calendar's is its own).
   color:
     type: string
-    default: ""
+    default: ''
     description: A theme color name overriding the server's, or empty.
-  enabled:
-    type: boolean
-    default: true
-  readOnly:
-    type: boolean
-    default: false
-  components:
-    type: array
-    default: [VEVENT]
-    items:
-      type: string
+  enabled: {type: boolean, default: true}
+description: A calendar of an account, as the user set it up. What the server says of it (its name, color, whether it's read-only) is the calendar cache's (CalendarManager).

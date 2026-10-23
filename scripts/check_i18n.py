@@ -71,11 +71,22 @@ def unescape(s):
     return json.loads(f'"{s}"')
 
 
+def enum_label(value):
+    """An enum value as the form shows it without x-enumLabels (Utils.enumLabel)."""
+    if not re.fullmatch(r"[a-z][a-zA-Z0-9]*", value):
+        return value
+    spaced = re.sub(r"([a-z])([A-Z])", r"\1 \2", re.sub(r"([a-zA-Z]{2,})(\d)", r"\1 \2", value)).split(" ")
+    rest = [w.lower() if re.match(r"[A-Z][a-z]", w) else w for w in spaced[1:]]
+    return " ".join([spaced[0][0].upper() + spaced[0][1:]] + rest)
+
+
 def schema_strings(node, out):
     if isinstance(node, dict):
-        for key in ("title", "description", "x-group", "x-cardTitle", "x-hookupNote", "x-emptyLabel", "x-disabledNote"):
+        for key in ("title", "description", "x-group", "x-hookupNote", "x-emptyLabel", "x-disabledNote"):
             if isinstance(node.get(key), str):
                 out.add(node[key])
+        if isinstance(node.get("x-card"), dict) and isinstance(node["x-card"].get("title"), str):
+            out.add(node["x-card"]["title"])
         if isinstance(node.get("x-categories"), list):
             out.update(c["name"] for c in node["x-categories"] if isinstance(c, dict) and isinstance(c.get("name"), str))
             out.update(c["cardTitle"] for c in node["x-categories"] if isinstance(c, dict) and isinstance(c.get("cardTitle"), str))
@@ -86,7 +97,8 @@ def schema_strings(node, out):
         if isinstance(node.get("x-enumLabels"), dict):
             out.update(v for v in node["x-enumLabels"].values() if isinstance(v, str))
         if node.get("type") == "string" and isinstance(node.get("enum"), list):
-            out.update(v for v in node["enum"] if isinstance(v, str))
+            labels = node.get("x-enumLabels") if isinstance(node.get("x-enumLabels"), dict) else {}
+            out.update(enum_label(v) for v in node["enum"] if isinstance(v, str) and v not in labels)
         for value in node.values():
             schema_strings(value, out)
     elif isinstance(node, list):

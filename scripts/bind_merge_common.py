@@ -47,8 +47,10 @@ def repeating_actions():
 
 
 REPEATING = repeating_actions()
-# axiom started or called over IPC: qs -c axiom / qs -p <…axiom>
+# axiom started or called over IPC before the binary: qs -c axiom / qs -p <…axiom>
 SHELL = r"""(?:qs|quickshell) +(?:-c +axiom|-p +['"]?\S*axiom['"]?)"""
+# The axiom binary, by name or path, maybe quoted (Paths.shellCommand)
+AXIOM = r"""['"]?(?:\S*/)?axiom['"]?"""
 
 
 def unquote(text):
@@ -62,12 +64,16 @@ def ipc_action(command):
     """The axiom action a command calling axiom's IPC is ({ action, call,
     argument }), or None."""
     if re.fullmatch(r"(?:qs|quickshell) +kill +.*;\s*" + SHELL + r" +-d", command) or \
-            re.fullmatch(r"""['"]?\S*axiom\S*/scripts/restart\.sh['"]?""", command):
+            re.fullmatch(r"""['"]?\S*axiom\S*/scripts/restart\.sh['"]?""", command) or \
+            re.fullmatch(AXIOM + r" +restart", command):
         return {"action": "restartShell"}
-    match = re.fullmatch(SHELL + r" +ipc +call +(.+)", command)
-    if not match:
-        return None
-    call = match.group(1).strip()
+    if re.fullmatch(AXIOM + r" +lock", command):
+        call = "lockscreen lock"
+    else:
+        match = re.fullmatch(SHELL + r" +ipc +call +(.+)", command) or re.fullmatch(AXIOM + r" +ipc +(.+)", command)
+        if not match:
+            return None
+        call = match.group(1).strip()
     for name, pattern in IPC:
         found = pattern.match(call)
         if found:

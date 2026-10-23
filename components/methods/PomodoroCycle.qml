@@ -31,9 +31,11 @@ QtObject {
     };
   }
 
+  // A phase's length (ms): settings { work, shortBreak, longBreak }, at
+  // least a minute
   function duration(phase, settings) {
-    const minutes = phase === "short" ? settings.shortBreakMinutes : phase === "long" ? settings.longBreakMinutes : settings.workMinutes;
-    return Math.max(1, minutes) * 60000;
+    const ms = phase === "short" ? settings.shortBreak : phase === "long" ? settings.longBreak : settings.work;
+    return Math.max(60000, ms);
   }
 
   // Ms left: to endsAt while running, else what a pause left or the phase

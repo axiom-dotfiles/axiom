@@ -10,16 +10,25 @@ import qs.components.reusable
 // comfortable drag (7 to 200 steps), otherwise a compact stepper beside the
 // label, with ±10 buttons when the range is wide. The value box takes typed
 // input and shows the `unit`. Stepper clicks are debounced, so a burst of
-// them is one commit; the slider commits on release.
+// them is one commit; the slider commits on release. The value, bounds and
+// step are given as stored and shown divided by `unitScale` (a duration stored
+// in ms, shown in s: SchemaLayout.unitScale).
 ColumnLayout {
   id: root
 
   required property string label
   property string description: ""
-  required property int currentConfigValue
-  property int minimum: 0
-  property int maximum: 9999
-  property int stepSize: 1
+  required property real currentConfigValue
+  property real minimum: 0
+  property real maximum: 9999
+  property real stepSize: 1
+  // Stored values per shown one
+  property real unitScale: 1
+  // The bounds, step and config value as shown
+  readonly property int lowest: Math.ceil(root.minimum / root.unitScale)
+  readonly property int highest: Math.floor(root.maximum / root.unitScale)
+  readonly property int step: Math.max(1, Math.round(root.stepSize / root.unitScale))
+  readonly property int shownConfigValue: Math.round(root.currentConfigValue / root.unitScale)
   // Room kept free at the header's right end (the settings row's reset
   // button sits there)
   property int headerInset: 0
@@ -29,39 +38,40 @@ ColumnLayout {
   property string mode: "auto"
   // ±10 buttons in stepper mode; defaults to wide ranges only
   property bool showCoarse: root.steps > 20
-  readonly property int coarseStep: root.stepSize * 10
+  readonly property int coarseStep: root.step * 10
   // Off: every step commits at once (for a field that outlives what it
   // edits, so a pending step can't land on the next one)
   property bool debounced: true
 
   // The value shown, ahead of the config while a commit is pending
-  property int value: currentConfigValue
+  property int value: shownConfigValue
 
   // Compact, near the text's own height, so it doesn't outweigh the label
   property int controlHeight: Math.min(Widget.height, Appearance.fontSizeBy(10))
   readonly property int containerMargins: 2
   readonly property int buttonSize: controlHeight - (containerMargins * 2)
 
-  readonly property int steps: Math.round((maximum - minimum) / Math.max(1, stepSize))
+  readonly property int steps: Math.round((highest - lowest) / step)
   readonly property bool isSlider: mode === "slider" || (mode === "auto" && steps >= 7 && steps <= 200)
   // Word units are translated; symbols (px, %, ms, ‰) pass through
   // I18n.tr("min") I18n.tr("days") I18n.tr("tokens")
   readonly property string unitText: root.unit === "" ? "" : I18n.tr(root.unit)
 
-  // `typed`: from the value box (Enter, focus loss, Save), emitted even
-  // when it equals the value (a form's draft may hold it already)
-  signal committed(int value, bool typed)
+  // The value as stored. `typed`: from the value box (Enter, focus loss,
+  // Save), emitted even when it equals the value (a form's draft may hold
+  // it already)
+  signal committed(real value, bool typed)
   // Each keystroke's value in the box, clamped, for a form that holds it
   // unsaved without applying it (SchemaField.type). The box also shows
   // its page's Save at once (EditsManager.holdTyping)
-  signal valueTyped(int value)
+  signal valueTyped(real value)
 
   Layout.fillWidth: true
   spacing: Widget.spacing
 
   function clamp(v) {
-    const snapped = root.minimum + Math.round((v - root.minimum) / Math.max(1, root.stepSize)) * root.stepSize;
-    return Math.max(root.minimum, Math.min(root.maximum, snapped));
+    const snapped = root.lowest + Math.round((v - root.lowest) / root.step) * root.step;
+    return Math.max(root.lowest, Math.min(root.highest, snapped));
   }
 
   // Sets the shown value; commits at once, or after the burst settles
@@ -79,15 +89,15 @@ ColumnLayout {
 
   function commit() {
     commitTimer.stop();
-    if (root.value !== root.currentConfigValue)
-      root.committed(root.value, false);
+    if (root.value !== root.shownConfigValue)
+      root.committed(root.value * root.unitScale, false);
   }
 
   // Follow outside changes (a reload, a reset elsewhere) unless the user
   // is mid-edit
-  onCurrentConfigValueChanged: {
+  onShownConfigValueChanged: {
     if (!commitTimer.running)
-      root.value = root.currentConfigValue;
+      root.value = root.shownConfigValue;
   }
 
   // Don't lose a pending step when the page goes away
@@ -130,14 +140,14 @@ ColumnLayout {
           visible: root.showCoarse
           iconText: "−10"
           coarse: true
-          enabled: root.value > root.minimum
+          enabled: root.value > root.lowest
           onClicked: root.stepBy(-root.coarseStep)
         }
 
         StepButton {
           iconText: "remove"
-          enabled: root.value > root.minimum
-          onClicked: root.stepBy(-root.stepSize)
+          enabled: root.value > root.lowest
+          onClicked: root.stepBy(-root.step)
         }
 
         ValueBox {
@@ -148,15 +158,15 @@ ColumnLayout {
 
         StepButton {
           iconText: "add"
-          enabled: root.value < root.maximum
-          onClicked: root.stepBy(root.stepSize)
+          enabled: root.value < root.highest
+          onClicked: root.stepBy(root.step)
         }
 
         StepButton {
           visible: root.showCoarse
           iconText: "+10"
           coarse: true
-          enabled: root.value < root.maximum
+          enabled: root.value < root.highest
           onClicked: root.stepBy(root.coarseStep)
         }
       }
@@ -180,9 +190,9 @@ ColumnLayout {
       handleHeight: Widget.px(14)
       handleRadius: Widget.px(7)
       // Not `value`: dragging assigns that, which would drop the binding
-      targetValue: root.maximum > root.minimum ? (root.value - root.minimum) / (root.maximum - root.minimum) : 0
-      onMoved: ratio => root.value = root.clamp(root.minimum + ratio * (root.maximum - root.minimum))
-      onReleased: ratio => root.setValue(root.minimum + ratio * (root.maximum - root.minimum), true)
+      targetValue: root.highest > root.lowest ? (root.value - root.lowest) / (root.highest - root.lowest) : 0
+      onMoved: ratio => root.value = root.clamp(root.lowest + ratio * (root.highest - root.lowest))
+      onReleased: ratio => root.setValue(root.lowest + ratio * (root.highest - root.lowest), true)
     }
 
     ValueBox {
@@ -204,7 +214,7 @@ ColumnLayout {
     id: widest
     font.family: Appearance.fontFamily
     font.pixelSize: Appearance.fontSize
-    text: String(Math.abs(root.minimum) > Math.abs(root.maximum) ? root.minimum : root.maximum)
+    text: String(Math.abs(root.lowest) > Math.abs(root.highest) ? root.lowest : root.highest)
   }
 
   component StepButton: StyledIconButton {
@@ -265,7 +275,7 @@ ColumnLayout {
         EditsManager.holdTyping(input, input.Window.window);
         const parsed = parseInt(input.text, 10);
         if (!isNaN(parsed))
-          root.valueTyped(root.clamp(parsed));
+          root.valueTyped(root.clamp(parsed) * root.unitScale);
       }
       Component.onDestruction: {
         input.apply();
@@ -285,7 +295,7 @@ ColumnLayout {
         if (input.typed && !isNaN(parsed)) {
           commitTimer.stop();
           root.value = root.clamp(parsed);
-          root.committed(root.value, true);
+          root.committed(root.value * root.unitScale, true);
         }
         input.typed = false;
         input.text = String(root.value);
@@ -332,7 +342,7 @@ ColumnLayout {
       onWheel: event => {
         const dir = event.angleDelta.y > 0 ? 1 : (event.angleDelta.y < 0 ? -1 : 0);
         if (dir !== 0)
-          root.stepBy(dir * ((event.modifiers & Qt.ShiftModifier) ? root.coarseStep : root.stepSize));
+          root.stepBy(dir * ((event.modifiers & Qt.ShiftModifier) ? root.coarseStep : root.step));
       }
     }
   }

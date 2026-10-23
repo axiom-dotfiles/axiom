@@ -1,13 +1,13 @@
 # Bar editor
 
-> **Files:** `components/views/BarEditor.qml`, `components/views/barEditor/` (`BarsPanel`, `BarDragLayer`, `SectionsBoard`, `SectionLane`, `WidgetChip`, `WidgetInspector`, `LayoutOverrideField`), `services/BarManager.qml`, `services/EditsManager.qml`, `components/bar/BarContainer.qml`
+> **Files:** `components/views/BarEditor/BarEditor.qml`, `components/views/BarEditor/` (`BarsPanel`, `BarDragLayer`, `SectionsBoard`, `SectionLane`, `WidgetChip`, `WidgetInspector`, `LayoutOverrideField`), `services/BarManager.qml`, `services/EditsManager.qml`, `components/bar/BarContainer.qml`
 > **Config:** `Bars` (edited through BarManager's draft)
 > **Related:** [Editors pattern](../core/editors-pattern.md), [Bar composition](composition.md), [Layouts editor](../overlay/layouts-editor.md)
 
 The BarEditor overlay page: the bar list and field groups, the sections board and the widget inspector, plus the live reports the running bars send back while it's open.
 
 ### Layout of the page
-- `views/BarEditor.qml`, with its pieces in `views/barEditor/`. It follows the shared [editor pattern](../core/editors-pattern.md).
+- `views/BarEditor/BarEditor.qml`, with its pieces in `views/BarEditor/`. It follows the shared [editor pattern](../core/editors-pattern.md).
 - `BarsPanel`, `SectionsBoard` and `WidgetInspector` are streamed in as the page opens (`StreamedLoader`, [streamed building](../core/streamed-building.md)), as are the panel's field groups and each form field. The board's loader takes its depth from the board (`board.implicitHeight`), so a horizontal strip settles a moment after the page shows.
 - **Left: `BarsPanel`.**
   - The bars, with duplicate and remove.

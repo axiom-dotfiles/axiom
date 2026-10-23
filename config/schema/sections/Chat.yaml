@@ -2,11 +2,9 @@
 
 type: object
 x-category: Modules
-x-card: ChatProviders
-x-cardTitle: Chat API keys
-x-cardWide: true
+x-card: {file: ChatProviders, title: Chat API keys, wide: true}
 title: Chat
-description: 'The Chat overlay module, and the launcher''s @ prefix. API keys are never stored here: set them on the card above (they go to your keyring, or $XDG_STATE_HOME/axiom/secrets.json without one), or in each provider''s environment variable.'
+description: "The Chat overlay module, and the launcher's @ prefix. API keys are never stored here: set them on the card above (they go to your keyring, or $XDG_STATE_HOME/axiom/secrets.json without one), or in each provider's environment variable."
 additionalProperties: false
 properties:
   defaultProvider:
@@ -72,70 +70,48 @@ properties:
     title: Providers
     description: 'Where chats are sent. The OpenAI kind also covers Ollama, LM Studio, llama.cpp, OpenRouter, Groq and anything else with an OpenAI-style API: set its address.'
     default:
-      - id: anthropic
+      - id: anthropic-2
         name: Anthropic
         kind: anthropic
-        baseUrl: https://api.anthropic.com/v1
+        baseUrl: 'https://api.anthropic.com/v1'
         auth: key
         keyEnv: ANTHROPIC_API_KEY
-        models:
-          - claude-opus-5
-          - claude-sonnet-5
-          - claude-haiku-4-5
-          - claude-fable-5-1
-          - claude-opus-5-5
+        models: [claude-opus-5, claude-sonnet-5, claude-haiku-4-5, claude-fable-5-1, claude-opus-5-5]
         defaultModel: claude-opus-5
         fallbacks: true
-      - id: openai
+      - id: openai-2
         name: OpenAI
         kind: openai
-        baseUrl: https://api.openai.com/v1
+        baseUrl: 'https://api.openai.com/v1'
         auth: key
         keyEnv: OPENAI_API_KEY
         models: [gpt-5, gpt-5-mini]
         defaultModel: gpt-5
         fallbacks: false
-      - id: gemini
+      - id: gemini-2
         name: Gemini
         kind: gemini
-        baseUrl: https://generativelanguage.googleapis.com/v1beta
+        baseUrl: 'https://generativelanguage.googleapis.com/v1beta'
         auth: key
         keyEnv: GEMINI_API_KEY
         models: [gemini-2.5-pro, gemini-2.5-flash]
         defaultModel: gemini-2.5-flash
         fallbacks: false
-      - id: ollama
+      - id: ollama-2
         name: Ollama
         kind: openai
-        baseUrl: http://localhost:11434/v1
+        baseUrl: 'http://localhost:11434/v1'
         auth: none
-        keyEnv: ""
+        keyEnv: ''
         models: []
-        defaultModel: ""
+        defaultModel: ''
         fallbacks: false
     items:
       type: object
       additionalProperties: false
-      x-order:
-        - name
-        - id
-        - kind
-        - baseUrl
-        - auth
-        - keyEnv
-        - models
-        - defaultModel
-        - fallbacks
       properties:
-        id:
-          type: string
-          title: ID
-          default: ""
-          description: Names the provider's key in the keyring and presets' provider field. Lowercase letters, digits and dashes.
-        name:
-          type: string
-          title: Name
-          default: ""
+        id: {$ref: '#/definitions/ItemId'}
+        name: {type: string, title: Name, default: ''}
         kind:
           type: string
           title: API
@@ -148,8 +124,8 @@ properties:
         baseUrl:
           type: string
           title: Address
-          default: ""
-          description: The API's base URL, up to and including its version (e.g. http://localhost:11434/v1).
+          default: ''
+          description: "The API's base URL, up to and including its version (e.g. http://localhost:11434/v1)."
         auth:
           type: string
           title: Key
@@ -159,20 +135,19 @@ properties:
         keyEnv:
           type: string
           title: Key variable
-          default: ""
+          default: ''
           description: An environment variable that holds the key, if you keep it there. It wins over a stored key.
           x-showIf: {auth: key}
         models:
           type: array
           title: Models
           default: []
-          items:
-            type: string
+          items: {type: string}
           description: Model ids to choose from, comma-separated. Fetch models on the card above fills this in.
         defaultModel:
           type: string
           title: Default model
-          default: ""
+          default: ''
           description: Empty uses the first of the models.
         fallbacks:
           type: boolean
@@ -180,52 +155,48 @@ properties:
           default: true
           description: When the model declines a request, the API retries it on another model within the same reply.
           x-showIf: {kind: anthropic}
+      required: [id]
   presets:
     x-scope: personal
     type: array
     title: Presets
     description: 'Saved setups to start a conversation with: a system prompt, and optionally a provider, model and effort of their own.'
     default:
-      - name: Default
+      - id: default
+        name: Default
         icon: chat
         systemPrompt: You are a helpful assistant built into the user's Linux desktop. Answer concisely, and use Markdown when it helps.
-        provider: ""
-        model: ""
+        provider: ''
+        model: ''
         effort: default
-      - name: Coder
+      - id: coder
+        name: Coder
         icon: code
         systemPrompt: You are an expert programmer. Lead with working code, then explain briefly. Prefer small, idiomatic changes.
-        provider: ""
-        model: ""
+        provider: ''
+        model: ''
         effort: high
     items:
       type: object
       additionalProperties: false
-      x-order: [name, icon, systemPrompt, provider, model, effort]
       properties:
-        name:
-          type: string
-          title: Name
-          default: ""
+        id: {$ref: '#/definitions/ItemId'}
+        name: {type: string, title: Name, default: ''}
         icon:
           type: string
           title: Icon
           default: chat
           description: A Material Symbols name (fonts.google.com/icons).
-        systemPrompt:
-          type: string
-          title: System prompt
-          default: ""
-          x-multiline: true
+        systemPrompt: {type: string, title: System prompt, default: '', x-multiline: true}
         provider:
           type: string
           title: Provider
-          default: ""
+          default: ''
           description: A provider ID. Empty uses the default provider.
         model:
           type: string
           title: Model
-          default: ""
+          default: ''
           description: Empty uses the provider's default model.
         effort:
           type: string
@@ -240,3 +211,4 @@ properties:
             max: Max
           default: default
           description: How hard a reasoning model thinks. Models that don't reason ignore it.
+      required: [id]

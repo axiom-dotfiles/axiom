@@ -6,14 +6,12 @@ x-scope: personal
 title: Timer and stopwatch
 description: The one-off timer and the stopwatch every Stopwatch widget and module shows.
 additionalProperties: false
-x-order: [presets, notify]
 properties:
   presets:
     type: array
     title: Timer presets
-    default: ["1m", "5m", "10m", "25m"]
-    items:
-      type: string
+    default: ['1m', '5m', '10m', '25m']
+    items: {type: string}
     description: 'One-click timers, comma-separated: 5m, 1h30m, 90s, or 10m tea for a label.'
   notify:
     type: boolean

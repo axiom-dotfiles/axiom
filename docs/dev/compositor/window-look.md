@@ -1,6 +1,6 @@
 # Window look
 
-> **Files:** `config/WindowLookConfig.qml`, `config/Bar.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/methods/CompositorLayer.qml`, `components/methods/HyprLua.qml`, `services/HyprlandManager.qml`, `components/views/settings/TranslucencyStatus.qml`
+> **Files:** `config/WindowLookConfig.qml`, `config/Bar.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/methods/CompositorLayer.qml`, `components/methods/HyprLua.qml`, `services/HyprlandManager.qml`, `components/views/Settings/TranslucencyStatus.qml`
 > **Config:** `WindowLook.*` (borders and their colors, `shape`, `matchShell`, `borderSize`, `rounding`, gaps, `blur`, `opacity`, `windowBlur`)
 > **Related:** [The compositor](README.md), [Contract](contract.md), [Config modes](config-modes.md), [Translucency and blur](../theming/translucency-blur.md), [Lockscreen](../features/lockscreen.md)
 
@@ -27,7 +27,7 @@ The themed window look axiom gives the compositor: borders, shape, gaps, blur an
 - With the blur part on, Hyprland's blur stays enabled while axiom's surfaces blur, even if `windowBlur` is off.
 - The `axiom-no-window-blur` rule (redefined on or off) then keeps windows and their popups unblurred.
 - `CompositorManager.blur` reads the blur in effect (`refreshOptions`). It is used by:
-  - the Translucency card's status (`views/settings/TranslucencyStatus`, that card's `x-intro`)
+  - the Translucency card's status (`views/Settings/TranslucencyStatus`, that card's `x-intro`)
   - the lock screen's frost.
 
 ### Where it's applied

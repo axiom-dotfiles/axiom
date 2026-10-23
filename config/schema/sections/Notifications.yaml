@@ -4,42 +4,27 @@ x-scope: personal
 type: object
 x-category: Notifications
 title: Notifications
-description: 'Where notification toasts appear, how long they stay, and what the history keeps. Toasts sit inside the work area, the space the bars and screen border leave free, so a gap is measured from whatever is at that edge: a bar, the border''s stroke, or the bare screen edge.'
+description: "Where notification toasts appear, how long they stay, and what the history keeps. Toasts sit inside the work area, the space the bars and screen border leave free, so a gap is measured from whatever is at that edge: a bar, the border's stroke, or the bare screen edge."
 additionalProperties: false
-x-order:
-  - monitors
-  - position
-  - evenGaps
-  - gap
-  - gapTop
-  - gapBottom
-  - gapLeft
-  - gapRight
-  - timeout
-  - appTimeouts
-  - criticalStays
-  - maxToasts
-  - width
-  - quietFullscreen
-  - clearOnFocus
-  - removeOnClick
-  - closeRemoves
-  - maxEntries
-  - maxAgeDays
 properties:
-  monitors:
-    x-link: {setting: General.monitors}
-    x-scope: look
-    type: string
+  screen:
+    $ref: '#/definitions/ScreenTarget'
     title: Monitors
-    enum: [general, primary, focused, all]
-    x-enumLabels:
-      general: As in General
-      primary: Primary monitor
-      focused: Focused monitor
-      all: Every monitor
-    default: general
     description: Where toasts appear. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace when the notification arrives; every monitor shows each toast on all of them, and closing one closes the rest.
+    x-properties:
+      mode:
+        x-scope: look
+        type: string
+        title: Monitors
+        enum: [inherit, primary, focused, all]
+        default: inherit
+        x-enumLabels:
+          inherit: As in General
+          primary: Primary monitor
+          focused: Focused monitor
+          all: Every monitor
+        x-link: {setting: General.screen}
+      names: null
   position:
     x-scope: look
     type: string
@@ -52,84 +37,83 @@ properties:
       bottomRight: Bottom right
     default: topLeft
     description: Corner of the work area the toasts stack from. Bottom corners stack upwards.
-  evenGaps:
-    x-scope: look
-    type: boolean
-    title: Even gaps
-    default: true
-    description: Use one gap for both sides of the corner. Turn off to set each side on its own.
-  gap:
-    x-scope: look
-    type: integer
-    x-control: stepper
-    title: Gap
-    x-unit: px
-    default: 12
-    minimum: 0
-    maximum: 200
-    description: Space between the toasts and the edges of the work area.
-    x-showIf: {evenGaps: true}
-  gapTop:
-    x-scope: look
-    type: integer
-    x-control: stepper
-    title: Top gap
-    x-unit: px
-    default: 12
-    minimum: 0
-    maximum: 200
-    description: Space between the toasts and the top of the work area.
-    x-showIf:
-      evenGaps: false
-      position: [topLeft, topRight]
-  gapBottom:
-    x-scope: look
-    type: integer
-    x-control: stepper
-    title: Bottom gap
-    x-unit: px
-    default: 12
-    minimum: 0
-    maximum: 200
-    description: Space between the toasts and the bottom of the work area.
-    x-showIf:
-      evenGaps: false
-      position: [bottomLeft, bottomRight]
-  gapLeft:
-    x-scope: look
-    type: integer
-    x-control: stepper
-    title: Left gap
-    x-unit: px
-    default: 12
-    minimum: 0
-    maximum: 200
-    description: Space between the toasts and the left of the work area.
-    x-showIf:
-      evenGaps: false
-      position: [topLeft, bottomLeft]
-  gapRight:
-    x-scope: look
-    type: integer
-    x-control: stepper
-    title: Right gap
-    x-unit: px
-    default: 12
-    minimum: 0
-    maximum: 200
-    description: Space between the toasts and the right of the work area.
-    x-showIf:
-      evenGaps: false
-      position: [topRight, bottomRight]
+  gaps:
+    type: object
+    title: Gaps
+    description: How far toasts sit from the edges of the work area.
+    additionalProperties: false
+    properties:
+      even:
+        x-scope: look
+        type: boolean
+        title: Even gaps
+        default: true
+        description: Use one gap for both sides of the corner. Turn off to set each side on its own.
+      all:
+        x-scope: look
+        type: integer
+        x-control: stepper
+        title: Gap
+        x-unit: px
+        default: 12
+        minimum: 0
+        maximum: 200
+        description: Space between the toasts and the edges of the work area.
+        x-showIf: {even: true}
+      top:
+        x-scope: look
+        type: integer
+        x-control: stepper
+        title: Top gap
+        x-unit: px
+        default: 12
+        minimum: 0
+        maximum: 200
+        description: Space between the toasts and the top of the work area.
+        x-showIf: {even: false, ../position: [topLeft, topRight]}
+      bottom:
+        x-scope: look
+        type: integer
+        x-control: stepper
+        title: Bottom gap
+        x-unit: px
+        default: 12
+        minimum: 0
+        maximum: 200
+        description: Space between the toasts and the bottom of the work area.
+        x-showIf: {even: false, ../position: [bottomLeft, bottomRight]}
+      left:
+        x-scope: look
+        type: integer
+        x-control: stepper
+        title: Left gap
+        x-unit: px
+        default: 12
+        minimum: 0
+        maximum: 200
+        description: Space between the toasts and the left of the work area.
+        x-showIf: {even: false, ../position: [topLeft, bottomLeft]}
+      right:
+        x-scope: look
+        type: integer
+        x-control: stepper
+        title: Right gap
+        x-unit: px
+        default: 12
+        minimum: 0
+        maximum: 200
+        description: Space between the toasts and the right of the work area.
+        x-showIf: {even: false, ../position: [topRight, bottomRight]}
+    x-group: Notifications
   timeout:
     type: integer
     x-control: stepper
     title: Toast duration
     x-unit: s
     x-group: Toasts
-    default: 5
-    minimum: 1
-    maximum: 60
+    default: 5000
+    minimum: 1000
+    maximum: 60000
     description: How long a toast stays up. Hovering it pauses the countdown.
   appTimeouts:
     type: boolean
@@ -195,12 +179,12 @@ properties:
     minimum: 10
     maximum: 500
     description: How many notifications the history keeps. The oldest go first.
-  maxAgeDays:
+  maxAge:
     type: integer
     title: Keep for
-    x-unit: days
+    x-unit: d
     x-group: Notification history
     default: 0
     minimum: 0
-    maximum: 365
+    maximum: 31536000000
     description: Remove notifications older than this many days. 0 keeps them until removed.

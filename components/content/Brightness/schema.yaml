@@ -1,0 +1,13 @@
+label: Brightness
+icon: brightness_medium
+group: System
+defaultSize: [4, 1]
+settings:
+  monitor:
+    x-scope: machine
+    type: string
+    title: Monitor
+    default: '*'
+    x-options: screens
+    x-allScreens: true
+    description: Empty uses the primary monitor. All monitors sets every monitor at once, with a slider for each below where there's room.

@@ -1,0 +1,30 @@
+label: Media Player
+icon: music_note
+group: Media & audio
+popout: {variant: own, enabled: {description: Open the media controls when hovered.}}
+settings:
+  showArtist: {type: boolean, title: Show artist, default: true}
+  artistLength:
+    type: integer
+    x-control: stepper
+    title: Artist length
+    default: 10
+    minimum: 0
+    maximum: 100
+    description: Longest artist name shown before it is shortened (characters).
+  idleText:
+    type: string
+    title: Idle text
+    default: No player
+    description: Shown when nothing is playing.
+  playingColor: {$ref: '#/definitions/WidgetColor', title: Playing color}
+  pausedColor: {$ref: '#/definitions/WidgetColor', title: Paused color, x-autoColor: 'off'}
+  foregroundColor:
+    type: string
+    title: Text color
+    x-options: colors
+    default: base00
+    x-showIf:
+      $bar.widgetStyle: filled
+      $bar.widgetGrouping: {not: merged}
+      $bar.widgetTextColor: ''

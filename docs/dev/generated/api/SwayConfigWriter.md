@@ -14,7 +14,7 @@
 - `userDir` (readonly string)
 - `userFiles` (readonly string)
 - `includeLines` (readonly string): What the user's sway config needs for the included mode
-- `autostartLines` (readonly string): What a sway config needs to start axiom with sway, for the detached and included modes. -n (--no-duplicate) exits at once if axiom already runs, so a reload can't start another copy.
+- `autostartLines` (readonly string): What a sway config needs to start axiom with sway, for the detached and included modes.
 - `includeTarget` (readonly var): The lines above as integration_hookup.py targets in the user's sway config (IntegrationHookupManager's "compositorInclude" and "compositorAutostart"): the include first, so what follows overrides it,…
 - `autostartTarget` (readonly var)
 - `shellCommand` (readonly string)

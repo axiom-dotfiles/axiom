@@ -1,6 +1,6 @@
 # Chat
 
-> **Files:** `services/ChatManager.qml`, `services/ChatRequest.qml`, `components/methods/ChatProtocol.qml`, `components/methods/ChatMarkdown.qml`, `components/content/Chat.qml`
+> **Files:** `services/ChatManager.qml`, `services/ChatRequest.qml`, `components/methods/ChatProtocol.qml`, `components/methods/ChatMarkdown.qml`, `components/content/Chat/Chat.qml`
 > **Config:** `Chat.*` (reader `ChatConfig`)
 > **Related:** [Secrets](../core/secrets.md), [Screenshots and recording](screenshots-recording.md), [Launcher](launcher.md), [Services pattern](../core/services-pattern.md)
 
@@ -34,7 +34,7 @@ The LLM chat: conversations, streaming replies from Anthropic, OpenAI-style and 
 
 ### Display
 - `components/methods/ChatMarkdown` splits a reply into prose and code blocks.
-- `content/Chat.qml` is a `Panel`, so it can also be used as a popout.
+- `content/Chat/Chat.qml` is a `Panel`, so it can also be used as a popout.
 
 ### Entry points
 - IPC `chat`: `open`, `newChat`, `ask <text>`, `settings`.

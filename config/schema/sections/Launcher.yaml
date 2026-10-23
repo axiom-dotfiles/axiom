@@ -7,53 +7,31 @@ title: Launcher
 description: 'The search launcher: apps, open windows, a calculator, web search, running commands, and / commands that control the shell.'
 x-intro: LauncherPlace
 additionalProperties: false
-x-order:
-  - monitors
-  - edge
-  - position
-  - detached
-  - distance
-  - reverse
-  - width
-  - maxResults
-  - iconSize
-  - showBackdrop
-  - backdrop
-  - showDescriptions
-  - showRecent
-  - showHint
-  - windows
-  - calculator
-  - commands
-  - runCommands
-  - webSearch
-  - searchEngine
-  - chat
-  - clipboard
-  - clipboardSource
-  - clipboardMaxEntries
-  - emoji
-  - hiddenApps
 properties:
-  monitors:
-    x-link: {setting: General.monitors}
-    x-scope: look
-    type: string
+  screen:
+    $ref: '#/definitions/ScreenTarget'
     title: Monitors
-    enum: [general, primary, focused, all]
-    x-enumLabels:
-      general: As in General
-      primary: Primary monitor
-      focused: Focused monitor
-      all: Every monitor
-    default: general
     description: Where the launcher opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
+    x-properties:
+      mode:
+        x-scope: look
+        type: string
+        title: Monitors
+        enum: [inherit, primary, focused, all]
+        default: inherit
+        x-enumLabels:
+          inherit: As in General
+          primary: Primary monitor
+          focused: Focused monitor
+          all: Every monitor
+        x-link: {setting: General.screen}
+      names: null
   edge:
     x-scope: look
     type: string
     title: Screen edge
-    default: Top
-    enum: [Top, Bottom, Left, Right]
+    default: top
+    enum: [top, bottom, left, right]
     description: Screen edge the launcher opens from, or is held off when detached.
   position:
     x-scope: look
@@ -159,81 +137,85 @@ properties:
     type: array
     title: Hidden apps
     default: []
-    items:
-      type: string
+    items: {type: string}
     description: Desktop entry ids never shown, comma-separated (e.g. avahi-discover, qv4l2).
-  windows:
-    x-group: Launcher search
-    type: boolean
-    title: Open windows
-    default: true
-    description: Also match open windows by title and class; picking one focuses it.
-  calculator:
-    x-group: Launcher search
-    type: boolean
-    title: Calculator
-    default: true
-    description: Show the result of math as you type it (or after =), using qalc. Enter copies the result.
-  commands:
-    x-group: Launcher search
-    type: boolean
-    title: Shell commands (/)
-    default: true
-    description: 'Type / for commands that control the shell: themes, volume, wifi, bluetooth, overlay pages, session and more.'
-  runCommands:
-    x-group: Launcher search
-    type: boolean
-    title: Run commands (>)
-    default: true
-    description: Type > and a command to run it. Shift+Enter runs it in the terminal.
-  webSearch:
-    x-group: Launcher search
-    type: boolean
-    title: Web search (?)
-    default: true
-    description: Offer a web search for what you typed, last in the list (or first after ?).
-  searchEngine:
-    x-group: Launcher search
-    type: string
-    title: Search engine URL
-    default: https://duckduckgo.com/?q={}
-    description: '{} is replaced by the search terms.'
-    x-showIf: {webSearch: true}
-  chat:
-    x-link: {setting: Chat}
-    x-group: Launcher search
-    type: boolean
-    title: Ask chat (@)
-    default: true
-    description: Type @ and a question to ask it in the overlay's Chat module, with the default preset.
-  clipboard:
-    x-group: Launcher search
-    type: boolean
-    title: Clipboard history (:)
-    default: true
-    description: 'Type : (or /clipboard) to search what you''ve copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don''t; turning it off clears the history.'
-  clipboardSource:
-    x-scope: machine
-    x-group: Launcher search
-    type: string
-    title: Clipboard history source
-    default: axiom
-    enum: [axiom, cliphist]
-    x-enumLabels: {axiom: axiom (in memory), cliphist: cliphist}
-    description: axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).
-    x-showIf: {clipboard: true}
-  clipboardMaxEntries:
-    x-group: Launcher search
-    type: integer
-    title: Clipboard history size
-    default: 100
-    minimum: 10
-    maximum: 1000
-    description: How many clips axiom keeps.
-    x-showIf: {clipboard: true, clipboardSource: axiom}
-  emoji:
-    x-group: Launcher search
-    type: boolean
-    title: Emoji (;)
-    default: true
-    description: Type ; (or /emoji) to search emoji by name or keyword; Enter copies one. With wtype installed, Shift+Enter also types it into the focused window.
+  providers:
+    type: object
+    title: Launcher search
+    description: What the launcher searches besides apps.
+    additionalProperties: false
+    properties:
+      windows:
+        type: boolean
+        title: Open windows
+        default: true
+        description: Also match open windows by title and class; picking one focuses it.
+      calculator:
+        type: boolean
+        title: Calculator
+        default: true
+        description: Show the result of math as you type it (or after =), using qalc. Enter copies the result.
+      commands:
+        type: boolean
+        title: Shell commands (/)
+        default: true
+        description: 'Type / for commands that control the shell: themes, volume, wifi, bluetooth, overlay pages, session and more.'
+      run:
+        type: boolean
+        title: Run commands (>)
+        default: true
+        description: Type > and a command to run it. Shift+Enter runs it in the terminal.
+      web:
+        type: object
+        title: Web search
+        additionalProperties: false
+        properties:
+          enabled:
+            type: boolean
+            title: Web search (?)
+            default: true
+            description: Offer a web search for what you typed, last in the list (or first after ?).
+          engine:
+            type: string
+            title: Search engine URL
+            default: 'https://duckduckgo.com/?q={}'
+            description: '{} is replaced by the search terms.'
+            x-showIf: {enabled: true}
+      chat:
+        x-link: {setting: Chat}
+        type: boolean
+        title: Ask chat (@)
+        default: true
+        description: Type @ and a question to ask it in the overlay's Chat module, with the default preset.
+      clipboard:
+        type: object
+        title: Clipboard history
+        additionalProperties: false
+        properties:
+          enabled:
+            type: boolean
+            title: 'Clipboard history (:)'
+            default: true
+            description: "Type : (or /clipboard) to search what you've copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don't; turning it off clears the history."
+          source:
+            x-scope: machine
+            type: string
+            title: Clipboard history source
+            default: axiom
+            enum: [axiom, cliphist]
+            x-enumLabels: {axiom: axiom (in memory), cliphist: cliphist}
+            description: axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).
+            x-showIf: {enabled: true}
+          maxEntries:
+            type: integer
+            title: Clipboard history size
+            default: 100
+            minimum: 10
+            maximum: 1000
+            description: How many clips axiom keeps.
+            x-showIf: {enabled: true, source: axiom}
+      emoji:
+        type: boolean
+        title: Emoji (;)
+        default: true
+        description: Type ; (or /emoji) to search emoji by name or keyword; Enter copies one. With wtype installed, Shift+Enter also types it into the focused window.

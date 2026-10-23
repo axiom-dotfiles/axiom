@@ -5,7 +5,6 @@ x-category: Modules
 title: Package updates
 description: How every updates widget and module checks for and installs updates.
 additionalProperties: false
-x-order: [includeAur, aurHelper, terminal, upgradeCommand]
 properties:
   includeAur:
     type: boolean
@@ -24,11 +23,11 @@ properties:
     x-scope: commands
     type: string
     title: Terminal
-    default: ""
+    default: ''
     description: Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal.
   upgradeCommand:
     x-scope: commands
     type: string
     title: Upgrade command
-    default: ""
+    default: ''
     description: Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu.

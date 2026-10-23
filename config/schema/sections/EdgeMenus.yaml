@@ -1,9 +1,9 @@
 # The EdgeMenus section of the config (config.json's "EdgeMenus").
 
+type: object
 x-scope: look
-type: array
-description: Menus that pop out of a screen edge, filled with overlay modules, edited on the overlay's Layouts page. Opened by a bar Button (Edge menu action), their edge trigger, or `qs -c axiom ipc call edgeMenu toggle <id>`.
 x-settings: false
-default: []
-items:
-  $ref: '#/definitions/EdgeMenu'
+title: Edge menus
+additionalProperties: false
+properties:
+  items: {type: array, x-settings: false, default: [], items: {$ref: '#/definitions/EdgeMenu'}}

@@ -1,0 +1,5 @@
+label: AI chat
+keyboard: true
+icon: smart_toy
+group: Tools
+defaultSize: [4, 8]

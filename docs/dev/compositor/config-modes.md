@@ -1,6 +1,6 @@
 # Config modes (detached / included / managed)
 
-> **Files:** `services/CompositorConfigManager.qml`, `services/ConfigTakeover.qml`, `services/UserBindMerge.qml`, `services/RuntimeLayer.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`, `services/NiriConfigWriter.qml`, `config/WindowBehaviourConfig.qml`, `services/CursorThemeManager.qml`, `scripts/cursor_theme.py`
+> **Files:** `services/CompositorConfigManager.qml`, `services/ConfigTakeover.qml`, `services/UserBindMerge.qml`, `services/RuntimeLayer.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/Settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`, `services/NiriConfigWriter.qml`, `config/WindowBehaviourConfig.qml`, `services/CursorThemeManager.qml`, `scripts/cursor_theme.py`
 > **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `WindowBehaviour.*`, `Keybinds.binds`, `Monitors.profiles`, `WindowLook`, `Input`, `Session`, `Workspaces.strips`
 > **Related:** [Contract](contract.md), [Window look](window-look.md), [Hyprland's writer](../hyprland/config-modes.md), [Managed takeover](../hyprland/managed-takeover.md), [Sway backend](sway-backend.md)
 

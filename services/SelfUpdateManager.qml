@@ -20,9 +20,9 @@ import qs.config
  * A packaged axiom (the AUR's axiom-shell, Paths.packaged) is updated by its
  * package manager: this never checks, and its settings are hidden.
  *
- *   qs -c axiom ipc call selfUpdate check
- *   qs -c axiom ipc call selfUpdate update
- *   qs -c axiom ipc call selfUpdate open
+ *   axiom ipc selfUpdate check
+ *   axiom ipc selfUpdate update
+ *   axiom ipc selfUpdate open
  */
 Singleton {
   id: root

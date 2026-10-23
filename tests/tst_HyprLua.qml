@@ -16,43 +16,71 @@ TestCase {
         "gaps": {
           "type": "integer",
           "default": 5,
-          "x-hypr": "general.gaps_in"
+          "x-compositor": {
+            "hyprland": {
+              "key": "general.gaps_in"
+            }
+          }
         },
         "both": {
           "type": "integer",
           "default": 0,
-          "x-hypr": ["a.one", "a.two"]
+          "x-compositor": {
+            "hyprland": {
+              "key": ["a.one", "a.two"]
+            }
+          }
         },
         "opacity": {
           "type": "integer",
           "default": 100,
-          "x-hypr": "decoration.active_opacity",
-          "x-hyprScale": 0.01
+          "x-compositor": {
+            "hyprland": {
+              "key": "decoration.active_opacity",
+              "scale": 0.01
+            }
+          }
         },
         "flag": {
           "type": "boolean",
           "default": false,
-          "x-hypr": "misc.flag",
-          "x-hyprValue": "int"
+          "x-compositor": {
+            "hyprland": {
+              "key": "misc.flag",
+              "value": "int"
+            }
+          }
         },
         "border": {
           "type": "string",
           "default": "base0D",
-          "x-hypr": "general.col.active_border",
-          "x-hyprValue": "color",
-          "x-hyprAlpha": "cc"
+          "x-compositor": {
+            "hyprland": {
+              "key": "general.col.active_border",
+              "value": "color",
+              "alpha": "cc"
+            }
+          }
         },
         "always": {
           "type": "string",
           "default": "dwindle",
-          "x-hypr": "general.layout",
-          "x-hyprAlways": true
+          "x-compositor": {
+            "hyprland": {
+              "key": "general.layout",
+              "always": true
+            }
+          }
         },
         "gated": {
           "type": "integer",
           "default": 3,
-          "x-hypr": "blur.size",
-          "x-hyprIf": "blur"
+          "x-compositor": {
+            "hyprland": {
+              "key": "blur.size",
+              "if": "blur"
+            }
+          }
         },
         "blur": {
           "type": "boolean",
@@ -64,6 +92,15 @@ TestCase {
         }
       }
     })
+
+  // `base` with `patch` over it, a nested object's keys one by one (a v2
+  // group: WindowLook.shadow, Input.keyboard)
+  function merged(base, patch) {
+    const out = JSON.parse(JSON.stringify(base));
+    for (const key in patch)
+      out[key] = typeof patch[key] === "object" && patch[key] !== null && !Array.isArray(patch[key]) ? Object.assign({}, out[key], patch[key]) : patch[key];
+    return out;
+  }
 
   function hex(name) {
     return name === "base0D" ? "112233" : "445566";
@@ -129,7 +166,7 @@ TestCase {
     compare(table.misc.flag, 1);
     compare(table.general.col.active_border, "rgba(445566cc)");
     compare(table.general.layout, "master");
-    // x-hyprIf: written, default or not, only while the switch is on
+    // `if`: written, default or not, only while the switch is on
     compare(table.blur.size, 3);
   }
 
@@ -147,15 +184,16 @@ TestCase {
   // Every managed option, each changed from its default, as Lua
   function test_managed_schema_serializes_to_lua() {
     const schema = files.json("config/json/config.schema.json");
-    const managed = schema.properties.Hyprland.properties.managed;
+    const managed = schema.properties.Compositor.properties.hyprland;
     const values = SchemaValidation.applyDefaults({}, managed, schema);
     const expected = [];
     for (const key in managed.properties) {
       const field = managed.properties[key];
-      if (!field["x-hypr"])
+      const spec = field["x-compositor"]?.hyprland;
+      if (!spec)
         continue;
-      if (field["x-hyprIf"])
-        values[field["x-hyprIf"]] = true;
+      if (spec.if)
+        values[spec.if] = true;
       if (field.type === "boolean")
         values[key] = !values[key];
       else if (field.type === "integer")
@@ -163,8 +201,8 @@ TestCase {
       else if (field.enum)
         values[key] = field.enum.find(option => option !== values[key]);
       else if (field.type === "string")
-        values[key] = field["x-hyprValue"] === "color" ? "base08" : "changed";
-      expected.push(...(typeof field["x-hypr"] === "string" ? [field["x-hypr"]] : field["x-hypr"]));
+        values[key] = spec.value === "color" ? "base08" : "changed";
+      expected.push(...(typeof spec.key === "string" ? [spec.key] : spec.key));
     }
     const table = HyprLua.configTable(managed, values, hex);
     for (const path of expected) {
@@ -415,11 +453,11 @@ assert(removed == 2, "earlier handlers removed")
     verify(!none.some(line => line.startsWith("hl.config")));
 
     const input = SchemaValidation.applyDefaults({}, inputSchema, schema);
-    input.kbLayout = "us,de";
-    input.sensitivity = -50;
+    input.keyboard.layout = "us,de";
+    input.mouse.sensitivity = -50;
     compare(HyprLua.greeterLua(profiles, inputSchema, input, hex).length, none.length, "every part off: nothing set");
-    input.keyboard = true;
-    input.mouse = true;
+    input.keyboard.enabled = true;
+    input.mouse.enabled = true;
     const lines = HyprLua.greeterLua(profiles, inputSchema, input, hex);
     const config = lines[lines.length - 1];
     verify(config.startsWith("hl.config("));
@@ -436,7 +474,7 @@ assert(removed == 2, "earlier handlers removed")
     const inputSchema = schema.properties.Input;
     const input = SchemaValidation.applyDefaults({}, inputSchema, schema);
     compare(HyprLua.inputLua(CompositorLayer.input(input), inputSchema), [], "every part off");
-    input.touchpad = true;
+    input.touchpad.enabled = true;
     const lines = HyprLua.inputLua(CompositorLayer.input(input), inputSchema);
     verify(lines[0].startsWith("hl.config("));
     verify(lines.every(line => !line.includes("\n")), "one line each, for indenting");
@@ -460,12 +498,16 @@ assert(removed == 2, "earlier handlers removed")
   function test_look_shadow_and_dim() {
     const schema = files.json("config/json/config.schema.json");
     const lookSchema = schema.properties.WindowLook;
-    const values = Object.assign(SchemaValidation.applyDefaults({}, lookSchema, schema), {
-      "shadow": true,
-      "shadowSize": 12,
-      "shadowPower": 2,
-      "dim": true,
-      "dimStrength": 20
+    const values = merged(SchemaValidation.applyDefaults({}, lookSchema, schema), {
+      "shadow": {
+        "enabled": true,
+        "size": 12,
+        "power": 2
+      },
+      "dim": {
+        "enabled": true,
+        "strength": 20
+      }
     });
     const spec = opts => CompositorLayer.look(values, Object.assign({
         "activeHex": "ffffff",
@@ -530,10 +572,12 @@ assert(removed == 2, "earlier handlers removed")
     compare(HyprLua.lookLua(look(off, "ffffff", "000000", 2, 8, true), lookSchema), []);
     compare(look(off).parts, []);
 
-    const gaps = Object.assign({}, off, {
-      "gaps": true,
-      "gapsIn": 4,
-      "gapsOut": 12
+    const gaps = merged(off, {
+      "gaps": {
+        "enabled": true,
+        "inner": 4,
+        "outer": 12
+      }
     });
     const gapsLua = HyprLua.lookLua(look(gaps, "ffffff", "000000", 2, 8, true), lookSchema).join("\n");
     verify(gapsLua.includes("gaps_in = 4"));
@@ -543,14 +587,22 @@ assert(removed == 2, "earlier handlers removed")
     verify(!gapsLua.includes("blur"), "the blur only with its part on");
     verify(!gapsLua.includes("opacity"), "nor the opacity");
 
-    const all = Object.assign({}, gaps, {
-      "borders": true,
-      "shape": true,
-      "blur": true,
-      "blurSize": 6,
-      "blurPasses": 2,
-      "opacity": true,
-      "inactiveOpacity": 90
+    const all = merged(gaps, {
+      "borders": {
+        "enabled": true
+      },
+      "shape": {
+        "enabled": true
+      },
+      "blur": {
+        "enabled": true,
+        "size": 6,
+        "passes": 2
+      },
+      "opacity": {
+        "enabled": true,
+        "inactive": 90
+      }
     });
     const lines = HyprLua.lookLua(look(all, "aabbcc", "112233", 2, 8, false), lookSchema);
     const lua = lines.join("\n");
@@ -569,9 +621,11 @@ assert(removed == 2, "earlier handlers removed")
 
     // Windows not blurring while axiom's surfaces do: Hyprland's blur stays
     // on for them, and a rule keeps the windows (and their popups) clear
-    const surfacesOnly = Object.assign({}, all, {
-      "windowBlur": false,
-      "blurPopups": true
+    const surfacesOnly = merged(all, {
+      "blur": {
+        "windowBlur": false,
+        "popups": true
+      }
     });
     const run = (surfacesBlur, check) => `${HyprLua.lookLua(look(surfacesOnly, "aabbcc", "112233", 2, 8, surfacesBlur), lookSchema).join("\n")}\n${check}\n`;
     const runLua = `local options, rules = {}, {}

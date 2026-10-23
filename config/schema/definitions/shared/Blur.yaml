@@ -1,0 +1,107 @@
+# The Blur definition (#/definitions/Blur).
+
+x-inline: true
+type: object
+title: Window blur
+additionalProperties: false
+properties:
+  enabled:
+    type: boolean
+    title: Set the compositor's blur
+    default: false
+    description: The compositor has one blur, for windows and axiom's translucent surfaces alike. Off, your own config's applies.
+    x-enabledIf: {/$supports.windowBlur: true}
+  windowBlur:
+    type: boolean
+    title: Blur transparent windows
+    default: true
+    description: Off, only axiom's surfaces blur (Blur behind axiom's surfaces, above).
+    x-showIf: {enabled: true}
+    x-enabledIf: {/$supports.windowBlur: true}
+    x-compositor: {hyprland: {key: decoration.blur.enabled, if: enabled}}
+  size:
+    type: integer
+    x-control: stepper
+    title: Blur size
+    default: 4
+    minimum: 1
+    maximum: 20
+    x-showIf: {enabled: true}
+    x-enabledIf: {/$supports.windowBlur: true}
+    x-compositor: {hyprland: {key: decoration.blur.size, if: enabled}}
+  passes:
+    type: integer
+    title: Blur passes
+    default: 3
+    minimum: 1
+    maximum: 6
+    x-showIf: {enabled: true}
+    x-enabledIf: {/$supports.windowBlur: true}
+    x-compositor: {hyprland: {key: decoration.blur.passes, if: enabled}}
+  xray:
+    type: boolean
+    title: See-through blur
+    default: true
+    description: Floating windows blur only the wallpaper, not the windows under them. Cheaper.
+    x-showIf: {enabled: true, windowBlur: true}
+    x-enabledIf: {/$supports.windowBlur: true}
+    x-compositor: {hyprland: {key: decoration.blur.xray, if: enabled}}
+  ignoreOpacity:
+    type: boolean
+    title: Full blur behind any transparency
+    default: true
+    x-showIf: {enabled: true, windowBlur: true}
+    x-enabledIf: {/$supports.windowBlur: true, /$compositor: hyprland}
+    x-compositor: {hyprland: {key: decoration.blur.ignore_opacity, if: enabled}}
+  newOptimizations:
+    type: boolean
+    title: Blur optimizations
+    default: true
+    x-showIf: {enabled: true}
+    x-enabledIf: {/$supports.windowBlur: true, /$compositor: hyprland}
+    x-compositor: {hyprland: {key: decoration.blur.new_optimizations, if: enabled}}
+  noise:
+    type: integer
+    title: Noise
+    x-unit: '‰'
+    default: 12
+    minimum: 0
+    maximum: 1000
+    x-showIf: {enabled: true}
+    x-enabledIf: {/$supports.windowBlur: true}
+    x-compositor: {hyprland: {key: decoration.blur.noise, scale: 0.001, if: enabled}}
+  contrast:
+    type: integer
+    title: Contrast
+    x-unit: '%'
+    default: 89
+    minimum: 0
+    maximum: 200
+    x-showIf: {enabled: true}
+    x-enabledIf: {/$supports.windowBlur: true}
+    x-compositor: {hyprland: {key: decoration.blur.contrast, scale: 0.01, if: enabled}}
+  vibrancy:
+    type: integer
+    title: Vibrancy
+    x-unit: '%'
+    default: 17
+    minimum: 0
+    maximum: 100
+    x-showIf: {enabled: true}
+    x-enabledIf: {/$supports.windowBlur: true, /$compositor: hyprland}
+    x-compositor: {hyprland: {key: decoration.blur.vibrancy, scale: 0.01, if: enabled}}
+  popups:
+    type: boolean
+    title: Blur menus and popups
+    default: false
+    x-showIf: {enabled: true, windowBlur: true}
+    x-enabledIf: {/$supports.windowBlur: true, /$compositor: hyprland}
+    x-compositor: {hyprland: {key: decoration.blur.popups, if: enabled}}
+  special:
+    type: boolean
+    title: Blur behind special workspaces
+    default: false
+    description: 'Expensive: redraws the blur on every frame.'
+    x-showIf: {enabled: true}
+    x-enabledIf: {/$supports.windowBlur: true, /$compositor: hyprland}
+    x-compositor: {hyprland: {key: decoration.blur.special, if: enabled}}

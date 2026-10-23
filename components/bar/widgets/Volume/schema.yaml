@@ -1,0 +1,30 @@
+label: Volume
+icon: volume_up
+group: Media & audio
+popout: {variant: own, enabled: {description: Open the output mixer when hovered.}}
+colors: standard
+settings:
+  showPercentage: {type: boolean, title: Show percentage, default: false}
+  scrollStep:
+    type: integer
+    title: Scroll step
+    x-unit: '%'
+    default: 5
+    minimum: 1
+    maximum: 25
+    description: Volume change per scroll notch.
+  maxVolume:
+    type: integer
+    title: Maximum volume
+    x-unit: '%'
+    default: 100
+    minimum: 100
+    maximum: 150
+    description: Highest volume scrolling and the mixer sliders allow.
+  middleCommand:
+    x-scope: commands
+    type: string
+    title: Middle-click command
+    default: pavucontrol
+    description: Shell command run on middle click. Empty does nothing.
+  mutedColor: {$ref: '#/definitions/WidgetColor', title: Muted color, x-autoColor: 'off'}

@@ -70,7 +70,7 @@ Dependencies point one way, methods → data owners → readers → services →
 
 ### overlay/: pages and modules
 - [pages-and-grid](overlay/pages-and-grid.md): views, `GridPlacement`, card sizing, loading, the navigator, tool pages.
-- [content-roots](overlay/content-roots.md): `content/<Name>.qml`, `Card` / `Panel` roots, what hosts pass in.
+- [content-roots](overlay/content-roots.md): `content/<Name>/<Name>.qml`, `Card` / `Panel` roots, what hosts pass in.
 - [writing-modules](overlay/writing-modules.md): any-size modules, shared parts, data sources, Repeater models, safe live testing.
 - [grow-expand](overlay/grow-expand.md): modules growing rows and expanding over the grid.
 - [utility-modules](overlay/utility-modules.md): Calculator, Clipboard, Emoji, WorldClocks, CommandOutput, Cheatsheet.

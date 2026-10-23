@@ -1,9 +1,9 @@
-# Config v2: the unified shape (proposal)
+# Config v2: the unified shape
 
 > **Files:** `config/schema/`, `backend/internal/schema/yamlsrc/`, `backend/internal/migrate/legacy/`, `components/methods/ConfigMigration.qml` (frozen format 1)
 > **Related:** [Schema and its annotations](schema-annotations.md), [Config manager](config-manager.md), [Saved configs and sharing](saved-configs-sharing.md), [The axiom binary](../backend/README.md)
 
-**Status: proposal, for review before the schema is rewritten.** Each change below is one rule applied everywhere it fits. Format 1 is versions 1 to 75; v2 starts at `version: 76` with `format: 2`. The binary converts a format-1 file once: the frozen format-1 chain to v75, then the conversion described here. Old saved configs, exports, examples and community setups keep importing through the same path.
+**Status: accepted; being implemented** (the open questions at the end are settled as recommended). Each change below is one rule applied everywhere it fits. Format 1 is versions 1 to 75; v2 starts at `version: 76` with `format: 2`. The binary converts a format-1 file once: the frozen format-1 chain to v75, then the conversion described here. Old saved configs, exports, examples and community setups keep importing through the same path.
 
 It covers two things: the **shape of config.json** (rules 1 to 10, then [Shared definitions](#shared-definitions) and [Sections](#sections)), and the **schema source** contributors write (rule 11, then [Schema source](#schema-source-what-the-builder-supplies)), where most of today's boilerplate is.
 
@@ -28,7 +28,8 @@ It covers two things: the **shape of config.json** (rules 1 to 10, then [Shared 
     - Roots: `components/bar/widgets`, `components/content`, `components/views`. A root holds only type folders: shared bases (`BarIconWidget`, `AudioLevelWidget`, `BaseView`) move to a `base/` folder beside it.
     - The folder name is the type const, the one place a type's name is written. Loaders build `<root>/<Type>/<Type>.qml`.
     - Popout-only content (`WeatherForecast`) is a folder in `components/content` without a `schema.yaml`.
-    - Today's private folders fold in: `components/views/barEditor/` into the BarEditor folder, `components/bar/widgets/workspaces/` into the Workspaces folder.
+    - The private folders folded in: the bar editor's parts are in the BarEditor folder, the workspace strips in the Workspaces folder, the Submenu module's `MenuSubmenu` (loaded as `Submenu/MenuSubmenu`) in the Submenu folder. `Paths.widgetUrl` / `contentUrl` / `viewUrl` build the paths.
+    - Done: the files are in their folders; the builder finds each `schema.yaml` through `index.yaml`'s `kinds` (the definition `<Type><suffix>`), and the definitions list is gone.
     - A feature's shared settings (`Weather.location`, used by the widget, the module and the popout) stay a section in `config/schema/sections/`: a type folder never declares a section.
 
 ## Shared definitions
@@ -93,7 +94,7 @@ Sections that are already one concept with plain keys stay as they are, apart fr
 
 The builder also links a type to the section of the same name when there is one (`x-link: {setting: Weather}` today), unless the type says otherwise.
 
-The Weather widget, today about 55 lines in `config/schema/definitions/widgets/WeatherWidget.yaml`:
+The Weather widget, today about 55 lines in `components/bar/widgets/Weather/schema.yaml`:
 ```yaml
 # components/bar/widgets/Weather/schema.yaml
 icon: partly_cloudy_day

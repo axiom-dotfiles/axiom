@@ -81,7 +81,7 @@ Item {
     screen: root.screen?.name ?? ""
     shown: root.backed
     // Cast evenly, inward, by the blur window in place of shadowWindow's
-    shadow: BarStyle.values
+    shadow: BarStyle.look
   }
 
   // An edge strip per side
@@ -110,7 +110,7 @@ Item {
   PanelWindow {
     id: shadowWindow
 
-    readonly property var look: BarStyle.values
+    readonly property var look: BarStyle.look
     // (the frame line, past integrated menus' strips as the frame is)
     readonly property real left: root.innerLeft
     readonly property real right: root.innerRight

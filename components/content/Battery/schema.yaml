@@ -1,0 +1,5 @@
+label: Battery
+icon: battery_full
+group: System
+defaultSize: [2, 2]
+hosts: [lockscreen, greeter]

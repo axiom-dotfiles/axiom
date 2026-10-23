@@ -39,24 +39,6 @@ QtObject {
     };
   }
 
-  // The layout from before the move, the same shape as xdg(): config,
-  // UI state, notes and generated themes inside the repo at `shellDir`
-  // (state, data, community themes and the cache came after, always XDG)
-  function legacy(env, shellDir) {
-    const repo = String(shellDir).replace(/\/*$/, "/");
-    const current = root.xdg(env);
-    return {
-      "config": repo + "config/user/",
-      "state": current.state,
-      "ui": repo + "config/state/",
-      "data": current.data,
-      "notes": repo + "config/state/notes/",
-      "generatedThemes": repo + "config/themes/generated/",
-      "communityThemes": current.communityThemes,
-      "cache": current.cache
-    };
-  }
-
   // Where to look for installed data (`env` { HOME, XDG_DATA_HOME,
   // XDG_DATA_DIRS }), in the XDG lookup order, most important first:
   // XDG_DATA_HOME, then XDG_DATA_DIRS' absolute entries, or the spec's
@@ -67,8 +49,4 @@ QtObject {
     const dirs = [root._base(env, "XDG_DATA_HOME", ".local/share")].concat(system.length > 0 ? system : ["/usr/local/share", "/usr/share"]);
     return dirs.filter((dir, i) => dirs.indexOf(dir) === i);
   }
-
-  // The file whose presence in the legacy config folder says its contents
-  // were copied over (scripts/migrate_xdg.sh writes it last)
-  readonly property string movedMarker: "MOVED.md"
 }

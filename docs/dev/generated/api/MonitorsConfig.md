@@ -3,7 +3,7 @@
 
 > **File:** `config/MonitorsConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the Monitors section: the monitor profiles ({ name, outputs: [MonitorRule] }), edited on the Monitors page (MonitorManager) and applied by the compositor's config writer
+Reader for the Monitors section: the monitor profiles ({ id, name, outputs: [MonitorRule] }), edited on the Monitors page (MonitorManager) and applied by the compositor's config writer
 
 ### Properties
 

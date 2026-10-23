@@ -245,9 +245,11 @@ QtObject {
   // greeter keeps no rotation of its own), so it shows what the desktop does
   readonly property var _shownConfig: Object.assign({}, ConfigManager.config, {
     "Appearance": Object.assign({}, ConfigManager.config.Appearance, {
-      "wallpaperMode": "fixed",
-      "wallpaper": ThemeManager.shownWallpapers.wallpaper,
-      "wallpapers": ThemeManager.shownWallpapers.wallpapers
+      "wallpaper": Object.assign({}, ConfigManager.config.Appearance.wallpaper, {
+        "mode": "fixed",
+        "file": ThemeManager.shownWallpapers.wallpaper,
+        "perScreen": ThemeManager.shownWallpapers.wallpapers
+      })
     })
   })
   readonly property var _wallpaperSources: GreeterBundle.wallpaperSources(root._shownConfig)

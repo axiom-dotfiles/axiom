@@ -48,7 +48,7 @@ Rectangle {
       Layout.topMargin: Widget.spacing / 2
       Layout.bottomMargin: Widget.spacing / 2
       radius: 2
-      color: CalendarConfig.colors[root.event?.calendar] ?? Theme.accent
+      color: CalendarManager.colors[root.event?.calendar] ?? Theme.accent
     }
 
     ColumnLayout {

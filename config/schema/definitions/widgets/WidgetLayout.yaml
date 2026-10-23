@@ -11,7 +11,7 @@ properties:
     minimum: 0
     maximum: 2000
     x-unit: px
-    description: 'Length along the bar (px): the widget''s size, or for one that shrinks when crowded, the most it takes.'
+    description: "Length along the bar (px): the widget's size, or for one that shrinks when crowded, the most it takes."
   minSize:
     type: integer
     title: Minimum size
@@ -25,4 +25,4 @@ properties:
     title: Priority
     minimum: -100
     maximum: 100
-    description: 'When the bar can''t fit its widgets, lower priorities are hidden first: higher ones stay longest.'
+    description: "When the bar can't fit its widgets, lower priorities are hidden first: higher ones stay longest."

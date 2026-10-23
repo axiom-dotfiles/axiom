@@ -5,21 +5,19 @@ x-category: Modules
 title: Notes
 description: 'Where the Notes module keeps its notes: plain Markdown files, one per note, in folders of your own. Checklists are Markdown tasks (- [ ] item), so other Markdown editors read them too.'
 additionalProperties: false
-x-order: [directory, extensions, showHidden, confirmDelete]
 properties:
   directory:
     type: string
     title: Notes folder
     x-control: folder
-    default: ""
+    default: ''
     description: An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in ~/.local/share/axiom/notes.
   extensions:
     x-scope: personal
     type: array
     title: File types
     default: [md, txt]
-    items:
-      type: string
+    items: {type: string}
     description: File extensions the note list shows, comma-separated. New notes are .md.
   showHidden:
     x-scope: personal

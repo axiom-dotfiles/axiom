@@ -7,8 +7,8 @@ import qs.services
 QtObject {
   readonly property var _c: ConfigManager.config.PowerMenu
 
-  // "general" | "primary" | "focused" | "all" (see General.screensFor)
-  readonly property string monitors: _c.monitors
+  // The ScreenTarget it opens on (see General.screensFor)
+  readonly property var screen: _c.screen
   // Session actions shown, in order
   readonly property var actions: _c.actions
   // Destructive actions ask for a second press

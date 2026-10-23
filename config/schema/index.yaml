@@ -1,10 +1,11 @@
 # The root of the config schema. `axiom schema build` joins it, the sections
 # (sections/<Name>.yaml, in the order `sections` lists them, after `properties`)
-# and the definitions (definitions/**/<Name>.yaml) into config/json/config.schema.json.
+# and the definitions (definitions/**/<Name>.yaml, then each kind's type
+# folders, <root>/<Type>/schema.yaml expanded into the kind's base) into
+# config/json/config.schema.json (docs/dev/core/config-v2.md).
 
-$schema: http://json-schema.org/draft-07/schema#
+$schema: 'http://json-schema.org/draft-07/schema#'
 title: Axiom Configuration Schema
-description: 'Source of truth for config.json ($XDG_CONFIG_HOME/axiom/config.json). Every key''s `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list ("screens", "chatProviders" and "chatPresets", "colors" for the 16 base theme colors, "languages" from config/i18n, "cursorThemes" for installed cursor themes, "timezones" for the system''s time zones, "edgeMenus" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead ("/Workspaces.layout"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar''s categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-libraryGroups` at the root lists, in order, the groups the bar editor''s and layouts editor''s libraries sort their types into (by category); each bar widget and overlay module definition joins one with `x-libraryGroup`. `x-cardPerField: true` on a section makes each of its direct fields a settings card of its own. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it''s added at, and `x-minSize` the least a drop into a gap shrinks it to (half the default when left out); `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed ("overlay", "edgeMenu", "lockscreen", "greeter", "desktop"; the first two when left out, so the lock screen, the greeter and the desktop only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition''s. `x-required: true` on one makes it part of every grid on its hosts: it can''t be removed or duplicated, and the library doesn''t offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. `x-snapshot: true` marks a machine setting a saved snapshot carries too, since it restores on the PC it was saved on (the wallpaper setup: ConfigExamples.snapshot); a `file://` URL in it comes back only while its file exists. `x-takeover: true` marks a setting that takes something over on this PC (the Hyprland mode, the lock screen, idle, polkit, the greeter): loading a saved config, the defaults, an example or an import keeps its current value (ConfigExamples.keepTakeovers). Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.'
 type: object
 x-categories:
   - {name: General, icon: home}
@@ -19,10 +20,7 @@ x-categories:
   - {name: Calendar, icon: calendar_month}
   - {name: Modules, icon: widgets}
   - {name: Theme integrations, icon: format_paint}
-  - name: Maintenance
-    icon: build
-    card: SavedConfigs
-    cardTitle: Saved configurations
+  - {name: Maintenance, icon: build, card: SavedConfigs, cardTitle: Saved configurations}
 x-libraryGroups:
   - Desktop
   - Time & weather
@@ -34,14 +32,24 @@ x-libraryGroups:
   - Session
 additionalProperties: false
 properties:
-  $schema:
-    type: string
+  $schema: {type: string, x-settings: false}
+  format:
+    type: integer
+    const: 2
+    default: 2
     x-settings: false
+    description: "The config file's grammar: 2. A file without it is format 1 (versions 1 to 75), which axiom converts once."
   version:
     type: integer
-    default: 75
-    description: Config format version, used for automatic migration.
+    default: 76
     x-settings: false
+    description: Config version within format 2, used for automatic migration.
+  meta:
+    type: object
+    x-settings: false
+    x-scope: personal
+    description: 'What a saved or exported config is: its title, description and source (where it came from). A live config.json has none.'
+    additionalProperties: {type: string}
 sections:
   - Lockscreen
   - Greeter
@@ -58,16 +66,12 @@ sections:
   - Compositor
   - Keybinds
   - Monitors
-  - Hyprland
   - WindowBehaviour
-  - Sway
-  - Niri
   - Input
   - Session
   - WindowLook
   - Appearance
-  - Widget
-  - BarStyle
+  - Interface
   - Popouts
   - Chat
   - Notes
@@ -91,100 +95,7 @@ sections:
   - Bars
   - EdgeMenus
   - Desktop
-definitions:
-  - Keybind
-  - DesktopLayout
-  - ScreenLayout
-  - DockEntry
-  - OSDEntry
-  - EdgeMenu
-  - Bar
-  - OverlayView
-  - CustomOverlayView
-  - KeybindsOverlayView
-  - SettingsOverlayView
-  - BarEditorOverlayView
-  - ThemesOverlayView
-  - MonitorsOverlayView
-  - CalendarOverlayView
-  - CalendarAccount
-  - CalendarEntry
-  - MonitorProfile
-  - MonitorRule
-  - GridPlace
-  - OverlayModule
-  - ThemePickerOverlayModule
-  - NowPlayingOverlayModule
-  - AudioMixerOverlayModule
-  - BrightnessOverlayModule
-  - VolumeDialsOverlayModule
-  - SystemGraphsOverlayModule
-  - DisksOverlayModule
-  - TopProcessesOverlayModule
-  - UpdatesOverlayModule
-  - SubmenuOverlayModule
-  - QuickActionsOverlayModule
-  - WorkspacesMapOverlayModule
-  - NotificationsOverlayModule
-  - WifiNetworksOverlayModule
-  - BluetoothDevicesOverlayModule
-  - ScreenshotOverlayModule
-  - GreetingOverlayModule
-  - PasswordOverlayModule
-  - LoginOverlayModule
-  - SessionOverlayModule
-  - PowerOverlayModule
-  - CalculatorOverlayModule
-  - EmojiPickerOverlayModule
-  - ClipboardHistoryOverlayModule
-  - WorldClocksOverlayModule
-  - NightLightControlsOverlayModule
-  - CommandOutputOverlayModule
-  - ScreenRecordOverlayModule
-  - CheatsheetOverlayModule
-  - KeyboardLayoutOverlayModule
-  - ClockCalendarOverlayModule
-  - ClockOverlayModule
-  - CalendarOverlayModule
-  - AgendaOverlayModule
-  - WeatherOverlayModule
-  - BatteryOverlayModule
-  - NetworkOverlayModule
-  - FavouritesOverlayModule
-  - ChatOverlayModule
-  - StopwatchOverlayModule
-  - TodoOverlayModule
-  - PomodoroOverlayModule
-  - FocusOverlayModule
-  - NotesOverlayModule
-  - WallpaperPickerOverlayModule
-  - PaletteOverlayModule
-  - ColorSwatchOverlayModule
-  - WidgetLayout
-  - BarWidget
-  - WindowWidget
-  - MediaWidget
-  - WorkspacesWidget
-  - TimeWidget
-  - TailscaleWidget
-  - NetworkWidget
-  - SystemTrayWidget
-  - NotificationsWidget
-  - ButtonWidget
-  - BatteryWidget
-  - SystemStatsWidget
-  - KeyboardLayoutWidget
-  - StopwatchWidget
-  - TodoWidget
-  - PomodoroWidget
-  - IdleInhibitorWidget
-  - PrivacyWidget
-  - ScreenRecordWidget
-  - UpdatesWidget
-  - ClaudeUsageWidget
-  - WeatherWidget
-  - NextEventWidget
-  - SeparatorWidget
-  - VolumeWidget
-  - MicrophoneWidget
-  - BluetoothWidget
+kinds:
+  BarWidget: {root: components/bar/widgets, suffix: Widget, base: WidgetBase}
+  OverlayModule: {root: components/content, suffix: OverlayModule, base: ModuleBase}
+  OverlayView: {root: components/views, suffix: OverlayView, base: ViewBase}

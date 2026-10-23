@@ -9,7 +9,7 @@ import qs.config
 //                 session lock + PAM through AuthManager)
 //   "none"        the user's own locker: runs Lockscreen.lockCommand
 // Lock buttons call lock(); idle daemons call the `lockscreen` IPC target
-// (`qs -c axiom ipc call lockscreen lock`), which exists only when axiom
+// (`axiom ipc lockscreen lock`), which exists only when axiom
 // provides the locker, so "none" can't loop through loginctl lock-session.
 //
 // Also holds the layouts editor's draft of the built-in lock screen

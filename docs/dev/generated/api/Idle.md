@@ -3,7 +3,7 @@
 
 > **File:** `config/Idle.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the Idle section: hypridle, run by HypridleManager. Timeouts are seconds, 0 turning that step off.
+Reader for the Idle section: hypridle, run by HypridleManager. Timeouts are ms, 0 turning that step off.
 
 ### Properties
 
@@ -18,4 +18,4 @@ Reader for the Idle section: hypridle, run by HypridleManager. Timeouts are seco
 - `lockBeforeSleep` (readonly bool)
 - `screenOnAfterSleep` (readonly bool)
 - `respectInhibitors` (readonly bool)
-- `listeners` (readonly var): [{ enabled, timeout, onTimeout, onResume }]
+- `listeners` (readonly var): [{ id, enabled, timeout (ms), onTimeout, onResume }]

@@ -46,7 +46,7 @@ Singleton {
     const forced = Quickshell.env("AXIOM_COMPOSITOR") ?? "";
     if (forced !== "")
       return forced === "none" ? "" : forced;
-    const env = ["HYPRLAND_INSTANCE_SIGNATURE", "SWAYSOCK", "NIRI_SOCKET", "XDG_RUNTIME_DIR"].reduce((all, name) => {
+    const env = CompositorKind.envNames.reduce((all, name) => {
       all[name] = Quickshell.env(name) ?? "";
       return all;
     }, {});
@@ -696,7 +696,7 @@ Singleton {
 
   Component.onCompleted: _appliedLayout = _currentLayout()
 
-  // `qs -c axiom ipc call workspaces …`, for workspace keybinds. mode:
+  // `axiom ipc workspaces …`, for workspace keybinds. mode:
   // "go", "move" (take the focused window along) or "moveSilent"
   property IpcTarget _ipc: IpcTarget {
     target: "workspaces"

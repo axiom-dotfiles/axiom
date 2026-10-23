@@ -2,75 +2,36 @@
 
 type: object
 additionalProperties: false
-x-order:
-  - name
-  - enabled
-  - monitors
-  - monitor
-  - edge
-  - position
-  - detached
-  - gap
-  - visibility
-  - reserveSpace
-  - openDelay
-  - closeDelay
-  - triggerSize
-  - iconSize
-  - spacing
-  - padding
-  - magnify
-  - magnifiedSize
-  - magnifyRange
-  - showRunning
-  - windowScope
-  - runningIndicator
-  - separator
-  - showLabels
-  - backgroundColor
-  - borderColor
 properties:
-  id:
-    type: string
-    title: ID
-    default: main
-    x-settings: false
+  id: {$ref: '#/definitions/ItemId'}
   name:
     type: string
     title: Name
-    default: ""
+    default: ''
     description: Shown on its tab here. Empty names it by its edge.
-  enabled:
-    type: boolean
-    title: Enabled
-    default: true
-  monitors:
-    x-link: {setting: General.monitors}
-    type: string
+  enabled: {type: boolean, title: Enabled, default: true}
+  screen:
+    $ref: '#/definitions/ScreenTarget'
     title: Monitors
-    enum: [general, primary, focused, all, monitor]
-    x-enumLabels:
-      general: As in General
-      primary: Primary monitor
-      focused: Focused monitor
-      all: Every monitor
-      monitor: A specific monitor
-    default: general
-    description: Where the dock appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse), and the dock moves with it; every monitor shows it on all of them at once; a specific monitor is the one picked below.
-  monitor:
-    x-monitorRef: "off"
-    x-scope: machine
-    type: string
-    title: Monitor
-    default: ""
-    description: Monitor the dock is shown on. Empty uses the primary monitor.
-    x-options: screens
-    x-showIf: {monitors: monitor}
+    x-properties:
+      mode:
+        x-scope: look
+        type: string
+        title: Monitors
+        enum: [inherit, primary, focused, all, named]
+        default: inherit
+        x-enumLabels:
+          inherit: As in General
+          primary: Primary monitor
+          focused: Focused monitor
+          all: Every monitor
+          named: These monitors
+        x-link: {setting: General.screen}
   edge:
     type: string
     title: Screen edge
-    default: Bottom
-    enum: [Top, Bottom, Left, Right]
+    default: bottom
+    enum: [top, bottom, left, right]
   position:
     type: integer
     title: Position along edge
@@ -112,44 +73,39 @@ properties:
     default: true
     x-showIf: {visibility: always}
     description: Keep windows out of the dock's strip, as a bar does. Magnified icons still grow over windows.
-  openDelay:
-    type: integer
-    title: Open delay
-    default: 150
-    minimum: 0
-    maximum: 2000
-    x-unit: ms
-    x-showIf:
-      visibility: [hover, intellihide]
-    description: How long the pointer rests on the edge before the dock slides in.
-  closeDelay:
-    type: integer
-    title: Close delay
-    default: 400
-    minimum: 0
-    maximum: 5000
-    x-unit: ms
-    x-showIf:
-      visibility: [hover, intellihide]
-    description: How long after the pointer leaves the dock it slides away.
-  triggerSize:
-    type: integer
-    x-control: stepper
-    title: Trigger size
-    default: 4
-    minimum: 1
-    maximum: 50
-    x-unit: px
-    x-showIf:
-      visibility: [hover, intellihide]
-    description: How far in from the screen edge the hover strip reaches.
-  iconSize:
-    type: integer
-    title: Icon size
-    default: 48
-    minimum: 16
-    maximum: 128
-    x-unit: px
+  timing:
+    $ref: '#/definitions/Timing'
+    x-showIf: {visibility: [hover, intellihide]}
+    x-properties:
+      openDelay:
+        type: integer
+        title: Open delay
+        x-unit: ms
+        default: 150
+        minimum: 0
+        maximum: 2000
+      closeDelay:
+        type: integer
+        title: Close delay
+        x-unit: ms
+        default: 400
+        minimum: 0
+        maximum: 5000
+  trigger:
+    $ref: '#/definitions/Trigger'
+    x-showIf: {visibility: [hover, intellihide]}
+    x-properties:
+      size:
+        type: integer
+        x-control: stepper
+        title: Trigger size
+        x-unit: px
+        default: 4
+        minimum: 1
+        maximum: 50
+        description: How far from the screen edge the pointer opens it.
+      length: null
+  iconSize: {type: integer, title: Icon size, default: 48, minimum: 16, maximum: 128, x-unit: px}
   spacing:
     type: integer
     x-control: stepper
@@ -168,70 +124,72 @@ properties:
     x-unit: px
     description: Space between the dock's box and its icons.
   magnify:
-    type: boolean
-    title: Magnify under the pointer
-    default: false
-    description: Grow the icons near the pointer, as macOS does.
-  magnifiedSize:
-    type: integer
-    title: Magnified size
-    default: 80
-    minimum: 16
-    maximum: 256
-    x-unit: px
-    x-showIf: {magnify: true}
-    description: Size of the icon right under the pointer.
-  magnifyRange:
-    type: integer
-    x-control: stepper
-    title: Magnify range
-    default: 3
-    minimum: 1
-    maximum: 8
-    x-showIf: {magnify: true}
-    description: How many icons to each side of the pointer grow with it.
-  showRunning:
-    type: boolean
-    title: Show running apps
-    default: true
-    description: Also show apps with open windows that aren't pinned, after the pinned ones.
-  windowScope:
-    type: string
-    title: Windows counted
-    default: all
-    enum: [all, monitor, workspace]
-    x-enumLabels:
-      all: Every window
-      monitor: Windows on this monitor
-      workspace: Windows on this monitor's workspace
-    description: 'Which windows make an app running here: its indicator, what a click focuses, and the running apps shown.'
-  runningIndicator:
-    type: string
-    title: Running indicator
-    default: dots
-    enum: [dots, line, none]
-    x-enumLabels: {dots: A dot per window (up to 3), line: A line, none: None}
-  separator:
-    type: boolean
-    title: Separator
-    default: true
-    description: A line between the pinned apps and the other running ones.
-    x-showIf: {showRunning: true}
+    type: object
+    title: Magnify
+    additionalProperties: false
+    properties:
+      enabled:
+        type: boolean
+        title: Magnify under the pointer
+        default: false
+        description: Grow the icons near the pointer, as macOS does.
+      size:
+        type: integer
+        title: Magnified size
+        default: 80
+        minimum: 16
+        maximum: 256
+        x-unit: px
+        x-showIf: {enabled: true}
+        description: Size of the icon right under the pointer.
+      range:
+        type: integer
+        x-control: stepper
+        title: Magnify range
+        default: 3
+        minimum: 1
+        maximum: 8
+        x-showIf: {enabled: true}
+        description: How many icons to each side of the pointer grow with it.
+  running:
+    type: object
+    title: Running apps
+    additionalProperties: false
+    properties:
+      show:
+        type: boolean
+        title: Show running apps
+        default: true
+        description: Also show apps with open windows that aren't pinned, after the pinned ones.
+      scope:
+        type: string
+        title: Windows counted
+        default: all
+        enum: [all, monitor, workspace]
+        x-enumLabels:
+          all: Every window
+          monitor: Windows on this monitor
+          workspace: Windows on this monitor's workspace
+        description: 'Which windows make an app running here: its indicator, what a click focuses, and the running apps shown.'
+      indicator:
+        type: string
+        title: Running indicator
+        default: dots
+        enum: [dots, line, none]
+        x-enumLabels: {dots: A dot per window (up to 3), line: A line, none: None}
+      separator:
+        type: boolean
+        title: Separator
+        default: true
+        description: A line between the pinned apps and the other running ones.
+        x-showIf: {show: true}
   showLabels:
     type: boolean
     title: Names on hover
     default: true
     description: Show an app's name in a tooltip when the pointer rests on it.
-  backgroundColor:
-    type: string
-    title: Background
-    x-options: colors
-    default: base00
-  borderColor:
-    type: string
-    title: Border
-    x-options: colors
-    default: base05
+  backgroundColor: {type: string, title: Background, x-options: colors, default: base00}
+  borderColor: {type: string, title: Border, x-options: colors, default: base05}
   pinnedOwn:
     type: boolean
     title: Own pinned apps
@@ -244,6 +202,6 @@ properties:
     title: Pinned apps
     x-settings: false
     default: []
-    items:
-      type: string
-    description: 'Desktop entry ids, in order: the dock''s own, shown with pinnedOwn.'
+    items: {type: string}
+    description: "Desktop entry ids, in order: the dock's own, shown with pinnedOwn."
+required: [id]

@@ -17,8 +17,8 @@ byte (docs/dev/backend/README.md › Shared fixtures).
 
 The whole directory is generated and gitignored: CI records it before the
 tests that replay it (both the JS and the Go side). Recording needs Qt 6's
-qmltestrunner and the whole git history (the corpus and the frozen schema
-are read from past commits).
+qmltestrunner and the whole git history (the corpus is read from past
+commits).
 
 A case is <suite>/<test>/<name>.json ({op, args}) plus <name>.expected.json
 (the exact bytes the JS helper produced). Arguments larger than BLOB_SIZE
@@ -49,13 +49,12 @@ BLOB_SIZE = 2048
 SCHEMA_PATHS = ("config/json/config.schema.json", "config/schemas/config.schema.json")
 # Old configs the corpus loads whole, besides each schema version's defaults
 CORPUS_CONFIGS = ("tests/fixtures/configs/v1.json", "tests/fixtures/configs/v30.json")
-# The frozen format-1 schema the legacy cases run against: the last one
-# committed (main before the binary), checked by its hash
-LEGACY_SCHEMA = ("eb39e97", "config/json/config.schema.json",
-                 "schemas/legacy-v75.schema.json")
-LEGACY_SCHEMA_DIGEST = "64f7fa83036167d915d7b231001a4cac598573d921ed59116e6f7712376d2b0d"
+# The frozen format-1 schema the legacy cases run against: the binary's own
+# copy (backend/internal/migrate/legacy, hash-checked by its tests)
+LEGACY_SCHEMA = (ROOT / "backend/internal/migrate/legacy/schema-v75.json", "schemas/legacy-v75.schema.json")
 # What the recorded cases are made from: a change to any re-records them
 STAMP_INPUTS = ("components/methods/*.qml", "tests/Shared.qml", "tests/RepoFiles.qml",
+                "backend/internal/migrate/legacy/schema-v75.json",
                 "tests/tst_Config.qml", "tests/tst_ConfigExamples.qml",
                 "tests/tst_SchemaValidation.qml", "tests/tst_Shared.qml",
                 "config/json/config.schema.json", "scripts/dev/fixtures.py",
@@ -87,17 +86,11 @@ def stamp():
 
 
 def legacy_schema():
-    """Writes the frozen v75 schema from its commit into schemas/."""
-    commit, path, target = LEGACY_SCHEMA
-    show = subprocess.run(["git", "show", f"{commit}:{path}"], cwd=ROOT, capture_output=True)
-    if show.returncode != 0:
-        raise SystemExit(f"can't read {path} at {commit} (the whole history is needed: git fetch --unshallow)")
-    digest = hashlib.sha256(show.stdout).hexdigest()
-    if digest != LEGACY_SCHEMA_DIGEST:
-        raise SystemExit(f"{path} at {commit} isn't the frozen v75 schema (sha256 {digest})")
+    """Writes the frozen v75 schema into schemas/."""
+    source, target = LEGACY_SCHEMA
     out = SHARED / target
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_bytes(show.stdout)
+    out.write_bytes(source.read_bytes())
 
 
 # --- record ---

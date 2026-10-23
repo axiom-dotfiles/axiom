@@ -34,6 +34,10 @@ import (
 // FileName is the config's name in its folder.
 const FileName = "config.json"
 
+// Format1File keeps a format-1 config.json as it was before its conversion
+// to format 2 (written once, never read by axiom)
+const Format1File = "config.format1.json"
+
 // Options configure a Store.
 type Options struct {
 	Dir      string // the config folder ($XDG_CONFIG_HOME/axiom)
@@ -162,6 +166,9 @@ type SetOptions struct {
 	// Takeover allows changing x-takeover settings (only their own card
 	// asks for it)
 	Takeover bool
+	// Restore is an explicit replacement (a saved config, an import): it
+	// goes ahead while the file doesn't load, and lifts that
+	Restore bool
 }
 
 // Set applies ops to the current config, validates and writes it, and
@@ -178,8 +185,8 @@ func (s *Store) Set(ops []config.Op, opts SetOptions) (int64, error) {
 	}, opts)
 }
 
-// Replace writes cfg whole (an import or restore), keeping the takeover
-// settings as they are unless opts.Takeover.
+// Replace writes cfg whole (an editor's whole config, an import),
+// keeping the takeover settings as they are unless opts.Takeover.
 func (s *Store) Replace(cfg *jsonx.Object, opts SetOptions) (int64, error) {
 	return s.write(func(current *jsonx.Object) (*jsonx.Object, error) {
 		next := jsonx.Clone(cfg).(*jsonx.Object)
@@ -188,14 +195,29 @@ func (s *Store) Replace(cfg *jsonx.Object, opts SetOptions) (int64, error) {
 			next = kept
 		}
 		return next, nil
-	}, SetOptions{Takeover: true})
+	}, SetOptions{Takeover: true, Restore: opts.Restore})
+}
+
+// Restore replaces the config with a parsed one of any format the
+// pipeline reads (an older one converted, as config.json would be), the
+// takeover settings kept unless opts.Takeover. It lifts a blocked file.
+func (s *Store) Restore(parsed any, opts SetOptions) (int64, error) {
+	loaded, err := s.opts.Pipeline.Load(parsed)
+	if err != nil {
+		return 0, err
+	}
+	if len(loaded.Errors) > 0 {
+		return 0, &axerr.Error{Kind: axerr.InvalidConfig, Message: "the config doesn't load", Issues: issues(loaded.Errors)}
+	}
+	opts.Restore = true
+	return s.Replace(loaded.Config, opts)
 }
 
 func (s *Store) write(change func(*jsonx.Object) (*jsonx.Object, error), opts SetOptions) (int64, error) {
 	s.changeMu.Lock()
 	defer s.changeMu.Unlock()
 	s.mu.Lock()
-	if s.state.Blocked {
+	if s.state.Blocked && !opts.Restore {
 		issues := s.state.Issues
 		s.mu.Unlock()
 		return 0, &axerr.Error{Kind: axerr.Conflict, Message: s.path + " doesn't load: fix it (or restore a saved config) before anything is saved", Issues: issues}
@@ -235,6 +257,9 @@ func (s *Store) write(change func(*jsonx.Object) (*jsonx.Object, error), opts Se
 	s.config = checked
 	s.state.Revision++
 	s.state.Missing = false
+	if opts.Restore {
+		s.state.Blocked, s.state.Issues = false, nil
+	}
 	ev := Event{State: s.state, Config: checked}
 	s.mu.Unlock()
 	s.publish(ev)
@@ -343,6 +368,17 @@ func (s *Store) load(data []byte) (*jsonx.Object, []axerr.Issue) {
 		return nil, issues(loaded.Errors)
 	}
 	if loaded.Migrated {
+		if loaded.FromFormat1 {
+			// The file as it was, once, beside it: an older axiom (or a
+			// change of mind) can still read it
+			backup := filepath.Join(filepath.Dir(s.path), Format1File)
+			if _, err := os.Lstat(backup); errors.Is(err, fs.ErrNotExist) {
+				if err := fsx.WriteFile(backup, data, 0o600); err != nil {
+					s.opts.Log.Error("keeping the format-1 config failed; the file isn't rewritten", "err", err)
+					return loaded.Config, nil
+				}
+			}
+		}
 		if loaded.Secrets != nil && loaded.Secrets.Len() > 0 && s.opts.OnSecrets != nil {
 			if err := s.opts.OnSecrets(loaded.Secrets); err != nil {
 				// Writing the file back would lose them: keep the old file
@@ -481,6 +517,13 @@ func Peek(opts Options) (*jsonx.Object, State, error) {
 		return loaded.Config, State{Blocked: true, Issues: issues(loaded.Errors)}, nil
 	}
 	return loaded.Config, State{}, nil
+}
+
+// Pipeline is the one the store reads and writes through now.
+func (s *Store) Pipeline() config.Pipeline {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.opts.Pipeline
 }
 
 // Reschema switches to another pipeline (the schema changed: `axiom run

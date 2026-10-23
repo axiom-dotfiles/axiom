@@ -8,7 +8,7 @@ import qs.components.surfaces.powermenu
 // screen's opens (on every one of them in "all")
 Scope {
   Variants {
-    model: General.screensFor(PowerMenuConfig.monitors)
+    model: General.screensFor(PowerMenuConfig.screen)
     delegate: PowerMenuWindow {
       required property ShellScreen modelData
       screen: modelData

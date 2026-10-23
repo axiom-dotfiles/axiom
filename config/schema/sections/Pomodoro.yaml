@@ -6,36 +6,28 @@ x-scope: personal
 title: Pomodoro timer
 description: Focus sessions and breaks, shared by every pomodoro widget and module.
 additionalProperties: false
-x-order:
-  - workMinutes
-  - shortBreakMinutes
-  - longBreakMinutes
-  - longBreakEvery
-  - autoStartBreaks
-  - autoStartWork
-  - notify
 properties:
-  workMinutes:
+  work:
     type: integer
     title: Focus session
     x-unit: min
-    default: 25
-    minimum: 1
-    maximum: 180
-  shortBreakMinutes:
+    default: 1500000
+    minimum: 60000
+    maximum: 10800000
+  shortBreak:
     type: integer
     title: Short break
     x-unit: min
-    default: 5
-    minimum: 1
-    maximum: 60
-  longBreakMinutes:
+    default: 300000
+    minimum: 60000
+    maximum: 3600000
+  longBreak:
     type: integer
     title: Long break
     x-unit: min
-    default: 15
-    minimum: 1
-    maximum: 120
+    default: 900000
+    minimum: 60000
+    maximum: 7200000
   longBreakEvery:
     type: integer
     title: Long break every
@@ -44,10 +36,7 @@ properties:
     minimum: 1
     maximum: 12
     description: A long break follows this many focus sessions.
-  autoStartBreaks:
-    type: boolean
-    title: Start breaks by themselves
-    default: true
+  autoStartBreaks: {type: boolean, title: Start breaks by themselves, default: true}
   autoStartWork:
     type: boolean
     title: Start focus sessions by themselves

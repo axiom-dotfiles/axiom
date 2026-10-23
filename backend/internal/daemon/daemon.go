@@ -25,6 +25,7 @@ import (
 	"github.com/axiom-shell/axiom/backend/internal/jsonx"
 	"github.com/axiom-shell/axiom/backend/internal/lock"
 	"github.com/axiom-shell/axiom/backend/internal/rpc"
+	"github.com/axiom-shell/axiom/backend/internal/saved"
 	"github.com/axiom-shell/axiom/backend/internal/schema"
 	"github.com/axiom-shell/axiom/backend/internal/store"
 	"github.com/axiom-shell/axiom/backend/internal/supervise"
@@ -68,6 +69,7 @@ type Daemon struct {
 	listener   net.Listener
 
 	store  *store.Store
+	saved  *saved.Service
 	server *rpc.Server
 	shell  *supervise.Supervisor
 	router *ipcroute.Router
@@ -107,6 +109,13 @@ func Run(ctx context.Context, opts Options) error {
 	}
 	defer d.instance.Release()
 
+	// An install from before the XDG folders: its config and state out of
+	// the repo first, so the store finds them
+	if moved, err := xdg.MoveLegacy(opts.Tree, d.dirs, time.Now()); err != nil {
+		opts.Log.Error("moving the config out of the repo failed; starting on the XDG folders", "err", err)
+	} else if moved {
+		opts.Log.Info("moved the config and state out of the repo into the XDG folders", "config", d.dirs.Config)
+	}
 	if err := d.loadSchema(); err != nil {
 		return err
 	}
@@ -116,7 +125,7 @@ func Run(ctx context.Context, opts Options) error {
 	}
 	storeOpts := store.Options{
 		Dir:      d.dirs.Config,
-		Pipeline: config.LegacyPipeline{S: schema.New(parsed)},
+		Pipeline: config.V2Pipeline{S: schema.New(parsed)},
 		Log:      opts.Log.With("part", "config"),
 	}
 	if h != nil {
@@ -149,6 +158,20 @@ func Run(ctx context.Context, opts Options) error {
 		Mode:        func() string { return d.lockSetting("mode") },
 		Command:     func() string { return d.lockSetting("lockCommand") },
 		Log:         opts.Log.With("part", "lock"),
+	})
+	d.saved = saved.New(saved.Options{
+		Dir:      d.dirs.Config,
+		Examples: filepath.Join(opts.Tree, "examples"),
+		Home:     opts.Getenv("HOME"),
+		UIState:  filepath.Join(d.dirs.UI, "savedconfigs.json"),
+		Store:    d.store,
+		Pipeline: d.store.Pipeline,
+		Log:      opts.Log.With("part", "saved"),
+		OnState: func(st saved.State) {
+			if d.server != nil {
+				d.server.Broadcast("saved.state", st, subscribed)
+			}
+		},
 	})
 	d.server = &rpc.Server{
 		Registry: d.registry(),
@@ -258,6 +281,8 @@ func (d *Daemon) shellEnv() map[string]string {
 		"AXIOM_CONFIG":     d.runtime.File(SnapshotFile),
 		"AXIOM_DAEMON_PID": itoa(os.Getpid()),
 		"AXIOM_TREE":       d.opts.Tree,
+		// What binds and generated compositor configs call
+		"AXIOM_BIN": d.executable,
 	}
 	if !d.compatible {
 		env["AXIOM_INCOMPATIBLE"] = d.reason
@@ -275,6 +300,9 @@ func (d *Daemon) onConfigEvent(ev store.Event) {
 		d.server.Broadcast("config.changed", configChanged{Revision: ev.State.Revision, Config: rawJSON(ev.Config)}, subscribed)
 	}
 	d.server.Broadcast("config.state", ev.State, subscribed)
+	// Whether the config still is its saved snapshot (an apply may hold
+	// the service right now: not on this goroutine)
+	go d.saved.Changed()
 }
 
 func itoa(n int) string { return strconv.Itoa(n) }

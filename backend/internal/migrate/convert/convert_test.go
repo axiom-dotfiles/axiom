@@ -1,0 +1,145 @@
+package convert_test
+
+import (
+	"fmt"
+	"sort"
+	"testing"
+
+	"github.com/axiom-shell/axiom/backend/internal/config"
+	"github.com/axiom-shell/axiom/backend/internal/jsonx"
+	"github.com/axiom-shell/axiom/backend/internal/migrate/convert"
+	"github.com/axiom-shell/axiom/backend/internal/schema"
+	"github.com/axiom-shell/axiom/backend/internal/testkit"
+	"github.com/axiom-shell/axiom/backend/internal/tree"
+)
+
+func v2Schema(t *testing.T) *schema.Schema {
+	t.Helper()
+	data, err := tree.BuildSchema(testkit.RepoRoot())
+	if err != nil {
+		t.Fatal(err)
+	}
+	parsed, err := jsonx.Unmarshal(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return schema.New(parsed)
+}
+
+func legacyDefaults(t *testing.T) *jsonx.Object {
+	t.Helper()
+	root, err := testkit.Schema("legacy-v75")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := schema.New(root)
+	filled, _ := config.ApplyDefaults(s, jsonx.NewObject(), true, s.Root())
+	return filled.(*jsonx.Object)
+}
+
+// diffs lists the paths where a and b differ.
+func diffs(a, b any, path string, out *[]string) {
+	ao, aok := a.(*jsonx.Object)
+	bo, bok := b.(*jsonx.Object)
+	if aok && bok {
+		keys := map[string]bool{}
+		for _, k := range ao.Keys() {
+			keys[k] = true
+		}
+		for _, k := range bo.Keys() {
+			keys[k] = true
+		}
+		sorted := make([]string, 0, len(keys))
+		for k := range keys {
+			sorted = append(sorted, k)
+		}
+		sort.Strings(sorted)
+		for _, k := range sorted {
+			av, ah := ao.Get(k)
+			bv, bh := bo.Get(k)
+			switch {
+			case !ah:
+				*out = append(*out, fmt.Sprintf("%s.%s: only in the second (%s)", path, k, short(bv)))
+			case !bh:
+				*out = append(*out, fmt.Sprintf("%s.%s: only in the first (%s)", path, k, short(av)))
+			default:
+				diffs(av, bv, path+"."+k, out)
+			}
+		}
+		return
+	}
+	aa, aok := a.(*jsonx.Array)
+	ba, bok := b.(*jsonx.Array)
+	if aok && bok && aa.Len() == ba.Len() {
+		for i := range aa.Items {
+			diffs(aa.Items[i], ba.Items[i], fmt.Sprintf("%s[%d]", path, i), out)
+		}
+		return
+	}
+	if !jsonx.Equal(a, b) {
+		*out = append(*out, fmt.Sprintf("%s: %s vs %s", path, short(a), short(b)))
+	}
+}
+
+func short(v any) string {
+	s := string(jsonx.MarshalCompact(v))
+	if len(s) > 120 {
+		s = s[:117] + "..."
+	}
+	return s
+}
+
+// The format-1 defaults, converted, are the format-2 defaults: the schema's
+// shape and the converter agree on every key.
+func TestDefaultsConvertToV2Defaults(t *testing.T) {
+	t.Parallel()
+	s := v2Schema(t)
+	converted := convert.ToV2(legacyDefaults(t)).Config
+	if errs := config.ValidationErrors(s, converted, s.Root()); len(errs) > 0 {
+		t.Errorf("the converted defaults don't validate:\n%v", errs)
+	}
+	pruned := jsonx.Clone(converted)
+	if removed := config.Prune(s, pruned, s.Root()); len(removed) > 0 {
+		t.Errorf("pruning the converted defaults removes %v", removed)
+	}
+	defaults, _ := config.ApplyDefaults(s, jsonx.NewObject(), true, s.Root())
+	var out []string
+	diffs(converted, defaults, "", &out)
+	for _, d := range out {
+		t.Error(d)
+	}
+}
+
+// Every corpus config (each past schema version's defaults, the examples,
+// old configs), as the legacy pipeline loads it, converts to a valid
+// format-2 config that pruning leaves whole.
+func TestCorpusConvertsValid(t *testing.T) {
+	t.Parallel()
+	s := v2Schema(t)
+	cases := testkit.Cases(t, "legacy.load")
+	checked := 0
+	for _, c := range cases {
+		expected, err := jsonx.Unmarshal(c.Expected)
+		if err != nil {
+			t.Fatal(err)
+		}
+		loaded := expected.(*jsonx.Object)
+		cfg, ok := loaded.Value("config").(*jsonx.Object)
+		// A config invalid at version 75 (blocked there) stays invalid
+		if errs, _ := loaded.Value("errors").(*jsonx.Array); !ok || (errs != nil && errs.Len() > 0) {
+			continue
+		}
+		converted := convert.ToV2(cfg).Config
+		filled, _ := config.ApplyDefaults(s, converted, true, s.Root())
+		if errs := config.ValidationErrors(s, filled, s.Root()); len(errs) > 0 {
+			t.Errorf("%s: %v", c.Name, errs)
+		}
+		if removed := config.Prune(s, jsonx.Clone(filled), s.Root()); len(removed) > 0 {
+			t.Errorf("%s: pruning removes %v", c.Name, removed)
+		}
+		checked++
+	}
+	if checked < 50 {
+		t.Fatalf("only %d corpus configs", checked)
+	}
+}

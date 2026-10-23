@@ -68,7 +68,7 @@ func offlinePipeline(e *Env, treeDir string) (config.Pipeline, error) {
 	if err != nil {
 		return nil, err
 	}
-	return config.LegacyPipeline{S: schema.New(root)}, nil
+	return config.V2Pipeline{S: schema.New(root)}, nil
 }
 
 // current is the config as the daemon has it, or read from the file

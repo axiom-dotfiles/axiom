@@ -3,39 +3,33 @@
 
 > **File:** `services/ConfigManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-ConfigManager handles loading, saving, and monitoring the configuration file. Run by axiom (`axiom run`, BackendManager.active) the binary owns config.json: the config comes from the snapshot it wrote and its pushes, and writes are checked here (the same pipeline the binary runs, kept equal by the shared fixtures), applied at once and sent to it, whose answer stands. Started by hand, this reads and writes the file itself.
+The config, as axiom (the binary, the shell's parent: `axiom run`) has it. axiom owns config.json: it loads it (converting older files), normalizes it and writes it. The shell reads the snapshot axiom wrote for its start ($AXIOM_CONFIG) and the pushes after (config.changed); a write is checked here against the schema, applied at once and sent, and axiom's answer stands. The greeter runs on the snapshot `axiom greeter` made from the exported bundle, and writes nothing. Without axiom (qs started by hand) there is no config: the shell shows only a notice (shell.qml, `available`). docs/dev/core/config-manager.md
 
 ### Properties
 
-- `backed` (readonly bool): The binary owns config.json (never in the greeter)
 - `config` (readonly var): --- Public ---
 - `configSchema` (readonly var)
-- `takeoverPaths` (readonly var): The `x-takeover` settings' paths ([key, …]), which loading a config never changes (ConfigExamples.keepTakeovers)
+- `available` (readonly bool): axiom handed this shell a config (false: started by hand)
+- `currentVersion` (readonly int): The config version this shell's schema is (format 2 counts on from format 1's 75): what a shared file or catalog entry must not be newer than
 - `configDir` (readonly string)
 - `configFile` (readonly string)
-- `dataDirs` (readonly var): Where axiom keeps what it writes (DataDirs: config, state, ui, data, notes, generatedThemes, communityThemes, cache), read by Paths.
-- `legacyLayout` (readonly bool): The repo's config/user/ holds a config.json not yet copied over (no DataDirs.movedMarker beside it).
-- `xdgDirs` (readonly var): Both layouts, for DataMigrationManager's copy
-- `legacyDirs` (readonly var)
-- `savesBlocked` (readonly bool): True while config.json on disk is unusable (invalid, or present but unreadable).
-- `greeter` (readonly bool): The greeter (greetd's login screen, greeter.qml) runs read-only on the bundle the user's axiom exports for it (GreeterBundle), never on config.json, and writes nothing.
-- `greeterSource` (readonly string): Where the greeter's config came from: "bundle", "fallback" (the snapshot taken when the greeter was installed, which its own code wrote) or "defaults"; "" outside the greeter
-- `previews` (readonly var): Unsaved edits an editor shows live, by top-level section ({ Bars: [...] }).
-- `firstRun` (readonly bool): Set when there was no config.json at all: a first run (the onboarder starts from it).
+- `dataDirs` (readonly var): Where axiom keeps what it writes (DataDirs: config, state, ui, data, notes, generatedThemes, communityThemes, cache), read by Paths
+- `savesBlocked` (readonly bool): True while config.json on disk doesn't load (axiom says so): the shell runs on the last good config, and saves are refused until the file is fixed or a saved config is restored
+- `greeter` (readonly bool): The greeter (greetd's login screen, greeter.qml) runs read-only on the config `axiom greeter` made from the bundle, never on config.json
+- `greeterSource` (readonly string): Where the greeter's config came from: "bundle", "fallback" (the snapshot taken when the greeter was installed) or "defaults" (axiom greeter says, $AXIOM_GREETER_SOURCE); "" outside the greeter
+- `previews` (readonly var): Unsaved edits an editor shows live, by top-level section ({ Bars: {...} }).
+- `firstRun` (readonly bool): Set when axiom found no config.json: a first run (the onboarder starts from it), once per session
 
 ### Functions
 
-- `holdSaves(held)`: Saves wait while DataMigrationManager copies the legacy folders, so nothing lands in them mid-copy (holdSaves(false) lets them go again)
 - `setPreview(section, value)`
 - `withDefaults(value, definition)`: `value` with the defaults of a schema definition (e.g. "Bar", "OverlayModule") filled in: a new entry for an editor to add
 - `clearPreview(section)`
-- `setTheme(themeName)`
-- `setWallpaper(wallpaperUrl, monitor, primary)`
-- `setWallpapers(wallpapers, primary)`
-- `saveConfig()`
-- `commit(object)`
-- `applyConfig(object)`
-- `restoreConfig(object)`
-- `normalizeConfig(object)`
-- `forceReload()`
-- `hardResetConfig()`
+- `setTheme(themeName)`: The theme by name (e.g. "catppuccin-mocha", "generated/wallpaper-tonal-dark")
+- `setWallpaper(wallpaperUrl, monitor, primary)`: A monitor's wallpaper (a file URL).
+- `setWallpapers(wallpapers, primary)`: Several monitors' wallpapers (monitor name → file URL) with one save; primary's is also Appearance.wallpaper.file
+- `saveConfig()`: Saves the running config (after edits to it in place); true if it was valid and sent to axiom
+- `commit(object)`: Replaces the running config with `object` (defaults filled) and saves it; false and no change if it doesn't validate
+- `restoreConfig(object, done)`: Replaces the whole config with a parsed one (a saved config, an import), of any version axiom reads: axiom loads it as it loads config.json (an older file converted) and keeps the `x-takeover` settin…
+- `applyConfig(object)`: Shows `object` in place of the running config without saving it (the settings page's live edits, until Save commits them); a push or a save replaces it
+- `hardResetConfig()`: Discards in-memory edits: the config as axiom has it

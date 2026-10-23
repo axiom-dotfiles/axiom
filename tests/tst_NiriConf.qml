@@ -14,8 +14,9 @@ TestCase {
 
   readonly property var ctx: ({
       "axiomPath": "/opt/axiom",
-      "shellCommand": "qs -p '/opt/axiom'",
-      "restartCommand": "'/opt/axiom/scripts/restart.sh'",
+      "axiomBin": "/usr/bin/axiom",
+      "shellCommand": "'/usr/bin/axiom'",
+      "restartCommand": "'/usr/bin/axiom' restart",
       "terminal": "foot",
       "fileManager": "nautilus",
       "browser": "firefox"
@@ -104,21 +105,21 @@ Super+Shift+Q repeat=false {
       "action": "launcher",
       "call": "open"
     }), `Super+D hotkey-overlay-title="Axiom: App launcher (open)" repeat=false {
-    spawn "qs" "-p" "/opt/axiom" "ipc" "call" "appLauncher" "open"
+    spawn "/usr/bin/axiom" "ipc" "appLauncher" "open"
 }`);
     // An argument stays one word
     compare(NiriConf.actionFor({
       "key": "SUPER + 1",
       "action": "workspaceNth",
       "argument": "1"
-    }, ctx).args, ["qs", "-p", "/opt/axiom", "ipc", "call", "workspaces", "nth", "1", "go"]);
+    }, ctx).args, ["/usr/bin/axiom", "ipc", "workspaces", "nth", "1", "go"]);
     compare(bindText({
       "key": "XF86AudioRaiseVolume",
       "action": "volumeUp",
       "locked": true,
       "repeating": true
     }), `XF86AudioRaiseVolume hotkey-overlay-title="Media: Volume up" allow-when-locked=true {
-    spawn "qs" "-p" "/opt/axiom" "ipc" "call" "audio" "volumeUp"
+    spawn "/usr/bin/axiom" "ipc" "audio" "volumeUp"
 }`);
     compare(bindText({
       "key": "SUPER + mouse_down",
@@ -245,16 +246,14 @@ Super+Shift+Q repeat=false {
 
   // --- The look, input and options ---
 
-  function lookOf(values, shadow) {
-    return CompositorLayer.look(Object.assign({
-      "borders": false,
-      "shape": false,
-      "gaps": false,
-      "blur": false,
-      "shadow": false,
-      "dim": false,
-      "opacity": false
-    }, values), {
+  // WindowLook with every part off, `parts` over it
+  function lookOf(parts, shadow) {
+    const values = {};
+    for (const part of CompositorLayer.lookPartNames)
+      values[part] = Object.assign({
+        "enabled": false
+      }, parts[part] ?? {});
+    return CompositorLayer.look(values, {
       "activeHex": "89b4fa",
       "inactiveHex": "45475a",
       "borderWidth": 2,
@@ -266,14 +265,22 @@ Super+Shift+Q repeat=false {
 
   function test_look() {
     const look = lookOf({
-      "borders": true,
-      "shape": true,
-      "gaps": true,
-      "gapsIn": 4,
-      "gapsOut": 10,
-      "opacity": true,
-      "activeOpacity": 100,
-      "inactiveOpacity": 90
+      "borders": {
+        "enabled": true
+      },
+      "shape": {
+        "enabled": true
+      },
+      "gaps": {
+        "enabled": true,
+        "inner": 4,
+        "outer": 10
+      },
+      "opacity": {
+        "enabled": true,
+        "active": 100,
+        "inactive": 90
+      }
     });
     compare(NiriConf.serialize(NiriConf.merged(NiriConf.lookNodes(look))), `layout {
     border {
@@ -313,14 +320,18 @@ window-rule {
 
   function test_shadowAndBlur() {
     const look = lookOf({
-      "shadow": true,
-      "shadowPower": 3,
-      "blur": true,
-      "windowBlur": true,
-      "blurSize": 4,
-      "blurPasses": 3,
-      "blurXray": false,
-      "blurNoise": 12
+      "shadow": {
+        "enabled": true,
+        "power": 3
+      },
+      "blur": {
+        "enabled": true,
+        "windowBlur": true,
+        "size": 4,
+        "passes": 3,
+        "xray": false,
+        "noise": 12
+      }
     }, {
       "size": 20,
       "color": "000000",
@@ -365,23 +376,31 @@ window-rule {
 
   function test_input() {
     const values = {
-      "keyboard": true,
-      "kbLayout": "us,de",
-      "kbVariant": "",
-      "kbOptions": "",
-      "repeatRate": 30,
-      "repeatDelay": 300,
-      "numlockByDefault": true,
-      "mouse": false,
-      "accelProfile": "flat",
-      "touchpad": true,
-      "naturalScroll": true,
-      "tapToClick": false,
-      "disableWhileTyping": true,
-      "scrollFactor": 50,
-      "cursor": true,
-      "cursorTheme": "Bibata",
-      "cursorSize": 24
+      "keyboard": {
+        "enabled": true,
+        "layout": "us,de",
+        "variant": "",
+        "options": "",
+        "repeatRate": 30,
+        "repeatDelay": 300,
+        "numlock": true
+      },
+      "mouse": {
+        "enabled": false,
+        "accel": "flat"
+      },
+      "touchpad": {
+        "enabled": true,
+        "naturalScroll": true,
+        "tapToClick": false,
+        "disableWhileTyping": true,
+        "scrollFactor": 50
+      },
+      "cursor": {
+        "enabled": true,
+        "theme": "Bibata",
+        "size": 24
+      }
     };
     const text = NiriConf.serialize(NiriConf.inputNodes(CompositorLayer.input(values), schema.Input));
     compare(text, `input {
@@ -414,7 +433,7 @@ cursor {
       "followMouse": true,
       "focusOnActivate": true,
       "workspaceBackAndForth": false,
-      "cursorHideTimeout": 3,
+      "cursorHideTimeout": 3000,
       "hideCursorOnKeyPress": true,
       "noWarps": false
     }, false));
@@ -437,7 +456,7 @@ cursor {
         proportion 0.5
     }
 }`);
-    compare(NiriConf.serialize(NiriConf.optionNodes(schema.Niri, {
+    compare(NiriConf.serialize(NiriConf.optionNodes(schema.Compositor.properties.niri, {
       "centerFocusedColumn": "on-overflow",
       "alwaysCenterSingleColumn": true,
       "emptyWorkspaceAboveFirst": false,
@@ -469,7 +488,7 @@ hotkey-overlay {
 clipboard {
     disable-primary
 }`);
-    compare(NiriConf.serialize(NiriConf.optionNodes(schema.Niri, {
+    compare(NiriConf.serialize(NiriConf.optionNodes(schema.Compositor.properties.niri, {
       "animations": false,
       "animationSlowdown": 200
     }, false)), `animations {
@@ -608,21 +627,33 @@ output "HDMI-A-1" {
       }
     ], ctx);
     const look = NiriConf.lookNodes(lookOf({
-      "borders": true,
-      "shape": true,
-      "gaps": true,
-      "gapsIn": 4,
-      "gapsOut": 10,
-      "blur": true,
-      "windowBlur": true,
-      "blurSize": 4,
-      "blurPasses": 3,
-      "blurXray": true,
-      "blurNoise": 12,
-      "shadow": true,
-      "opacity": true,
-      "activeOpacity": 100,
-      "inactiveOpacity": 90
+      "borders": {
+        "enabled": true
+      },
+      "shape": {
+        "enabled": true
+      },
+      "gaps": {
+        "enabled": true,
+        "inner": 4,
+        "outer": 10
+      },
+      "blur": {
+        "enabled": true,
+        "windowBlur": true,
+        "size": 4,
+        "passes": 3,
+        "xray": true,
+        "noise": 12
+      },
+      "shadow": {
+        "enabled": true
+      },
+      "opacity": {
+        "enabled": true,
+        "active": 100,
+        "inactive": 90
+      }
     }, {
       "size": 12,
       "color": "000000",
@@ -631,14 +662,23 @@ output "HDMI-A-1" {
       "soft": true
     }));
     const input = NiriConf.inputNodes(CompositorLayer.input({
-      "keyboard": true,
-      "kbLayout": "us",
-      "repeatRate": 40,
-      "touchpad": true,
-      "tapToClick": true,
-      "cursor": true,
-      "cursorTheme": "Adwaita",
-      "cursorSize": 24
+      "keyboard": {
+        "enabled": true,
+        "layout": "us",
+        "repeatRate": 40
+      },
+      "mouse": {
+        "enabled": false
+      },
+      "touchpad": {
+        "enabled": true,
+        "tapToClick": true
+      },
+      "cursor": {
+        "enabled": true,
+        "theme": "Adwaita",
+        "size": 24
+      }
     }), schema.Input);
     const options = NiriConf.optionNodes(schema.WindowBehaviour, {
       "followMouse": true,

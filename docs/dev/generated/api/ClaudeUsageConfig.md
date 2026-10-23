@@ -7,5 +7,5 @@ Reader for the ClaudeUsage section: the Claude Code logins every Claude usage wi
 
 ### Properties
 
-- `accounts` (readonly var): [{ label, configDir }], configDir as typed (may hold ~)
-- `intervalMinutes` (readonly int)
+- `accounts` (readonly var): [{ id, label, configDir }], configDir as typed (may hold ~)
+- `interval` (readonly int): How often usage is fetched (ms)

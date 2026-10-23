@@ -7,9 +7,8 @@ title: Monitors
 description: Edited on the Monitors page.
 additionalProperties: false
 properties:
-  profiles:
+  items:
     type: array
     default: []
     description: Monitor layouts, one per set of connected monitors.
-    items:
-      $ref: '#/definitions/MonitorProfile'
+    items: {$ref: '#/definitions/MonitorProfile'}

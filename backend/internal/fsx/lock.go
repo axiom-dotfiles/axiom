@@ -81,6 +81,10 @@ func Adopt(f *os.File, path string) (*Lock, error) {
 	if err := unix.Flock(int(f.Fd()), unix.LOCK_EX|unix.LOCK_NB); err != nil {
 		return nil, axerr.Wrap(axerr.Refused, err, "the inherited lock isn't held")
 	}
+	// It crossed the exec without close-on-exec: set again, or every child
+	// started from now on (the shell, and what it starts) would hold the
+	// lock too, and keep it past this process
+	unix.CloseOnExec(int(f.Fd()))
 	return &Lock{f: f}, nil
 }
 

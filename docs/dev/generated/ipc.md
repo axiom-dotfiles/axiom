@@ -6,7 +6,7 @@ Every `IpcTarget` (an `IpcHandler` that also registers with axiom): call with `a
 
 ## appLauncher
 
-`components/surfaces/launcher/Launcher.qml` · enabled: `ShellManager.isTarget(root.screen, LauncherConfig.monitors)`
+`components/surfaces/launcher/Launcher.qml` · enabled: `ShellManager.isTarget(root.screen, LauncherConfig.screen)`
 - `toggle(): void`
 - `open(): void`
 - `close(): void`
@@ -130,7 +130,7 @@ Every `IpcTarget` (an `IpcHandler` that also registers with axiom): call with `a
 
 ## overlay
 
-`components/hosts/overlay/OverlayPanel.qml` · enabled: `ShellManager.isTarget(root.screen, OverlayConfig.monitors)`
+`components/hosts/overlay/OverlayPanel.qml` · enabled: `ShellManager.isTarget(root.screen, OverlayConfig.screen)`
 - `open()`
 - `close()`
 - `toggle()`
@@ -154,7 +154,7 @@ Every `IpcTarget` (an `IpcHandler` that also registers with axiom): call with `a
 
 ## powermenu
 
-`components/surfaces/powermenu/PowerMenuWindow.qml` · enabled: `ShellManager.isTarget(root.screen, PowerMenuConfig.monitors)`
+`components/surfaces/powermenu/PowerMenuWindow.qml` · enabled: `ShellManager.isTarget(root.screen, PowerMenuConfig.screen)`
 - `toggle()`
 - `open()`
 - `close()`

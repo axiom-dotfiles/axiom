@@ -22,7 +22,7 @@ Item {
 
   // Modules re-read only when they actually change, so an unrelated config
   // save doesn't rebuild every module
-  readonly property string _modulesKey: JSON.stringify(root.menu.modules)
+  readonly property string _modulesKey: JSON.stringify(root.menu.layout.modules)
   property var modules: []
   on_ModulesKeyChanged: root.modules = JSON.parse(root._modulesKey)
   Component.onCompleted: root.modules = JSON.parse(root._modulesKey)
@@ -31,7 +31,7 @@ Item {
   readonly property var host: ({
       "kind": "edgeMenu",
       "id": root.menu.id,
-      "bare": !root.menu.moduleBorders
+      "bare": !root.menu.layout.moduleBorders
     })
 
   OverlayGrid {
@@ -91,7 +91,7 @@ Item {
       host: root.host
       zoom: EdgeMenuManager.zoomOf(root.menu)
       // A bottom menu's edge is under its modules
-      growTowards: root.menu.edge === "Bottom" ? 1 : -1
+      growTowards: root.menu.edge === "bottom" ? 1 : -1
     }
   }
 
@@ -104,10 +104,10 @@ Item {
     width: Widget.height
     height: Widget.height
     padding: 0
-    anchors.top: root.menu.edge === "Top" ? undefined : parent.top
-    anchors.bottom: root.menu.edge === "Top" ? parent.bottom : undefined
-    anchors.right: root.menu.edge === "Right" ? undefined : parent.right
-    anchors.left: root.menu.edge === "Right" ? parent.left : undefined
+    anchors.top: root.menu.edge === "top" ? undefined : parent.top
+    anchors.bottom: root.menu.edge === "top" ? parent.bottom : undefined
+    anchors.right: root.menu.edge === "right" ? undefined : parent.right
+    anchors.left: root.menu.edge === "right" ? parent.left : undefined
     anchors.margins: Widget.spacing / 4
     iconText: "push_pin"
     iconColor: root.pinned ? Theme.background : Theme.foreground

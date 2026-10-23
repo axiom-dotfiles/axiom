@@ -1,0 +1,22 @@
+label: Pomodoro timer
+icon: timer
+group: Tools
+popout: {variant: own, enabled: {description: The timer's controls when hovered.}}
+settings:
+  hideWhenIdle:
+    type: boolean
+    title: Hide when stopped
+    default: false
+    description: Show only while a session or break is on (start one from the launcher's /pomodoro or a module).
+  workColor: {$ref: '#/definitions/WidgetColor', title: Focus color}
+  breakColor: {$ref: '#/definitions/WidgetColor', title: Break color, x-autoColor: alt}
+  idleColor: {$ref: '#/definitions/WidgetColor', title: Stopped color, x-autoColor: 'off'}
+  foregroundColor:
+    type: string
+    title: Text color
+    x-options: colors
+    default: base00
+    x-showIf:
+      $bar.widgetStyle: filled
+      $bar.widgetGrouping: {not: merged}
+      $bar.widgetTextColor: ''

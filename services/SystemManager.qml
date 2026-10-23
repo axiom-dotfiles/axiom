@@ -87,11 +87,11 @@ QtObject {
         if (module?.type === "SystemGraphs")
           found.push(...(module.properties?.metrics ?? []));
       });
-    (OverlayConfig.views ?? []).forEach(view => fromModules(view?.modules));
-    EdgeMenusConfig.enabledMenus.forEach(menu => fromModules(menu.modules));
+    (OverlayConfig.views ?? []).forEach(view => fromModules(view?.layout?.modules));
+    EdgeMenusConfig.enabledMenus.forEach(menu => fromModules(menu.layout.modules));
     BarManager.bars.forEach(bar => Object.values(bar?.widgets ?? {}).forEach(section => (section ?? []).forEach(widget => {
           const p = widget?.properties;
-          if (widget?.type !== "SystemStats" || !p?.showPopout)
+          if (widget?.type !== "SystemStats" || !p?.popout?.enabled)
             return;
           if (p.showCpu)
             found.push("cpu");

@@ -19,6 +19,10 @@ ColumnLayout {
   property var titles: ({})
 
   signal edited(var path, var value)
+  // A row's edit (SchemaField's form)
+  function edit(path, value) {
+    root.edited(path, value);
+  }
 
   readonly property var rows: root.paths.map(dotted => {
     const path = dotted.split(".");

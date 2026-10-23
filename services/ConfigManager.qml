@@ -2,97 +2,58 @@ pragma Singleton
 import QtQuick
 
 import Quickshell
-import Quickshell.Io
 
 import qs.components.methods
 
-/* ConfigManager handles loading, saving, and monitoring the configuration file.
- * Run by axiom (`axiom run`, BackendManager.active) the binary owns
- * config.json: the config comes from the snapshot it wrote and its
- * pushes, and writes are checked here (the same pipeline the binary runs,
- * kept equal by the shared fixtures), applied at once and sent to it,
- * whose answer stands. Started by hand, this reads and writes the file
- * itself. */
+/* The config, as axiom (the binary, the shell's parent: `axiom run`) has
+ * it. axiom owns config.json: it loads it (converting older files),
+ * normalizes it and writes it. The shell reads the snapshot axiom wrote for
+ * its start ($AXIOM_CONFIG) and the pushes after (config.changed); a write
+ * is checked here against the schema, applied at once and sent, and
+ * axiom's answer stands. The greeter runs on the snapshot `axiom greeter`
+ * made from the exported bundle, and writes nothing. Without axiom (qs
+ * started by hand) there is no config: the shell shows only a notice
+ * (shell.qml, `available`). docs/dev/core/config-manager.md */
 QtObject {
   id: root
-
-  // The binary owns config.json (never in the greeter)
-  readonly property bool backed: BackendManager.active && !greeter
 
   // --- Public ---
   readonly property var config: _config
   readonly property var configSchema: _configSchema
-  // The `x-takeover` settings' paths ([key, …]), which loading a config
-  // never changes (ConfigExamples.keepTakeovers)
-  readonly property var takeoverPaths: ConfigExamples.takeoverPaths(_configSchema)
+  // axiom handed this shell a config (false: started by hand)
+  readonly property bool available: _snapshotPath !== "" && _config !== null
+  // The config version this shell's schema is (format 2 counts on from
+  // format 1's 75): what a shared file or catalog entry must not be newer than
+  readonly property int currentVersion: _configSchema?.properties?.version?.default ?? 0
   readonly property string configDir: dataDirs.config
   readonly property string configFile: "config.json"
 
   // Where axiom keeps what it writes (DataDirs: config, state, ui, data,
-  // notes, generatedThemes, communityThemes, cache), read by Paths. The XDG folders, except while
-  // an install from before them still has its data in the repo
-  // (legacyLayout): that session runs on the old folders, and
-  // DataMigrationManager copies them over and reloads.
-  readonly property var dataDirs: legacyLayout ? legacyDirs : xdgDirs
-  // The repo's config/user/ holds a config.json not yet copied over (no
-  // DataDirs.movedMarker beside it). Never in the greeter.
-  readonly property bool legacyLayout: !greeter && FileManager.read(legacyDirs.config + "config.json") !== null && FileManager.read(legacyDirs.config + DataDirs.movedMarker) === null
-  // Both layouts, for DataMigrationManager's copy
-  readonly property var xdgDirs: DataDirs.xdg(_env)
-  readonly property var legacyDirs: DataDirs.legacy(_env, decodeURIComponent(Quickshell.shellDir.toString().replace("file://", "")))
-  readonly property var _env: ({
-      "HOME": Quickshell.env("HOME"),
-      "XDG_CONFIG_HOME": Quickshell.env("XDG_CONFIG_HOME"),
-      "XDG_STATE_HOME": Quickshell.env("XDG_STATE_HOME"),
-      "XDG_DATA_HOME": Quickshell.env("XDG_DATA_HOME"),
-      "XDG_CACHE_HOME": Quickshell.env("XDG_CACHE_HOME")
-    })
+  // notes, generatedThemes, communityThemes, cache), read by Paths
+  readonly property var dataDirs: DataDirs.xdg({
+    "HOME": Quickshell.env("HOME"),
+    "XDG_CONFIG_HOME": Quickshell.env("XDG_CONFIG_HOME"),
+    "XDG_STATE_HOME": Quickshell.env("XDG_STATE_HOME"),
+    "XDG_DATA_HOME": Quickshell.env("XDG_DATA_HOME"),
+    "XDG_CACHE_HOME": Quickshell.env("XDG_CACHE_HOME")
+  })
 
-  // Saves wait while DataMigrationManager copies the legacy folders, so
-  // nothing lands in them mid-copy (holdSaves(false) lets them go again)
-  function holdSaves(held) {
-    root._savesHeld = held;
-  }
-  property bool _savesHeld: false
-
-  // Whether a save may go ahead now (never in the greeter); says why not
-  function _maySave() {
-    if (root.greeter)
-      return false;
-    if (_savesBlocked) {
-      console.warn("[ConfigManager] config.json is unusable; not saving until it is fixed (or a saved config is restored).");
-      return false;
-    }
-    return !_held();
-  }
-
-  // Whether saves are held (holdSaves), saying so
-  function _held() {
-    if (_savesHeld)
-      console.warn("[ConfigManager] Not saving while the config is being moved to", root.xdgDirs.config);
-    return _savesHeld;
-  }
-
-  // True while config.json on disk is unusable (invalid, or present but
-  // unreadable). The shell keeps running on the last good config (or schema
-  // defaults at startup) and refuses to save, so the file can't be
-  // overwritten before it is fixed. Restoring a saved config clears it.
+  // True while config.json on disk doesn't load (axiom says so): the shell
+  // runs on the last good config, and saves are refused until the file is
+  // fixed or a saved config is restored
   readonly property bool savesBlocked: _savesBlocked
 
   // The greeter (greetd's login screen, greeter.qml) runs read-only on the
-  // bundle the user's axiom exports for it (GreeterBundle), never on
-  // config.json, and writes nothing. Read from the environment here (as
-  // Paths.greeter) since ConfigManager reads no reader.
+  // config `axiom greeter` made from the bundle, never on config.json
   readonly property bool greeter: Quickshell.env("AXIOM_GREETER") === "1"
   // Where the greeter's config came from: "bundle", "fallback" (the
-  // snapshot taken when the greeter was installed, which its own code
-  // wrote) or "defaults"; "" outside the greeter
-  readonly property string greeterSource: _greeterSource
-  property string _greeterSource: ""
+  // snapshot taken when the greeter was installed) or "defaults" (axiom
+  // greeter says, $AXIOM_GREETER_SOURCE); "" outside the greeter
+  readonly property string greeterSource: greeter ? (Quickshell.env("AXIOM_GREETER_SOURCE") ?? "") : ""
 
-  // Unsaved edits an editor shows live, by top-level section ({ Bars: [...] }).
+  // Unsaved edits an editor shows live, by top-level section ({ Bars: {...} }).
   // Readers of that section prefer them to `config`; they're never merged
-  // into it or saved, so other saves and reloads from disk leave them alone.
+  // into it or saved, so other saves and pushes leave them alone.
   readonly property var previews: _previews
 
   function setPreview(section, value) {
@@ -117,194 +78,147 @@ QtObject {
     root._previews = previews;
   }
 
-  /**
-     * @brief Requests a change to the current theme.
-     * This is the official way to change the theme. It updates the internal
-     * config object and triggers a save and reload cycle.
-     * @param themeName The full name of the theme (e.g., "catppuccin-mocha" or "generated/wallpaper-tonal-dark").
-     */
+  // The theme by name (e.g. "catppuccin-mocha", "generated/wallpaper-tonal-dark")
   function setTheme(themeName) {
-    if (_config.Appearance.theme === themeName) {
-      console.log("[ConfigManager] Theme '" + themeName + "' is already set. No change needed.");
+    if (_config.Appearance.theme.name === themeName)
       return;
-    }
     console.log("[ConfigManager] Setting theme to '" + themeName + "'");
-    _config.Appearance.theme = themeName;
+    _config.Appearance.theme.name = themeName;
     saveConfig();
   }
 
-  /**
-     * @brief Requests a change to a monitor's wallpaper in the config.
-     * @param wallpaperUrl The full file URL of the wallpaper.
-     * @param monitor The monitor it's set on.
-     * @param primary Whether that's the primary monitor, whose wallpaper is
-     *        also Appearance.wallpaper. Only picks by hand write these:
-     *        rotation and the light/dark wallpapers are ThemeManager's.
-     */
+  // A monitor's wallpaper (a file URL). The primary monitor's is also
+  // Appearance.wallpaper.file. Only picks by hand write these: rotation
+  // and the light/dark wallpapers are ThemeManager's.
   function setWallpaper(wallpaperUrl, monitor, primary) {
-    const appearance = _config.Appearance;
-    if (appearance.wallpapers[monitor] === wallpaperUrl && (!primary || appearance.wallpaper === wallpaperUrl))
+    const wallpaper = _config.Appearance.wallpaper;
+    if (wallpaper.perScreen[monitor] === wallpaperUrl && (!primary || wallpaper.file === wallpaperUrl))
       return;
     console.log("[ConfigManager] Setting wallpaper on", monitor, "to", wallpaperUrl);
-    appearance.wallpapers[monitor] = wallpaperUrl;
+    wallpaper.perScreen[monitor] = wallpaperUrl;
     if (primary)
-      appearance.wallpaper = wallpaperUrl;
+      wallpaper.file = wallpaperUrl;
     saveConfig();
   }
 
-  /**
-     * @brief Sets several monitors' wallpapers with one save.
-     * @param wallpapers Monitor name -> file URL.
-     * @param primary The primary monitor's name, whose wallpaper is also
-     *        Appearance.wallpaper.
-     */
+  // Several monitors' wallpapers (monitor name → file URL) with one save;
+  // primary's is also Appearance.wallpaper.file
   function setWallpapers(wallpapers, primary) {
-    const appearance = _config.Appearance;
-    const monitors = Object.keys(wallpapers).filter(monitor => appearance.wallpapers[monitor] !== wallpapers[monitor] || (monitor === primary && appearance.wallpaper !== wallpapers[monitor]));
+    const wallpaper = _config.Appearance.wallpaper;
+    const monitors = Object.keys(wallpapers).filter(monitor => wallpaper.perScreen[monitor] !== wallpapers[monitor] || (monitor === primary && wallpaper.file !== wallpapers[monitor]));
     if (monitors.length === 0)
       return;
     console.log("[ConfigManager] Setting wallpapers on", monitors.join(", "));
     for (const monitor of monitors) {
-      appearance.wallpapers[monitor] = wallpapers[monitor];
+      wallpaper.perScreen[monitor] = wallpapers[monitor];
       if (monitor === primary)
-        appearance.wallpaper = wallpapers[monitor];
+        wallpaper.file = wallpapers[monitor];
     }
     saveConfig();
   }
 
-  /**
-     * @brief Saves the current configuration state to config.json and triggers a reload.
-     * @return true if it was written.
-     */
+  // Saves the running config (after edits to it in place); true if it was
+  // valid and sent to axiom
   function saveConfig() {
     if (!_maySave())
       return false;
-    try {
-      if (!_validateConfig(root._config)) {
-        console.error("[ConfigManager] Failed to validate config against schema. Aborting save.");
-        return false;
-      }
-      _write(root._config);
-      console.log("[ConfigManager] Saved config.json.");
-      forceReload();
-      return true;
-    } catch (e) {
-      console.error("[ConfigManager] An error occurred while saving the configuration:", e);
+    if (!SchemaValidation.validateAgainstSchema(root._config, root._configSchema)) {
+      console.error("[ConfigManager] The config doesn't validate against the schema; not saving.");
       return false;
     }
+    root._config = Utils.clone(root._config);
+    _send(root._config, true);
+    return true;
   }
 
-  /**
-   * @brief Replaces the running config with `object` and saves it, running
-   * it through the load pipeline (prune/defaults/validate) first.
-   * @return true if it was valid and written; on false nothing changed.
-   */
+  // Replaces the running config with `object` (defaults filled) and saves
+  // it; false and no change if it doesn't validate
   function commit(object) {
     if (!_maySave())
       return false;
-    const prepared = _prepareConfig(object);
-    if (!prepared) {
+    const filled = SchemaValidation.applyDefaults(Utils.clone(object), root._configSchema);
+    if (!SchemaValidation.validateAgainstSchema(filled, root._configSchema)) {
       console.error("[ConfigManager] Rejected config: it does not validate against the schema.");
       return false;
     }
-    root._config = prepared.config;
-    return saveConfig();
+    root._config = filled;
+    _send(filled, true);
+    return true;
   }
 
-  /**
-   * @brief Applies a full configuration object to memory without saving to disk.
-   */
+  // Replaces the whole config with a parsed one (a saved config, an
+  // import), of any version axiom reads: axiom loads it as it loads
+  // config.json (an older file converted) and keeps the `x-takeover`
+  // settings (compositor mode, locker, idle, polkit, greeter) as they are:
+  // only their own cards switch them. It also lifts savesBlocked.
+  // done(ok) once axiom has answered.
+  function restoreConfig(object, done) {
+    if (root.greeter || !root.available) {
+      done?.(false);
+      return;
+    }
+    BackendManager.call("config.restore", {
+      "config": object
+    }, (error, result) => {
+      if (error)
+        console.error("[ConfigManager] axiom refused the config:", error.message, (error.issues ?? []).map(i => i.path + ": " + i.message).join("; "));
+      done?.(!error);
+    });
+  }
+
+  // Shows `object` in place of the running config without saving it (the
+  // settings page's live edits, until Save commits them); a push or a save
+  // replaces it
   function applyConfig(object) {
-    _loadObjectToConfig(object);
+    if (SchemaValidation.validateAgainstSchema(object, root._configSchema))
+      root._config = Utils.clone(object);
   }
 
-  /**
-   * @brief Replaces the whole config with a parsed config object (e.g. a
-   * saved configuration), running it through the same migrate/prune/
-   * defaults/validate pipeline as config.json, then saves it. This is an
-   * explicit replacement, so it also lifts savesBlocked. The `x-takeover`
-   * settings (the compositor mode, the lock screen, idle, polkit, the
-   * greeter) stay as they are (ConfigExamples.keepTakeovers): only their
-   * own cards switch them, which do the takeover or give it back.
-   * @return true if the config was valid and saved.
-   */
-  function restoreConfig(object) {
-    if (root.greeter || _held())
-      return false;
-    const prepared = _prepareConfig(object);
-    if (!prepared) {
-      console.error("[ConfigManager] Restored config is invalid, keeping the current one.");
-      return false;
-    }
-    root._savesBlocked = false;
-    root._config = ConfigExamples.keepTakeovers(prepared.config, root._config, root.takeoverPaths);
-    return saveConfig();
-  }
-
-  /**
-   * @brief The config a parsed object would load as (migrated, pruned,
-   * defaults filled), or null if it doesn't validate. Only computes: it
-   * logs nothing, stores no migrated secrets and leaves `object` as it was.
-   */
-  function normalizeConfig(object) {
-    const migrated = ConfigMigration.migrate(Utils.clone(object)).config;
-    SchemaValidation.pruneUnknown(migrated, _configSchema);
-    const config = SchemaValidation.applyDefaults(migrated, _configSchema);
-    return SchemaValidation.validateAgainstSchema(config, _configSchema) ? config : null;
-  }
-
-  /**
-     * @brief Manually triggers the file checker, simulating a file-system change.
-     */
-  function forceReload() {
-    // Run by axiom, what it writes comes back as a push
-    if (root.backed)
-      return;
-    _fileHashes = {};
-    _checkConfigFile();
-  }
-
-  /**
-     * @brief Discards in-memory edits by reloading config.json from disk.
-     * Keeps the current config if the file is unusable.
-     */
+  // Discards in-memory edits: the config as axiom has it
   function hardResetConfig() {
-    if (root.backed) {
-      BackendManager.call("config.get", null, (error, result) => {
-        if (!error && result?.config)
-          root._config = result.config;
-      });
-      return;
-    }
-    const result = _readConfig();
-    if (result.status === "ok")
-      root._config = result.config;
+    BackendManager.call("config.get", null, (error, result) => {
+      if (!error && result?.config)
+        root._config = result.config;
+    });
   }
 
   // --- Private Implementation ---
   Component.onCompleted: {
-    console.log("[ConfigManager] ♻ ConfigManager service started" + (root.backed ? " (config owned by axiom)." : "."));
-    if (!root.greeter && !root.backed)
-      _checkConfigFile();
+    if (root.greeter)
+      console.log("[ConfigManager] Greeter config from the", root.greeterSource || "defaults");
+    else if (root.available) {
+      console.log("[ConfigManager] Config from axiom.");
+      root._listen();
+    }
   }
 
-  // Run by axiom: what it pushes
+  function _maySave() {
+    if (root.greeter || !root.available)
+      return false;
+    if (root._savesBlocked) {
+      console.warn("[ConfigManager] config.json doesn't load; not saving until it is fixed (or a saved config is restored).");
+      return false;
+    }
+    return true;
+  }
+
+  // What axiom pushes
   function _listen() {
     BackendManager.listen("config.changed", params => {
       console.log("[ConfigManager] axiom pushed the config, revision", params.revision);
       root._config = params.config;
     });
     BackendManager.listen("config.state", params => root._applyState(params));
-    // `axiom run --dev` rebuilt the schema from config/schema/
+    // `axiom run --dev` rebuilt the schema from its YAML source
     BackendManager.listen("schema.changed", () => {
       console.log("[ConfigManager] The schema was rebuilt; reading it again.");
       root._configSchema = root._loadSchema();
     });
-    BackendManager.listen("schema.error", params => console.error("[ConfigManager] config/schema/ doesn't build:", params.message));
+    BackendManager.listen("schema.error", params => console.error("[ConfigManager] the schema source doesn't build:", params.message));
   }
 
   property Connections _backend: Connections {
-    target: root.backed ? BackendManager : null
+    target: root.available && !root.greeter ? BackendManager : null
 
     function onGreeted() {
       const state = BackendManager.hello?.state ?? {};
@@ -316,10 +230,7 @@ QtObject {
         BackendManager.call("config.ackFirstRun", null, null);
       }
       // A push missed while disconnected (a re-exec): read it again
-      BackendManager.call("config.get", null, (error, result) => {
-        if (!error && result?.config)
-          root._config = result.config;
-      });
+      root.hardResetConfig();
     }
   }
 
@@ -329,327 +240,55 @@ QtObject {
     root._savesBlocked = !!state.blocked;
   }
 
-  // Sends a config to the binary, which writes it (or says why not, and
-  // what's running stays its)
-  function _send(config) {
-    BackendManager.call("config.restore", {
+  // Sends a config to axiom, which writes it (or says why not, and what's
+  // running goes back to its)
+  function _send(config, takeover) {
+    BackendManager.call("config.replace", {
       "config": config,
-      "takeover": true
+      "takeover": takeover
     }, (error, result) => {
       if (!error)
         return;
       console.error("[ConfigManager] axiom refused the config:", error.message, (error.issues ?? []).map(i => i.path + ": " + i.message).join("; "));
-      BackendManager.call("config.get", null, (e, r) => {
-        if (!e && r?.config)
-          root._config = r.config;
-      });
+      root.hardResetConfig();
     });
   }
 
-  // Loaded eagerly (synchronous reads) so the config readers never see a
-  // partially-filled config: every key has its schema default from the
-  // very first evaluation.
+  readonly property string _snapshotPath: Quickshell.env("AXIOM_CONFIG") ?? ""
   property var _configSchema: _loadSchema()
-  property var _config: _initialConfig(_loadSchema())
+  property var _config: _readSnapshot()
   property bool _savesBlocked: false
   property var _previews: ({})
-  // Whether the running config came from config.json (vs schema defaults)
-  property bool _haveFileConfig: false
 
-  // Run by axiom, the schema it built from the tree (config/schema/)
-  property string _configSchemaPath: root.backed && Quickshell.env("AXIOM_SCHEMA") ? "file://" + Quickshell.env("AXIOM_SCHEMA") : "../config/json/config.schema.json"
-  property string _configPath: root.configDir + root.configFile
-
-  // FileView only for writing the config
-  property FileView _configFileView: FileView {
-    path: root.configDir + root.configFile
-    blockWrites: true
-    atomicWrites: true
-    onSaveFailed: error => {
-      console.error("[ConfigManager] Failed to save config.json. Error: " + FileViewError.toString(error));
-    }
-  }
-
-  // Change notification for config.json. The slow poll is only a safety
-  // net in case the watch is lost (e.g. to an editor's atomic rename).
-  property FileView _configWatch: FileView {
-    path: root.greeter || root.backed ? "" : root._configPath
-    watchChanges: true
-    printErrors: false
-    onFileChanged: {
-      reload();
-      root._checkConfigFile();
-    }
-  }
-
-  property var _fileHashes: ({})
-
-  property Timer _pollTimer: Timer {
-    interval: 5000
-    running: !root.greeter && !root.backed
-    repeat: true
-    onTriggered: root._checkConfigFile()
-  }
-
-  function _hashString(str) {
-    let hash = 0;
-    if (!str || str.length === 0)
-      return hash;
-    for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) - hash) + str.charCodeAt(i);
-      hash = hash & hash;
-    }
-    return hash.toString();
-  }
-
-  function _getFileContent(filepath) {
-    return FileManager.read(Qt.resolvedUrl(filepath));
-  }
-
+  // The schema axiom built from the tree, else the tree's own build
   function _loadSchema() {
-    const content = _getFileContent(_configSchemaPath);
-    console.log("[ConfigManager] Loading config schema from", _configSchemaPath);
-    if (content) {
-      try {
-        return JSON.parse(content);
-      } catch (e) {
-        console.error("[ConfigManager] Failed to parse config.schema.json:", e);
-      }
-    }
-    return {};
-  }
-
-  function _validateConfig(config, schema = _configSchema) {
-    if (SchemaValidation.validateAgainstSchema(config, schema)) {
-      console.log("[ConfigManager] Schema validation passed.");
-      return true;
-    } else {
-      console.error("[ConfigManager] Schema validation failed.");
-      return false;
-    }
-  }
-
-  /**
-   * Load pipeline: parse → migrate old layouts → drop unknown keys → fill
-   * schema defaults → validate.
-   * @return { status, content, config, migrated }; status is "ok",
-   *   "empty" (missing, unreadable or mid-write) or "invalid".
-   */
-  function _readConfig(schema = _configSchema) {
-    const content = _getFileContent(configDir + configFile);
-    if (!content)
-      return {
-        status: "empty",
-        content: ""
-      };
-
-    let parsed;
+    const built = Quickshell.env("AXIOM_SCHEMA") ?? "";
+    const text = FileManager.read(built ? "file://" + built : Qt.resolvedUrl("../config/json/config.schema.json"));
     try {
-      parsed = JSON.parse(content);
+      return text ? JSON.parse(text) : {};
     } catch (e) {
-      console.error("[ConfigManager] Failed to parse config.json:", e);
-      return {
-        status: "invalid",
-        content: content
-      };
+      console.error("[ConfigManager] The schema isn't JSON:", e);
+      return {};
     }
-
-    const prepared = _prepareConfig(parsed, schema);
-    if (!prepared)
-      return {
-        status: "invalid",
-        content: content
-      };
-    return {
-      status: "ok",
-      content: content,
-      config: prepared.config,
-      migrated: prepared.migrated
-    };
   }
 
-  // The config for the very first evaluation. Anything but a good file
-  // gives schema defaults; the first _checkConfigFile() then decides
-  // whether that means first run (write defaults) or blocking saves.
-  function _initialConfig(schema) {
-    if (root.greeter)
-      return _greeterConfig(schema);
-    if (root.backed)
-      return _snapshotConfig(schema);
-    console.log("[ConfigManager] Loading configuration from", configDir + configFile);
-    const result = _readConfig(schema);
-    if (result.status !== "ok")
-      return SchemaValidation.applyDefaults({}, schema);
-    // Remember what was loaded, so the first check doesn't load it again
-    if (_fileHashes)
-      _fileHashes.config = _hashString(result.content);
-    if (result.migrated)
-      Qt.callLater(() => _write(result.config));
-    console.log("[ConfigManager] Configuration loaded and validated successfully.");
-    return result.config;
-  }
-
-  // Run by axiom: the config it wrote for the shell's first read, already
-  // migrated and filled (the defaults until it answers, if unreadable)
-  function _snapshotConfig(schema) {
-    const text = FileManager.read("file://" + (Quickshell.env("AXIOM_CONFIG") ?? ""));
+  // The config axiom wrote for the shell's start: already loaded,
+  // converted and filled
+  function _readSnapshot() {
+    if (root._snapshotPath === "")
+      return null;
+    const text = FileManager.read("file://" + root._snapshotPath);
     try {
       if (text)
         return JSON.parse(text);
     } catch (e) {
       console.error("[ConfigManager] axiom's config snapshot isn't JSON:", e);
     }
-    return SchemaValidation.applyDefaults({}, schema);
+    return SchemaValidation.applyDefaults({}, _loadSchema());
   }
 
-  // Migrate → prune unknown keys → fill defaults → validate a parsed config.
-  // Returns { config, migrated }, or null if the result is invalid.
-  function _prepareConfig(parsed, schema = _configSchema) {
-    const migration = ConfigMigration.migrate(parsed);
-    if (migration.migrated) {
-      console.log("[ConfigManager] Migrated config to version", ConfigMigration.currentVersion + ":");
-      migration.changes.forEach(change => console.log("  - " + change));
-    }
-    if (Object.keys(migration.secrets).length > 0 && !root.greeter)
-      SecretsManager.store(migration.secrets);
-
-    const config = migration.config;
-    const removed = SchemaValidation.pruneUnknown(config, schema);
-    removed.forEach(path => console.warn("[ConfigManager] Ignoring unknown config key:", path));
-
-    const filled = SchemaValidation.applyDefaults(config, schema);
-    if (!_validateConfig(filled, schema))
-      return null;
-    return {
-      config: filled,
-      migrated: migration.migrated
-    };
-  }
-
-  // Writes a config object to disk as-is (no reload); used after migration
-  function _write(config) {
-    if (root.greeter || root._savesHeld)
-      return;
-    if (root.backed)
-      _send(config);
-    else
-      _configFileView.setText(JSON.stringify(config, null, 2));
-  }
-
-  // The greeter's config: the bundle (unless AXIOM_GREETER_SAFE, the
-  // session script's second try after the greeter failed), else the
-  // snapshot its install took (fallback/ in the install folder, written
-  // by this same code, or for a packaged axiom by the version before an
-  // update, whose unknown keys are dropped), else the schema's defaults.
-  // A bundle from a newer axiom than this copy is still tried: unknown
-  // keys are dropped, and only what breaks validation falls through.
-  function _greeterConfig(schema) {
-    const bundleDir = (Quickshell.env("AXIOM_GREETER_DIR") || "/var/lib/axiom-greeter") + "/config/";
-    const candidates = [];
-    if (Quickshell.env("AXIOM_GREETER_SAFE") !== "1")
-      candidates.push({
-        "source": "bundle",
-        "text": FileManager.read("file://" + bundleDir + "greeter.json")
-      });
-    // The session script says where (a packaged axiom's install folder
-    // isn't its code's), else beside this code
-    const fallbackDir = Quickshell.env("AXIOM_GREETER_FALLBACK");
-    candidates.push({
-      "source": "fallback",
-      "text": fallbackDir ? FileManager.read("file://" + fallbackDir + "greeter.json") : _getFileContent("../fallback/greeter.json")
-    });
-    const picked = GreeterBundle.pick(candidates, raw => {
-      const prepared = _prepareConfig(raw, schema);
-      return prepared ? {
-        "config": prepared.config,
-        "errors": []
-      } : {
-        "config": null,
-        "errors": ["does not validate against the schema"]
-      };
-    }, () => SchemaValidation.applyDefaults({}, schema));
-    picked.problems.forEach(problem => console.warn("[ConfigManager] Greeter config from the " + problem.source + " not used:", problem.error));
-    console.log("[ConfigManager] Greeter config from the", picked.source);
-    root._greeterSource = picked.source;
-    return picked.config;
-  }
-
-  function _loadObjectToConfig(object) {
-    if (_validateConfig(object)) {
-      // Deep clone so this is always a new object reference, otherwise QML
-      // won't emit a change signal when the same localConfig object (mutated
-      // in place across edits) is re-applied, and live updates after the
-      // first change silently stop working.
-      root._config = Utils.clone(object);
-    }
-  }
-
-  function _blockSaves(reason) {
-    if (_savesBlocked)
-      return;
-    _savesBlocked = true;
-    console.error("[ConfigManager] config.json is " + reason + "; keeping the current config and blocking saves until it is fixed.");
-  }
-
-  // Set when there was no config.json at all: a first run (the onboarder
-  // starts from it). Not after a reload, when the defaults are on disk.
+  // Set when axiom found no config.json: a first run (the onboarder starts
+  // from it), once per session
   readonly property bool firstRun: _firstRun
   property bool _firstRun: false
-
-  // An empty read is either a missing file (first run: write defaults) or a
-  // file caught mid-write / unreadable. Only a real "missing" writes. Makes
-  // the folder first: FileView doesn't create it.
-  property Process _existsCheck: Process {
-    command: ["sh", "-c", 'mkdir -p "$1" && test -e "$1$2"', "sh", root.configDir, root.configFile]
-    onExited: exitCode => {
-      if (exitCode !== 0) {
-        console.log("[ConfigManager] No config.json found, writing defaults.");
-        root._firstRun = true;
-        root._savesBlocked = false;
-        root._write(SchemaValidation.applyDefaults({}, root._configSchema));
-      } else if (!root._haveFileConfig) {
-        // Never loaded a good file: running on defaults, so don't save them over it
-        root._blockSaves("empty or unreadable");
-      }
-    }
-  }
-
-  function _checkConfigFile() {
-    const content = _getFileContent(_configPath);
-    if (!content) {
-      // Keep whatever is running; _existsCheck decides whether this is a
-      // first run (write defaults) or a file we must not overwrite
-      if (!_haveFileConfig && !_existsCheck.running)
-        _existsCheck.running = true;
-      return false;
-    }
-    const hash = _hashString(content);
-    if (_fileHashes.config === hash) {
-      // Same content as the last good load (e.g. a broken edit reverted)
-      _haveFileConfig = true;
-      _savesBlocked = false;
-      delete _fileHashes.invalid;
-      return false;
-    }
-    // Already reported this exact broken content
-    if (_fileHashes.invalid === hash)
-      return false;
-
-    const result = _readConfig();
-    if (result.status !== "ok") {
-      _fileHashes.invalid = hash;
-      _blockSaves("invalid");
-      return false;
-    }
-    if (_fileHashes.config !== undefined)
-      console.log("[ConfigManager] Config file changed, reloading...");
-    _fileHashes.config = hash;
-    delete _fileHashes.invalid;
-    _haveFileConfig = true;
-    _savesBlocked = false;
-    root._config = result.config;
-    if (result.migrated)
-      Qt.callLater(() => _write(result.config));
-    return true;
-  }
 }

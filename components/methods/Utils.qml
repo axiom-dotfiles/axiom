@@ -53,20 +53,47 @@ QtObject {
     return stem + separator + n;
   }
 
+  // A readable id from a name, as the config conversion makes them:
+  // lowercase, other characters as "-" ("Page 2" -> "page-2"), at most 40
+  // long; "" when nothing's left
+  function slug(name) {
+    return String(name ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "");
+  }
+
+  // A new item's id in `items` (a config list whose items each have one,
+  // unique in it): `base` (a type's, lowerCamel: "clockCalendar"), else it
+  // numbered from 2 ("clock-2"), as the config conversion names them
+  function newId(base, items) {
+    const stem = String(base ?? "") === "" ? "item" : String(base)[0].toLowerCase() + String(base).slice(1);
+    return root.freeId(stem, (items ?? []).map(item => item?.id), "-");
+  }
+
   // A CamelCase name as words: "SystemTray" -> "System Tray",
   // "Grid2x2" -> "Grid 2x2"
   function spaceWords(name) {
     return String(name ?? "").replace(/([a-zA-Z]{2,})(\d)/g, "$1 $2").replace(/([a-z])([A-Z])/g, "$1 $2");
   }
 
-  // The Material Symbols arrow pointing at a screen edge ("Top", "Left", ...)
+  // An enum value as English shown text, where the schema gives it no
+  // `x-enumLabels`: a lowerCamel word as a sentence ("top" → "Top",
+  // "accentText" → "Accent text"); anything else as it is. check_i18n.py
+  // makes its keys the same way.
+  function enumLabel(value) {
+    const text = String(value ?? "");
+    if (!/^[a-z][a-zA-Z0-9]*$/.test(text))
+      return text;
+    const words = root.spaceWords(text).split(" ");
+    return [words[0][0].toUpperCase() + words[0].slice(1)].concat(words.slice(1).map(word => /^[A-Z][a-z]/.test(word) ? word.toLowerCase() : word)).join(" ");
+  }
+
+  // The Material Symbols arrow pointing at a screen edge ("top", "left", ...)
   function edgeArrow(edge) {
     switch (edge) {
-    case "Bottom":
+    case "bottom":
       return "arrow_downward";
-    case "Left":
+    case "left":
       return "arrow_back";
-    case "Right":
+    case "right":
       return "arrow_forward";
     }
     return "arrow_upward";

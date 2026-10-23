@@ -173,6 +173,9 @@ QtObject {
       return;
 
     schema = _resolve(schema);
+    // An inheriting setting is null while it takes its value from elsewhere
+    if (value === null && schema["x-inherit"])
+      return;
 
     if (schema.type) {
       if (!_validateType(value, schema.type, path, errors)) {

@@ -2,11 +2,12 @@ pragma Singleton
 import QtQuick
 import qs.services
 
-// Reader for the Widget section: sizing for panels, cards, popouts and
+// Reader for the Interface section (named Widget, as every size outside
+// the bars is Widget.<size>): sizing for panels, cards, popouts and
 // controls, and the card size every module grid starts from. Bars size
 // their own widgets (Bar.enrichBarConfig).
 QtObject {
-  readonly property var _c: ConfigManager.config.Widget
+  readonly property var _c: ConfigManager.config.Interface
 
   // The Interface scale, as a factor: text (Appearance.fontSize) and the
   // sizes below grow with it
@@ -74,5 +75,6 @@ QtObject {
   }
   // Corners of what sits inside something (cards, controls, rows, bar
   // widgets); outer edges use Appearance.borderRadius
-  readonly property int radius: _c.overrideRadius ? _c.radius : Appearance.borderRadius
+  // (null: the main radius, Appearance's: x-inherit)
+  readonly property int radius: _c.radius !== null ? _c.radius : Appearance.borderRadius
 }

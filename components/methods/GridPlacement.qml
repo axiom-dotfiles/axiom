@@ -144,13 +144,13 @@ QtObject {
   }
 
   // The screen (`width` × `height` px) around an edge menu with modules
-  // reaching `bounds` (at card size `unit`) on `edge` ("Left" | "Right" |
-  // "Top" | "Bottom"), starting `along` px along the edge and `across` px
+  // reaching `bounds` (at card size `unit`) on `edge` ("left" | "right" |
+  // "top" | "bottom"), starting `along` px along the edge and `across` px
   // in from it, `gap` px between cards. In grid units from the menu's grid
   // origin, as the editor draws it (its sides midway in the gaps):
   // { x, y, w, h }.
   function screenBox(width, height, unit, bounds, edge, along, across, gap) {
-    const vertical = edge === "Left" || edge === "Right";
+    const vertical = edge === "left" || edge === "right";
     const spacing = gap ?? root.cardSpacing;
     const step = root.stepOf(unit, spacing);
     const thick = vertical ? bounds.cols : bounds.rows;
@@ -158,7 +158,7 @@ QtObject {
     const acrossLen = vertical ? width : height;
     // The screen's start, in px from the grid's origin
     const alongFrom = -along;
-    const acrossFrom = edge === "Right" || edge === "Bottom" ? thickPx + across - acrossLen : -across;
+    const acrossFrom = edge === "right" || edge === "bottom" ? thickPx + across - acrossLen : -across;
     const half = spacing / 2;
     return vertical ? {
       "x": (acrossFrom + half) / step,
@@ -559,15 +559,15 @@ QtObject {
     return null;
   }
 
-  // A screen layout's grid (a ScreenLayout: the lock screen's, the
-  // greeter's) in the units its places use: columns × rows, each split in
-  // two with `fineGrid`. { cols, rows }
-  // reads: Desktop.*.columns, Desktop.*.rows, Desktop.*.fineGrid, Lockscreen.layout.columns, Lockscreen.layout.rows, Lockscreen.layout.fineGrid, Greeter.layout.columns, Greeter.layout.rows, Greeter.layout.fineGrid
-  function screenGrid(layout) {
-    const scale = layout?.fineGrid ? 2 : 1;
+  // A screen layout's grid (a ScreenGrid { columns, rows, fine }: the
+  // lock screen's, the greeter's, a desktop layout's) in the units its
+  // places use: columns × rows, each split in two with `fine`. { cols, rows }
+  // reads: Desktop.items.grid, Lockscreen.layout.grid, Greeter.layout.grid
+  function screenGrid(grid) {
+    const scale = grid?.fine ? 2 : 1;
     return {
-      "cols": (layout?.columns ?? 0) * scale,
-      "rows": (layout?.rows ?? 0) * scale
+      "cols": (grid?.columns ?? 0) * scale,
+      "rows": (grid?.rows ?? 0) * scale
     };
   }
 
@@ -825,8 +825,8 @@ QtObject {
   // How many cells a menu's modules (reaching `bounds`, else its own)
   // take along its edge
   function unitsAlong(menu, bounds) {
-    const reach = bounds ?? root.bounds(menu.modules);
-    return menu.edge === "Left" || menu.edge === "Right" ? reach.rows : reach.cols;
+    const reach = bounds ?? root.bounds(menu.layout.modules);
+    return menu.edge === "left" || menu.edge === "right" ? reach.rows : reach.cols;
   }
 
   // Where a menu's modules start along its edge, `edgeLength` px long: on
@@ -846,7 +846,7 @@ QtObject {
   // (where they start on the lattice: null when the menu takes its whole
   // edge or is longer than the lattice), frame, screenWidth, screenHeight }
   function menuPlacement(menu, bounds, unit, frame, screenWidth, screenHeight, gap) {
-    const vertical = menu.edge === "Left" || menu.edge === "Right";
+    const vertical = menu.edge === "left" || menu.edge === "right";
     const sizes = root.trackSizes(bounds, unit, null, gap);
     const edgeLength = vertical ? screenHeight : screenWidth;
     const lattice = root.latticeOf(menu, edgeLength, unit, frame.startPad, frame.endPad, gap);
@@ -873,7 +873,7 @@ QtObject {
   // fitted to its edge when it takes the whole edge (as EdgeMenuBody), `gap`
   // px between its cards
   function menuOnScreen(menu, place, unit, gap) {
-    const vertical = menu.edge === "Left" || menu.edge === "Right";
+    const vertical = menu.edge === "left" || menu.edge === "right";
     const room = place.edgeLength - place.frame.startPad - place.frame.endPad;
     const stretch = menu.length !== "edge" ? null : vertical ? {
       "height": room,
@@ -882,9 +882,9 @@ QtObject {
       "width": room,
       "fit": true
     };
-    const sizes = root.trackSizes(root.bounds(menu.modules), unit, stretch, gap);
+    const sizes = root.trackSizes(root.bounds(menu.layout.modules), unit, stretch, gap);
     const depth = vertical ? sizes.width : sizes.height;
-    const acrossAt = menu.edge === "Right" ? place.screenWidth - place.across - depth : menu.edge === "Bottom" ? place.screenHeight - place.across - depth : place.across;
+    const acrossAt = menu.edge === "right" ? place.screenWidth - place.across - depth : menu.edge === "bottom" ? place.screenHeight - place.across - depth : place.across;
     const x = vertical ? acrossAt : place.along;
     const y = vertical ? place.along : acrossAt;
     const pad = place.frame.after;
@@ -895,7 +895,7 @@ QtObject {
         "width": sizes.width + pad * 2,
         "height": sizes.height + pad * 2
       },
-      "modules": (menu.modules ?? []).map(module => {
+      "modules": (menu.layout.modules ?? []).map(module => {
         const r = root.rectPx(module.place, sizes);
         return {
           "type": module.type,
@@ -1042,7 +1042,7 @@ QtObject {
     const across = others ?? root.cover(places);
     if (!across)
       return null;
-    const vertical = edge === "Left" || edge === "Right";
+    const vertical = edge === "left" || edge === "right";
     return {
       "x": vertical ? across.x : screen.x,
       "y": vertical ? screen.y : across.y,
@@ -1218,31 +1218,31 @@ QtObject {
   }
 
   // The band `depth` px deep inside `rect` ({ x, y, width, height }) along
-  // its `edge` side ("Left" | "Right" | "Top" | "Bottom")
+  // its `edge` side ("left" | "right" | "top" | "bottom")
   function edgeBand(rect, edge, depth) {
     switch (edge) {
-    case "Left":
+    case "left":
       return {
         "x": rect.x,
         "y": rect.y,
         "width": depth,
         "height": rect.height
       };
-    case "Right":
+    case "right":
       return {
         "x": rect.x + rect.width - depth,
         "y": rect.y,
         "width": depth,
         "height": rect.height
       };
-    case "Top":
+    case "top":
       return {
         "x": rect.x,
         "y": rect.y,
         "width": rect.width,
         "height": depth
       };
-    case "Bottom":
+    case "bottom":
       return {
         "x": rect.x,
         "y": rect.y + rect.height - depth,
@@ -1261,8 +1261,8 @@ QtObject {
   // A bar `thick` px wide centred on `rect`'s `edge` side, running along
   // `span`'s extent on that side (a rect; `rect` itself for the whole side)
   function edgeBar(rect, edge, span, thick) {
-    const alongRows = edge === "Left" || edge === "Right";
-    const across = edge === "Left" ? rect.x : edge === "Right" ? rect.x + rect.width : edge === "Top" ? rect.y : rect.y + rect.height;
+    const alongRows = edge === "left" || edge === "right";
+    const across = edge === "left" ? rect.x : edge === "right" ? rect.x + rect.width : edge === "top" ? rect.y : rect.y + rect.height;
     const start = alongRows ? span.y : span.x;
     const length = alongRows ? span.height : span.width;
     return alongRows ? {

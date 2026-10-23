@@ -3,7 +3,7 @@
 
 > **File:** `services/PomodoroManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The pomodoro timer: one for every widget and module, run here so it keeps time with nothing showing it. The state (PomodoroCycle's) holds an absolute end time, so it survives a QML reload (PersistentProperties) and a restart (StateManager "pomodoro"); a phase that ended while axiom wasn't running moves on quietly. A notification marks each end (with Pomodoro.notify); clicking it opens a page or edge menu with the timer. Displays acquire(owner) the once-a-second `now`; the end itself needs no one. qs -c axiom ipc call pomodoro toggle
+The pomodoro timer: one for every widget and module, run here so it keeps time with nothing showing it. The state (PomodoroCycle's) holds an absolute end time, so it survives a QML reload (PersistentProperties) and a restart (StateManager "pomodoro"); a phase that ended while axiom wasn't running moves on quietly. A notification marks each end (with Pomodoro.notify); clicking it opens a page or edge menu with the timer. Displays acquire(owner) the once-a-second `now`; the end itself needs no one. axiom ipc pomodoro toggle
 
 ### Properties
 

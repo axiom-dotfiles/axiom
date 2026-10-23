@@ -10,7 +10,7 @@ import qs.components.hosts.overlay
 // monitor under the bars. Pages only load while it's open
 Scope {
   Variants {
-    model: General.screensFor(OverlayConfig.monitors)
+    model: General.screensFor(OverlayConfig.screen)
     delegate: Scope {
       id: overlay
       required property ShellScreen modelData

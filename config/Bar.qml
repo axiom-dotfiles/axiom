@@ -21,7 +21,8 @@ QtObject {
   // do (BarManager.bars).
   function enrichBarConfig(barConfig, gapsOut) {
     const loc = Bar.getLocationFromString(barConfig.location);
-    // Its widget style, accents and shadow: BarStyle's, or its own
+    // Its widget style, accents and shadow: its own style's, each key it
+    // leaves null the Bars section's
     const look = Bar.lookOf(barConfig);
     // The bar is sized by its widgets, never the other way round, so no
     // setting can leave them cut off
@@ -79,7 +80,7 @@ QtObject {
     const grouping = boxed ? look.widgetGrouping : "separate";
 
     const vertical = loc === Bar.Left || loc === Bar.Right;
-    const screen = General.screensNamed(barConfig.monitor)[0] ?? null;
+    const screen = General.outputs.find(s => s.name === barConfig.monitor) ?? null;
     const bar = {
       "id": barConfig.id,
       // The config entry's id: a bar on every monitor has one per screen
@@ -125,10 +126,10 @@ QtObject {
       // section (that's for panels, popouts and controls)
       "widgetPadding": barConfig.widgetPadding,
       "widgetSpacing": barConfig.widgetSpacing,
-      "fontSize": barConfig.overrideFontSize ? barConfig.fontSize : Appearance.baseFontSize,
+      "fontSize": look.fontSize ?? Appearance.baseFontSize,
       // Widget chips only, else the interior radius: pills and fillets keep
       // Appearance's, to meet the border
-      "radius": barConfig.overrideRadius ? barConfig.widgetRadius : Widget.radius,
+      "radius": look.widgetRadius ?? Widget.radius,
       // How widgets show their colors (see widgetColors); the color
       // names stay unresolved
       "widgetStyle": look.widgetStyle,
@@ -364,23 +365,24 @@ QtObject {
   // have shapes and grouping
   readonly property var boxedStyles: ["filled", "tinted", "outline"]
 
-  // A bar's look groups (its override flag and the fields it covers, the
-  // flag's `x-group` in the Bar definition): each is the BarStyle
-  // section's unless the bar overrides it
-  // reads: Bars[].overrideWidgetStyle, Bars[].overrideAccents, Bars[].overrideShadow (by flag name)
-  readonly property var lookGroups: ["overrideWidgetStyle", "overrideAccents", "overrideShadow"].map(flag => ({
-        "flag": flag,
-        "keys": Bar.fieldGroups.find(group => group.keys.includes(flag)).keys.filter(key => key !== flag)
-      }))
-
-  // A bar entry with its look filled from BarStyle where it doesn't
-  // override it
-  function lookOf(barConfig) {
+  // A bar's look: its `style` (a BarStyle) with every key it leaves null
+  // (inherit) taken from the Bars section's (`section`, BarStyle.values
+  // when left out), its shadow as flat shadow / shadowColor / shadowSize,
+  // and the bar's own fields beside them. fontSize and widgetRadius stay
+  // null where both leave them (Appearance's and Widget's then).
+  function lookOf(barConfig, section) {
+    const base = section ?? BarStyle.values;
+    const own = barConfig?.style ?? {};
     const look = Object.assign({}, barConfig);
-    Bar.lookGroups.forEach(group => {
-      if (!barConfig[group.flag])
-        group.keys.forEach(key => look[key] = BarStyle.values[key]);
-    });
+    for (const key in base) {
+      if (key === "shadow")
+        continue;
+      look[key] = own[key] ?? base[key];
+    }
+    const shadow = own.shadow ?? {};
+    look.shadow = shadow.enabled ?? base.shadow.enabled;
+    look.shadowColor = shadow.color ?? base.shadow.color;
+    look.shadowSize = shadow.size ?? base.shadow.size;
     return look;
   }
 
@@ -397,25 +399,25 @@ QtObject {
     }, {});
   }
 
-  // The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings
-  readonly property var savedBars: ConfigManager.config.Bars
+  // The bars as saved (Bars.items): no previews, unexpanded
+  readonly property var savedBars: ConfigManager.config.Bars.items
 
-  // A bar on every monitor (`monitor: "*"`) becomes one entry per screen,
-  // each with its own id (keying its BarPanel) and that screen as its
-  // monitor. Any other bar's monitor is resolved like a dock's or edge
-  // menu's: its named screen, else (empty or not connected) the primary
-  // monitor.
+  // Each bar as one entry per screen it's on (its `screen`, a
+  // ScreenTarget): the primary monitor, every monitor, or those named
+  // (the primary monitor when none of them is connected). A bar on more
+  // than one screen gets an id per screen (keying its BarPanel), `sourceId`
+  // its own; `monitor` is the screen's name.
   function expandBars(bars) {
-    const names = General.outputs.map(s => s.name);
     return [].concat(...bars.map(bar => {
-      if (bar.monitor !== "*")
+      const screens = General.screensFor(bar.screen);
+      if (screens.length <= 1 || bar.screen.mode === "primary")
         return [Object.assign({}, bar, {
-            "monitor": General.screensNamed(bar.monitor)[0]?.name ?? ""
+            "monitor": screens[0]?.name ?? ""
           })];
-      return names.map(name => Object.assign({}, bar, {
-          "id": `${bar.id}@${name}`,
+      return screens.map(screen => Object.assign({}, bar, {
+          "id": `${bar.id}@${screen.name}`,
           "sourceId": bar.id,
-          "monitor": name
+          "monitor": screen.name
         }));
     }));
   }
@@ -423,8 +425,12 @@ QtObject {
   // A widget's `layout` overrides (size, minSize, priority), for the bar
   // editor's inspector
   readonly property var widgetLayoutSchema: ConfigManager.configSchema.definitions.WidgetLayout
-  // A bar's own fields in groups (`x-group`), for the bar editor
-  readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.definitions.Bar, ["widgets"])
+  // A bar's own fields in groups (`x-group`), for the bar editor (its
+  // style is edited apart: styleGroups)
+  readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.definitions.Bar, ["widgets", "style"])
+  // The BarStyle fields in groups, for the bar editor's style (a bar's,
+  // inheriting, or the Bars section's)
+  readonly property var styleGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.definitions.BarStyle, [])
 
   readonly property var availableWidgetTypes: {
     const oneOf = ConfigManager.configSchema?.definitions?.BarWidget?.oneOf || [];
@@ -464,18 +470,9 @@ QtObject {
     return [Bar.Bottom, Bar.Top, Bar.Right, Bar.Left][location];
   }
 
+  // The Bar.Location of an edge in config ("top" | "bottom" | "left" |
+  // "right"), Top for anything else
   function getLocationFromString(locStr) {
-    switch (locStr) {
-    case "Top":
-      return Bar.Top;
-    case "Bottom":
-      return Bar.Bottom;
-    case "Left":
-      return Bar.Left;
-    case "Right":
-      return Bar.Right;
-    default:
-      return Bar.Top;
-    }
+    return Math.max(0, Bar.locationOf(locStr));
   }
 }

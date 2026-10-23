@@ -16,7 +16,7 @@ Reader for the Appearance section. Values are always present: schema defaults ar
 - `wallpaperFolder` (readonly string)
 - `wallpaperPath` (readonly string)
 - `wallpaperMode` (readonly string): "fixed" | "rotate" (wallpaperRotation) | "variant" (variantWallpapers), driven by WallpaperManager
-- `rotationInterval` (readonly int)
+- `rotationInterval` (readonly int): How often it rotates (ms)
 - `rotationOrder` (readonly string): "random" | "sequential"
 - `rotationSameOnAll` (readonly bool)
 - `darkWallpaper` (readonly string): { dark, light }: file URLs, "" for none

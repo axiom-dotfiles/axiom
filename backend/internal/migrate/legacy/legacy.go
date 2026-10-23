@@ -20,6 +20,21 @@ import (
 //go:embed legacy.js
 var source string
 
+// The schema format 1 ended at (version 75), frozen with the migrations:
+// a format-1 file is loaded against it before it's converted to format 2.
+//
+//go:embed schema-v75.json
+var schemaV75 []byte
+
+// Schema is the frozen version-75 schema, parsed anew for each caller.
+func Schema() *jsonx.Object {
+	v, err := jsonx.Unmarshal(schemaV75)
+	if err != nil {
+		panic(err) // embedded and hash-checked by the tests
+	}
+	return v.(*jsonx.Object)
+}
+
 // LastVersion is the last format-1 version: legacy.js's currentVersion.
 const LastVersion = 75
 

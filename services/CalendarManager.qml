@@ -17,6 +17,10 @@ import qs.components.methods
  *   CalendarManager.eventsOn("2026-10-05")    // that day's, in order
  *   CalendarManager.dotsFor("2026-10-05")     // its calendars' colors
  *   CalendarManager.save(draft, scope, cb) / remove(event, scope, cb)
+ * What a server says of a calendar (its name, color, whether it's
+ * read-only, what it holds) is kept here, in the calendar state (`info`),
+ * not in config: an account's calendars there hold only what the user set
+ * (CalendarConfig.accounts). `calendars` joins the two.
  * Nothing runs in the greeter, which can't read the user's state anyway.
  */
 QtObject {
@@ -41,16 +45,72 @@ QtObject {
   // The span of events kept, widened as views page past it
   property var range: CalendarEvents.rangeFor(Date.now(), CalendarConfig.pastMonths, CalendarConfig.futureMonths)
 
+  // What servers said of each calendar, by "<account>|<href>": { name,
+  // serverColor, readOnly, components }, kept in the calendar state
+  property var info: ({})
+  // Every account's calendars, flattened: { id ("<account>|<href>"),
+  // account, accountName, kind, href, name (its own, else the server's),
+  // color (its own, else the server's, else the accent), enabled,
+  // readOnly, events (it holds events), writable }
+  readonly property var calendars: [].concat(...CalendarConfig.accounts.map(account => account.calendars.map(calendar => {
+      const id = account.id + "|" + calendar.href;
+      const known = root.info[id] ?? {};
+      const components = known.components ?? ["VEVENT"];
+      const readOnly = !CalendarConfig.writableKind(account.kind) || known.readOnly === true;
+      return {
+        "id": id,
+        "account": account.id,
+        "accountName": account.name,
+        "kind": account.kind,
+        "href": calendar.href,
+        "name": calendar.name || known.name || calendar.href,
+        "color": String(calendar.color ? Theme.resolveColor(calendar.color) : (known.serverColor || Theme.accent)),
+        "enabled": calendar.enabled,
+        "readOnly": readOnly,
+        "events": components.includes("VEVENT"),
+        "writable": !readOnly && components.includes("VEVENT")
+      };
+    })))
+  // The calendars shown, and those of them new events can go to
+  readonly property var shownCalendars: root.calendars.filter(calendar => calendar.enabled && calendar.events)
+  readonly property var writableCalendars: root.shownCalendars.filter(calendar => calendar.writable)
+  // Where a new event goes: the default calendar while it's shown and
+  // writable, else the first that is ("" with none)
+  readonly property string newEventCalendar: (root.writableCalendars.find(calendar => calendar.id === CalendarConfig.defaultCalendar) ?? root.writableCalendars[0])?.id ?? ""
+  // calendar id -> its color, for the views
+  readonly property var colors: root.calendars.reduce((map, calendar) => {
+    map[calendar.id] = calendar.color;
+    return map;
+  }, {})
+  function calendar(id) {
+    return root.calendars.find(calendar => calendar.id === id) ?? null;
+  }
+
+  // Keeps what a server said of an account's calendars (discover's
+  // `calendars`: { href, name, color, readOnly, components })
+  function remember(accountId, found) {
+    const info = Object.assign({}, root.info);
+    for (const calendar of found ?? [])
+      info[accountId + "|" + calendar.href] = {
+        "name": calendar.name ?? "",
+        "serverColor": calendar.color ?? "",
+        "readOnly": calendar.readOnly === true,
+        "components": calendar.components ?? ["VEVENT"]
+      };
+    root.info = info;
+    root._saveState();
+  }
+
   // Shown calendars' events by day ({ "YYYY-MM-DD": [event] })
-  readonly property var byDay: CalendarEvents.byDay(root.events, CalendarConfig.shownCalendars.map(calendar => calendar.id))
-  readonly property bool hasCalendars: CalendarConfig.shownCalendars.length > 0
+  readonly property var byDay: CalendarEvents.byDay(root.events, root.shownCalendars.map(calendar => calendar.id))
+  readonly property bool hasCalendars: root.shownCalendars.length > 0
 
   function eventsOn(key) {
     return root.byDay[key] ?? [];
   }
 
   function dotsFor(key) {
-    return CalendarEvents.dotColors(root.byDay[key], CalendarConfig.colors, CalendarConfig.maxDots);
+    return CalendarEvents.dotColors(root.byDay[key], root.colors, CalendarConfig.maxDots);
   }
 
   // When an event happens on a day, for its row: "All day", "9:00 – 10:00",
@@ -71,7 +131,7 @@ QtObject {
 
   // Shown events from now until `until` (epoch ms), by start
   function upcoming(now, until, allDay) {
-    const shown = CalendarConfig.shownCalendars.map(calendar => calendar.id);
+    const shown = root.shownCalendars.map(calendar => calendar.id);
     return CalendarEvents.upcoming(root.events.filter(event => shown.includes(event.calendar)), now, until, allDay);
   }
 
@@ -126,7 +186,7 @@ QtObject {
   function save(draft, scope, callback) {
     if (Paths.greeter)
       return;
-    const calendar = CalendarConfig.calendar(draft.calendar);
+    const calendar = root.calendar(draft.calendar);
     if (!calendar?.writable)
       return callback?.({
         "ok": false,
@@ -170,7 +230,7 @@ QtObject {
   function remove(event, scope, callback) {
     if (Paths.greeter)
       return;
-    const calendar = CalendarConfig.calendar(event.calendar);
+    const calendar = root.calendar(event.calendar);
     if (!calendar?.writable)
       return callback?.({
         "ok": false,
@@ -197,9 +257,9 @@ QtObject {
   // can't (no title, or no calendar to add to)
   function quickAdd(text, callback) {
     const parsed = root.parseQuickAdd(text);
-    if (!parsed || !CalendarConfig.newEventCalendar)
+    if (!parsed || !root.newEventCalendar)
       return false;
-    const draft = CalendarEvents.newDraft(CalendarEvents.dayKey(parsed.start), Date.now(), CalendarConfig.newEventCalendar, CalendarConfig.defaultDuration, CalendarConfig.defaultReminder);
+    const draft = CalendarEvents.newDraft(CalendarEvents.dayKey(parsed.start), Date.now(), root.newEventCalendar, CalendarConfig.defaultDuration, CalendarConfig.defaultReminder);
     root.save(Object.assign(draft, parsed), "series", result => {
       if (result.ok)
         NotificationManager.sendNotification(I18n.tr("Calendar"), I18n.tr("Added {0}", parsed.title), parsed.allDay ? I18n.formatDate(new Date(parsed.start), I18n.dateFormat("longDate")) : I18n.tr("{0} · {1}", I18n.formatDate(new Date(parsed.start), I18n.dateFormat("longDate")), I18n.formatDate(new Date(parsed.start), CalendarConfig.timeFormat)), {
@@ -286,7 +346,7 @@ QtObject {
   readonly property bool _wanted: !Paths.greeter && CalendarConfig.accounts.length > 0 && (root._registry.active || CalendarConfig.reminders)
 
   // What a sync fetches: a change syncs again (colors and names don't)
-  readonly property string _syncKey: JSON.stringify(CalendarConfig.accounts.map(account => [account.id, account.kind, account.url, account.username, CalendarConfig.shownCalendars.filter(calendar => calendar.account === account.id).map(calendar => calendar.href)]))
+  readonly property string _syncKey: JSON.stringify(CalendarConfig.accounts.map(account => [account.id, account.kind, account.url, account.username, root.shownCalendars.filter(calendar => calendar.account === account.id).map(calendar => calendar.href)]))
   on_SyncKeyChanged: {
     if (root._loaded && !Paths.greeter)
       root._syncSoon.restart();
@@ -300,7 +360,7 @@ QtObject {
   }
 
   property Timer _poll: Timer {
-    interval: Math.max(1, CalendarConfig.syncInterval) * 60000
+    interval: Math.max(60000, CalendarConfig.syncInterval)
     repeat: true
     running: root._wanted
     triggeredOnStart: true
@@ -328,7 +388,7 @@ QtObject {
           "url": account.url,
           "username": account.username,
           "password": "",
-          "calendars": CalendarConfig.shownCalendars.filter(calendar => calendar.account === account.id).map(calendar => ({
+          "calendars": root.shownCalendars.filter(calendar => calendar.account === account.id).map(calendar => ({
                 "href": calendar.href
               }))
         })).filter(account => account.calendars.length > 0 || account.id === onlyAccount);
@@ -415,7 +475,7 @@ QtObject {
     root._alarmTimer.stop();
     if (Paths.greeter || !CalendarConfig.reminders)
       return;
-    const shown = CalendarConfig.shownCalendars.map(calendar => calendar.id);
+    const shown = root.shownCalendars.map(calendar => calendar.id);
     const next = CalendarEvents.nextAlarm(root.events.filter(event => shown.includes(event.calendar)), Date.now(), root._fired, 300000);
     if (!next)
       return;
@@ -426,7 +486,7 @@ QtObject {
 
   function _fireDue() {
     const now = Date.now();
-    const shown = CalendarConfig.shownCalendars.map(calendar => calendar.id);
+    const shown = root.shownCalendars.map(calendar => calendar.id);
     const events = root.events.filter(event => shown.includes(event.calendar));
     let next = CalendarEvents.nextAlarm(events, now, root._fired, 300000);
     let fired = false;
@@ -445,11 +505,16 @@ QtObject {
         if (root._fired[id] > now - 2 * 86400000)
           kept[id] = root._fired[id];
       root._fired = kept;
-      root._state.save({
-        "fired": kept
-      });
+      root._saveState();
     }
     root._scheduleAlarm();
+  }
+
+  function _saveState() {
+    root._state.save({
+      "fired": root._fired,
+      "info": root.info
+    });
   }
 
   function _notify(event) {
@@ -509,9 +574,12 @@ QtObject {
   Component.onCompleted: {
     if (Paths.greeter)
       return;
-    root._fired = root._state.load({
-      "fired": {}
-    }).fired ?? {};
+    const state = root._state.load({
+      "fired": {},
+      "info": {}
+    });
+    root._fired = state.fired ?? {};
+    root.info = state.info ?? {};
     root._loadEvents();
     root._loaded = true;
     NotificationManager.registerHandler(root._desktopEntry, () => root.openPage());

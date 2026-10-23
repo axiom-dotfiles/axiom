@@ -53,7 +53,7 @@ Scope {
   SurfaceGroup {
     id: group
     kind: "launcher"
-    mode: LauncherConfig.monitors
+    target: LauncherConfig.screen
     screen: root.screen
     window: root.host?.window ?? null
     shown: root.shown
@@ -62,7 +62,7 @@ Scope {
 
   Connections {
     target: ShellManager
-    enabled: ShellManager.isTarget(root.screen, LauncherConfig.monitors)
+    enabled: ShellManager.isTarget(root.screen, LauncherConfig.screen)
     function onToggleAppLauncher() {
       root.toggle();
     }
@@ -78,7 +78,7 @@ Scope {
 
   IpcTarget {
     target: "appLauncher"
-    enabled: ShellManager.isTarget(root.screen, LauncherConfig.monitors)
+    enabled: ShellManager.isTarget(root.screen, LauncherConfig.screen)
 
     function toggle(): void {
       root.toggle();

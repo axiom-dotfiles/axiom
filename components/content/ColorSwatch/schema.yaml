@@ -1,0 +1,14 @@
+label: Theme color swatch
+icon: palette
+group: Look & layout
+defaultSize: [2, 2]
+canvasDetail: color
+canvasFill: color
+hosts: [lockscreen, greeter]
+settings:
+  color: {type: string, title: Color, default: base00, x-options: colors}
+  label:
+    type: string
+    title: Label
+    default: ''
+    description: Secondary label, e.g. the semantic role.

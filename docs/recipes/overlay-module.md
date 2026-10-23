@@ -1,11 +1,11 @@
 # Recipe: a new overlay module
 
 > **Use when:** adding a card type for overlay pages (also usable in edge menus and on the desktop, and on the lock screen or greeter when it opts in).
-> **Copy from:** `components/content/Battery.qml` (`Card`, `fullMinWidth`/`fullMinHeight`, `compactContent: CompactFigure`, `shape`), `components/content/ColorSwatch.qml` (driven by `properties`); schema `definitions.BatteryOverlayModule` (with `x-hosts`) or `definitions.CalculatorOverlayModule` (with `properties`).
+> **Copy from:** `components/content/Battery/Battery.qml` (`Card`, `fullMinWidth`/`fullMinHeight`, `compactContent: CompactFigure`, `shape`), `components/content/ColorSwatch/ColorSwatch.qml` (driven by `properties`); schema `definitions.BatteryOverlayModule` (with `x-hosts`) or `definitions.CalculatorOverlayModule` (with `properties`).
 > **Docs:** [overlay/writing-modules](../dev/overlay/writing-modules.md), [overlay/content-roots](../dev/overlay/content-roots.md), [overlay/grow-expand](../dev/overlay/grow-expand.md), rules in `components/content/AGENTS.md`; generated: [config/OverlayModules](../dev/config/OverlayModules.md).
 
 ## Files to touch
-1. `components/content/<Type>.qml`: the module. The file name is the type const.
+1. `components/content/<Type>/<Type>.qml`: the module. The file name is the type const.
 2. `config/schema/definitions/modules/<Type>OverlayModule.yaml` (and its name in `config/schema/index.yaml`'s `definitions`), and its `$ref` appended to the `oneOf` of `config/schema/definitions/modules/OverlayModule.yaml`.
 3. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template.
 4. A service, if it needs data ([service](service.md)): modules only read and acquire.

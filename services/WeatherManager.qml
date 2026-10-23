@@ -18,7 +18,7 @@ QtObject {
     longitude: WeatherConfig.longitude
     location: WeatherConfig.location
     units: WeatherConfig.units
-    intervalMinutes: WeatherConfig.intervalMinutes
+    interval: WeatherConfig.interval
     active: root._registry.active
   }
 

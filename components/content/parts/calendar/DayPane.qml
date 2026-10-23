@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
+import qs.services
 import qs.components.methods
 
 // A day's events (DayAgenda) that turn into the EventEditor for the one
@@ -30,9 +31,9 @@ Item {
   readonly property real actionsWidth: root._editing ? editor.actionsWidth : 0
 
   function newEvent() {
-    if (root.readOnly || !CalendarConfig.newEventCalendar)
+    if (root.readOnly || !CalendarManager.newEventCalendar)
       return;
-    editor.open(CalendarEvents.newDraft(root.dayKey, Date.now(), CalendarConfig.newEventCalendar, CalendarConfig.defaultDuration, CalendarConfig.defaultReminder));
+    editor.open(CalendarEvents.newDraft(root.dayKey, Date.now(), CalendarManager.newEventCalendar, CalendarConfig.defaultDuration, CalendarConfig.defaultReminder));
     root._editing = true;
   }
 

@@ -1,0 +1,18 @@
+label: Keyboard Layout
+link: {setting: Input.keyboard.layout}
+icon: keyboard
+group: System
+popout: menu
+colors: standard
+settings:
+  format:
+    type: string
+    title: Format
+    default: short
+    enum: [short, full]
+    description: Layout code (US) or full keymap name (English (US)).
+  hideSingle:
+    type: boolean
+    title: Hide single layout
+    default: false
+    description: Hide the widget when only one layout is configured.

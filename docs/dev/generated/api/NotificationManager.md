@@ -3,7 +3,7 @@
 
 > **File:** `services/NotificationManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-NotificationManager is the DBus notification server and the notification history. Every notification (bar transient ones) becomes an entry that stays until the user removes it (dismiss, swipe, clear all), even if its app withdraws it, and survives restarts: entries are saved to $XDG_STATE_HOME/axiom/notifications.json, their images cached as small PNGs beside it (raw image data is gone once the notification is). An entry is a plain object: { uid, nid, appName, appIcon, desktopEntry, summary, body, image, urgency, time, live } `live` while its Notification is still around (liveNotification(uid)), so its actions work; restored or withdrawn entries have none. The history keeps NotificationsConfig.maxEntries entries, none older than maxAgeDays (when set), and with clearOnFocus an app's entries go when one of its windows is focused. DND is saved in Paths.statePath.
+NotificationManager is the DBus notification server and the notification history. Every notification (bar transient ones) becomes an entry that stays until the user removes it (dismiss, swipe, clear all), even if its app withdraws it, and survives restarts: entries are saved to $XDG_STATE_HOME/axiom/notifications.json, their images cached as small PNGs beside it (raw image data is gone once the notification is). An entry is a plain object: { uid, nid, appName, appIcon, desktopEntry, summary, body, image, urgency, time, live } `live` while its Notification is still around (liveNotification(uid)), so its actions work; restored or withdrawn entries have none. The history keeps NotificationsConfig.maxEntries entries, none older than maxAge (when set), and with clearOnFocus an app's entries go when one of its windows is focused. DND is saved in Paths.statePath.
 
 ### Properties
 
@@ -11,7 +11,7 @@ NotificationManager is the DBus notification server and the notification history
 - `count` (readonly int)
 - `countLabel` (readonly string): The count for a badge: "99+" past 99
 - `maxEntries` (readonly int)
-- `maxAgeDays` (readonly int)
+- `maxAge` (readonly real)
 - `dnd` (readonly bool): Do Not Disturb: no toasts but critical ones (notifications still go into the history).
 - `imageHost` (Item): An item in a window, set by the toast host (shell/Notifications): caching an image renders it there
 - `historyPath` (readonly string)

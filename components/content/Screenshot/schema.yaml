@@ -1,0 +1,5 @@
+label: Screenshot
+link: {setting: Screenshots}
+icon: camera
+group: Tools
+defaultSize: [4, 2]

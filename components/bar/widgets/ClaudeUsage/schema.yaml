@@ -1,0 +1,46 @@
+label: Claude Usage
+icon: data_usage
+group: System
+popout: {variant: own, enabled: {description: List every limit per account when hovered.}}
+colors: standard
+settings:
+  metric:
+    type: string
+    title: Limit shown
+    default: session
+    enum: [session, weekly]
+    x-enumLabels: {session: Current session, weekly: Weekly}
+  display:
+    type: string
+    title: Accounts shown
+    default: max
+    enum: [max, all, first]
+    x-enumLabels: {max: Fullest, all: All, first: First}
+    description: Which account's usage the bar shows. The popout lists every account.
+  icon:
+    type: string
+    title: Icon
+    default: data_usage
+    description: A Material Symbols name (fonts.google.com/icons), or text.
+  warnThreshold:
+    type: integer
+    title: Warning at
+    x-unit: '%'
+    default: 75
+    minimum: 1
+    maximum: 100
+  criticalThreshold:
+    type: integer
+    title: Critical at
+    x-unit: '%'
+    default: 90
+    minimum: 1
+    maximum: 100
+  clickCommand:
+    x-scope: commands
+    type: string
+    title: Click command
+    default: ''
+    description: 'Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now.'
+  warnColor: {$ref: '#/definitions/WidgetColor', title: Warning color, x-autoColor: warning}
+  criticalColor: {$ref: '#/definitions/WidgetColor', title: Critical color, x-autoColor: critical}

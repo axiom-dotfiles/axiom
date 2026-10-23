@@ -9,10 +9,10 @@ QtObject {
 
   readonly property var _c: ConfigManager.config.Pomodoro
 
-  // Minutes
-  readonly property int workMinutes: _c.workMinutes
-  readonly property int shortBreakMinutes: _c.shortBreakMinutes
-  readonly property int longBreakMinutes: _c.longBreakMinutes
+  // Lengths (ms)
+  readonly property int work: _c.work
+  readonly property int shortBreak: _c.shortBreak
+  readonly property int longBreak: _c.longBreak
   // Focus sessions before a long break
   readonly property int longBreakEvery: _c.longBreakEvery
   readonly property bool autoStartBreaks: _c.autoStartBreaks
@@ -20,9 +20,9 @@ QtObject {
   readonly property bool notify: _c.notify
   // The lengths as PomodoroCycle takes them
   readonly property var settings: ({
-      "workMinutes": root.workMinutes,
-      "shortBreakMinutes": root.shortBreakMinutes,
-      "longBreakMinutes": root.longBreakMinutes,
+      "work": root.work,
+      "shortBreak": root.shortBreak,
+      "longBreak": root.longBreak,
       "longBreakEvery": root.longBreakEvery
     })
 }

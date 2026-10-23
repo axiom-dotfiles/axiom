@@ -15,7 +15,7 @@ import qs.components.methods
 // interval (tracked across restarts in $XDG_STATE_HOME/axiom/claude-usage.json)
 // and a failure backs off exponentially, honouring Retry-After on a 429.
 // Widgets register with acquire(owner, { accounts: [{label, configDir}],
-// intervalMinutes }) and drop it with release(owner).
+// interval (ms) }) and drop it with release(owner).
 QtObject {
   id: root
 
@@ -28,7 +28,7 @@ QtObject {
 
   function acquire(owner, request) {
     _registry.acquire(owner, {
-      "interval": Math.max(1, request?.intervalMinutes ?? 5) * 60000,
+      "interval": Math.max(60000, request?.interval ?? 300000),
       "accounts": (request?.accounts ?? []).filter(a => a?.configDir).map(a => ({
             "label": a.label ?? "",
             "dir": Paths.expandHome(a.configDir)

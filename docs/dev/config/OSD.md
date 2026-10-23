@@ -18,86 +18,94 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Scroll step: How much one wheel notch changes the level.
   - x-showIf={"scrollToChange":true}
   - read: `OSDConfig.scrollStep` (computed) · in: `components/surfaces/osd/OSDBar.qml`
-- **`OSD.osds`** · array<OSDEntry> = [{"id":"main"}]
+- **`OSD.items`** · array<OSDEntry> = [{"id":"main","screen":{"mode":"inherit","names":[]}}]
   - OSDs: Each OSD has its own place and bars. A change opens every OSD holding that bar.
   - x-settings=false
-  - read: `OSDConfig.osds` (computed) · in: `components/views/settings/OSDListCard.qml`
+  - read: `OSDConfig.osds` (computed) · in: `components/views/Settings/OSDListCard.qml`
 
-### `OSD.osds[]`
+### `OSD.items[]`
 
-- **`OSD.osds[]`** · object
-- **`OSD.osds[].id`** · string = "main"
-  - ID
-  - x-settings=false
+- **`OSD.items[]`** · object
+- **`OSD.items[].id`** · string
+  - The item's stable id, unique in its list: what editors, path ops and imports match it by.
+  - pattern="^[A-Za-z0-9][A-Za-z0-9._-]*$", x-settings=false
   - read: entry field, name match · in: `components/surfaces/osd/OSDTriggers.qml`, `config/OSDConfig.qml`, `shell/OSD.qml`
-- **`OSD.osds[].name`** · string = ""
+- **`OSD.items[].name`** · string = ""
   - Name: Shown on its tab here. Empty names it by its bars.
   - read: entry field, name match · in: `components/surfaces/osd/OSDTriggers.qml`, `config/OSDConfig.qml`, `shell/OSD.qml`
-- **`OSD.osds[].enabled`** · boolean = true
+- **`OSD.items[].enabled`** · boolean = true
   - Enabled
   - read: entry field, name match · in: `config/OSDConfig.qml`
-- **`OSD.osds[].monitors`** · string = "general" · enum general|primary|focused|all|monitor
-  - Monitors: Where the OSD appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once; a specific monitor is the one picked below.
-  - x-link={"setting":"General.monitors"}
-  - read: entry field, name match · in: `components/surfaces/osd/OSDTriggers.qml`, `shell/OSD.qml`
-- **`OSD.osds[].monitor`** · string = ""
-  - Monitor: Monitor the OSD is shown on. Empty uses the primary monitor.
-  - x-monitorRef="off", x-scope="machine", x-options="screens", x-showIf={"monitors":"monitor"}
-  - read: entry field, name match · in: `components/surfaces/osd/OSDTriggers.qml`, `shell/OSD.qml`
-- **`OSD.osds[].edge`** · string = "Bottom" · enum Top|Bottom|Left|Right
+
+### `OSD.items[].screen`
+
+- **`OSD.items[].screen`** · object
+  - Monitors: Which monitors it's shown on.
+- **`OSD.items[].screen.mode`** · string = "inherit" · enum inherit|primary|focused|all|named
+  - Monitors
+  - x-scope="look", x-link={"setting":"General.screen"}
+  - read: entry field, name match · in: none found
+- **`OSD.items[].screen.names`** · array<string> = []
+  - Monitors
+  - x-scope="machine", x-monitorRef="off", x-showIf={"mode":"named"}
+  - read: entry field, name match · in: `components/surfaces/osd/OSDBar.qml`
+
+### `OSD.items[]`
+
+- **`OSD.items[].edge`** · string = "bottom" · enum top|bottom|left|right
   - Screen edge: Screen edge the OSD slides out of.
   - read: entry field, name match · in: `shell/OSD.qml`
-- **`OSD.osds[].position`** · integer = 50 · 0–100 · %
+- **`OSD.items[].position`** · integer = 50 · 0–100 · %
   - Position along edge: Where along the edge it opens: 0 is the start (left/top), 100 the end.
   - read: entry field, name match · in: `shell/OSD.qml`
-- **`OSD.osds[].detached`** · boolean = false
+- **`OSD.items[].detached`** · boolean = false
   - Detach from edge: A separate box held off the edge. Off, the OSD grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge.
   - read: entry field, name match · in: `shell/OSD.qml`
-- **`OSD.osds[].gap`** · integer = -1 · -1–200 · px
+- **`OSD.items[].gap`** · integer = -1 · -1–200 · px
   - Gap: Space between the OSD and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows.
   - x-control="stepper", x-auto={"value":-1,"start":8}, x-beside=true, x-showIf={"detached":true}
   - read: entry field, name match · in: `shell/OSD.qml`
-- **`OSD.osds[].orientation`** · string = "Vertical" · enum Vertical|Horizontal
+- **`OSD.items[].orientation`** · string = "vertical" · enum vertical|horizontal
   - Bar orientation: Vertical bars sit side by side; horizontal bars stack as rows.
   - read: entry field, name match · in: `components/surfaces/osd/OSDBar.qml`, `components/surfaces/osd/OSDContent.qml`
-- **`OSD.osds[].alongEdge`** · boolean = false
+- **`OSD.items[].alongEdge`** · boolean = false
   - Line up along the edge: Put the bars end to end in one line along the edge, instead of stacked away from it: the OSD is longer but sticks out less. Shown only while the bars run along the edge.
-  - x-showIf={"anyOf":[{"edge":["Top","Bottom"],"orientation":"Horizontal"},{"edge…
+  - x-showIf={"anyOf":[{"edge":["top","bottom"],"orientation":"horizontal"},{"edge…
   - read: entry field, name match · in: `components/surfaces/osd/OSDContent.qml`
-- **`OSD.osds[].openOnHover`** · boolean = false
+- **`OSD.items[].openOnHover`** · boolean = false
   - Open on hover: Also open the OSD when the mouse touches the screen edge where it appears.
   - read: entry field, name match · in: `shell/OSD.qml`
-- **`OSD.osds[].timeout`** · integer = 1000 · 250–10000 · ms
+- **`OSD.items[].timeout`** · integer = 1000 · 250–10000 · ms
   - Timeout: How long the OSD stays open after the last change.
   - read: entry field, name match · in: `shell/OSD.qml`
-- **`OSD.osds[].showPercent`** · boolean = true
+- **`OSD.items[].showPercent`** · boolean = true
   - Show percentages: Show each bar's level as a percentage beside its icon.
   - read: entry field, name match · in: `components/surfaces/osd/OSDBar.qml`, `components/surfaces/osd/OSDContent.qml`
-- **`OSD.osds[].bars`** · array<object> = [{"type":"other","icon":"music_note","showOsd":true},{"type":"master"…
+- **`OSD.items[].bars`** · array<object> = [{"type":"other","icon":"music_note","showOsd":true},{"type":"master"…
   - Bars: One bar per entry, in order. System volume is the output device's volume, Other apps is the first playing stream no App bar (in any OSD) matches, Microphone is the input device's volume, and Brightness is the monitor's own (a laptop panel through brightnessctl, an external monitor over DDC/CI through ddcutil; left out on a monitor that has neither).
   - read: entry field, name match · in: `components/surfaces/osd/OSDContent.qml`, `config/OSDConfig.qml`
 
-### `OSD.osds[].bars[]`
+### `OSD.items[].bars[]`
 
-- **`OSD.osds[].bars[]`** · object
+- **`OSD.items[].bars[]`** · object
   - x-scopeIf={"when":{"type":"app"},"scope":"personal"}
-- **`OSD.osds[].bars[].type`** · string = "app" · enum master|other|microphone|brightness|app
+- **`OSD.items[].bars[].type`** · string = "app" · enum master|other|microphone|brightness|app
   - Shows
   - read: entry field, name match · in: `components/surfaces/osd/OSDBar.qml`, `config/OSDConfig.qml`
-- **`OSD.osds[].bars[].apps`** · array<string> = []
+- **`OSD.items[].bars[].apps`** · array<string> = []
   - Apps: Comma-separated; each matched as a substring of a stream's binary or name. The bar shows the first listed app with a stream open, and a change sets every matching stream.
   - x-scope="personal", x-showIf={"type":"app"}, x-suggestions="audioApps"
   - read: entry field, name match · in: `components/surfaces/osd/OSDBar.qml`, `config/OSDConfig.qml`
-- **`OSD.osds[].bars[].icon`** · string = ""
-  - Icon: Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness.
-  - read: entry field, name match · in: `components/surfaces/osd/OSDBar.qml`
-- **`OSD.osds[].bars[].allMonitors`** · boolean = false
+- **`OSD.items[].bars[].allMonitors`** · boolean = false
   - All monitors: The bar sets every monitor with a brightness control at once, instead of only the one the OSD is on.
   - x-showIf={"type":"brightness"}
   - read: entry field, name match · in: `components/surfaces/osd/OSDBar.qml`
-- **`OSD.osds[].bars[].showOsd`** · boolean = true
+- **`OSD.items[].bars[].icon`** · string = ""
+  - Icon: Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness.
+  - read: entry field, name match · in: `components/surfaces/osd/OSDBar.qml`
+- **`OSD.items[].bars[].showOsd`** · boolean = true
   - Opens the OSD: A change on this bar opens the OSD (it always keeps an open one open).
-  - read: `OSDConfig.osds` (whole) · in: `components/views/settings/OSDListCard.qml`
+  - read: `OSDConfig.osds` (whole) · in: `components/views/Settings/OSDListCard.qml`
 
 ### Reader members
 
@@ -106,7 +114,7 @@ Every public member of `OSDConfig`, with the files that use it.
 - `OSDConfig.scrollStep` (real): Level change per wheel notch (0-1); 0 when scrolling is off
   - in: `components/surfaces/osd/OSDBar.qml`
 - `OSDConfig.osds` (var)
-  - in: `components/views/settings/OSDListCard.qml`
+  - in: `components/views/Settings/OSDListCard.qml`
 - `OSDConfig.shownIds` (var): The enabled ones, by id: what the shell builds
   - in: `shell/OSD.qml`
 - `OSDConfig.excludedApps` (var): The streams the App bars of every OSD match, which the Other apps bars skip
@@ -114,4 +122,4 @@ Every public member of `OSDConfig`, with the files that use it.
 - `OSDConfig.osdById(id)`
   - in: `shell/OSD.qml`
 - `OSDConfig.labelOf(osd)`: The name on its tab: its own, else its bars'
-  - in: `components/views/settings/OSDListCard.qml`
+  - in: `components/views/Settings/OSDListCard.qml`

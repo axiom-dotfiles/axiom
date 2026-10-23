@@ -29,11 +29,15 @@ properties:
     description: 'What the built-in locker shows, edited on the Layouts page: its modules on a grid of columns × rows units, fitted to each monitor.'
     default:
       modules:
-        - type: ClockCalendar
-          place: {x: 0, "y": 0, w: 4, h: 2}
-        - type: Greeting
-          place: {x: 4, "y": 2, w: 8, h: 2}
-        - type: Password
-          place: {x: 5, "y": 4, w: 6, h: 1}
-        - type: NowPlaying
-          place: {x: 0, "y": 7, w: 5, h: 2}
+        - id: clockCalendar
+          type: ClockCalendar
+          place: {x: 0, 'y': 0, w: 4, h: 2}
+        - id: greeting
+          type: Greeting
+          place: {x: 4, 'y': 2, w: 8, h: 2}
+        - id: password
+          type: Password
+          place: {x: 5, 'y': 4, w: 6, h: 1}
+        - id: nowPlaying
+          type: NowPlaying
+          place: {x: 0, 'y': 7, w: 5, h: 2}

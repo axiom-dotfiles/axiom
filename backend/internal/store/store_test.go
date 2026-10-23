@@ -14,15 +14,20 @@ import (
 	"github.com/axiom-shell/axiom/backend/internal/jsonx"
 	"github.com/axiom-shell/axiom/backend/internal/schema"
 	"github.com/axiom-shell/axiom/backend/internal/testkit"
+	"github.com/axiom-shell/axiom/backend/internal/tree"
 )
 
 func pipeline(t *testing.T) config.Pipeline {
 	t.Helper()
-	root, err := testkit.Schema("legacy-v75")
+	data, err := tree.BuildSchema(testkit.RepoRoot())
 	if err != nil {
 		t.Fatal(err)
 	}
-	return config.LegacyPipeline{S: schema.New(root)}
+	root, err := jsonx.Unmarshal(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return config.V2Pipeline{S: schema.New(root)}
 }
 
 func open(t *testing.T, dir string) *Store {
@@ -40,7 +45,7 @@ func TestFirstRunWritesDefaults(t *testing.T) {
 	dir := t.TempDir()
 	s := open(t, dir)
 	cfg, st := s.Config()
-	if !st.FirstRun || cfg.Value("version") != 75.0 {
+	if !st.FirstRun || cfg.Value("version") != 76.0 || cfg.Value("format") != 2.0 {
 		t.Fatalf("state %+v", st)
 	}
 	data, _ := os.ReadFile(filepath.Join(dir, FileName))
@@ -65,18 +70,47 @@ func TestOneWriterPerFolder(t *testing.T) {
 	}
 }
 
-func TestOldConfigMigratesAndIsWrittenBack(t *testing.T) {
+func TestFormat1IsConvertedAndKept(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, FileName), []byte(`{"version": 74}`), 0o644)
+	old := []byte(`{"version": 74, "Widget": {"overrideRadius": true, "radius": 9}}`)
+	os.WriteFile(filepath.Join(dir, FileName), old, 0o644)
 	s := open(t, dir)
-	cfg, _ := s.Config()
-	if cfg.Value("version") != 75.0 {
-		t.Errorf("version %v", cfg.Value("version"))
+	cfg, st := s.Config()
+	if st.Blocked || cfg.Value("version") != 76.0 || cfg.Value("format") != 2.0 {
+		t.Fatalf("version %v format %v state %+v", cfg.Value("version"), cfg.Value("format"), st)
+	}
+	if r := cfg.Value("Interface").(*jsonx.Object).Value("radius"); r != 9.0 {
+		t.Errorf("Interface.radius %v", r)
 	}
 	data, _ := os.ReadFile(filepath.Join(dir, FileName))
-	if !strings.Contains(string(data), `"version": 75`) {
-		t.Error("migration not written back")
+	if !strings.Contains(string(data), `"format": 2`) {
+		t.Error("the conversion wasn't written back")
+	}
+	// The file from before, kept once
+	kept, err := os.ReadFile(filepath.Join(dir, Format1File))
+	if err != nil || string(kept) != string(old) {
+		t.Errorf("format-1 copy: %q %v", kept, err)
+	}
+}
+
+func TestFormatsItCantReadBlock(t *testing.T) {
+	t.Parallel()
+	for name, content := range map[string]string{
+		"no format, format 2's version": `{"version": 76}`,
+		"another format":                `{"format": 3, "version": 80}`,
+		"newer version":                 `{"format": 2, "version": 99}`,
+	} {
+		dir := t.TempDir()
+		os.WriteFile(filepath.Join(dir, FileName), []byte(content), 0o644)
+		s := open(t, dir)
+		if _, st := s.Config(); !st.Blocked || len(st.Issues) == 0 {
+			t.Errorf("%s: state %+v", name, st)
+		}
+		data, _ := os.ReadFile(filepath.Join(dir, FileName))
+		if string(data) != content {
+			t.Errorf("%s: the file was rewritten", name)
+		}
 	}
 }
 

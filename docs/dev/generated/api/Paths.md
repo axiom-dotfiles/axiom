@@ -9,8 +9,10 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 
 - `homeDirectory` (readonly string): --- Paths (from the environment, not from any config value) ---
 - `axiomPath` (readonly string): Shell root (this repo), always with a trailing slash.
-- `shellCommand` (readonly string): How compositors, binds and idle daemons start or call axiom
-- `restartCommand` (readonly string): The restart binds' command: ends every axiom on the display and starts one (scripts/restart.sh)
+- `axiomBin` (readonly string): How compositors, binds and idle daemons call axiom: the binary that runs this shell ($AXIOM_BIN), by its path (a compositor's PATH may not have it).
+- `shellCommand` (readonly string)
+- `restartCommand` (readonly string): The restart binds' command: axiom restarts the shell it runs
+- `startPattern` (readonly string): A line in a compositor config that starts axiom (Python regex, for integration_hookup.py's `accept`): `axiom run`, or the `qs -c axiom` / `qs -p …axiom` of before the binary
 - `themePath` (readonly string)
 - `scriptsPath` (readonly string)
 - `resourcePath` (readonly string): What ships with axiom in config/: json/ (schema, theme defaults, emoji), themes/, i18n/
@@ -39,5 +41,8 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 ### Functions
 
 - `themeFile(name)`: A theme's JSON file, by its Appearance.theme name: "generated/<name>" from generatedThemesPath, "community/<id>" from communityThemesPath, the rest from the bundled themes
+- `widgetUrl(type)`: The file a type is loaded from (docs/dev/core/config-v2.md, rule 11): a type is a folder <root>/<Type>/ with <Type>.qml.
+- `contentUrl(name)`
+- `viewUrl(type)`
 - `expandHome(path)`: A path from config or the user: trimmed, a leading ~ as home, no trailing slash ("~/Pictures/" -> "/home/<user>/Pictures")
 - `shortenHome(path)`: A path to show: home as ~ ("/home/<user>/x" -> "~/x")

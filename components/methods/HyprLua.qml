@@ -1,18 +1,19 @@
 pragma Singleton
 import QtQuick
 
-// Hyprland's Lua config from schema fields: each field with `x-hypr` (the
-// option's dotted path, or a list of paths) becomes one value of a nested
-// hl.config({...}) table.
-//   x-hyprScale   a factor for integers shown scaled (0.01 for a percent)
-//   x-hyprValue   how the value is converted: "int" (a boolean as 0/1),
-//                 "number" (an enum of numbers written as strings),
-//                 "emptyIsDefault" ("default" → ""), "color" (a theme color
-//                 name as rgba(hex + x-hyprAlpha, "ff" unless given))
-//   x-hyprAlways  written even when it's the schema default; other fields
-//                 are only written once changed, so Hyprland's own default
-//                 (and the user's files) stay in charge otherwise
-//   x-hyprIf      a boolean sibling: written (default or not) only when on
+// Hyprland's Lua config from schema fields: each field with
+// x-compositor.hyprland (CompositorLayer.compositorFields) becomes one value
+// of a nested hl.config({...}) table, by its spec:
+//   key     the option's dotted path, or a list of paths
+//   scale   a factor for integers shown scaled (0.01 for a percent)
+//   value   how the value is converted: "int" (a boolean as 0/1),
+//           "number" (an enum of numbers written as strings),
+//           "emptyIsDefault" ("default" → ""), "color" (a theme color
+//           name as rgba(hex + alpha, "ff" unless given))
+//   always  written even when it's the schema default; other fields are
+//           only written once changed, so Hyprland's own default (and the
+//           user's files) stay in charge otherwise
+//   if      a switch beside it: written (default or not) only when on
 QtObject {
   id: root
 
@@ -30,10 +31,10 @@ QtObject {
     return String(v);
   }
 
-  function _convert(fieldSchema, v, resolveHex) {
-    if (fieldSchema["x-hyprScale"] !== undefined)
-      return v * fieldSchema["x-hyprScale"];
-    switch (fieldSchema["x-hyprValue"]) {
+  function _convert(spec, v, resolveHex) {
+    if (spec.scale !== undefined)
+      return v * spec.scale;
+    switch (spec.value) {
     case "int":
       return v ? 1 : 0;
     case "number":
@@ -41,7 +42,7 @@ QtObject {
     case "emptyIsDefault":
       return v === "default" ? "" : v;
     case "color":
-      return `rgba(${resolveHex(v)}${fieldSchema["x-hyprAlpha"] ?? "ff"})`;
+      return `rgba(${resolveHex(v)}${spec.alpha ?? "ff"})`;
     }
     return v;
   }
@@ -62,18 +63,13 @@ QtObject {
   // paths to values that win over the fields (axiom's shape, say).
   function configTable(objectSchema, values, resolveHex, overrides) {
     const table = {};
-    const props = objectSchema?.properties ?? {};
-    for (const key in props) {
-      const fieldSchema = props[key];
-      const target = fieldSchema["x-hypr"];
-      if (!target || values[key] === undefined)
+    for (const field of CompositorLayer.compositorFields(objectSchema, values, "hyprland", "")) {
+      const spec = field.spec;
+      if (field.on !== null ? !field.on : !spec.always && field.value === field.schema.default)
         continue;
-      const condition = fieldSchema["x-hyprIf"];
-      if (condition ? !values[condition] : !fieldSchema["x-hyprAlways"] && values[key] === fieldSchema.default)
-        continue;
-      const v = _convert(fieldSchema, values[key], resolveHex);
+      const v = _convert(spec, field.value, resolveHex);
       // A schema list reaches QML as a list object, not a JS Array
-      const paths = typeof target === "string" ? [target] : Array.prototype.slice.call(target);
+      const paths = typeof spec.key === "string" ? [spec.key] : Array.prototype.slice.call(spec.key);
       for (const path of paths)
         _set(table, path, v);
     }
@@ -423,8 +419,8 @@ end`);
   }
 
   // The input's parts that are on (`input`: CompositorLayer.input()) as
-  // one hl.config(), or []: `inputSchema`'s fields, each gated by x-hyprIf
-  // on its part. The cursor theme isn't an option (HyprlandManager.setCursor)
+  // one hl.config(), or []: `inputSchema`'s fields, each gated by its
+  // part's `enabled`. The cursor theme isn't an option (HyprlandManager.setCursor)
   function inputLua(input, inputSchema) {
     const table = configTable(inputSchema, input.values, null, {});
     return Object.keys(table).length > 0 ? `hl.config(${serialize(table)})`.split("\n") : [];
@@ -438,17 +434,29 @@ end`);
     const lines = monitorsLua(profiles);
     if (!input)
       return lines;
-    const props = inputSchema?.properties ?? {};
-    const greeterSchema = {
-      "properties": {}
-    };
-    for (const key in props)
-      if (props[key]["x-greeter"] === true)
-        greeterSchema.properties[key] = props[key];
-    const table = configTable(greeterSchema, input, resolveHex, {});
+    const table = configTable(root._greeterSchema(inputSchema), input, resolveHex, {});
     if (Object.keys(table).length > 0)
       lines.push(`hl.config(${serialize(table)})`);
     return lines;
+  }
+
+  // `objectSchema` with only its x-greeter settings (in its groups too)
+  function _greeterSchema(objectSchema) {
+    const out = {
+      "type": "object",
+      "properties": {}
+    };
+    const props = objectSchema?.properties ?? {};
+    for (const key in props) {
+      if (props[key]["x-greeter"] === true)
+        out.properties[key] = props[key];
+      else if (props[key].type === "object" && props[key].properties) {
+        const inner = root._greeterSchema(props[key]);
+        if (Object.keys(inner.properties).length > 0)
+          out.properties[key] = inner;
+      }
+    }
+    return out;
   }
 
   // A chunk resetting Hyprland to its main binds if it's in submap `name`

@@ -13,6 +13,12 @@ import (
 func TestSharedShareCases(t *testing.T) {
 	t.Parallel()
 	for _, c := range testkit.Cases(t, "share.") {
+		// keepMovedKeys works on format 2's paths here (a format-1 file is
+		// converted before it's applied); the recorded cases hold format
+		// 1's: TestKeepMovedKeysV2 has its own
+		if c.Op == "share.keepMovedKeys" {
+			continue
+		}
 		t.Run(c.Name, func(t *testing.T) {
 			t.Parallel()
 			c.Compare(t, run(t, c))
@@ -44,8 +50,6 @@ func run(t *testing.T, c testkit.Case) any {
 			ps = append(ps, strs(p))
 		}
 		return KeepTakeovers(a[0], a[1], ps)
-	case "share.keepMovedKeys":
-		return KeepMovedKeys(a[0], a[1], a[2], a[3])
 	case "share.withSnapshot":
 		return WithSnapshot(sch(2), a[0], a[1], strs(a[3]))
 	case "share.monitorOrder":

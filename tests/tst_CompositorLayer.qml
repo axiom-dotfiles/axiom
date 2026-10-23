@@ -22,6 +22,14 @@ TestCase {
     return SchemaValidation.applyDefaults({}, schema.properties.WindowLook, schema);
   }
 
+  // WindowLook's defaults with `parts` over them, each group's keys one by one
+  function lookWith(parts) {
+    const values = defaults();
+    for (const part in parts)
+      Object.assign(values[part], parts[part]);
+    return values;
+  }
+
   function test_hex() {
     compare(CompositorLayer.hex({
       "r": 1,
@@ -43,11 +51,15 @@ TestCase {
   }
 
   function test_look_shadow_and_dim() {
-    const values = Object.assign(defaults(), {
-      "shadow": true,
-      "shadowSize": 12,
-      "dim": true,
-      "dimStrength": 15
+    const values = lookWith({
+      "shadow": {
+        "enabled": true,
+        "size": 12
+      },
+      "dim": {
+        "enabled": true,
+        "strength": 15
+      }
     });
     const cast = (color, alpha, offset) => Object.assign({}, opts, {
         "shadow": {
@@ -61,7 +73,7 @@ TestCase {
     compare(look.parts, ["shadow", "dim"]);
     compare(look.shadow, {
       "size": 12,
-      "power": values.shadowPower,
+      "power": values.shadow.power,
       "color": "10101099",
       "rgb": "101010",
       "alpha": 0.6,
@@ -175,16 +187,26 @@ TestCase {
   }
 
   function test_look_parts() {
-    const values = Object.assign(defaults(), {
-      "borders": true,
-      "shape": true,
-      "gaps": true,
-      "gapsIn": 4,
-      "gapsOut": 12,
-      "blur": true,
-      "windowBlur": false,
-      "opacity": true,
-      "inactiveOpacity": 90
+    const values = lookWith({
+      "borders": {
+        "enabled": true
+      },
+      "shape": {
+        "enabled": true
+      },
+      "gaps": {
+        "enabled": true,
+        "inner": 4,
+        "outer": 12
+      },
+      "blur": {
+        "enabled": true,
+        "windowBlur": false
+      },
+      "opacity": {
+        "enabled": true,
+        "inactive": 90
+      }
     });
     const look = CompositorLayer.look(values, opts);
     compare(look.parts, ["borders", "shape", "gaps", "blur", "opacity"]);
@@ -203,11 +225,11 @@ TestCase {
     compare(look.blur, {
       "windows": false,
       "surfaces": true,
-      "size": values.blurSize,
-      "passes": values.blurPasses,
-      "xray": values.blurXray,
-      "noise": values.blurNoise,
-      "contrast": values.blurContrast
+      "size": values.blur.size,
+      "passes": values.blur.passes,
+      "xray": values.blur.xray,
+      "noise": values.blur.noise,
+      "contrast": values.blur.contrast
     });
     compare(look.opacity.inactive, 90);
     compare(look.opacity.active, 100);
@@ -218,11 +240,11 @@ TestCase {
     const schema = files.json("config/json/config.schema.json");
     const values = SchemaValidation.applyDefaults({}, schema.properties.Input, schema);
     compare(CompositorLayer.input(values).parts, []);
-    values.keyboard = true;
-    values.cursor = true;
+    values.keyboard.enabled = true;
+    values.cursor.enabled = true;
     compare(CompositorLayer.input(values).parts, ["keyboard", "cursor"]);
     compare(CompositorLayer.input(values).cursor, null, "no theme: the cursor is left alone");
-    values.cursorTheme = "Bibata";
+    values.cursor.theme = "Bibata";
     compare(CompositorLayer.input(values).cursor, {
       "theme": "Bibata",
       "size": 24,

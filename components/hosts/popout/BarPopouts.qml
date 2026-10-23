@@ -6,9 +6,10 @@ import Quickshell.Wayland
 import qs.services
 import qs.config
 import qs.components.methods
-// Imported (though loaded by URL) so qs scans the content types
-import qs.components.content // qmllint disable unused-imports
 import qs.components.reusable
+// Imported (though loaded by URL) so qs scans the content folders whose
+// files see each other (scripts/check_structure.py)
+import qs.components.content.Submenu // qmllint disable unused-imports
 
 /**
  * Popout wrapper for bar widgets
@@ -93,8 +94,9 @@ PopoutWrapperBase {
   }
   // ---- end submenu ----
 
-  // content/<name>.qml, loaded by URL like bar widgets and overlay modules:
-  // a new popout is just a file there plus a PopoutAnchor naming it. The
+  // content/<name>/<name>.qml (Paths.contentUrl), loaded by URL like bar
+  // widgets and overlay modules: a new popout is just a type folder there
+  // plus a PopoutAnchor naming it. The
   // name travels inside the payload (`name`, see PopoutAnchor.qml) rather
   // than as a separate argument, so this file never needs to override
   // openPopout/safeOpenPopout from the base.
@@ -102,7 +104,7 @@ PopoutWrapperBase {
     root._payloadApplied = false;
     const name = root.currentData?.name ?? "";
     if (loader.active && name !== "") {
-      const url = Qt.resolvedUrl("../../content/" + name + ".qml");
+      const url = Paths.contentUrl(name);
       // The same type for another widget (a switch in place) is built anew
       if (loader.source.toString() === url.toString())
         loader.source = "";

@@ -111,7 +111,7 @@ Item {
         if (key !== "name" && !key.startsWith("anchor"))
           props[key] = data[key];
       loader.source = "";
-      loader.setSource(Qt.resolvedUrl("../../content/" + name + ".qml"), props);
+      loader.setSource(Paths.contentUrl(name), props);
     }
     property real _anchorOffset: 0
 
@@ -299,7 +299,7 @@ Item {
         // Cast as its parent casts its own (SurfaceContext.shadow): one
         // shadow round the two
         readonly property var _parentSurface: outer.slot?.popupSurface ?? null
-        shadowLook: surface._parentSurface?.shadowLook ?? BarStyle.values
+        shadowLook: surface._parentSurface?.shadowLook ?? BarStyle.look
 
         BlurShape {
           source: surface

@@ -22,7 +22,7 @@ ScreenLayoutView {
   property bool preview: false
 
   // The preview shows on one screen, which is its target
-  readonly property bool isTarget: root.preview || General.screensNamed(GreeterConfig.monitor)[0] === root.screen
+  readonly property bool isTarget: root.preview || General.screensFor(GreeterConfig.screen)[0] === root.screen
   readonly property var allModules: root.layout?.modules ?? []
   // Where this surface's Login module reports itself
   // (ShellManager.requiredFields): set once on creation
@@ -42,8 +42,8 @@ ScreenLayoutView {
       "preview": root.preview,
       "key": root.loginKey,
       "bare": !(root.layout?.moduleBorders ?? false),
-      "passwordBorder": root.layout?.passwordBorder ?? false,
-      "greetingBorder": root.layout?.greetingBorder ?? false
+      "passwordBorder": root.layout?.borders?.password ?? false,
+      "greetingBorder": root.layout?.borders?.greeting ?? false
     })
 
   // The fallback box waits a tick, so a Login module can report first

@@ -1,0 +1,6 @@
+label: Session
+link: {setting: Greeter}
+icon: desktop_windows
+group: Session
+defaultSize: [4, 1]
+hosts: {only: [greeter]}

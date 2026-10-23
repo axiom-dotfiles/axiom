@@ -16,7 +16,7 @@ import qs.config
  * `active` is what axiom last set, kept across QML reloads; at startup it's
  * whether the tool is already running. Created from shell.qml's `_services`.
  *
- *   qs -c axiom ipc call nightLight toggle
+ *   axiom ipc nightLight toggle
  */
 Singleton {
   id: root

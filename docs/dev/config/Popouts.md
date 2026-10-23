@@ -9,18 +9,28 @@ Popouts: Behaviour shared by bar popouts and screen-edge popouts (side panel, OS
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
 
-### `Popouts`
+### `Popouts.timing`
 
-- **`Popouts.openDelay`** · integer = 10 · 0–2000 · ms
-  - Open delay: How long to hover a bar widget or screen edge before its popout opens.
-  - read: `PopoutsConfig.openDelay` · in: `components/bar/widgets/Button.qml`, `components/hosts/popout/EdgePopout.qml`, `components/hosts/popout/EdgeTrigger.qml`, `components/hosts/popout/PopoutAnchor.qml`
-- **`Popouts.dismissDelay`** · integer = 250 · 0–5000 · ms
-  - Dismiss delay: How long after the mouse leaves a popout before it closes.
+- **`Popouts.timing`** · object
+  - Timing: How long the pointer rests before it opens, and how long it may be away before it closes.
+- **`Popouts.timing.openDelay`** · integer = 10 · 0–2000 · ms
+  - Open delay
+  - read: `PopoutsConfig.openDelay` · in: `components/bar/widgets/Button/Button.qml`, `components/hosts/popout/EdgePopout.qml`, `components/hosts/popout/EdgeTrigger.qml`, `components/hosts/popout/PopoutAnchor.qml`
+- **`Popouts.timing.closeDelay`** · integer = 250 · 0–5000 · ms
+  - Close delay
   - read: `PopoutsConfig.dismissDelay` · in: `components/hosts/popout/PopoutWrapperBase.qml`
-- **`Popouts.edgeTriggerSize`** · integer = 5 · 1–50 · px
-  - Edge trigger size: Thickness of the hover strip at the screen edge that opens edge popouts.
+
+### `Popouts.trigger`
+
+- **`Popouts.trigger`** · object
+  - Hover trigger: The strip along the screen edge that opens it when the pointer reaches it.
+- **`Popouts.trigger.size`** · integer = 5 · 1–50 · px
+  - Trigger size: How far from the screen edge the pointer opens it.
   - x-control="stepper"
   - read: `PopoutsConfig.edgeTriggerSize` · in: `components/hosts/popout/EdgePopout.qml`, `components/hosts/popout/EdgeTrigger.qml`
+
+### `Popouts`
+
 - **`Popouts.padding`** · integer = 16 · 0–64 · px
   - Padding: Space between a popout's box and its content: bar popouts, OSDs, and edge menus that don't set their own.
   - x-control="stepper"
@@ -31,7 +41,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `PopoutsConfig`, with the files that use it.
 
 - `PopoutsConfig.openDelay` (int)
-  - in: `components/bar/widgets/Button.qml`, `components/hosts/popout/EdgePopout.qml`, `components/hosts/popout/EdgeTrigger.qml`, `components/hosts/popout/PopoutAnchor.qml`
+  - in: `components/bar/widgets/Button/Button.qml`, `components/hosts/popout/EdgePopout.qml`, `components/hosts/popout/EdgeTrigger.qml`, `components/hosts/popout/PopoutAnchor.qml`
 - `PopoutsConfig.dismissDelay` (int)
   - in: `components/hosts/popout/PopoutWrapperBase.qml`
 - `PopoutsConfig.edgeTriggerSize` (int)

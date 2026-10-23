@@ -3,7 +3,7 @@
 
 > **File:** `config/DesktopConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the Desktop section: overlay modules on the desktop, under the windows. A monitor shows its own layout (`monitors`, by name) if it has one, else the primary monitor's (`primary`, on the primary monitor), else the one for all monitors (`all`), each only while enabled: a monitor's own layout turned off leaves it empty. Each layout is a DesktopLayout ({ enabled, monitor, columns, rows, fineGrid, moduleBorders, modules }). The layouts editor's unsaved draft shows live (DesktopManager sets it as a preview).
+Reader for the Desktop section: overlay modules on the desktop, under the windows. Desktop.items are layouts, each for the monitors its `screen` (a ScreenTarget) picks: a monitor shows the most specific one that's enabled, one naming it, else the primary monitor's (on the primary monitor), else the one for all monitors; a layout naming a monitor that's turned off leaves it empty. Each is a DesktopLayout ({ id, enabled, screen, grid, moduleScale, moduleBorders, modules }). The layouts editor's unsaved draft shows live (DesktopManager sets it as a preview).
 
 ### Properties
 
@@ -13,5 +13,6 @@ Reader for the Desktop section: overlay modules on the desktop, under the window
 
 ### Functions
 
-- `sourceFor(name, desktop)`: Which layout the screen named `name` shows in `desktop` (a Desktop section; the live one when left out): "monitor" (its own), "primary", "all", or "" for none
+- `matchFor(name, desktop)`: The layout the screen named `name` matches in `desktop` (a Desktop section; the live one when left out), most specific first, enabled or not; null for none
+- `sourceFor(name, desktop)`: Which layout the screen named `name` shows in `desktop`: "named" (one naming it), "primary", "all", or "" for none (none matches, or the match is turned off)
 - `layoutFor(name)`: The DesktopLayout the screen named `name` shows, or null

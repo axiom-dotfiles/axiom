@@ -187,7 +187,7 @@ QtObject {
       return _exec(argument);
     if (BindActions.ipcActions[bind.action]) {
       const ipc = BindActions.ipcActions[bind.action][0].replace("{call}", BindActions.callFunction(bind)).replace("{0}", shellWord(argument));
-      return _exec(`${ctx.shellCommand} ipc call ${ipc}`);
+      return _exec(`${ctx.shellCommand} ipc ${ipc}`);
     }
     return "";
   }
@@ -395,13 +395,14 @@ QtObject {
     return lines.concat(...layers.map(rule => rule.namespaces.map(name => `layer_effects ${quote("axiom-" + name)} ${quote(`blur ${toggle(rule.on)}; blur_xray ${toggle(rule.xray)}; blur_ignore_transparent enable`)}`)));
   }
 
-  // A field's value as its x-sway command takes it, or null to leave it
-  function _swayValue(fieldSchema, value) {
-    if (fieldSchema["x-swaySkip"] !== undefined && value === fieldSchema["x-swaySkip"])
+  // A field's value as its sway command takes it (by its x-compositor.sway
+  // `spec`), or null to leave it
+  function _swayValue(spec, value) {
+    if (spec.skip !== undefined && value === spec.skip)
       return null;
-    if (fieldSchema["x-swayMap"] !== undefined)
-      return fieldSchema["x-swayMap"][String(value)] ?? null;
-    switch (fieldSchema["x-swayValue"]) {
+    if (spec.map !== undefined)
+      return spec.map[String(value)] ?? null;
+    switch (spec.value) {
     case "enabled":
       return value ? "enabled" : "disabled";
     case "yesNo":
@@ -411,40 +412,41 @@ QtObject {
     case "raw":
       return String(value);
     }
-    if (fieldSchema["x-swayScale"] !== undefined)
-      return String(Math.round(value * fieldSchema["x-swayScale"] * 1000) / 1000);
+    if (spec.scale !== undefined)
+      return String(Math.round(value * spec.scale * 1000) / 1000);
     return quote(value);
   }
 
   /**
    * The input (CompositorLayer.input) as sway commands: Input's fields with
-   * an `x-sway` command, each written when its x-hyprIf part is on (else
-   * once changed from its default), then the cursor theme. `live`: for
-   * sending now, leaving out what sway takes only from a config file
-   * (x-swayConfigOnly).
+   * a sway command (x-compositor.sway's `key`, `{}` for the value), each
+   * written when its part is on (else once changed from its default), then
+   * the cursor theme. `live`: for sending now, leaving out what sway takes
+   * only from a config file (`configOnly`).
    */
   function inputLines(input, inputSchema, live) {
     const lines = [];
-    for (const field of CompositorLayer.annotatedFields(inputSchema, input?.values ?? {}, "x-sway", true)) {
-      if (live && field.schema["x-swayConfigOnly"])
+    for (const field of CompositorLayer.annotatedFields(inputSchema, input?.values ?? {}, "sway", true)) {
+      if (live && field.spec.configOnly)
         continue;
-      const value = _swayValue(field.schema, field.value);
+      const value = _swayValue(field.spec, field.value);
       if (value !== null)
-        lines.push(field.schema["x-sway"].replace("{}", value));
+        lines.push(field.spec.key.replace("{}", value));
     }
     if (input?.cursor)
       lines.push(cursorLine(input.cursor.xcursor ?? input.cursor.theme, input.cursor.size));
     return lines;
   }
 
-  // A section's options (WindowBehaviour, Sway) as sway commands, every
-  // field with an `x-sway` command: a managed config says all of them
+  // A section's options (WindowBehaviour, Compositor.sway) as sway
+  // commands, every field with a sway command: a managed config says all
+  // of them
   function optionLines(sectionSchema, values) {
     const lines = [];
-    for (const field of CompositorLayer.annotatedFields(sectionSchema, values, "x-sway", false)) {
-      const value = _swayValue(field.schema, field.value);
+    for (const field of CompositorLayer.annotatedFields(sectionSchema, values, "sway", false)) {
+      const value = _swayValue(field.spec, field.value);
       if (value !== null)
-        lines.push(field.schema["x-sway"].replace("{}", value));
+        lines.push(field.spec.key.replace("{}", value));
     }
     return lines;
   }

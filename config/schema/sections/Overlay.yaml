@@ -4,34 +4,29 @@ x-scope: personal
 type: object
 x-category: Overlay & Popouts
 x-links: [Layouts]
-x-order:
-  - monitors
-  - moduleScale
-  - navigator
-  - navigatorLabels
-  - animation
-  - showBackdrop
-  - backdrop
-  - closeOnEscape
-  - closeOnOutsideClick
 title: Overlay
 additionalProperties: false
 properties:
-  monitors:
-    x-link: {setting: General.monitors}
-    x-scope: look
-    type: string
+  screen:
+    $ref: '#/definitions/ScreenTarget'
     title: Monitors
-    enum: [general, primary, focused, all]
-    x-enumLabels:
-      general: As in General
-      primary: Primary monitor
-      focused: Focused monitor
-      all: Every monitor
-    default: general
     description: Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
+    x-properties:
+      mode:
+        x-scope: look
+        type: string
+        title: Monitors
+        enum: [inherit, primary, focused, all]
+        default: inherit
+        x-enumLabels:
+          inherit: As in General
+          primary: Primary monitor
+          focused: Focused monitor
+          all: Every monitor
+        x-link: {setting: General.screen}
+      names: null
   moduleScale:
-    x-link: {setting: Widget.cardSize}
+    x-link: {setting: Interface.cardSize}
     x-scope: look
     x-group: Size
     type: integer
@@ -57,10 +52,7 @@ properties:
     type: string
     title: Page names
     enum: [auto, current, icons]
-    x-enumLabels:
-      auto: All, while they fit
-      current: Current page only
-      icons: Icons only
+    x-enumLabels: {auto: 'All, while they fit', current: Current page only, icons: Icons only}
     default: auto
     description: Which pages show their name beside their icon. Tool pages are always icons, named in a tooltip.
   animation:
@@ -69,10 +61,7 @@ properties:
     type: string
     title: Opening animation
     enum: [top, bottom, fade]
-    x-enumLabels:
-      top: Slide from the top
-      bottom: Slide from the bottom
-      fade: Fade
+    x-enumLabels: {top: Slide from the top, bottom: Slide from the bottom, fade: Fade}
     default: top
     description: How the overlay and its dim background come in and go.
   showBackdrop:
@@ -103,36 +92,44 @@ properties:
     title: Close on outside click
     default: false
     description: 'Close the overlay when you click outside it: on a bar, the screen border or another monitor.'
-  views:
+  items:
     x-scope: look
     type: array
     x-settings: false
     description: 'Pages shown in the overlay, in order: your Custom pages, each a grid of modules, and the tool pages (shown as icons after them).'
     default:
-      - type: Custom
+      - id: home
+        type: Custom
         name: Home
-        modules:
-          - type: ClockCalendar
-            place: {x: 0, "y": 0, w: 4, h: 8}
-          - type: QuickActions
-            place: {x: 4, "y": 0, w: 4, h: 2}
-          - type: QuickActions
-            properties:
-              actions: [lock, suspend, hibernate, logout, reboot, poweroff]
-            place: {x: 4, "y": 2, w: 4, h: 2}
-          - type: SystemGraphs
-            place: {x: 4, "y": 4, w: 4, h: 4}
-          - type: NowPlaying
-            place: {x: 8, "y": 0, w: 8, h: 4}
-          - type: Notifications
-            place: {x: 8, "y": 4, w: 4, h: 4}
-          - type: VolumeDials
-            place: {x: 12, "y": 4, w: 4, h: 4}
-      - {type: Settings}
-      - {type: Keybinds}
-      - {type: BarEditor}
-      - {type: Themes}
-      - {type: Monitors}
-      - {type: CalendarPage}
-    items:
-      $ref: '#/definitions/OverlayView'
+        layout:
+          modules:
+            - id: clockCalendar
+              type: ClockCalendar
+              place: {x: 0, 'y': 0, w: 4, h: 8}
+            - id: quickActions
+              type: QuickActions
+              place: {x: 4, 'y': 0, w: 4, h: 2}
+            - id: quickActions-2
+              type: QuickActions
+              properties:
+                actions: [lock, suspend, hibernate, logout, reboot, poweroff]
+              place: {x: 4, 'y': 2, w: 4, h: 2}
+            - id: systemGraphs
+              type: SystemGraphs
+              place: {x: 4, 'y': 4, w: 4, h: 4}
+            - id: nowPlaying
+              type: NowPlaying
+              place: {x: 8, 'y': 0, w: 8, h: 4}
+            - id: notifications
+              type: Notifications
+              place: {x: 8, 'y': 4, w: 4, h: 4}
+            - id: volumeDials
+              type: VolumeDials
+              place: {x: 12, 'y': 4, w: 4, h: 4}
+      - {id: settings, type: Settings}
+      - {id: keybinds, type: Keybinds}
+      - {id: barEditor, type: BarEditor}
+      - {id: themes, type: Themes}
+      - {id: monitors, type: Monitors}
+      - {id: calendarPage, type: CalendarPage}
+    items: {$ref: '#/definitions/OverlayView'}

@@ -7,11 +7,11 @@ Reader for the Notifications section (toasts and the history). Named Notificatio
 
 ### Properties
 
-- `monitors` (readonly string): "general" | "primary" | "focused" | "all" (see General.screensFor)
+- `screen` (readonly var): The ScreenTarget toasts show on (see General.screensFor)
 - `position` (readonly string): "topLeft" | "topRight" | "bottomLeft" | "bottomRight"
 - `top` (readonly bool)
 - `left` (readonly bool)
-- `evenGaps` (readonly bool): Gaps from the work area's edges, per side (only the corner's two apply)
+- `evenGaps` (readonly bool)
 - `gapTop` (readonly int)
 - `gapBottom` (readonly int)
 - `gapLeft` (readonly int)
@@ -26,4 +26,4 @@ Reader for the Notifications section (toasts and the history). Named Notificatio
 - `removeOnClick` (readonly bool)
 - `closeRemoves` (readonly bool)
 - `maxEntries` (readonly int)
-- `maxAgeDays` (readonly int): 0 = keep forever
+- `maxAge` (readonly real): How old an entry may get (ms), 0 = keep forever

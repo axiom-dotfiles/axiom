@@ -22,22 +22,30 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 ### `Session.env[]`
 
 - **`Session.env[]`** · object
+- **`Session.env[].id`** · string
+  - The item's stable id, unique in its list: what editors, path ops and imports match it by.
+  - pattern="^[A-Za-z0-9][A-Za-z0-9._-]*$", x-settings=false
+  - read: entry field, name match, `// reads:` marker · in: `components/content/Session/Session.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`Session.env[].name`** · string = ""
   - Name
-  - read: entry field, name match, `// reads:` marker · in: `components/content/Session.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: entry field, name match, `// reads:` marker · in: `components/content/Session/Session.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`Session.env[].value`** · string = ""
   - Value
   - read: entry field, name match, `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 
 ### `Session`
 
-- **`Session.autostart`** · array<object> = [{"command":"dbus-update-activation-environment --systemd WAYLAND_DIS…
+- **`Session.autostart`** · array<object> = [{"id":"dbus-update-activation-environment","command":"dbus-update-ac…
   - Autostart: Commands run once when the compositor starts, after axiom.
   - read: `SessionConfig.session` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 
 ### `Session.autostart[]`
 
 - **`Session.autostart[]`** · object
+- **`Session.autostart[].id`** · string
+  - The item's stable id, unique in its list: what editors, path ops and imports match it by.
+  - pattern="^[A-Za-z0-9][A-Za-z0-9._-]*$", x-settings=false
+  - read: entry field, name match, `// reads:` marker · in: `components/content/Session/Session.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - **`Session.autostart[].command`** · string = ""
   - Command
   - read: `SessionConfig.session` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`

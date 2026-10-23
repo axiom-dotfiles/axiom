@@ -36,7 +36,7 @@ Scope {
 
   // --- Sizes ---
   readonly property real base: root.dock.iconSize
-  readonly property real peak: root.dock.magnify ? Math.max(root.dock.magnifiedSize, root.base) : root.base
+  readonly property real peak: root.dock.magnify.enabled ? Math.max(root.dock.magnify.size, root.base) : root.base
   readonly property real pad: root.dock.padding
   readonly property real spacing: root.dock.spacing
   readonly property real thickness: root.base + root.pad * 2
@@ -87,7 +87,7 @@ Scope {
   readonly property var keys: root._keysJoined ? root._keysJoined.split("\n") : []
   readonly property int count: root.keys.length
   readonly property int pinnedCount: root.items.filter(item => item.pinned).length
-  readonly property bool separator: root.dock.separator && root.dock.showRunning && root.pinnedCount > 0 && root.pinnedCount < root.count
+  readonly property bool separator: root.dock.running.separator && root.dock.running.show && root.pinnedCount > 0 && root.pinnedCount < root.count
   readonly property real lineWidth: Math.max(1, Appearance.borderWidth)
   readonly property real separatorLength: root.separator ? root.spacing + root.lineWidth : 0
 
@@ -144,14 +144,14 @@ Scope {
   // Magnification: the pointer along the row as laid out at rest, and how
   // far the icons have grown towards it (animated in and out)
   property real pointer: -1
-  property real magnifyAmount: root.dock.magnify && hover.hovered && root.dragIndex < 0 ? 1 : 0
+  property real magnifyAmount: root.dock.magnify.enabled && hover.hovered && root.dragIndex < 0 ? 1 : 0
   Glide on magnifyAmount {}
   readonly property real _step: root.base + root.spacing
   readonly property var sizes: {
     let p = root.pointer - root.startStrokeInset - root.restStart - root.pad;
     if (root.separator && p > root.pinnedCount * root._step)
       p = Math.max(root.pinnedCount * root._step, p - root.separatorLength);
-    const full = DockLayout.magnifiedSizes(root.count, root.pointer < 0 ? null : p, root.base, root.peak, root.dock.magnifyRange, root.spacing);
+    const full = DockLayout.magnifiedSizes(root.count, root.pointer < 0 ? null : p, root.base, root.peak, root.dock.magnify.range, root.spacing);
     return full.map(size => root.base + (size - root.base) * root.magnifyAmount);
   }
   readonly property real currentLength: root.sizes.reduce((sum, size) => sum + size, 0) + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
@@ -321,7 +321,7 @@ Scope {
 
   Timer {
     id: closeTimer
-    interval: root._touched ? root.dock.closeDelay : Math.max(root.dock.closeDelay, 1500)
+    interval: root._touched ? root.dock.timing.closeDelay : Math.max(root.dock.timing.closeDelay, 1500)
     running: root.latched && !root.pointerIn
     onTriggered: root.latched = false
   }
@@ -383,9 +383,9 @@ Scope {
     startInset: 0
     endInset: 0
     positionOffset: DockManager.reservedOf(root.screen)[root.vertical ? 1 : 0] + root.centre
-    triggerWidth: root.dock.triggerSize
+    triggerWidth: root.dock.trigger.size
     triggerLength: root.restLength
-    hoverDelay: root.dock.openDelay
+    hoverDelay: root.dock.timing.openDelay
     onTriggered: root.reveal(true)
   }
 

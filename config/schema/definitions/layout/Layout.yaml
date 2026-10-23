@@ -1,0 +1,29 @@
+# The Layout definition (#/definitions/Layout).
+
+type: object
+description: "A grid of modules: where they sit and how they're drawn."
+additionalProperties: false
+properties:
+  grid: {$ref: '#/definitions/Grid', x-group: Grid}
+  moduleScale:
+    x-link: {setting: Interface.cardSize}
+    x-group: Grid
+    type: integer
+    x-control: stepper
+    title: Module size
+    default: 100
+    minimum: 50
+    maximum: 200
+    x-unit: '%'
+    description: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
+  moduleBorders:
+    x-group: Style
+    type: boolean
+    title: Module borders
+    default: false
+    description: Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper.
+  modules:
+    type: array
+    default: []
+    x-settings: false
+    items: {$ref: '#/definitions/OverlayModule'}

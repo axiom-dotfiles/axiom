@@ -19,7 +19,7 @@ QtObject {
    * The window look (WindowLook's values) as the parts that are on:
    *   parts    the names of the parts on, in lookPartNames' order
    *   values   WindowLook's values, for a backend mapping fields by their
-   *            schema annotations (x-hypr)
+   *            schema annotations (x-compositor)
    *   borders  { active, inactive } ("rrggbb"), or null
    *   shape    { width, radius }, or null
    *   gaps     { inner, outer }, or null
@@ -54,13 +54,13 @@ QtObject {
   }
 
   function look(values, opts) {
-    const cast = values.shadow ? opts.shadow : null;
+    const cast = values.shadow.enabled ? opts.shadow : null;
     const clamp = a => Math.max(0, Math.min(1, a));
     const strength = cast ? Math.max(0, cast.strength ?? 1) : 1;
     const alpha = cast ? clamp(cast.alpha * strength) : 0;
     const shadow = cast ? {
       "size": cast.size,
-      "power": values.shadowPower,
+      "power": values.shadow.power,
       "color": cast.color !== "" ? cast.color + alphaHex(alpha) : "",
       "rgb": cast.color,
       "alpha": alpha,
@@ -70,37 +70,37 @@ QtObject {
       "soft": cast.soft === true
     } : null;
     return {
-      "parts": lookPartNames.filter(part => part === "shadow" ? shadow !== null : values[part]),
+      "parts": lookPartNames.filter(part => part === "shadow" ? shadow !== null : values[part]?.enabled === true),
       "values": values,
-      "borders": values.borders ? {
+      "borders": values.borders.enabled ? {
         "active": opts.activeHex,
         "inactive": opts.inactiveHex
       } : null,
-      "shape": values.shape ? {
+      "shape": values.shape.enabled ? {
         "width": opts.borderWidth,
         "radius": opts.radius
       } : null,
-      "gaps": values.gaps ? {
-        "inner": values.gapsIn,
-        "outer": values.gapsOut
+      "gaps": values.gaps.enabled ? {
+        "inner": values.gaps.inner,
+        "outer": values.gaps.outer
       } : null,
-      "blur": values.blur ? {
-        "windows": values.windowBlur === true,
+      "blur": values.blur.enabled ? {
+        "windows": values.blur.windowBlur === true,
         "surfaces": opts.surfacesBlur === true,
-        "size": values.blurSize,
-        "passes": values.blurPasses,
-        "xray": values.blurXray === true,
-        "noise": values.blurNoise,
-        "contrast": values.blurContrast
+        "size": values.blur.size,
+        "passes": values.blur.passes,
+        "xray": values.blur.xray === true,
+        "noise": values.blur.noise,
+        "contrast": values.blur.contrast
       } : null,
       "shadow": shadow,
-      "dim": values.dim ? {
-        "strength": values.dimStrength
+      "dim": values.dim.enabled ? {
+        "strength": values.dim.strength
       } : null,
-      "opacity": values.opacity ? {
-        "active": values.activeOpacity,
-        "inactive": values.inactiveOpacity,
-        "fullscreen": values.fullscreenOpacity
+      "opacity": values.opacity.enabled ? {
+        "active": values.opacity.active,
+        "inactive": values.opacity.inactive,
+        "fullscreen": values.opacity.fullscreen
       } : null
     };
   }
@@ -182,7 +182,7 @@ QtObject {
    * The input (Input's values) as the parts that are on:
    *   parts    the names of the parts on, in inputPartNames' order
    *   values   Input's values, for a backend mapping fields by their schema
-   *            annotations (x-hypr, gated by x-hyprIf on their part)
+   *            annotations (x-compositor, gated by each part's `enabled`)
    *   cursor   { theme, size, xcursor } while the cursor part is on with a
    *            theme, or null. `xcursor` is the name XCursor readers get
    *            (`xcursorTheme`: CursorThemeManager's companion theme
@@ -190,42 +190,56 @@ QtObject {
    *            theme's
    */
   function input(values, xcursorTheme) {
+    const cursor = values.cursor;
     return {
-      "parts": inputPartNames.filter(part => values[part]),
+      "parts": inputPartNames.filter(part => values[part]?.enabled === true),
       "values": values,
-      "cursor": values.cursor && values.cursorTheme ? {
-        "theme": values.cursorTheme,
-        "size": values.cursorSize,
-        "xcursor": xcursorTheme || values.cursorTheme
+      "cursor": cursor.enabled && cursor.theme ? {
+        "theme": cursor.theme,
+        "size": cursor.size,
+        "xcursor": xcursorTheme || cursor.theme
       } : null
     };
   }
 
   /**
-   * The fields of a section (`sectionSchema`, with `values`) that carry
-   * the `annotation` a backend maps fields by (x-sway, x-niri): [{ name,
-   * schema, value }]. With `gated` (the input) each only when its x-hyprIf
-   * part is on, else once changed from its default; without (a managed
-   * config's options) every one with a value.
+   * A section's settings a compositor's config takes (`objectSchema`, with
+   * `values`; inside its groups too), by their annotation
+   * x-compositor.<compositor>: [{ name (dotted from the section), schema,
+   * value, spec, on }]. `spec` is that compositor's { key, value, scale,
+   * if, always, skip, map, configOnly }; `on` whether its `if` switch (a
+   * setting beside it, the group's `enabled`) is on, null without one.
    */
-  function annotatedFields(sectionSchema, values, annotation, gated) {
-    const props = sectionSchema?.properties ?? {};
-    const fields = [];
-    for (const name in props) {
-      const fieldSchema = props[name];
-      const value = values?.[name];
-      if (!fieldSchema[annotation] || value === undefined)
+  function compositorFields(objectSchema, values, compositor, prefix) {
+    const out = [];
+    const props = objectSchema?.properties ?? {};
+    for (const key in props) {
+      const fieldSchema = props[key];
+      const value = values?.[key];
+      if (value === undefined)
         continue;
-      const condition = fieldSchema["x-hyprIf"];
-      if (gated && (condition ? !values[condition] : value === fieldSchema.default))
-        continue;
-      fields.push({
-        "name": name,
-        "schema": fieldSchema,
-        "value": value
-      });
+      const spec = fieldSchema["x-compositor"]?.[compositor];
+      if (spec)
+        out.push({
+          "name": (prefix ?? "") + key,
+          "schema": fieldSchema,
+          "value": value,
+          "spec": spec,
+          "on": spec.if ? values[spec.if] === true : null
+        });
+      else if (fieldSchema.type === "object" && fieldSchema.properties)
+        out.push(...root.compositorFields(fieldSchema, value, compositor, (prefix ?? "") + key + "."));
     }
-    return fields;
+    return out;
+  }
+
+  /**
+   * compositorFields, those a config writes: with `gated` (the input)
+   * each only while its `if` switch is on, else once changed from its
+   * default; without (a managed config's options) every one.
+   */
+  function annotatedFields(sectionSchema, values, compositor, gated) {
+    return root.compositorFields(sectionSchema, values, compositor, "").filter(field => !gated || (field.on !== null ? field.on : field.value !== field.schema.default));
   }
 
   // The variables Hyprland's wiki recommends, good on any Wayland

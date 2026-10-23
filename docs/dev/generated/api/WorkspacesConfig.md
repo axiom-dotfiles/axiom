@@ -19,7 +19,7 @@ Reader for the Workspaces section: the workspace layout the bar widget, the over
 - `animate` (readonly bool)
 - `boardColumns` (readonly int): The overview board's columns: the grid's, else even rows where possible
 - `boardRows` (readonly int)
-- `strips` (readonly var): Strips (Hyprland's scrolling layout), per monitor: [{ monitor, direction }] with an empty monitor resolved to the primary one, "*" for every monitor a named entry doesn't cover, and only a monitor's …
+- `strips` (readonly var): Strips (Hyprland's scrolling layout), per monitor: [{ monitor, direction }] from each strip's ScreenTarget: the primary monitor's name, "*" for every monitor a named entry doesn't cover, or each one …
 - `hasStrips` (readonly bool)
 - `stripOptions` (readonly var): The strip settings Hyprland takes (HyprLua.stripsLua)
 

@@ -7,7 +7,7 @@ import Quickshell
 // while `enabled` is on. Kept across QML reloads, but a restart always
 // starts with idle allowed.
 //
-//   qs -c axiom ipc call idleInhibit toggle
+//   axiom ipc idleInhibit toggle
 Singleton {
   id: root
 

@@ -14,5 +14,6 @@ QtObject {
   readonly property string longitude: _c.longitude
   // "celsius" | "fahrenheit"
   readonly property string units: _c.units
-  readonly property int intervalMinutes: _c.intervalMinutes
+  // How often it's fetched (ms)
+  readonly property int interval: _c.interval
 }

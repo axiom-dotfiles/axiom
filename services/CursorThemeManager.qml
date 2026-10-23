@@ -33,8 +33,8 @@ Singleton {
   // pick)
   readonly property string companionPrefix: "axiom-cursor"
 
-  readonly property string _wanted: InputConfig.input.cursor ? InputConfig.cursorTheme : ""
-  readonly property int _size: InputConfig.input.cursorSize
+  readonly property string _wanted: InputConfig.input.cursor.enabled ? InputConfig.cursorTheme : ""
+  readonly property int _size: InputConfig.input.cursor.size
   property var _resolved: ({
       "theme": "",
       "name": ""

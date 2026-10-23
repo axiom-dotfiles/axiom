@@ -1,6 +1,6 @@
 # Saved configs, examples, import and export
 
-> **Files:** `services/SavedConfigsManager.qml`, `components/methods/ConfigExamples.qml`, `components/views/settings/SavedConfigsCard.qml`, `services/ConfigManager.qml`, `services/FilePickerManager.qml`, `examples/*.json`
+> **Files:** `services/SavedConfigsManager.qml`, `components/methods/ConfigExamples.qml`, `components/views/Settings/SavedConfigsCard.qml`, `services/ConfigManager.qml`, `services/FilePickerManager.qml`, `examples/*.json`
 > **Config:** whole config, filtered by `x-scope`; snapshots in `~/.config/axiom/saved/`; `~/.local/state/axiom/ui/savedconfigs.json`
 > **Related:** [Schema annotations](schema-annotations.md), [Config manager](config-manager.md), [Launcher](../features/launcher.md) (`/config` save/restore), [Shell manager](shell-manager-targeting.md)
 

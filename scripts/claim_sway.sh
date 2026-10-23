@@ -89,9 +89,9 @@ if repo=$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null); then
 fi
 
 # The lines that start axiom (an `exec`/`exec_always` of any `qs … -c axiom`
-# / `-p …axiom`, not an IPC call) or include its module. Not a bind or a
+# / `-p …axiom` or `axiom run`, not an IPC call) or include its module. Not a bind or a
 # `set $ipc qs …` calling axiom: the bind merge reads those
-axiom_line='^[[:space:]]*(exec(_always)?[[:space:]]+([^#]*[[:space:]])?(qs|quickshell) ([^#]*[[:space:]])?(-c +['"'"'"]?axiom['"'"'"]?|-p +['"'"'"]?[^[:space:]]*axiom['"'"'"]?)([[:space:]]+-[^[:space:]i]+)*[[:space:]]*$|include .*axiom/sway\.conf)'
+axiom_line='^[[:space:]]*(exec(_always)?[[:space:]]+([^#]*[[:space:]])?(qs|quickshell) ([^#]*[[:space:]])?(-c +['"'"'"]?axiom['"'"'"]?|-p +['"'"'"]?[^[:space:]]*axiom['"'"'"]?)([[:space:]]+-[^[:space:]i]+)*[[:space:]]*$|exec(_always)?[[:space:]]+([^#]*[[:space:]])?["'"'"']?([^[:space:]#"'"'"']*/)?axiom["'"'"']?[[:space:]]+run([[:space:]]+-[^[:space:]]+)*[[:space:]]*$|include .*axiom/sway\.conf)'
 
 # The example config, give or take comments, blank lines and whitespace,
 # and a line starting axiom

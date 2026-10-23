@@ -7,74 +7,58 @@ x-showIf: {/$supports.configModes: true, /Compositor.mode: managed}
 title: Windows and focus
 description: How focus and the cursor behave, written into your compositor's config while axiom manages it.
 additionalProperties: false
-x-order:
-  - followMouse
-  - focusOnActivate
-  - workspaceBackAndForth
-  - cursorHideTimeout
-  - hideCursorOnKeyPress
-  - noWarps
 properties:
   followMouse:
     type: boolean
     title: Focus follows mouse
     default: true
-    x-hypr: input.follow_mouse
-    x-hyprValue: int
-    x-hyprAlways: true
-    x-sway: focus_follows_mouse {}
-    x-niri: input.focus-follows-mouse
-    x-niriValue: flag
-    x-swayValue: yesNo
+    x-compositor:
+      hyprland: {key: input.follow_mouse, value: int, always: true}
+      sway: {key: 'focus_follows_mouse {}', value: yesNo}
+      niri: {key: input.focus-follows-mouse, value: flag}
   focusOnActivate:
     type: boolean
     title: Focus windows that ask for it
     default: true
     description: e.g. a browser window opened from a link.
-    x-hypr: misc.focus_on_activate
-    x-hyprAlways: true
-    x-sway: focus_on_window_activation {}
-    x-swayMap: {"true": focus, "false": urgent}
+    x-compositor:
+      hyprland: {key: misc.focus_on_activate, always: true}
+      sway: {key: 'focus_on_window_activation {}', map: {'true': focus, 'false': urgent}}
   workspaceBackAndForth:
     type: boolean
     title: Workspace back and forth
     default: false
     description: Going to the current workspace goes back to the previous one.
-    x-hypr: binds.workspace_back_and_forth
-    x-sway: workspace_auto_back_and_forth {}
-    x-niri: input.workspace-auto-back-and-forth
-    x-niriValue: flag
-    x-swayValue: yesNo
+    x-compositor:
+      hyprland: {key: binds.workspace_back_and_forth}
+      sway: {key: 'workspace_auto_back_and_forth {}', value: yesNo}
+      niri: {key: input.workspace-auto-back-and-forth, value: flag}
   cursorHideTimeout:
     type: integer
     title: Hide the cursor after
     x-unit: s
     default: 0
     minimum: 0
-    maximum: 600
-    description: "0 never hides it."
-    x-hypr: cursor.inactive_timeout
-    x-sway: seat * hide_cursor {}
-    x-niri: cursor.hide-after-inactive-ms
-    x-niriScale: 1000
-    x-niriSkip: 0
-    x-swayScale: 1000
+    maximum: 600000
+    description: '0 never hides it.'
+    x-compositor:
+      hyprland: {key: cursor.inactive_timeout, scale: 0.001}
+      sway: {key: 'seat * hide_cursor {}'}
+      niri: {key: cursor.hide-after-inactive-ms, skip: 0}
   hideCursorOnKeyPress:
     type: boolean
     title: Hide the cursor while typing
     default: false
-    x-hypr: cursor.hide_on_key_press
-    x-sway: seat * hide_cursor when-typing {}
-    x-niri: cursor.hide-when-typing
-    x-niriValue: flag
-    x-swayValue: enableDisable
+    x-compositor:
+      hyprland: {key: cursor.hide_on_key_press}
+      sway: {key: 'seat * hide_cursor when-typing {}', value: enableDisable}
+      niri: {key: cursor.hide-when-typing, value: flag}
   noWarps:
     type: boolean
     title: Never move the cursor
     default: false
     description: The compositor won't move the cursor to a window it focuses.
-    x-hypr: cursor.no_warps
-    x-sway: mouse_warping {}
-    x-swayMap: {"true": none, "false": output}
-    x-niri: input.warp-mouse-to-focus
-    x-niriValue: offFlag
+    x-compositor:
+      hyprland: {key: cursor.no_warps}
+      sway: {key: 'mouse_warping {}', map: {'true': none, 'false': output}}
+      niri: {key: input.warp-mouse-to-focus, value: offFlag}

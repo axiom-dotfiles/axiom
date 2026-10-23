@@ -1,0 +1,10 @@
+# The WidgetColor definition (#/definitions/WidgetColor).
+
+type: string
+title: Color
+x-options: colors
+default: ''
+x-emptyLabel: Auto
+x-autoColor: accent
+x-showIf: {$bar.widgetStyle: {not: plain}}
+x-inline: true

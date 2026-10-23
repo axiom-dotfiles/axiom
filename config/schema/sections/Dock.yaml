@@ -3,20 +3,17 @@
 x-scope: look
 type: object
 x-category: Dock & OSD
-x-card: DockList
-x-cardTitle: Docks
-x-cardWide: true
-x-cardFolds: true
+x-card: {file: DockList, title: Docks, wide: true, folds: true}
 title: Dock
 additionalProperties: false
-x-order: [docks]
 properties:
-  docks:
+  items:
     type: array
     title: Docks
     x-settings: false
     description: Each dock has its own place, apps and behaviour.
     default:
-      - {id: main, enabled: false}
-    items:
-      $ref: '#/definitions/DockEntry'
+      - id: main
+        enabled: false
+        screen: {mode: inherit, names: []}
+    items: {$ref: '#/definitions/DockEntry'}

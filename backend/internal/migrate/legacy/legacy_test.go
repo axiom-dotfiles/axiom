@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/axiom-shell/axiom/backend/internal/jsonx"
 	"github.com/axiom-shell/axiom/backend/internal/testkit"
 )
 
@@ -42,5 +43,18 @@ func TestConfigMigrationQMLIsFrozen(t *testing.T) {
 	const frozen = "4e3526aa440615d5d769126b5fe95bfd95d7e85a28e741fa02d9f23419a50d4c"
 	if sum := sha256.Sum256(data); hex.EncodeToString(sum[:]) != frozen {
 		t.Error("components/methods/ConfigMigration.qml changed: the format-1 migrations are frozen (docs/recipes/migration.md)")
+	}
+}
+
+// The version-75 schema is the last format-1 one, as committed before the
+// binary took over (main's eb39e97): frozen with the migrations.
+func TestSchemaIsFrozen(t *testing.T) {
+	t.Parallel()
+	const frozen = "64f7fa83036167d915d7b231001a4cac598573d921ed59116e6f7712376d2b0d"
+	if sum := sha256.Sum256(schemaV75); hex.EncodeToString(sum[:]) != frozen {
+		t.Error("schema-v75.json changed: it's frozen with the format-1 migrations")
+	}
+	if Schema().Value("properties").(*jsonx.Object).Value("version").(*jsonx.Object).Value("default") != float64(LastVersion) {
+		t.Error("schema-v75.json isn't version 75's")
 	}
 }

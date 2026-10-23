@@ -10,7 +10,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [AuthManager](api/AuthManager.md): PAM authentication (Quickshell's PamContext, "login" stack) for the built-in lockscreen. authenticationSucceeded is the only thing that may unlock it (see shel…
 - [BackdropManager](api/BackdropManager.md): The dim backgrounds full-screen surfaces ask for (the overlay, launcher, power menu, workspace overview, onboarding: reusable/BackdropRequest).
 - [BackendManager](api/BackendManager.md): The shell's connection to the axiom binary, its parent (`axiom run`, docs/dev/backend/README.md): JSON-RPC over the socket the binary names in $AXIOM_SOCKET.
-- [BarManager](api/BarManager.md): BarManager holds the bar editor's working copy of the Bars config.
+- [BarManager](api/BarManager.md): BarManager holds the bar editor's working copy of the Bars section (its `style`, every bar's look unless a bar sets its own, and the bars, `items`).
 - [BatteryManager](api/BatteryManager.md): The laptop battery (UPower's display device, when it is one) and the power-saver profile, for the Battery widget and module, and the low battery notifications …
 - [BluetoothManager](api/BluetoothManager.md): Bluetooth state and actions over the default adapter (BlueZ via Quickshell.Bluetooth).
 - [BlurManager](api/BlurManager.md): The blur behind the shell's chrome: the border's frame, bars and their popouts, edge popouts, integrated edge menus and docks.
@@ -28,12 +28,11 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [CompositorConfigManager](api/CompositorConfigManager.md): Sets the compositor up for axiom (the Compositor section's mode, CompositorConfig.mode), through its backend's config writer (CompositorManager.backend.configW…
 - [CompositorManager](api/CompositorManager.md): The running compositor, for the rest of axiom: its windows, outputs and workspaces in shapes that don't depend on it, what it supports, and every workspace swi…
 - [ConfigDraft](api/ConfigDraft.md): A working copy of one config section for an editor (settings, bar, overlay, edge menu, keybind and monitor editors).
-- [ConfigManager](api/ConfigManager.md): ConfigManager handles loading, saving, and monitoring the configuration file.
+- [ConfigManager](api/ConfigManager.md): The config, as axiom (the binary, the shell's parent: `axiom run`) has it. axiom owns config.json: it loads it (converting older files), normalizes it and writ…
 - [ConfigTakeover](api/ConfigTakeover.md): Taking a compositor's config over for the managed mode, and giving it back, through its claim script (scripts/claim_<compositor>.sh, every one with the same ve…
 - [ConsumerRegistry](api/ConsumerRegistry.md): Reference-counted consumers of a shared poller (SystemManager, UpdatesManager, ...): each owner registers one request, and the service polls for the union of t…
 - [CursorThemeManager](api/CursorThemeManager.md): The cursor theme as XCursor readers get it (the compositor's xcursor-theme, XCURSOR_THEME, GTK's cursor-theme).
 - [DailySchedule](api/DailySchedule.md): A daily window, `startAt` until `endAt` ("HH:MM"; past midnight when the end is earlier), that says when its state is due: `due(inWindow)` fires when the windo…
-- [DataMigrationManager](api/DataMigrationManager.md): Moves an install from before the XDG folders over to them, once.
 - [DependencyManager](api/DependencyManager.md): Startup checks for what the whole shell needs to look right: the icon font (every icon is a Material Symbols name, StyledIcon, which shows as a word without it…
 - [DesktopManager](api/DesktopManager.md): The desktop's modules: the layouts editor's draft of the Desktop section (`editor`, shown live on the desktop while it differs from the config), which of its l…
 - [DockManager](api/DockManager.md): The docks' shared state and actions (the docks themselves are shell/Dock): which apps a dock shows on a screen (its pinned ones, then running ones, windows gro…
@@ -52,7 +51,6 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [HyprlandManager](api/HyprlandManager.md): CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprland's state as the compositor-neutral shapes (HyprState), and the primitives Co…
 - [HyprlandRuntimeLayer](api/HyprlandRuntimeLayer.md): Axiom's Hyprland layer evaluated at runtime (RuntimeLayer), for HyprlandConfigWriter, which owns it.
 - [IdleInhibitManager](api/IdleInhibitManager.md): Shared on/off state for keeping the session awake.
-- [InstanceManager](api/InstanceManager.md): Keeps one axiom per display.
 - [IntegrationHookupManager](api/IntegrationHookupManager.md): Hooks theme integrations into their apps' configs: each ThemeIntegrations switch's `x-hookup` targets (the line that loads its axiom file, where it goes), run …
 - [KeybindManager](api/KeybindManager.md): KeybindManager reads the keybinds the compositor has registered (CompositorManager.withBinds).
 - [KeyboardLayoutManager](api/KeyboardLayoutManager.md): Active xkb layout of the main keyboard, shared by every KeyboardLayout widget.
@@ -70,12 +68,12 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [NotesManager](api/NotesManager.md): Notes: Markdown files in NotesConfig.directory ($XDG_DATA_HOME/axiom/notes/ by default, or a linked folder).
 - [NotificationManager](api/NotificationManager.md): NotificationManager is the DBus notification server and the notification history.
 - [OnboardingManager](api/OnboardingManager.md): The first-run onboarder (shell/Onboarding): a series of pages that set the essentials up (the compositor, monitors, apps and keys, workspaces, the look, integr…
-- [OverlayManager](api/OverlayManager.md): OverlayManager holds the layouts editor's working copy of Overlay.views (the editor is the pinned last page).
+- [OverlayManager](api/OverlayManager.md): OverlayManager holds the layouts editor's working copy of Overlay.items (the editor is the pinned last page).
 - [PolkitManager](api/PolkitManager.md): axiom as the session's polkit agent (the Polkit section): while PolkitConfig.enabled, a PolkitAgent answers apps' requests for administrator rights, and Polkit…
 - [PomodoroManager](api/PomodoroManager.md): The pomodoro timer: one for every widget and module, run here so it keeps time with nothing showing it.
 - [PopoutManager](api/PopoutManager.md): Every popout showing, where it is, and which gives way to which.
 - [RuntimeLayer](api/RuntimeLayer.md): Axiom's layer applied at runtime, for a compositor's config writer: the detached mode, and the fallback of the file modes while their file isn't loaded (docs/d…
-- [SavedConfigsManager](api/SavedConfigsManager.md): Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/saved/.
+- [SavedConfigsManager](api/SavedConfigsManager.md): Named snapshots of the config (one JSON file each in $XDG_CONFIG_HOME/axiom/saved/) and shared configs: the examples shipped in examples/, imported files, expo…
 - [ScreenLayoutEditor](api/ScreenLayoutEditor.md): The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lock screen's, LockManager.editor, or the greeter's, GreeterManager.editor): its …
 - [ScreenshotManager](api/ScreenshotManager.md): Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shel…
 - [SecretsManager](api/SecretsManager.md): Secrets, which never go in config.json: chat API keys (scope `provider`) and calendar account passwords (scope `calendar`).
@@ -105,9 +103,9 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [Appearance](api/Appearance.md): Reader for the Appearance section.
 - [Apps](api/Apps.md): Reader for the Apps section: the apps axiom opens (keybinds, the launcher's terminal apps and Shift+Enter commands)
 - [Bar](api/Bar.md): Reader for the Bars section and the bar look helpers: derived layout values (enrichBarConfig), widget colors, look groups and autoColor fields.
-- [BarStyle](api/BarStyle.md): Reader for the BarStyle section: how every bar draws its widgets, accents and shadow, unless it overrides a group of them (Bar.enrichBarConfig)
+- [BarStyle](api/BarStyle.md): Reader for Bars.style: how every bar draws its widgets, accents and shadow, unless its own style sets a key (Bar.lookOf).
 - [BatteryConfig](api/BatteryConfig.md): Reader for the Battery section.
-- [CalendarConfig](api/CalendarConfig.md): Reader for the Calendar section (see CalendarManager).
+- [CalendarConfig](api/CalendarConfig.md): Reader for the Calendar section (see CalendarManager, which adds what the servers say of each calendar).
 - [ChatConfig](api/ChatConfig.md): Reader for the Chat section.
 - [ClaudeUsageConfig](api/ClaudeUsageConfig.md): Reader for the ClaudeUsage section: the Claude Code logins every Claude usage widget reports on (see ClaudeUsageManager).
 - [CommunitySetups](api/CommunitySetups.md): Reader for the CommunitySetups section: whether the community setups gallery is on, and where its catalog is (CommunitySetupsManager)
@@ -117,17 +115,17 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [EdgeMenusConfig](api/EdgeMenusConfig.md): EdgeMenus: menus that pop out of a screen edge, holding overlay modules.
 - [General](api/General.md): Reader for the General section.
 - [GreeterConfig](api/GreeterConfig.md): Reader for the Greeter section: axiom as the greetd login screen (GreeterManager sets it up; in the greeter itself, this is the bundle it was handed).
-- [HyprlandConfig](api/HyprlandConfig.md): Reader for the Hyprland section: what axiom writes into Hyprland (HyprlandConfigWriter).
+- [HyprlandConfig](api/HyprlandConfig.md): Reader for Compositor.hyprland: what axiom writes into Hyprland (HyprlandConfigWriter).
 - [I18n](api/I18n.md): Translation and locale for the shell's text (General.language).
 - [IconsConfig](api/IconsConfig.md): Reader for the Icons section.
 - [Idle](api/Idle.md): Reader for the Idle section: hypridle, run by HypridleManager.
-- [InputConfig](api/InputConfig.md): Reader for the Input section: the keyboard, mouse, touchpad and cursor axiom sets on the compositor, a part at a time ({ keyboard, kbLayout, …, mouse, …, touch…
+- [InputConfig](api/InputConfig.md): Reader for the Input section: the keyboard, mouse, touchpad and cursor axiom sets on the compositor, a part at a time ({ keyboard: { enabled, layout, … }, mous…
 - [KeybindsConfig](api/KeybindsConfig.md): Reader for the Keybinds section: axiom's own binds, edited on the Keybinds page (KeybindManager) and applied by the compositor's config writer (on Hyprland, Hy…
 - [LauncherConfig](api/LauncherConfig.md): Reader for the Launcher section (the search launcher).
 - [LockscreenConfig](api/LockscreenConfig.md): Reader for the Lockscreen section: which locker locks the session, and what the built-in one shows (`layout`, as saved: the lock never shows the layouts editor…
-- [MonitorsConfig](api/MonitorsConfig.md): Reader for the Monitors section: the monitor profiles ({ name, outputs: [MonitorRule] }), edited on the Monitors page (MonitorManager) and applied by the compo…
+- [MonitorsConfig](api/MonitorsConfig.md): Reader for the Monitors section: the monitor profiles ({ id, name, outputs: [MonitorRule] }), edited on the Monitors page (MonitorManager) and applied by the c…
 - [NightLight](api/NightLight.md): Reader for the NightLight section: warmer colors through hyprsunset or wlsunset, run by NightLightManager.
-- [NiriConfig](api/NiriConfig.md): Reader for the Niri section: niri's own options in the managed config (NiriConfigWriter; each field by its x-niri annotation).
+- [NiriConfig](api/NiriConfig.md): Reader for Compositor.niri: niri's own options in the managed config (NiriConfigWriter; each field by its x-compositor.niri annotation), read whole.
 - [NotesConfig](api/NotesConfig.md): Reader for the Notes section (see NotesManager).
 - [NotificationsConfig](api/NotificationsConfig.md): Reader for the Notifications section (toasts and the history).
 - [OSDConfig](api/OSDConfig.md): Reader for the OSD section (the volume, microphone and brightness on-screen displays).
@@ -141,15 +139,15 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [SelfUpdate](api/SelfUpdate.md): Reader for the SelfUpdate section (see SelfUpdateManager).
 - [SessionConfig](api/SessionConfig.md): Reader for the Session section: what starts with the compositor while axiom manages its config ({ recommendedEnv, env, autostart }).
 - [StopwatchConfig](api/StopwatchConfig.md): Reader for the Stopwatch section: the one-off timer's presets and whether its end notifies (see StopwatchManager).
-- [SwayConfig](api/SwayConfig.md): Reader for the Sway section: sway's own options in the managed config (SwayConfigWriter; each field by its x-sway annotation).
+- [SwayConfig](api/SwayConfig.md): Reader for Compositor.sway: sway's own options in the managed config (SwayConfigWriter; each field by its x-compositor.sway annotation), read whole.
 - [Theme](api/Theme.md): The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - [ThemeIntegrations](api/ThemeIntegrations.md): Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().
 - [TodoConfig](api/TodoConfig.md): Reader for the Todo section: how every todo widget and module shows the list (the items are TodoManager's, in the data folder).
 - [UpdatesConfig](api/UpdatesConfig.md): Reader for the Updates section: how every updates widget and module checks for and installs updates (see UpdatesManager).
 - [WeatherConfig](api/WeatherConfig.md): Reader for the Weather section: the one location and units every weather widget and module shows (see WeatherManager).
-- [Widget](api/Widget.md): Reader for the Widget section: sizing for panels, cards, popouts and controls, and the card size every module grid starts from.
-- [WindowBehaviourConfig](api/WindowBehaviourConfig.md): Reader for the WindowBehaviour section: focus and the cursor, which every compositor's managed config writes (each field by its x-hypr / x-sway annotation).
-- [WindowLookConfig](api/WindowLookConfig.md): Reader for the WindowLook section: settings that make windows match axiom ({ borders, activeColor, shape, matchShell, gaps, surfaceBlur…, blur…, shadow…, dim…,…
+- [Widget](api/Widget.md): Reader for the Interface section (named Widget, as every size outside the bars is Widget.<size>): sizing for panels, cards, popouts and controls, and the card …
+- [WindowBehaviourConfig](api/WindowBehaviourConfig.md): Reader for the WindowBehaviour section: focus and the cursor, which every compositor's managed config writes (each field by its x-compositor annotation).
+- [WindowLookConfig](api/WindowLookConfig.md): Reader for the WindowLook section: settings that make windows match axiom ({ borders, shape, gaps, surfaceBlur, blur, shadow, dim, opacity }, each an object wi…
 - [WindowSwitcherConfig](api/WindowSwitcherConfig.md): Reader for the WindowSwitcher section (Alt+Tab).
 - [WorkspaceOverlayConfig](api/WorkspaceOverlayConfig.md): Reader for the WorkspaceOverlay section (the full-screen workspace overview).
 - [WorkspacesConfig](api/WorkspacesConfig.md): Reader for the Workspaces section: the workspace layout the bar widget, the overview, the WorkspacesMap module and CompositorManager's navigation share.

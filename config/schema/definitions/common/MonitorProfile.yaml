@@ -3,11 +3,7 @@
 type: object
 additionalProperties: false
 properties:
-  name:
-    type: string
-    default: ""
-  outputs:
-    type: array
-    default: []
-    items:
-      $ref: '#/definitions/MonitorRule'
+  id: {$ref: '#/definitions/ItemId'}
+  name: {type: string, default: ''}
+  outputs: {type: array, default: [], items: {$ref: '#/definitions/MonitorRule'}}
+required: [id]

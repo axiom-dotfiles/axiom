@@ -10,14 +10,14 @@
     "missing-property: Member \"properties\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1,
     "missing-property: Member \"screen\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1
   },
-  "components/bar/widgets/Time.qml": {
+  "components/bar/widgets/Time/Time.qml": {
     "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
     "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
   },
-  "components/content/SystemTray.qml": {
+  "components/content/SystemTray/SystemTray.qml": {
     "missing-property: Member \"menuItem\" not found on type \"QQuickItem\"": 1
   },
-  "components/content/WallpaperPicker.qml": {
+  "components/content/WallpaperPicker/WallpaperPicker.qml": {
     "missing-property: Member \"screen\" not found on type \"QObject\"": 1
   },
   "components/content/parts/TraySubmenu.qml": {
@@ -117,17 +117,15 @@
   "services/MediaManager.qml": {
     "unqualified: Unqualified access": 1
   },
-  "services/SavedConfigsManager.qml": {
-    "missing-property: Member \"failText\" not found on type SavedConfigsManager::_process with type Process": 1,
-    "missing-property: Member \"name\" not found on type SavedConfigsManager::_writer with type FileView": 1,
-    "missing-property: Member \"okText\" not found on type SavedConfigsManager::_process with type Process": 1,
-    "missing-property: Member \"removed\" not found on type SavedConfigsManager::_process with type Process": 1
-  },
   "services/ThemeManager.qml": {
     "missing-property: Member \"command\" not found on type call to method objectAt, returning QObject": 1,
     "missing-property: Member \"queued\" not found on type call to method objectAt, returning QObject": 1,
     "missing-property: Member \"running\" not found on type \"QObject\"": 1,
     "missing-property: Member \"running\" not found on type call to method objectAt, returning QObject": 1
+  },
+  "shell/NoParentNotice.qml": {
+    "unqualified: unknown grouped property scope margins.": 1,
+    "unresolved-type: Type margins is used but it is not resolved": 1
   },
   "shell/Notifications.qml": {
     "unqualified: unknown grouped property scope margins.": 1,

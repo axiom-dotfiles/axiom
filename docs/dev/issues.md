@@ -37,7 +37,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-21, while benchmarking the overlay's opening (overlay performance overhaul)
 
 ### Unbounded lists still built in full
-- **Where:** `components/content/parts/chat/ChatMessageList.qml`, `components/content/parts/chat/ConversationList.qml`, `components/content/Agenda.qml`, `components/content/Calculator.qml` (history), `components/content/Stopwatch.qml` (laps), `components/content/parts/TodoList.qml`
+- **Where:** `components/content/parts/chat/ChatMessageList.qml`, `components/content/parts/chat/ConversationList.qml`, `components/content/Agenda/Agenda.qml`, `components/content/Calculator/Calculator.qml` (history), `components/content/Stopwatch/Stopwatch.qml` (laps), `components/content/parts/TodoList.qml`
 - **What:** Each builds one delegate per item in a Repeater, with no limit, as `DeviceList` did before it became a ListView (52 Wi-Fi networks took 1.8 s). None showed as slow on the test machine, but they grow with use: a long chat or note becomes a slow module and popout. ListViews (or streamed sections) would build only what's in view.
 - **Size:** small
 - **Found:** 2026-10-21, while benchmarking the overlay's opening (overlay performance overhaul)
@@ -49,13 +49,13 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-21, while reviewing the sizing revamp (overlaySettingsRevamp)
 
 ### Text clips on 1080p screens
-- **Where:** `components/views/layouts/MenuOpening.qml` (the Show on screen / Show other menus buttons)
+- **Where:** `components/views/Layouts/MenuOpening.qml` (the Show on screen / Show other menus buttons)
 - **What:** On a 1920×1080 monitor at the default Interface scale, the edge menu editor's two buttons side by side ("Show on screen", "Show other menus", and their Hide labels) don't fit their halves of the inspector and their labels clip. Likely not the only place: much of the UI was laid out on a 1440 px screen, and since the sizing revamp text keeps its size on every monitor while panels and cards follow the screen. Wants a pass over the overlay pages and inspectors at 1080p (`scripts/dev/nested.sh` with a 1080p output), wrapping or stacking what doesn't fit.
 - **Size:** needs a plan
 - **Found:** 2026-10-21, while checking the sizing revamp on 1080p (overlaySettingsRevamp)
 
 ### A popout taller than the screen runs off it
-- **Where:** `components/hosts/popout/BarPopouts.qml` (`popoutRoom`), `components/content/Calendar.qml`
+- **Where:** `components/hosts/popout/BarPopouts.qml` (`popoutRoom`), `components/content/Calendar/Calendar.qml`
 - **What:** Nothing keeps a bar popout's content within the screen: content taller than the room past the bar (the Calendar popout with its event editor open on a short screen, 1080 px or less with a top bar) draws its box past the screen's far side, and what's there is cut off. `popoutRoom` measures the room left, and only `StyledComboEntry`'s inline list keeps to it. A general guard would hand the content a most height (as `SubPopout.maxContentHeight` does for submenus) for it to scroll within.
 - **Size:** needs a plan
 - **Found:** 2026-10-20, while making dropdowns in popouts open inline
@@ -79,13 +79,13 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-20, while reviewing the popouts system
 
 ### ChatProvidersCard runs its own requests
-- **Where:** `components/views/settings/ChatProvidersCard.qml` (Test, Fetch models)
+- **Where:** `components/views/Settings/ChatProvidersCard.qml` (Test, Fetch models)
 - **What:** The card creates its own `ChatRequest` for Test and Fetch models, so a UI file owns a process, against the rule that services own every side effect (AGENTS.md › Services). Kept as a known exception; moving the requests into `ChatManager` would end it.
 - **Size:** small
 - **Found:** 2026-10-20, while tightening AGENTS.md (it was listed there under Known housekeeping)
 
 ### The community setups' check doesn't take monitor places yet
-- **Where:** `services/SavedConfigsManager.qml` (`exportConfig`'s `places`), `components/views/settings/CommunitySetupsCard.qml` (Export and submit), `components/methods/ConfigExamples.qml` (`pick`'s `monitors`)
+- **Where:** `services/SavedConfigsManager.qml` (`exportConfig`'s `places`), `components/views/Settings/CommunitySetupsCard.qml` (Export and submit), `components/methods/ConfigExamples.qml` (`pick`'s `monitors`)
 - **What:** An export names each per-monitor part's monitor (`x-monitorRef`: a bar's, dock's, OSD's, edge menu's, strip's, a monitor's own desktop) by its place (`#2`, `@primary`, `*`), so a multi-monitor setup lands on the importer's monitors. Those fields are `machine` scope, and the community-setups repo's CI admits only `look` keys (a walk mirroring `ConfigExamples.pick`), so it would refuse such a file: Export and submit leaves the places out (`exportConfig(false, false, false)`), and a shared setup's second-monitor bar still lands on the importer's bar by position. Its CI needs to admit an `x-monitorRef` field holding a place, and then the card can export with them.
 - **Size:** small
 - **Found:** 2026-10-20, while aligning the schema's scopes
@@ -103,7 +103,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-19, while reviewing the sway system
 
 ### The calendar doc's Files header leaves out its page
-- **Where:** `docs/dev/features/calendar.md` (its `Files:` header), `components/views/CalendarPage.qml`
+- **Where:** `docs/dev/features/calendar.md` (its `Files:` header), `components/views/CalendarPage/CalendarPage.qml`
 - **What:** `CalendarPage.qml` is the only code file no doc's `Files:` header lists (`.claude/skills/review-system/scope.py --orphans`), though `calendar.md` describes it in its text. So `check_doc_drift.py` never flags the doc when the page changes, and a review of the calendar feature doesn't see the page.
 - **Size:** trivial
 - **Found:** 2026-10-19, while building the review-system skill
@@ -135,7 +135,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-18, while debugging the screenshot crash with a popout open
 
 ### WorkspaceStrip's Grid briefly has more items than cells
-- **Where:** `components/bar/widgets/workspaces/WorkspaceStrip.qml` (the `Grid`, `id: layout`)
+- **Where:** `components/bar/widgets/Workspaces/WorkspaceStrip.qml` (the `Grid`, `id: layout`)
 - **What:** The log shows `Grid contains more visible items (2) than rows*columns (1)` after a reload. `shown` counts `activeStrip.visible`, so for a moment the Grid's `rows`/`columns` lag a child becoming visible; likely harmless (the next layout pass fits), but it warns.
 - **Size:** small
 - **Found:** 2026-10-18, while auditing the community setups gallery
@@ -147,7 +147,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-18, while adding the community setups gallery
 
 ### CommandOutput's figure text loops on its size
-- **Where:** `components/content/CommandOutput.qml` (the text `StyledText`, `id: body`)
+- **Where:** `components/content/CommandOutput/CommandOutput.qml` (the text `StyledText`, `id: body`)
 - **What:** The log shows `Binding loop detected for property "textSize"` while a Command output card is on a shown page: in statement mode `body`'s `textSize` comes from `body.height / 5`, and a `Layout.fillHeight` text's height follows its implicit height, which follows the size.
 - **Size:** small
 - **Found:** 2026-10-18, while adding the todo list and pomodoro timer
@@ -250,7 +250,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### Changing a setting under sway can flash the screen
 - **Where:** `services/LayerManager.qml` (`_sequence`), `components/hosts/popout/LayerSlot.qml`, `services/MonitorManager.qml`
-- **What:** Reported on sway: changing a setting flashes the whole settings page. Two causes fixed: the border's shadow window wasn't held, so turning the shadow on remapped every surface ordered under it (`LayerManager: mapping … again, in its place` for the backdrop, bars, border and dock, the backdrop dimming the overlay flashing with them), and a sway reload (any save rewriting axiom's file) reset the outputs to the config's, dropping the monitor profile. A third, on any compositor: the settings page rebuilt every card on each edit (its categories were recomputed from the config through `x-showIf`), fixed in `components/views/Settings.qml`. Not reproduced with an ordinary setting since (a save then logs no remap and no overlay resize). Without `layerOrder`, a bar remade by a change of kind still remaps everything after it, by design. If it still happens, note which setting and look for those log lines.
+- **What:** Reported on sway: changing a setting flashes the whole settings page. Two causes fixed: the border's shadow window wasn't held, so turning the shadow on remapped every surface ordered under it (`LayerManager: mapping … again, in its place` for the backdrop, bars, border and dock, the backdrop dimming the overlay flashing with them), and a sway reload (any save rewriting axiom's file) reset the outputs to the config's, dropping the monitor profile. A third, on any compositor: the settings page rebuilt every card on each edit (its categories were recomputed from the config through `x-showIf`), fixed in `components/views/Settings/Settings.qml`. Not reproduced with an ordinary setting since (a save then logs no remap and no overlay resize). Without `layerOrder`, a bar remade by a change of kind still remaps everything after it, by design. If it still happens, note which setting and look for those log lines.
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch
 

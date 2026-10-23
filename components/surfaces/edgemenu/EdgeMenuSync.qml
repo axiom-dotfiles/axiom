@@ -36,15 +36,15 @@ QtObject {
   readonly property bool wanted: EdgeMenuManager.openMenus[root.menuId] === true
   readonly property bool revealing: EdgeMenuManager.revealing[root.menuId] === true
   // Closes when the pointer leaves, unless held or being revealed
-  readonly property bool autoDismiss: root.menu.closeOnLeave && !root.held && !root.revealing
+  readonly property bool autoDismiss: root.menu.close.onLeave && !root.held && !root.revealing
   onAutoDismissChanged: root.host.updateDismissTimer()
 
   // The hover strip's length: the menu's own setting, else the body's
   // length (`body`, with `pad` on both ends), or from config until the
   // body has been loaded
   function triggerLength(body, vertical, pad) {
-    if (root.menu.triggerLength > 0)
-      return root.menu.triggerLength;
+    if (root.menu.trigger.length > 0)
+      return root.menu.trigger.length;
     if (body)
       return (vertical ? body.implicitHeight : body.implicitWidth) + pad * 2;
     return EdgeMenusConfig.lengthOf(root.menu, vertical, EdgeMenuManager.cardUnitOf(root.menu), EdgeMenuManager.gapOf(root.menu));

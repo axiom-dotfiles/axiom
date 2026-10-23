@@ -6,7 +6,6 @@ x-showIf: {/$supports.configModes: true, /Compositor.mode: managed}
 title: Session
 description: What starts with your compositor while axiom manages its config.
 additionalProperties: false
-x-order: [recommendedEnv, env, autostart]
 properties:
   recommendedEnv:
     type: boolean
@@ -22,35 +21,26 @@ properties:
     items:
       type: object
       additionalProperties: false
-      x-order: [name, value]
       properties:
-        name:
-          type: string
-          title: Name
-          default: ""
-        value:
-          type: string
-          title: Value
-          default: ""
+        id: {$ref: '#/definitions/ItemId'}
+        name: {type: string, title: Name, default: ''}
+        value: {type: string, title: Value, default: ''}
+      required: [id]
   autostart:
     type: array
     title: Autostart
     default:
-      - command: dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+      - id: dbus-update-activation-environment
+        command: dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
         enabled: true
-      - {command: systemctl --user start hyprpolkitagent, enabled: true}
-      - {command: hypridle, enabled: true}
+      - {id: systemctl, command: systemctl --user start hyprpolkitagent, enabled: true}
+      - {id: hypridle, command: hypridle, enabled: true}
     description: Commands run once when the compositor starts, after axiom.
     items:
       type: object
       additionalProperties: false
-      x-order: [command, enabled]
       properties:
-        command:
-          type: string
-          title: Command
-          default: ""
-        enabled:
-          type: boolean
-          title: "On"
-          default: true
+        id: {$ref: '#/definitions/ItemId'}
+        command: {type: string, title: Command, default: ''}
+        enabled: {type: boolean, title: 'On', default: true}
+      required: [id]

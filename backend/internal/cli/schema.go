@@ -8,14 +8,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strings"
 
 	"github.com/axiom-shell/axiom/backend/internal/axerr"
 	"github.com/axiom-shell/axiom/backend/internal/buildinfo"
 	"github.com/axiom-shell/axiom/backend/internal/fsx"
-	"github.com/axiom-shell/axiom/backend/internal/jsonx"
-	"github.com/axiom-shell/axiom/backend/internal/schema/yamlsrc"
 	"github.com/axiom-shell/axiom/backend/internal/tree"
 )
 
@@ -95,18 +91,6 @@ func schemaCommand() *Command {
 					}
 				},
 			},
-			{
-				Name:    "from-json",
-				Summary: "Split config/json/config.schema.json into config/schema/ (once, to start the YAML source)",
-				Hidden:  true,
-				Setup: func(fs *flag.FlagSet) Runner {
-					dir := fs.String("tree", "", "the axiom tree")
-					force := fs.Bool("force", false, "replace an existing config/schema/")
-					return func(ctx context.Context, e *Env, args []string) error {
-						return splitSchema(e, *dir, *force)
-					}
-				},
-			},
 		},
 	}
 }
@@ -119,68 +103,4 @@ func buildSchema(e *Env, dir string) (string, []byte, error) {
 	}
 	data, err := tree.BuildSchema(root)
 	return root, data, err
-}
-
-func splitSchema(e *Env, dir string, force bool) error {
-	wd, _ := os.Getwd()
-	root, err := tree.Find(dir, e.Getenv, wd)
-	if err != nil {
-		return err
-	}
-	src := filepath.Join(root, tree.SchemaSource)
-	if _, err := os.Stat(src); err == nil && !force {
-		return axerr.New(axerr.Conflict, "%s exists (--force replaces it)", src)
-	}
-	raw, err := os.ReadFile(filepath.Join(root, tree.SchemaJSON))
-	if err != nil {
-		return err
-	}
-	parsed, err := jsonx.Unmarshal(raw)
-	if err != nil {
-		return err
-	}
-	obj, ok := parsed.(*jsonx.Object)
-	if !ok {
-		return axerr.New(axerr.InvalidConfig, "the schema isn't an object")
-	}
-	docs, _ := os.ReadFile(filepath.Join(root, "docs/dev/core/schema-annotations.md"))
-	files, err := yamlsrc.Split(obj, annotationSummaries(string(docs)))
-	if err != nil {
-		return err
-	}
-	if force {
-		os.RemoveAll(src)
-	}
-	for name, data := range files {
-		path := filepath.Join(src, filepath.FromSlash(name))
-		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-			return err
-		}
-		if err := fsx.WriteFile(path, data, 0o644); err != nil {
-			return err
-		}
-	}
-	return e.Output(map[string]any{"files": len(files)}, func(w io.Writer) {
-		fmt.Fprintf(w, "wrote %d files into %s\n", len(files), src)
-	})
-}
-
-var annotationLine = regexp.MustCompile("^\\s*- (?:`[^`]*`, )*`(x-[A-Za-z]+)[^`]*`[^:]*: (.*)$")
-
-// annotationSummaries takes the first sentence describing each annotation
-// in schema-annotations.md, for the registry's one-line summaries.
-func annotationSummaries(doc string) map[string]string {
-	out := map[string]string{}
-	for _, line := range strings.Split(doc, "\n") {
-		m := annotationLine.FindStringSubmatch(line)
-		if m == nil || out[m[1]] != "" {
-			continue
-		}
-		text := m[2]
-		if i := strings.Index(text, ". "); i >= 0 {
-			text = text[:i+1]
-		}
-		out[m[1]] = strings.TrimSpace(text)
-	}
-	return out
 }

@@ -3,7 +3,7 @@
 
 > **File:** `services/OverlayManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-OverlayManager holds the layouts editor's working copy of Overlay.views (the editor is the pinned last page). Edits only affect localViews and the editor's canvas; the real overlay pages and config.json are untouched until saveChanges(). Mirrors BarManager. Also keeps the page's own state, since the page is unloaded whenever the overlay closes: whether it's editing a page, an edge menu or the lock screen (`editTarget`; the menus are EdgeMenuManager's and the lock screen LockManager's), the selected page, and each overlay's room (for the canvas's "fits" line). The selected page's modules are edited through `layout` (GridEditor, which also holds the selected module).
+OverlayManager holds the layouts editor's working copy of Overlay.items (the editor is the pinned last page). Edits only affect localViews and the editor's canvas; the real overlay pages and config.json are untouched until saveChanges(). Mirrors BarManager. Also keeps the page's own state, since the page is unloaded whenever the overlay closes: whether it's editing a page, an edge menu or the lock screen (`editTarget`; the menus are EdgeMenuManager's and the lock screen LockManager's), the selected page, and each overlay's room (for the canvas's "fits" line). The selected page's modules are edited through `layout` (GridEditor, which also holds the selected module).
 
 ### Properties
 
@@ -44,7 +44,7 @@ OverlayManager holds the layouts editor's working copy of Overlay.views (the edi
 - `duplicateView(index)`: Inserts a copy of a Custom page after it and selects it
 - `removeView(index)`
 - `moveView(from, to)`: The selected page stays selected wherever it ends up
-- `updateViewField(index, key, value)`: One of a page's own fields (name, icon, visible, fineGrid).
+- `updateViewField(index, key, value)`: One of a page's own fields (name, icon, visible), or its double grid ("fineGrid": layout.grid.fine), which rescales the modules' places so they stay put
 - `renameView(index, name)`
 - `setViewVisible(index, visible)`: Shown in the navigator (true) or hidden; hidden pages keep their place
 - `isSaved(view)`: Whether `view` is saved under its page key: bar buttons and keybinds are saved by other editors, so they may only open a saved page

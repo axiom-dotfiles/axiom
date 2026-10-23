@@ -468,8 +468,23 @@ func (c *context) pick(value any, present bool, n any, scope string) (any, bool)
 	if schema.Get(nd.schema, "x-takeover") == true {
 		return nil, false
 	}
-	if str, isStr := value.(string); isStr && jsonx.Truthy(schema.Get(nd.schema, "x-monitorRef")) && c.monitors != nil {
-		return monitorToken(str, c.monitors)
+	if jsonx.Truthy(schema.Get(nd.schema, "x-monitorRef")) && c.monitors != nil {
+		switch v := value.(type) {
+		case string:
+			return monitorToken(v, c.monitors)
+		case *jsonx.Array:
+			// A list of monitors (a ScreenTarget's names): each by its
+			// place, the ones not connected left out
+			out := jsonx.Arr()
+			for _, item := range v.Items {
+				if name, ok := item.(string); ok {
+					if token, ok := monitorToken(name, c.monitors); ok {
+						out.Append(token)
+					}
+				}
+			}
+			return out, true
+		}
 	}
 	keep := c.keeps(nd.scope)
 	switch v := value.(type) {
@@ -527,8 +542,20 @@ func (c *context) merge(current any, curOK bool, example any, exOK bool, n any, 
 		value, valueOK = example, true
 	}
 	nd := c.node(value, valueOK, n, scope)
-	if exOK && jsonx.Truthy(schema.Get(nd.schema, "x-monitorRef")) && isMonitorToken(example) {
-		return monitorName(example.(string), c.monitors), true
+	if exOK && jsonx.Truthy(schema.Get(nd.schema, "x-monitorRef")) {
+		if isMonitorToken(example) {
+			return monitorName(example.(string), c.monitors), true
+		}
+		if list, ok := example.(*jsonx.Array); ok && allTokens(list) {
+			// Places to this PC's monitors, those it hasn't left out
+			out := jsonx.Arr()
+			for _, token := range list.Items {
+				if name := monitorName(token.(string), c.monitors); name != "" {
+					out.Append(name)
+				}
+			}
+			return out, true
+		}
 	}
 	if !c.keeps(nd.scope) {
 		return c.keep(current, curOK, example, exOK, nd, strict)
@@ -729,6 +756,16 @@ func isMonitorToken(v any) bool {
 	return ok && (s == "@primary" || s == "*" || placeToken.MatchString(s))
 }
 
+// allTokens: a non-empty list of monitor places
+func allTokens(list *jsonx.Array) bool {
+	for _, v := range list.Items {
+		if !isMonitorToken(v) {
+			return false
+		}
+	}
+	return list.Len() > 0
+}
+
 // monitorName is the user's monitor for a place, "" (the primary) for one
 // they don't have.
 func monitorName(token string, monitors Monitors) any {
@@ -745,31 +782,65 @@ func monitorName(token string, monitors Monitors) any {
 	return ""
 }
 
-// monitorMissing is what becomes of item when it names a place the user
-// has no monitor for: its field's x-monitorRef ("off" or "drop"), else "".
+// monitorMissing is what becomes of item when it names only places the
+// user has no monitor for: its field's x-monitorRef ("off" or "drop"),
+// else "". The field is the item's own (a monitor name), or one of an
+// object of it (a ScreenTarget's names).
 func (c *context) monitorMissing(item any, items any) string {
 	nd := c.node(item, true, items, "")
-	obj, ok := item.(*jsonx.Object)
-	props, pok := schema.Get(nd.schema, "properties").(*jsonx.Object)
-	if !ok || !pok || !jsonx.Truthy(schema.Get(nd.schema, "properties")) {
+	return c.missingIn(item, nd.schema, 1)
+}
+
+func (c *context) missingIn(value any, n any, depth int) string {
+	obj, ok := value.(*jsonx.Object)
+	props, pok := schema.Get(n, "properties").(*jsonx.Object)
+	if !ok || !pok {
 		return ""
 	}
 	for _, key := range props.Keys() {
-		rule := schema.Get(c.s.Resolve(props.Value(key)), "x-monitorRef")
-		value, has := obj.Get(key)
-		text := ""
-		if has && value != nil {
-			text = jsonx.ToString(value)
+		prop := c.s.Resolve(props.Value(key))
+		v, has := obj.Get(key)
+		if !has || v == nil {
+			continue
 		}
-		if jsonx.Truthy(rule) && placeToken.MatchString(text) {
-			n, _ := strconv.Atoi(text[1:])
-			if n > len(c.monitors) {
-				r, _ := rule.(string)
+		rule, _ := schema.Get(prop, "x-monitorRef").(string)
+		if rule != "" {
+			var places []string
+			switch t := v.(type) {
+			case string:
+				places = []string{t}
+			case *jsonx.Array:
+				for _, x := range t.Items {
+					if s, ok := x.(string); ok {
+						places = append(places, s)
+					}
+				}
+			}
+			if len(places) > 0 && c.allMissing(places) {
+				return rule
+			}
+			continue
+		}
+		if depth > 0 {
+			if r := c.missingIn(v, prop, depth-1); r != "" {
 				return r
 			}
 		}
 	}
 	return ""
+}
+
+// allMissing: every one of places is a place past the user's monitors
+func (c *context) allMissing(places []string) bool {
+	for _, p := range places {
+		if !placeToken.MatchString(p) {
+			return false
+		}
+		if n, _ := strconv.Atoi(p[1:]); n <= len(c.monitors) {
+			return false
+		}
+	}
+	return true
 }
 
 func sparse(s *schema.Schema, value any, n any) any {

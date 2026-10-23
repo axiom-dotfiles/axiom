@@ -6,415 +6,263 @@ x-category: Compositor
 title: Window look
 description: Settings that make windows match axiom. While on, they win over your compositor's own config, and they come along when you share or import a config.
 additionalProperties: false
-x-order:
-  - borders
-  - activeColor
-  - inactiveColor
-  - shape
-  - matchShell
-  - borderSize
-  - rounding
-  - gaps
-  - gapsIn
-  - gapsOut
-  - surfaceBlur
-  - surfaceBlurThroughWindows
-  - surfaceBlurBackdrops
-  - surfaceBlurPauseFullscreen
-  - blur
-  - windowBlur
-  - blurSize
-  - blurPasses
-  - blurXray
-  - blurIgnoreOpacity
-  - blurNewOptimizations
-  - blurNoise
-  - blurContrast
-  - blurVibrancy
-  - blurPopups
-  - blurSpecial
-  - shadow
-  - shadowMatchShell
-  - shadowSize
-  - shadowPower
-  - shadowColor
-  - shadowStrength
-  - dim
-  - dimStrength
-  - opacity
-  - activeOpacity
-  - inactiveOpacity
-  - fullscreenOpacity
 properties:
   borders:
-    type: boolean
-    title: Themed borders
-    default: false
-    description: Window borders in theme colors.
-    x-enabledIf: {/$supports.windowBorders: true}
-  activeColor:
-    type: string
-    title: Focused border
-    x-options: colors
-    x-emptyLabel: Theme
-    default: ""
-    description: Empty follows the theme's focused border color.
-    x-showIf: {borders: true}
-    x-enabledIf: {/$supports.windowBorders: true}
-  inactiveColor:
-    type: string
-    title: Unfocused border
-    x-options: colors
-    x-emptyLabel: Theme
-    default: ""
-    description: Empty follows the theme's border color.
-    x-showIf: {borders: true}
-    x-enabledIf: {/$supports.windowBorders: true}
+    type: object
+    title: Borders
+    additionalProperties: false
+    properties:
+      enabled:
+        type: boolean
+        title: Themed borders
+        default: false
+        description: Window borders in theme colors.
+        x-enabledIf: {/$supports.windowBorders: true}
+      activeColor:
+        type: string
+        title: Focused border
+        x-options: colors
+        x-emptyLabel: Theme
+        default: ''
+        description: Empty follows the theme's focused border color.
+        x-showIf: {enabled: true}
+        x-enabledIf: {/$supports.windowBorders: true}
+      inactiveColor:
+        type: string
+        title: Unfocused border
+        x-options: colors
+        x-emptyLabel: Theme
+        default: ''
+        description: Empty follows the theme's border color.
+        x-showIf: {enabled: true}
+        x-enabledIf: {/$supports.windowBorders: true}
+    x-group: Window look
   shape:
-    type: boolean
-    title: Set border width and corners
-    default: false
-    description: The width of window borders and the rounding of their corners. Sway draws square corners, so there only the width applies.
-    x-enabledIf: {/$supports.windowShape: true}
-  matchShell:
-    x-link: {setting: Appearance.shape}
-    type: boolean
-    title: Match axiom's shape
-    default: true
-    description: 'Follow Look & Feel → Shape: its border width and corner radius (only the width on sway, which can''t round corners).'
-    x-showIf: {shape: true}
-    x-enabledIf: {/$supports.windowShape: true}
-  borderSize:
-    type: integer
-    x-control: stepper
-    title: Border width
-    x-unit: px
-    default: 2
-    minimum: 0
-    maximum: 20
-    x-showIf: {shape: true, matchShell: false}
-    x-enabledIf: {/$supports.windowShape: true}
-  rounding:
-    type: integer
-    x-control: stepper
-    title: Corner rounding
-    x-unit: px
-    default: 8
-    minimum: 0
-    maximum: 50
-    x-showIf: {shape: true, matchShell: false}
-    x-enabledIf: {/$supports.windowShape: true, /$supports.windowRounding: true}
+    type: object
+    title: Shape
+    additionalProperties: false
+    properties:
+      enabled:
+        type: boolean
+        title: Set border width and corners
+        default: false
+        description: The width of window borders and the rounding of their corners. Sway draws square corners, so there only the width applies.
+        x-enabledIf: {/$supports.windowShape: true}
+      matchShell:
+        x-link: {setting: Appearance.shape}
+        type: boolean
+        title: Match axiom's shape
+        default: true
+        description: "Follow Look & Feel → Shape: its border width and corner radius (only the width on sway, which can't round corners)."
+        x-showIf: {enabled: true}
+        x-enabledIf: {/$supports.windowShape: true}
+      size:
+        type: integer
+        x-control: stepper
+        title: Border width
+        x-unit: px
+        default: 2
+        minimum: 0
+        maximum: 20
+        x-showIf: {enabled: true, matchShell: false}
+        x-enabledIf: {/$supports.windowShape: true}
+      rounding:
+        type: integer
+        x-control: stepper
+        title: Corner rounding
+        x-unit: px
+        default: 8
+        minimum: 0
+        maximum: 50
+        x-showIf: {enabled: true, matchShell: false}
+        x-enabledIf: {/$supports.windowShape: true, /$supports.windowRounding: true}
+    x-group: Window look
   gaps:
-    type: boolean
-    title: Set window gaps
-    default: false
-    description: Floating bars and detached surfaces set to Automatic keep these gaps too.
-    x-enabledIf: {/$supports.windowGaps: true}
-  gapsIn:
-    type: integer
-    x-control: stepper
-    title: Gaps between windows
-    x-unit: px
-    default: 3
-    minimum: 0
-    maximum: 50
-    x-showIf: {gaps: true}
-    x-enabledIf: {/$supports.windowGaps: true}
-  gapsOut:
-    type: integer
-    x-control: stepper
-    title: Gaps to the edges
-    x-unit: px
-    default: 6
-    minimum: 0
-    maximum: 100
-    x-showIf: {gaps: true}
-    x-enabledIf: {/$supports.windowGaps: true}
+    type: object
+    title: Gaps
+    additionalProperties: false
+    properties:
+      enabled:
+        type: boolean
+        title: Set window gaps
+        default: false
+        description: Floating bars and detached surfaces set to Automatic keep these gaps too.
+        x-enabledIf: {/$supports.windowGaps: true}
+      inner:
+        type: integer
+        x-control: stepper
+        title: Gaps between windows
+        x-unit: px
+        default: 3
+        minimum: 0
+        maximum: 50
+        x-showIf: {enabled: true}
+        x-enabledIf: {/$supports.windowGaps: true}
+      outer:
+        type: integer
+        x-control: stepper
+        title: Gaps to the edges
+        x-unit: px
+        default: 6
+        minimum: 0
+        maximum: 100
+        x-showIf: {enabled: true}
+        x-enabledIf: {/$supports.windowGaps: true}
+    x-group: Window look
   surfaceBlur:
-    x-link: {setting: Appearance.surface}
-    type: boolean
-    title: Blur behind axiom's surfaces
+    type: object
+    title: Blur behind axiom
+    additionalProperties: false
+    properties:
+      enabled:
+        x-link: {setting: Appearance.surface}
+        type: boolean
+        title: Blur behind axiom's surfaces
+        default: true
+        description: The compositor blurs what shows through axiom's translucent surfaces (Look & Feel → Translucency), with its blur below. It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.
+        x-showIf: {/Appearance.surface.opacity: {not: 100}}
+        x-enabledIf: {/$supports.blur: true}
+      throughWindows:
+        type: boolean
+        title: Blur windows behind surfaces
+        default: true
+        description: Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Tooltips and menus always blur what's behind them.
+        x-showIf: {/Appearance.surface.opacity: {not: 100}, enabled: true}
+        x-enabledIf: {/$supports.blur: true}
+      backdrops:
+        type: boolean
+        title: Blur backdrops
+        default: false
+        description: Also blur the whole screen behind the overlay, launcher, power menu and workspace overview. Costs more while they open.
+        x-showIf: {/Appearance.surface.opacity: {not: 100}, enabled: true}
+        x-enabledIf: {/$supports.blur: true}
+      pauseFullscreen:
+        x-scope: machine
+        type: boolean
+        title: Pause blur over fullscreen apps
+        default: true
+        description: While a fullscreen window (a game, a video) is open, nothing blurs, so a volume popup or notification over it costs nothing extra. Surfaces on that monitor turn opaque; elsewhere they stay translucent, unblurred.
+        x-showIf: {/Appearance.surface.opacity: {not: 100}, enabled: true}
+        x-enabledIf: {/$supports.blur: true}
     x-group: Blur
-    default: true
-    description: The compositor blurs what shows through axiom's translucent surfaces (Look & Feel → Translucency), with its blur below. It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.
-    x-showIf:
-      /Appearance.surface.opacity: {not: 100}
-    x-enabledIf: {/$supports.blur: true}
-  surfaceBlurThroughWindows:
-    type: boolean
-    title: Blur windows behind surfaces
-    x-group: Blur
-    default: true
-    description: Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Tooltips and menus always blur what's behind them.
-    x-showIf:
-      /Appearance.surface.opacity: {not: 100}
-      surfaceBlur: true
-    x-enabledIf: {/$supports.blur: true}
-  surfaceBlurBackdrops:
-    type: boolean
-    title: Blur backdrops
-    x-group: Blur
-    default: false
-    description: Also blur the whole screen behind the overlay, launcher, power menu and workspace overview. Costs more while they open.
-    x-showIf:
-      /Appearance.surface.opacity: {not: 100}
-      surfaceBlur: true
-    x-enabledIf: {/$supports.blur: true}
-  surfaceBlurPauseFullscreen:
-    x-scope: machine
-    type: boolean
-    title: Pause blur over fullscreen apps
-    x-group: Blur
-    default: true
-    description: While a fullscreen window (a game, a video) is open, nothing blurs, so a volume popup or notification over it costs nothing extra. Surfaces on that monitor turn opaque; elsewhere they stay translucent, unblurred.
-    x-showIf:
-      /Appearance.surface.opacity: {not: 100}
-      surfaceBlur: true
-    x-enabledIf: {/$supports.blur: true}
-  blur:
-    type: boolean
-    title: Set the compositor's blur
-    x-group: Blur
-    default: false
-    description: The compositor has one blur, for windows and axiom's translucent surfaces alike. Off, your own config's applies.
-    x-enabledIf: {/$supports.windowBlur: true}
-  windowBlur:
-    type: boolean
-    title: Blur transparent windows
-    x-group: Blur
-    default: true
-    description: Off, only axiom's surfaces blur (Blur behind axiom's surfaces, above).
-    x-showIf: {blur: true}
-    x-enabledIf: {/$supports.windowBlur: true}
-    x-hypr: decoration.blur.enabled
-    x-hyprIf: blur
-  blurSize:
-    type: integer
-    x-control: stepper
-    title: Blur size
-    x-group: Blur
-    default: 4
-    minimum: 1
-    maximum: 20
-    x-showIf: {blur: true}
-    x-enabledIf: {/$supports.windowBlur: true}
-    x-hypr: decoration.blur.size
-    x-hyprIf: blur
-  blurPasses:
-    type: integer
-    title: Blur passes
-    x-group: Blur
-    default: 3
-    minimum: 1
-    maximum: 6
-    x-showIf: {blur: true}
-    x-enabledIf: {/$supports.windowBlur: true}
-    x-hypr: decoration.blur.passes
-    x-hyprIf: blur
-  blurXray:
-    type: boolean
-    title: See-through blur
-    x-group: Blur
-    default: true
-    description: Floating windows blur only the wallpaper, not the windows under them. Cheaper.
-    x-showIf: {blur: true, windowBlur: true}
-    x-enabledIf: {/$supports.windowBlur: true}
-    x-hypr: decoration.blur.xray
-    x-hyprIf: blur
-  blurIgnoreOpacity:
-    type: boolean
-    title: Full blur behind any transparency
-    x-group: Blur
-    default: true
-    x-showIf: {blur: true, windowBlur: true}
-    x-enabledIf: {/$supports.windowBlur: true, /$compositor: hyprland}
-    x-hypr: decoration.blur.ignore_opacity
-    x-hyprIf: blur
-  blurNewOptimizations:
-    type: boolean
-    title: Blur optimizations
-    x-group: Blur
-    default: true
-    x-showIf: {blur: true}
-    x-enabledIf: {/$supports.windowBlur: true, /$compositor: hyprland}
-    x-hypr: decoration.blur.new_optimizations
-    x-hyprIf: blur
-  blurNoise:
-    type: integer
-    title: Noise
-    x-unit: ‰
-    x-group: Blur
-    default: 12
-    minimum: 0
-    maximum: 1000
-    x-showIf: {blur: true}
-    x-enabledIf: {/$supports.windowBlur: true}
-    x-hypr: decoration.blur.noise
-    x-hyprScale: 0.001
-    x-hyprIf: blur
-  blurContrast:
-    type: integer
-    title: Contrast
-    x-unit: '%'
-    x-group: Blur
-    default: 89
-    minimum: 0
-    maximum: 200
-    x-showIf: {blur: true}
-    x-enabledIf: {/$supports.windowBlur: true}
-    x-hypr: decoration.blur.contrast
-    x-hyprScale: 0.01
-    x-hyprIf: blur
-  blurVibrancy:
-    type: integer
-    title: Vibrancy
-    x-unit: '%'
-    x-group: Blur
-    default: 17
-    minimum: 0
-    maximum: 100
-    x-showIf: {blur: true}
-    x-enabledIf: {/$supports.windowBlur: true, /$compositor: hyprland}
-    x-hypr: decoration.blur.vibrancy
-    x-hyprScale: 0.01
-    x-hyprIf: blur
-  blurPopups:
-    type: boolean
-    title: Blur menus and popups
-    x-group: Blur
-    default: false
-    x-showIf: {blur: true, windowBlur: true}
-    x-enabledIf: {/$supports.windowBlur: true, /$compositor: hyprland}
-    x-hypr: decoration.blur.popups
-    x-hyprIf: blur
-  blurSpecial:
-    type: boolean
-    title: Blur behind special workspaces
-    x-group: Blur
-    default: false
-    description: 'Expensive: redraws the blur on every frame.'
-    x-showIf: {blur: true}
-    x-enabledIf: {/$supports.windowBlur: true, /$compositor: hyprland}
-    x-hypr: decoration.blur.special
-    x-hyprIf: blur
+  blur: {$ref: '#/definitions/Blur', x-group: Blur}
   shadow:
-    type: boolean
+    $ref: '#/definitions/Shadow'
     title: Window shadows
+    x-properties:
+      enabled:
+        type: boolean
+        title: Window shadows
+        default: false
+        x-enabledIf: {/$supports.windowShadow: true}
+      matchShell:
+        x-link: {setting: Bars.style.shadow}
+        type: boolean
+        title: Match axiom's shadow
+        default: true
+        description: 'Follow Look & Feel → Surface shadow: its color and size. With it off there, windows cast none.'
+        x-showIf: {enabled: true}
+        x-enabledIf: {/$supports.windowShadow: true}
+      size:
+        type: integer
+        x-control: stepper
+        title: Shadow size
+        x-unit: px
+        default: 10
+        minimum: 0
+        maximum: 100
+        x-showIf: {enabled: true, matchShell: false}
+        x-enabledIf: {/$supports.windowShadow: true}
+      power:
+        type: integer
+        title: Shadow falloff
+        default: 3
+        minimum: 1
+        maximum: 4
+        description: '1 fades slowly, 4 ends sharply.'
+        x-showIf: {enabled: true, matchShell: false}
+        x-enabledIf: {/$supports.windowShadow: true, /$compositor: hyprland}
+      color:
+        type: string
+        title: Shadow color
+        x-options: colors
+        x-emptyLabel: Compositor's
+        default: ''
+        description: Unfocused windows cast it too.
+        x-showIf: {enabled: true, matchShell: false}
+        x-enabledIf: {/$supports.windowShadow: true}
+      strength:
+        type: integer
+        x-control: stepper
+        title: Shadow strength
+        x-unit: '%'
+        default: 100
+        minimum: 10
+        maximum: 400
+        description: How strong windows cast it, matching axiom's or not. The compositor's own color keeps its strength.
+        x-showIf: {enabled: true}
+        x-enabledIf: {/$supports.windowShadow: true}
     x-group: Window shadows
-    default: false
-    x-enabledIf: {/$supports.windowShadow: true}
-  shadowMatchShell:
-    x-link: {setting: BarStyle.shadow}
-    type: boolean
-    title: Match axiom's shadow
-    x-group: Window shadows
-    default: true
-    description: 'Follow Look & Feel → Surface shadow: its color and size. With it off there, windows cast none.'
-    x-showIf: {shadow: true}
-    x-enabledIf: {/$supports.windowShadow: true}
-  shadowSize:
-    type: integer
-    x-control: stepper
-    title: Shadow size
-    x-unit: px
-    x-group: Window shadows
-    default: 10
-    minimum: 0
-    maximum: 100
-    x-showIf: {shadow: true, shadowMatchShell: false}
-    x-enabledIf: {/$supports.windowShadow: true}
-  shadowPower:
-    type: integer
-    title: Shadow falloff
-    x-group: Window shadows
-    default: 3
-    minimum: 1
-    maximum: 4
-    description: "1 fades slowly, 4 ends sharply."
-    x-showIf: {shadow: true, shadowMatchShell: false}
-    x-enabledIf: {/$supports.windowShadow: true, /$compositor: hyprland}
-  shadowColor:
-    type: string
-    title: Shadow color
-    x-group: Window shadows
-    x-options: colors
-    x-emptyLabel: Compositor's
-    default: ""
-    description: Unfocused windows cast it too.
-    x-showIf: {shadow: true, shadowMatchShell: false}
-    x-enabledIf: {/$supports.windowShadow: true}
-  shadowStrength:
-    type: integer
-    x-control: stepper
-    title: Shadow strength
-    x-unit: '%'
-    x-group: Window shadows
-    default: 100
-    minimum: 10
-    maximum: 400
-    description: How strong windows cast it, matching axiom's or not. The compositor's own color keeps its strength.
-    x-showIf: {shadow: true}
-    x-enabledIf: {/$supports.windowShadow: true}
   dim:
-    type: boolean
-    title: Dim unfocused windows
+    type: object
+    title: Window dimming
+    additionalProperties: false
+    properties:
+      enabled:
+        type: boolean
+        title: Dim unfocused windows
+        default: false
+        x-enabledIf: {/$supports.windowDim: true}
+      strength:
+        type: integer
+        title: Dim strength
+        x-unit: '%'
+        default: 8
+        minimum: 0
+        maximum: 100
+        x-showIf: {enabled: true}
+        x-enabledIf: {/$supports.windowDim: true}
     x-group: Window dimming
-    default: false
-    x-enabledIf: {/$supports.windowDim: true}
-  dimStrength:
-    type: integer
-    title: Dim strength
-    x-unit: '%'
-    x-group: Window dimming
-    default: 8
-    minimum: 0
-    maximum: 100
-    x-showIf: {dim: true}
-    x-enabledIf: {/$supports.windowDim: true}
   opacity:
-    x-link: {setting: Appearance.surface.opacity}
-    type: boolean
-    title: Set window opacity
+    type: object
+    title: Window opacity
+    additionalProperties: false
+    properties:
+      enabled:
+        x-link: {setting: Appearance.surface.opacity}
+        type: boolean
+        title: Set window opacity
+        default: false
+        description: Your apps' windows; the shell's own surfaces are Look & Feel → Translucency. Off, your own config's applies.
+        x-enabledIf: {/$supports.windowOpacity: true}
+      active:
+        type: integer
+        title: Focused window opacity
+        x-unit: '%'
+        default: 100
+        minimum: 10
+        maximum: 100
+        x-showIf: {enabled: true}
+        x-enabledIf: {/$supports.windowOpacity: true}
+        x-compositor: {hyprland: {key: decoration.active_opacity, scale: 0.01, if: enabled}}
+      inactive:
+        type: integer
+        title: Unfocused window opacity
+        x-unit: '%'
+        default: 100
+        minimum: 10
+        maximum: 100
+        x-showIf: {enabled: true}
+        x-enabledIf: {/$supports.windowOpacity: true}
+        x-compositor: {hyprland: {key: decoration.inactive_opacity, scale: 0.01, if: enabled}}
+      fullscreen:
+        type: integer
+        title: Fullscreen opacity
+        x-unit: '%'
+        default: 100
+        minimum: 10
+        maximum: 100
+        x-showIf: {enabled: true}
+        x-enabledIf: {/$supports.windowOpacity: true}
+        x-compositor: {hyprland: {key: decoration.fullscreen_opacity, scale: 0.01, if: enabled}}
     x-group: Window opacity
-    default: false
-    description: Your apps' windows; the shell's own surfaces are Look & Feel → Translucency. Off, your own config's applies.
-    x-enabledIf: {/$supports.windowOpacity: true}
-  activeOpacity:
-    type: integer
-    title: Focused window opacity
-    x-unit: '%'
-    x-group: Window opacity
-    default: 100
-    minimum: 10
-    maximum: 100
-    x-showIf: {opacity: true}
-    x-enabledIf: {/$supports.windowOpacity: true}
-    x-hypr: decoration.active_opacity
-    x-hyprScale: 0.01
-    x-hyprIf: opacity
-  inactiveOpacity:
-    type: integer
-    title: Unfocused window opacity
-    x-unit: '%'
-    x-group: Window opacity
-    default: 100
-    minimum: 10
-    maximum: 100
-    x-showIf: {opacity: true}
-    x-enabledIf: {/$supports.windowOpacity: true}
-    x-hypr: decoration.inactive_opacity
-    x-hyprScale: 0.01
-    x-hyprIf: opacity
-  fullscreenOpacity:
-    type: integer
-    title: Fullscreen opacity
-    x-unit: '%'
-    x-group: Window opacity
-    default: 100
-    minimum: 10
-    maximum: 100
-    x-showIf: {opacity: true}
-    x-enabledIf: {/$supports.windowOpacity: true}
-    x-hypr: decoration.fullscreen_opacity
-    x-hyprScale: 0.01
-    x-hyprIf: opacity

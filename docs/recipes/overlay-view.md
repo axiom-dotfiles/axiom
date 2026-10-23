@@ -1,11 +1,11 @@
 # Recipe: a new overlay view type (incl. tool pages)
 
 > **Use when:** adding a page type to the overlay. A *tool page* (`x-tool: true`: Settings, BarEditor, Themes, Keybinds, Monitors, CalendarPage) is a hand-built page that is always in config.
-> **Copy from:** `components/views/Settings.qml` (a small `BaseView` page), `components/views/Themes.qml`; schema `definitions.CalendarOverlayView`; migration `ConfigMigration._v45ToV46` with test `test_v46_adds_the_calendar_page_once` in `tests/tst_Config.qml`.
+> **Copy from:** `components/views/Settings/Settings.qml` (a small `BaseView` page), `components/views/Themes/Themes.qml`; schema `definitions.CalendarOverlayView`; migration `ConfigMigration._v45ToV46` with test `test_v46_adds_the_calendar_page_once` in `tests/tst_Config.qml`.
 > **Docs:** [overlay/pages-and-grid](../dev/overlay/pages-and-grid.md), [core/streamed-building](../dev/core/streamed-building.md), [core/editors-pattern](../dev/core/editors-pattern.md) (for an editor page), rules in `components/views/AGENTS.md`; generated: [config/OverlayViews](../dev/config/OverlayViews.md).
 
 ## Files to touch
-1. `components/views/<Type>.qml`: the page; its pieces in `components/views/<type>/` (lower-case folder).
+1. `components/views/<Type>/<Type>.qml`: the page; its pieces in `components/views/<type>/` (lower-case folder).
 2. `config/schema/definitions/views/<X>OverlayView.yaml` (and its name in `config/schema/index.yaml`'s `definitions`), its `$ref` in the `oneOf` of `config/schema/definitions/views/OverlayView.yaml`.
 3. Tool page only:
    - `config/schema/sections/Overlay.yaml`'s `views` `default` array: append `{ "type": "<Type>" }`;

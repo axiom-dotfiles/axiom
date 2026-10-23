@@ -1,0 +1,4 @@
+label: Monitors
+icon: monitor
+tool: true
+needs: monitors

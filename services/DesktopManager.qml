@@ -9,10 +9,11 @@ import qs.components.methods
  * which of its layouts is edited (`selectedTarget`: "all", "primary" or a
  * monitor's name), and the room each screen's desktop has.
  *
- * A monitor shows its own layout (Desktop.monitors) if it has one, else
- * the primary monitor's on the primary monitor, else the one for all
- * monitors (DesktopConfig.sourceFor): a monitor without one of its own is
- * edited by giving it one (createForTarget), a copy of what it showed. */
+ * Desktop.items are layouts, each for what its `screen` picks: a monitor
+ * shows one naming it if there is one, else the primary monitor's on the
+ * primary monitor, else the one for all monitors (DesktopConfig.sourceFor).
+ * A monitor without one of its own is edited by giving it one
+ * (createForTarget), a copy of what it showed. */
 QtObject {
   id: root
 
@@ -29,19 +30,10 @@ QtObject {
     screen: root.screenFor(root.selectedTarget)
     insets: root.insetsFor(screen)
     layoutOf: local => root.layoutIn(local, root.selectedTarget)
-    layoutsOf: local => local ? [
-        {
-          "layout": local.all,
-          "name": I18n.tr("Desktop (all monitors)")
-        },
-        {
-          "layout": local.primary,
-          "name": I18n.tr("Desktop (primary monitor)")
-        }
-      ].concat(local.monitors.map(layout => ({
+    layoutsOf: local => (local?.items ?? []).map(layout => ({
             "layout": layout,
-            "name": I18n.tr("Desktop ({0})", layout.monitor)
-          }))) : []
+            "name": layout.screen.mode === "all" ? I18n.tr("Desktop (all monitors)") : layout.screen.mode === "primary" ? I18n.tr("Desktop (primary monitor)") : I18n.tr("Desktop ({0})", layout.screen.names.join(", "))
+          }))
   }
 
   // The selected target's own layout in the draft, null when it has none
@@ -49,15 +41,13 @@ QtObject {
   readonly property var selectedLayout: root.editor.localLayout
   readonly property var _desktop: root.editor.local
 
-  // The layout `key` names in a Desktop section, or null
+  // The layout `key` names in a Desktop section ("all", "primary", or the
+  // one naming that monitor), or null
   function layoutIn(desktop, key) {
-    if (!desktop)
-      return null;
-    if (key === "all")
-      return desktop.all;
-    if (key === "primary")
-      return desktop.primary;
-    return desktop.monitors.find(layout => layout.monitor === key) ?? null;
+    const items = desktop?.items ?? [];
+    if (key === "all" || key === "primary")
+      return items.find(layout => layout.screen.mode === key) ?? null;
+    return items.find(layout => layout.screen.mode === "named" && layout.screen.names.includes(key)) ?? null;
   }
 
   // Whether `key` names one monitor (not all monitors or the primary one)
@@ -81,21 +71,21 @@ QtObject {
       return [];
     const screens = General.outputs.slice();
     const names = screens.map(screen => screen.name);
-    desktop.monitors.forEach(layout => {
-      if (!names.includes(layout.monitor))
-        names.push(layout.monitor);
-    });
-    const onOff = layout => layout.enabled ? I18n.tr("On") : I18n.tr("Off");
+    desktop.items.filter(layout => layout.screen.mode === "named").forEach(layout => layout.screen.names.forEach(name => {
+        if (!names.includes(name))
+          names.push(name);
+      }));
+    const onOff = layout => layout?.enabled ? I18n.tr("On") : I18n.tr("Off");
     const out = [
       {
         "key": "all",
         "label": I18n.tr("All monitors"),
-        "status": onOff(desktop.all)
+        "status": onOff(root.layoutIn(desktop, "all"))
       },
       {
         "key": "primary",
         "label": DesktopConfig.primaryName ? I18n.tr("Primary monitor ({0})", DesktopConfig.primaryName) : I18n.tr("Primary monitor"),
-        "status": onOff(desktop.primary)
+        "status": onOff(root.layoutIn(desktop, "primary"))
       }
     ];
     names.forEach(name => {
@@ -112,7 +102,7 @@ QtObject {
   // What the monitor named `name` shows, in words
   function statusOf(name, desktop) {
     switch (DesktopConfig.sourceFor(name, desktop)) {
-    case "monitor":
+    case "named":
       return I18n.tr("Own layout");
     case "primary":
       return I18n.tr("Uses the primary monitor's");
@@ -132,9 +122,13 @@ QtObject {
       const source = DesktopConfig.sourceFor(name, desktop);
       const shown = source === "primary" || source === "all" ? root.layoutIn(desktop, source) : null;
       const layout = shown ? Utils.clone(shown) : ConfigManager.withDefaults({}, "DesktopLayout");
-      layout.monitor = name;
+      layout.id = Utils.newId(Utils.slug(name) || "monitor", desktop.items);
+      layout.screen = {
+        "mode": "named",
+        "names": [name]
+      };
       layout.enabled = true;
-      desktop.monitors.push(layout);
+      desktop.items.push(layout);
     });
     root.editor.layout.clearHistory();
   }
@@ -148,7 +142,13 @@ QtObject {
       return;
     root.editor.layout.clearSelection();
     root.editor.edit(desktop => {
-      desktop.monitors = desktop.monitors.filter(layout => layout.monitor !== name);
+      // Off its layout, which goes once it names no monitor
+      desktop.items = desktop.items.map(layout => {
+        if (layout.screen.mode !== "named" || !layout.screen.names.includes(name))
+          return layout;
+        layout.screen.names = layout.screen.names.filter(n => n !== name);
+        return layout.screen.names.length > 0 ? layout : null;
+      }).filter(layout => layout !== null);
     });
     root.editor.layout.clearHistory();
     if (!General.outputs.slice().some(screen => screen.name === name))

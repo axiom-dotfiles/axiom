@@ -24,9 +24,9 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Units
   - x-scope="personal"
   - read: `WeatherConfig.units` · in: `services/WeatherManager.qml`
-- **`Weather.intervalMinutes`** · integer = 15 · 5–1440 · min
+- **`Weather.interval`** · integer = 900000 · 300000–86400000 · min
   - Refresh interval
-  - read: `WeatherConfig.intervalMinutes` · in: `services/WeatherManager.qml`
+  - read: `WeatherConfig.interval` · in: `services/WeatherManager.qml`
 
 ### Reader members
 
@@ -40,5 +40,5 @@ Every public member of `WeatherConfig`, with the files that use it.
   - in: `services/WeatherManager.qml`
 - `WeatherConfig.units` (string): "celsius" | "fahrenheit"
   - in: `services/WeatherManager.qml`
-- `WeatherConfig.intervalMinutes` (int)
+- `WeatherConfig.interval` (int): How often it's fetched (ms)
   - in: `services/WeatherManager.qml`

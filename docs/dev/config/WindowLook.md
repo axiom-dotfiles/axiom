@@ -11,161 +11,14 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 ### Parts
 
-
-### `WindowLook`
-
-- **`WindowLook.borders`** · boolean = false
-  - Themed borders: Window borders in theme colors.
-  - x-enabledIf={"/$supports.windowBorders":true}
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.activeColor`** · string = ""
-  - Focused border: Empty follows the theme's focused border color.
-  - x-options="colors", x-emptyLabel="Theme", x-showIf={"borders":true}, x-enabledIf={"/$supports.windowBorders":true}
-  - read: `WindowLookConfig.activeBorder` (computed) · in: `services/CompositorConfigManager.qml`
-- **`WindowLook.inactiveColor`** · string = ""
-  - Unfocused border: Empty follows the theme's border color.
-  - x-options="colors", x-emptyLabel="Theme", x-showIf={"borders":true}, x-enabledIf={"/$supports.windowBorders":true}
-  - read: `WindowLookConfig.inactiveBorder` (computed) · in: `services/CompositorConfigManager.qml`
-- **`WindowLook.shape`** · boolean = false
-  - Set border width and corners: The width of window borders and the rounding of their corners. Sway draws square corners, so there only the width applies.
-  - x-enabledIf={"/$supports.windowShape":true}
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.matchShell`** · boolean = true
-  - Match axiom's shape: Follow Look & Feel → Shape: its border width and corner radius (only the width on sway, which can't round corners).
-  - x-link={"setting":"Appearance.shape"}, x-showIf={"shape":true}, x-enabledIf={"/$supports.windowShape":true}
-  - read: `WindowLookConfig.borderWidth` (computed), `WindowLookConfig.radius` (computed) · in: `services/CompositorConfigManager.qml`
-- **`WindowLook.borderSize`** · integer = 2 · 0–20 · px
-  - Border width
-  - x-control="stepper", x-showIf={"shape":true,"matchShell":false}, x-enabledIf={"/$supports.windowShape":true}
-  - read: `WindowLookConfig.borderWidth` (computed) · in: `services/CompositorConfigManager.qml`
-- **`WindowLook.rounding`** · integer = 8 · 0–50 · px
-  - Corner rounding
-  - x-control="stepper", x-showIf={"shape":true,"matchShell":false}, x-enabledIf={"/$supports.windowShape":true,"/$supports.windowRounding":true}
-  - read: `WindowLookConfig.radius` (computed) · in: `services/CompositorConfigManager.qml`
-- **`WindowLook.gaps`** · boolean = false
-  - Set window gaps: Floating bars and detached surfaces set to Automatic keep these gaps too.
-  - x-enabledIf={"/$supports.windowGaps":true}
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.gapsIn`** · integer = 3 · 0–50 · px
-  - Gaps between windows
-  - x-control="stepper", x-showIf={"gaps":true}, x-enabledIf={"/$supports.windowGaps":true}
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.gapsOut`** · integer = 6 · 0–100 · px
-  - Gaps to the edges
-  - x-control="stepper", x-showIf={"gaps":true}, x-enabledIf={"/$supports.windowGaps":true}
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.surfaceBlur`** · boolean = true
-  - Blur behind axiom's surfaces: The compositor blurs what shows through axiom's translucent surfaces (Look & Feel → Translucency), with its blur below. It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.
-  - x-link={"setting":"Appearance.surface"}, x-group="Blur", x-showIf={"/Appearance.surface.opacity":{"not":100}}, x-enabledIf={"/$supports.blur":true}
-  - read: `Appearance.blur` (computed) · in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/settings/TranslucencyStatus.qml`, `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
-- **`WindowLook.surfaceBlurThroughWindows`** · boolean = true
-  - Blur windows behind surfaces: Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Tooltips and menus always blur what's behind them.
-  - x-group="Blur", x-showIf={"/Appearance.surface.opacity":{"not":100},"surfaceBlur":true}, x-enabledIf={"/$supports.blur":true}
-  - read: `Appearance.blurThroughWindows` · in: `services/CompositorConfigManager.qml`
-- **`WindowLook.surfaceBlurBackdrops`** · boolean = false
-  - Blur backdrops: Also blur the whole screen behind the overlay, launcher, power menu and workspace overview. Costs more while they open.
-  - x-group="Blur", x-showIf={"/Appearance.surface.opacity":{"not":100},"surfaceBlur":true}, x-enabledIf={"/$supports.blur":true}
-  - read: `Appearance.blurBackdrops` (computed) · in: `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
-- **`WindowLook.surfaceBlurPauseFullscreen`** · boolean = true
-  - Pause blur over fullscreen apps: While a fullscreen window (a game, a video) is open, nothing blurs, so a volume popup or notification over it costs nothing extra. Surfaces on that monitor turn opaque; elsewhere they stay translucent, unblurred.
-  - x-scope="machine", x-group="Blur", x-showIf={"/Appearance.surface.opacity":{"not":100},"surfaceBlur":true}, x-enabledIf={"/$supports.blur":true}
-  - read: `Appearance.blurPauseFullscreen` · in: `services/BlurManager.qml`
-- **`WindowLook.blur`** · boolean = false
-  - Set the compositor's blur: The compositor has one blur, for windows and axiom's translucent surfaces alike. Off, your own config's applies.
-  - x-group="Blur", x-enabledIf={"/$supports.windowBlur":true}
-  - read: `WindowLookConfig.look` (whole) · in: `components/views/settings/TranslucencyStatus.qml`, `services/CompositorConfigManager.qml`
-- **`WindowLook.windowBlur`** · boolean = true
-  - Blur transparent windows: Off, only axiom's surfaces blur (Blur behind axiom's surfaces, above).
-  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.enabled", x-hyprIf="blur"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.blurSize`** · integer = 4 · 1–20
-  - Blur size
-  - x-control="stepper", x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.size", x-hyprIf="blur"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.blurPasses`** · integer = 3 · 1–6
-  - Blur passes
-  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.passes", x-hyprIf="blur"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.blurXray`** · boolean = true
-  - See-through blur: Floating windows blur only the wallpaper, not the windows under them. Cheaper.
-  - x-group="Blur", x-showIf={"blur":true,"windowBlur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.xray", x-hyprIf="blur"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.blurIgnoreOpacity`** · boolean = true
-  - Full blur behind any transparency
-  - x-group="Blur", x-showIf={"blur":true,"windowBlur":true}, x-enabledIf={"/$supports.windowBlur":true,"/$compositor":"hyprland"}, x-hypr="decoration.blur.ignore_opacity", x-hyprIf="blur"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.blurNewOptimizations`** · boolean = true
-  - Blur optimizations
-  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true,"/$compositor":"hyprland"}, x-hypr="decoration.blur.new_optimizations", x-hyprIf="blur"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.blurNoise`** · integer = 12 · 0–1000 · ‰
-  - Noise
-  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.noise", x-hyprScale=0.001, x-hyprIf="blur"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.blurContrast`** · integer = 89 · 0–200 · %
-  - Contrast
-  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.contrast", x-hyprScale=0.01, x-hyprIf="blur"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.blurVibrancy`** · integer = 17 · 0–100 · %
-  - Vibrancy
-  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true,"/$compositor":"hyprland"}, x-hypr="decoration.blur.vibrancy", x-hyprScale=0.01, x-hyprIf="blur"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.blurPopups`** · boolean = false
-  - Blur menus and popups
-  - x-group="Blur", x-showIf={"blur":true,"windowBlur":true}, x-enabledIf={"/$supports.windowBlur":true,"/$compositor":"hyprland"}, x-hypr="decoration.blur.popups", x-hyprIf="blur"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.blurSpecial`** · boolean = false
-  - Blur behind special workspaces: Expensive: redraws the blur on every frame.
-  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true,"/$compositor":"hyprland"}, x-hypr="decoration.blur.special", x-hyprIf="blur"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.shadow`** · boolean = false
-  - Window shadows
-  - x-group="Window shadows", x-enabledIf={"/$supports.windowShadow":true}
-  - read: `WindowLookConfig.shadowOn` (computed) · in: `services/CompositorConfigManager.qml`
-- **`WindowLook.shadowMatchShell`** · boolean = true
-  - Match axiom's shadow: Follow Look & Feel → Surface shadow: its color and size. With it off there, windows cast none.
-  - x-link={"setting":"BarStyle.shadow"}, x-group="Window shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
-  - read: `WindowLookConfig.shadowAlpha` (computed), `WindowLookConfig.shadowColor` (computed), `WindowLookConfig.shadowOn` (computed), `WindowLookConfig.shadowSize` (computed), `WindowLookConfig.shadowSoft` (computed), `WindowLookConfig.shadowThemed` (computed) · in: `services/CompositorConfigManager.qml`
-- **`WindowLook.shadowSize`** · integer = 10 · 0–100 · px
-  - Shadow size
-  - x-control="stepper", x-group="Window shadows", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true}
-  - read: `WindowLookConfig.shadowSize` (computed) · in: `services/CompositorConfigManager.qml`
-- **`WindowLook.shadowPower`** · integer = 3 · 1–4
-  - Shadow falloff: 1 fades slowly, 4 ends sharply.
-  - x-group="Window shadows", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true,"/$compositor":"hyprland"}
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.shadowColor`** · string = ""
-  - Shadow color: Unfocused windows cast it too.
-  - x-group="Window shadows", x-options="colors", x-emptyLabel="Compositor's", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true}
-  - read: `WindowLookConfig.shadowColor` (computed), `WindowLookConfig.shadowThemed` (computed) · in: `services/CompositorConfigManager.qml`
-- **`WindowLook.shadowStrength`** · integer = 100 · 10–400 · %
-  - Shadow strength: How strong windows cast it, matching axiom's or not. The compositor's own color keeps its strength.
-  - x-control="stepper", x-group="Window shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
-  - read: `WindowLookConfig.shadowStrength` (computed) · in: `services/CompositorConfigManager.qml`
-- **`WindowLook.dim`** · boolean = false
-  - Dim unfocused windows
-  - x-group="Window dimming", x-enabledIf={"/$supports.windowDim":true}
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.dimStrength`** · integer = 8 · 0–100 · %
-  - Dim strength
-  - x-group="Window dimming", x-showIf={"dim":true}, x-enabledIf={"/$supports.windowDim":true}
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.opacity`** · boolean = false
-  - Set window opacity: Your apps' windows; the shell's own surfaces are Look & Feel → Translucency. Off, your own config's applies.
-  - x-link={"setting":"Appearance.surface.opacity"}, x-group="Window opacity", x-enabledIf={"/$supports.windowOpacity":true}
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.activeOpacity`** · integer = 100 · 10–100 · %
-  - Focused window opacity
-  - x-group="Window opacity", x-showIf={"opacity":true}, x-enabledIf={"/$supports.windowOpacity":true}, x-hypr="decoration.active_opacity", x-hyprScale=0.01, x-hyprIf="opacity"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.inactiveOpacity`** · integer = 100 · 10–100 · %
-  - Unfocused window opacity
-  - x-group="Window opacity", x-showIf={"opacity":true}, x-enabledIf={"/$supports.windowOpacity":true}, x-hypr="decoration.inactive_opacity", x-hyprScale=0.01, x-hyprIf="opacity"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
-- **`WindowLook.fullscreenOpacity`** · integer = 100 · 10–100 · %
-  - Fullscreen opacity
-  - x-group="Window opacity", x-showIf={"opacity":true}, x-enabledIf={"/$supports.windowOpacity":true}, x-hypr="decoration.fullscreen_opacity", x-hyprScale=0.01, x-hyprIf="opacity"
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
+- [`WindowLook.borders`](WindowLook.borders.md)
+- [`WindowLook.shape`](WindowLook.shape.md)
+- [`WindowLook.gaps`](WindowLook.gaps.md)
+- [`WindowLook.surfaceBlur`](WindowLook.surfaceBlur.md)
+- [`WindowLook.blur`](WindowLook.blur.md)
+- [`WindowLook.shadow`](WindowLook.shadow.md)
+- [`WindowLook.dim`](WindowLook.dim.md)
+- [`WindowLook.opacity`](WindowLook.opacity.md)
 
 ### Reader members
 
@@ -174,7 +27,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.theme` (string): --- Theme (UI-owned, set on the overlay's Themes page) ---
   - in: `components/methods/ConfigMigration.qml`, `config/Theme.qml`, `services/ThemeManager.qml`
 - `Appearance.darkMode` (bool): From the active theme, not config: a theme is dark or light
-  - in: `components/content/QuickActions.qml`, `components/content/ThemePicker.qml`, `components/content/WallpaperPicker.qml`, `components/reusable/BackdropRequest.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
+  - in: `components/content/QuickActions/QuickActions.qml`, `components/content/ThemePicker/ThemePicker.qml`, `components/content/WallpaperPicker/WallpaperPicker.qml`, `components/reusable/BackdropRequest.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 - `Appearance.fixedWallpaper` (string): The wallpapers picked by hand (fixed mode): the primary monitor's, the fallback for monitors without their own, and monitor name -> URL, set per monitor on the…
   - in: `services/ThemeManager.qml`
 - `Appearance.fixedWallpapers` (var)
@@ -184,45 +37,45 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.wallpaperDaemon` (bool): Start awww's daemon for the awww backend (WallpaperManager)
   - in: `components/methods/ConfigMigration.qml`, `services/WallpaperManager.qml`
 - `Appearance.wallpaperFolder` (string)
-  - in: `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/LookPage.qml`
+  - in: `components/content/WallpaperPicker/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/LookPage.qml`
 - `Appearance.wallpaperPath` (string)
   - in: `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 - `Appearance.wallpaperMode` (string): "fixed" | "rotate" (wallpaperRotation) | "variant" (variantWallpapers), driven by WallpaperManager
-  - in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
-- `Appearance.rotationInterval` (int)
+  - in: `components/content/WallpaperPicker/WallpaperPicker.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
+- `Appearance.rotationInterval` (int): How often it rotates (ms)
   - in: `services/WallpaperManager.qml`
 - `Appearance.rotationOrder` (string): "random" | "sequential"
   - in: `services/WallpaperManager.qml`
 - `Appearance.rotationSameOnAll` (bool)
   - in: `services/WallpaperManager.qml`
 - `Appearance.darkWallpaper` (string): { dark, light }: file URLs, "" for none
-  - in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`
+  - in: `components/content/WallpaperPicker/WallpaperPicker.qml`, `services/ThemeManager.qml`
 - `Appearance.lightWallpaper` (string)
-  - in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`
+  - in: `components/content/WallpaperPicker/WallpaperPicker.qml`, `services/ThemeManager.qml`
 - `Appearance.themeScheduled` (bool): --- Light/dark by time of day (WallpaperManager) ---
-  - in: `components/content/ThemePicker.qml`, `services/WallpaperManager.qml`
+  - in: `components/content/ThemePicker/ThemePicker.qml`, `services/WallpaperManager.qml`
 - `Appearance.lightAt` (string)
   - in: `services/WallpaperManager.qml`
 - `Appearance.darkAt` (string)
   - in: `services/WallpaperManager.qml`
 - `Appearance.fontFamily` (string): --- Font ---
-  - in: `components/bar/widgets/Time.qml`, `components/content/Clock.qml`, `components/content/CommandOutput.qml`, `components/content/QuickActions.qml`, `components/content/TopProcesses.qml`, `components/content/parts/AudioRow.qml`, `components/content/parts/CompactFigure.qml`, `components/content/parts/DeviceList.qml`, `components/content/parts/ItemRow.qml`, `components/content/parts/chat/ChatMarkdownText.qml` (+11 more)
+  - in: `components/bar/widgets/Time/Time.qml`, `components/content/Clock/Clock.qml`, `components/content/CommandOutput/CommandOutput.qml`, `components/content/QuickActions/QuickActions.qml`, `components/content/TopProcesses/TopProcesses.qml`, `components/content/parts/AudioRow.qml`, `components/content/parts/CompactFigure.qml`, `components/content/parts/DeviceList.qml`, `components/content/parts/ItemRow.qml`, `components/content/parts/chat/ChatMarkdownText.qml` (+11 more)
 - `Appearance.baseFontSize` (int): At the Interface scale (Widget.scale); bars size their text from baseFontSize, the setting itself
   - in: `config/Bar.qml`
 - `Appearance.fontSize` (int)
-  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/BluetoothDevices.qml`, `components/content/Brightness.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml` (+98 more)
+  - in: `components/content/Agenda/Agenda.qml`, `components/content/AudioMixer/AudioMixer.qml`, `components/content/Battery/Battery.qml`, `components/content/BluetoothDevices/BluetoothDevices.qml`, `components/content/Brightness/Brightness.qml`, `components/content/Calculator/Calculator.qml`, `components/content/Calendar/Calendar.qml`, `components/content/Chat/Chat.qml`, `components/content/Cheatsheet/Cheatsheet.qml`, `components/content/ClipboardHistory/ClipboardHistory.qml` (+98 more)
 - `Appearance.fontSizeLarge` (int)
   - in: `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `components/surfaces/powermenu/PowerMenuWindow.qml`
 - `Appearance.fontSizeBy(n: real): int`: The font size `n` px bigger (smaller when negative) than the setting, at the Interface scale: the offset grows with the text, where `fontSize + n` would leave …
-  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Cheatsheet.qml`, `components/content/ClaudeUsage.qml`, `components/content/ClipboardHistory.qml`, `components/content/Clock.qml`, `components/content/ClockCalendar.qml` (+128 more)
+  - in: `components/content/Agenda/Agenda.qml`, `components/content/AudioMixer/AudioMixer.qml`, `components/content/Battery/Battery.qml`, `components/content/Calculator/Calculator.qml`, `components/content/Calendar/Calendar.qml`, `components/content/Cheatsheet/Cheatsheet.qml`, `components/content/ClaudeUsage/ClaudeUsage.qml`, `components/content/ClipboardHistory/ClipboardHistory.qml`, `components/content/Clock/Clock.qml`, `components/content/ClockCalendar/ClockCalendar.qml` (+128 more)
 - `Appearance.iconFamily` (string): Icons are Material Symbols names drawn in this font (StyledIcon), so they don't depend on the text font
-  - in: `components/content/TopProcesses.qml`, `components/reusable/StyledIcon.qml`, `components/surfaces/onboarding/pages/ChecksPage.qml`, `services/DependencyManager.qml`
+  - in: `components/content/TopProcesses/TopProcesses.qml`, `components/reusable/StyledIcon.qml`, `components/surfaces/onboarding/pages/ChecksPage.qml`, `services/DependencyManager.qml`
 - `Appearance.borderRadius` (int): --- Shape ---
   - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/EdgeSurface.qml`, `components/hosts/popout/FloatingPopout.qml` (+14 more)
 - `Appearance.connectorGap` (int): The gap a surface growing out of an edge keeps between its box and that edge, which its fillets curve across (AttachedSurface, EdgeAttach)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/SubPopout.qml`
 - `Appearance.borderWidth` (int)
-  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/bar/WidgetBackground.qml`, `components/content/AudioMixer.qml`, `components/content/ColorSwatch.qml`, `components/content/Greeting.qml`, `components/content/Login.qml`, `components/content/Network.qml`, `components/content/NightLightControls.qml` (+68 more)
+  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/bar/WidgetBackground.qml`, `components/content/AudioMixer/AudioMixer.qml`, `components/content/ColorSwatch/ColorSwatch.qml`, `components/content/Greeting/Greeting.qml`, `components/content/Login/Login.qml`, `components/content/Network/Network.qml`, `components/content/NightLightControls/NightLightControls.qml` (+68 more)
 - `Appearance.screenBorder` (bool)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`, `shell/ScreenBorder.qml`
 - `Appearance.screenMargin` (int): The frame can't be thinner than its own outline (a narrower one would draw the stroke over the screen edge); without a frame it's just a gap
@@ -234,7 +87,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.translucent` (bool)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/StrokeOpening.qml`, `components/hosts/popout/SubPopout.qml`
 - `Appearance.blur` (bool)
-  - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/settings/TranslucencyStatus.qml`, `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
+  - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/Settings/TranslucencyStatus.qml`, `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - `Appearance.blurBackdrops` (bool)
   - in: `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - `Appearance.blurThroughWindows` (bool): Blurring what's under each surface, windows included, rather than the wallpaper alone (xray), which every surface shares
@@ -246,14 +99,14 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.shadowAlphaMax` (real): A shadow's darkest alpha while blurring: under the threshold, so its halo isn't blurred (the blur window casts the chrome's, and Hyprland blurs the chrome's po…
   - in: `config/Bar.qml`
 - `Appearance.fill(color)`: A surface fill (a theme color, or a name or "#hex" as Theme.resolveColor gives one) at the surface opacity
-  - in: `components/content/Submenu.qml`, `components/content/ThemePicker.qml`, `components/content/base/Card.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/reusable/ActionPill.qml`, `components/reusable/ActionTile.qml`, `components/reusable/CornerPiece.qml` (+13 more)
+  - in: `components/content/Submenu/Submenu.qml`, `components/content/ThemePicker/ThemePicker.qml`, `components/content/base/Card.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/reusable/ActionPill.qml`, `components/reusable/ActionTile.qml`, `components/reusable/CornerPiece.qml` (+13 more)
 - `Appearance.animations` (bool): --- Motion --- Every animation in the shell uses one of these durations, so the single speed setting (and the on/off switch) applies uniformly.
-  - in: `components/bar/widgets/Battery.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/content/ScreenRecord.qml`, `components/content/parts/RadioHeader.qml`, `components/content/parts/chat/ChatMessage.qml`, `components/content/parts/chat/ChatThinking.qml`, `components/hosts/popout/SwitchStill.qml`, `components/reusable/CrossFade.qml`, `components/reusable/PasswordEntry.qml`, `components/reusable/PopInRectangle.qml` (+2 more)
+  - in: `components/bar/widgets/Battery/Battery.qml`, `components/bar/widgets/Workspaces/ActiveCellIndicator.qml`, `components/content/ScreenRecord/ScreenRecord.qml`, `components/content/parts/RadioHeader.qml`, `components/content/parts/chat/ChatMessage.qml`, `components/content/parts/chat/ChatThinking.qml`, `components/hosts/popout/SwitchStill.qml`, `components/reusable/CrossFade.qml`, `components/reusable/PasswordEntry.qml`, `components/reusable/PopInRectangle.qml` (+2 more)
 - `Appearance.animFast` (int)
-  - in: `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/content/Clock.qml`, `components/content/Notifications.qml`, `components/content/parts/KeybindRow.qml`, `components/content/parts/KeybindSection.qml`, `components/content/parts/chat/ChatMessage.qml`, `components/content/parts/notifications/NotificationItemDelegate.qml`, `components/hosts/overlay/ModuleGrid.qml`, `components/hosts/popout/SwitchStill.qml` (+13 more)
+  - in: `components/bar/widgets/SystemTray/SystemTray.qml`, `components/bar/widgets/Workspaces/ActiveCellIndicator.qml`, `components/content/Clock/Clock.qml`, `components/content/Notifications/Notifications.qml`, `components/content/parts/KeybindRow.qml`, `components/content/parts/KeybindSection.qml`, `components/content/parts/chat/ChatMessage.qml`, `components/content/parts/notifications/NotificationItemDelegate.qml`, `components/hosts/overlay/ModuleGrid.qml`, `components/hosts/popout/SwitchStill.qml` (+13 more)
 - `Appearance.animNormal` (int)
-  - in: `components/bar/BarContainer.qml`, `components/bar/WidgetBackground.qml`, `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/bar/widgets/workspaces/WorkspaceCell.qml`, `components/content/AudioMixer.qml`, `components/content/Notifications.qml`, `components/content/WorkspaceGrid.qml`, `components/content/base/TitledCard.qml`, `components/content/parts/DeviceList.qml` (+46 more)
+  - in: `components/bar/BarContainer.qml`, `components/bar/WidgetBackground.qml`, `components/bar/widgets/SystemTray/SystemTray.qml`, `components/bar/widgets/Workspaces/ActiveCellIndicator.qml`, `components/bar/widgets/Workspaces/WorkspaceCell.qml`, `components/content/AudioMixer/AudioMixer.qml`, `components/content/Notifications/Notifications.qml`, `components/content/WorkspaceGrid/WorkspaceGrid.qml`, `components/content/base/TitledCard.qml`, `components/content/parts/DeviceList.qml` (+46 more)
 - `Appearance.animSlow` (int)
-  - in: `components/bar/widgets/Battery.qml`, `components/content/ScreenRecord.qml`, `components/content/parts/RadioHeader.qml`, `components/content/parts/chat/ChatThinking.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/reusable/FlashOutline.qml`, `components/reusable/PasswordEntry.qml`, `components/reusable/PercentageCircle.qml`, `components/surfaces/backdrop/ScreenBackdrop.qml` (+4 more)
+  - in: `components/bar/widgets/Battery/Battery.qml`, `components/content/ScreenRecord/ScreenRecord.qml`, `components/content/parts/RadioHeader.qml`, `components/content/parts/chat/ChatThinking.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/reusable/FlashOutline.qml`, `components/reusable/PasswordEntry.qml`, `components/reusable/PercentageCircle.qml`, `components/surfaces/backdrop/ScreenBackdrop.qml` (+4 more)
 - `Appearance.easing` (int)
-  - in: `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/content/Clock.qml`, `components/content/ScreenRecord.qml`, `components/content/parts/calendar/EventRow.qml`, `components/content/parts/calendar/MonthGrid.qml`, `components/hosts/overlay/OverlayPage.qml`, `components/hosts/popout/SlideAnimation.qml`, `components/hosts/popout/SwitchStill.qml`, `components/reusable/ColorGlide.qml` (+10 more)
+  - in: `components/bar/widgets/SystemTray/SystemTray.qml`, `components/bar/widgets/Workspaces/ActiveCellIndicator.qml`, `components/content/Clock/Clock.qml`, `components/content/ScreenRecord/ScreenRecord.qml`, `components/content/parts/calendar/EventRow.qml`, `components/content/parts/calendar/MonthGrid.qml`, `components/hosts/overlay/OverlayPage.qml`, `components/hosts/popout/SlideAnimation.qml`, `components/hosts/popout/SwitchStill.qml`, `components/reusable/ColorGlide.qml` (+10 more)

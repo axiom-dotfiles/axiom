@@ -4,7 +4,7 @@
 > **Config:** `Overlay.views[].modules`, `EdgeMenus[].modules` (module `type`), bar widget `popoutName`
 > **Related:** [Writing modules](writing-modules.md), [Pages and grid](pages-and-grid.md), [Popout hosts](../popouts/hosts-and-switching.md), [Submenus](../popouts/submenus.md)
 
-`components/content/<Name>.qml` holds every loadable panel: overlay modules and bar popouts. This doc covers the two root types (`Card`, `Panel`), what each host passes in, and when one file serves both roles.
+`components/content/<Name>/<Name>.qml` holds every loadable panel: overlay modules and bar popouts. This doc covers the two root types (`Card`, `Panel`), what each host passes in, and when one file serves both roles.
 
 ### Loaded by name
 - The name is the overlay module `type` (`OverlayModule.oneOf`) and/or a bar `popoutName`.

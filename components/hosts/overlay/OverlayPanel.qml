@@ -6,8 +6,12 @@ import Quickshell.Wayland
 import qs.config
 import qs.services
 import qs.components.reusable
-// Imported (though views load by URL) so qs scans the view types
-import qs.components.views // qmllint disable unused-imports
+// Imported (though views load by URL) so qs scans what they import and
+// the folders whose files see each other (scripts/check_structure.py)
+import qs.components.content.Palette // qmllint disable unused-imports
+import qs.components.views.BarEditor // qmllint disable unused-imports
+import qs.components.views.Keybinds // qmllint disable unused-imports
+import qs.components.views.Settings // qmllint disable unused-imports
 
 // The overlay's window on one screen (shell/Overlay): opens and closes the
 // sliding box that holds OverlayPages, and closes on Escape or a click outside.
@@ -74,11 +78,11 @@ ReservedAreaWindow {
   Connections {
     target: ShellManager
     function onToggleOverlay() {
-      if (ShellManager.isTarget(root.screen, OverlayConfig.monitors))
+      if (ShellManager.isTarget(root.screen, OverlayConfig.screen))
         root.toggle();
     }
     function onOpenOverlayPage(type) {
-      if (ShellManager.isTarget(root.screen, OverlayConfig.monitors))
+      if (ShellManager.isTarget(root.screen, OverlayConfig.screen))
         root.openPage(type);
     }
     function onCloseOverlay() {
@@ -90,7 +94,7 @@ ReservedAreaWindow {
   IpcTarget {
     target: "overlay"
     // One handler per target name: the target screen's
-    enabled: ShellManager.isTarget(root.screen, OverlayConfig.monitors)
+    enabled: ShellManager.isTarget(root.screen, OverlayConfig.screen)
 
     function open() {
       root.open();
@@ -113,7 +117,7 @@ ReservedAreaWindow {
   SurfaceGroup {
     id: group
     kind: "overlay"
-    mode: OverlayConfig.monitors
+    target: OverlayConfig.screen
     screen: root.screen
     window: root
     shown: root.isOpen

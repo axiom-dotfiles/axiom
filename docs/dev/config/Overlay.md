@@ -7,15 +7,20 @@
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
 
+### `Overlay.screen`
+
+- **`Overlay.screen`** · object
+  - Monitors: Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
+- **`Overlay.screen.mode`** · string = "inherit" · enum inherit|primary|focused|all
+  - Monitors
+  - x-scope="look", x-link={"setting":"General.screen"}
+  - read: `OverlayConfig.screen` (whole) · in: `config/OverlayConfig.qml`
+
 ### `Overlay`
 
-- **`Overlay.monitors`** · string = "general" · enum general|primary|focused|all
-  - Monitors: Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
-  - x-link={"setting":"General.monitors"}, x-scope="look"
-  - read: `OverlayConfig.monitors` · in: `components/hosts/overlay/OverlayPanel.qml`, `shell/Overlay.qml`
 - **`Overlay.moduleScale`** · integer = 100 · 50–100 · %
   - Module size: Size of the overlay's cards, relative to the card size in Look & Feel. Their text and content shrink with them. For bigger cards, raise the card size.
-  - x-link={"setting":"Widget.cardSize"}, x-scope="look", x-group="Size", x-control="stepper"
+  - x-link={"setting":"Interface.cardSize"}, x-scope="look", x-group="Size", x-control="stepper"
   - read: `OverlayConfig.moduleScale` · in: `config/OverlayConfig.qml`
 - **`Overlay.navigator`** · string = "bottom" · enum bottom|top
   - Position: The screen edge the page switcher sits on.
@@ -43,17 +48,17 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Overlay.closeOnOutsideClick`** · boolean = false
   - Close on outside click: Close the overlay when you click outside it: on a bar, the screen border or another monitor.
   - read: `OverlayConfig.closeOnOutsideClick` · in: `components/hosts/overlay/OverlayPanel.qml`
-- **`Overlay.views`** · array<OverlayViews> = [{"type":"Custom","name":"Home","modules":[{"type":"ClockCalendar","p…
+- **`Overlay.items`** · array<OverlayViews> = [{"id":"home","type":"Custom","name":"Home","layout":{"modules":[{"id…
   - Pages shown in the overlay, in order: your Custom pages, each a grid of modules, and the tool pages (shown as icons after them).
   - x-scope="look", x-settings=false
   - read: `OverlayConfig.views` · in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `services/CalendarManager.qml`, `services/KeybindManager.qml`, `services/LauncherCommands.qml`, `services/OverlayManager.qml`, `services/SystemManager.qml`
-- **`Overlay.views[]`**: one of the [OverlayViews](OverlayViews.md) types (discriminated by `type`)
+- **`Overlay.items[]`**: one of the [OverlayViews](OverlayViews.md) types (discriminated by `type`)
 
 ### Reader members
 
 Every public member of `OverlayConfig`, with the files that use it.
 
-- `OverlayConfig.views` (var)
+- `OverlayConfig.views` (var): The pages, Overlay.items: [OverlayView], each with its id
   - in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `services/CalendarManager.qml`, `services/KeybindManager.qml`, `services/LauncherCommands.qml`, `services/OverlayManager.qml`, `services/SystemManager.qml`
 - `OverlayConfig.moduleScale` (int): The overlay's own Module size, in %: its cards are the card size (cardUnitOn) times it, and their content drawn at it (see layoutFor)
   - in: only inside the reader
@@ -67,7 +72,7 @@ Every public member of `OverlayConfig`, with the files that use it.
   - in: `shell/Overlay.qml`
 - `OverlayConfig.backdrop` (real): 0-1 opacity of the backdrop
   - in: `shell/Overlay.qml`
-- `OverlayConfig.monitors` (string): "general" | "primary" | "focused" | "all" (see General.screensFor)
+- `OverlayConfig.screen` (var): The ScreenTarget it opens on (see General.screensFor)
   - in: `components/hosts/overlay/OverlayPanel.qml`, `shell/Overlay.qml`
 - `OverlayConfig.closeOnEscape` (bool)
   - in: `components/hosts/overlay/OverlayPanel.qml`
@@ -78,39 +83,39 @@ Every public member of `OverlayConfig`, with the files that use it.
 - `OverlayConfig.availableModuleTypes` (var)
   - in: only inside the reader
 - `OverlayConfig.libraryGroups` (var): The groups the editors' libraries sort bar widgets and modules into (the schema's `x-libraryGroups`), in order
-  - in: `components/views/barEditor/WidgetInspector.qml`, `components/views/layouts/ModuleLibrary.qml`
-- `OverlayConfig.customViewSchema` (var): A Custom page's own fields (name, icon, fineGrid), for the layouts editor
-  - in: `components/views/layouts/LayoutsPanel.qml`
+  - in: `components/views/BarEditor/WidgetInspector.qml`, `components/views/Layouts/ModuleLibrary.qml`
+- `OverlayConfig.customViewSchema` (var): A Custom page's own fields (name, icon, layout), for the layouts editor
+  - in: `components/views/Layouts/LayoutsPanel.qml`
 - `OverlayConfig.availableViewTypes` (var)
   - in: only inside the reader
 - `OverlayConfig.modulesFor(host)`: The module types a host's library offers: "overlay" pages, "edgeMenu"s or the "lockscreen" (required ones are always there)
-  - in: `components/views/layouts/ModuleLibrary.qml`
+  - in: `components/views/Layouts/ModuleLibrary.qml`
 - `OverlayConfig.requiredFor(host)`: The required module types on a host
   - in: `services/GridEditor.qml`
 - `OverlayConfig.isRequired(type)`
-  - in: `components/views/layouts/EditorInspector.qml`, `services/GridEditor.qml`
+  - in: `components/views/Layouts/EditorInspector.qml`, `services/GridEditor.qml`
 - `OverlayConfig.allowedIn(type, host)`
   - in: `components/hosts/overlay/ModuleGrid.qml`, `services/GridEditor.qml`
 - `OverlayConfig.moduleInfo(type)`
-  - in: `components/hosts/overlay/ModuleGrid.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/layouts/CanvasModule.qml`, `components/views/layouts/EditorInspector.qml`, `components/views/layouts/GridDragLayer.qml`
+  - in: `components/hosts/overlay/ModuleGrid.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/Layouts/CanvasModule.qml`, `components/views/Layouts/EditorInspector.qml`, `components/views/Layouts/GridDragLayer.qml`
 - `OverlayConfig.viewInfo(type)`
   - in: `components/hosts/overlay/OverlayPages.qml`, `services/LauncherCommands.qml`
 - `OverlayConfig.viewLabel(view, index)`: How a page is named and drawn in the page navigator and the overlay editor: a Custom page by its name (or its place), others by type (i18n: keys from the schem…
-  - in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/views/layouts/PageTarget.qml`, `components/views/layouts/PagesSection.qml`, `services/OverlayManager.qml`
+  - in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/views/Layouts/PageTarget.qml`, `components/views/Layouts/PagesSection.qml`, `services/OverlayManager.qml`
 - `OverlayConfig.pageKey(view)`: What opens a page by name (`openOverlayPage`, a bar Button or bind's `overlayPage` action): a Custom page's name, other pages' type; "" for a Custom page with …
   - in: `components/forms/SchemaField.qml`, `services/OverlayManager.qml`, `services/SettingsManager.qml`
 - `OverlayConfig.viewIcon(type)`
-  - in: `components/views/layouts/PagesSection.qml`, `services/LauncherCommands.qml`, `services/OverlayManager.qml`
+  - in: `components/views/Layouts/PagesSection.qml`, `services/LauncherCommands.qml`, `services/OverlayManager.qml`
 - `OverlayConfig.pageIcon(view)`: A page's icon: a Custom page's own, else its type's
-  - in: `components/hosts/overlay/OverlayPages.qml`, `components/views/layouts/PageTarget.qml`, `components/views/layouts/PagesSection.qml`, `services/OverlayManager.qml`
+  - in: `components/hosts/overlay/OverlayPages.qml`, `components/views/Layouts/PageTarget.qml`, `components/views/Layouts/PagesSection.qml`, `services/OverlayManager.qml`
 - `OverlayConfig.hasPage(type)`: Whether the overlay has a page of this type to go to (a link's): the pinned pages always, others while they're in Overlay.views and shown
   - in: `services/OverlayManager.qml`
 - `OverlayConfig.isTool(type)`
-  - in: `components/hosts/overlay/OverlayPages.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/layouts/PagesSection.qml`
+  - in: `components/hosts/overlay/OverlayPages.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/Layouts/PagesSection.qml`
 - `OverlayConfig.pageWithModule(type)`: The page to open for a module type (what openOverlayPage takes): the named Custom page where it's biggest, "" when no page has it
   - in: `services/CalendarManager.qml`, `services/LauncherCommands.qml`, `services/ShellManager.qml`
 - `OverlayConfig.cardSpacing` (int): Card grid layout (see GridPlacement for the geometry).
-  - in: `components/content/ColorSwatch.qml`, `components/content/parts/MenuSubmenu.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/surfaces/greeter/GreeterPreviewWindow.qml`, `components/surfaces/lockscreen/LockPreviewWindow.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/surfaces/onboarding/pages/OnboardingPage.qml`, `components/views/BarEditor.qml`, `components/views/BaseView.qml`, `components/views/CalendarPage.qml` (+3 more)
+  - in: `components/content/ColorSwatch/ColorSwatch.qml`, `components/content/Submenu/MenuSubmenu.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/surfaces/greeter/GreeterPreviewWindow.qml`, `components/surfaces/lockscreen/LockPreviewWindow.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/surfaces/onboarding/pages/OnboardingPage.qml`, `components/views/BarEditor/BarEditor.qml`, `components/views/CalendarPage/CalendarPage.qml`, `components/views/Keybinds/Keybinds.qml` (+3 more)
 - `OverlayConfig.cardPad(compact, bare)`: The inner padding a module lays its content out within (Card/Panel `pad`): none when bare, less in a quarter slot (Widget's density)
   - in: `components/content/base/SlotContext.qml`, `components/hosts/overlay/ExpandedModule.qml`
 - `OverlayConfig.boxPadding` (int): The overlay box's padding around a page (OverlayPages), at the Interface scale: the page inside it is scaled, the box isn't
@@ -123,13 +128,13 @@ Every public member of `OverlayConfig`, with the files that use it.
   - in: `components/hosts/overlay/OverlayGrid.qml`
 - `OverlayConfig.cardUnitOn(width, height)`: The card size (px) every module grid on a `width` × `height` screen starts from: two cards fill its short side (GridPlacement.baseCard) at the card size (Widge…
   - in: `services/EdgeMenuManager.qml`
-- `OverlayConfig.screenArrangement(layout, modules, screen, width, height)`: A screen layout's (a DesktopLayout's, the lock screen's, the greeter's) `modules` on `screen` in a `width` × `height` px room (its room inside the bars and bor…
+- `OverlayConfig.screenArrangement(layout, modules, screen, width, height)`: A screen layout's (a desktop item's, the lock screen's, the greeter's) `modules` on `screen` in a `width` × `height` px room (its room inside the bars and bord…
   - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `services/ScreenLayoutEditor.qml`
-- `OverlayConfig.pageUnit(view, unit)`: The card size a Custom page's modules are laid out at on an overlay whose cards are `unit` px: a double grid's (fineGrid) has twice the units across (GridPlace…
-  - in: `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/Custom.qml`, `services/OverlayManager.qml`
+- `OverlayConfig.pageUnit(view, unit)`: The card size a Custom page's modules are laid out at on an overlay whose cards are `unit` px: a double grid's (layout.grid.fine) has twice the units across (G…
+  - in: `components/surfaces/onboarding/OnboardingWindow.qml`, `components/views/Custom/Custom.qml`, `services/OverlayManager.qml`
 - `OverlayConfig.slotShape(rect)`
   - in: `components/content/base/SlotContext.qml`
 - `OverlayConfig.defaultSize(type)`: The size [w, h] a module is added at: its declared one, else a card.
-  - in: `components/views/layouts/ModuleChip.qml`, `services/GridEditor.qml`
+  - in: `components/views/Layouts/ModuleChip.qml`, `services/GridEditor.qml`
 - `OverlayConfig.minSize(type)`: The least [w, h] a module dropped into a gap is shrunk to fit it: its declared one, else half its default size.
   - in: `services/GridEditor.qml`

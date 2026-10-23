@@ -1,0 +1,6 @@
+label: Todo list
+icon: checklist
+group: Tools
+popout: {variant: own, enabled: {description: 'The list, to add to and tick off, when hovered.'}}
+colors: standard
+settings: {hideWhenEmpty: {type: boolean, title: Hide when nothing is open, default: false}}

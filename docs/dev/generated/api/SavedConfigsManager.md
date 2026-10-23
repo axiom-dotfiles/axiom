@@ -3,19 +3,18 @@
 
 > **File:** `services/SavedConfigsManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/saved/. A snapshot holds what ConfigExamples.snapshot picks: the look, personal parts and commands (by the schema's x-scope) and the wallpaper setup (x-snapshot: wallpapers, mode, rotation, light/dark ones, theme schedule), in the export format, so a saved file can be shared or imported as it is. Restoring applies it like an example, plus the wallpaper setup (other machine settings stay as they are; a wallpaper only if its file is still there), through ConfigManager's load pipeline, so snapshots from older config versions (and older whole-config snapshots) are migrated. The one last saved or restored is `active`, and `modified` says whether the running config's snapshot parts have changed since. Also shares configs (ConfigExamples, by the schema's x-scope): applies the example setups shipped in examples/ and imported files (the running config is first saved as "before-<name>", then the file's look and layout replace the running ones), and exports the running config's look to the home folder in the same format. Nothing loaded changes a takeover setting (the schema's x-takeover: the compositor mode, lock screen, idle, polkit, greeter; ConfigManager.restoreConfig keeps them).
+Named snapshots of the config (one JSON file each in $XDG_CONFIG_HOME/axiom/saved/) and shared configs: the examples shipped in examples/, imported files, exports to the home folder. axiom does the work (saved.* and share.*, backend/internal/saved): a snapshot holds the look, personal parts and commands (by the schema's x-scope) and the wallpaper setup (x-snapshot), in the export format, so a saved file can be shared or imported as it is; restoring applies it like an example, plus the wallpaper setup where its files are still there. Applying a shared file first saves the running config as "before-<name>". Files of any version axiom reads are taken (an older one is converted), and nothing loaded changes a takeover setting (x-takeover). This keeps what the settings page shows: the list, the active snapshot, a status line.
 
 ### Properties
 
 - `savedDir` (readonly string)
-- `examplesDir` (readonly string)
 - `examples` (readonly var): [{ name, title, description }] by name, from examples/*.json
 - `model` (readonly FolderListModel): Newest first; roles: fileBaseName, filePath, fileModified
 - `status` (string): Last save/restore/delete outcome, for the settings UI
-- `active` (readonly string): The saved config the running one was last saved as or restored from, "" for none (or once its file is gone): the one the settings UI offers to overwrite.
+- `active` (readonly string): The saved config the running one was last saved as or restored from, "" for none (or once its file is gone): the one the settings UI offers to overwrite
 - `modified` (readonly bool): Whether the running config's snapshot parts differ from the active saved one's (machine settings, which restoring doesn't change, are left out)
-- `activeSource` (readonly string): The shared setup the active saved config was saved from, unchanged since (`_example.source`, written by the apply): "" for one the user saved, or saved over
-- `importing` (var): An imported file awaiting confirmation: { name, title, description, path, config, hasPersonal, hasCommands } (config loaded: migrated, defaults filled; hasPersonal: the file holds preferences, keybin…
+- `activeSource` (readonly string): The shared setup the active saved config was saved from, unchanged since: "" for one the user saved, or saved over
+- `importing` (var): An imported file awaiting confirmation: { name, title, description, path, hasPersonal, hasCommands } (hasPersonal: the file holds preferences, keybinds or apps; hasCommands: commands), or null
 - `picking` (readonly bool): The file picker is open
 
 ### Signals
@@ -27,14 +26,14 @@ Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/save
 
 - `sanitize(name)`
 - `exists(name)`
-- `save(name, savedStatus = "", source = "")`: Saves the running config's snapshot parts (including unsaved settings edits) under `name`, replacing any existing snapshot of that name.
+- `save(name)`: Saves the running config's snapshot parts under `name`, replacing any existing snapshot of that name.
 - `restore(name)`
-- `restoreDefaults()`: Applies the schema defaults like an example (the look, personal parts and commands; machine settings stay), after saving the running config as "before-defaults".
-- `applyExample(name)`: Saves the running config as "before-<name>", then applies the example (in _writer's onSaved, so a failed backup applies nothing)
+- `restoreDefaults()`: Applies the schema defaults like an example (the look, personal parts and commands; machine settings stay), after saving the running config as "before-defaults"
+- `applyExample(name)`: Applies an example's look, after saving the running config as "before-<name>"
 - `browseImport()`: Opens the desktop's file picker; the chosen file goes to openImport
-- `openImport(path)`: Loads a shared file (an export, an example, or a whole config.json of any version) as `importing`, for the settings page to confirm
+- `openImport(path)`: Reads a shared file (an export, an example, or a whole config.json of any version) as `importing`, for the settings page to confirm
 - `confirmImport(personal, commands)`: Applies `importing` (its personal parts too when `personal`: preferences, keybinds, apps; its commands when `commands`), after saving the running config as "before-<name>"
 - `cancelImport()`
-- `applyShared(name, path, title, snapshot)`: Applies a shared file at `path` straight away, its look only (never preferences, keybinds, apps or commands), after saving the running config as "before-<name>", then saves the result as `snapshot`: …
+- `applyShared(name, path, title, snapshot)`: Applies a shared file at `path` straight away, its look only, after saving the running config as "before-<name>", then saves the result as `snapshot`: a community setup (CommunitySetupsManager).
 - `exportConfig(personal, commands, places = true)`: Writes the running config's look (and its personal parts when `personal`, its commands when `commands`) to ~/axiom-<name>-<date>-<time>.json, holding only what differs from the defaults: a file to sh…
 - `remove(name)`

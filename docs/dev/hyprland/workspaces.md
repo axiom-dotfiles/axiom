@@ -1,6 +1,6 @@
 # Workspaces (layout, navigation, the bar widget)
 
-> **Files:** `config/WorkspacesConfig.qml`, `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `components/methods/WorkspaceGeometry.qml`, `components/bar/widgets/Workspaces.qml`, `components/bar/widgets/workspaces/`, `components/surfaces/workspaces/`, `components/views/settings/WorkspacesStatus.qml`
+> **Files:** `config/WorkspacesConfig.qml`, `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `components/methods/WorkspaceGeometry.qml`, `components/bar/widgets/Workspaces/Workspaces.qml`, `components/bar/widgets/Workspaces/`, `components/surfaces/workspaces/`, `components/views/Settings/WorkspacesStatus.qml`
 > **Config:** `Workspaces.*` (`layout`, `count`, `columns`, `rows`, …)
 > **Related:** [Workspace strips](workspace-strips.md), [Keybinds](keybinds.md), [Bar composition](../bar/composition.md), [Shared UI pieces](../core/shared-ui-pieces.md)
 
@@ -56,7 +56,7 @@ One workspace layout serves everything that shows workspaces or moves between th
 - IPC `workspaces reconcile` runs the remap for the current layout, re-homing workspaces left outside their monitor's ids.
 
 ### The bar widget
-- `bar/widgets/Workspaces.qml` loads a strip by layout:
+- `bar/widgets/Workspaces/Workspaces.qml` loads a strip by layout:
   - standard: `workspaces/WorkspaceStrip`
   - grid (`CompositorManager.workspaceGrid`): `workspaces/WorkspaceGridStrip`, showing the active row (or column, on a vertical bar).
 - **Which cells.** Without `showEmpty` (off by default; hidden with dynamic workspaces, which always leave empty ones out, the compositor's empty last one too) a strip shows the workspaces with windows and the active one; the grid strip does so within its row (`WorkspaceGridStrip.lineIds`). Down to one on a strip monitor, the strip shows alone ([workspace strips](workspace-strips.md)).

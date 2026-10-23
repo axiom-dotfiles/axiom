@@ -1,14 +1,14 @@
 # Recipe: a new bar widget
 
 > **Use when:** adding a widget type users can put on a bar (it shows up in the bar editor's library).
-> **Copy from:** `components/bar/widgets/IdleInhibitor.qml` (service toggle, no popout), `components/bar/widgets/Weather.qml` (polled data + its own popout), `components/bar/widgets/Updates.qml` (an `acquire` request from settings, both buttons, `extraData`); schema `definitions.IdleInhibitorWidget`.
+> **Copy from:** `components/bar/widgets/IdleInhibitor/IdleInhibitor.qml` (service toggle, no popout), `components/bar/widgets/Weather/Weather.qml` (polled data + its own popout), `components/bar/widgets/Updates/Updates.qml` (an `acquire` request from settings, both buttons, `extraData`); schema `definitions.IdleInhibitorWidget`.
 > **Docs:** [bar/composition](../dev/bar/composition.md), [bar/widget-style](../dev/bar/widget-style.md), rules in `components/bar/widgets/AGENTS.md`; generated: [config/BarWidgets](../dev/config/BarWidgets.md).
 
 ## Files to touch
-1. `components/bar/widgets/<Type>.qml`: the widget. The file name is the type const.
+1. `components/bar/widgets/<Type>/<Type>.qml`: the widget. The file name is the type const.
 2. `config/schema/definitions/widgets/<Type>Widget.yaml` (and its name in `config/schema/index.yaml`'s `definitions`), and `{$ref: "#/definitions/<Type>Widget"}` appended to the `oneOf` of `config/schema/definitions/widgets/BarWidget.yaml`.
 3. `config/i18n/*.json`: nothing to do: the pre-commit hook adds the new keys, empty, to every language and the template (the title, descriptions and the type's `description`, which is its library label, are keys).
-4. If it opens a popout of its own: `components/content/<Name>.qml` ([bar-popout](bar-popout.md)).
+4. If it opens a popout of its own: `components/content/<Name>/<Name>.qml` ([bar-popout](bar-popout.md)).
 5. If it needs data that's polled: the service's `acquire`/`release` ([service](service.md)).
 
 ## Skeleton
@@ -71,7 +71,7 @@ Without a popout of its own, `showPopout` is `"title": "Menu popout", "default":
 
 ## Steps
 1. Write the schema entry first and add its `$ref` to `BarWidget.yaml`'s `oneOf`. Pick `x-libraryGroup` from the root's `x-libraryGroups` (`Desktop`, `Time & weather`, `Media & audio`, `Network & devices`, `System`, `Tools`, `Look & layout`, `Session`).
-2. Write `components/bar/widgets/<Type>.qml` with its purpose comment above the root.
+2. Write `components/bar/widgets/<Type>/<Type>.qml` with its purpose comment above the root.
 3. Read every setting as `properties.<key>` (always present: defaults are filled at load).
 4. Polled data: a request built from `properties` only (copy `Updates.qml`'s `updatesRequest`), acquired in `Component.onCompleted` and on its change, released in `onDestruction`.
 5. Verify.

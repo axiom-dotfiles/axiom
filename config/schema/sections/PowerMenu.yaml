@@ -6,19 +6,24 @@ title: Power menu
 description: 'The power menu: lock, suspend, hibernate, log out, reboot and power off, opened by the power button, a keybind or `qs -c axiom ipc call powermenu toggle`.'
 additionalProperties: false
 properties:
-  monitors:
-    x-link: {setting: General.monitors}
-    x-scope: look
-    type: string
+  screen:
+    $ref: '#/definitions/ScreenTarget'
     title: Monitors
-    enum: [general, primary, focused, all]
-    x-enumLabels:
-      general: As in General
-      primary: Primary monitor
-      focused: Focused monitor
-      all: Every monitor
-    default: general
     description: Where the power menu opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
+    x-properties:
+      mode:
+        x-scope: look
+        type: string
+        title: Monitors
+        enum: [inherit, primary, focused, all]
+        default: inherit
+        x-enumLabels:
+          inherit: As in General
+          primary: Primary monitor
+          focused: Focused monitor
+          all: Every monitor
+        x-link: {setting: General.screen}
+      names: null
   actions:
     x-scope: look
     type: array

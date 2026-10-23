@@ -533,19 +533,20 @@ class ConfigReference:
         defs = self.schema["definitions"]
         folder = f"{CONFIG_OUT}/{page}"
         index = [NOTICE, f"# Config: {page}", "",
-                 f"> **Schema:** `definitions.{union}.oneOf`, discriminated by `type` · **Files:** `{directory}/<type>.qml`", "",
+                 f"> **Schema:** `definitions.{union}.oneOf`, discriminated by `type` · **Files:** `{directory}/<Type>/<Type>.qml`", "",
                  f"Every `{union}` type, one page each: its file, annotations, and its own settings with the files that read them. "
                  f"Shared keys ({', '.join('`' + k + '`' for k in sorted(SHARED_KEYS))}) are left out.", "",
                  "| Type | Label | Annotations |", "|---|---|---|"]
         pages = {}
-        type_files = {p.stem for p in (ROOT / directory).glob("*.qml")}
+        # What every type of the root shares (base/, and content's parts/)
+        shared = [rel(p) for d in ("base", "parts") for p in sorted((ROOT / directory / d).rglob("*.qml"))]
         all_types = self._union_types()
         for option in defs[union]["oneOf"]:
             def_name = ref_name(option)
             node = resolve(self.schema, option)
             name = node["properties"]["type"]["const"]
             label = node["properties"]["type"].get("description", "")
-            file = f"{directory}/{name}.qml"
+            file = f"{directory}/{name}/{name}.qml"
             ann = annotations(node)
             index.append(f"| [{name}]({page}/{name}.md) | {label} | {ann} |")
             out = [NOTICE, f"# {page}: {name}", ""]
@@ -563,9 +564,9 @@ class ConfigReference:
                 walk(self.schema, child, key, leaves)
             if not leaves:
                 out.append("No settings of its own.")
-            sub = ROOT / directory / (name[0].lower() + name[1:])
-            scope = [file] + ([rel(p) for p in sorted(sub.rglob("*.qml"))] if sub.is_dir() else [])
-            scope += [f"{directory}/{s}.qml" for s in sorted(type_files) if s not in all_types]
+            # The type's folder, its own parts first, then what it shares
+            folder_files = [rel(p) for p in sorted((ROOT / directory / name).rglob("*.qml")) if rel(p) != file]
+            scope = [file] + folder_files + shared
             for path, child, kind in leaves:
                 child_r = resolve(self.schema, child)
                 out.append(f"- **`{path}`** · {describe(self.schema, child)}")
@@ -582,7 +583,7 @@ class ConfigReference:
                     if not hits:
                         # Read generically (e.g. showPopout through
                         # EdgeMenusConfig.opensOwnPopout), outside any type file
-                        type_paths = {f"{d}/{n}.qml" for _, _, d, _, _ in UNIONS for n in all_types}
+                        type_paths = {f"{d}/{n}/{n}.qml" for _, _, d, _, _ in UNIONS for n in all_types}
                         anywhere = [f for f in self.usage.of(r"\??\." + re.escape(top) + r"\b") if f not in type_paths]
                         if 0 < len(anywhere) <= 6:
                             hits = anywhere

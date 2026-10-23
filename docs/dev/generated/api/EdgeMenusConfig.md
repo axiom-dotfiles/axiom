@@ -7,19 +7,19 @@ EdgeMenus: menus that pop out of a screen edge, holding overlay modules. While t
 
 ### Properties
 
-- `menus` (readonly var)
+- `menus` (readonly var): EdgeMenus.items: [EdgeMenu], each { id, name, enabled, screen, edge, mode, …, layout: { grid, moduleScale, moduleBorders, modules }, open, trigger, close }
 - `enabledMenus` (readonly var)
 - `fieldGroups` (readonly var): A menu's own fields in groups (`x-group`), for the edge menu editor
 
 ### Functions
 
-- `isSubmenu(menu)`: A menu with no edge of its own: it opens only beside another, from a Submenu module there (content/parts/MenuSubmenu)
+- `isSubmenu(menu)`: A menu with no edge of its own: it opens only beside another, from a Submenu module there (content/Submenu/MenuSubmenu)
 - `menuById(id)`
-- `popoutMenuOf(properties)`: The menu a bar widget opens as its popout (its `popoutMenu`, with `showPopout` on), else "": it opens its own popout, if any.
+- `popoutMenuOf(properties)`: The menu a bar widget opens as its popout (its `popout.menu`, with `popout.enabled` on), else "": it opens its own popout, if any.
 - `menusOpenedBy(widget)`: The ids of the menus a bar widget entry opens, as configured (gone or disabled alike): its menu popout, then a Button's click menu
 - `opensOwnPopout(properties)`: A bar widget with a popout of its own opens it: on, and no menu opened in its place
 - `menuWithModule(type)`: The first enabled menu holding a module of `type`, else null
-- `screenFor(menu)`: The menu's named screen, else the primary monitor
+- `screenFor(menu)`: The menu's screen: the one its ScreenTarget names, else the primary monitor
 - `edgeOf(menu)`: The menu's edge as a Bar.Location
 - `colorsOf(menu)`: The menu's box colours
 - `paddingOf(menu)`: Space between the menu's box and its modules: its own, else (-1) the popouts'

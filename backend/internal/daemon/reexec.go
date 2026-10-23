@@ -20,6 +20,7 @@ import (
 	"github.com/axiom-shell/axiom/backend/internal/fsx"
 	"github.com/axiom-shell/axiom/backend/internal/jsonx"
 	"github.com/axiom-shell/axiom/backend/internal/schema"
+	"github.com/axiom-shell/axiom/backend/internal/schema/yamlsrc"
 	"github.com/axiom-shell/axiom/backend/internal/tree"
 )
 
@@ -99,7 +100,11 @@ func (d *Daemon) adopt(h *handoff) (net.Listener, error) {
 		return nil, err
 	}
 	d.instance = instance
-	ln, err := net.FileListener(os.NewFile(uintptr(h.Listener), "axiom.sock"))
+	inherited := os.NewFile(uintptr(h.Listener), "axiom.sock")
+	ln, err := net.FileListener(inherited)
+	// FileListener works on a duplicate (close-on-exec): the inherited
+	// descriptor, without it, mustn't stay open for children to inherit
+	inherited.Close()
 	if err != nil {
 		return nil, axerr.Wrap(axerr.Refused, err, "the inherited socket")
 	}
@@ -110,7 +115,7 @@ func (d *Daemon) adopt(h *handoff) (net.Listener, error) {
 }
 
 // watchSchema (--dev) rebuilds the schema whenever its YAML source
-// changes: written for the shell and the tools, the config loaded again
+// (config/schema/, a type folder's schema.yaml) changes: written for the shell and the tools, the config loaded again
 // through it, and schema.changed pushed so the shell reads it.
 func (d *Daemon) watchSchema(ctx context.Context) error {
 	w, err := fsnotify.NewWatcher()
@@ -118,14 +123,16 @@ func (d *Daemon) watchSchema(ctx context.Context) error {
 		return err
 	}
 	defer w.Close()
-	src := filepath.Join(d.opts.Tree, tree.SchemaSource)
+	// config/schema/ and the type folders (their schema.yaml)
 	add := func() {
-		filepath.WalkDir(src, func(p string, e fs.DirEntry, err error) error {
-			if err == nil && e.IsDir() {
-				w.Add(p)
-			}
-			return nil
-		})
+		for _, root := range yamlsrc.Roots(os.DirFS(d.opts.Tree)) {
+			filepath.WalkDir(filepath.Join(d.opts.Tree, root), func(p string, e fs.DirEntry, err error) error {
+				if err == nil && e.IsDir() {
+					w.Add(p)
+				}
+				return nil
+			})
+		}
 	}
 	add()
 	var timer *time.Timer
@@ -178,7 +185,7 @@ func (d *Daemon) rebuildSchema() {
 	// The tree's generated copy too, for the tools and tests
 	fsx.WriteFile(filepath.Join(d.opts.Tree, tree.SchemaJSON), data, 0o644)
 	d.schemaBytes, d.schemaHash = data, hash
-	d.store.Reschema(config.LegacyPipeline{S: schema.New(parsed)})
+	d.store.Reschema(config.V2Pipeline{S: schema.New(parsed)})
 	d.opts.Log.Info("rebuilt the schema", "hash", hash)
 	d.server.Broadcast("schema.changed", map[string]string{"hash": hash, "path": d.runtime.File(SchemaFile)}, subscribed)
 }

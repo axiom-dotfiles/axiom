@@ -1,0 +1,25 @@
+label: Notification Center
+icon: notifications
+group: Desktop
+popout: {variant: own, enabled: {description: Open the notification list when hovered.}}
+colors: standard
+settings:
+  showCount:
+    type: boolean
+    title: Show count
+    default: true
+    description: Badge with the number of notifications.
+  dndColor:
+    type: string
+    title: Do-not-disturb icon
+    x-options: colors
+    default: ''
+    x-emptyLabel: Auto
+    x-autoColor: 'off'
+  badgeColor:
+    type: string
+    title: Badge
+    x-options: colors
+    default: ''
+    x-emptyLabel: Auto
+    x-autoColor: critical

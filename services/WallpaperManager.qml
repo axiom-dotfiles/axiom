@@ -11,7 +11,7 @@ import qs.components.methods
  * wallpaperFor) without writing the config, which keeps only what the
  * user picked:
  * - Appearance.wallpaperMode "rotate": a new wallpaper from the folder every
- *   `rotationInterval` minutes (random or in order, one for all monitors or
+ *   `rotationInterval` ms (random or in order, one for all monitors or
  *   one each). A pick by hand shows until the next one. The time of the
  *   last change survives restarts.
  * - "variant": the light or dark wallpaper, whichever the active theme's
@@ -23,7 +23,7 @@ import qs.components.methods
  * monitor's); a pick by hand always generates, as the picker does.
  * Created from shell.qml's `_services`.
  *
- *   qs -c axiom ipc call wallpaper next
+ *   axiom ipc wallpaper next
  */
 Singleton {
   id: root
@@ -160,7 +160,7 @@ Singleton {
     repeat: true
     running: root.mode === "rotate"
     onTriggered: {
-      if (Date.now() - ThemeManager.lastRotated >= Appearance.rotationInterval * 60000)
+      if (Date.now() - ThemeManager.lastRotated >= Appearance.rotationInterval)
         root.next();
     }
   }

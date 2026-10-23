@@ -11,8 +11,8 @@ TestCase {
   }
 
   readonly property var ctx: ({
-      "shellCommand": "qs -p '/opt/axiom'",
-      "restartCommand": "'/opt/axiom/scripts/restart.sh'",
+      "shellCommand": "'/opt/axiom'",
+      "restartCommand": "'/usr/bin/axiom' restart",
       "terminal": "foot",
       "fileManager": "nautilus --new-window",
       "browser": "firefox"
@@ -46,7 +46,7 @@ TestCase {
       "key": "SUPER + SHIFT + R",
       "action": "restartShell",
       "release": true
-    }, ctx, true), "bindsym --no-warn --release --no-repeat Mod4+Shift+r \"exec \"'\"'\"'/opt/axiom/scripts/restart.sh'\"'\"'");
+    }, ctx, true), "bindsym --no-warn --release --no-repeat Mod4+Shift+r \"exec \"'\"'\"'/usr/bin/axiom' restart\"'\"'");
     compare(SwayConf.bindLine({
       "key": "SUPER + Q",
       "action": "closeWindow"
@@ -101,12 +101,12 @@ TestCase {
       "action": "volumeUp",
       "locked": true,
       "repeating": true
-    }, ctx), "bindsym --no-warn --locked XF86AudioRaiseVolume exec \"qs -p '/opt/axiom' ipc call audio volumeUp\"");
+    }, ctx), "bindsym --no-warn --locked XF86AudioRaiseVolume exec \"'/opt/axiom' ipc audio volumeUp\"");
     compare(SwayConf.bindLine({
       "key": "SUPER + mouse_down",
       "action": "workspaceStep",
       "argument": "right"
-    }, ctx), "bindsym --no-warn --whole-window --no-repeat Mod4+button5 exec \"qs -p '/opt/axiom' ipc call workspaces step 'right' go\"");
+    }, ctx), "bindsym --no-warn --whole-window --no-repeat Mod4+button5 exec \"'/opt/axiom' ipc workspaces step 'right' go\"");
     compare(SwayConf.bindLine({
       "key": "SUPER + ALT + L",
       "action": "resizeWindow",
@@ -117,7 +117,7 @@ TestCase {
       "key": "SUPER + SHIFT + R",
       "action": "restartShell",
       "release": true
-    }, ctx), "bindsym --no-warn --release --no-repeat Mod4+Shift+r exec \"'/opt/axiom/scripts/restart.sh'\"");
+    }, ctx), "bindsym --no-warn --release --no-repeat Mod4+Shift+r exec \"'/usr/bin/axiom' restart\"");
   }
 
   // Checked in a headless sway 1.12: a tap fires bound alone, on release,
@@ -126,7 +126,7 @@ TestCase {
     compare(SwayConf.bindLine({
       "key": "Super_L",
       "action": "launcher"
-    }, ctx), "bindsym --no-warn --release --no-repeat Super_L exec \"qs -p '/opt/axiom' ipc call appLauncher toggle\"");
+    }, ctx), "bindsym --no-warn --release --no-repeat Super_L exec \"'/opt/axiom' ipc appLauncher toggle\"");
     compare(SwayConf.unbindLines([
       {
         "key": "Super_L",
@@ -323,14 +323,30 @@ TestCase {
     ], ctx), ["unbindsym --locked XF86AudioRaiseVolume", "unbindsym --release Mod4+q", "unbindsym --whole-window Mod4+BTN_MIDDLE", "unbindsym Mod4+q"]);
   }
 
+  // WindowLook with every part off, `parts` over it
+  function off(parts) {
+    const look = {};
+    for (const part of ["borders", "shape", "gaps", "blur", "shadow", "dim", "opacity"])
+      look[part] = Object.assign({
+        "enabled": false
+      }, parts[part] ?? {});
+    return look;
+  }
+
   function test_lookLines() {
-    const look = CompositorLayer.look({
-      "borders": true,
-      "shape": true,
-      "gaps": true,
-      "gapsIn": 3,
-      "gapsOut": 6
-    }, {
+    const look = CompositorLayer.look(off({
+      "borders": {
+        "enabled": true
+      },
+      "shape": {
+        "enabled": true
+      },
+      "gaps": {
+        "enabled": true,
+        "inner": 3,
+        "outer": 6
+      }
+    }), {
       "activeHex": "9ccfd8",
       "inactiveHex": "403d52",
       "borderWidth": 2,
@@ -340,28 +356,36 @@ TestCase {
     const live = SwayConf.lookLines(look, true);
     verify(live.includes("[all] border pixel 2"));
     verify(live.includes("gaps outer all set 6"));
-    compare(SwayConf.lookLines(CompositorLayer.look({}, {}), true), []);
+    compare(SwayConf.lookLines(CompositorLayer.look(off({}), {}), true), []);
   }
 
   function test_inputLines() {
     const schema = files.json("config/json/config.schema.json").properties.Input;
     const input = CompositorLayer.input({
-      "keyboard": true,
-      "kbLayout": "us,de",
-      "kbVariant": "",
-      "kbOptions": "caps:escape",
-      "repeatRate": 50,
-      "repeatDelay": 300,
-      "numlockByDefault": true,
-      "mouse": true,
-      "accelProfile": "default",
-      "sensitivity": -25,
-      "leftHanded": false,
-      "touchpad": false,
-      "naturalScroll": true,
-      "cursor": true,
-      "cursorTheme": "Bibata Modern",
-      "cursorSize": 24
+      "keyboard": {
+        "enabled": true,
+        "layout": "us,de",
+        "variant": "",
+        "options": "caps:escape",
+        "repeatRate": 50,
+        "repeatDelay": 300,
+        "numlock": true
+      },
+      "mouse": {
+        "enabled": true,
+        "accel": "default",
+        "sensitivity": -25,
+        "leftHanded": false
+      },
+      "touchpad": {
+        "enabled": false,
+        "naturalScroll": true
+      },
+      "cursor": {
+        "enabled": true,
+        "theme": "Bibata Modern",
+        "size": 24
+      }
     });
     verify(!SwayConf.inputLines(input, schema, true).includes("input type:keyboard xkb_numlock enabled"));
     compare(SwayConf.inputLines(input, schema, false), ["input type:keyboard xkb_layout \"us,de\"", "input type:keyboard xkb_variant \"\"", "input type:keyboard xkb_options caps:escape", "input type:keyboard repeat_rate 50", "input type:keyboard repeat_delay 300", "input type:keyboard xkb_numlock enabled", "input type:pointer pointer_accel -0.25", "input type:pointer left_handed disabled", "seat * xcursor_theme \"Bibata Modern\" 24"]);
@@ -560,11 +584,11 @@ bar {
       "followMouse": true,
       "focusOnActivate": false,
       "workspaceBackAndForth": false,
-      "cursorHideTimeout": 5,
+      "cursorHideTimeout": 5000,
       "hideCursorOnKeyPress": true,
       "noWarps": true
     }), ["focus_follows_mouse yes", "focus_on_window_activation urgent", "workspace_auto_back_and_forth no", "seat * hide_cursor 5000", "seat * hide_cursor when-typing enable", "mouse_warping none"]);
-    const sway = SwayConf.optionLines(schema.Sway, {
+    const sway = SwayConf.optionLines(schema.Compositor.properties.sway, {
       "workspaceLayout": "tabbed",
       "hideEdgeBorders": "smart",
       "smartGaps": "off",
@@ -575,7 +599,7 @@ bar {
     });
     compare(sway[0], "workspace_layout tabbed");
     verify(!sway.some(line => line.startsWith("font")));
-    verify(SwayConf.optionLines(schema.Sway, {
+    verify(SwayConf.optionLines(schema.Compositor.properties.sway, {
       "font": "pango:Inter 10"
     }).includes("font pango:Inter 10"));
   }

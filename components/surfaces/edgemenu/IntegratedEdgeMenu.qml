@@ -70,7 +70,7 @@ PopoutWrapperBase {
   // popout claim, so there's no rank to raise (EdgePopout.engage)
   function engage() {
   }
-  dismissDelay: root.menu.closeDelay
+  dismissDelay: root.menu.close.delay
   keepAlive: panelHover.hovered || trigger.containsMouse
   window: panel
 
@@ -94,7 +94,7 @@ PopoutWrapperBase {
   EdgeTrigger {
     id: trigger
     screen: root.screen
-    visible: root.menu.openOnHover
+    visible: root.menu.open.onHover
     edge: root.edge
     // On the modules (the strip spans the whole edge)
     centre: root.menu.length === "edge" ? root.edgeLength / 2 : root.alongPos + root.gridLength / 2
@@ -103,9 +103,9 @@ PopoutWrapperBase {
     edgeInset: Math.max(0, EdgeMenuManager.zoneOn(root.screen?.name ?? "", root._edgeName) - root.reserved)
     startInset: 0
     endInset: 0
-    triggerWidth: root.menu.triggerSize
+    triggerWidth: root.menu.trigger.size
     triggerLength: sync.triggerLength(loader.item, root.vertical, root.pad)
-    hoverDelay: root.menu.openDelay
+    hoverDelay: root.menu.open.delay
     onTriggered: root.show()
   }
 

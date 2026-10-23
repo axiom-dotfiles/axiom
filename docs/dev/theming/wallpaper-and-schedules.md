@@ -1,6 +1,6 @@
 # Wallpaper and schedules
 
-> **Files:** `services/WallpaperManager.qml`, `services/ThemeManager.qml`, `services/DailySchedule.qml`, `components/methods/Schedules.qml`, `components/methods/ShownLook.qml`, `shell/Wallpaper.qml`, `components/surfaces/wallpaper/WallpaperWindow.qml`, `scripts/setWallpaper.sh`, `components/content/WallpaperPicker.qml`, `components/content/ThemePicker.qml`, `components/forms/SettingRows.qml`
+> **Files:** `services/WallpaperManager.qml`, `services/ThemeManager.qml`, `services/DailySchedule.qml`, `components/methods/Schedules.qml`, `components/methods/ShownLook.qml`, `shell/Wallpaper.qml`, `components/surfaces/wallpaper/WallpaperWindow.qml`, `scripts/setWallpaper.sh`, `components/content/WallpaperPicker/WallpaperPicker.qml`, `components/content/ThemePicker/ThemePicker.qml`, `components/forms/SettingRows.qml`
 > **Config:** `Appearance.wallpaper`, `Appearance.wallpapers`, `Appearance.wallpaperBackend`, `Appearance.wallpaperMode`, `Appearance.wallpaperRotation.*`, `Appearance.variantWallpapers.*`, `Appearance.themeSchedule.*`
 > **Related:** [Themes](themes.md), [Night light](night-light.md)
 

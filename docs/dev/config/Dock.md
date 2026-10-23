@@ -9,132 +9,166 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 ### `Dock`
 
-- **`Dock.docks`** · array<DockEntry> = [{"id":"main","enabled":false}]
+- **`Dock.items`** · array<DockEntry> = [{"id":"main","enabled":false,"screen":{"mode":"inherit","names":[]}}]
   - Docks: Each dock has its own place, apps and behaviour.
   - x-settings=false
-  - read: `DockConfig.docks` (computed) · in: `components/views/settings/DockListCard.qml`, `services/DockManager.qml`, `services/KeybindManager.qml`
+  - read: `DockConfig.docks` (computed) · in: `components/views/Settings/DockListCard.qml`, `services/DockManager.qml`, `services/KeybindManager.qml`
 
-### `Dock.docks[]`
+### `Dock.items[]`
 
-- **`Dock.docks[]`** · object
-- **`Dock.docks[].id`** · string = "main"
-  - ID
-  - x-settings=false
-  - read: `DockConfig.docks` (whole) · in: `components/views/settings/DockListCard.qml`, `services/DockManager.qml`, `services/KeybindManager.qml`
-- **`Dock.docks[].name`** · string = ""
+- **`Dock.items[]`** · object
+- **`Dock.items[].id`** · string
+  - The item's stable id, unique in its list: what editors, path ops and imports match it by.
+  - pattern="^[A-Za-z0-9][A-Za-z0-9._-]*$", x-settings=false
+  - read: `DockConfig.docks` (whole) · in: `components/views/Settings/DockListCard.qml`, `services/DockManager.qml`, `services/KeybindManager.qml`
+- **`Dock.items[].name`** · string = ""
   - Name: Shown on its tab here. Empty names it by its edge.
-  - read: `DockConfig.docks` (whole) · in: `components/views/settings/DockListCard.qml`, `services/DockManager.qml`, `services/KeybindManager.qml`
-- **`Dock.docks[].enabled`** · boolean = true
+  - read: `DockConfig.docks` (whole) · in: `components/views/Settings/DockListCard.qml`, `services/DockManager.qml`, `services/KeybindManager.qml`
+- **`Dock.items[].enabled`** · boolean = true
   - Enabled
-  - read: entry field, name match · in: `config/DockConfig.qml`
-- **`Dock.docks[].monitors`** · string = "general" · enum general|primary|focused|all|monitor
-  - Monitors: Where the dock appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse), and the dock moves with it; every monitor shows it on all of them at once; a specific monitor is the one picked below.
-  - x-link={"setting":"General.monitors"}
-  - read: `DockConfig.docks` (whole) · in: `services/DockManager.qml`
-- **`Dock.docks[].monitor`** · string = ""
-  - Monitor: Monitor the dock is shown on. Empty uses the primary monitor.
-  - x-monitorRef="off", x-scope="machine", x-options="screens", x-showIf={"monitors":"monitor"}
-  - read: `DockConfig.docks` (whole) · in: `services/DockManager.qml`
-- **`Dock.docks[].edge`** · string = "Bottom" · enum Top|Bottom|Left|Right
+  - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`, `config/DockConfig.qml`
+
+### `Dock.items[].screen`
+
+- **`Dock.items[].screen`** · object
+  - Monitors: Which monitors it's shown on.
+- **`Dock.items[].screen.mode`** · string = "inherit" · enum inherit|primary|focused|all|named
+  - Monitors
+  - x-scope="look", x-link={"setting":"General.screen"}
+  - read: `DockConfig.docks` (whole) · in: `services/KeybindManager.qml`
+- **`Dock.items[].screen.names`** · array<string> = []
+  - Monitors
+  - x-scope="machine", x-monitorRef="off", x-showIf={"mode":"named"}
+  - read: entry field, name match · in: none found
+
+### `Dock.items[]`
+
+- **`Dock.items[].edge`** · string = "bottom" · enum top|bottom|left|right
   - Screen edge
   - read: entry field, name match · in: `components/surfaces/dock/DockItem.qml`, `components/surfaces/dock/DockMenu.qml`, `components/surfaces/dock/DockWindow.qml`, `config/DockConfig.qml`
-- **`Dock.docks[].position`** · integer = 50 · 0–100 · %
+- **`Dock.items[].position`** · integer = 50 · 0–100 · %
   - Position along edge: Where along the edge its centre sits: 0 is the start (left/top), 100 the end. It never runs off the screen.
   - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].detached`** · boolean = true
+- **`Dock.items[].detached`** · boolean = true
   - Detach from edge: A separate box held off the edge. Off, the dock grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge.
   - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].gap`** · integer = -1 · -1–200 · px
+- **`Dock.items[].gap`** · integer = -1 · -1–200 · px
   - Gap: Space between the dock and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows. Reserving its space, it keeps the compositor's gap between windows from them.
   - x-control="stepper", x-auto={"value":-1,"start":8}, x-beside=true, x-showIf={"detached":true}
   - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].visibility`** · string = "always" · enum always|hover|intellihide
+- **`Dock.items[].visibility`** · string = "always" · enum always|hover|intellihide
   - Visibility: Always shown stays up. Show on hover slides in when the pointer rests on the screen edge. Hide when a window overlaps stays up until a window on the monitor's workspace covers it, then works like Show on hover.
   - read: `DockConfig.docks` (whole) · in: `services/DockManager.qml`
-- **`Dock.docks[].reserveSpace`** · boolean = true
+- **`Dock.items[].reserveSpace`** · boolean = true
   - Reserve space: Keep windows out of the dock's strip, as a bar does. Magnified icons still grow over windows.
   - x-showIf={"visibility":"always"}
   - read: `DockConfig.docks` (whole) · in: `services/DockManager.qml`
-- **`Dock.docks[].openDelay`** · integer = 150 · 0–2000 · ms
-  - Open delay: How long the pointer rests on the edge before the dock slides in.
+
+### `Dock.items[].timing`
+
+- **`Dock.items[].timing`** · object
+  - Timing: How long the pointer rests before it opens, and how long it may be away before it closes.
   - x-showIf={"visibility":["hover","intellihide"]}
+- **`Dock.items[].timing.openDelay`** · integer = 150 · 0–2000 · ms
+  - Open delay
   - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].closeDelay`** · integer = 400 · 0–5000 · ms
-  - Close delay: How long after the pointer leaves the dock it slides away.
+- **`Dock.items[].timing.closeDelay`** · integer = 400 · 0–5000 · ms
+  - Close delay
+  - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
+
+### `Dock.items[].trigger`
+
+- **`Dock.items[].trigger`** · object
+  - Hover trigger: The strip along the screen edge that opens it when the pointer reaches it.
   - x-showIf={"visibility":["hover","intellihide"]}
-  - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].triggerSize`** · integer = 4 · 1–50 · px
-  - Trigger size: How far in from the screen edge the hover strip reaches.
-  - x-control="stepper", x-showIf={"visibility":["hover","intellihide"]}
-  - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].iconSize`** · integer = 48 · 16–128 · px
+- **`Dock.items[].trigger.size`** · integer = 4 · 1–50 · px
+  - Trigger size: How far from the screen edge the pointer opens it.
+  - x-control="stepper"
+  - read: `DockConfig.docks` (whole) · in: `components/views/Settings/DockListCard.qml`, `services/KeybindManager.qml`
+
+### `Dock.items[]`
+
+- **`Dock.items[].iconSize`** · integer = 48 · 16–128 · px
   - Icon size
   - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].spacing`** · integer = 6 · 0–48 · px
+- **`Dock.items[].spacing`** · integer = 6 · 0–48 · px
   - Icon spacing
   - x-control="stepper"
-  - read: `DockConfig.docks` (whole) · in: `components/views/settings/DockListCard.qml`
-- **`Dock.docks[].padding`** · integer = 8 · 0–48 · px
+  - read: `DockConfig.docks` (whole) · in: `components/views/Settings/DockListCard.qml`
+- **`Dock.items[].padding`** · integer = 8 · 0–48 · px
   - Padding: Space between the dock's box and its icons.
   - x-control="stepper"
   - read: entry field, name match · in: `components/surfaces/dock/DockMenu.qml`, `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].magnify`** · boolean = false
+
+### `Dock.items[].magnify`
+
+- **`Dock.items[].magnify`** · object
+  - Magnify
+- **`Dock.items[].magnify.enabled`** · boolean = false
   - Magnify under the pointer: Grow the icons near the pointer, as macOS does.
-  - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].magnifiedSize`** · integer = 80 · 16–256 · px
+  - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`, `config/DockConfig.qml`
+- **`Dock.items[].magnify.size`** · integer = 80 · 16–256 · px
   - Magnified size: Size of the icon right under the pointer.
-  - x-showIf={"magnify":true}
-  - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].magnifyRange`** · integer = 3 · 1–8
+  - x-showIf={"enabled":true}
+  - read: `DockConfig.docks` (whole) · in: `components/views/Settings/DockListCard.qml`, `services/KeybindManager.qml`
+- **`Dock.items[].magnify.range`** · integer = 3 · 1–8
   - Magnify range: How many icons to each side of the pointer grow with it.
-  - x-control="stepper", x-showIf={"magnify":true}
+  - x-control="stepper", x-showIf={"enabled":true}
   - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].showRunning`** · boolean = true
+
+### `Dock.items[].running`
+
+- **`Dock.items[].running`** · object
+  - Running apps
+- **`Dock.items[].running.show`** · boolean = true
   - Show running apps: Also show apps with open windows that aren't pinned, after the pinned ones.
   - read: `DockConfig.docks` (whole) · in: `services/DockManager.qml`
-- **`Dock.docks[].windowScope`** · string = "all" · enum all|monitor|workspace
+- **`Dock.items[].running.scope`** · string = "all" · enum all|monitor|workspace
   - Windows counted: Which windows make an app running here: its indicator, what a click focuses, and the running apps shown.
   - read: `DockConfig.docks` (whole) · in: `services/DockManager.qml`
-- **`Dock.docks[].runningIndicator`** · string = "dots" · enum dots|line|none
+- **`Dock.items[].running.indicator`** · string = "dots" · enum dots|line|none
   - Running indicator
   - read: entry field, name match · in: `components/surfaces/dock/DockItem.qml`
-- **`Dock.docks[].separator`** · boolean = true
+- **`Dock.items[].running.separator`** · boolean = true
   - Separator: A line between the pinned apps and the other running ones.
-  - x-showIf={"showRunning":true}
+  - x-showIf={"show":true}
   - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].showLabels`** · boolean = true
+
+### `Dock.items[]`
+
+- **`Dock.items[].showLabels`** · boolean = true
   - Names on hover: Show an app's name in a tooltip when the pointer rests on it.
   - read: entry field, name match · in: `components/surfaces/dock/DockItem.qml`, `components/surfaces/dock/DockMenu.qml`
-- **`Dock.docks[].backgroundColor`** · string = "base00"
+- **`Dock.items[].backgroundColor`** · string = "base00"
   - Background
   - x-options="colors"
   - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].borderColor`** · string = "base05"
+- **`Dock.items[].borderColor`** · string = "base05"
   - Border
   - x-options="colors"
   - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
-- **`Dock.docks[].pinnedOwn`** · boolean = false
+- **`Dock.items[].pinnedOwn`** · boolean = false
   - Own pinned apps: The dock shows its own pinned apps (pinned) instead of Apps → pinned, the list every other dock shares.
   - x-settings=false
-  - read: `DockConfig.docks` (whole) · in: `components/views/settings/DockListCard.qml`, `services/DockManager.qml`
-- **`Dock.docks[].pinned`** · array<string> = []
+  - read: `DockConfig.docks` (whole) · in: `components/views/Settings/DockListCard.qml`, `services/DockManager.qml`
+- **`Dock.items[].pinned`** · array<string> = []
   - Pinned apps: Desktop entry ids, in order: the dock's own, shown with pinnedOwn.
   - x-scope="personal", x-settings=false
-  - read: `DockConfig.docks` (whole) · in: `components/views/settings/DockListCard.qml`, `services/DockManager.qml`
+  - read: `DockConfig.docks` (whole) · in: `components/views/Settings/DockListCard.qml`, `services/DockManager.qml`
 
 ### Reader members
 
 Every public member of `DockConfig`, with the files that use it.
 
 - `DockConfig.docks` (var)
-  - in: `components/views/settings/DockListCard.qml`, `services/DockManager.qml`, `services/KeybindManager.qml`
+  - in: `components/views/Settings/DockListCard.qml`, `services/DockManager.qml`, `services/KeybindManager.qml`
 - `DockConfig.shownIds` (var): The enabled ones, by id: what the shell builds
   - in: `services/DockManager.qml`, `shell/Dock.qml`
 - `DockConfig.pinnedOf(dock)`: The apps a dock pins: its own with pinnedOwn, else the shared Apps.pinned
   - in: `services/DockManager.qml`
 - `DockConfig.dockById(id)`
   - in: `services/DockManager.qml`, `shell/Dock.qml`
-- `DockConfig.screensOf(dock)`: The screens a dock may be on, by its `monitors` (as an OSD's): every one for "focused" and "all" (shell/Dock shows it only where ShellManager.showsOn puts it),…
+- `DockConfig.screensOf(dock)`: The screens a dock may be on, by its `screen` (as an OSD's): every one for "focused" and "all" (shell/Dock shows it only where ShellManager.showsOn puts it), e…
   - in: `shell/Dock.qml`
 - `DockConfig.labelOf(dock)`: The name on its tab: its own, else its edge's
-  - in: `components/views/settings/DockListCard.qml`
+  - in: `components/views/Settings/DockListCard.qml`

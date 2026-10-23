@@ -9,6 +9,9 @@ import QtQuick
 QtObject {
   id: root
 
+  // The variables candidates() reads, for the caller to fill `env` from
+  readonly property var envNames: ["HYPRLAND_INSTANCE_SIGNATURE", "SWAYSOCK", "NIRI_SOCKET", "XDG_RUNTIME_DIR"]
+
   // The compositors the environment names, most trusted first:
   // [{ kind, pid, lockFile }]. `env` holds HYPRLAND_INSTANCE_SIGNATURE,
   // SWAYSOCK, NIRI_SOCKET and XDG_RUNTIME_DIR. `pid` comes from the socket's

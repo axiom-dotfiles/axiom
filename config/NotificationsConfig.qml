@@ -8,8 +8,8 @@ import qs.services
 QtObject {
   readonly property var _c: ConfigManager.config.Notifications
 
-  // "general" | "primary" | "focused" | "all" (see General.screensFor)
-  readonly property string monitors: _c.monitors
+  // The ScreenTarget toasts show on (see General.screensFor)
+  readonly property var screen: _c.screen
 
   // "topLeft" | "topRight" | "bottomLeft" | "bottomRight"
   readonly property string position: _c.position
@@ -17,14 +17,15 @@ QtObject {
   readonly property bool left: position === "topLeft" || position === "bottomLeft"
 
   // Gaps from the work area's edges, per side (only the corner's two apply)
-  readonly property bool evenGaps: _c.evenGaps
-  readonly property int gapTop: evenGaps ? _c.gap : _c.gapTop
-  readonly property int gapBottom: evenGaps ? _c.gap : _c.gapBottom
-  readonly property int gapLeft: evenGaps ? _c.gap : _c.gapLeft
-  readonly property int gapRight: evenGaps ? _c.gap : _c.gapRight
+  readonly property var _gaps: _c.gaps
+  readonly property bool evenGaps: _gaps.even
+  readonly property int gapTop: evenGaps ? _gaps.all : _gaps.top
+  readonly property int gapBottom: evenGaps ? _gaps.all : _gaps.bottom
+  readonly property int gapLeft: evenGaps ? _gaps.all : _gaps.left
+  readonly property int gapRight: evenGaps ? _gaps.all : _gaps.right
 
   // Toasts
-  readonly property int timeout: _c.timeout * 1000
+  readonly property int timeout: _c.timeout
   // Use a notification's own expireTimeout (0 = never) when it sets one
   readonly property bool appTimeouts: _c.appTimeouts
   readonly property bool criticalStays: _c.criticalStays
@@ -37,6 +38,6 @@ QtObject {
   readonly property bool removeOnClick: _c.removeOnClick
   readonly property bool closeRemoves: _c.closeRemoves
   readonly property int maxEntries: _c.maxEntries
-  // 0 = keep forever
-  readonly property int maxAgeDays: _c.maxAgeDays
+  // How old an entry may get (ms), 0 = keep forever
+  readonly property real maxAge: _c.maxAge
 }

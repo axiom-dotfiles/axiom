@@ -7,7 +7,6 @@ x-intro: NightLightStatus
 title: Night light
 description: Warmer screen colors in the evening, through hyprsunset (or wlsunset). The Night light quick action, `/nightlight` in the launcher and `qs -c axiom ipc call nightLight toggle` switch it by hand; that lasts until the next scheduled change.
 additionalProperties: false
-x-order: [schedule, startAt, endAt, temperature, gamma]
 properties:
   schedule:
     type: boolean
@@ -17,16 +16,16 @@ properties:
   startAt:
     type: string
     title: Turn on at
-    default: "20:00"
-    pattern: ^([01]?\d|2[0-3]):[0-5]\d$
-    description: "24-hour time, like 20:00."
+    default: '20:00'
+    pattern: '^([01]?\d|2[0-3]):[0-5]\d$'
+    description: '24-hour time, like 20:00.'
     x-showIf: {schedule: true}
   endAt:
     type: string
     title: Turn off at
-    default: "07:00"
-    pattern: ^([01]?\d|2[0-3]):[0-5]\d$
-    description: "24-hour time, like 07:00. Earlier than the start runs past midnight."
+    default: '07:00'
+    pattern: '^([01]?\d|2[0-3]):[0-5]\d$'
+    description: '24-hour time, like 07:00. Earlier than the start runs past midnight.'
     x-showIf: {schedule: true}
   temperature:
     type: integer

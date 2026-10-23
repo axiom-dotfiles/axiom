@@ -1,0 +1,32 @@
+# The DesktopLayout definition (#/definitions/DesktopLayout).
+
+$ref: '#/definitions/Layout'
+description: A desktop's overlay modules on a bounded grid, fitted to each monitor inside its bars and border at the card size (Desktop).
+x-properties:
+  id: {$ref: '#/definitions/ItemId'}
+  enabled:
+    type: boolean
+    x-settings: false
+    default: true
+    description: Shown. Off on a monitor's own layout leaves that monitor's desktop empty.
+  screen:
+    $ref: '#/definitions/ScreenTarget'
+    title: Monitors
+    x-properties:
+      mode:
+        x-scope: look
+        type: string
+        title: Monitors
+        enum: [all, primary, named]
+        default: primary
+        x-enumLabels: {primary: Primary monitor, all: Every monitor, named: These monitors}
+        x-link: {setting: General.screen}
+      names:
+        x-scope: machine
+        x-monitorRef: drop
+        type: array
+        title: Monitors
+        default: []
+        items: {type: string, x-options: screens}
+        x-showIf: {mode: named}
+  grid: {$ref: '#/definitions/ScreenGrid'}

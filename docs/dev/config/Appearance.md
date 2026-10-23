@@ -3,50 +3,19 @@
 
 > **Reader:** `Appearance` (`config/Appearance.qml`)
 > **Schema:** `config/json/config.schema.json` → `properties.Appearance` · category Look & Feel
-> **Read whole by:** `services/GreeterManager.qml`, `services/ThemeManager.qml`
+> **Read whole by:** `services/GreeterManager.qml`
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
 
 ### Parts
 
-- [`Appearance.wallpaperRotation`](Appearance.wallpaperRotation.md)
-- [`Appearance.variantWallpapers`](Appearance.variantWallpapers.md)
-- [`Appearance.themeSchedule`](Appearance.themeSchedule.md)
+- [`Appearance.theme`](Appearance.theme.md)
+- [`Appearance.wallpaper`](Appearance.wallpaper.md)
 - [`Appearance.font`](Appearance.font.md)
 - [`Appearance.shape`](Appearance.shape.md)
 - [`Appearance.surface`](Appearance.surface.md)
 - [`Appearance.motion`](Appearance.motion.md)
-
-### `Appearance`
-
-- **`Appearance.theme`** · string = "gruvbox-dark"
-  - Active theme (set on the overlay's Themes page).
-  - x-scope="look", x-settings=false
-  - read: `Appearance.theme`, `// reads:` marker · in: `components/methods/ConfigMigration.qml`, `config/Theme.qml`, `services/ThemeManager.qml`
-- **`Appearance.wallpaper`** · string = ""
-  - The primary monitor's wallpaper file URL, used by the lockscreen (set on the overlay's Themes page).
-  - x-snapshot=true, x-settings=false
-  - read: `Appearance.fixedWallpaper` · in: `services/ThemeManager.qml`
-- **`Appearance.wallpapers`** · object = {}
-  - Monitor name → wallpaper file URL (set on the overlay's Themes page). A monitor with no entry shows `wallpaper`.
-  - x-snapshot=true, x-settings=false
-  - read: `Appearance.fixedWallpapers` · in: `services/ThemeManager.qml`
-- **`Appearance.wallpaperBackend`** · string = "quickshell" · enum quickshell|awww
-  - Wallpaper backend: What draws the wallpaper. Axiom needs nothing installed and crossfades; awww (AUR) adds wipe and wave transitions.
-  - read: `Appearance.wallpaperBackend` · in: `services/ThemeManager.qml`, `services/WallpaperManager.qml`, `shell/Wallpaper.qml`
-- **`Appearance.wallpaperDaemon`** · boolean = true
-  - Start awww: Start awww-daemon for the wallpaper picker.
-  - x-scope="machine", x-showIf={"wallpaperBackend":"awww"}
-  - read: `Appearance.wallpaperDaemon` · in: `components/methods/ConfigMigration.qml`, `services/WallpaperManager.qml`
-- **`Appearance.wallpaperFolder`** · string = "~/Pictures/wallpapers"
-  - Wallpaper folder: Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder.
-  - x-snapshot=true, x-control="folder", pattern="\\S"
-  - read: `Appearance.wallpaperFolder`, `Appearance.wallpaperPath` (computed) · in: `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/LookPage.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
-- **`Appearance.wallpaperMode`** · string = "fixed" · enum fixed|rotate|variant
-  - Wallpaper mode: Fixed keeps the wallpaper you pick. Rotate changes it on a timer, from the wallpaper folder. One for light, one for dark shows the wallpaper you picked for the theme's current variant on every monitor. A generated theme follows the wallpaper as it changes. Also set on the overlay's Themes page.
-  - x-snapshot=true
-  - read: `Appearance.wallpaperMode` · in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 
 ### Reader members
 
@@ -55,7 +24,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.theme` (string): --- Theme (UI-owned, set on the overlay's Themes page) ---
   - in: `components/methods/ConfigMigration.qml`, `config/Theme.qml`, `services/ThemeManager.qml`
 - `Appearance.darkMode` (bool): From the active theme, not config: a theme is dark or light
-  - in: `components/content/QuickActions.qml`, `components/content/ThemePicker.qml`, `components/content/WallpaperPicker.qml`, `components/reusable/BackdropRequest.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
+  - in: `components/content/QuickActions/QuickActions.qml`, `components/content/ThemePicker/ThemePicker.qml`, `components/content/WallpaperPicker/WallpaperPicker.qml`, `components/reusable/BackdropRequest.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 - `Appearance.fixedWallpaper` (string): The wallpapers picked by hand (fixed mode): the primary monitor's, the fallback for monitors without their own, and monitor name -> URL, set per monitor on the…
   - in: `services/ThemeManager.qml`
 - `Appearance.fixedWallpapers` (var)
@@ -65,45 +34,45 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.wallpaperDaemon` (bool): Start awww's daemon for the awww backend (WallpaperManager)
   - in: `components/methods/ConfigMigration.qml`, `services/WallpaperManager.qml`
 - `Appearance.wallpaperFolder` (string)
-  - in: `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/LookPage.qml`
+  - in: `components/content/WallpaperPicker/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/LookPage.qml`
 - `Appearance.wallpaperPath` (string)
   - in: `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 - `Appearance.wallpaperMode` (string): "fixed" | "rotate" (wallpaperRotation) | "variant" (variantWallpapers), driven by WallpaperManager
-  - in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
-- `Appearance.rotationInterval` (int)
+  - in: `components/content/WallpaperPicker/WallpaperPicker.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
+- `Appearance.rotationInterval` (int): How often it rotates (ms)
   - in: `services/WallpaperManager.qml`
 - `Appearance.rotationOrder` (string): "random" | "sequential"
   - in: `services/WallpaperManager.qml`
 - `Appearance.rotationSameOnAll` (bool)
   - in: `services/WallpaperManager.qml`
 - `Appearance.darkWallpaper` (string): { dark, light }: file URLs, "" for none
-  - in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`
+  - in: `components/content/WallpaperPicker/WallpaperPicker.qml`, `services/ThemeManager.qml`
 - `Appearance.lightWallpaper` (string)
-  - in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`
+  - in: `components/content/WallpaperPicker/WallpaperPicker.qml`, `services/ThemeManager.qml`
 - `Appearance.themeScheduled` (bool): --- Light/dark by time of day (WallpaperManager) ---
-  - in: `components/content/ThemePicker.qml`, `services/WallpaperManager.qml`
+  - in: `components/content/ThemePicker/ThemePicker.qml`, `services/WallpaperManager.qml`
 - `Appearance.lightAt` (string)
   - in: `services/WallpaperManager.qml`
 - `Appearance.darkAt` (string)
   - in: `services/WallpaperManager.qml`
 - `Appearance.fontFamily` (string): --- Font ---
-  - in: `components/bar/widgets/Time.qml`, `components/content/Clock.qml`, `components/content/CommandOutput.qml`, `components/content/QuickActions.qml`, `components/content/TopProcesses.qml`, `components/content/parts/AudioRow.qml`, `components/content/parts/CompactFigure.qml`, `components/content/parts/DeviceList.qml`, `components/content/parts/ItemRow.qml`, `components/content/parts/chat/ChatMarkdownText.qml` (+11 more)
+  - in: `components/bar/widgets/Time/Time.qml`, `components/content/Clock/Clock.qml`, `components/content/CommandOutput/CommandOutput.qml`, `components/content/QuickActions/QuickActions.qml`, `components/content/TopProcesses/TopProcesses.qml`, `components/content/parts/AudioRow.qml`, `components/content/parts/CompactFigure.qml`, `components/content/parts/DeviceList.qml`, `components/content/parts/ItemRow.qml`, `components/content/parts/chat/ChatMarkdownText.qml` (+11 more)
 - `Appearance.baseFontSize` (int): At the Interface scale (Widget.scale); bars size their text from baseFontSize, the setting itself
   - in: `config/Bar.qml`
 - `Appearance.fontSize` (int)
-  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/BluetoothDevices.qml`, `components/content/Brightness.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Chat.qml`, `components/content/Cheatsheet.qml`, `components/content/ClipboardHistory.qml` (+98 more)
+  - in: `components/content/Agenda/Agenda.qml`, `components/content/AudioMixer/AudioMixer.qml`, `components/content/Battery/Battery.qml`, `components/content/BluetoothDevices/BluetoothDevices.qml`, `components/content/Brightness/Brightness.qml`, `components/content/Calculator/Calculator.qml`, `components/content/Calendar/Calendar.qml`, `components/content/Chat/Chat.qml`, `components/content/Cheatsheet/Cheatsheet.qml`, `components/content/ClipboardHistory/ClipboardHistory.qml` (+98 more)
 - `Appearance.fontSizeLarge` (int)
   - in: `components/surfaces/launcher/LauncherPanel.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `components/surfaces/powermenu/PowerMenuWindow.qml`
 - `Appearance.fontSizeBy(n: real): int`: The font size `n` px bigger (smaller when negative) than the setting, at the Interface scale: the offset grows with the text, where `fontSize + n` would leave …
-  - in: `components/content/Agenda.qml`, `components/content/AudioMixer.qml`, `components/content/Battery.qml`, `components/content/Calculator.qml`, `components/content/Calendar.qml`, `components/content/Cheatsheet.qml`, `components/content/ClaudeUsage.qml`, `components/content/ClipboardHistory.qml`, `components/content/Clock.qml`, `components/content/ClockCalendar.qml` (+128 more)
+  - in: `components/content/Agenda/Agenda.qml`, `components/content/AudioMixer/AudioMixer.qml`, `components/content/Battery/Battery.qml`, `components/content/Calculator/Calculator.qml`, `components/content/Calendar/Calendar.qml`, `components/content/Cheatsheet/Cheatsheet.qml`, `components/content/ClaudeUsage/ClaudeUsage.qml`, `components/content/ClipboardHistory/ClipboardHistory.qml`, `components/content/Clock/Clock.qml`, `components/content/ClockCalendar/ClockCalendar.qml` (+128 more)
 - `Appearance.iconFamily` (string): Icons are Material Symbols names drawn in this font (StyledIcon), so they don't depend on the text font
-  - in: `components/content/TopProcesses.qml`, `components/reusable/StyledIcon.qml`, `components/surfaces/onboarding/pages/ChecksPage.qml`, `services/DependencyManager.qml`
+  - in: `components/content/TopProcesses/TopProcesses.qml`, `components/reusable/StyledIcon.qml`, `components/surfaces/onboarding/pages/ChecksPage.qml`, `services/DependencyManager.qml`
 - `Appearance.borderRadius` (int): --- Shape ---
   - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/EdgeSurface.qml`, `components/hosts/popout/FloatingPopout.qml` (+14 more)
 - `Appearance.connectorGap` (int): The gap a surface growing out of an edge keeps between its box and that edge, which its fillets curve across (AttachedSurface, EdgeAttach)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/SubPopout.qml`
 - `Appearance.borderWidth` (int)
-  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/bar/WidgetBackground.qml`, `components/content/AudioMixer.qml`, `components/content/ColorSwatch.qml`, `components/content/Greeting.qml`, `components/content/Login.qml`, `components/content/Network.qml`, `components/content/NightLightControls.qml` (+68 more)
+  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/bar/WidgetBackground.qml`, `components/content/AudioMixer/AudioMixer.qml`, `components/content/ColorSwatch/ColorSwatch.qml`, `components/content/Greeting/Greeting.qml`, `components/content/Login/Login.qml`, `components/content/Network/Network.qml`, `components/content/NightLightControls/NightLightControls.qml` (+68 more)
 - `Appearance.screenBorder` (bool)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`, `shell/ScreenBorder.qml`
 - `Appearance.screenMargin` (int): The frame can't be thinner than its own outline (a narrower one would draw the stroke over the screen edge); without a frame it's just a gap
@@ -115,7 +84,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.translucent` (bool)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/StrokeOpening.qml`, `components/hosts/popout/SubPopout.qml`
 - `Appearance.blur` (bool)
-  - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/settings/TranslucencyStatus.qml`, `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
+  - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/Settings/TranslucencyStatus.qml`, `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - `Appearance.blurBackdrops` (bool)
   - in: `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - `Appearance.blurThroughWindows` (bool): Blurring what's under each surface, windows included, rather than the wallpaper alone (xray), which every surface shares
@@ -127,14 +96,14 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.shadowAlphaMax` (real): A shadow's darkest alpha while blurring: under the threshold, so its halo isn't blurred (the blur window casts the chrome's, and Hyprland blurs the chrome's po…
   - in: `config/Bar.qml`
 - `Appearance.fill(color)`: A surface fill (a theme color, or a name or "#hex" as Theme.resolveColor gives one) at the surface opacity
-  - in: `components/content/Submenu.qml`, `components/content/ThemePicker.qml`, `components/content/base/Card.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/reusable/ActionPill.qml`, `components/reusable/ActionTile.qml`, `components/reusable/CornerPiece.qml` (+13 more)
+  - in: `components/content/Submenu/Submenu.qml`, `components/content/ThemePicker/ThemePicker.qml`, `components/content/base/Card.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/reusable/ActionPill.qml`, `components/reusable/ActionTile.qml`, `components/reusable/CornerPiece.qml` (+13 more)
 - `Appearance.animations` (bool): --- Motion --- Every animation in the shell uses one of these durations, so the single speed setting (and the on/off switch) applies uniformly.
-  - in: `components/bar/widgets/Battery.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/content/ScreenRecord.qml`, `components/content/parts/RadioHeader.qml`, `components/content/parts/chat/ChatMessage.qml`, `components/content/parts/chat/ChatThinking.qml`, `components/hosts/popout/SwitchStill.qml`, `components/reusable/CrossFade.qml`, `components/reusable/PasswordEntry.qml`, `components/reusable/PopInRectangle.qml` (+2 more)
+  - in: `components/bar/widgets/Battery/Battery.qml`, `components/bar/widgets/Workspaces/ActiveCellIndicator.qml`, `components/content/ScreenRecord/ScreenRecord.qml`, `components/content/parts/RadioHeader.qml`, `components/content/parts/chat/ChatMessage.qml`, `components/content/parts/chat/ChatThinking.qml`, `components/hosts/popout/SwitchStill.qml`, `components/reusable/CrossFade.qml`, `components/reusable/PasswordEntry.qml`, `components/reusable/PopInRectangle.qml` (+2 more)
 - `Appearance.animFast` (int)
-  - in: `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/content/Clock.qml`, `components/content/Notifications.qml`, `components/content/parts/KeybindRow.qml`, `components/content/parts/KeybindSection.qml`, `components/content/parts/chat/ChatMessage.qml`, `components/content/parts/notifications/NotificationItemDelegate.qml`, `components/hosts/overlay/ModuleGrid.qml`, `components/hosts/popout/SwitchStill.qml` (+13 more)
+  - in: `components/bar/widgets/SystemTray/SystemTray.qml`, `components/bar/widgets/Workspaces/ActiveCellIndicator.qml`, `components/content/Clock/Clock.qml`, `components/content/Notifications/Notifications.qml`, `components/content/parts/KeybindRow.qml`, `components/content/parts/KeybindSection.qml`, `components/content/parts/chat/ChatMessage.qml`, `components/content/parts/notifications/NotificationItemDelegate.qml`, `components/hosts/overlay/ModuleGrid.qml`, `components/hosts/popout/SwitchStill.qml` (+13 more)
 - `Appearance.animNormal` (int)
-  - in: `components/bar/BarContainer.qml`, `components/bar/WidgetBackground.qml`, `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/bar/widgets/workspaces/WorkspaceCell.qml`, `components/content/AudioMixer.qml`, `components/content/Notifications.qml`, `components/content/WorkspaceGrid.qml`, `components/content/base/TitledCard.qml`, `components/content/parts/DeviceList.qml` (+46 more)
+  - in: `components/bar/BarContainer.qml`, `components/bar/WidgetBackground.qml`, `components/bar/widgets/SystemTray/SystemTray.qml`, `components/bar/widgets/Workspaces/ActiveCellIndicator.qml`, `components/bar/widgets/Workspaces/WorkspaceCell.qml`, `components/content/AudioMixer/AudioMixer.qml`, `components/content/Notifications/Notifications.qml`, `components/content/WorkspaceGrid/WorkspaceGrid.qml`, `components/content/base/TitledCard.qml`, `components/content/parts/DeviceList.qml` (+46 more)
 - `Appearance.animSlow` (int)
-  - in: `components/bar/widgets/Battery.qml`, `components/content/ScreenRecord.qml`, `components/content/parts/RadioHeader.qml`, `components/content/parts/chat/ChatThinking.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/reusable/FlashOutline.qml`, `components/reusable/PasswordEntry.qml`, `components/reusable/PercentageCircle.qml`, `components/surfaces/backdrop/ScreenBackdrop.qml` (+4 more)
+  - in: `components/bar/widgets/Battery/Battery.qml`, `components/content/ScreenRecord/ScreenRecord.qml`, `components/content/parts/RadioHeader.qml`, `components/content/parts/chat/ChatThinking.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/reusable/FlashOutline.qml`, `components/reusable/PasswordEntry.qml`, `components/reusable/PercentageCircle.qml`, `components/surfaces/backdrop/ScreenBackdrop.qml` (+4 more)
 - `Appearance.easing` (int)
-  - in: `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/content/Clock.qml`, `components/content/ScreenRecord.qml`, `components/content/parts/calendar/EventRow.qml`, `components/content/parts/calendar/MonthGrid.qml`, `components/hosts/overlay/OverlayPage.qml`, `components/hosts/popout/SlideAnimation.qml`, `components/hosts/popout/SwitchStill.qml`, `components/reusable/ColorGlide.qml` (+10 more)
+  - in: `components/bar/widgets/SystemTray/SystemTray.qml`, `components/bar/widgets/Workspaces/ActiveCellIndicator.qml`, `components/content/Clock/Clock.qml`, `components/content/ScreenRecord/ScreenRecord.qml`, `components/content/parts/calendar/EventRow.qml`, `components/content/parts/calendar/MonthGrid.qml`, `components/hosts/overlay/OverlayPage.qml`, `components/hosts/popout/SlideAnimation.qml`, `components/hosts/popout/SwitchStill.qml`, `components/reusable/ColorGlide.qml` (+10 more)

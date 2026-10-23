@@ -1,0 +1,5 @@
+label: Night light
+link: {setting: NightLight}
+icon: bedtime
+group: System
+defaultSize: [4, 2]

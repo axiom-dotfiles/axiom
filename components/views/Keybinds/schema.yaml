@@ -1,0 +1,4 @@
+label: Keybinds
+icon: keyboard
+tool: true
+needs: keybinds

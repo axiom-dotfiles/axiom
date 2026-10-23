@@ -17,7 +17,7 @@ import (
 
 // Paths inside a tree
 const (
-	SchemaSource = "config/schema"
+	SchemaSource = yamlsrc.SourceDir
 	SchemaJSON   = "config/json/config.schema.json"
 	shellQML     = "shell.qml"
 )
@@ -56,20 +56,19 @@ func isTree(dir string) bool {
 	return err == nil && info.IsDir()
 }
 
-// BuildSchema assembles the tree's YAML schema source into the JSON
-// schema's bytes.
+// BuildSchema assembles the tree's YAML schema source (config/schema/ and
+// the type folders' schema.yaml) into the JSON schema's bytes.
 func BuildSchema(dir string) ([]byte, error) {
-	src := filepath.Join(dir, SchemaSource)
-	if _, err := os.Stat(filepath.Join(src, yamlsrc.IndexFile)); errors.Is(err, fs.ErrNotExist) {
-		return nil, axerr.New(axerr.NotFound, "%s has no schema source (%s/%s)", dir, SchemaSource, yamlsrc.IndexFile)
+	if _, err := os.Stat(filepath.Join(dir, yamlsrc.IndexFile)); errors.Is(err, fs.ErrNotExist) {
+		return nil, axerr.New(axerr.NotFound, "%s has no schema source (%s)", dir, yamlsrc.IndexFile)
 	}
-	root, err := yamlsrc.Assemble(os.DirFS(src))
+	root, err := yamlsrc.Assemble(os.DirFS(dir))
 	if err != nil {
 		var errs yamlsrc.Errors
 		if errors.As(err, &errs) {
 			e := &axerr.Error{Kind: axerr.InvalidConfig, Message: fmt.Sprintf("the schema source has %d problems", len(errs))}
 			for _, x := range errs {
-				where := filepath.Join(SchemaSource, x.File)
+				where := x.File
 				if x.Line > 0 {
 					where = fmt.Sprintf("%s:%d:%d", where, x.Line, x.Column)
 				}

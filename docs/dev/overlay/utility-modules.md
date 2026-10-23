@@ -1,6 +1,6 @@
 # Utility modules
 
-> **Files:** `components/content/Calculator.qml`, `components/content/ClipboardHistory.qml`, `components/content/EmojiPicker.qml`, `components/content/WorldClocks.qml`, `components/content/NightLightControls.qml`, `components/content/CommandOutput.qml`, `components/content/ScreenRecord.qml`, `components/content/Cheatsheet.qml`, `components/content/Brightness.qml`
+> **Files:** `components/content/Calculator/Calculator.qml`, `components/content/ClipboardHistory/ClipboardHistory.qml`, `components/content/EmojiPicker/EmojiPicker.qml`, `components/content/WorldClocks/WorldClocks.qml`, `components/content/NightLightControls/NightLightControls.qml`, `components/content/CommandOutput/CommandOutput.qml`, `components/content/ScreenRecord/ScreenRecord.qml`, `components/content/Cheatsheet/Cheatsheet.qml`, `components/content/Brightness/Brightness.qml`
 > **Config:** each module's `properties` (e.g. `WorldClocks.clocks`, `CommandOutput.clickCommand`)
 > **Related:** [Writing modules](writing-modules.md), [Launcher providers](../features/launcher-providers.md), [Night light](../theming/night-light.md), [Screenshots and recording](../features/screenshots-recording.md), [Brightness](../features/brightness.md), [Keybinds](../hyprland/keybinds.md)
 

@@ -1,0 +1,5 @@
+label: Volume dials
+icon: volume_up
+group: Media & audio
+defaultSize: [4, 2]
+hosts: [lockscreen]

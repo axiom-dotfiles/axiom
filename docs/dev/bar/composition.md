@@ -15,7 +15,7 @@ How a bar is built from config: the panel per bar, the widget hosts, the layout 
 - Any other bar's monitor is resolved to a connected screen there.
 
 ### Widgets and their options
-- Bar contents are built from `components/bar/{BarContainer,BarWidgetHost,WidgetGroup,BarPanel}.qml`. These compose widgets from `components/bar/widgets/<type>.qml` (Time, Battery, Network, Workspaces, Media, SystemTray, Notifications, etc.).
+- Bar contents are built from `components/bar/{BarContainer,BarWidgetHost,WidgetGroup,BarPanel}.qml`. These compose widgets from `components/bar/widgets/<type>/<type>.qml` (Time, Battery, Network, Workspaces, Media, SystemTray, Notifications, etc.).
 - Each widget's options live under its `<Type>Widget.properties.properties` definition in the schema.
 - `SchemaValidation` picks the `BarWidget` oneOf option by `type`. Widget properties therefore get their defaults filled like the rest of the config, and widgets read `properties.<key>` directly.
 - Widget types come from `Bar.availableWidgetTypes`, the `BarWidget` oneOf. Each type's label comes from its description and its icon from its `x-icon`.
@@ -30,7 +30,7 @@ How a bar is built from config: the panel per bar, the widget hosts, the layout 
 
 ### Popouts
 - A widget opens a popout by dropping in a `PopoutAnchor` with a `popoutName`.
-- The per-bar `BarPopouts` (in `hosts/popout/`) loads `content/<popoutName>.qml` by URL. A new popout is therefore a content file plus an anchor.
+- The per-bar `BarPopouts` (in `hosts/popout/`) loads `content/<popoutName>/<popoutName>.qml` by URL. A new popout is therefore a content file plus an anchor.
 - See [Popout hosts](../popouts/hosts-and-switching.md).
 
 ### Menu popouts

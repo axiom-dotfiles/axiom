@@ -125,7 +125,7 @@ QtObject {
       dispatcher = `hl.dsp.exec_cmd(${_lua(argument)})`;
     } else if (BindActions.ipcActions[bind.action]) {
       const ipc = BindActions.ipcActions[bind.action][0].replace("{call}", BindActions.callFunction(bind)).replace("{0}", shellWord(argument));
-      dispatcher = `hl.dsp.exec_cmd(${_lua(`${ctx.shellCommand} ipc call ${ipc}`)})`;
+      dispatcher = `hl.dsp.exec_cmd(${_lua(`${ctx.shellCommand} ipc ${ipc}`)})`;
     }
     if (!dispatcher)
       return "";
@@ -355,7 +355,7 @@ return setmetatable({}, { __index = function() return function() end end })
         }
         return {
           "curves": curves,
-          "leaves": m.customAnimations.map(a => [a.leaf, a.enabled ? a.durationMs / 100 : 0, a.curve.trim() || "default", a.style.trim()])
+          "leaves": m.customAnimations.map(a => [a.leaf, a.enabled ? a.duration / 100 : 0, a.curve.trim() || "default", a.style.trim()])
         };
       }
     }

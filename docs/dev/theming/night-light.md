@@ -1,13 +1,13 @@
 # Night light
 
-> **Files:** `services/NightLightManager.qml`, `config/NightLight.qml`, `components/views/settings/NightLightStatus.qml`, `components/content/NightLightControls.qml`, `services/DailySchedule.qml`
+> **Files:** `services/NightLightManager.qml`, `config/NightLight.qml`, `components/views/Settings/NightLightStatus.qml`, `components/content/NightLightControls/NightLightControls.qml`, `services/DailySchedule.qml`
 > **Config:** `NightLight.*`
 > **Related:** [Wallpaper and schedules](wallpaper-and-schedules.md), [Utility modules](../overlay/utility-modules.md)
 
 The night light: a screen color temperature run through hyprsunset or wlsunset, on a daily schedule.
 
 ### NightLightManager
-- `NightLight` section, `NightLight` reader; `views/settings/NightLightStatus` is the section's `x-intro`.
+- `NightLight` section, `NightLight` reader; `views/Settings/NightLightStatus` is the section's `x-intro`.
 - Runs `hyprsunset -t <K> [-g <gamma>]` (only under Hyprland, whose color transform it drives), or wlsunset pinned to one temperature. Started detached, stopped with `pkill`.
 - `active` is a `PersistentProperties`:
   - probed with `pgrep` once per launch (`_probeOnce`), however the tool becomes known;
