@@ -30,7 +30,7 @@ How axiom gets onto a machine: the installer (a clone in the user's home) or a d
 - **Testing:** `--dry-run` on the host, and real runs in `fedora:latest` / `archlinux:latest` containers with a sudo user and `AXIOM_REPO` pointing at a mounted clone (copy install.sh out of the clone first, or it treats the read-only mount as the install). Never run it for real on the dev machine.
 
 ### The AUR packages
-Not on the AUR yet: AUR account registration is closed, so they wait in `packaging/aur/` until it reopens ([#76](https://github.com/axiom-dotfiles/axiom/issues/76), help wanted). The user docs describe installing them and say they aren't published.
+Not on the AUR yet: AUR account registration is closed, so they wait in `packaging/aur/` until it reopens ([#76](https://github.com/axiom-shell/axiom/issues/76), help wanted). The user docs describe installing them and say they aren't published.
 
 - `axiom-shell` (a release's tag tarball) and `axiom-shell-git` (main, `pkgver()` from `git describe`, `provides`/`conflicts` `axiom-shell`). The same `package()` otherwise.
 - **No compositor in `depends`:** pacman has no "one of"; `hyprland`, `sway` (which `swayfx` provides) and `niri` are `optdepends`. The package is the shell, not the session.

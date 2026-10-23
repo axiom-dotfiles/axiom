@@ -2064,7 +2064,7 @@
     "Sets of binds to start from. Pick what to add; keys already in use are left alone unless you tick them, which pauses the bind there.": "",
     "Settings": "",
     "Settings that make windows match axiom. While on, they win over your compositor's own config, and they come along when you share or import a config.": "",
-    "Setups other people built with axiom and shared at github.com/axiom-dotfiles/community-setups. Applying one changes the look and layout only, never keybinds, apps, commands, monitors or accounts, and saves your current setup first.": "",
+    "Setups other people built with axiom and shared at github.com/axiom-shell/community-setups. Applying one changes the look and layout only, never keybinds, apps, commands, monitors or accounts, and saves your current setup first.": "",
     "Setups other people built with axiom. Applying one changes the look and layout only: keybinds, apps, commands, monitors and accounts stay yours, and your current setup is saved first.": "",
     "Shadow": "",
     "Shadow color": "",

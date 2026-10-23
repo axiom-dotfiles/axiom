@@ -2117,6 +2117,17 @@ TestCase {
     compare(errors(config), []);
   }
 
+  function test_v75_moves_the_community_index_to_axiom_shell() {
+    const indexUrl = url => load({
+        "version": 74,
+        "CommunitySetups": {
+          "indexUrl": url
+        }
+      }).config.CommunitySetups.indexUrl;
+    compare(indexUrl("https://raw.githubusercontent.com/axiom-dotfiles/community-setups/catalog/index.json"), "https://raw.githubusercontent.com/axiom-shell/community-setups/catalog/index.json", "the old default moves");
+    compare(indexUrl("https://example.com/index.json"), "https://example.com/index.json", "a custom index stays");
+  }
+
   function test_v74_moves_the_default_greeter_stack_down() {
     const greeter = modules => load({
         "version": 73,

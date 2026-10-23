@@ -3,7 +3,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Ask anything about using or setting up axiom. If something is broken rather than unclear, a [bug report](https://github.com/axiom-dotfiles/axiom/issues/new?template=01-bug.yml) gets it fixed sooner.
+        Ask anything about using or setting up axiom. If something is broken rather than unclear, a [bug report](https://github.com/axiom-shell/axiom/issues/new?template=01-bug.yml) gets it fixed sooner.
   - type: textarea
     id: question
     attributes:

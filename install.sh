@@ -8,7 +8,7 @@
 #              config that starts it; from a text console it then offers to
 #              start the compositor. Everything after that, keybinds
 #              included, is axiom's own Settings → Desktop → Compositor.
-# Usage:       curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash
+# Usage:       curl -fsSL https://raw.githubusercontent.com/axiom-shell/axiom/main/install.sh | bash
 #              ./install.sh [options]   (from a clone anywhere; it's linked
 #                into ~/.config/quickshell/axiom, or moved there)
 #                --yes          answer yes to every question
@@ -28,7 +28,7 @@ set -euo pipefail
 # Wrapped in main so bash reads all of it before running any of it: under
 # curl | bash, anything reading stdin would otherwise eat the rest
 main() {
-AXIOM_REPO=${AXIOM_REPO:-https://github.com/axiom-dotfiles/axiom.git}
+AXIOM_REPO=${AXIOM_REPO:-https://github.com/axiom-shell/axiom.git}
 CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
 # Where `qs -c axiom` looks for it
 QS_DIR=$CONFIG_HOME/quickshell/axiom

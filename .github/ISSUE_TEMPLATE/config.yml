@@ -1,17 +1,17 @@
 blank_issues_enabled: false
 contact_links:
   - name: Questions and help
-    url: https://github.com/axiom-dotfiles/axiom/discussions/categories/q-a
+    url: https://github.com/axiom-shell/axiom/discussions/categories/q-a
     about: How do I…? Stuck setting something up? Ask in Discussions rather than opening an issue.
   - name: Ideas to talk over
-    url: https://github.com/axiom-dotfiles/axiom/discussions/categories/ideas
+    url: https://github.com/axiom-shell/axiom/discussions/categories/ideas
     about: Not sure what it should look like yet? Shape it in Discussions, then open a request.
   - name: Share your setup in the gallery
-    url: https://github.com/axiom-dotfiles/community-setups/issues/new?template=01-submit-setup.yml
+    url: https://github.com/axiom-shell/community-setups/issues/new?template=01-submit-setup.yml
     about: Submit your look to community-setups, where anyone can apply it from Settings → Maintenance → Community setups.
   - name: Show your setup
-    url: https://github.com/axiom-dotfiles/axiom/discussions/categories/show-and-tell
+    url: https://github.com/axiom-shell/axiom/discussions/categories/show-and-tell
     about: Share your bars, pages and themes.
   - name: Contributing guide
-    url: https://github.com/axiom-dotfiles/axiom/blob/main/CONTRIBUTING.md
+    url: https://github.com/axiom-shell/axiom/blob/main/CONTRIBUTING.md
     about: Setting up a clone, the workflow, and adding a translation yourself.

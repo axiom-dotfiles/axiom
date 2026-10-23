@@ -3,7 +3,7 @@
 
 > **File:** `services/CommunitySetupsManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The community setups gallery (github.com/axiom-dotfiles/community-setups): downloads the catalog (CommunitySetups.indexUrl) when the gallery is opened, never before, and the setups' thumbnails and screenshots into the cache; applies one through SavedConfigsManager.applyShared (its look only, after a "before-<id>" backup), first installing its palette as the theme "community/<id>" and, when asked, its wallpaper; the result is saved as the snapshot "community-<id>", the active one. Every download goes through scripts/community_fetch.sh and is checked against the catalog's sha256. Nothing here runs in the greeter.
+The community setups gallery (github.com/axiom-shell/community-setups): downloads the catalog (CommunitySetups.indexUrl) when the gallery is opened, never before, and the setups' thumbnails and screenshots into the cache; applies one through SavedConfigsManager.applyShared (its look only, after a "before-<id>" backup), first installing its palette as the theme "community/<id>" and, when asked, its wallpaper; the result is saved as the snapshot "community-<id>", the active one. Every download goes through scripts/community_fetch.sh and is checked against the catalog's sha256. Nothing here runs in the greeter.
 
 ### Properties
 

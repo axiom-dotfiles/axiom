@@ -4,7 +4,7 @@
 > **Reader:** `CommunitySetups` (`config/CommunitySetups.qml`)
 > **Schema:** `config/json/config.schema.json` → `properties.CommunitySetups` · category Maintenance
 
-Community gallery: Setups other people built with axiom and shared at github.com/axiom-dotfiles/community-setups. Applying one changes the look and layout only, never keybinds, apps, commands, monitors or accounts, and saves your current setup first.
+Community gallery: Setups other people built with axiom and shared at github.com/axiom-shell/community-setups. Applying one changes the look and layout only, never keybinds, apps, commands, monitors or accounts, and saves your current setup first.
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
@@ -14,10 +14,10 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`CommunitySetups.enabled`** · boolean = true
   - Browse community setups: Shows the gallery here and in the launcher's /config community. Nothing is downloaded until you open it.
   - read: `CommunitySetups.enabled` · in: `services/CommunitySetupsManager.qml`
-- **`CommunitySetups.indexUrl`** · string = "https://raw.githubusercontent.com/axiom-dotfiles/community-setups/ca…
+- **`CommunitySetups.indexUrl`** · string = "https://raw.githubusercontent.com/axiom-shell/community-setups/catal…
   - Catalog: Where the gallery comes from: the community-setups catalog's index.json. Change it only for a mirror or a fork.
   - x-showIf={"enabled":true}
-  - read: `CommunitySetups.indexUrl` · in: `services/CommunitySetupsManager.qml`
+  - read: `CommunitySetups.indexUrl` · in: `components/methods/ConfigMigration.qml`, `services/CommunitySetupsManager.qml`
 
 ### Reader members
 
@@ -26,4 +26,4 @@ Every public member of `CommunitySetups`, with the files that use it.
 - `CommunitySetups.enabled` (bool)
   - in: `services/CommunitySetupsManager.qml`
 - `CommunitySetups.indexUrl` (string): The catalog's index.json; its files are relative to it
-  - in: `services/CommunitySetupsManager.qml`
+  - in: `components/methods/ConfigMigration.qml`, `services/CommunitySetupsManager.qml`

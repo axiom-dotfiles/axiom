@@ -4,7 +4,7 @@
 > **Config:** `CommunitySetups.*` (reader `CommunitySetups`); an applied setup becomes the saved config `community-<id>`
 > **Related:** [Saved configs and sharing](../core/saved-configs-sharing.md), [Themes](../theming/themes.md), [Launcher](launcher.md), [Config manager](../core/config-manager.md) (where files live)
 
-A gallery of setups other people shared at [axiom-dotfiles/community-setups](https://github.com/axiom-dotfiles/community-setups), applied like an import. Tests: `tst_CommunityCatalog`, `test_scripts.py`'s `CommunityFetch`.
+A gallery of setups other people shared at [axiom-shell/community-setups](https://github.com/axiom-shell/community-setups), applied like an import. Tests: `tst_CommunityCatalog`, `test_scripts.py`'s `CommunityFetch`.
 
 ### The other repo
 - `setups/<id>/` holds `setup.json` (title, author, tags, tested compositors, fonts, a wallpaper's license), `config.json` (an Export), a screenshot, and optionally `theme.json` and a wallpaper.

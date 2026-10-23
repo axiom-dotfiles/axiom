@@ -5,7 +5,7 @@ import Quickshell.Io
 import qs.config
 import qs.components.methods
 
-// The community setups gallery (github.com/axiom-dotfiles/community-setups):
+// The community setups gallery (github.com/axiom-shell/community-setups):
 // downloads the catalog (CommunitySetups.indexUrl) when the gallery is
 // opened, never before, and the setups' thumbnails and screenshots into
 // the cache; applies one through SavedConfigsManager.applyShared (its
@@ -124,7 +124,7 @@ QtObject {
   // The issue form that submits a setup, its title filled in (attachments
   // can't be)
   function submitUrl(title) {
-    return "https://github.com/axiom-dotfiles/community-setups/issues/new?template=01-submit-setup.yml&title=" + encodeURIComponent("Setup: " + title);
+    return "https://github.com/axiom-shell/community-setups/issues/new?template=01-submit-setup.yml&title=" + encodeURIComponent("Setup: " + title);
   }
 
   // -- Private --

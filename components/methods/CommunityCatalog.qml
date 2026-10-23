@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 
-// The community setups catalog (github.com/axiom-dotfiles/community-setups,
+// The community setups catalog (github.com/axiom-shell/community-setups,
 // its `catalog` branch): reading its index.json, searching it, and where
 // each file comes from and goes. The index is downloaded, so everything in
 // it is checked before use: ids and file paths by pattern (a path never
