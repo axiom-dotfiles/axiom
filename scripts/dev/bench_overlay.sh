@@ -34,7 +34,6 @@ step() {
   after=$(built)
   printf '%-28s ipc %5d ms\n' "$*" $(((end - start) / 1000000))
   tail -n +"$((before + 1))" <<<"$after" | sed 's/^/    /'
-  [[ -n "$after" ]] || true
 }
 
 step open

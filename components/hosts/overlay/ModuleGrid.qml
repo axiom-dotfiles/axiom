@@ -100,18 +100,23 @@ Item {
   // How many modules (in reveal order) are built, and queued
   property int revealed: 0
   property int _queued: 0
+  // All of them streamed in once: modules added later build at once (a
+  // later one ranked earlier would otherwise unload the last one)
+  property bool _streamed: false
   readonly property int _count: root.modules?.length ?? 0
   property real _streamStart: Date.now()
   on_CountChanged: root._queueModules()
   function _queueModules() {
-    if (!root.stream)
+    if (!root.stream || root._streamed)
       return;
     for (; root._queued < root._count; root._queued++) {
       const type = root.modules[root._order.indexOf(root._queued)]?.type ?? "";
       BuildQueueManager.request(root, () => {
         root.revealed++;
-        if (root.revealed === root._count)
-          console.log(`Overlay modules streamed in ${Date.now() - root._streamStart} ms (${root._count} modules)`);
+        if (root._streamed || root.revealed < root._count)
+          return;
+        root._streamed = true;
+        console.log(`Overlay modules streamed in ${Date.now() - root._streamStart} ms (${root._count} modules)`);
       }, `overlay module ${type}`);
     }
   }
@@ -233,7 +238,7 @@ Item {
           host: root.host
           expander: root.expandable ? root : null
           zoom: root.zoom
-          active: !root.stream || (root._order[slot.index] ?? 0) < root.revealed
+          active: !root.stream || root._streamed || (root._order[slot.index] ?? 0) < root.revealed
         }
       }
     }

@@ -15,6 +15,6 @@ A working copy of one config section for an editor (settings, bar, overlay, edge
 ### Functions
 
 - `load()`: Start over from the current config
-- `loadIfStale()`: load(), unless the draft already holds the current config unedited: a page reopening (an editor's ensureLoaded) then rebuilds nothing.
+- `loadIfStale()`: load(), unless the draft holds unsaved edits or already holds the current config: a page reopening (an editor's ensureLoaded) then rebuilds nothing.
 - `changed()`: After mutating `local` in place: update isDirty, and re-assign it (next tick) so bindings on it see the change, since in-place mutation doesn't notify.
 - `save()`: Merges `local` onto the LATEST config (so settings edited elsewhere meanwhile survive) and commits it.

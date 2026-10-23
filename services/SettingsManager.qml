@@ -209,8 +209,7 @@ QtObject {
   // Loads the draft unless it holds unsaved edits (the page is rebuilt
   // whenever the overlay reopens)
   function ensureLoaded() {
-    if (!draft.isDirty)
-      draft.loadIfStale();
+    draft.loadIfStale();
   }
 
   function _valueAt(object, path) {

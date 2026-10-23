@@ -35,12 +35,12 @@ QtObject {
     root.isDirty = false;
   }
 
-  // load(), unless the draft already holds the current config unedited: a
-  // page reopening (an editor's ensureLoaded) then rebuilds nothing. The
-  // config is a new object on every change, so the one it was loaded from
-  // tells whether it's current
+  // load(), unless the draft holds unsaved edits or already holds the
+  // current config: a page reopening (an editor's ensureLoaded) then
+  // rebuilds nothing. The config is a new object on every change, so the
+  // one it was loaded from tells whether it's current
   function loadIfStale() {
-    if (root.isDirty || root.local === null || _read() !== root._loadedFrom)
+    if (!root.isDirty && (root.local === null || _read() !== root._loadedFrom))
       load();
   }
 
