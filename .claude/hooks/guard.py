@@ -194,6 +194,8 @@ def check_axiom(env, args):
         deny("Running / reloading", f"`axiom {sub}` starts or stops the live shell; never from this session (test with a scratch XDG_RUNTIME_DIR, or nested.sh).")
     if live and sub == "daemon" and words[1:2] and words[1] in {"stop", "restart", "reexec"}:
         deny("Running / reloading", f"`axiom daemon {words[1]}` stops or replaces the live daemon; never from this session.")
+    if live and sub == "dev" and words[1:2] and words[1] in {"on", "off", "rebuild"}:
+        deny("Running / reloading", f"`axiom dev {words[1]}` switches dev mode or re-execs the live daemon; ask the user (`axiom dev status` reads it).")
     if live and (sub == "lock" or sub == "ipc" and words[1:2] == ["lockscreen"]):
         deny("Never, while testing", "don't lock the session; only the user can type the password (lock a scratch instance: XDG_RUNTIME_DIR=<scratch>).")
     if live and sub == "ipc" and words[1:3] in (["monitors", "keep"], ["selfUpdate", "update"]):

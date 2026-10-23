@@ -1,6 +1,6 @@
 # The axiom binary
 
-> **Files:** `backend/`, `config/json/backend.json`, `scripts/check_go.sh`, `scripts/generate.sh`, `scripts/dev/fixtures.py`
+> **Files:** `backend/`, `services/BackendManager.qml`, `services/DevManager.qml`, `components/views/Settings/DevModeStatus.qml`, `config/json/backend.json`, `scripts/check_go.sh`, `scripts/generate.sh`, `scripts/dev/fixtures.py`
 > **Related:** [Config manager](../core/config-manager.md), [Packaging](../packaging.md), [Testing](../testing.md)
 
 `axiom` is one Go binary (source in `backend/`, rules in `backend/AGENTS.md`). It is being brought in in stages; this page says what exists now and grows with it.
@@ -18,8 +18,18 @@
   - It opens the config, writes both for the shell into `$XDG_RUNTIME_DIR/axiom/<display>/`, serves the socket there, and supervises `qs -p <tree>`.
   - Supervision: restart with a growing delay after a crash, give up after 5 crashes in a minute, stop an orphan an earlier daemon left (its process group, matched by its exact command line; never the shell a re-exec adopts). A run that ended on its own is `OnExit`'s, a stop the supervisor asked for `OnStop`'s.
   - It holds an idle connection to its compositor (`wire.Watch`) and stops when the compositor closes it: a daemon outliving its session would hold the display's lock, and the next session's `axiom run` would find it taken.
-  - The shell gets `AXIOM_SOCKET`, `AXIOM_SCHEMA`, `AXIOM_CONFIG`, `AXIOM_TREE` (and `AXIOM_INCOMPATIBLE` when the tree's schema isn't the binary's).
-  - `--dev`: logs to the terminal, rebuilds the schema within 100 ms of a YAML edit (pushing `schema.changed`), and re-execs when the binary is rebuilt. Without it the schema is read once, at the start: a YAML change reaches a running shell only through a restart, and a tree whose schema isn't the binary's runs read-only (`AXIOM_INCOMPATIBLE`).
+  - The shell gets `AXIOM_SOCKET`, `AXIOM_SCHEMA`, `AXIOM_CONFIG`, `AXIOM_TREE`, `AXIOM_BIN` (the installed binary, never a dev build) and, read at each start, `AXIOM_INCOMPATIBLE` while the tree's schema isn't the binary's and dev mode is off.
+  - `--dev` starts in dev mode whatever was chosen last, and logs to the terminal (and the shell's output with it).
+- **The daemon's parts** (`backend/internal/daemon/tasks.go`): each piece is a `part` (`core`, `config`, `ipc`, `sharing`, `dev mode`; the compositor's will be one more): the RPC methods it registers, a `run(ctx)` started on the daemon's `tasks`, and an `onConfig` told of every store event in order. Every goroutine is started through `tasks.Go` (the locker gets it as `lock.Options.Go`) and `Run` waits for all of them; work that must not overlap itself (`saved.Changed`, dev builds) is a `kicker`.
+- **Store events** are queued under the change lock and delivered after it's released, one at a time in revision order: a subscriber may read and write the store (its own event is delivered after the one it was handed).
+- **Pushes go by topic**: the hello's `subscribe` is `true` (every topic, what the shell asks), `false`, or a list of `config` (`config.changed`, `config.state`, `schema.changed`, `schema.error`), `saved` (`saved.state`), `daemon` (`daemon.state`, `dev.state`). A new topic or method needs no protocol bump; changing what an existing one means does.
+- **Writable or read-only**: a tree whose schema isn't the one the binary embeds runs read-only (`compatible: false` in the hello, config writes refused) unless dev mode is on. It changes at runtime with dev mode (`daemon.state`); the shell's start-up notice (`BackendManager.incompatible`, `shell.qml`) clears once it becomes writable, but never comes back while the shell runs.
+- **Dev mode** (`backend/internal/daemon/dev.go`, `axiom dev status|on|off|rebuild`, `dev.get|set|rebuild`, `DevManager`, the settings' `DevModeStatus` above axiom updates, `/dev`): switched while axiom runs and remembered in `$XDG_STATE_HOME/axiom/dev.json` (state, never config.json); `--dev` forces it on for one run, and a re-exec carries it in the handoff. While it's on:
+  - the schema is rebuilt within 100 ms of a YAML edit: `schema.changed` is pushed before the `config.changed` of the config loaded through it, and the tree's `config/json/config.schema.json` is rewritten only in a git checkout;
+  - a tree whose schema isn't the binary's may save; the log is at debug level (`Options.LogLevel`);
+  - an edit to `backend/` (not tests, not `internal/assets/data/`) or an embedded `config/json` file builds, after 1 s of quiet, `go generate ./internal/assets` + `go build` into `$XDG_STATE_HOME/axiom/dev/axiom`, checks it runs (`version`), and re-execs into it, the shell running on. A failed build keeps the running binary, its output in `dev.state.lastBuild` and a notification. Builds need the tree's `backend/go.mod` and `go` (`available`, else `unavailable` says why);
+  - a rebuilt installed binary is re-exec'd into, as before.
+  - Off: the watchers stop; from a dev build it re-execs back into the installed binary. `dev.state.offReadOnly` warns when that would leave the config read-only.
 - **`axiom greeter [--tree DIR] [--dir DIR] [--safe]`**: the login screen's parent (`greeter-session.sh` runs it as greetd's user). It loads the exported bundle, else the install's snapshot, else the defaults, through the same pipeline (`backend/internal/greeter`), writes it to `$XDG_RUNTIME_DIR/axiom/greeter-<display>/` and execs `qs -p <tree>/greeter.qml` on it: no daemon, no socket ([Greeter runtime](../features/greeter-runtime.md)).
 - **The config store** (`backend/internal/store`):
   - The one writer of config.json, holding `config.json.lock`.
@@ -28,7 +38,7 @@
   - Outside edits are told from its own writes by the bytes last written or read, so undoing a broken edit back to them is read again.
   - Writes are atomic and keep a symlinked config a symlink.
 - **The shell's side:**
-  - `BackendManager` (the connection, hello, reconnect).
+  - `BackendManager` (the connection, hello, reconnect; `compatible` and `dev` from the hello and its pushes).
   - `ConfigManager`: the config read from the snapshot and pushes. Writes are checked against the schema in JS, applied at once and sent to the daemon, whose answer stands.
   - `IpcTarget` (every IPC target, registered with the daemon).
   - `LockManager` reporting the lock.
@@ -38,12 +48,12 @@
   - The shell's registered targets are called over its connection; their signatures come from `qs ipc show`. Others go through `qs ipc --pid <shell> call`.
 - **`axiom lock`:** exits 0 only once the compositor has acknowledged the session lock (`WlSessionLock.secure`). Otherwise it starts the shell locked, then fails. A shell that dies while locked is restarted at once, locking first; `axiom restart` while locked starts the next one locked too, and a stop axiom asked for never relaunches it. Nothing unlocks but PAM; `lockscreen` takes only `lock`. With `Lockscreen.mode` `none` it runs `Lockscreen.lockCommand`, never `loginctl lock-session` (which loops back to axiom).
 - **The rest of the CLI:**
-  - `axiom ping|restart|quit`, `axiom daemon status|reexec|logs`
+  - `axiom ping|restart|quit`, `axiom daemon status|reexec|logs`, `axiom dev status|on|off|rebuild`
   - `axiom config path|get|set|reset|validate|status`: online, or `--offline` against the file under the writer lock
   - `axiom schema build|check|hash`, `axiom debug wayland-globals`, `axiom version`
-- **Re-exec** (`axiom daemon reexec`, or `--dev` on a rebuild): the new image takes over the instance lock, the writer lock, the socket and the shell (still its child). It trusts the handoff only when the inherited lock really is this display's held lock.
+- **Re-exec** (`axiom daemon reexec`, or dev mode on a rebuild): the new image takes over the instance lock, the writer lock, the socket and the shell (still its child). It trusts the handoff only when the inherited lock really is this display's held lock.
   - The descriptors lose close-on-exec only under `syscall.ForkLock`, so no child starts meanwhile and inherits a lock; an exec that fails gives them it back and thaws the store.
-  - The handoff carries the schema's hash and whether the session was locked: a new image whose tree builds another schema (an update, `axiom daemon reexec` after it) restarts the shell, locked first when it was.
+  - The handoff carries dev mode, the installed binary (while a dev build runs), the schema's hash and whether the session was locked: a new image whose tree builds another schema (an update, `axiom daemon reexec` after it) restarts the shell, locked first when it was.
 
 ### Wayland
 The daemon will talk Wayland itself for idle, gamma, clipboard and typing (branch 2). For now `backend/internal/wayland/wire` speaks the wire protocol far enough to list a compositor's globals: [what each compositor offers](wayland.md).
@@ -57,7 +67,7 @@ The daemon will talk Wayland itself for idle, gamma, clipboard and typing (branc
 Code handling sockets, locks, runtime directories, atomic writes, the child's environment or the lock screen is security-relevant: every rule it enforces has a test, and a change to it is reviewed against this list.
 - The runtime directory must be a real directory owned by the user with mode 0700; `$XDG_RUNTIME_DIR` is required, never replaced by `/tmp`.
 - A lock is taken before anything it guards is touched (a stale socket is removed only while holding the instance lock).
-- Every socket connection's peer must be the same user (`SO_PEERCRED`).
+- Every socket connection's peer must be the same user (`SO_PEERCRED`), and a hello as `"shell"` must come from the pid of the shell the daemon runs (`Conn.PeerPID`): only it reports the lock and registers IPC targets.
 - Writes are atomic (temp file, fsync, rename, fsync the directory) and never follow a planted symlink.
 - Nothing unlocks the lock screen but PAM: no RPC, CLI or IPC path exists for it.
 

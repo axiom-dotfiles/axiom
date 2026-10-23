@@ -32,6 +32,10 @@ type Options struct {
 	// Confirm is how long the shell has to report it locked
 	Confirm time.Duration
 	Log     *slog.Logger
+	// Go runs work that outlives a call (a relaunch, waiting for the
+	// user's locker) on a goroutine its owner stops (default: a plain
+	// goroutine on a background context, for tests)
+	Go func(func(context.Context))
 }
 
 // State is what the shell last reported.
@@ -57,6 +61,9 @@ func New(opts Options) *Locker {
 	}
 	if opts.Log == nil {
 		opts.Log = slog.New(slog.DiscardHandler)
+	}
+	if opts.Go == nil {
+		opts.Go = func(fn func(context.Context)) { go fn(context.Background()) }
 	}
 	return &Locker{opts: opts, changed: make(chan struct{})}
 }
@@ -137,7 +144,7 @@ func (l *Locker) ownLocker() error {
 	if err := cmd.Start(); err != nil {
 		return axerr.Wrap(axerr.Unavailable, err, "running the lock command")
 	}
-	go cmd.Wait()
+	l.opts.Go(func(context.Context) { cmd.Wait() })
 	return nil
 }
 
@@ -170,11 +177,11 @@ func (l *Locker) ShellExited() {
 		return
 	}
 	l.opts.Log.Warn("the shell exited while locked: starting it again, locked")
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	l.opts.Go(func(ctx context.Context) {
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
-		if err := l.opts.StartLocked(ctx); err != nil {
+		if err := l.opts.StartLocked(ctx); err != nil && ctx.Err() == nil {
 			l.opts.Log.Error("restarting the shell locked", "err", err)
 		}
-	}()
+	})
 }

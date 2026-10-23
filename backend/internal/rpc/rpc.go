@@ -184,6 +184,16 @@ func (c *Conn) Close() error {
 // may be closed under them.
 func (c *Conn) Wait() { c.handling.Wait() }
 
+// PeerPID is the pid of the process at the other end (-1 when it can't be
+// told: not a unix socket).
+func (c *Conn) PeerPID() int {
+	pid, err := PeerPID(c.nc)
+	if err != nil {
+		return -1
+	}
+	return pid
+}
+
 // Value and SetValue hold per-connection state for handlers.
 func (c *Conn) Value(key any) (any, bool) { return c.values.Load(key) }
 func (c *Conn) SetValue(key, v any)       { c.values.Store(key, v) }

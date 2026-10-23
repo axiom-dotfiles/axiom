@@ -316,3 +316,32 @@ func TestReplaceWithoutTakeoverSectionKeepsIt(t *testing.T) {
 		t.Error("a replace without Idle reset Idle.enabled")
 	}
 }
+
+// A subscriber may write: its change is delivered after the one it saw,
+// and nothing deadlocks on the change lock.
+func TestSubscriberMayWrite(t *testing.T) {
+	t.Parallel()
+	s := open(t, t.TempDir())
+	var revisions []int64
+	s.Subscribe(func(e Event) {
+		revisions = append(revisions, e.State.Revision)
+		if e.State.Revision == 2 {
+			if _, err := s.Set([]config.Op{config.SetValue(config.Keys("Battery", "lowThreshold"), 20.0)}, SetOptions{}); err != nil {
+				t.Errorf("set from a subscriber: %v", err)
+			}
+		}
+	})
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		s.Set([]config.Op{config.SetValue(config.Keys("Battery", "lowThreshold"), 15.0)}, SetOptions{})
+	}()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("deadlocked")
+	}
+	if len(revisions) != 2 || revisions[0] != 2 || revisions[1] != 3 {
+		t.Errorf("revisions %v", revisions)
+	}
+}

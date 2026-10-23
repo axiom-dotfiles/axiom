@@ -83,7 +83,7 @@ settings:
 ## Verify
 - `scripts/dev/verify.sh`
 - `scripts/run_tests.sh Config`
-- **On the live shell:** a running `axiom run` read the schema at its start; only `axiom run --dev` rebuilds it on a YAML edit (`schema.changed`). Without it, the new type isn't in the running schema, and a config holding it doesn't save: test in `scripts/dev/nested.sh`, or ask the user to restart axiom on a rebuilt binary. Add one module at a time, watch qs's RSS, then `scripts/dev/shot.sh page <ViewType>`.
+- **On the live shell:** a running `axiom run` read the schema at its start; only dev mode (`axiom dev status`; the user switches it) rebuilds it on a YAML edit (`schema.changed`). Without it, the new type isn't in the running schema, and a config holding it doesn't save: test in `scripts/dev/nested.sh`, or ask the user to restart axiom on a rebuilt binary. Add one module at a time, watch qs's RSS, then `scripts/dev/shot.sh page <ViewType>`.
 
 ## Docs to update
 - [overlay/utility-modules](../dev/overlay/utility-modules.md) if it's a tool-like module; the feature's doc otherwise.

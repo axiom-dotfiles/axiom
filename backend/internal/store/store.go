@@ -71,8 +71,8 @@ type Store struct {
 	path string
 	lock *fsx.Lock
 
-	// changeMu serializes changes (writes, reloads) through their
-	// announcement, so subscribers see revisions in order
+	// changeMu serializes changes (writes, reloads); their events queue
+	// in that order and are delivered after it is released (publish)
 	changeMu sync.Mutex
 
 	mu        sync.Mutex
@@ -86,6 +86,9 @@ type Store struct {
 	fileTakeovers *jsonx.Object
 	subs          map[int]func(Event)
 	nextSub       int
+	// Events not delivered yet, and whether a goroutine is delivering them
+	pending  []Event
+	draining bool
 }
 
 // Open takes the writer lock and loads the config (writing the defaults
@@ -136,8 +139,9 @@ func (s *Store) Config() (*jsonx.Object, State) {
 }
 
 // Subscribe calls fn after every change, until the returned func is
-// called. fn runs in change order, holding the change lock (not the
-// state lock: it may read Config, but must not write).
+// called. fn runs in change order, one event at a time, holding no lock:
+// it may read Config and write (its own change is delivered once it
+// returns).
 func (s *Store) Subscribe(fn func(Event)) func() {
 	s.mu.Lock()
 	id := s.nextSub
@@ -154,15 +158,14 @@ func (s *Store) Subscribe(fn func(Event)) func() {
 // AckFirstRun clears the first-run flag (the shell has started its
 // onboarding).
 func (s *Store) AckFirstRun() {
+	defer s.publish()
 	s.changeMu.Lock()
 	defer s.changeMu.Unlock()
 	s.mu.Lock()
-	changed := s.state.FirstRun
-	s.state.FirstRun = false
-	ev := Event{State: s.state}
-	s.mu.Unlock()
-	if changed {
-		s.publish(ev)
+	defer s.mu.Unlock()
+	if s.state.FirstRun {
+		s.state.FirstRun = false
+		s.queue(Event{State: s.state})
 	}
 }
 
@@ -228,6 +231,7 @@ func (s *Store) Restore(parsed any, opts SetOptions) (int64, error) {
 }
 
 func (s *Store) write(change func(*jsonx.Object) (*jsonx.Object, error), opts SetOptions) (int64, error) {
+	defer s.publish()
 	s.changeMu.Lock()
 	defer s.changeMu.Unlock()
 	s.mu.Lock()
@@ -277,8 +281,8 @@ func (s *Store) write(change func(*jsonx.Object) (*jsonx.Object, error), opts Se
 		s.state.Blocked, s.state.Issues = false, nil
 	}
 	ev := Event{State: s.state, Config: checked}
+	s.queue(ev)
 	s.mu.Unlock()
-	s.publish(ev)
 	return ev.State.Revision, nil
 }
 
@@ -432,6 +436,7 @@ func (s *Store) load(data []byte) (*jsonx.Object, []axerr.Issue) {
 }
 
 func (s *Store) reload() {
+	defer s.publish()
 	s.changeMu.Lock()
 	defer s.changeMu.Unlock()
 	data, err := os.ReadFile(s.path)
@@ -439,11 +444,12 @@ func (s *Store) reload() {
 	if errors.Is(err, fs.ErrNotExist) {
 		changed := !s.state.Missing
 		s.state.Missing = true
-		ev := Event{State: s.state}
+		if changed {
+			s.queue(Event{State: s.state})
+		}
 		s.mu.Unlock()
 		if changed {
 			s.opts.Log.Warn("the config file is gone: running on the last one, until the next save writes it", "path", s.path)
-			s.publish(ev)
 		}
 		return
 	}
@@ -476,20 +482,39 @@ func (s *Store) reload() {
 			ev = Event{State: s.state}
 		}
 	}
+	s.queue(ev)
 	s.mu.Unlock()
-	s.publish(ev)
 }
 
-func (s *Store) publish(ev Event) {
+// queue adds ev to the events to deliver; called holding changeMu and mu,
+// so the queue is in change order.
+func (s *Store) queue(ev Event) { s.pending = append(s.pending, ev) }
+
+// publish delivers the queued events, unless another call is delivering
+// them (then it delivers these too, in order). Called after changeMu is
+// released, so a subscriber may write: its event queues behind this one.
+func (s *Store) publish() {
 	s.mu.Lock()
-	subs := make([]func(Event), 0, len(s.subs))
-	for _, fn := range s.subs {
-		subs = append(subs, fn)
+	if s.draining {
+		s.mu.Unlock()
+		return
 	}
+	s.draining = true
+	for len(s.pending) > 0 {
+		ev := s.pending[0]
+		s.pending = s.pending[1:]
+		subs := make([]func(Event), 0, len(s.subs))
+		for _, fn := range s.subs {
+			subs = append(subs, fn)
+		}
+		s.mu.Unlock()
+		for _, fn := range subs {
+			fn(ev)
+		}
+		s.mu.Lock()
+	}
+	s.draining = false
 	s.mu.Unlock()
-	for _, fn := range subs {
-		fn(ev)
-	}
 }
 
 func issues(lines []string) []axerr.Issue {
@@ -586,6 +611,7 @@ func (s *Store) Pipeline() config.Pipeline {
 // Reschema switches to another pipeline (the schema changed: `axiom run
 // --dev` rebuilt it) and loads the file again through it.
 func (s *Store) Reschema(p config.Pipeline) {
+	defer s.publish()
 	s.changeMu.Lock()
 	defer s.changeMu.Unlock()
 	s.mu.Lock()
@@ -610,8 +636,8 @@ func (s *Store) Reschema(p config.Pipeline) {
 		s.state.Revision++
 		ev = Event{State: s.state, Config: loaded}
 	}
+	s.queue(ev)
 	s.mu.Unlock()
-	s.publish(ev)
 }
 
 // LockFile is the writer lock's descriptor, for a re-exec to keep it.

@@ -302,6 +302,30 @@ QtObject {
         return false;
       }
     },
+    {
+      name: "dev",
+      aliases: ["devmode"],
+      glyph: "code",
+      usage: "[on | off | rebuild]",
+      description: () => I18n.tr("Dev mode: rebuild the schema and axiom as you edit them"),
+      available: () => BackendManager.ready,
+      status: () => DevManager.building ? I18n.tr("Building…") : DevManager.enabled ? I18n.tr("On") : I18n.tr("Off"),
+      options: () => root._onOffOptions().concat(DevManager.enabled && DevManager.available ? [
+          {
+            title: "rebuild",
+            value: "rebuild"
+          }
+        ] : []),
+      run: (arg, value) => {
+        if (((value ?? arg) ?? "").trim() === "rebuild") {
+          DevManager.rebuild();
+          return false;
+        }
+        const on = root._onOff(value ?? arg);
+        DevManager.setEnabled(on === null ? !DevManager.enabled : on);
+        return false;
+      }
+    },
     // --- Workspaces & shell ---
     {
       name: "ws",

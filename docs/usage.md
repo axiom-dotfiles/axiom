@@ -124,7 +124,7 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | **Calendar and notes** | `/event <when> <title>` `/notes [text]` `/todo [text]` `/pomodoro [start\|pause\|skip\|stop]` `/timer <duration> [label]` `/stopwatch [start\|pause\|lap\|reset]` |
 | **Searches** | `/calc` `/run` `/web` `/clipboard` `/emoji` `/chat [conversation]` |
 | **Shell** | `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/config example <name>` `/update` `/welcome` `/reload` `/help` |
-| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/screenshot <region\|window\|screen>` `/record` |
+| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/dev [on\|off\|rebuild]` `/ws <n>` `/screenshot <region\|window\|screen>` `/record` |
 
 Every provider can be switched off under **Settings → Launcher**. The same page sets:
 - the launcher's size, hidden apps, terminal and search engine

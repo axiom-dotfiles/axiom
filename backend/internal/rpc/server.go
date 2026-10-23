@@ -146,25 +146,43 @@ func SamePeerUser(nc net.Conn) error {
 
 // PeerUID is a unix-socket peer's uid.
 func PeerUID(nc net.Conn) (int, error) {
+	cred, err := peerCred(nc)
+	if err != nil {
+		return -1, err
+	}
+	return int(cred.Uid), nil
+}
+
+// PeerPID is the pid of the process that connected a unix socket, by the
+// kernel's credentials.
+func PeerPID(nc net.Conn) (int, error) {
+	cred, err := peerCred(nc)
+	if err != nil {
+		return -1, err
+	}
+	return int(cred.Pid), nil
+}
+
+func peerCred(nc net.Conn) (*unix.Ucred, error) {
 	uc, ok := nc.(*net.UnixConn)
 	if !ok {
-		return -1, axerr.New(axerr.Refused, "not a unix socket")
+		return nil, axerr.New(axerr.Refused, "not a unix socket")
 	}
 	raw, err := uc.SyscallConn()
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
 	var cred *unix.Ucred
 	var credErr error
 	if err := raw.Control(func(fd uintptr) {
 		cred, credErr = unix.GetsockoptUcred(int(fd), unix.SOL_SOCKET, unix.SO_PEERCRED)
 	}); err != nil {
-		return -1, err
+		return nil, err
 	}
 	if credErr != nil {
-		return -1, credErr
+		return nil, credErr
 	}
-	return int(cred.Uid), nil
+	return cred, nil
 }
 
 // Listen binds a unix socket at path and narrows it to 0600. Its

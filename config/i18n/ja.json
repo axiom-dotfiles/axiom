@@ -3128,6 +3128,19 @@
     "How far from the screen edge the pointer opens it.": "",
     "Celsius": "",
     "The axiom binary didn't build": "",
-    "Until it does, settings can't be saved after the next start: {0}": ""
+    "Until it does, settings can't be saved after the next start: {0}": "",
+    "Rebuilds the schema and axiom itself as you edit them, the shell running on.": "",
+    "Building axiom…": "",
+    "The last build failed: axiom runs the one before.": "",
+    "Running a dev build: edits to the Go source rebuild it.": "",
+    "Edits to the Go source rebuild axiom.": "",
+    "Building": "",
+    "Dev mode": "",
+    "Dev mode off": "",
+    "Rebuild": "",
+    "This tree's schema isn't the installed binary's: turned off, settings can't be saved until axiom is rebuilt.": "",
+    "Dev mode: rebuild the schema and axiom as you edit them": "",
+    "Building…": "",
+    "The dev build failed": ""
   }
 }

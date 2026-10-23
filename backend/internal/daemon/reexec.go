@@ -1,27 +1,16 @@
 package daemon
 
 import (
-	"context"
 	"encoding/json"
-	"io/fs"
 	"net"
 	"os"
-	"path/filepath"
 	"strings"
 	"syscall"
-	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"golang.org/x/sys/unix"
 
 	"github.com/axiom-shell/axiom/backend/internal/axerr"
-	"github.com/axiom-shell/axiom/backend/internal/buildinfo"
-	"github.com/axiom-shell/axiom/backend/internal/config"
 	"github.com/axiom-shell/axiom/backend/internal/fsx"
-	"github.com/axiom-shell/axiom/backend/internal/jsonx"
-	"github.com/axiom-shell/axiom/backend/internal/schema"
-	"github.com/axiom-shell/axiom/backend/internal/schema/yamlsrc"
-	"github.com/axiom-shell/axiom/backend/internal/tree"
 )
 
 // reexecEnv carries a handoff from the image before a re-exec (an updated
@@ -42,6 +31,12 @@ type handoff struct {
 	// shell, locked first when it was
 	Schema string `json:"schema,omitempty"`
 	Locked bool   `json:"locked,omitempty"`
+	// Dev mode as it was (a runtime switch isn't in the arguments), and
+	// the installed binary while a dev build runs
+	Dev       bool   `json:"dev,omitempty"`
+	Installed string `json:"installed,omitempty"`
+	// When the first image started (daemon.status's uptime)
+	Started int64 `json:"started,omitempty"`
 }
 
 // inherited reads (and clears) a handoff from the environment.
@@ -58,11 +53,11 @@ func inherited(getenv func(string) string) (*handoff, error) {
 	return &h, nil
 }
 
-// reexec replaces this process with the binary at its path, keeping the
-// locks, the socket and the shell. Clients see their connection close and
-// reconnect. An exec that fails leaves the daemon as it was.
-func (d *Daemon) reexec() (err error) {
-	exe := d.executable
+// reexec replaces this process with the binary at exe (this one's path,
+// the installed binary, or a dev build), keeping the locks, the socket and
+// the shell. Clients see their connection close and reconnect. An exec
+// that fails leaves the daemon as it was.
+func (d *Daemon) reexec(exe string) (err error) {
 	if _, err := os.Stat(exe); err != nil {
 		return axerr.Wrap(axerr.Unavailable, err, "the binary to re-exec")
 	}
@@ -81,6 +76,9 @@ func (d *Daemon) reexec() (err error) {
 		Listener:   int(listener.Fd()),
 		Shell:      d.shellPID(),
 		Locked:     d.locker.State().Locked,
+		Dev:        d.dev.Enabled(),
+		Installed:  d.installed,
+		Started:    d.started.UnixMilli(),
 	}
 	_, h.Schema = d.currentSchema()
 	// No child may start while the descriptors lose close-on-exec (it
@@ -134,132 +132,4 @@ func (d *Daemon) adopt(h *handoff) (net.Listener, error) {
 		ul.SetUnlinkOnClose(true)
 	}
 	return ln, nil
-}
-
-// watchSchema (--dev) rebuilds the schema whenever its YAML source
-// (config/schema/, a type folder's schema.yaml) changes: written for the shell and the tools, the config loaded again
-// through it, and schema.changed pushed so the shell reads it.
-func (d *Daemon) watchSchema(ctx context.Context) error {
-	w, err := fsnotify.NewWatcher()
-	if err != nil {
-		return err
-	}
-	defer w.Close()
-	// config/schema/ and the type folders (their schema.yaml)
-	add := func() {
-		for _, root := range yamlsrc.Roots(os.DirFS(d.opts.Tree)) {
-			filepath.WalkDir(filepath.Join(d.opts.Tree, root), func(p string, e fs.DirEntry, err error) error {
-				if err == nil && e.IsDir() {
-					w.Add(p)
-				}
-				return nil
-			})
-		}
-	}
-	add()
-	var timer *time.Timer
-	fire := make(chan struct{}, 1)
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case ev, ok := <-w.Events:
-			if !ok {
-				return nil
-			}
-			if ev.Has(fsnotify.Create) {
-				add() // a new folder of definitions
-			}
-			if !strings.HasSuffix(ev.Name, ".yaml") {
-				continue
-			}
-			if timer == nil {
-				timer = time.AfterFunc(100*time.Millisecond, func() { notify(fire) })
-			} else {
-				timer.Reset(100 * time.Millisecond)
-			}
-		case <-w.Errors:
-		case <-fire:
-			d.rebuildSchema()
-		}
-	}
-}
-
-func (d *Daemon) rebuildSchema() {
-	data, err := tree.BuildSchema(d.opts.Tree)
-	if err != nil {
-		d.opts.Log.Error("the schema source doesn't build: keeping the last one", "err", err)
-		d.server.Broadcast("schema.error", map[string]any{"message": err.Error(), "issues": axerr.IssuesOf(err)}, subscribed)
-		return
-	}
-	hash := buildinfo.SchemaHash(data)
-	if _, old := d.currentSchema(); hash == old {
-		return
-	}
-	parsed, err := jsonx.Unmarshal(data)
-	if err != nil {
-		return
-	}
-	if err := fsx.WriteFile(d.runtime.File(SchemaFile), data, 0o600); err != nil {
-		d.opts.Log.Error("writing the schema", "err", err)
-		return
-	}
-	// The tree's generated copy too, for the tools and tests
-	fsx.WriteFile(filepath.Join(d.opts.Tree, tree.SchemaJSON), data, 0o644)
-	d.setSchema(data, hash)
-	d.store.Reschema(config.V2Pipeline{S: schema.New(parsed)})
-	d.opts.Log.Info("rebuilt the schema", "hash", hash)
-	d.server.Broadcast("schema.changed", map[string]string{"hash": hash, "path": d.runtime.File(SchemaFile)}, subscribed)
-}
-
-// watchBinary (--dev) re-execs when the binary is rebuilt, so `go build`
-// is the whole loop: the shell keeps running.
-func (d *Daemon) watchBinary(ctx context.Context) error {
-	w, err := fsnotify.NewWatcher()
-	if err != nil {
-		return err
-	}
-	defer w.Close()
-	if err := w.Add(filepath.Dir(d.executable)); err != nil {
-		return err
-	}
-	before, _ := os.Stat(d.executable)
-	var timer *time.Timer
-	fire := make(chan struct{}, 1)
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case ev, ok := <-w.Events:
-			if !ok {
-				return nil
-			}
-			if ev.Name != d.executable {
-				continue
-			}
-			if timer == nil {
-				timer = time.AfterFunc(500*time.Millisecond, func() { notify(fire) })
-			} else {
-				timer.Reset(500 * time.Millisecond)
-			}
-		case <-w.Errors:
-		case <-fire:
-			now, err := os.Stat(d.executable)
-			if err != nil || now.Mode()&0o111 == 0 || (before != nil && os.SameFile(before, now) && now.ModTime().Equal(before.ModTime())) {
-				continue
-			}
-			if err := d.reexec(); err != nil {
-				d.opts.Log.Error("re-exec", "err", err)
-			}
-		}
-	}
-}
-
-// notify signals ch without blocking: one pending signal is enough, and a
-// timer firing after its watcher returned must not hang.
-func notify(ch chan struct{}) {
-	select {
-	case ch <- struct{}{}:
-	default:
-	}
 }

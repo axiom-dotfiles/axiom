@@ -20,11 +20,11 @@ func runCommand() *Command {
 		Summary: "Run axiom on this display: the shell, its config and its socket",
 		Help: `Starts the daemon for $WAYLAND_DISPLAY and the shell (quickshell) as its
 child, restarting the shell if it crashes. Put "axiom run" in your
-compositor's autostart. With --dev, logs go to the terminal too and the
-tree's schema may differ from the one the binary was built with.`,
+compositor's autostart. With --dev it starts in dev mode whatever was
+chosen last (see "axiom dev"), and logs go to the terminal too.`,
 		Setup: func(fs *flag.FlagSet) Runner {
 			dir := fs.String("tree", "", "the axiom tree to run (default: $AXIOM_TREE, the one here, else the installed one)")
-			dev := fs.Bool("dev", false, "development: log to the terminal, accept a schema the binary wasn't built with")
+			dev := fs.Bool("dev", false, "start in dev mode and log to the terminal")
 			noShell := fs.Bool("no-shell", false, "run the daemon without starting the shell")
 			qs := fs.String("qs", "qs", "the quickshell binary")
 			return func(ctx context.Context, e *Env, args []string) error {
@@ -44,16 +44,16 @@ tree's schema may differ from the one the binary was built with.`,
 				defer lf.Close()
 				var out io.Writer = lf
 				var shellOut io.Writer
-				level := slog.LevelInfo
 				if *dev {
 					out = io.MultiWriter(lf, e.Stderr)
 					shellOut = e.Stderr
-					level = slog.LevelDebug
 				}
+				// Debug while dev mode is on: the daemon sets it
+				level := new(slog.LevelVar)
 				log := slog.New(slog.NewTextHandler(out, &slog.HandlerOptions{Level: level}))
 				return daemon.Run(ctx, daemon.Options{
 					Tree: root, Dev: *dev, NoShell: *noShell, QS: *qs,
-					Getenv: e.Getenv, Log: log, ShellOutput: shellOut,
+					Getenv: e.Getenv, Log: log, LogLevel: level, ShellOutput: shellOut,
 				})
 			}
 		},

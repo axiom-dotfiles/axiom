@@ -21,6 +21,7 @@ func Root() *Command {
 			restartCommand(),
 			quitCommand(),
 			daemonCommand(),
+			devCommand(),
 			configCommand(),
 			schemaCommand(),
 			lockCommand(),

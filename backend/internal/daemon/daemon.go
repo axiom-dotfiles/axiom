@@ -2,7 +2,8 @@
 // display's instance lock, builds the schema from the tree, opens the
 // config, hands the shell both as files in the runtime directory (so the
 // shell reads its config at once, already normalized), serves the socket,
-// and supervises quickshell.
+// and supervises quickshell. Its pieces are parts (tasks.go): the core,
+// the config, IPC and the lock, sharing, and dev mode.
 package daemon
 
 import (
@@ -37,14 +38,22 @@ import (
 
 // Options configure a daemon.
 type Options struct {
-	Tree    string // the axiom tree the shell runs from
-	Dev     bool   // the tree's schema may differ from the binary's
+	Tree string // the axiom tree the shell runs from
+	// Dev starts in dev mode whatever the saved choice ($XDG_STATE_HOME/
+	// axiom/dev.json, which `axiom dev on|off` sets)
+	Dev     bool
 	NoShell bool   // don't start quickshell (tests, headless use)
 	QS      string // the quickshell binary (default "qs")
+	Go      string // the go binary dev mode builds with (default "go")
 	Getenv  func(string) string
 	Log     *slog.Logger
+	// LogLevel, when set, follows dev mode: debug while it's on
+	LogLevel *slog.LevelVar
 	// ShellOutput gets the shell's stdout and stderr (nil: discarded)
 	ShellOutput io.Writer
+
+	// isShell replaces the check that a peer is the shell (tests)
+	isShell func(pid int) bool
 }
 
 // Files in the runtime directory
@@ -54,6 +63,10 @@ const (
 	ShellPIDFile = "shell.pid"
 )
 
+// incompatibleReason is why a tree whose schema isn't this binary's runs
+// read-only outside dev mode.
+const incompatibleReason = "this axiom binary was built for another version of the shell's files: update the binary"
+
 // Daemon is a running daemon.
 type Daemon struct {
 	opts    Options
@@ -61,25 +74,35 @@ type Daemon struct {
 	dirs    xdg.Dirs
 	started time.Time
 
-	// The built schema: --dev rebuilds it on the watch goroutine while
-	// handlers read the hash
+	// The built schema (dev mode rebuilds it on the watch goroutine while
+	// handlers read the hash), and whether it is the one this binary was
+	// built with
 	schemaMu    sync.Mutex
 	schemaBytes []byte
 	schemaHash  string
-	compatible  bool   // the tree's schema is the one this binary was built with
-	reason      string // why not
+	treeMatches bool
 
-	executable string // this binary, for a re-exec
+	// executable is the image running; installed the binary it came from
+	// (they differ while dev mode runs its own build)
+	executable string
+	installed  string
 	instance   *fsx.Lock
 	listener   net.Listener
 
-	store  *store.Store
-	saved  *saved.Service
-	server *rpc.Server
-	shell  *supervise.Supervisor
-	router *ipcroute.Router
-	locker *lock.Locker
-	stop   context.CancelFunc
+	store     *store.Store
+	saved     *saved.Service
+	server    *rpc.Server
+	shell     *supervise.Supervisor
+	router    *ipcroute.Router
+	locker    *lock.Locker
+	dev       *devMode
+	savedKick *kicker
+	tasks     *tasks
+	stop      context.CancelFunc
+
+	// isShell says whether a connection's peer pid is the shell's (a
+	// hello as "shell" from anything else is refused)
+	isShell func(pid int) bool
 }
 
 // Run runs the daemon until ctx ends or it is told to shut down.
@@ -90,21 +113,36 @@ func Run(ctx context.Context, opts Options) error {
 	if opts.QS == "" {
 		opts.QS = "qs"
 	}
+	if opts.Go == "" {
+		opts.Go = "go"
+	}
 	runtime, err := xdg.ForDisplay(opts.Getenv, true)
 	if err != nil {
 		return err
 	}
 	d := &Daemon{opts: opts, runtime: runtime, dirs: xdg.Resolve(opts.Getenv), started: time.Now()}
+	d.isShell = opts.isShell
+	if d.isShell == nil {
+		d.isShell = func(pid int) bool { return pid > 0 && pid == d.shellPID() }
+	}
 	if d.executable, err = os.Executable(); err == nil {
 		d.executable, _ = filepath.EvalSymlinks(d.executable)
 	}
+	d.installed = d.executable
 	h, err := inherited(opts.Getenv)
 	if err != nil {
 		return err
 	}
+	var listener net.Listener
 	if h != nil {
-		if d.listener, err = d.adopt(h); err != nil {
+		if listener, err = d.adopt(h); err != nil {
 			return err
+		}
+		if h.Installed != "" {
+			d.installed = h.Installed
+		}
+		if h.Started > 0 {
+			d.started = time.UnixMilli(h.Started)
 		}
 	} else if d.instance, err = fsx.TryLock(runtime.Lock()); err != nil {
 		if axerr.KindOf(err) == axerr.Running {
@@ -113,6 +151,14 @@ func Run(ctx context.Context, opts Options) error {
 		return err
 	}
 	defer d.instance.Release()
+
+	// Dev mode: as the image before a re-exec had it, else --dev, else
+	// the saved choice
+	devOn := opts.Dev || loadDevChoice(d.dirs)
+	if h != nil {
+		devOn = h.Dev
+	}
+	d.dev = newDevMode(d, devOn)
 
 	// An install from before the XDG folders: its config and state out of
 	// the repo first, so the store finds them
@@ -147,13 +193,17 @@ func Run(ctx context.Context, opts Options) error {
 		return err
 	}
 
-	if d.listener == nil {
-		if d.listener, err = rpc.Listen(runtime.Socket()); err != nil {
+	if listener == nil {
+		if listener, err = rpc.Listen(runtime.Socket()); err != nil {
 			return err
 		}
 	}
+	d.listener = listener
 	ctx, d.stop = context.WithCancel(ctx)
 	defer d.stop()
+	d.tasks = &tasks{ctx: ctx}
+	defer d.tasks.Wait()
+
 	d.router = ipcroute.New(ipcroute.Options{QS: opts.QS, ShellPID: d.shellPID})
 	d.locker = lock.New(lock.Options{
 		AskShell: func(ctx context.Context) error {
@@ -164,6 +214,7 @@ func Run(ctx context.Context, opts Options) error {
 		Mode:        func() string { return d.lockSetting("mode") },
 		Command:     func() string { return d.lockSetting("lockCommand") },
 		Log:         opts.Log.With("part", "lock"),
+		Go:          d.tasks.Go,
 	})
 	d.saved = saved.New(saved.Options{
 		Dir:      d.dirs.Config,
@@ -174,30 +225,45 @@ func Run(ctx context.Context, opts Options) error {
 		Pipeline: d.store.Pipeline,
 		Log:      opts.Log.With("part", "saved"),
 		OnState: func(st saved.State) {
+			// Also called while it opens, before there is a server
 			if d.server != nil {
-				d.server.Broadcast("saved.state", st, subscribed)
+				d.server.Broadcast("saved.state", st, subscribedTo(topicSaved))
 			}
 		},
 	})
+	// Whether the config still is its saved snapshot: off the store's
+	// delivery, since an apply may hold the service meanwhile
+	d.savedKick = newKicker(func(context.Context) { d.saved.Changed() })
+
+	parts := []part{d.corePart(), d.configPart(), d.ipcPart(), d.sharingPart(), d.dev.part()}
+	reg := d.registry(parts)
 	d.server = &rpc.Server{
-		Registry: d.registry(),
+		Registry: reg,
 		Log:      opts.Log.With("part", "rpc"),
 		OnClose:  d.router.Forget,
 	}
-	d.store.Subscribe(d.onConfigEvent)
+	d.store.Subscribe(func(ev store.Event) {
+		for _, p := range parts {
+			if p.onConfig != nil {
+				p.onConfig(ev)
+			}
+		}
+	})
 
-	var wg sync.WaitGroup
 	serve := func(name string, fn func(context.Context) error) {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		d.tasks.Go(func(ctx context.Context) {
 			if err := fn(ctx); err != nil {
 				opts.Log.Error(name+" stopped", "err", err)
 				d.stop()
 			}
-		}()
+		})
 	}
-	serve("the socket", func(ctx context.Context) error { return d.server.Serve(ctx, d.listener) })
+	serve("the socket", func(ctx context.Context) error { return d.server.Serve(ctx, listener) })
+	for _, p := range parts {
+		if p.run != nil {
+			serve(p.name, p.run)
+		}
+	}
 	// Stop with the compositor: a daemon left over from a session that
 	// ended would hold the display's lock, and the next session's
 	// `axiom run` would find it taken
@@ -217,13 +283,6 @@ func Run(ctx context.Context, opts Options) error {
 			return nil
 		})
 	}
-	serve("the config watch", d.store.Watch)
-	if opts.Dev {
-		serve("the schema watch", d.watchSchema)
-		if d.executable != "" {
-			serve("the binary watch", d.watchBinary)
-		}
-	}
 	if !opts.NoShell {
 		adopt := 0
 		if h != nil {
@@ -232,6 +291,7 @@ func Run(ctx context.Context, opts Options) error {
 		d.shell = supervise.New(supervise.Options{
 			Command:  []string{opts.QS, "-p", opts.Tree},
 			Env:      d.shellEnv(),
+			EnvFunc:  d.shellEnvNow,
 			PIDFile:  runtime.File(ShellPIDFile),
 			Output:   opts.ShellOutput,
 			Log:      opts.Log.With("part", "shell"),
@@ -243,9 +303,7 @@ func Run(ctx context.Context, opts Options) error {
 		if _, hash := d.currentSchema(); h != nil && h.Schema != "" && h.Schema != hash {
 			// The shell read the schema of before (an update re-exec'd
 			// into the new binary): its hello would be refused
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+			d.tasks.Go(func(ctx context.Context) {
 				opts.Log.Info("the schema changed across the re-exec: restarting the shell")
 				restart := d.restartShell
 				if h.Locked {
@@ -254,37 +312,65 @@ func Run(ctx context.Context, opts Options) error {
 				if err := restart(ctx); err != nil && ctx.Err() == nil {
 					opts.Log.Error("restarting the shell for the new schema", "err", err)
 				}
-			}()
+			})
 		}
 	}
-	opts.Log.Info("axiom is running", "display", runtime.Display, "tree", opts.Tree, "socket", runtime.Socket(), "version", buildinfo.Get().Version, "reexec", h != nil)
+	opts.Log.Info("axiom is running", "display", runtime.Display, "tree", opts.Tree, "socket", runtime.Socket(), "version", buildinfo.Get().Version, "reexec", h != nil, "dev", d.dev.Enabled())
 	<-ctx.Done()
-	wg.Wait()
+	d.tasks.Wait()
 	opts.Log.Info("axiom stopped")
 	return nil
 }
 
+// registry is every part's methods, behind the hello.
+func (d *Daemon) registry(parts []part) *rpc.Registry {
+	reg := rpc.NewRegistry()
+	reg.Before = func(c *rpc.Conn, method string) error {
+		if method != "daemon.hello" && sessionOf(c) == nil {
+			return axerr.New(axerr.BadRequest, "say daemon.hello first")
+		}
+		return nil
+	}
+	for _, p := range parts {
+		if p.methods != nil {
+			p.methods(reg)
+		}
+	}
+	return reg
+}
+
 // loadSchema builds the tree's schema and writes it for the shell. A tree
 // whose schema isn't the one this binary was built with is a different
-// axiom: allowed with --dev, otherwise the shell is told why it can't save.
+// axiom: allowed in dev mode, otherwise the shell is told why it can't
+// save (compatible).
 func (d *Daemon) loadSchema() error {
 	data, err := tree.BuildSchema(d.opts.Tree)
 	if err != nil {
 		return err
 	}
-	hash := buildinfo.SchemaHash(data)
-	d.setSchema(data, hash)
-	d.compatible = true
-	if embedded, err := assets.Read("config/json/config.schema.json"); err == nil && buildinfo.SchemaHash(embedded) != hash {
-		if d.opts.Dev {
-			d.opts.Log.Warn("the tree's schema isn't the one this binary was built with (fine with --dev)")
-		} else {
-			d.compatible = false
-			d.reason = "this axiom binary was built for another version of the shell's files: update the binary"
-			d.opts.Log.Error(d.reason, "tree", d.opts.Tree)
-		}
+	d.setSchema(data, buildinfo.SchemaHash(data))
+	if ok, reason := d.compatible(); !ok {
+		d.opts.Log.Error(reason, "tree", d.opts.Tree)
+	} else if !d.matches() {
+		d.opts.Log.Warn("the tree's schema isn't the one this binary was built with (fine in dev mode)")
 	}
 	return fsx.WriteFile(d.runtime.File(SchemaFile), data, 0o600)
+}
+
+// compatible: the config may be written. Outside dev mode only when the
+// tree's schema is the one this binary was built with: otherwise the
+// shell's edits would be validated against the wrong shape.
+func (d *Daemon) compatible() (bool, string) {
+	if d.matches() || d.dev.Enabled() {
+		return true, ""
+	}
+	return false, incompatibleReason
+}
+
+func (d *Daemon) matches() bool {
+	d.schemaMu.Lock()
+	defer d.schemaMu.Unlock()
+	return d.treeMatches
 }
 
 func (d *Daemon) shellPID() int {
@@ -326,35 +412,28 @@ func (d *Daemon) writeSnapshot() error {
 	return fsx.WriteFile(d.runtime.File(SnapshotFile), jsonx.Marshal(cfg), 0o600)
 }
 
+// shellEnv is what the shell is started with every time.
 func (d *Daemon) shellEnv() map[string]string {
-	env := map[string]string{
+	return map[string]string{
 		"AXIOM_SOCKET":     d.runtime.Socket(),
 		"AXIOM_SCHEMA":     d.runtime.File(SchemaFile),
 		"AXIOM_CONFIG":     d.runtime.File(SnapshotFile),
 		"AXIOM_DAEMON_PID": itoa(os.Getpid()),
 		"AXIOM_TREE":       d.opts.Tree,
-		// What binds and generated compositor configs call
-		"AXIOM_BIN": d.executable,
+		// What binds and generated compositor configs call: the installed
+		// binary, never a dev build that goes when dev mode does
+		"AXIOM_BIN": d.installed,
 	}
-	if !d.compatible {
-		env["AXIOM_INCOMPATIBLE"] = d.reason
-	}
-	return env
 }
 
-// onConfigEvent pushes a config change to the subscribed connections and
-// keeps the snapshot current.
-func (d *Daemon) onConfigEvent(ev store.Event) {
-	if ev.Config != nil {
-		if err := d.writeSnapshot(); err != nil {
-			d.opts.Log.Error("writing the config snapshot", "err", err)
-		}
-		d.server.Broadcast("config.changed", configChanged{Revision: ev.State.Revision, Config: rawJSON(ev.Config)}, subscribed)
+// shellEnvNow is what may change between starts: whether the config is
+// writable (the shell reads the hello's answer too, which follows dev
+// mode at runtime).
+func (d *Daemon) shellEnvNow() map[string]string {
+	if ok, reason := d.compatible(); !ok {
+		return map[string]string{"AXIOM_INCOMPATIBLE": reason}
 	}
-	d.server.Broadcast("config.state", ev.State, subscribed)
-	// Whether the config still is its saved snapshot (an apply may hold
-	// the service right now: not on this goroutine)
-	go d.saved.Changed()
+	return nil
 }
 
 func itoa(n int) string { return strconv.Itoa(n) }
@@ -366,8 +445,13 @@ func (d *Daemon) currentSchema() ([]byte, string) {
 	return d.schemaBytes, d.schemaHash
 }
 
+// setSchema records a built schema, and whether it is this binary's.
 func (d *Daemon) setSchema(data []byte, hash string) {
+	matches := true
+	if embedded, err := assets.Read("config/json/config.schema.json"); err == nil {
+		matches = buildinfo.SchemaHash(embedded) == hash
+	}
 	d.schemaMu.Lock()
-	d.schemaBytes, d.schemaHash = data, hash
+	d.schemaBytes, d.schemaHash, d.treeMatches = data, hash, matches
 	d.schemaMu.Unlock()
 }

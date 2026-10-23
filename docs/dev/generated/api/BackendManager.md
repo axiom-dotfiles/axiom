@@ -11,7 +11,9 @@ The shell's connection to the axiom binary, its parent (`axiom run`, docs/dev/ba
 - `active` (readonly bool)
 - `ready` (readonly bool): Connected and greeted: calls go out at once
 - `hello` (readonly var): The binary's daemon.hello answer ({ protocol, version, schemaHash, state, dirs, compatible, reason, … }), null until it came
-- `incompatible` (readonly string): Set by the binary when it was built for other shell files: config stays read-only and a notice says why
+- `incompatible` (readonly string): Set by the binary when it was built for other shell files: config stays read-only and a notice says why (shell.qml).
+- `compatible` (readonly bool): Whether axiom takes config writes now (it follows dev mode)
+- `dev` (readonly var): Dev mode as axiom has it ({ enabled, available, unavailable, building, lastBuild: { ok, at, output }, binary, installed }): DevManager switches it
 
 ### Signals
 

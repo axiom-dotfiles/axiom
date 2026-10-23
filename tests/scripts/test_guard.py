@@ -141,12 +141,13 @@ class Axiom(unittest.TestCase):
 
     def test_live_shell_lifecycle_refused(self):
         for cmd in ("axiom run", "axiom run --dev --tree .", "axiom quit", "axiom restart", "./axiom daemon reexec",
-                    "/usr/bin/axiom --json quit"):
+                    "/usr/bin/axiom --json quit", "axiom dev on", "axiom dev off", "axiom --json dev rebuild"):
             self.assertTrue(self.denied(cmd), cmd)
 
     def test_scratch_instances_pass(self):
         for cmd in ("XDG_RUNTIME_DIR=$R axiom run --no-shell --tree .", "XDG_RUNTIME_DIR=/tmp/x axiom quit",
-                    "axiom --socket /tmp/x/axiom.sock restart", "XDG_RUNTIME_DIR=/tmp/x axiom lock"):
+                    "axiom --socket /tmp/x/axiom.sock restart", "XDG_RUNTIME_DIR=/tmp/x axiom lock",
+                    "XDG_RUNTIME_DIR=/tmp/x axiom dev on"):
             self.assertFalse(self.denied(cmd), cmd)
 
     def test_live_lock_refused(self):
@@ -170,7 +171,8 @@ class Axiom(unittest.TestCase):
 
     def test_reads_pass(self):
         for cmd in ("axiom ping", "axiom config get Bars", "axiom ipc list", "axiom launcher toggle",
-                    "axiom config set Battery.notify off", "axiom debug wayland-globals", "axiom schema build"):
+                    "axiom config set Battery.notify off", "axiom debug wayland-globals", "axiom schema build",
+                    "axiom dev status", "axiom dev"):
             self.assertFalse(self.denied(cmd), cmd)
 
 

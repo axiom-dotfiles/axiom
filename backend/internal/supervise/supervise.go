@@ -32,9 +32,12 @@ import (
 type Options struct {
 	Command []string          // argv: qs -p <tree>
 	Env     map[string]string // AXIOM_* (and any other) values set over the inherited environment
-	Environ []string          // the environment to start from (default os.Environ())
-	PIDFile string            // where the child's pid is kept
-	Output  io.Writer         // the child's stdout and stderr (nil: discarded)
+	// EnvFunc, when set, is read at each start for values set over Env:
+	// what may change while the daemon runs (whether its config is writable)
+	EnvFunc func() map[string]string
+	Environ []string  // the environment to start from (default os.Environ())
+	PIDFile string    // where the child's pid is kept
+	Output  io.Writer // the child's stdout and stderr (nil: discarded)
 	Log     *slog.Logger
 
 	// Restart delays: Backoff doubles from the first up to the last; a
@@ -305,6 +308,11 @@ func (s *Supervisor) environ(extra map[string]string) []string {
 	set := map[string]string{}
 	for k, v := range s.opts.Env {
 		set[k] = v
+	}
+	if s.opts.EnvFunc != nil {
+		for k, v := range s.opts.EnvFunc() {
+			set[k] = v
+		}
 	}
 	for k, v := range extra {
 		set[k] = v

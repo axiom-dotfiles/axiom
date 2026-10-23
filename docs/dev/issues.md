@@ -18,21 +18,15 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
-### The daemon package and several security checks have no tests
-- **Where:** `backend/internal/daemon/` (`inherited`, `fromShell`, the `lockscreen` refusal in `methods.go`, `writable`), `backend/internal/fsx/` (`Adopt`), `backend/internal/rpc/server.go` (`Listen`), `backend/internal/cli/greeter.go` (`greeterEnv`)
-- **What:** `backend/AGENTS.md` asks that every security check has a test. Untested: the handoff's trust check, the refusal of every lockscreen call but `lock`, the `fromShell` gating, the stale socket removed only under the instance lock, `fsx.Adopt` refusing a wrong inode or an unheld lock (only its close-on-exec part is tested), the socket's 0600, and the greeter's environment. `go test ./internal/daemon` reports `[no test files]`. A daemon test needs an Options-built daemon on a scratch runtime dir with a fake `qs`.
-- **Size:** needs a plan
-- **Found:** 2026-10-24, while reviewing the Go backend
-
-### Any same-user client can say it is the shell
-- **Where:** `backend/internal/daemon/methods.go` (`fromShell`)
-- **What:** `fromShell` trusts the hello's `"client": "shell"`, though its comment says the shell runs as the daemon's child. Any process of the user can report `lock.state` as locked (so `axiom lock` returns 0 with no lock up) or register IPC targets. Same user only, but the lock's confirmation is the product's promise. Recording the peer's pid (`SO_PEERCRED`) at accept and requiring it to be `shellPID()` closes it.
+### backend.json points at a protocol doc that doesn't exist
+- **Where:** `config/json/backend.json` (`_comment`)
+- **What:** The comment says "see docs/dev/backend/protocol.md", which was never written: what counts as a protocol change (and that push topics and new methods don't need one) is only in `docs/dev/backend/README.md`. Writing the page, or pointing the comment at the README, fixes it.
 - **Size:** small
-- **Found:** 2026-10-24, while reviewing the Go backend
+- **Found:** 2026-10-24, while auditing the Go backend
 
-### ipc.register can keep a closed or older connection
-- **Where:** `backend/internal/daemon/methods.go` (`ipc.register`), `backend/internal/ipcroute/ipcroute.go` (`RegisterNames`, `Register`)
-- **What:** The signatures (`qs ipc show`) are read in a goroutine on `context.Background()`; if the shell's connection closes, or a QML reload registers again, before it returns, `RegisterNames` installs the dead or older connection, and calls fail with "connection closed" instead of falling back to `qs ipc`. Checking `conn.Done()` and a registration generation before storing fixes it. `Register` duplicates `RegisterNames` (its same-connection branch never runs from the daemon).
+### Some backend security checks have no tests
+- **Where:** `backend/internal/fsx/` (`Adopt`), `backend/internal/rpc/server.go` (`Listen`), `backend/internal/cli/greeter.go` (`greeterEnv`), `backend/internal/daemon/reexec.go` (`adopt`)
+- **What:** `backend/AGENTS.md` asks that every security check has a test. The daemon's (`daemon_test.go`: the handoff's parsing, the lockscreen refusal, the shell-peer check, `writable`) are covered; still untested: the stale socket removed only under the instance lock, `fsx.Adopt` refusing a wrong inode or an unheld lock (only its close-on-exec part is tested), the socket's 0600, an adopted handoff end to end, and the greeter's environment.
 - **Size:** small
 - **Found:** 2026-10-24, while reviewing the Go backend
 
@@ -42,12 +36,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** trivial
 - **Found:** 2026-10-24, while reviewing the Go backend
 
-### Backend goroutines without an owner
-- **Where:** `backend/internal/daemon/daemon.go` (`go d.saved.Changed()`), `backend/internal/lock/lock.go` (`ownLocker`, `ShellExited`), `backend/internal/daemon/methods.go` (`ipc.register`, `daemon.reexec`)
-- **What:** `backend/AGENTS.md` says every goroutine has an owner that stops it. These run detached: two `saved.Changed` calls can overlap (one coalescing worker would do), the locked relaunch waits up to 10 s past shutdown, and `ownLocker`'s `cmd.Wait`, the register and the delayed re-exec are unowned.
-- **Size:** small
-- **Found:** 2026-10-24, while reviewing the Go backend
-
 ### The greeter's environment is a denylist
 - **Where:** `backend/internal/cli/greeter.go` (`greeterDropped`, `greeterEnv`)
 - **What:** The greeter drops four named `AXIOM_*` variables, so others (`AXIOM_BIN`, `AXIOM_REEXEC`, `AXIOM_TREE`) inherited by `axiom greeter` reach it. `supervise` strips every inherited `AXIOM_*` and sets its own: the greeter should do the same.
@@ -55,8 +43,8 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-24, while reviewing the Go backend
 
 ### Small backend error and robustness gaps
-- **Where:** `backend/internal/fsx/fsx.go` (`WriteFile`), `backend/internal/logfile/`, `backend/internal/ipcroute/ipcroute.go` (`exec`), `backend/internal/wayland/wire/wire.go` (`Globals`), `backend/internal/cli/cli.go` (`Main`), `backend/internal/config/format.go`, `backend/internal/saved/saved.go` (`Import`), `backend/internal/daemon/reexec.go` (`watchSchema`, `watchBinary`)
-- **What:** Raw errors reach the CLI as `Internal`: `fsx.WriteFile` (`fmt.Errorf`), `logfile.Open`, `daemon logs`' `ReadFile`. `ipcroute`'s exec path labels a timeout `NotFound` (should be `Unavailable`). `wire.Globals` slices `body[4:]`/`body[8:]` without checking a short message's length. `cli.Main` doesn't catch SIGHUP: closing the terminal kills a `--dev` daemon outright, leaving its shell for the next start to stop. `format: 1` is refused with "it reads 1 and 2", and `format: null` prints `<nil>`. The keys a format-1 load drops (`Removed`) are never logged. `saved.Import` reads the file twice, so the preview and what's applied can differ. The two watchers repeat one debounce loop.
+- **Where:** `backend/internal/fsx/fsx.go` (`WriteFile`), `backend/internal/logfile/`, `backend/internal/ipcroute/ipcroute.go` (`exec`), `backend/internal/wayland/wire/wire.go` (`Globals`), `backend/internal/cli/cli.go` (`Main`), `backend/internal/config/format.go`, `backend/internal/saved/saved.go` (`Import`)
+- **What:** Raw errors reach the CLI as `Internal`: `fsx.WriteFile` (`fmt.Errorf`), `logfile.Open`, `daemon logs`' `ReadFile`. `ipcroute`'s exec path labels a timeout `NotFound` (should be `Unavailable`). `wire.Globals` slices `body[4:]`/`body[8:]` without checking a short message's length. `cli.Main` doesn't catch SIGHUP: closing the terminal kills a `--dev` daemon outright, leaving its shell for the next start to stop. `format: 1` is refused with "it reads 1 and 2", and `format: null` prints `<nil>`. The keys a format-1 load drops (`Removed`) are never logged. `saved.Import` reads the file twice, so the preview and what's applied can differ.
 - **Size:** small
 - **Found:** 2026-10-24, while reviewing the Go backend
 

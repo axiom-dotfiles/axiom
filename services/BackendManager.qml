@@ -25,8 +25,16 @@ QtObject {
   // state, dirs, compatible, reason, … }), null until it came
   readonly property var hello: _hello
   // Set by the binary when it was built for other shell files: config
-  // stays read-only and a notice says why
-  readonly property string incompatible: Quickshell.env("AXIOM_INCOMPATIBLE") ?? ""
+  // stays read-only and a notice says why (shell.qml). Cleared once axiom
+  // says the config is writable (dev mode turned on), never set again
+  // while the shell runs: that would take the desktop down
+  readonly property string incompatible: _incompatible
+  // Whether axiom takes config writes now (it follows dev mode)
+  readonly property bool compatible: _compatible
+  // Dev mode as axiom has it ({ enabled, available, unavailable,
+  // building, lastBuild: { ok, at, output }, binary, installed }):
+  // DevManager switches it
+  readonly property var dev: _dev
 
   // A hello was answered (after the first connect and every reconnect)
   signal greeted
@@ -83,6 +91,19 @@ QtObject {
   }
 
   property var _hello: null
+  property string _incompatible: Quickshell.env("AXIOM_INCOMPATIBLE") ?? ""
+  property bool _compatible: _incompatible === ""
+  property var _dev: ({
+      "enabled": false,
+      "available": false
+    })
+
+  // The parts of the hello that change while axiom runs
+  function _applyDaemonState(state) {
+    root._compatible = !!state.compatible;
+    if (state.compatible)
+      root._incompatible = "";
+  }
   // The hello's refusal ({ kind, message }): calls fail at once with it
   // until a later connection is greeted
   property var _refused: null
@@ -165,10 +186,14 @@ QtObject {
     return text ? Qt.md5(text) : "";
   }
 
-  Component.onCompleted: root.listen("schema.changed", params => {
-    if (params.hash)
-      root._schemaHash = params.hash;
-  })
+  Component.onCompleted: {
+    root.listen("schema.changed", params => {
+      if (params.hash)
+        root._schemaHash = params.hash;
+    });
+    root.listen("daemon.state", params => root._applyDaemonState(params));
+    root.listen("dev.state", params => root._dev = params);
+  }
 
   function _send(line) {
     _socket.write(line);
@@ -188,6 +213,9 @@ QtObject {
       root._retry = 0;
       root._refused = null;
       root._hello = result;
+      root._applyDaemonState(result);
+      if (result.dev)
+        root._dev = result.dev;
       const queued = root._queue;
       root._queue = [];
       queued.forEach(entry => root._send(entry.line));

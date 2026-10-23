@@ -57,6 +57,9 @@ type Router struct {
 	mu      sync.Mutex
 	shell   *rpc.Conn
 	targets map[string]Target
+	// The latest registration begun (Begin): an older one finishing late
+	// is dropped
+	generation int
 }
 
 // New returns a router.
@@ -68,20 +71,6 @@ func New(opts Options) *Router {
 		opts.QS = "qs"
 	}
 	return &Router{opts: opts, targets: map[string]Target{}}
-}
-
-// Register records the targets the shell has on conn, replacing what it
-// registered before (a QML reload registers anew).
-func (r *Router) Register(conn *rpc.Conn, targets []Target) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if r.shell != conn {
-		r.shell = conn
-		r.targets = map[string]Target{}
-	}
-	for _, t := range targets {
-		r.targets[t.Name] = t
-	}
 }
 
 // Forget drops a shell connection's targets when it closes.
@@ -285,18 +274,37 @@ func (r *Router) Signatures(ctx context.Context) (map[string][]Function, error) 
 	return ParseShow(string(out)), nil
 }
 
-// RegisterNames records the targets the shell registered by name, with
-// their functions read from `qs ipc show` (sigs).
-func (r *Router) RegisterNames(conn *rpc.Conn, names []string, sigs map[string][]Function) {
-	targets := make([]Target, 0, len(names))
+// Begin starts a registration (its signatures are read meanwhile) and
+// returns its generation, for RegisterNames.
+func (r *Router) Begin() int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.generation++
+	return r.generation
+}
+
+// RegisterNames records the targets the shell registered by name on conn,
+// with their functions read from `qs ipc show` (sigs), replacing what it
+// registered before (a QML reload registers anew). It does nothing, and
+// says so, when a later registration was begun or conn has closed: the
+// shell's calls then keep their route (or fall back to qs ipc).
+func (r *Router) RegisterNames(conn *rpc.Conn, generation int, names []string, sigs map[string][]Function) bool {
+	targets := map[string]Target{}
 	for _, n := range names {
 		if fns, ok := sigs[n]; ok {
-			targets = append(targets, Target{Name: n, Functions: fns, Enabled: true})
+			targets[n] = Target{Name: n, Functions: fns, Enabled: true}
 		}
 	}
 	r.mu.Lock()
-	r.shell = conn
-	r.targets = map[string]Target{}
-	r.mu.Unlock()
-	r.Register(conn, targets)
+	defer r.mu.Unlock()
+	select {
+	case <-conn.Done():
+		return false
+	default:
+	}
+	if generation != r.generation {
+		return false
+	}
+	r.shell, r.targets = conn, targets
+	return true
 }
