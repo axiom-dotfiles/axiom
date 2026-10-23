@@ -98,55 +98,63 @@ Item {
     Repeater {
       model: root.hasBar ? Bar.fieldGroups : []
 
-      delegate: FieldGroup {
-        id: group
+      // Each group streamed in (StreamedLoader) as the page opens
+      delegate: StreamedLoader {
+        id: groupLoader
         required property var modelData
-        title: I18n.tr(group.modelData.title)
+        Layout.fillWidth: true
+        label: `bar field group ${groupLoader.modelData.title}`
 
-        // The Style group carries the bar's look (BarManager.styleKeys:
-        // its Size, Style, Widgets, Accents and Shadow settings) to other bars
-        headerExtras: [
-          SquareIconButton {
-            visible: group.modelData.title === "Style"
-            iconText: "format_paint"
-            iconColor: root.copiedHere ? Theme.background : Theme.foreground
-            backgroundColor: root.copiedHere ? Theme.accent : Theme.backgroundAlt
-            tooltipText: I18n.tr("Copy this bar's size and style")
-            onClicked: BarManager.copyStyle(BarManager.selectedBarIndex)
-          },
-          SquareIconButton {
-            visible: group.modelData.title === "Style" && root.copied && !root.copiedHere
-            iconText: "content_paste"
-            tooltipText: I18n.tr("Paste the size and style of {0}", BarManager.barLabel(BarManager.copiedStyle?.index ?? 0))
-            onClicked: BarManager.pasteStyle(BarManager.selectedBarIndex)
-          },
-          SquareIconButton {
-            visible: group.modelData.title === "Style" && root.copied
-            iconText: "done_all"
-            tooltipText: I18n.tr("Paste the size and style of {0} onto every bar", BarManager.barLabel(BarManager.copiedStyle?.index ?? 0))
-            onClicked: BarManager.pasteStyleToAll()
+        sourceComponent: FieldGroup {
+          id: group
+          readonly property var modelData: groupLoader.modelData
+          title: I18n.tr(group.modelData.title)
+
+          // The Style group carries the bar's look (BarManager.styleKeys:
+          // its Size, Style, Widgets, Accents and Shadow settings) to other bars
+          headerExtras: [
+            SquareIconButton {
+              visible: group.modelData.title === "Style"
+              iconText: "format_paint"
+              iconColor: root.copiedHere ? Theme.background : Theme.foreground
+              backgroundColor: root.copiedHere ? Theme.accent : Theme.backgroundAlt
+              tooltipText: I18n.tr("Copy this bar's size and style")
+              onClicked: BarManager.copyStyle(BarManager.selectedBarIndex)
+            },
+            SquareIconButton {
+              visible: group.modelData.title === "Style" && root.copied && !root.copiedHere
+              iconText: "content_paste"
+              tooltipText: I18n.tr("Paste the size and style of {0}", BarManager.barLabel(BarManager.copiedStyle?.index ?? 0))
+              onClicked: BarManager.pasteStyle(BarManager.selectedBarIndex)
+            },
+            SquareIconButton {
+              visible: group.modelData.title === "Style" && root.copied
+              iconText: "done_all"
+              tooltipText: I18n.tr("Paste the size and style of {0} onto every bar", BarManager.barLabel(BarManager.copiedStyle?.index ?? 0))
+              onClicked: BarManager.pasteStyleToAll()
+            }
+          ]
+
+          SchemaPropertiesForm {
+            Layout.fillWidth: true
+            propertiesSchema: group.modelData.schema
+            order: group.modelData.keys
+            numberMode: "stepper"
+            // The whole bar, so x-showIf sees keys from other groups, with
+            // the look it takes from BarStyle where it doesn't override it
+            values: Bar.lookOf(root.bar ?? ({}))
+            onEdited: (path, value) => BarManager.updateBarField(path[0], value)
           }
-        ]
 
-        SchemaPropertiesForm {
-          Layout.fillWidth: true
-          propertiesSchema: group.modelData.schema
-          order: group.modelData.keys
-          numberMode: "stepper"
-          // The whole bar, so x-showIf sees keys from other groups, with
-          // the look it takes from BarStyle where it doesn't override it
-          values: Bar.lookOf(root.bar ?? ({}))
-          onEdited: (path, value) => BarManager.updateBarField(path[0], value)
-        }
-
-        // The thickness the size settings add up to
-        StyledText {
-          visible: "widgetSize" in group.modelData.schema
-          text: I18n.tr("Bar thickness: {0} px", Math.round(Bar.enrichBarConfig(root.bar ?? ({}), CompositorManager.gapsOut).extent))
-          textColor: Theme.foreground
-          opacity: 0.7
-          wrapMode: Text.WordWrap
-          Layout.fillWidth: true
+          // The thickness the size settings add up to
+          StyledText {
+            visible: "widgetSize" in group.modelData.schema
+            text: I18n.tr("Bar thickness: {0} px", Math.round(Bar.enrichBarConfig(root.bar ?? ({}), CompositorManager.gapsOut).extent))
+            textColor: Theme.foreground
+            opacity: 0.7
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
+          }
         }
       }
     }

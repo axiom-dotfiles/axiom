@@ -83,13 +83,19 @@ Panel {
     }
   }
 
-  KeyboardReference {
+  // Built only while shown
+  StreamedLoader {
     visible: root.keyboard
+    wanted: root.keyboard
     Layout.fillWidth: true
-    sections: root.sections
-    mods: root.properties.mods
-    showMods: false
-    onEditRequested: bindIndex => root.edit(bindIndex)
+    label: "keyboard reference"
+
+    sourceComponent: KeyboardReference {
+      sections: root.sections
+      mods: root.properties.mods
+      showMods: false
+      onEditRequested: bindIndex => root.edit(bindIndex)
+    }
   }
 
   // Nothing (that matches)
@@ -135,12 +141,21 @@ Panel {
           spacing: Widget.spacing * 2
 
           Repeater {
-            model: root.columns[column.index]
+            // By count: a model of the sections themselves is copied for
+            // every delegate
+            model: root.columns[column.index]?.length ?? 0
 
-            delegate: KeybindSection {
-              required property var modelData
-              section: modelData
-              onEditRequested: bindIndex => root.edit(bindIndex)
+            delegate: StreamedLoader {
+              id: sectionLoader
+              required property int index
+              readonly property var modelData: root.columns[column.index]?.[sectionLoader.index] ?? null
+              Layout.fillWidth: true
+              label: "keybind section"
+
+              sourceComponent: KeybindSection {
+                section: sectionLoader.modelData
+                onEditRequested: bindIndex => root.edit(bindIndex)
+              }
             }
           }
         }

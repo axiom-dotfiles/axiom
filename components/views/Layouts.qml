@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.services
+import qs.components.reusable
 import qs.components.views.layouts
 
 // The layouts editor: always the last page (pinned by OverlayPages; not
@@ -96,13 +97,18 @@ BaseView {
       GreeterManager.editor.resetChanges();
     }
 
-    LayoutsPanel {
-      view: OverlayManager.editTarget === "page" ? pageTarget.view : null
-      menu: OverlayManager.editTarget === "menu" ? menuTarget.menu : null
-      screenTarget: OverlayManager.editTarget === "desktop" ? desktopTarget : OverlayManager.editTarget === "lockscreen" ? lockscreenTarget : OverlayManager.editTarget === "greeter" ? greeterTarget : null
+    // Streamed in a moment after the page (StreamedLoader), at its size
+    StreamedLoader {
       width: layout.sideWidth
       height: layout.pageHeight
-      dragLayer: layout
+      label: "layouts panel"
+
+      sourceComponent: LayoutsPanel {
+        view: OverlayManager.editTarget === "page" ? pageTarget.view : null
+        menu: OverlayManager.editTarget === "menu" ? menuTarget.menu : null
+        screenTarget: OverlayManager.editTarget === "desktop" ? desktopTarget : OverlayManager.editTarget === "lockscreen" ? lockscreenTarget : OverlayManager.editTarget === "greeter" ? greeterTarget : null
+        dragLayer: layout
+      }
     }
   }
 }

@@ -370,6 +370,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SegmentRow.qml`: A single choice as one control: SegmentButtons on a shared track, with the chosen one's accent sliding from button to button.
 - `SquareIconButton.qml`: A StyledRectButton that fills with the accent on hover and dims when disabled
 - `StatusChip.qml`: A small filled pill with a bold word: a status (On, Running, Not installed) in its colour, on the settings page's status cards
+- `StreamedLoader.qml`: A Loader built a moment after it's created, from BuildQueueManager's queue, then faded in: a tool page's sections, cards and long lists, so the page shows at once and fills in over the next frames instead of building ev…
 - `StyledComboEntry.qml`: A choice from a list that drops down under the field, optionally typed (`editable`): typing filters the list and Enter takes what was typed, or the highlighted match.
 - `StyledContainer.qml`: A themed box: background through the surface opacity (or solid), optional border and radius.
 - `StyledIcon.qml`: A Material Symbols icon: `text` is its name ("wifi"), or several names separated by spaces or newlines.
@@ -519,7 +520,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `Layouts.qml`: The layouts editor: always the last page (pinned by OverlayPages; not part of config).
 - `Monitors.qml`: The monitors page: layout profiles (one per set of monitors, picked by what's connected), each a layout to drag monitors around in and the selected monitor's settings.
 - `Settings.qml`: The settings page, generated from the config schema: categories (in `x-categories` order) and search on the left, the selected category's groups in two columns on the right.
-- `Themes.qml`: The Themes page, in the editors' shape: the wallpapers on the left, the theme list beside them, then the current palette and a few look settings.
+- `Themes.qml`: The Themes page, in the editors' shape (each piece streamed in as the page opens, StreamedLoader): the wallpapers on the left, the theme list beside them, then the current palette and a few look settings.
 
 ## components/views/barEditor/
 
@@ -635,6 +636,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BluetoothManager.qml`: Bluetooth state and actions over the default adapter (BlueZ via Quickshell.Bluetooth).
 - `BlurManager.qml`: The blur behind the shell's chrome: the border's frame, bars and their popouts, edge popouts, integrated edge menus and docks.
 - `BrightnessManager.qml`: Screen brightness per monitor: a laptop panel through its sysfs backlight (written with brightnessctl, which goes through logind), an external monitor over DDC/CI (ddcutil, VCP 0x10).
+- `BuildQueueManager.qml`: Spreads building UI over frames: a page's modules (ModuleGrid.stream) and tool pages' sections (StreamedLoader) queue a job each, and the jobs run a few per 16 ms step, within a 6 ms budget (at least one a step, however…
 - `CalculatorManager.qml`: Math, units and currencies through qalc (libqalculate, which fetches and caches its own exchange rates), for the launcher's calculator rows and the Calculator module.
 - `CalendarManager.qml`: Calendars (the Calendar section): CalDAV accounts and .ics subscriptions, through scripts/calendar_sync.py (run with the system python3; passwords from SecretsManager on its stdin).
 - `ChatManager.qml`: The chat: conversations, sending and streaming replies (ChatRequest, ChatProtocol), attachments, and their history on disk.

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
+import qs.components.reusable
 
 // A form for one flat object, generated from its `properties` schema: one
 // SchemaField per key (keys marked `x-settings: false` skipped), valued
@@ -90,10 +91,12 @@ ColumnLayout {
 
         // Loaded by URL: SchemaField (through SchemaObjectArray and
         // SchemaArrayItem) instantiates this type, so naming it here would
-        // make the types depend on each other
-        Loader {
+        // make the types depend on each other. Streamed: a page's forms
+        // fill in over the frames after it opens
+        StreamedLoader {
           id: field
           Layout.fillWidth: true
+          label: "form field"
           Component.onCompleted: setSource(Qt.resolvedUrl("SchemaField.qml"), {
             "row": cell.modelData,
             "form": root

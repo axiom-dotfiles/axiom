@@ -2,7 +2,7 @@
 
 > **Use when:** adding a page type to the overlay. A *tool page* (`x-tool: true`: Settings, BarEditor, Themes, Keybinds, Monitors, CalendarPage) is a hand-built page that is always in config.
 > **Copy from:** `components/views/Settings.qml` (a small `BaseView` page), `components/views/Themes.qml`; schema `definitions.CalendarOverlayView`; migration `ConfigMigration._v45ToV46` with test `test_v46_adds_the_calendar_page_once` in `tests/tst_Config.qml`.
-> **Docs:** [overlay/pages-and-grid](../dev/overlay/pages-and-grid.md), [core/editors-pattern](../dev/core/editors-pattern.md) (for an editor page), rules in `components/views/AGENTS.md`; generated: [config/OverlayViews](../dev/config/OverlayViews.md).
+> **Docs:** [overlay/pages-and-grid](../dev/overlay/pages-and-grid.md), [core/streamed-building](../dev/core/streamed-building.md), [core/editors-pattern](../dev/core/editors-pattern.md) (for an editor page), rules in `components/views/AGENTS.md`; generated: [config/OverlayViews](../dev/config/OverlayViews.md).
 
 ## Files to touch
 1. `components/views/<Type>.qml`: the page; its pieces in `components/views/<type>/` (lower-case folder).
@@ -28,17 +28,23 @@ BaseView {
 
   Component.onCompleted: FooManager.ensureLoaded()
 
-  FooSidebar {
-    implicitWidth: root.sideWidth
-    implicitHeight: root.pageHeight
+  // Each panel streamed in as the page opens, at its size from the start
+  StreamedLoader {
+    Layout.preferredWidth: root.sideWidth
+    Layout.preferredHeight: root.pageHeight
+    label: "foo sidebar"
+    sourceComponent: FooSidebar {}
   }
 
-  FooEditor {
-    implicitWidth: root.editorWidth
-    implicitHeight: root.pageHeight
+  StreamedLoader {
+    Layout.preferredWidth: root.editorWidth
+    Layout.preferredHeight: root.pageHeight
+    label: "foo editor"
+    sourceComponent: FooEditor {}
   }
 }
 ```
+(`import QtQuick.Layouts` and `qs.components.reusable` too.) The page shows at once and its panels fill in over the next frames: wrap long or repeated parts inside them the same way, build nothing hidden, and check it with `scripts/dev/bench_overlay.sh FooPage` (no `Built … in` line over a frame or two). See [streamed-building](../dev/core/streamed-building.md).
 Schema:
 ```json
 "FooOverlayView": {

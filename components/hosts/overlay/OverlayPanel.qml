@@ -212,15 +212,24 @@ ReservedAreaWindow {
       width: parent.width
       height: parent.height - OverlayConfig.navigatorRoom
 
+      // The window has no size while it's unmapped (closed, and before
+      // it's first mapped): keep the last mapped size, so a page built as
+      // it opens is built to fit, not built once more at the real size;
+      // until the first map, estimate from the screen less its margins
+      property real roomWidth: root.screen.width - root.margins.left - root.margins.right
+      property real roomHeight: root.screen.height - root.margins.top - root.margins.bottom - OverlayConfig.navigatorRoom
+      onWidthChanged: if (pageArea.width > 0)
+        pageArea.roomWidth = pageArea.width
+      onHeightChanged: if (pageArea.height > 0)
+        pageArea.roomHeight = pageArea.height
+
       OverlayPages {
         id: overlayPages
         anchors.centerIn: parent
         open: root.visible
         grid: grid
-        // The window has no size until it's first mapped: until then,
-        // estimate from the screen so the first page is built to fit
-        maxWidth: (pageArea.width > 0 ? pageArea.width : root.screen.width) - OverlayConfig.cardSpacing * 2
-        maxHeight: (pageArea.height > 0 ? pageArea.height : root.screen.height - OverlayConfig.navigatorRoom) - OverlayConfig.cardSpacing * 2
+        maxWidth: pageArea.roomWidth - OverlayConfig.cardSpacing * 2
+        maxHeight: pageArea.roomHeight - OverlayConfig.cardSpacing * 2
       }
     }
 

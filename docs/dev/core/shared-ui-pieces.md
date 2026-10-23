@@ -45,6 +45,7 @@ Bars size their own widgets (`Bar.enrichBarConfig`) and never use these: a share
   - The label and heading come from the caller's `labelOf` / `headingOf` hooks (the editors translate the schema's).
   - The caller keeps `grouped`.
 - `KeyedLoader`: rebuilds a form when `key` changes, so rows never write old values onto a new selection.
+- `StreamedLoader`: a Loader built a moment later from `BuildQueueManager`'s queue, then faded in: a page's panels, cards, sections and long lists, so a page shows at once. `wanted` gates it like `active`; `always` streams after the page's first build too. See [streamed-building](streamed-building.md).
 
 ### Controls (`reusable/`)
 - `StyledTextButton`, `StyledIconButton`, `SquareIconButton`, `FlatIconButton`, `StyledRectButton` (icon, hover and press colors, optional `CountBadge`).

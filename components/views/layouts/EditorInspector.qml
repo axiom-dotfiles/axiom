@@ -140,10 +140,15 @@ Item {
             sourceComponent: options
           }
 
-          ModuleLibrary {
+          // Streamed in after the page (StreamedLoader); kept once built
+          StreamedLoader {
             anchors.fill: parent
             visible: root.selectionKey === "" && root.editable && root.groupCount === 0
-            dragLayer: root.dragLayer
+            label: "module library"
+
+            sourceComponent: ModuleLibrary {
+              dragLayer: root.dragLayer
+            }
           }
         }
 

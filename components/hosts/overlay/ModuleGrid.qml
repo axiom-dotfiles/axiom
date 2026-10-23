@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
+import qs.services
 import qs.components.methods
 import qs.components.reusable
 
@@ -89,6 +90,38 @@ Item {
   // Slots glide to new places once first laid out
   property bool _settled: false
 
+  // Streaming: the modules are built over the frames after the grid is,
+  // a job each in BuildQueueManager's queue, top left to bottom right
+  // (GridPlacement.revealOrder), each fading in, so showing a page doesn't
+  // wait on all of its modules. Without it (the lock screen, the greeter,
+  // the desktop, a screen layout) all are built with the grid
+  property bool stream: false
+  readonly property var _order: GridPlacement.revealOrder(root.modules)
+  // How many modules (in reveal order) are built, and queued
+  property int revealed: 0
+  property int _queued: 0
+  // All of them streamed in once: modules added later build at once (a
+  // later one ranked earlier would otherwise unload the last one)
+  property bool _streamed: false
+  readonly property int _count: root.modules?.length ?? 0
+  property real _streamStart: Date.now()
+  on_CountChanged: root._queueModules()
+  function _queueModules() {
+    if (!root.stream || root._streamed)
+      return;
+    for (; root._queued < root._count; root._queued++) {
+      const type = root.modules[root._order.indexOf(root._queued)]?.type ?? "";
+      BuildQueueManager.request(root, () => {
+        root.revealed++;
+        if (root._streamed || root.revealed < root._count)
+          return;
+        root._streamed = true;
+        console.log(`Overlay modules streamed in ${Date.now() - root._streamStart} ms (${root._count} modules)`);
+      }, `overlay module ${type}`);
+    }
+  }
+  Component.onDestruction: BuildQueueManager.cancel(root)
+
   // A module's detail grown over the others (ExpandedModule): { type,
   // properties, from: [x, y, w, h] px in the grid }, null for none. Only on
   // overlay pages and edge menus, and only types allowed on the host
@@ -120,6 +153,7 @@ Item {
   readonly property string _checkKey: JSON.stringify((root.modules ?? []).map(module => [module?.type, module?.place]))
   on_CheckKeyChanged: root._check()
   Component.onCompleted: {
+    root._queueModules();
     root._check();
     Qt.callLater(() => root._settled = true);
   }
@@ -177,6 +211,12 @@ Item {
         width: slot.r.width
         height: slot.r.height
         clip: true
+        opacity: moduleSlot.ready || !root.stream ? 1 : 0
+
+        Glide on opacity {
+          enabled: root.stream
+          duration: Appearance.animFast
+        }
 
         Glide on y {
           enabled: root._settled
@@ -198,6 +238,7 @@ Item {
           host: root.host
           expander: root.expandable ? root : null
           zoom: root.zoom
+          active: !root.stream || root._streamed || (root._order[slot.index] ?? 0) < root.revealed
         }
       }
     }

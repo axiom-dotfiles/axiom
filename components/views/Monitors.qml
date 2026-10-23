@@ -122,9 +122,12 @@ BaseView {
         Layout.preferredHeight: root.pageHeight - Widget.height * 6
         spacing: Widget.spacing * 3
 
-        MonitorCanvas {
+        // Both streamed in as the page opens (StreamedLoader)
+        StreamedLoader {
           Layout.fillWidth: true
           Layout.fillHeight: true
+          label: "monitor canvas"
+          sourceComponent: MonitorCanvas {}
         }
 
         StyledScrollView {
@@ -135,8 +138,10 @@ BaseView {
           Layout.fillHeight: true
           contentPadding: 0
 
-          MonitorInspector {
+          StreamedLoader {
             width: inspectorScroll.availableWidth
+            label: "monitor inspector"
+            sourceComponent: MonitorInspector {}
           }
         }
 

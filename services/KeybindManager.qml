@@ -449,8 +449,7 @@ QtObject {
   // Loads the draft unless it holds unsaved edits (the page is rebuilt
   // whenever the overlay reopens)
   function ensureLoaded() {
-    if (!draft.isDirty)
-      draft.load();
+    draft.loadIfStale();
     refresh();
     CompositorConfigManager.previewMerge();
   }

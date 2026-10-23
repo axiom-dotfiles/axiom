@@ -33,6 +33,7 @@ One page that edits overlay pages, edge menus, the desktop, the lock screen and 
 
 ### Layout of the page
 - `LayoutsPanel` on the left; on the right `GridCanvas` above `EditorInspector`, placed by `LayoutsEditorLayout`; a `GridDragLayer` covering it all.
+- Streamed in as the page opens (`StreamedLoader`, [streamed building](../core/streamed-building.md)): the side panel, each canvas tile (the tile's place and size are the loader's, so it glides as before) and the module library, built once and kept while a module's options show over it. The canvas and inspector themselves stay, reached through `LayoutsEditorLayout.canvas` / `inspector`.
 
 ### Left panel (`LayoutsPanel`)
 - **`PagesSection`**:

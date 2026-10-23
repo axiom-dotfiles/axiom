@@ -2,7 +2,7 @@
 
 > **Files:** `shell/Overlay.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayGrid.qml`, `components/hosts/overlay/ModuleGrid.qml`, `components/hosts/overlay/OverlaySlot.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/views/BaseView.qml`, `components/views/Custom.qml`, `components/methods/GridPlacement.qml`, `config/OverlayConfig.qml`
 > **Config:** `Overlay.views`, `Overlay.moduleScale`, `Widget.cardSize`, `Widget.scale`, `Overlay.navigator`, `Overlay.navigatorLabels`, `Overlay.animation`, `Overlay.showBackdrop`, `Overlay.backdrop`
-> **Related:** [Content roots](content-roots.md), [Writing modules](writing-modules.md), [Layouts editor](layouts-editor.md), [Edge menus](../edge-menus/overview.md)
+> **Related:** [Streamed building](../core/streamed-building.md), [Content roots](content-roots.md), [Writing modules](writing-modules.md), [Layouts editor](layouts-editor.md), [Edge menus](../edge-menus/overview.md)
 
 How the overlay turns `Overlay.views` into pages, and a page's modules into a grid of slots: views, the pure grid maths in `GridPlacement`, per-screen card sizing and what is loaded when. Read this before touching a view, the grid or overlay loading.
 
@@ -33,6 +33,7 @@ Pure, tested by `tst_GridPlacement`.
 - `bounds(modules)`: how far they reach.
 - `canPlace` / `overlaps`: keep modules apart (holes are fine).
 - `firstFree(modules, w, h)`: finds a spot in reading order, else beside (or below a wide grid).
+- `revealOrder(modules)`: each module's rank when a page streams them in, by diagonal (`x + y`), then the higher.
 - `normalize`: shifts a grid so its top left module sits at 0, 0.
 - `trackSizes(bounds, unit, stretch)`: one unit's width and height and the grid's size, growing either axis evenly into `stretch` room (never shrinking).
 - `rectPx(place, sizes)`: places a module.
@@ -84,6 +85,10 @@ Cards follow the screen; text and controls don't. A monitor's cards are its card
   - The workspace overview and launcher use it too.
 - Its focus grab (`HyprlandGrab`) also whitelists `ShellManager.grabPartnersFor(screen)`. The bars, bar popouts and submenus register themselves there (`registerGrabPartner(window, screenName)`), so they keep working while it's open.
 - Only the current page and its neighbours (navigation wraps) are instantiated, and only while the overlay is open (`OverlayPages.isLoaded` → `OverlayPage.loaded`). (Rule: AGENTS.md › UI conventions, Overlay lifetime.)
+  - Opening or switching builds only the page shown. Its neighbours follow the page the user settled on (`OverlayPages._settled`, set `Appearance.animSlow` after the open or the switch), so they're built once it has slid in, not in the same frame.
+  - A Custom page's modules stream in (`ModuleGrid.stream`): the grid and its box are built at once, sized from the places, and each module is a job in `BuildQueueManager`'s queue, top left to bottom right (`GridPlacement.revealOrder`), fading in (`OverlaySlot.active` / `ready`). Tool pages stream their panels the same way (`StreamedLoader`). Edge menus, the lock screen, the greeter, the desktop and screen layouts build all of their modules with the grid. The mechanics, and what each tool page streams: [streamed-building](../core/streamed-building.md).
+  - The panel keeps the page area's last mapped size (`pageArea.roomWidth` / `roomHeight` in `OverlayPanel`): the window has no size while unmapped, and building at an estimate laid every page out twice per open. Before the first map it estimates from the screen less the window's margins.
+  - Timing: each page logs `Overlay page N built in X ms` and a streamed grid `Overlay modules streamed in X ms` (`--debug`); `scripts/dev/bench_overlay.sh` prints them per step ([streamed-building › Measuring](../core/streamed-building.md)).
 - Page order (`OverlayPages.buildViewsModel`; `viewsModel[i].index` is the view's place in config):
   1. the user's own (Custom) pages, in config order;
   2. the tool pages (view types with `x-tool`: Settings, BarEditor, Themes, Keybinds, Monitors, CalendarPage), in config order;

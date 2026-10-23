@@ -43,7 +43,8 @@ Rectangle {
     root._confirmForget = false;
   }
 
-  Layout.fillWidth: true
+  // A DeviceList's delegate: as wide as the list
+  width: ListView.view?.width ?? implicitWidth
   implicitHeight: root.rowHeight + (root.expanded ? belowItem.childrenRect.height + Widget.spacing : 0)
   radius: Widget.radius
   color: root.connected || root.selected ? Theme.backgroundHighlight : rowHover.hovered ? Qt.alpha(Theme.backgroundHighlight, 0.5) : Qt.alpha(Theme.backgroundHighlight, 0)

@@ -21,5 +21,6 @@ BaseView {
   ModuleGrid {
     modules: root.modules
     grid: root.viewConfig?.fineGrid ? root.fineGrid : root.grid
+    stream: true
   }
 }

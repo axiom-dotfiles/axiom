@@ -28,6 +28,10 @@ Item {
   property real zoom: 1
   // The height the module grows to, drawn (its growHeight; 0: as placed)
   readonly property real growHeight: (loader.item?.growHeight ?? 0) * root.zoom
+  // Whether the module is built yet: a streaming grid (ModuleGrid.stream)
+  // builds it once `active`, and shows it once `ready`
+  property bool active: true
+  readonly property bool ready: loader.item !== null
 
   anchors.fill: parent
 
@@ -35,8 +39,9 @@ Item {
 
   // Created with its properties already set, then bound so later config
   // edits reach it (as BarWidgetHost does)
+  onActiveChanged: _load()
   function _load() {
-    if (!root.componentPath) {
+    if (!root.active || !root.componentPath) {
       loader.source = "";
       return;
     }

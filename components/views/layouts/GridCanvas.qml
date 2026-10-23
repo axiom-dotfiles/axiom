@@ -652,12 +652,15 @@ Card {
         opacity: 0.7
       }
 
-      // Keyed by count: edits update the modules in place
+      // Keyed by count: edits update the modules in place. Each tile is
+      // streamed in (StreamedLoader) as the page opens, in its place
       Repeater {
         model: root.list.length
 
-        CanvasModule {
+        StreamedLoader {
           id: tile
+          required property int index
+          readonly property var module: root.list[tile.index] ?? null
           // Where a drop or resize being dragged would put it, else its
           // place
           readonly property rect r: root.rectFor(root.dragLayer.previewPlaces?.[tile.index] ?? tile.module?.place ?? {
@@ -666,21 +669,26 @@ Card {
             "w": 1,
             "h": 1
           })
-          dragLayer: root.dragLayer
-          radius: root.cellRadius
-          module: root.list[tile.index] ?? null
-          step: root.step
-          gap: root.gap
-          growth: root.growthOf(tile.index)
           x: tile.r.x
           y: tile.r.y
           width: tile.r.width
           height: tile.r.height
+          label: "layouts canvas tile"
 
           Glide on x {}
           Glide on y {}
           Glide on width {}
           Glide on height {}
+
+          sourceComponent: CanvasModule {
+            dragLayer: root.dragLayer
+            index: tile.index
+            radius: root.cellRadius
+            module: tile.module
+            step: root.step
+            gap: root.gap
+            growth: root.growthOf(tile.index)
+          }
         }
       }
 

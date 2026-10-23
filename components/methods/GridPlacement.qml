@@ -204,6 +204,23 @@ QtObject {
     };
   }
 
+  // The order modules are revealed in, top left to bottom right: each
+  // module's rank (0 first), by the diagonal its top left corner is on,
+  // then the higher one. Modules without a place come last
+  function revealOrder(modules) {
+    const key = module => {
+      const p = module?.place;
+      return p ? [p.x + p.y, p.y] : [Infinity, Infinity];
+    };
+    const sorted = (modules ?? []).map((module, index) => ({
+          "key": key(module),
+          "index": index
+        })).sort((a, b) => a.key[0] - b.key[0] || a.key[1] - b.key[1] || a.index - b.index);
+    const ranks = [];
+    sorted.forEach((entry, rank) => ranks[entry.index] = rank);
+    return ranks;
+  }
+
   function overlaps(a, b) {
     return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
   }

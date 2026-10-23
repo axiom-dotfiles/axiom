@@ -28,6 +28,7 @@ This file holds only rules. **How each service and surface works is in `docs/dev
 | Themes, integrations, wallpaper, blur | `docs/dev/theming/` |
 | A feature (launcher, lockscreen, greeter, dock, OSD, chat, …) | `docs/dev/features/<feature>.md` |
 | Looking at or debugging the live shell | `docs/dev/testing.md` |
+| A page or panel slow to open, streaming (`StreamedLoader`), measuring it | `docs/dev/core/streamed-building.md` |
 | install.sh, AUR packages, packaged installs | `docs/dev/packaging.md` |
 | Known unfixed problems (check before working in an area) | `docs/dev/issues.md` |
 | A setting: meaning, default, readers | `docs/dev/config/<Section>.md` (generated; `grep -rn 'Section.key' docs/dev/config/`) |
@@ -149,6 +150,7 @@ Dependencies point one way:
 - **Reuse before building**: check `docs/dev/core/shared-ui-pieces.md` first; a second copy of a pattern becomes a shared piece.
 - **Data-driven surfaces**: `Bars`, `Overlay.views`, `EdgeMenus`, `Dock.docks`, `OSD.osds` are config arrays; surfaces are `Variants`/Repeaters over them, keyed by stable ids.
 - **Loaded by name**: `bar/widgets/<type>.qml`, `content/<Name>.qml`, `views/<type>.qml`. A new one = the file + its schema `oneOf` entry (see those directories' `AGENTS.md`).
+- **Pages show at once and fill in** (`docs/dev/core/streamed-building.md`): a tool page's panels, cards and sections, and anything long, are `StreamedLoader`s sized from the page, never built in the frame it opens. Nothing is built hidden (a Loader gated on its mode, not `visible: false`), unbounded lists are ListViews, and `scripts/dev/bench_overlay.sh` measures it.
 - **Repeater models and `acquire()` requests come from config and tool availability only, never live values** (model by a count or joined string key). A model re-evaluated per sample once pushed qs past 25 GB.
 - **Sizes** outside the bars come from `Widget` (`height`, `padding`, `spacing`, `iconButton`, `smallHeight`, `smallPadding`) or `Widget.px(n)` for widths and decorations, and text sizes from `Appearance.fontSize` / `fontSizeBy(n)`, so they follow the Interface scale and Density; only hairlines (≤2 px) stay numbers (`scripts/check_sizes.py`; table: `docs/dev/core/shared-ui-pieces.md` › Sizes).
 - **Radii**: `Appearance.borderRadius` only for outer edges (border, bars, pills, popout surfaces, overlay box, windows); `Widget.radius` inside.

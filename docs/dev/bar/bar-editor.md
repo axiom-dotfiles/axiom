@@ -8,6 +8,7 @@ The BarEditor overlay page: the bar list and field groups, the sections board an
 
 ### Layout of the page
 - `views/BarEditor.qml`, with its pieces in `views/barEditor/`. It follows the shared [editor pattern](../core/editors-pattern.md).
+- `BarsPanel`, `SectionsBoard` and `WidgetInspector` are streamed in as the page opens (`StreamedLoader`, [streamed building](../core/streamed-building.md)), as are the panel's field groups and each form field. The board's loader takes its depth from the board (`board.implicitHeight`), so a horizontal strip settles a moment after the page shows.
 - **Left: `BarsPanel`.**
   - The bars, with duplicate and remove.
   - The selected bar's field groups.
