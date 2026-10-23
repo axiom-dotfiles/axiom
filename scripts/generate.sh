@@ -8,9 +8,9 @@
 #     binary doesn't compile without it
 #   - config/json/config.schema.json, from its YAML source config/schema/
 #     (`axiom schema build`, through go run)
-#   - with --fixtures: tests/fixtures/shared/, the cases the JS helpers and
-#     the binary share (scripts/dev/fixtures.py ensure: ~30 s when stale;
-#     needs Qt 6's qmltestrunner and the whole git history)
+#   - with --fixtures: tests/fixtures/shared/, the cases SchemaValidation
+#     and the binary share (scripts/dev/fixtures.py ensure: a few seconds
+#     when stale; needs Qt 6's qmltestrunner)
 #
 #   scripts/generate.sh [--fixtures]
 set -euo pipefail

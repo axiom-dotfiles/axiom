@@ -4,7 +4,7 @@
 > **Copy from:** `backend/internal/migrate/convert/convert.go` (helpers that move and rename keys of a format-1 config: the same work, once).
 > **Docs:** [the axiom binary](../dev/backend/README.md), [config-manager](../dev/core/config-manager.md) (load pipeline), [config v2](../dev/core/config-v2.md)
 
-The format-1 migrations (versions 1 to 75) are **frozen**: `components/methods/ConfigMigration.qml` is the record of what they did, and the binary runs a copy of it (`backend/internal/migrate/legacy/legacy.js`) on configs from before it took the config over, then converts them to format 2 (version 76, `migrate/convert`). None of those files changes; the shared fixtures (`tests/fixtures/shared/legacy/`) check that they still agree.
+The format-1 migrations (versions 1 to 75) are **frozen** and kept only until format 1 is retired: the binary runs `backend/internal/migrate/legacy/legacy.js` (the shell's old migrations, converted once) on configs from before it took the config over, then converts them to format 2 (version 76, `migrate/convert`). None of those files changes; `legacy.js` and `schema-v75.json` are hash-checked, and their frozen cases (`legacy/testdata/`) check the output.
 
 A reshape now is a **format-2 step** in `backend/internal/migrate/steps/`: every config of an older version runs it on load (config.json, saved configs, imports, examples), and a format-1 file runs it after its conversion.
 

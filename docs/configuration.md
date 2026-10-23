@@ -28,9 +28,6 @@ axiom never writes inside its own folder (`~/.config/quickshell/axiom`). What it
 
 To back up your setup or keep it in a dotfiles repo, `~/.config/axiom/` is the folder to keep (`~/.local/share/axiom/notes/` too, if your notes live there).
 
-> [!NOTE]
-> Versions up to v1.1.10 kept the config in `config/user/` and the UI state and notes in `config/state/`, inside axiom's folder. The first start of a newer version copies them over by itself, then leaves `config/user/MOVED.md` listing where each went. The old folders are kept so an older version still runs. Once you're happy, they can be deleted. If you backed up or linked `config/user/`, switch to `~/.config/axiom/`.
-
 ### Saved configurations
 
 Your whole setup (bars, overlay pages, edge menus, docks, the lock and login screens, every setting) is one file, so it can be kept and swapped as a whole:

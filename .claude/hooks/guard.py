@@ -22,10 +22,8 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent.parent
 HOME = Path(os.path.expanduser("~")).resolve()
-# The live config.json (DataDirs.xdg), and where an install from before the
-# XDG folders kept it (still read until it's moved over, and on a rollback)
+# The live config.json (DataDirs.xdg)
 LIVE_CONFIG = Path(os.environ.get("XDG_CONFIG_HOME") or HOME / ".config").resolve() / "axiom/config.json"
-LEGACY_CONFIG = REPO / "config/user/config.json"
 SCHEMA = REPO / "config/json/config.schema.json"
 SEPARATORS = {";", "&&", "||", "|", "&", "\n", "|&"}
 WRAPPERS = {"sudo", "env", "nohup", "exec", "command", "time", "timeout", "setsid"}
@@ -308,12 +306,10 @@ def check_argv(env, argv, cwd):
             paths = paths[:-1]  # the sources
         for a in paths:
             target = resolve(a, cwd)
-            # The file, or a folder holding it up to its config folder (the repo for the old one)
-            for config, top in ((LIVE_CONFIG, LIVE_CONFIG.parent), (LEGACY_CONFIG, REPO)):
-                if target == config or target in config.parents and (target == top or top in target.parents):
-                    deny("Never, while testing", f"don't delete or move the real config.json ({config}); use `ipc call onboarding goTo <n>`.")
-    if name == "git" and args[:1] == ["clean"] and any(re.fullmatch(r"-[a-zA-Z]*[xX][a-zA-Z]*", a) for a in args[1:]):
-        deny("Never, while testing", "git clean -x/-X deletes the gitignored config/user/ and config/state/ (an install's data before it moves to the XDG folders).")
+            # The file, or a folder holding it up to its config folder
+            top = LIVE_CONFIG.parent
+            if target == LIVE_CONFIG or target in LIVE_CONFIG.parents and (target == top or top in target.parents):
+                deny("Never, while testing", f"don't delete or move the real config.json ({LIVE_CONFIG}); use `ipc call onboarding goTo <n>`.")
 
     # qmlformat -i replaces the inode
     if name == "qmlformat" and any(a in {"-i", "--inplace"} for a in args):
@@ -386,7 +382,7 @@ def value_at(config, path):
 
 def check_config_edit(tool, tool_input):
     path = tool_input.get("file_path", "")
-    if not path or Path(path).resolve() not in {LIVE_CONFIG, LEGACY_CONFIG}:
+    if not path or Path(path).resolve() != LIVE_CONFIG:
         return
     try:
         before_text = Path(path).resolve().read_text()
@@ -416,11 +412,12 @@ GENERATED = {
 # Generated directories (scripts/generate.sh), never committed
 GENERATED_DIRS = {
     REPO / "backend/internal/assets/data": "the binary's embedded copies (go generate writes them from the repo files)",
-    REPO / "tests/fixtures/shared": "the shared fixtures, recorded from the shell's JS helpers (scripts/dev/fixtures.py record)",
+    REPO / "tests/fixtures/shared": "the shared fixtures, recorded from SchemaValidation.qml (scripts/dev/fixtures.py record)",
+    REPO / "backend/internal/migrate/legacy/testdata": "the format-1 migration's frozen cases, recorded from the shell before its copy was removed",
 }
 FROZEN = {
-    REPO / "components/methods/ConfigMigration.qml": "the format-1 migrations are frozen (docs/recipes/migration.md)",
     REPO / "backend/internal/migrate/legacy/legacy.js": "the format-1 migrations are frozen (docs/recipes/migration.md)",
+    REPO / "backend/internal/migrate/legacy/schema-v75.json": "the format-1 schema is frozen with its migrations (docs/recipes/migration.md)",
 }
 
 

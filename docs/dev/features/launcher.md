@@ -80,5 +80,5 @@ The first character picks the provider:
 - **Opening a page:** `ShellManager.openOverlayPage(type)` opens the target overlay on a page. It takes a view type or a view's name.
 
 ### Testing
-- `qs -c axiom ipc call appLauncher search "<text>"`, then a `grim` screenshot.
+- `axiom ipc appLauncher search "<text>"`, then a `grim` screenshot.
 - The launcher takes keyboard focus, so anything the user types meanwhile leaks into the field.

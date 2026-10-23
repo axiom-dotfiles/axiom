@@ -5,7 +5,7 @@ type: object
 x-category: Workspaces
 x-intro: WorkspacesStatus
 title: Workspaces
-description: How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `qs -c axiom ipc call workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.
+description: How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `axiom ipc workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.
 additionalProperties: false
 properties:
   layout:

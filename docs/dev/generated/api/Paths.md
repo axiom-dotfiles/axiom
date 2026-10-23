@@ -12,7 +12,7 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 - `axiomBin` (readonly string): How compositors, binds and idle daemons call axiom: the binary that runs this shell ($AXIOM_BIN), by its path (a compositor's PATH may not have it).
 - `shellCommand` (readonly string)
 - `restartCommand` (readonly string): The restart binds' command: axiom restarts the shell it runs
-- `startPattern` (readonly string): A line in a compositor config that starts axiom (Python regex, for integration_hookup.py's `accept`): `axiom run`, or the `qs -c axiom` / `qs -p …axiom` of before the binary
+- `startPattern` (readonly string): A line in a compositor config that starts axiom (Python regex, for integration_hookup.py's `accept`): `axiom run`
 - `themePath` (readonly string)
 - `scriptsPath` (readonly string)
 - `resourcePath` (readonly string): What ships with axiom in config/: json/ (schema, theme defaults, emoji), themes/, i18n/

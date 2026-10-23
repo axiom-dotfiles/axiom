@@ -107,7 +107,7 @@ jobs:
           git checkout -q FETCH_HEAD
 
       # The schema and the shared fixtures tst_Shared replays (recorded
-      # from the whole history, hence the full fetch above)
+      # from SchemaValidation against the live schema)
       - name: Generated files (scripts/generate.sh --fixtures)
         env:
           GOTOOLCHAIN: local
@@ -126,8 +126,7 @@ jobs:
   # backend/ (the axiom binary): generated files, gofmt, vet, staticcheck,
   # tests under -race, govulncheck and the release cross-builds. Arch's go
   # and gcc (for -race), like the other jobs' containers; Qt and Quickshell
-  # to record the shared fixtures the tests replay (from the JS helpers,
-  # over the whole history, hence the full fetch)
+  # to record the shared fixtures the tests replay (from SchemaValidation)
   go:
     runs-on: ubuntu-latest
     container: archlinux:latest

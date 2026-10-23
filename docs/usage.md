@@ -34,10 +34,10 @@ The page only offers actions your compositor can do. In managed mode, **Merge** 
 
 ## IPC
 
-Every surface can be controlled over Quickshell IPC, so you can bind it to anything:
+Every surface can be controlled over IPC, so you can bind it to anything:
 
 ```bash
-qs -c axiom ipc call <target> <function>
+axiom ipc <target> <function> [args]
 ```
 
 <details>
@@ -81,17 +81,17 @@ To bind them in your compositor's own config instead, run the same command. On H
 
 ```lua
 -- hyprland.lua
-hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs -c axiom ipc call appLauncher toggle"), { description = "Axiom: App launcher" })
+hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("axiom ipc appLauncher toggle"), { description = "Axiom: App launcher" })
 ```
 
 ```kdl
 // niri config.kdl, inside binds { }
-Mod+Space hotkey-overlay-title="Axiom: App launcher" { spawn-sh "qs -c axiom ipc call appLauncher toggle"; }
+Mod+Space hotkey-overlay-title="Axiom: App launcher" { spawn-sh "axiom ipc appLauncher toggle"; }
 ```
 
 ```
 # sway config
-bindsym $mod+space exec qs -c axiom ipc call appLauncher toggle
+bindsym $mod+space exec axiom ipc appLauncher toggle
 ```
 
 ## Launcher

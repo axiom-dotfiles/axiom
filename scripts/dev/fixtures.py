@@ -3,11 +3,10 @@
 cases the JS helpers and the axiom binary (Go) must agree on, byte for
 byte (docs/dev/backend/README.md › Shared fixtures).
 
-  scripts/dev/fixtures.py record     re-record every JS-owned suite: runs
-                                     tst_Config, tst_ConfigExamples,
-                                     tst_SchemaValidation and tst_Shared's
-                                     corpus with recording on, and writes the
-                                     calls they make as cases
+  scripts/dev/fixtures.py record     re-record the schema suite: runs
+                                     tst_Config and tst_SchemaValidation with
+                                     recording on, and writes the calls they
+                                     make as cases
   scripts/dev/fixtures.py ensure     record only when what the cases are
                                      made from changed since the last
                                      recording (scripts/generate.sh runs it)
@@ -17,19 +16,19 @@ byte (docs/dev/backend/README.md › Shared fixtures).
 
 The whole directory is generated and gitignored: CI records it before the
 tests that replay it (both the JS and the Go side). Recording needs Qt 6's
-qmltestrunner and the whole git history (the corpus is read from past
-commits).
+qmltestrunner.
 
 A case is <suite>/<test>/<name>.json ({op, args}) plus <name>.expected.json
 (the exact bytes the JS helper produced). Arguments larger than BLOB_SIZE
-are stored once under blobs/<hash>.json and referenced as {"$blob": hash}.
+are stored once under blobs/<hash>.json and referenced as {"$blob": hash};
+the live schema is named by its path, {"$repoFile": "config/json/…"}.
 The expected bytes come from the JS engine the shell runs (V4, through
 qmltestrunner) and are written untouched; arguments only need to parse to
 the same values, so they are re-serialized here.
 
-The legacy suites' goldens come from frozen code (ConfigMigration.qml, its
-hash checked by the binary's tests) and the frozen v75 schema, so recording
-them again always gives the same bytes.
+The format-1 migration's cases aren't here: they were frozen into the
+binary's own testdata (backend/internal/migrate/legacy/testdata/) when the
+shell's copy of the migrations was removed.
 """
 import hashlib
 import json
@@ -37,29 +36,19 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SHARED = ROOT / "tests/fixtures/shared"
 # Suites recorded from the JS helpers (the rest are written by Go's tests)
-JS_SUITES = ("legacy", "schema", "share", "corpus")
-RECORD_TESTS = ("Config", "ConfigExamples", "SchemaValidation", "Shared")
+JS_SUITES = ("schema",)
+RECORD_TESTS = ("Config", "SchemaValidation")
 BLOB_SIZE = 2048
-SCHEMA_PATHS = ("config/json/config.schema.json", "config/schemas/config.schema.json")
-# Old configs the corpus loads whole, besides each schema version's defaults
-CORPUS_CONFIGS = ("tests/fixtures/configs/v1.json", "tests/fixtures/configs/v30.json")
-# The frozen format-1 schema the legacy cases run against: the binary's own
-# copy (backend/internal/migrate/legacy, hash-checked by its tests)
-LEGACY_SCHEMA = (ROOT / "backend/internal/migrate/legacy/schema-v75.json", "schemas/legacy-v75.schema.json")
 # What the recorded cases are made from: a change to any re-records them
-STAMP_INPUTS = ("components/methods/*.qml", "tests/Shared.qml", "tests/RepoFiles.qml",
-                "backend/internal/migrate/legacy/schema-v75.json",
-                "tests/tst_Config.qml", "tests/tst_ConfigExamples.qml",
-                "tests/tst_SchemaValidation.qml", "tests/tst_Shared.qml",
+STAMP_INPUTS = ("components/methods/SchemaValidation.qml", "tests/Shared.qml", "tests/RepoFiles.qml",
+                "tests/tst_Config.qml", "tests/tst_SchemaValidation.qml",
                 "config/json/config.schema.json", "scripts/dev/fixtures.py",
-                "scripts/qml_modules.py", "scripts/run_tests.sh",
-                "tests/fixtures/configs/*.json", "examples/*.json")
+                "scripts/qml_modules.py", "scripts/run_tests.sh")
 
 
 def main(argv):
@@ -74,23 +63,12 @@ def main(argv):
 
 
 def stamp():
-    """A hash of everything the cases are made from, and of the history the
-    corpus is read from."""
+    """A hash of everything the cases are made from."""
     h = hashlib.sha256()
     for pattern in STAMP_INPUTS:
         for path in sorted(ROOT.glob(pattern)):
             h.update(path.relative_to(ROOT).as_posix().encode() + b"\0" + path.read_bytes() + b"\0")
-    h.update(subprocess.run(["git", "log", "HEAD", "--format=%H", "--", *SCHEMA_PATHS],
-                            cwd=ROOT, capture_output=True, check=True).stdout)
     return h.hexdigest() + "\n"
-
-
-def legacy_schema():
-    """Writes the frozen v75 schema into schemas/."""
-    source, target = LEGACY_SCHEMA
-    out = SHARED / target
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_bytes(source.read_bytes())
 
 
 # --- record ---
@@ -98,18 +76,15 @@ def legacy_schema():
 def record():
     SHARED.mkdir(parents=True, exist_ok=True)
     (SHARED / ".stamp").unlink(missing_ok=True)
-    legacy_schema()
-    corpus = SHARED / ".corpus"
+    # What an earlier recording left that no suite writes any more
+    for stale in ("legacy", "share", "corpus", "schemas", ".corpus"):
+        shutil.rmtree(SHARED / stale, ignore_errors=True)
     marker = SHARED / ".recording"
-    shutil.rmtree(corpus, ignore_errors=True)
-    corpus.mkdir(parents=True)
-    write_corpus_list(corpus)
     marker.write_text("1\n")
     try:
         out = run_tests()
     finally:
         marker.unlink(missing_ok=True)
-        shutil.rmtree(corpus, ignore_errors=True)
 
     records = [decode(line) for line in out.splitlines() if "@@FIXTURE " in line]
     if not records:
@@ -185,7 +160,7 @@ def case_name(rec, counters):
 
 def store_blobs(value, blobs):
     """value with every object/array larger than BLOB_SIZE stored as a blob."""
-    if isinstance(value, dict) and set(value) <= {"$fixtureSchema", "pointer"} and "$fixtureSchema" in value:
+    if isinstance(value, dict) and list(value) == ["$repoFile"]:
         return value
     if isinstance(value, (dict, list)):
         if isinstance(value, dict):
@@ -206,52 +181,13 @@ def dump(value):
     return json.dumps(value, ensure_ascii=False, indent=2) + "\n"
 
 
-def write_corpus_list(corpus):
-    """Every distinct past schema version (the last commit of each), from
-    HEAD's history (not other branches, so every clone records the same),
-    for tst_Shared to load the defaults of."""
-    log = subprocess.run(["git", "log", "HEAD", "--format=%H %ct", "--", *SCHEMA_PATHS],
-                         cwd=ROOT, capture_output=True, text=True, check=True).stdout.split("\n")
-    by_version = {}
-    for line in log:
-        if not line.strip():
-            continue
-        commit, when = line.split()
-        schema = None
-        for path in SCHEMA_PATHS:
-            show = subprocess.run(["git", "show", f"{commit}:{path}"], cwd=ROOT, capture_output=True, text=True)
-            if show.returncode == 0:
-                try:
-                    schema = json.loads(show.stdout)
-                except json.JSONDecodeError:
-                    schema = None
-                break
-        version = (((schema or {}).get("properties") or {}).get("version") or {}).get("default")
-        if not isinstance(version, int):
-            continue
-        # git log is newest first: the first commit seen per version is its last
-        if version not in by_version:
-            by_version[version] = (int(when), commit, schema)
-    schemas = []
-    for version in sorted(by_version):
-        _, commit, schema = by_version[version]
-        name = f"v{version}.schema.json"
-        (corpus / name).write_text(json.dumps(schema, ensure_ascii=False), encoding="utf-8")
-        schemas.append({"version": version, "commit": commit, "file": name})
-    examples = sorted(str(p.relative_to(ROOT)) for p in (ROOT / "examples").glob("*.json"))
-    (corpus / "list.json").write_text(json.dumps({
-        "schemas": schemas,
-        "configs": list(CORPUS_CONFIGS) + examples,
-    }, indent=2))
-
-
 # --- index and check ---
 
 def cases_on_disk():
     names = []
     for path in SHARED.rglob("*.json"):
         rel = path.relative_to(SHARED).as_posix()
-        if rel.startswith(("schemas/", "blobs/", ".")) or rel == "index.json" or rel.endswith(".expected.json"):
+        if rel.startswith(("blobs/", ".")) or rel == "index.json" or rel.endswith(".expected.json"):
             continue
         names.append(rel[:-len(".json")])
     return sorted(names)

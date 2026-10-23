@@ -143,15 +143,14 @@ QtObject {
   }
 
   // Color from a config string: a base key ("base0C"), a semantic name
-  // ("info", or the older "Theme.info" form) or anything Qt parses as a
-  // color ("#ff5733"). Reading stringToColorMap here makes callers'
-  // bindings re-evaluate when the theme changes.
+  // ("info") or anything Qt parses as a color ("#ff5733"). Reading
+  // stringToColorMap here makes callers' bindings re-evaluate when the
+  // theme changes.
   function resolveColor(name) {
     const map = root.stringToColorMap;
     if (!name)
       return "transparent";
-    const key = name.includes('.') ? name.substring(name.lastIndexOf('.') + 1) : name;
-    return map[key] ?? name;
+    return map[name] ?? name;
   }
 
   Component.onCompleted: {

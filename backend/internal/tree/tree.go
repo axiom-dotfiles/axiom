@@ -24,7 +24,7 @@ const (
 
 // Find is the tree to use: dir when given, else $AXIOM_TREE, else the
 // nearest directory up from start holding shell.qml and config/, else the
-// installed one, where `qs -c axiom` looks (a compositor's autostart runs
+// installed one, where a clone or package puts it (a compositor's autostart runs
 // `axiom run` from $HOME).
 func Find(dir string, getenv func(string) string, start string) (string, error) {
 	if dir == "" {

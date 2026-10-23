@@ -8,6 +8,7 @@ import (
 	"github.com/axiom-shell/axiom/backend/internal/config"
 	"github.com/axiom-shell/axiom/backend/internal/jsonx"
 	"github.com/axiom-shell/axiom/backend/internal/migrate/convert"
+	"github.com/axiom-shell/axiom/backend/internal/migrate/legacy"
 	"github.com/axiom-shell/axiom/backend/internal/schema"
 	"github.com/axiom-shell/axiom/backend/internal/testkit"
 	"github.com/axiom-shell/axiom/backend/internal/tree"
@@ -28,11 +29,7 @@ func v2Schema(t *testing.T) *schema.Schema {
 
 func legacyDefaults(t *testing.T) *jsonx.Object {
 	t.Helper()
-	root, err := testkit.Schema("legacy-v75")
-	if err != nil {
-		t.Fatal(err)
-	}
-	s := schema.New(root)
+	s := schema.New(legacy.Schema())
 	filled, _ := config.ApplyDefaults(s, jsonx.NewObject(), true, s.Root())
 	return filled.(*jsonx.Object)
 }
@@ -110,26 +107,21 @@ func TestDefaultsConvertToV2Defaults(t *testing.T) {
 	}
 }
 
-// Every corpus config (each past schema version's defaults, the examples,
-// old configs), as the legacy pipeline loads it, converts to a valid
-// format-2 config that pruning leaves whole.
+// Every frozen corpus config (each past schema version's defaults, the
+// examples, old configs), as the legacy pipeline loads it, converts to a
+// valid format-2 config that pruning leaves whole.
 func TestCorpusConvertsValid(t *testing.T) {
 	t.Parallel()
 	s := v2Schema(t)
-	cases := testkit.Cases(t, "legacy.load")
+	old := schema.New(legacy.Schema())
 	checked := 0
-	for _, c := range cases {
-		expected, err := jsonx.Unmarshal(c.Expected)
-		if err != nil {
-			t.Fatal(err)
-		}
-		loaded := expected.(*jsonx.Object)
-		cfg, ok := loaded.Value("config").(*jsonx.Object)
+	for _, c := range testkit.Frozen(t, "load") {
+		loaded, err := config.LoadLegacy(old, c.Input)
 		// A config invalid at version 75 (blocked there) stays invalid
-		if errs, _ := loaded.Value("errors").(*jsonx.Array); !ok || (errs != nil && errs.Len() > 0) {
+		if err != nil || len(loaded.Errors) > 0 || loaded.Config == nil {
 			continue
 		}
-		converted := convert.ToV2(cfg).Config
+		converted := convert.ToV2(loaded.Config).Config
 		filled, _ := config.ApplyDefaults(s, converted, true, s.Root())
 		if errs := config.ValidationErrors(s, filled, s.Root()); len(errs) > 0 {
 			t.Errorf("%s: %v", c.Name, errs)

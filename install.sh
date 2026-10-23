@@ -30,7 +30,7 @@ set -euo pipefail
 main() {
 AXIOM_REPO=${AXIOM_REPO:-https://github.com/axiom-shell/axiom.git}
 CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
-# Where `qs -c axiom` looks for it
+# Where `axiom run` looks for it
 QS_DIR=$CONFIG_HOME/quickshell/axiom
 AXIOM_DIR=${AXIOM_DIR:-$QS_DIR}
 # An AUR (or other) package's copy, with the marker its PKGBUILD writes
@@ -121,7 +121,7 @@ TESTED_NIRI=26.04
 # The text each *ConfigWriter's autostartTarget writes (the binary by its
 # path: a compositor's PATH may not have it), and the `accept` pattern
 # that finds a line already starting axiom (Paths.startPattern's): `axiom
-# run`, or the `qs -c axiom` of before the binary
+# run`
 autostart_line() {
   local start="'$AXIOM_BIN' run"
   case "$1" in
@@ -130,7 +130,7 @@ autostart_line() {
   niri) echo "spawn-sh-at-startup \"$start\"" ;;
   esac
 }
-STARTS_AXIOM="(qs|quickshell) .*(-c +['\"]?axiom|-p +['\"]?[^[:space:]]*axiom)|(^|[[:space:]'\"/])axiom['\"]? +run([^[:alnum:]_-]|\$)"
+STARTS_AXIOM="(^|[[:space:]'\"/])axiom['\"]? +run([^[:alnum:]_-]|\$)"
 
 mode=ask dry_run=0 compositor_flag=""
 while (($#)); do
@@ -331,7 +331,7 @@ copr_enabled() {
   compgen -G "/etc/yum.repos.d/_copr*:${owner}:${project}.repo" >/dev/null
 }
 
-axiom_running() { pgrep -f '(^|/)((qs|quickshell) (.* )?(-c axiom|-p [^ ]*/axiom/?)|axiom run)( |$)' >/dev/null; }
+axiom_running() { pgrep -f '(^|/)axiom run( |$)' >/dev/null; }
 
 # ─── The compositor ──────────────────────────────────────────────────────────
 
@@ -495,7 +495,7 @@ if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
   fi
 fi
 
-# Installed as a package (the AUR's axiom-shell): `qs -c axiom` finds it
+# Installed as a package (the AUR's axiom-shell): `axiom run` finds it
 # through /etc/xdg, so no clone, unless this runs from one
 packaged=0
 [[ -f "$PACKAGED_DIR/.packaged" ]] && ((!from_clone)) && ! is_axiom_clone "$AXIOM_DIR" && packaged=1
@@ -517,7 +517,7 @@ elif ((from_clone)); then
 else
   clone_step="a clone of the latest release at $AXIOM_DIR"
 fi
-((packaged)) || same_dir "$AXIOM_DIR" "$QS_DIR" || clone_step+=$'\n      (then linked or moved to '"$QS_DIR"', where `qs -c axiom` looks)'
+((packaged)) || same_dir "$AXIOM_DIR" "$QS_DIR" || clone_step+=$'\n      (then linked or moved to '"$QS_DIR"', where `axiom run` looks)'
 if ((${#compositors[@]})); then
   compositor_step="$(compositor_label "$primary") ($compositor_how)"
   if ((${#compositors[@]} > 1)); then
@@ -840,7 +840,7 @@ else
   fi
 fi
 
-# `qs -c axiom` only looks in $QS_DIR (then /etc/xdg), so a clone elsewhere
+# `axiom run` only looks in $QS_DIR (then /etc/xdg), so a clone elsewhere
 # is linked (or moved) there
 placed=1
 if ((packaged)); then
@@ -854,14 +854,14 @@ elif same_dir "$QS_DIR" "$AXIOM_DIR"; then
 elif [[ -e "$QS_DIR" ]]; then
   placed=0
   if is_axiom_clone "$QS_DIR"; then
-    warn "$QS_DIR is another axiom clone, and it's the one \`qs -c axiom\` runs. Run its install.sh instead, or move it away and run this again to use $AXIOM_DIR."
+    warn "$QS_DIR is another axiom clone, and it's the one \`axiom run\` runs. Run its install.sh instead, or move it away and run this again to use $AXIOM_DIR."
   else
-    warn "$QS_DIR exists and isn't axiom, so \`qs -c axiom\` can't find $AXIOM_DIR. Move it away and run this again."
+    warn "$QS_DIR exists and isn't axiom, so \`axiom run\` can't find $AXIOM_DIR. Move it away and run this again."
   fi
 else
   AXIOM_DIR=$(cd "$AXIOM_DIR" && pwd)
   echo
-  info "\`qs -c axiom\` looks for axiom at $QS_DIR, but this clone is at $AXIOM_DIR."
+  info "\`axiom run\` looks for axiom at $QS_DIR, but this clone is at $AXIOM_DIR."
   # A dangling link there (a clone that was moved or deleted) is replaced
   [[ -L "$QS_DIR" ]] && info "$QS_DIR is a broken link; it gets replaced."
   if ask "Link it there? (recommended: the clone stays where it is)"; then
@@ -878,10 +878,6 @@ else
     placed=0
   fi
 fi
-
-# The python venv older versions kept in the clone: its packages are system
-# packages now (the optional features above)
-((packaged)) || [[ ! -d "$AXIOM_DIR/.venv" ]] || run rm -rf "$AXIOM_DIR/.venv"
 
 # ─── The binary ──────────────────────────────────────────────────────────────
 
@@ -979,7 +975,7 @@ else
   ok "${bold}axiom is installed${reset} at $AXIOM_DIR"
 fi
 if ((!placed)); then
-  warn "\`qs -c axiom\` won't find it until it's at $QS_DIR. Link it with: ln -s \"$AXIOM_DIR\" \"$QS_DIR\""
+  warn "\`axiom run\` won't find it until it's at $QS_DIR. Link it with: ln -s \"$AXIOM_DIR\" \"$QS_DIR\""
 fi
 ((${#packages[@]})) && info "Packages: $(joined "${packages[@]}")"
 if ((${#skipped[@]})); then

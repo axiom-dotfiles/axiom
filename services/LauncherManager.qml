@@ -621,16 +621,7 @@ QtObject {
   }
 
   Component.onCompleted: {
-    // Older state held just { id: last launch time }
-    const saved = _stateHandler.load({});
-    usage = Object.keys(saved).reduce((all, id) => {
-      const entry = saved[id];
-      all[id] = typeof entry === "number" ? {
-        count: 1,
-        last: entry
-      } : entry;
-      return all;
-    }, {});
+    usage = _stateHandler.load({});
     commandUsage = _commandStateHandler.load({});
     DependencyManager.check(["qalc"]);
   }

@@ -50,7 +50,7 @@ Opening a page: `root._page("foo", ["aliases"], "<ViewType>", "Open the foo page
 
 ## Verify
 - `scripts/dev/verify.sh`
-- To see it: `qs -c axiom ipc call appLauncher search "/foo"`, take a screenshot (`grim -o <monitor> <file>`), then `qs -c axiom ipc call appLauncher close`. The launcher steals keyboard focus, so the user's typing leaks in ([features/launcher](../dev/features/launcher.md) › Testing).
+- To see it: `axiom ipc appLauncher search "/foo"`, take a screenshot (`grim -o <monitor> <file>`), then `axiom ipc appLauncher close`. The launcher steals keyboard focus, so the user's typing leaks in ([features/launcher](../dev/features/launcher.md) › Testing).
 
 ## Docs to update
 - `docs/usage.md` launcher table; [features/launcher](../dev/features/launcher.md) if it adds a new kind of command.

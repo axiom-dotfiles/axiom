@@ -4,7 +4,7 @@ type: object
 x-category: Screen & Power
 title: Lockscreen
 x-links: ['Layouts:lockscreen']
-description: Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in one.
+description: Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `axiom lock` for the built-in one.
 additionalProperties: false
 properties:
   mode:

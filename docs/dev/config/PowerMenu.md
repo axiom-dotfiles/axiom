@@ -4,7 +4,7 @@
 > **Reader:** `PowerMenuConfig` (`config/PowerMenuConfig.qml`)
 > **Schema:** `config/json/config.schema.json` → `properties.PowerMenu` · category Screen & Power
 
-Power menu: The power menu: lock, suspend, hibernate, log out, reboot and power off, opened by the power button, a keybind or `qs -c axiom ipc call powermenu toggle`.
+Power menu: The power menu: lock, suspend, hibernate, log out, reboot and power off, opened by the power button, a keybind or `axiom ipc powermenu toggle`.
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 

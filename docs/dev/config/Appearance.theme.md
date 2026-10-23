@@ -15,7 +15,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Appearance.theme.name`** · string = "gruvbox-dark"
   - Active theme (set on the overlay's Themes page).
   - x-settings=false
-  - read: `Appearance.theme`, `// reads:` marker · in: `components/content/ThemePicker/ThemePicker.qml`, `components/methods/ConfigMigration.qml`, `config/Theme.qml`, `services/ThemeManager.qml`
+  - read: `Appearance.theme`, `// reads:` marker · in: `components/content/ThemePicker/ThemePicker.qml`, `config/Theme.qml`, `services/ThemeManager.qml`
 
 ### `Appearance.theme.schedule`
 

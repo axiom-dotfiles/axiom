@@ -30,12 +30,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-24, while reviewing the Go backend
 
-### The legacy move marks itself done without moving the config
-- **Where:** `backend/internal/xdg/legacy.go` (`MoveLegacy`, `MovedMarker`)
-- **What:** When `$XDG_CONFIG_HOME/axiom/config.json` already exists (an offline `axiom config set` wrote the defaults first), the repo's old config.json is skipped but `MOVED.md` is still written, so the move never runs again and the old config is silently left behind. Writing the marker only once config.json was copied, or logging loudly, fixes it.
-- **Size:** trivial
-- **Found:** 2026-10-24, while reviewing the Go backend
-
 ### The greeter's environment is a denylist
 - **Where:** `backend/internal/cli/greeter.go` (`greeterDropped`, `greeterEnv`)
 - **What:** The greeter drops four named `AXIOM_*` variables, so others (`AXIOM_BIN`, `AXIOM_REEXEC`, `AXIOM_TREE`) inherited by `axiom greeter` reach it. `supervise` strips every inherited `AXIOM_*` and sets its own: the greeter should do the same.
@@ -49,14 +43,8 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-24, while reviewing the Go backend
 
 ### Schema build gaps
-- **Where:** `backend/internal/schema/yamlsrc/kinds.go` (`orderKeys`), `backend/internal/cli/schema.go` (`schema check`), `scripts/dev/fixtures.py` (the corpus), `backend/internal/config/pipeline.go` (patterns)
-- **What:** `orderKeys` overwrites an author-written `x-order` on every object with more than one property, though `config/schema/annotations.yaml` lets authors write one. `axiom schema check` passes when `config/json/config.schema.json` is missing. The corpus is the defaults of every schema version in git history, but the built JSON isn't committed any more, so v76 and later never enter it. Go's RE2 `\S`/`\s` are ASCII-only while JS's are Unicode: a value of only U+00A0 passes `"\\S"` in Go and fails in JS. Translating the classes, or refusing them in `check.go`, keeps the two sides equal.
-- **Size:** small
-- **Found:** 2026-10-24, while reviewing the Go backend
-
-### ConfigExamples.qml is kept only to record fixtures
-- **Where:** `components/methods/ConfigExamples.qml`, `tests/Shared.qml`, `backend/internal/share/`
-- **What:** Nothing at runtime calls `ConfigExamples` any more (axiom's `share` does the work); only `tst_ConfigExamples` and the fixture recording do. It is a second implementation kept in step by hand. Making the `share` fixture suite Go-owned and deleting the QML retires it (`ConfigMigration.qml` stays: it's frozen, and the legacy fixtures' source).
+- **Where:** `backend/internal/schema/yamlsrc/kinds.go` (`orderKeys`), `backend/internal/cli/schema.go` (`schema check`), `backend/internal/config/pipeline.go` (patterns)
+- **What:** `orderKeys` overwrites an author-written `x-order` on every object with more than one property, though `config/schema/annotations.yaml` lets authors write one. `axiom schema check` passes when `config/json/config.schema.json` is missing. Go's RE2 `\S`/`\s` are ASCII-only while JS's are Unicode: a value of only U+00A0 passes `"\\S"` in Go and fails in JS. Translating the classes, or refusing them in `check.go`, keeps the two sides equal.
 - **Size:** small
 - **Found:** 2026-10-24, while reviewing the Go backend
 
@@ -127,8 +115,8 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-20, while tightening AGENTS.md (it was listed there under Known housekeeping)
 
 ### The community setups' check doesn't take monitor places yet
-- **Where:** `services/SavedConfigsManager.qml` (`exportConfig`'s `places`), `components/views/Settings/CommunitySetupsCard.qml` (Export and submit), `components/methods/ConfigExamples.qml` (`pick`'s `monitors`)
-- **What:** An export names each per-monitor part's monitor (`x-monitorRef`: a bar's, dock's, OSD's, edge menu's, strip's, a monitor's own desktop) by its place (`#2`, `@primary`, `*`), so a multi-monitor setup lands on the importer's monitors. Those fields are `machine` scope, and the community-setups repo's CI admits only `look` keys (a walk mirroring `ConfigExamples.pick`), so it would refuse such a file: Export and submit leaves the places out (`exportConfig(false, false, false)`), and a shared setup's second-monitor bar still lands on the importer's bar by position. Its CI needs to admit an `x-monitorRef` field holding a place, and then the card can export with them.
+- **Where:** `services/SavedConfigsManager.qml` (`exportConfig`'s `places`), `components/views/Settings/CommunitySetupsCard.qml` (Export and submit), `backend/internal/share/share.go` (`Pick`'s `monitors`)
+- **What:** An export names each per-monitor part's monitor (`x-monitorRef`: a bar's, dock's, OSD's, edge menu's, strip's, a monitor's own desktop) by its place (`#2`, `@primary`, `*`), so a multi-monitor setup lands on the importer's monitors. Those fields are `machine` scope, and the community-setups repo's CI admits only `look` keys (a walk mirroring `share.Pick`), so it would refuse such a file: Export and submit leaves the places out (`exportConfig(false, false, false)`), and a shared setup's second-monitor bar still lands on the importer's bar by position. Its CI needs to admit an `x-monitorRef` field holding a place, and then the card can export with them.
 - **Size:** small
 - **Found:** 2026-10-20, while aligning the schema's scopes
 
@@ -217,18 +205,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** In the file modes a module `niri validate` refuses sets `CompositorConfigManager.problem` (the Compositor card shows it). The detached mode's module (also the file modes' fallback) is checked the same way, but a refusal is only a `[NiriConfigWriter] niri refuses the config axiom made` warning in the log: the card says nothing, and niri keeps the module before. A raw bind niri refuses is the likely cause.
 - **Size:** small
 - **Found:** 2026-10-17, while auditing the niri branch for merge
-
-### A greeter installed before v63 drops the monitor and keyboard layout
-- **Where:** `components/methods/GreeterBundle.qml` (`exportConfig`), `services/GreeterManager.qml`
-- **What:** An installed greeter on older code reads a v63 bundle without migrating it and prunes `Compositor`, `Monitors` and `Input` as unknown, so until the greeter is updated the login screen loses the monitor layout and, in managed mode, `kbLayout`/`kbOptions` (a password typed on the wrong layout). The outdated notice says to update, but not that it's required. Exporting the legacy `Hyprland.monitors`/`managed` keys for a while, or a firmer notice, would cover it.
-- **Size:** small
-- **Found:** 2026-10-16, while auditing the sway branch for merge
-
-### Migrations read a missing key as off where the old managed config wrote a default
-- **Where:** `components/methods/ConfigMigration.qml` (`_v57ToV58`, `_v58ToV59`, `_v62ToV63`)
-- **What:** Each step moves what's present. A hand-trimmed config (the UI saves every default) loses what the managed file always wrote: no `Hyprland.managed` means no border 2/rounding 8; a missing `dimInactive` (old default on) leaves dim off; missing keyboard keys turn repeat 50/300 back to the compositor's; `shadowThemed` without `shadowColor` becomes the compositor's color, not `base00`. In managed mode a missing key could be read as its old default.
-- **Size:** small
-- **Found:** 2026-10-16, while auditing the sway branch for merge
 
 ### SwayFX remaps the chrome on a fresh qs start
 - **Where:** `services/SwayManager.qml` (`surfacesReady`), `shell/BlurBacking.qml`
@@ -378,12 +354,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Where:** `services/SelfUpdateManager.qml`, `scripts/greeter/greeter_install.sh`
 - **What:** Self-update and the greeter installer work on `Paths.axiomPath` as a git clone. A package manager owns updates, so these should hide or switch when there is no `.git`. Blocks packaging, not the XDG move.
 - **Size:** needs a plan
-- **Found:** 2026-10-15, while moving config and state to the XDG folders
-
-### Old config/state folders are kept in the repo after the XDG move
-- **Where:** `backend/internal/xdg/legacy.go` (`MoveLegacy`)
-- **What:** After moving an install over, `config/user/`, `config/state/` and `config/themes/generated/` are left in place (with `MOVED.md`) so a rollback still finds them. Once rolling back past the move is no longer supported, delete them (or offer to), and drop the move.
-- **Size:** small
 - **Found:** 2026-10-15, while moving config and state to the XDG folders
 
 ### Text input warnings when the desktop takes the keyboard

@@ -1,9 +1,8 @@
 pragma Singleton
 import QtQuick
 
-// Where axiom keeps what it writes (XDG base directories), and where it
-// kept it inside the repo before (the legacy layout, until moved over).
-// Every path ends in a slash. ConfigManager resolves these; Paths hands
+// Where axiom keeps what it writes (XDG base directories). Every path ends
+// in a slash. ConfigManager resolves these; Paths hands
 // them out. Also where to look for data others installed (searchDirs).
 QtObject {
   id: root

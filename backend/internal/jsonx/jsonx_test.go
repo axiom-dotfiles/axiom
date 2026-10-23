@@ -131,7 +131,7 @@ func TestSharedExpectedFilesRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if n < 100 {
+	if n < 10 {
 		t.Fatalf("only %d expected files found", n)
 	}
 }

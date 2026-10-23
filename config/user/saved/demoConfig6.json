@@ -1,0 +1,2987 @@
+{
+  "$schema": "../json/config.schema.json",
+  "version": 46,
+  "General": {
+    "displayName": "travmonkey",
+    "primaryMonitor": "DP-1",
+    "language": "en",
+    "monitors": "primary"
+  },
+  "Appearance": {
+    "wallpaper": "file:///home/travmonkey/Pictures/wallpapers/demacia.jpg",
+    "theme": "kanagawa-lotus",
+    "font": {
+      "family": "IBM Plex Sans",
+      "size": 13
+    },
+    "shape": {
+      "radius": 0,
+      "borderWidth": 4,
+      "screenBorder": true,
+      "screenMargin": 0
+    },
+    "motion": {
+      "enabled": true,
+      "speed": 100
+    },
+    "wallpaperFolder": "~/Pictures/wallpapers",
+    "wallpapers": {
+      "DP-1": "file:///home/travmonkey/Pictures/wallpapers/demacia.jpg"
+    },
+    "wallpaperBackend": "quickshell",
+    "wallpaperMode": "fixed",
+    "wallpaperRotation": {
+      "interval": 30,
+      "order": "random",
+      "sameOnAll": false
+    },
+    "variantWallpapers": {
+      "dark": "file:///home/travmonkey/Pictures/wallpapers/demacia.jpg",
+      "light": "file:///home/travmonkey/Pictures/wallpapers/demacia.jpg"
+    },
+    "themeSchedule": {
+      "enabled": false,
+      "lightAt": "6:00",
+      "darkAt": "18:00"
+    }
+  },
+  "Popouts": {
+    "openDelay": 8,
+    "dismissDelay": 225,
+    "edgeTriggerSize": 5,
+    "padding": 16
+  },
+  "Widget": {
+    "height": 30,
+    "padding": 10,
+    "spacing": 4,
+    "overrideRadius": true,
+    "radius": 0
+  },
+  "Overlay": {
+    "views": [
+      {
+        "type": "Custom",
+        "name": "Home",
+        "modules": [
+          {
+            "type": "ClockCalendar",
+            "properties": {
+              "use24Hour": true,
+              "showSeconds": false,
+              "showEvents": true
+            },
+            "place": {
+              "x": 4,
+              "y": 3,
+              "w": 4,
+              "h": 5
+            }
+          },
+          {
+            "type": "QuickActions",
+            "properties": {
+              "actions": [
+                "wifi",
+                "bluetooth",
+                "caffeine",
+                "dnd",
+                "darkMode",
+                "nightLight"
+              ],
+              "labels": "auto"
+            },
+            "place": {
+              "x": 4,
+              "y": 0,
+              "w": 4,
+              "h": 2
+            }
+          },
+          {
+            "type": "NowPlaying",
+            "place": {
+              "x": 8,
+              "y": 0,
+              "w": 8,
+              "h": 4
+            }
+          },
+          {
+            "type": "AudioMixer",
+            "properties": {
+              "mode": "output"
+            },
+            "place": {
+              "x": 8,
+              "y": 4,
+              "w": 4,
+              "h": 4
+            }
+          },
+          {
+            "type": "Network",
+            "place": {
+              "x": 12,
+              "y": 4,
+              "w": 4,
+              "h": 2
+            }
+          },
+          {
+            "type": "Screenshot",
+            "properties": {
+              "directory": ""
+            },
+            "place": {
+              "x": 14,
+              "y": 6,
+              "w": 2,
+              "h": 2
+            }
+          },
+          {
+            "type": "Notifications",
+            "place": {
+              "x": 16,
+              "y": 0,
+              "w": 4,
+              "h": 4
+            }
+          },
+          {
+            "type": "Weather",
+            "place": {
+              "x": 16,
+              "y": 4,
+              "w": 4,
+              "h": 2
+            }
+          },
+          {
+            "type": "Disks",
+            "properties": {
+              "paths": []
+            },
+            "place": {
+              "x": 16,
+              "y": 6,
+              "w": 4,
+              "h": 2
+            }
+          },
+          {
+            "type": "TopProcesses",
+            "place": {
+              "x": 12,
+              "y": 6,
+              "w": 2,
+              "h": 2
+            },
+            "properties": {
+              "count": 4,
+              "sortBy": "cpu"
+            }
+          },
+          {
+            "type": "WifiNetworks",
+            "place": {
+              "x": 0,
+              "y": 0,
+              "w": 4,
+              "h": 4
+            }
+          },
+          {
+            "type": "QuickActions",
+            "place": {
+              "x": 4,
+              "y": 2,
+              "w": 4,
+              "h": 1
+            },
+            "properties": {
+              "actions": [
+                "lock",
+                "suspend",
+                "hibernate",
+                "logout",
+                "reboot",
+                "poweroff"
+              ],
+              "labels": "auto"
+            }
+          },
+          {
+            "type": "BluetoothDevices",
+            "place": {
+              "x": 0,
+              "y": 4,
+              "w": 4,
+              "h": 4
+            }
+          }
+        ],
+        "icon": "home"
+      },
+      {
+        "type": "Custom",
+        "name": "Tiny",
+        "modules": [
+          {
+            "type": "Battery",
+            "place": {
+              "x": 0,
+              "y": 0,
+              "w": 1,
+              "h": 1
+            }
+          },
+          {
+            "type": "Notifications",
+            "place": {
+              "x": 1,
+              "y": 0,
+              "w": 1,
+              "h": 1
+            }
+          },
+          {
+            "type": "BluetoothDevices",
+            "place": {
+              "x": 2,
+              "y": 0,
+              "w": 1,
+              "h": 1
+            }
+          },
+          {
+            "type": "WifiNetworks",
+            "place": {
+              "x": 3,
+              "y": 0,
+              "w": 1,
+              "h": 1
+            }
+          },
+          {
+            "type": "NowPlaying",
+            "place": {
+              "x": 4,
+              "y": 0,
+              "w": 4,
+              "h": 1
+            }
+          },
+          {
+            "type": "QuickActions",
+            "place": {
+              "x": 8,
+              "y": 0,
+              "w": 4,
+              "h": 1
+            },
+            "properties": {
+              "actions": [
+                "wifi",
+                "bluetooth",
+                "caffeine",
+                "dnd",
+                "darkMode"
+              ],
+              "labels": "auto"
+            }
+          },
+          {
+            "type": "Network",
+            "place": {
+              "x": 12,
+              "y": 0,
+              "w": 4,
+              "h": 1
+            }
+          },
+          {
+            "type": "Weather",
+            "place": {
+              "x": 0,
+              "y": 1,
+              "w": 2,
+              "h": 1
+            }
+          },
+          {
+            "type": "AudioMixer",
+            "place": {
+              "x": 2,
+              "y": 1,
+              "w": 2,
+              "h": 1
+            },
+            "properties": {
+              "mode": "output"
+            }
+          },
+          {
+            "type": "Disks",
+            "place": {
+              "x": 4,
+              "y": 1,
+              "w": 4,
+              "h": 1
+            },
+            "properties": {
+              "paths": [
+                "/"
+              ]
+            }
+          },
+          {
+            "type": "ClockCalendar",
+            "place": {
+              "x": 8,
+              "y": 1,
+              "w": 4,
+              "h": 1
+            },
+            "properties": {
+              "use24Hour": true,
+              "showSeconds": false,
+              "showEvents": true
+            }
+          },
+          {
+            "type": "VolumeDials",
+            "place": {
+              "x": 12,
+              "y": 1,
+              "w": 4,
+              "h": 1
+            }
+          },
+          {
+            "type": "SystemGraphs",
+            "place": {
+              "x": 0,
+              "y": 2,
+              "w": 2,
+              "h": 2
+            },
+            "properties": {
+              "metrics": [
+                "cpu",
+                "mem"
+              ]
+            }
+          },
+          {
+            "type": "Updates",
+            "place": {
+              "x": 2,
+              "y": 2,
+              "w": 2,
+              "h": 2
+            },
+            "properties": {
+              "intervalMinutes": 60,
+              "includeAur": false,
+              "aurHelper": "paru"
+            }
+          },
+          {
+            "type": "TopProcesses",
+            "place": {
+              "x": 4,
+              "y": 2,
+              "w": 3,
+              "h": 2
+            },
+            "properties": {
+              "count": 8,
+              "sortBy": "cpu"
+            }
+          },
+          {
+            "type": "Favourites",
+            "place": {
+              "x": 7,
+              "y": 2,
+              "w": 4,
+              "h": 1
+            },
+            "properties": {
+              "apps": [],
+              "showLabels": true
+            }
+          },
+          {
+            "type": "Screenshot",
+            "place": {
+              "x": 7,
+              "y": 3,
+              "w": 4,
+              "h": 1
+            },
+            "properties": {
+              "directory": "~/Pictures/Screenshots"
+            }
+          },
+          {
+            "type": "WorkspacesMap",
+            "place": {
+              "x": 11,
+              "y": 2,
+              "w": 3,
+              "h": 2
+            },
+            "properties": {
+              "showEmpty": true
+            }
+          },
+          {
+            "type": "ColorSwatch",
+            "place": {
+              "x": 14,
+              "y": 2,
+              "w": 1,
+              "h": 1
+            },
+            "properties": {
+              "color": "base0D",
+              "label": "accent"
+            }
+          },
+          {
+            "type": "ColorSwatch",
+            "place": {
+              "x": 15,
+              "y": 2,
+              "w": 1,
+              "h": 1
+            },
+            "properties": {
+              "color": "base08",
+              "label": "error"
+            }
+          },
+          {
+            "type": "Chat",
+            "place": {
+              "x": 14,
+              "y": 3,
+              "w": 1,
+              "h": 1
+            }
+          },
+          {
+            "type": "Notes",
+            "place": {
+              "x": 15,
+              "y": 3,
+              "w": 1,
+              "h": 1
+            },
+            "properties": {
+              "note": "",
+              "lockNote": false,
+              "showHeader": true,
+              "showToolbar": true,
+              "showCompleted": true
+            }
+          },
+          {
+            "type": "ClockCalendar",
+            "place": {
+              "x": 0,
+              "y": 4,
+              "w": 4,
+              "h": 2
+            },
+            "properties": {
+              "use24Hour": true,
+              "showSeconds": false,
+              "showEvents": true
+            }
+          },
+          {
+            "type": "Weather",
+            "place": {
+              "x": 4,
+              "y": 4,
+              "w": 3,
+              "h": 3
+            }
+          },
+          {
+            "type": "ThemePicker",
+            "place": {
+              "x": 7,
+              "y": 4,
+              "w": 2,
+              "h": 2
+            }
+          },
+          {
+            "type": "AudioMixer",
+            "place": {
+              "x": 11,
+              "y": 4,
+              "w": 4,
+              "h": 2
+            },
+            "properties": {
+              "mode": "output"
+            }
+          },
+          {
+            "type": "Updates",
+            "place": {
+              "x": 15,
+              "y": 4,
+              "w": 1,
+              "h": 4
+            },
+            "properties": {
+              "intervalMinutes": 60,
+              "includeAur": false,
+              "aurHelper": "paru"
+            }
+          },
+          {
+            "type": "Battery",
+            "place": {
+              "x": 0,
+              "y": 6,
+              "w": 4,
+              "h": 1
+            }
+          },
+          {
+            "type": "NowPlaying",
+            "place": {
+              "x": 0,
+              "y": 7,
+              "w": 1,
+              "h": 1
+            }
+          },
+          {
+            "type": "VolumeDials",
+            "place": {
+              "x": 1,
+              "y": 7,
+              "w": 3,
+              "h": 1
+            }
+          },
+          {
+            "type": "SystemGraphs",
+            "place": {
+              "x": 4,
+              "y": 7,
+              "w": 3,
+              "h": 1
+            },
+            "properties": {
+              "metrics": [
+                "cpu",
+                "mem"
+              ]
+            }
+          },
+          {
+            "type": "Network",
+            "place": {
+              "x": 7,
+              "y": 6,
+              "w": 2,
+              "h": 2
+            }
+          },
+          {
+            "type": "Notifications",
+            "place": {
+              "x": 9,
+              "y": 4,
+              "w": 2,
+              "h": 4
+            }
+          },
+          {
+            "type": "NowPlaying",
+            "place": {
+              "x": 11,
+              "y": 6,
+              "w": 4,
+              "h": 2
+            }
+          }
+        ],
+        "icon": ""
+      },
+      {
+        "type": "CalendarPage"
+      },
+      {
+        "type": "Settings"
+      },
+      {
+        "type": "Themes"
+      },
+      {
+        "type": "Keybinds"
+      },
+      {
+        "type": "BarEditor"
+      },
+      {
+        "type": "Monitors"
+      }
+    ],
+    "size": 120,
+    "monitors": "general",
+    "closeOnEscape": true,
+    "closeOnOutsideClick": true
+  },
+  "Bars": [
+    {
+      "id": "top",
+      "enabled": true,
+      "monitor": "",
+      "location": "Top",
+      "background": "solid",
+      "widgetSize": 28,
+      "padding": 0,
+      "spacing": 0,
+      "widgetPadding": 14,
+      "widgets": {
+        "left": [
+          {
+            "type": "Button",
+            "properties": {
+              "icon": "apps",
+              "action": "appLauncher",
+              "label": "",
+              "tooltip": "",
+              "page": "",
+              "menu": "",
+              "command": "",
+              "rightCommand": "",
+              "middleCommand": "",
+              "hoverActivate": false,
+              "labelCommand": "",
+              "labelInterval": 5000,
+              "backgroundColor": "",
+              "foregroundColor": "base00"
+            },
+            "layout": {}
+          },
+          {
+            "type": "Workspaces",
+            "properties": {
+              "labels": "numbers",
+              "showEmpty": true,
+              "monitorOnly": true,
+              "wideActive": true,
+              "showAppIcons": false,
+              "relativeNumbers": false,
+              "showActiveIcon": true,
+              "showPopout": true,
+              "clickToSwitch": true,
+              "scrollToSwitch": true,
+              "backgroundColor": "",
+              "activeColor": "",
+              "occupiedColor": "base04",
+              "emptyColor": "base01",
+              "textColor": "base00"
+            },
+            "layout": {}
+          }
+        ],
+        "leftCenter": [],
+        "center": [
+          {
+            "type": "Time",
+            "properties": {
+              "use24Hour": false,
+              "showSeconds": false,
+              "showDate": true,
+              "timeFormat": "",
+              "dateFormat": "",
+              "verticalDate": "day",
+              "showCalendar": true,
+              "backgroundColor": "",
+              "foregroundColor": "base00"
+            },
+            "layout": {}
+          }
+        ],
+        "rightCenter": [],
+        "right": [
+          {
+            "type": "Volume",
+            "layout": {},
+            "properties": {
+              "showPercentage": false,
+              "scrollStep": 5,
+              "maxVolume": 100,
+              "showPopout": true,
+              "middleCommand": "pavucontrol",
+              "backgroundColor": "",
+              "mutedColor": "",
+              "foregroundColor": "base00"
+            }
+          },
+          {
+            "type": "Bluetooth",
+            "layout": {},
+            "properties": {
+              "showDevice": true,
+              "showBattery": true,
+              "hideWhenOff": false,
+              "showPopout": true,
+              "middleCommand": "",
+              "backgroundColor": "",
+              "connectedColor": "",
+              "disabledColor": "",
+              "foregroundColor": "base00"
+            }
+          },
+          {
+            "type": "Network",
+            "layout": {},
+            "properties": {
+              "showName": false,
+              "showPopout": true,
+              "middleCommand": "",
+              "backgroundColor": "",
+              "disconnectedColor": "",
+              "foregroundColor": "base00"
+            }
+          },
+          {
+            "type": "Notifications",
+            "layout": {},
+            "properties": {
+              "showCount": true,
+              "showPopout": true,
+              "backgroundColor": "",
+              "foregroundColor": "base00",
+              "dndColor": "",
+              "badgeColor": ""
+            }
+          },
+          {
+            "type": "Button",
+            "properties": {
+              "icon": "power_settings_new",
+              "action": "powerMenu",
+              "label": "",
+              "tooltip": "",
+              "page": "",
+              "menu": "",
+              "command": "",
+              "rightCommand": "",
+              "middleCommand": "",
+              "hoverActivate": false,
+              "labelCommand": "",
+              "labelInterval": 5000,
+              "backgroundColor": "",
+              "foregroundColor": "base00"
+            },
+            "layout": {}
+          }
+        ]
+      },
+      "floatGap": 8,
+      "pillPadding": 4,
+      "pillMerge": 12,
+      "lockCenter": false,
+      "reserveSpace": true,
+      "widgetSpacing": 4,
+      "overrideFontSize": false,
+      "fontSize": 14,
+      "overrideRadius": false,
+      "widgetRadius": 6,
+      "overrideWidgetStyle": false,
+      "widgetStyle": "filled",
+      "tintOpacity": 20,
+      "outlineWidth": 2,
+      "lineWidth": 2,
+      "lineSide": "inner",
+      "widgetShape": "rounded",
+      "widgetGrouping": "separate",
+      "widgetEnds": "shaped",
+      "groupColor": "backgroundAlt",
+      "widgetTextColor": "",
+      "overrideAccents": false,
+      "separatorStyle": "none",
+      "separatorColor": "base03",
+      "separatorThickness": 2,
+      "accentLine": "none",
+      "accentLineColor": "accent",
+      "accentLineFade": "",
+      "accentLineWidth": 2,
+      "overrideShadow": false,
+      "shadow": "none",
+      "shadowColor": "",
+      "shadowSize": 12
+    },
+    {
+      "id": "bottom",
+      "enabled": true,
+      "monitor": "",
+      "location": "Bottom",
+      "background": "transparent",
+      "widgetSize": 22,
+      "padding": 2,
+      "spacing": 10,
+      "widgetPadding": 6,
+      "overrideWidgetStyle": true,
+      "widgetStyle": "plain",
+      "widgetShape": "rounded",
+      "widgetGrouping": "separate",
+      "overrideAccents": true,
+      "separatorStyle": "slash",
+      "separatorColor": "base03",
+      "widgets": {
+        "left": [
+          {
+            "type": "Window",
+            "layout": {},
+            "properties": {
+              "icon": "",
+              "emptyText": "—",
+              "backgroundColor": "",
+              "foregroundColor": "base00"
+            }
+          }
+        ],
+        "leftCenter": [],
+        "center": [
+          {
+            "type": "Media",
+            "properties": {
+              "showArtist": true,
+              "artistLength": 18,
+              "idleText": "No player",
+              "showPopout": true,
+              "playingColor": "",
+              "pausedColor": "",
+              "foregroundColor": "base00"
+            },
+            "layout": {}
+          }
+        ],
+        "rightCenter": [],
+        "right": [
+          {
+            "type": "SystemStats",
+            "properties": {
+              "showCpu": true,
+              "showMemory": true,
+              "showTemp": true,
+              "showGpu": true,
+              "showDisk": true,
+              "memoryFormat": "percent",
+              "diskPath": "/",
+              "interval": 2000,
+              "showPopout": true,
+              "warnThreshold": 90,
+              "backgroundColor": "",
+              "warnColor": "",
+              "foregroundColor": "base00"
+            },
+            "layout": {}
+          },
+          {
+            "type": "Updates",
+            "properties": {
+              "hideWhenEmpty": false,
+              "includeAur": false,
+              "aurHelper": "paru",
+              "intervalMinutes": 30,
+              "showPopout": true,
+              "terminal": "",
+              "upgradeCommand": "",
+              "manyThreshold": 50,
+              "backgroundColor": "",
+              "manyColor": "",
+              "foregroundColor": "base00"
+            },
+            "layout": {}
+          },
+          {
+            "type": "KeyboardLayout",
+            "properties": {
+              "format": "full",
+              "hideSingle": false,
+              "backgroundColor": "",
+              "foregroundColor": "base00"
+            },
+            "layout": {}
+          }
+        ]
+      },
+      "floatGap": 8,
+      "pillPadding": 4,
+      "pillMerge": 12,
+      "lockCenter": false,
+      "reserveSpace": true,
+      "widgetSpacing": 4,
+      "overrideFontSize": false,
+      "fontSize": 14,
+      "overrideRadius": false,
+      "widgetRadius": 6,
+      "tintOpacity": 20,
+      "outlineWidth": 2,
+      "lineWidth": 2,
+      "lineSide": "inner",
+      "widgetEnds": "shaped",
+      "groupColor": "backgroundAlt",
+      "widgetTextColor": "",
+      "separatorThickness": 2,
+      "accentLine": "none",
+      "accentLineColor": "accent",
+      "accentLineFade": "",
+      "accentLineWidth": 2,
+      "overrideShadow": false,
+      "shadow": "none",
+      "shadowColor": "",
+      "shadowSize": 12
+    }
+  ],
+  "Chat": {
+    "defaultProvider": "gemini",
+    "providers": [
+      {
+        "id": "anthropic",
+        "name": "Anthropic",
+        "kind": "anthropic",
+        "baseUrl": "https://api.anthropic.com/v1",
+        "auth": "key",
+        "keyEnv": "ANTHROPIC_API_KEY",
+        "models": [
+          "claude-opus-5",
+          "claude-sonnet-5",
+          "claude-haiku-4-5",
+          "claude-fable-5-1",
+          "claude-opus-5-5"
+        ],
+        "defaultModel": "claude-opus-5",
+        "fallbacks": true
+      },
+      {
+        "id": "openai",
+        "name": "OpenAI",
+        "kind": "openai",
+        "baseUrl": "https://api.openai.com/v1",
+        "auth": "key",
+        "keyEnv": "OPENAI_API_KEY",
+        "models": [
+          "gpt-5",
+          "gpt-5-mini",
+          "gpt-4"
+        ],
+        "defaultModel": "gpt-5",
+        "fallbacks": false
+      },
+      {
+        "id": "gemini",
+        "name": "Gemini",
+        "kind": "gemini",
+        "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+        "auth": "key",
+        "keyEnv": "GEMINI_API_KEY",
+        "models": [
+          "gemini-2.5-pro",
+          "gemini-2.5-flash"
+        ],
+        "defaultModel": "gemini-2.5-flash",
+        "fallbacks": false
+      },
+      {
+        "id": "ollama",
+        "name": "Ollama",
+        "kind": "openai",
+        "baseUrl": "http://localhost:11434/v1",
+        "auth": "none",
+        "keyEnv": "",
+        "models": [],
+        "defaultModel": "",
+        "fallbacks": false
+      }
+    ],
+    "defaultPreset": "Default",
+    "maxTokens": 16000,
+    "keepConversations": 50,
+    "showThinking": true,
+    "renderMarkdown": true,
+    "sendKey": "enter",
+    "presets": [
+      {
+        "name": "Default",
+        "icon": "chat",
+        "systemPrompt": "You are a helpful assistant built into the user's Linux desktop. Answer concisely, and use Markdown when it helps.",
+        "provider": "",
+        "model": "",
+        "effort": "default"
+      },
+      {
+        "name": "Coder",
+        "icon": "code",
+        "systemPrompt": "You are an expert programmer. Lead with working code, then explain briefly. Prefer small, idiomatic changes.",
+        "provider": "",
+        "model": "",
+        "effort": "high"
+      }
+    ]
+  },
+  "ThemeIntegrations": {
+    "kitty": true,
+    "k9s": true,
+    "cava": true,
+    "nvim": true,
+    "gtk": true,
+    "qt": true,
+    "alacritty": true,
+    "foot": true,
+    "wezterm": true,
+    "ghostty": true,
+    "helix": true,
+    "vscode": true,
+    "btop": true,
+    "fzf": true,
+    "lazygit": true,
+    "bat": true,
+    "yazi": true,
+    "vesktop": true,
+    "ncspot": true,
+    "firefox": true,
+    "zathura": true,
+    "zed": true
+  },
+  "OSD": {
+    "enabled": true,
+    "osds": [
+      {
+        "id": "main",
+        "monitors": "general",
+        "edge": "Right",
+        "position": 50,
+        "orientation": "Vertical",
+        "alongEdge": true,
+        "openOnHover": false,
+        "timeout": 1000,
+        "bars": [
+          {
+            "type": "app",
+            "icon": "web",
+            "showOsd": true,
+            "apps": [
+              "Zen"
+            ]
+          },
+          {
+            "type": "app",
+            "icon": "chat",
+            "showOsd": true,
+            "apps": [
+              "vesktop"
+            ]
+          },
+          {
+            "type": "other",
+            "icon": "stadia_controller",
+            "showOsd": true,
+            "apps": []
+          },
+          {
+            "type": "app",
+            "icon": "music_note",
+            "showOsd": true,
+            "apps": [
+              "ncspot",
+              "Spotify"
+            ]
+          },
+          {
+            "type": "master",
+            "icon": "",
+            "showOsd": true,
+            "apps": []
+          }
+        ],
+        "name": "Deej",
+        "enabled": true,
+        "showPercent": false,
+        "monitor": "",
+        "detached": false,
+        "gap": -1
+      },
+      {
+        "id": "osd",
+        "bars": [
+          {
+            "type": "brightness",
+            "icon": "",
+            "showOsd": true,
+            "apps": []
+          },
+          {
+            "icon": "",
+            "showOsd": true,
+            "type": "microphone",
+            "apps": []
+          }
+        ],
+        "name": "Utils",
+        "enabled": true,
+        "monitors": "general",
+        "edge": "Right",
+        "position": 85,
+        "orientation": "Vertical",
+        "alongEdge": true,
+        "openOnHover": true,
+        "timeout": 1000,
+        "showPercent": false,
+        "monitor": "",
+        "detached": false,
+        "gap": -1
+      }
+    ],
+    "scrollToChange": true,
+    "scrollStep": 5
+  },
+  "Icons": {
+    "overrides": {}
+  },
+  "Lockscreen": {
+    "mode": "quickshell",
+    "lockCommand": "loginctl lock-session",
+    "blurWallpaper": true,
+    "layout": {
+      "modules": [
+        {
+          "type": "Greeting",
+          "place": {
+            "x": 18,
+            "y": 5,
+            "w": 8,
+            "h": 2
+          },
+          "properties": {
+            "text": "",
+            "color": "base07",
+            "alignment": "center",
+            "bold": true
+          }
+        },
+        {
+          "type": "NowPlaying",
+          "place": {
+            "x": 16,
+            "y": 10,
+            "w": 10,
+            "h": 2
+          }
+        },
+        {
+          "type": "Password",
+          "place": {
+            "x": 20,
+            "y": 9,
+            "w": 4,
+            "h": 1
+          },
+          "properties": {
+            "placeholder": "",
+            "centered": true,
+            "showMessages": true
+          }
+        },
+        {
+          "type": "ClockCalendar",
+          "place": {
+            "x": 22,
+            "y": 12,
+            "w": 6,
+            "h": 4
+          },
+          "properties": {
+            "use24Hour": true,
+            "showSeconds": false,
+            "showEvents": true
+          }
+        },
+        {
+          "type": "Weather",
+          "place": {
+            "x": 16,
+            "y": 12,
+            "w": 6,
+            "h": 4
+          }
+        },
+        {
+          "type": "VolumeDials",
+          "place": {
+            "x": 26,
+            "y": 10,
+            "w": 2,
+            "h": 2
+          }
+        },
+        {
+          "type": "Power",
+          "place": {
+            "x": 36,
+            "y": 16,
+            "w": 6,
+            "h": 2
+          },
+          "properties": {
+            "actions": [
+              "suspend",
+              "reboot",
+              "poweroff"
+            ]
+          }
+        }
+      ],
+      "columns": 21,
+      "rows": 9,
+      "otherScreens": "background",
+      "background": "wallpaper",
+      "backgroundColor": "base00",
+      "dim": 40,
+      "moduleBorders": true,
+      "passwordBorder": true,
+      "greetingBorder": false,
+      "fineGrid": true
+    }
+  },
+  "WorkspaceOverlay": {
+    "background": "color",
+    "color": "base01",
+    "dimInactive": 50,
+    "size": 85,
+    "backdrop": 70,
+    "showNumbers": true,
+    "showTitles": true,
+    "showHint": true
+  },
+  "Launcher": {
+    "position": "top",
+    "width": 710,
+    "maxResults": 8,
+    "iconSize": 32,
+    "showBackdrop": true,
+    "backdrop": 25,
+    "showDescriptions": true,
+    "showRecent": true,
+    "showHint": true,
+    "hiddenApps": [],
+    "windows": true,
+    "calculator": true,
+    "commands": true,
+    "runCommands": true,
+    "webSearch": true,
+    "searchEngine": "https://duckduckgo.com/?q={}",
+    "reverse": false,
+    "monitors": "general",
+    "chat": true,
+    "clipboard": true,
+    "clipboardSource": "cliphist",
+    "clipboardMaxEntries": 100,
+    "emoji": true
+  },
+  "Workspaces": {
+    "layout": "standard",
+    "count": 8,
+    "columns": 5,
+    "rows": 5,
+    "wrap": true,
+    "animate": true,
+    "strips": [],
+    "stripColumnWidth": 50,
+    "stripFollowFocus": true
+  },
+  "Hyprland": {
+    "mode": "managed",
+    "requiredSettings": true,
+    "theme": true,
+    "wallpaperDaemon": true,
+    "binds": [
+      {
+        "key": "SUPER + mouse_down",
+        "action": "focusDir",
+        "argument": "right",
+        "call": "toggle",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false
+      },
+      {
+        "key": "SUPER + mouse_up",
+        "action": "focusDir",
+        "argument": "left",
+        "call": "toggle",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false
+      },
+      {
+        "key": "CTRL + SHIFT + Tab",
+        "action": "windowSwitcherReverse",
+        "argument": "",
+        "call": "toggle",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false
+      },
+      {
+        "key": "SUPER + space",
+        "action": "launcher",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + space",
+        "action": "workspaceOverview",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + Tab",
+        "action": "overlay",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + A",
+        "action": "workspaceStep",
+        "argument": "left",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + D",
+        "action": "workspaceStep",
+        "argument": "right",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + W",
+        "action": "workspaceStep",
+        "argument": "up",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + S",
+        "action": "workspaceStep",
+        "argument": "down",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + A",
+        "action": "moveWindowStep",
+        "argument": "left",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + D",
+        "action": "moveWindowStep",
+        "argument": "right",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + W",
+        "action": "moveWindowStep",
+        "argument": "up",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + S",
+        "action": "moveWindowStep",
+        "argument": "down",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + 1",
+        "action": "workspaceNth",
+        "argument": "1",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + 2",
+        "action": "workspaceNth",
+        "argument": "2",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + 3",
+        "action": "workspaceNth",
+        "argument": "3",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + 4",
+        "action": "workspaceNth",
+        "argument": "4",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + 5",
+        "action": "workspaceNth",
+        "argument": "5",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + 1",
+        "action": "moveWindowNth",
+        "argument": "1",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + 2",
+        "action": "moveWindowNth",
+        "argument": "2",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + 3",
+        "action": "moveWindowNth",
+        "argument": "3",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + 4",
+        "action": "moveWindowNth",
+        "argument": "4",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + 5",
+        "action": "moveWindowNth",
+        "argument": "5",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + R",
+        "action": "exec",
+        "argument": "/home/travmonkey/.config/hypr/user/scripts/rotateMonitor.sh",
+        "description": "Media: Rotate Monitor",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + h",
+        "action": "focusDir",
+        "argument": "left",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + j",
+        "action": "focusDir",
+        "argument": "down",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + k",
+        "action": "focusDir",
+        "argument": "up",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + l",
+        "action": "focusDir",
+        "argument": "right",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + h",
+        "action": "moveWindowDir",
+        "argument": "left",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + j",
+        "action": "moveWindowDir",
+        "argument": "down",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + k",
+        "action": "moveWindowDir",
+        "argument": "up",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + l",
+        "action": "moveWindowDir",
+        "argument": "right",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + f",
+        "action": "fullscreen",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + c",
+        "action": "closeWindow",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + z",
+        "action": "toggleFloat",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + CTRL + h",
+        "action": "resizeWindow",
+        "argument": "-50 0",
+        "description": "",
+        "repeating": true,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + CTRL + l",
+        "action": "resizeWindow",
+        "argument": "50 0",
+        "description": "",
+        "repeating": true,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + CTRL + j",
+        "action": "resizeWindow",
+        "argument": "0 50",
+        "description": "",
+        "repeating": true,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + CTRL + k",
+        "action": "resizeWindow",
+        "argument": "0 -50",
+        "description": "",
+        "repeating": true,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + CTRL + r",
+        "action": "restartShell",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": true,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + mouse:272",
+        "action": "mouseDrag",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + mouse:273",
+        "action": "mouseResize",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + g",
+        "action": "toggleSpecial",
+        "argument": "gaming",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + g",
+        "action": "moveToSpecial",
+        "argument": "gaming",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + v",
+        "action": "toggleSpecial",
+        "argument": "special",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + v",
+        "action": "moveToSpecial",
+        "argument": "special",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + q",
+        "action": "terminal",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + q",
+        "action": "browser",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + e",
+        "action": "fileManager",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + t",
+        "action": "exec",
+        "argument": "kitty --title \"btop\" -e btop",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + b",
+        "action": "exec",
+        "argument": "pavucontrol",
+        "description": "Media: Pavucontrol",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + c",
+        "action": "exec",
+        "argument": "element-desktop",
+        "description": "Apps: Element",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + e",
+        "action": "exec",
+        "argument": "vesktop",
+        "description": "Apps: Vesktop",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + CTRL + s",
+        "action": "exec",
+        "argument": "rm -f /tmp/ocr-input.png && rm -f /tmp/ocr-done && /home/travmonkey/.config/hypr/user/scripts/grimblast.sh --freeze save area /tmp/ocr-input.png",
+        "description": "Apps: Screenshot to OCR",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "XF86AudioPause",
+        "action": "mediaPlayPause",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": true,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "XF86AudioPlay",
+        "action": "mediaPlayPause",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": true,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "XF86AudioNext",
+        "action": "mediaNext",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": true,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "XF86AudioPrev",
+        "action": "mediaPrevious",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": true,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "XF86AudioStop",
+        "action": "mediaStop",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": true,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "XF86AudioRaiseVolume",
+        "action": "volumeUp",
+        "argument": "",
+        "description": "",
+        "repeating": true,
+        "locked": true,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "XF86AudioLowerVolume",
+        "action": "volumeDown",
+        "argument": "",
+        "description": "",
+        "repeating": true,
+        "locked": true,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "XF86AudioMute",
+        "action": "toggleMicMute",
+        "argument": "",
+        "description": "",
+        "repeating": false,
+        "locked": true,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "XF86MonBrightnessUp",
+        "action": "brightnessUp",
+        "argument": "",
+        "description": "",
+        "repeating": true,
+        "locked": true,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "XF86MonBrightnessDown",
+        "action": "brightnessDown",
+        "argument": "",
+        "description": "",
+        "repeating": true,
+        "locked": true,
+        "release": false,
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + SHIFT + Escape",
+        "action": "exitHyprland",
+        "release": true,
+        "argument": "",
+        "repeating": false,
+        "locked": false,
+        "description": "",
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + CTRL + S",
+        "action": "screenshot",
+        "argument": "region",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "description": "",
+        "call": "toggle"
+      },
+      {
+        "key": "SHIFT + Print",
+        "action": "screenshot",
+        "argument": "window",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "description": "",
+        "call": "toggle"
+      },
+      {
+        "key": "SUPER + Print",
+        "action": "screenshot",
+        "argument": "screen",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "description": "",
+        "call": "toggle"
+      },
+      {
+        "key": "CTRL + Tab",
+        "action": "windowSwitcher",
+        "argument": "",
+        "call": "toggle",
+        "description": "",
+        "repeating": false,
+        "locked": false,
+        "release": false
+      },
+      {
+        "key": "SUPER + X",
+        "action": "toggleSplit",
+        "argument": "",
+        "call": "toggle",
+        "repeating": false,
+        "locked": false,
+        "release": false,
+        "description": ""
+      }
+    ],
+    "managed": {
+      "layout": "dwindle",
+      "preserveSplit": true,
+      "gapsIn": 3,
+      "gapsOut": 6,
+      "borderSize": 3,
+      "rounding": 4,
+      "resizeOnBorder": true,
+      "windowBlur": true,
+      "blurSize": 4,
+      "blurPasses": 2,
+      "dimInactive": true,
+      "dimStrength": 8,
+      "animations": true,
+      "kbLayout": "us",
+      "repeatRate": 50,
+      "numlockByDefault": true,
+      "repeatDelay": 300,
+      "followMouse": true,
+      "accelProfile": "flat",
+      "naturalScroll": false,
+      "cursorTheme": "Oxygen-06-Magenta",
+      "cursorSize": 24,
+      "matchAxiom": true,
+      "smartSplit": false,
+      "smartResizing": true,
+      "forceSplit": "0",
+      "splitRatio": 100,
+      "masterSize": 55,
+      "masterOrientation": "left",
+      "masterNewStatus": "slave",
+      "snap": false,
+      "activeOpacity": 100,
+      "inactiveOpacity": 100,
+      "fullscreenOpacity": 100,
+      "dimSpecial": 20,
+      "blurXray": true,
+      "blurIgnoreOpacity": true,
+      "blurNewOptimizations": true,
+      "blurNoise": 12,
+      "blurContrast": 89,
+      "blurVibrancy": 17,
+      "blurPopups": false,
+      "blurSpecial": false,
+      "shadow": true,
+      "shadowRange": 4,
+      "shadowPower": 3,
+      "shadowThemed": false,
+      "shadowColor": "base00",
+      "animationPreset": "custom",
+      "workspaceWraparound": false,
+      "curves": [
+        {
+          "name": "myBezier",
+          "points": "0.05, 0.9, 0.1, 1"
+        },
+        {
+          "name": "linear",
+          "points": "0, 0, 1, 1"
+        },
+        {
+          "name": "wind",
+          "points": "0.05, 0.9, 0.1, 1"
+        },
+        {
+          "name": "winIn",
+          "points": "0.1, 1.1, 0.1, 1"
+        },
+        {
+          "name": "winOut",
+          "points": "0.3, -0.3, 0, 1"
+        },
+        {
+          "name": "slow",
+          "points": "0, 0.85, 0.3, 1"
+        },
+        {
+          "name": "overshot",
+          "points": "0.7, 0.6, 0.1, 1.1"
+        },
+        {
+          "name": "bounce",
+          "points": "1.1, 1.6, 0.1, 0.85"
+        },
+        {
+          "name": "slingshot",
+          "points": "1, -1, 0.15, 1.25"
+        },
+        {
+          "name": "nice",
+          "points": "0, 2, 0.5, -1"
+        },
+        {
+          "name": "md3_decel",
+          "points": "0.05, 0.7, 0.1, 1"
+        }
+      ],
+      "customAnimations": [
+        {
+          "leaf": "windowsIn",
+          "enabled": true,
+          "durationMs": 50,
+          "curve": "slow",
+          "style": "popin"
+        },
+        {
+          "leaf": "windowsOut",
+          "enabled": true,
+          "durationMs": 50,
+          "curve": "winOut",
+          "style": "popin"
+        },
+        {
+          "leaf": "windowsMove",
+          "enabled": true,
+          "durationMs": 70,
+          "curve": "wind",
+          "style": "slide"
+        },
+        {
+          "leaf": "fade",
+          "enabled": true,
+          "durationMs": 200,
+          "curve": "overshot",
+          "style": ""
+        },
+        {
+          "leaf": "workspaces",
+          "enabled": true,
+          "durationMs": 250,
+          "curve": "wind",
+          "style": "fade"
+        },
+        {
+          "leaf": "windows",
+          "enabled": true,
+          "durationMs": 200,
+          "curve": "bounce",
+          "style": "popin"
+        },
+        {
+          "leaf": "specialWorkspace",
+          "enabled": true,
+          "durationMs": 80,
+          "curve": "md3_decel",
+          "style": "slidevert"
+        }
+      ],
+      "kbVariant": "",
+      "kbOptions": "",
+      "floatSwitchOverrideFocus": "0",
+      "sensitivity": 0,
+      "leftHanded": false,
+      "cursorHideTimeout": 0,
+      "hideCursorOnKeyPress": false,
+      "noWarps": false,
+      "tapToClick": true,
+      "disableWhileTyping": true,
+      "touchpadScrollFactor": 100,
+      "hideLogo": true,
+      "backgroundThemed": true,
+      "backgroundColor": "base00",
+      "focusOnActivate": true,
+      "swallow": true,
+      "swallowRegex": "^(kitty)$",
+      "closeSpecialOnEmpty": true,
+      "hideSpecialOnWorkspaceChange": false,
+      "workspaceBackAndForth": false,
+      "mouseWakesScreen": true,
+      "keyWakesScreen": false,
+      "vrr": "0",
+      "scrollEventDelay": 0,
+      "xwaylandZeroScaling": true,
+      "env": [
+        {
+          "name": "QT_QPA_PLATFORM",
+          "value": "wayland"
+        },
+        {
+          "name": "QT_QPA_PLATFORMTHEME",
+          "value": "qt6ct"
+        },
+        {
+          "name": "XDG_CONFIG_HOME",
+          "value": "/home/travmonkey/.config"
+        }
+      ],
+      "autostart": [
+        {
+          "command": "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP",
+          "enabled": true
+        },
+        {
+          "command": "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP",
+          "enabled": true
+        },
+        {
+          "command": "hypridle",
+          "enabled": true
+        },
+        {
+          "command": "nm-applet",
+          "enabled": true
+        },
+        {
+          "command": "tailscale systray",
+          "enabled": true
+        },
+        {
+          "command": "systemctl --user start hyprpolkitagent",
+          "enabled": true
+        },
+        {
+          "command": "fcitx5 -d --replace",
+          "enabled": true
+        },
+        {
+          "command": "xrandr --output DP-1 --primary",
+          "enabled": true
+        },
+        {
+          "command": "easyeffects --gapplication-service",
+          "enabled": true
+        },
+        {
+          "command": "wl-paste --type text --watch cliphist store",
+          "enabled": true
+        },
+        {
+          "command": "protonmail-bridge --no-window",
+          "enabled": true
+        },
+        {
+          "command": "gtk-launch deej",
+          "enabled": true
+        }
+      ]
+    },
+    "monitors": {
+      "profiles": [
+        {
+          "name": "レイアウト 1",
+          "outputs": [
+            {
+              "output": "desc:AOC CU34G4Z XJ9R7HA000231",
+              "label": "DP-1",
+              "mode": "3440x1440@240",
+              "x": 15,
+              "y": 83,
+              "scale": 1,
+              "transform": 0,
+              "disabled": false,
+              "mirror": "",
+              "vrr": 0,
+              "bitdepth": 8,
+              "cm": "srgb",
+              "sdrBrightness": 1,
+              "sdrSaturation": 1
+            }
+          ]
+        }
+      ]
+    },
+    "blur": true
+  },
+  "SelfUpdate": {
+    "mode": "notify",
+    "channel": "main"
+  },
+  "PowerMenu": {
+    "monitors": "general",
+    "actions": [
+      "lock",
+      "suspend",
+      "hibernate",
+      "logout",
+      "reboot",
+      "poweroff"
+    ],
+    "confirm": true,
+    "tileSize": 120,
+    "showHeader": true,
+    "showHint": true,
+    "showBackdrop": true,
+    "backdrop": 35
+  },
+  "Notifications": {
+    "position": "topLeft",
+    "evenGaps": true,
+    "gap": 12,
+    "gapTop": 12,
+    "gapBottom": 12,
+    "gapLeft": 12,
+    "gapRight": 12,
+    "monitors": "general",
+    "timeout": 5,
+    "appTimeouts": true,
+    "criticalStays": true,
+    "maxToasts": 5,
+    "width": 360,
+    "quietFullscreen": true,
+    "clearOnFocus": true,
+    "removeOnClick": true,
+    "closeRemoves": true,
+    "maxEntries": 100,
+    "maxAgeDays": 0
+  },
+  "EdgeMenus": [
+    {
+      "id": "left-menu",
+      "name": "Left menu",
+      "monitor": "DP-1",
+      "edge": "Left",
+      "mode": "floating",
+      "enabled": true,
+      "openOnHover": false,
+      "closeOnLeave": true,
+      "closeOnOutsideClick": false,
+      "frame": true,
+      "padding": -1,
+      "backgroundColor": "base00",
+      "borderColor": "base05",
+      "openDelay": 10,
+      "triggerSize": 5,
+      "triggerLength": 0,
+      "closeDelay": 250,
+      "moduleBorders": true,
+      "modules": [
+        {
+          "type": "NowPlaying",
+          "place": {
+            "x": 0,
+            "y": 1,
+            "w": 3,
+            "h": 2
+          }
+        },
+        {
+          "type": "QuickActions",
+          "properties": {
+            "actions": [
+              "caffeine",
+              "dnd",
+              "darkMode",
+              "pin"
+            ],
+            "labels": "auto"
+          },
+          "place": {
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 1
+          }
+        },
+        {
+          "type": "ClockCalendar",
+          "properties": {
+            "showSeconds": false,
+            "use24Hour": true,
+            "showEvents": true
+          },
+          "place": {
+            "x": 0,
+            "y": 3,
+            "w": 3,
+            "h": 6
+          }
+        }
+      ],
+      "length": "edge",
+      "pinButton": false,
+      "moduleScale": 100,
+      "offset": 0,
+      "gridOffset": 0,
+      "detached": true,
+      "gap": -1
+    },
+    {
+      "id": "right-menu",
+      "name": "Right menu",
+      "monitor": "DP-1",
+      "edge": "Right",
+      "mode": "integrated",
+      "enabled": true,
+      "openOnHover": false,
+      "closeOnLeave": true,
+      "closeOnOutsideClick": false,
+      "frame": true,
+      "padding": -1,
+      "backgroundColor": "base00",
+      "borderColor": "base05",
+      "openDelay": 10,
+      "triggerSize": 5,
+      "triggerLength": 0,
+      "closeDelay": 250,
+      "moduleBorders": true,
+      "modules": [
+        {
+          "type": "NowPlaying",
+          "place": {
+            "x": 0,
+            "y": 12,
+            "w": 3,
+            "h": 1
+          }
+        },
+        {
+          "type": "Chat",
+          "place": {
+            "x": 0,
+            "y": 1,
+            "w": 5,
+            "h": 11
+          }
+        },
+        {
+          "type": "QuickActions",
+          "properties": {
+            "actions": [
+              "bluetooth",
+              "caffeine",
+              "dnd",
+              "darkMode",
+              "nightLight"
+            ],
+            "labels": "auto"
+          },
+          "place": {
+            "x": 0,
+            "y": 0,
+            "w": 5,
+            "h": 1
+          }
+        },
+        {
+          "type": "Weather",
+          "place": {
+            "x": 3,
+            "y": 12,
+            "w": 2,
+            "h": 1
+          }
+        }
+      ],
+      "length": "edge",
+      "pinButton": true,
+      "moduleScale": 69,
+      "offset": -200,
+      "gridOffset": 0,
+      "detached": false,
+      "gap": -1
+    },
+    {
+      "id": "menu-1",
+      "name": "Theme Menu",
+      "enabled": true,
+      "monitor": "DP-1",
+      "edge": "Top",
+      "mode": "floating",
+      "frame": true,
+      "padding": -1,
+      "backgroundColor": "base00",
+      "borderColor": "base05",
+      "openOnHover": true,
+      "openDelay": 10,
+      "triggerSize": 4,
+      "triggerLength": 0,
+      "closeOnLeave": true,
+      "closeDelay": 250,
+      "closeOnOutsideClick": false,
+      "moduleBorders": true,
+      "modules": [
+        {
+          "type": "WallpaperPicker",
+          "place": {
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 5
+          }
+        },
+        {
+          "type": "ThemePicker",
+          "place": {
+            "x": 3,
+            "y": 0,
+            "w": 3,
+            "h": 5
+          }
+        }
+      ],
+      "length": "content",
+      "pinButton": true,
+      "moduleScale": 100,
+      "offset": 5,
+      "gridOffset": 0,
+      "detached": false,
+      "gap": -1
+    },
+    {
+      "id": "menu-3",
+      "name": "notes",
+      "enabled": true,
+      "monitor": "",
+      "edge": "Top",
+      "mode": "floating",
+      "frame": true,
+      "padding": -1,
+      "backgroundColor": "base00",
+      "borderColor": "base05",
+      "openOnHover": true,
+      "openDelay": 10,
+      "triggerSize": 5,
+      "triggerLength": 0,
+      "closeOnLeave": true,
+      "closeDelay": 250,
+      "closeOnOutsideClick": false,
+      "moduleBorders": false,
+      "modules": [
+        {
+          "type": "Notes",
+          "properties": {
+            "note": "",
+            "lockNote": false,
+            "showHeader": true,
+            "showToolbar": true,
+            "showCompleted": true
+          },
+          "place": {
+            "x": 0,
+            "y": 0,
+            "w": 3,
+            "h": 4
+          }
+        }
+      ],
+      "length": "content",
+      "pinButton": true,
+      "moduleScale": 100,
+      "offset": -7,
+      "gridOffset": 0,
+      "detached": false,
+      "gap": -1
+    }
+  ],
+  "Notes": {
+    "directory": "",
+    "extensions": [
+      "md",
+      "txt"
+    ],
+    "showHidden": false,
+    "confirmDelete": true
+  },
+  "Idle": {
+    "enabled": true,
+    "dimTimeout": 270,
+    "dimLevel": 25,
+    "lockTimeout": 300,
+    "screenOffTimeout": 1500,
+    "suspendTimeout": 2500,
+    "lockBeforeSleep": true,
+    "screenOnAfterSleep": true,
+    "respectInhibitors": true,
+    "listeners": [],
+    "dimMode": "by",
+    "dimBy": 80
+  },
+  "Apps": {
+    "terminal": "kitty",
+    "fileManager": "",
+    "browser": "flatpak run app.zen_browser.zen"
+  },
+  "NightLight": {
+    "schedule": true,
+    "startAt": "22:00",
+    "endAt": "06:00",
+    "temperature": 5000,
+    "gamma": 100
+  },
+  "Dock": {
+    "enabled": true,
+    "docks": [
+      {
+        "id": "main",
+        "pinned": [
+          "kitty",
+          "dev.vencord.Vesktop",
+          "app.zen_browser.zen"
+        ],
+        "visibility": "hover",
+        "name": "",
+        "enabled": true,
+        "monitor": "DP-1",
+        "edge": "Left",
+        "position": 50,
+        "reserveSpace": true,
+        "openDelay": 140,
+        "closeDelay": 260,
+        "triggerSize": 4,
+        "iconSize": 35,
+        "spacing": 6,
+        "padding": 8,
+        "magnify": true,
+        "magnifiedSize": 80,
+        "magnifyRange": 3,
+        "showRunning": true,
+        "windowScope": "all",
+        "runningIndicator": "dots",
+        "separator": true,
+        "showLabels": true,
+        "backgroundColor": "base00",
+        "borderColor": "base05",
+        "detached": true,
+        "gap": 10,
+        "monitors": "general"
+      }
+    ]
+  },
+  "Battery": {
+    "notify": true,
+    "lowThreshold": 20,
+    "criticalThreshold": 10
+  },
+  "Weather": {
+    "location": "Kyoto",
+    "latitude": "",
+    "longitude": "",
+    "units": "celsius",
+    "intervalMinutes": 15
+  },
+  "WindowSwitcher": {
+    "scope": "all",
+    "previews": true,
+    "tileSize": 200,
+    "showDelay": 120
+  },
+  "BarStyle": {
+    "widgetStyle": "filled",
+    "tintOpacity": 20,
+    "outlineWidth": 2,
+    "lineWidth": 2,
+    "lineSide": "inner",
+    "widgetShape": "slant",
+    "widgetGrouping": "powerline",
+    "widgetEnds": "shaped",
+    "groupColor": "backgroundAlt",
+    "widgetTextColor": "",
+    "separatorStyle": "none",
+    "separatorColor": "base03",
+    "separatorThickness": 2,
+    "accentLine": "none",
+    "accentLineColor": "accent",
+    "accentLineFade": "",
+    "accentLineWidth": 2,
+    "shadow": "none",
+    "shadowColor": "",
+    "shadowSize": 12
+  },
+  "Polkit": {
+    "enabled": true
+  },
+  "Greeter": {
+    "enabled": true,
+    "monitor": "",
+    "rememberUser": true,
+    "layout": {
+      "modules": [
+        {
+          "type": "ClockCalendar",
+          "place": {
+            "x": 0,
+            "y": 12,
+            "w": 7,
+            "h": 3
+          },
+          "properties": {
+            "use24Hour": true,
+            "showSeconds": false,
+            "showEvents": true
+          }
+        },
+        {
+          "type": "Greeting",
+          "place": {
+            "x": 13,
+            "y": 2,
+            "w": 16,
+            "h": 3
+          },
+          "properties": {
+            "text": "",
+            "color": "base05",
+            "alignment": "center",
+            "bold": false
+          }
+        },
+        {
+          "type": "Login",
+          "place": {
+            "x": 19,
+            "y": 6,
+            "w": 4,
+            "h": 2
+          },
+          "properties": {
+            "userField": "list",
+            "showAvatar": true,
+            "placeholder": "",
+            "centered": true,
+            "showMessages": true
+          }
+        },
+        {
+          "type": "Session",
+          "place": {
+            "x": 37,
+            "y": 15,
+            "w": 5,
+            "h": 1
+          }
+        },
+        {
+          "type": "KeyboardLayout",
+          "place": {
+            "x": 0,
+            "y": 11,
+            "w": 3,
+            "h": 1
+          }
+        },
+        {
+          "type": "Power",
+          "place": {
+            "x": 37,
+            "y": 16,
+            "w": 5,
+            "h": 2
+          },
+          "properties": {
+            "actions": [
+              "suspend",
+              "reboot",
+              "poweroff"
+            ]
+          }
+        },
+        {
+          "type": "Weather",
+          "place": {
+            "x": 0,
+            "y": 15,
+            "w": 7,
+            "h": 3
+          }
+        }
+      ],
+      "columns": 21,
+      "rows": 9,
+      "fineGrid": true,
+      "otherScreens": "layout",
+      "background": "wallpaper",
+      "backgroundColor": "base00",
+      "dim": 40,
+      "moduleBorders": true,
+      "passwordBorder": false,
+      "greetingBorder": false
+    },
+    "source": "git"
+  },
+  "Calendar": {
+    "accounts": [
+      {
+        "id": "account",
+        "name": "iCloud",
+        "kind": "caldav",
+        "preset": "icloud",
+        "url": "https://caldav.icloud.com",
+        "username": "travis@batk.me",
+        "calendars": [
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/0dded648f109761f446728af9cb762a34578d1a2db28a7ca8d76bf225d43fb91/",
+            "name": "Birthday",
+            "serverColor": "#C0D2E1",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/b24c67fa663eefef7881a67228fe25b842c4d7eac5f6c5eaf935bf09d8c9a40c/",
+            "name": "Family",
+            "serverColor": "#E6C800",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/83623647a4d2aefffdd62d825e272b8e20592abcd35ec646a27e8f36ff27c497/",
+            "name": "Family(Hep)",
+            "serverColor": "#63DA38",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/1f09e4d58ef84b4370c665f589852427d5d2493d65aae80e6e192ac8ea4e301a/",
+            "name": "Hep Dinner",
+            "serverColor": "#63DA38",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/home/",
+            "name": "Home",
+            "serverColor": "#34AADC",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/FD8BF0DA-5826-45A8-8048-203314E8975F/",
+            "name": "Hot Tub",
+            "serverColor": "#CC73E1",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/c37bf95447f79a7619a36a0c71b8d6070f879ded4234d9eb06960da415fb0b7f/",
+            "name": "Kids",
+            "serverColor": "#44A703",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/24DCDE40-B5C8-49E4-8632-7380DD596B49/",
+            "name": "Navigate Student",
+            "serverColor": "#A2845E",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/C0315B06-B17C-4B87-863C-622E04C52D01/",
+            "name": "Navigate Student",
+            "serverColor": "#FFCC00",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/488a34d3f5b3f9cfbdea71a5fb93b11a2c479b86d4c0ebac334569ccecb57646/",
+            "name": "null ⚠️",
+            "serverColor": "#FFCC00",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VTODO"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/5df3d755-5251-43b7-bbba-439d03fc946c/",
+            "name": "Reminders ⚠️",
+            "serverColor": "#B14BC9",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VTODO"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/A163EDAB-B0AD-49F1-A9FA-460221DD8496/",
+            "name": "School",
+            "serverColor": "#63DA38",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/35D6FEE1-F017-4F3C-AF94-F0291D5D0757/",
+            "name": "Travis",
+            "serverColor": "#F64F00",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/54861668aa21ae10c0b2834a5edda8c59a2855af3047ea5c2206e6cd81f95fa3/",
+            "name": "Travis",
+            "serverColor": "#FF2968",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          },
+          {
+            "href": "https://p123-caldav.icloud.com:443/653339155/calendars/work/",
+            "name": "Work",
+            "serverColor": "#FFCC00",
+            "color": "",
+            "enabled": false,
+            "readOnly": false,
+            "components": [
+              "VEVENT"
+            ]
+          }
+        ]
+      }
+    ],
+    "defaultCalendar": "",
+    "defaultDuration": 60,
+    "defaultReminder": 10,
+    "reminders": true,
+    "syncInterval": 15,
+    "pastMonths": 2,
+    "futureMonths": 12,
+    "maxDots": 3,
+    "use24Hour": true,
+    "showOnLockscreen": true
+  }
+}

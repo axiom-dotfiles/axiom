@@ -12,7 +12,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`General.language`** · string = "en"
   - Language: Language for the shell's text, dates and clock. Each file in config/i18n adds one.
   - x-scope="personal", x-options="languages"
-  - read: `General.language` · in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/I18n.qml`
+  - read: `General.language` · in: `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/I18n.qml`
 - **`General.displayName`** · string = ""
   - Display name: Name shown on the lockscreen and in chat. Empty uses your login name.
   - read: `General.displayName` (computed) · in: `components/content/Greeting/Greeting.qml`, `components/content/parts/LoginField.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `components/surfaces/powermenu/PowerMenuWindow.qml`
@@ -37,7 +37,7 @@ Every public member of `General`, with the files that use it.
 - `General.displayName` (string)
   - in: `components/content/Greeting/Greeting.qml`, `components/content/parts/LoginField.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `components/surfaces/powermenu/PowerMenuWindow.qml`
 - `General.language` (string): Monitor for the lockscreen input, launcher, power menu and overlay Language for the shell's text, dates and clock (see I18n): "en" | "ja"
-  - in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/I18n.qml`
+  - in: `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/I18n.qml`
 - `General.primaryMonitor` (string)
   - in: `components/content/Brightness/Brightness.qml`, `components/content/WallpaperPicker/WallpaperPicker.qml`, `components/views/Monitors/MonitorCanvas.qml`, `components/views/Monitors/MonitorInspector.qml`, `config/DesktopConfig.qml`, `config/WorkspacesConfig.qml`, `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `services/MonitorManager.qml`, `services/NiriManager.qml` (+6 more)
 - `General.screen` (var): Where the power menu (and the overlay, launcher and OSD, unless their own `screen` says otherwise) appear: a ScreenTarget whose mode is "primary" | "focused" |…

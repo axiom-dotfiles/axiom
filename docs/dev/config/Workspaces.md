@@ -4,7 +4,7 @@
 > **Reader:** `WorkspacesConfig` (`config/WorkspacesConfig.qml`)
 > **Schema:** `config/json/config.schema.json` → `properties.Workspaces` · category Workspaces · scope look
 
-Workspaces: How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `qs -c axiom ipc call workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.
+Workspaces: How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `axiom ipc workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 

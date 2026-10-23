@@ -45,9 +45,6 @@ type Options struct {
 	Log      *slog.Logger
 	// Debounce is how long a burst of file events settles before a reload
 	Debounce time.Duration
-	// OnSecrets receives secrets a migration pulled out of the file, before
-	// the migrated file is written back
-	OnSecrets func(*jsonx.Object) error
 }
 
 // State is what subscribers are told besides the config.
@@ -408,21 +405,14 @@ func (s *Store) load(data []byte) (*jsonx.Object, []axerr.Issue) {
 	}
 	if loaded.Migrated {
 		if loaded.FromFormat1 {
-			// The file as it was, once, beside it: an older axiom (or a
-			// change of mind) can still read it
+			// The file as it was, once, beside it: nothing is lost if the
+			// conversion missed something
 			backup := filepath.Join(filepath.Dir(s.path), Format1File)
 			if _, err := os.Lstat(backup); errors.Is(err, fs.ErrNotExist) {
 				if err := fsx.WriteFile(backup, data, 0o600); err != nil {
 					s.opts.Log.Error("keeping the format-1 config failed; the file isn't rewritten", "err", err)
 					return loaded.Config, nil
 				}
-			}
-		}
-		if loaded.Secrets != nil && loaded.Secrets.Len() > 0 && s.opts.OnSecrets != nil {
-			if err := s.opts.OnSecrets(loaded.Secrets); err != nil {
-				// Writing the file back would lose them: keep the old file
-				s.opts.Log.Error("storing migrated secrets failed; the file isn't rewritten", "err", err)
-				return loaded.Config, nil
 			}
 		}
 		out := jsonx.Marshal(loaded.Config)

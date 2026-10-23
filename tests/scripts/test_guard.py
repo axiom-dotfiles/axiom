@@ -121,9 +121,8 @@ class Bash(unittest.TestCase):
     def test_live_config_file(self):
         self.blocks(f"rm {guard.LIVE_CONFIG}", f"rm -rf {guard.LIVE_CONFIG.parent}", f"mv {guard.LIVE_CONFIG} /tmp/x",
                     "rm ~/.config/axiom/config.json" if not os.environ.get("XDG_CONFIG_HOME") else f"rm {guard.LIVE_CONFIG}",
-                    "rm config/user/config.json", "rm -rf config/user", "mv config/user/config.json /tmp/x",
-                    f"rm {REPO}/config/user/config.json", "git clean -fdx", "git clean -X -f")
-        self.allows("rm /tmp/config.json", f"cp {guard.LIVE_CONFIG} /tmp/backup.json", "cp config/user/config.json /tmp/backup.json",
+                    )
+        self.allows("rm /tmp/config.json", f"cp {guard.LIVE_CONFIG} /tmp/backup.json",
                     f"rm {guard.LIVE_CONFIG.parent}/saved/old.json", "git clean -fd", "mv /tmp/new.json /tmp/other.json")
 
     def test_qmlformat_inplace(self):
@@ -219,13 +218,14 @@ class GeneratedEdits(unittest.TestCase):
         return False
 
     def test_generated_and_frozen_refused(self):
-        for path in ("config/json/config.schema.json", "components/methods/ConfigMigration.qml",
-                     "backend/internal/migrate/legacy/legacy.js", "tests/fixtures/shared/legacy/Config/x.0.json",
+        for path in ("config/json/config.schema.json", "backend/internal/migrate/legacy/schema-v75.json",
+                     "backend/internal/migrate/legacy/legacy.js", "tests/fixtures/shared/schema/Config/x.0.json",
+                     "backend/internal/migrate/legacy/testdata/frozen.jsonl.gz",
                      "tests/fixtures/shared/blobs/abc.json", "backend/internal/assets/data/config/json/backend.json"):
             self.assertTrue(self.denied(path), path)
 
     def test_sources_pass(self):
-        for path in ("config/schema/sections/Bars.yaml", "components/methods/SchemaValidation.qml", "tests/fixtures/configs/v1.json"):
+        for path in ("config/schema/sections/Bars.yaml", "components/methods/SchemaValidation.qml", "examples/basic.json"):
             self.assertFalse(self.denied(path), path)
 
 

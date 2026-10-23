@@ -52,7 +52,7 @@ axiom has no build step: Quickshell runs the QML as it is and reloads a file the
    ```bash
    git config core.hooksPath .githooks
    ```
-3. Start it with `qs -c axiom` (or let your compositor start it as usual).
+3. Build the binary (`scripts/generate.sh && go -C backend build -o ~/.local/bin/axiom ./cmd/axiom`) and start it with `axiom run` (or let your compositor start it as usual). `axiom dev on` rebuilds it as you edit the Go source.
 
 ## The workflow
 

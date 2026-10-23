@@ -209,8 +209,6 @@ end
 function M.look()
 ${indent(parts.look, "  ")}
 end
--- Its old name
-M.theme = M.look
 
 -- The keyboard, mouse and touchpad, as enabled; applied again after every
 -- reload like the look

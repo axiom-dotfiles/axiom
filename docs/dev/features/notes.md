@@ -71,4 +71,3 @@ Notes are Markdown files edited in place by the Notes overlay / edge-menu module
 
 ### Lifecycle
 - Created from `shell.qml`'s `_services`.
-- At startup it moves old `note-<name>.json` state files (`Paths.statePath`) to `<name>.md`, keeping `*.json.migrated`.

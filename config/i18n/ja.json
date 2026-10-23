@@ -687,7 +687,6 @@
     "Open the Wi-Fi menu when hovered.": "ホバー時にWi-Fiメニューを開きます。",
     "Open live graphs of the shown metrics when hovered.": "ホバー時に表示中の項目のライブグラフを開きます。",
     "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing.": "中クリックで実行するシェルコマンド（例: nm-connection-editor）。空欄なら何もしません。",
-    "How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `qs -c axiom ipc call workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.": "バーのワークスペースウィジェット、ワークスペース一覧、ワークスペースモジュールで使うワークスペースの配置です。ワークスペースのキーバインドを `qs -c axiom ipc call workspaces <left|right|up|down|go N|nth N>`（と move… 版）に向けると、キーバインドもこれに従います。",
     "Standard (1 to N)": "標準（1〜N）",
     "Grid per monitor": "モニターごとのグリッド",
     "Columns": "列",
@@ -864,7 +863,6 @@
     "close": "閉じる",
     "Show the keys under the actions.": "操作の下にキーを表示します。",
     "Width and height of each action's tile.": "各操作のタイルの幅と高さ。",
-    "The power menu: lock, suspend, hibernate, log out, reboot and power off, opened by the power button, a keybind or `qs -c axiom ipc call powermenu toggle`.": "電源メニュー：ロック、サスペンド、ハイバネート、ログアウト、再起動、電源オフ。電源ボタン、キーバインド、または `qs -c axiom ipc call powermenu toggle` で開きます。",
     "How dark the screen behind the power menu goes.": "電源メニューの背後の画面をどれだけ暗くするか。",
     "Confirm destructive actions": "破壊的な操作を確認",
     "Which actions the menu shows, in order.": "メニューに表示する操作とその順序。",
@@ -1639,7 +1637,6 @@
     "Gap between items inside a widget.": "ウィジェット内の項目の間隔。",
     "Scroll to change": "スクロールで変更",
     "Show on hover": "ホバーで表示",
-    "Warmer screen colors in the evening, through hyprsunset (or wlsunset). The Night light quick action, `/nightlight` in the launcher and `qs -c axiom ipc call nightLight toggle` switch it by hand; that lasts until the next scheduled change.": "hyprsunset（または wlsunset）で、夕方から画面の色を暖かくします。夜間モードのクイックアクション、ランチャーの `/nightlight`、`qs -c axiom ipc call nightLight toggle` で手動で切り替えられ、次のスケジュールの切り替えまで維持されます。",
     "Vertical date": "縦向きの日付",
     "Floating": "フローティング",
     "Shows": "表示",
@@ -2687,7 +2684,6 @@
     "Install {0}, then restart the shell.": "{0} をインストールしてから、シェルを再起動してください。",
     "Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu.": "クリックで実行します。空の場合はディストリビューションのアップグレード（`sudo pacman -Syu`、`sudo dnf upgrade`）、または AUR ヘルパーの -Syu を使います。",
     "Writes axiom.css beside GTK 3 and GTK 4's gtk.css, and follows light/dark. GTK3 apps need the adw-gtk3 theme (adw-gtk-theme on Arch, adw-gtk3-theme on Fedora).": "GTK 3 と GTK 4 の gtk.css の隣に axiom.css を書き出し、ライト/ダークに追従します。GTK3 アプリには adw-gtk3 テーマが必要です（Arch では adw-gtk-theme、Fedora では adw-gtk3-theme）。",
-    "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in one.": "セッションをロックするロッカー。アイドル設定で一定時間後にロックできます。自分のアイドルデーモンを使う場合、ビルトインでは `qs -c axiom ipc call lockscreen lock` でロックしてください。",
     "Built-in uses the Wayland session-lock protocol with PAM. None leaves locking to your own locker.": "ビルトインは Wayland のセッションロックプロトコルと PAM を使います。なしの場合、ロックは自分のロッカーに任せます。",
     "The calendar helper couldn't run (it needs python3).": "カレンダーのヘルパーを実行できませんでした（python3 が必要です）。",
     "Themes can't be generated": "テーマを生成できません",
@@ -3141,6 +3137,10 @@
     "This tree's schema isn't the installed binary's: turned off, settings can't be saved until axiom is rebuilt.": "",
     "Dev mode: rebuild the schema and axiom as you edit them": "",
     "Building…": "",
-    "The dev build failed": ""
+    "The dev build failed": "",
+    "Warmer screen colors in the evening, through hyprsunset (or wlsunset). The Night light quick action, `/nightlight` in the launcher and `axiom ipc nightLight toggle` switch it by hand; that lasts until the next scheduled change.": "",
+    "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `axiom lock` for the built-in one.": "",
+    "The power menu: lock, suspend, hibernate, log out, reboot and power off, opened by the power button, a keybind or `axiom ipc powermenu toggle`.": "",
+    "How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `axiom ipc workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.": ""
   }
 }

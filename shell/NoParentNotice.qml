@@ -69,7 +69,7 @@ Scope {
           Text {
             color: "#d5c4a1"
             font.pixelSize: 14 // fixed px: no config to size by without axiom
-            text: root.reason ? root.reason + "\nUpdate axiom (or run the binary built from this checkout)." : "The shell is started by the axiom binary now. Replace qs -c axiom in your autostart with:"
+            text: root.reason ? root.reason + "\nUpdate axiom (or run the binary built from this checkout)." : "The shell is started by the axiom binary. Start it with:"
           }
           Text {
             visible: !root.reason

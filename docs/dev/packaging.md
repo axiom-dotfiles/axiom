@@ -26,7 +26,7 @@ How axiom gets onto a machine: the installer (a clone in the user's home) or a d
   - Night light's tool and X11 apps' helper (`xwayland-satellite` on niri, Xwayland on sway) depend on the compositors (`FEATURES`' third column; `DependencyManager.tools`' `compositors`). The login screen's feature installs sway, which it runs whatever the session's compositor is. With Hyprland among the compositors it's two features instead (the first entry matching wins): greetd alone, and sway on its own, recommended (so "all" takes it); declined, the login screen runs in Hyprland.
   - Versions: Hyprland below 0.55 warns; sway and niri below what axiom is tested with (`TESTED_SWAY`, `TESTED_NIRI`) only say so.
 - **The binary:** from a clone it runs `scripts/generate.sh`, then builds `axiom` (`CGO_ENABLED=0 go build -trimpath`) into `$XDG_BIN_HOME` or `~/.local/bin` (`AXIOM_BIN`): beside the old one, then swapped in. `go` is in `REQUIRED` for that, and dropped from it when packaged. The binary needn't be on `PATH`: the autostart line names it by its path, as `Paths.shellCommand` does.
-- **Autostart:** `autostart_line` is the line each `*ConfigWriter.autostartTarget` writes (`'<AXIOM_BIN>' run`), and `STARTS_AXIOM` is `Paths.startPattern` (`axiom run`, or the `qs -c axiom` of before the binary). `axiom run` from `$HOME` finds the tree where `qs -c axiom` does (`tree.Find`: `~/.config/quickshell/axiom`, then `/etc/xdg/quickshell/axiom`).
+- **Autostart:** `autostart_line` is the line each `*ConfigWriter.autostartTarget` writes (`'<AXIOM_BIN>' run`), and `STARTS_AXIOM` is `Paths.startPattern` (`axiom run`). `axiom run` from `$HOME` finds the tree in the installed places (`tree.Find`: `~/.config/quickshell/axiom`, then `/etc/xdg/quickshell/axiom`).
 - **`--dry-run`:** every change goes through `run` / `sudo_run` / `append_line`, which print instead.
 - **Packaged:** with `/usr/share/axiom/.packaged` and no clone, it skips the clone and the build, and only does packages and autostart (with `/usr/bin/axiom`).
 - **Testing:** `--dry-run` on the host, and real runs in `fedora:latest` / `archlinux:latest` containers with a sudo user and `AXIOM_REPO` pointing at a mounted clone (copy install.sh out of the clone first, or it treats the read-only mount as the install). Never run it for real on the dev machine.
@@ -40,7 +40,7 @@ Not on the AUR yet: AUR account registration is closed, so they wait in `packagi
 - **Layout:**
   - The code in `/usr/share/axiom`, with the built schema, less what only development needs (tests, docs, CI, git hooks, `install.sh`, the check scripts, every `*.md`, and `backend/`, the axiom binary's Go source).
   - The binary, `/usr/bin/axiom`.
-  - `/etc/xdg/quickshell/axiom` → `/usr/share/axiom`, so `qs -c axiom` finds it after `~/.config/quickshell/axiom` (a clone there still wins).
+  - `/etc/xdg/quickshell/axiom` → `/usr/share/axiom`, so `axiom run` finds it after `~/.config/quickshell/axiom` (a clone there still wins).
   - The license in `/usr/share/licenses/<pkgname>/`.
   - The marker `/usr/share/axiom/.packaged`, holding `pkgver-pkgrel`.
 - Nothing writes under the code ([config-manager.md](core/config-manager.md) › Where files live). Python's bytecode cache can't be written there either, which Python ignores; the package ships none, since bytecode for one Python version goes stale on the next.

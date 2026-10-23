@@ -714,8 +714,7 @@ QtObject {
   }
 
   // Ready is reported once before the rows arrive, then again with them.
-  // Directories are hidden (showDirs), so a generated/ folder an install
-  // from before the XDG folders left there isn't listed.
+  // Directories are hidden (showDirs): themes are files.
   property FolderListModel _defaultThemeLoader: FolderListModel {
     nameFilters: ["*.json"]
     showDirs: false
@@ -731,10 +730,6 @@ QtObject {
     onStatusChanged: if (status === FolderListModel.Ready && count > 0) {
       root._generatedThemes = root._readThemes(root._generatedThemeLoader, "generated/");
       root._rebuildFamilies();
-      // Pairs from before styles (one per pywal backend): a run replaces
-      // them with every style's, and removes them, so this happens once
-      if (root.wallpaper && root._generatedThemes.some(theme => theme.name.startsWith("generated/pywal-")))
-        root.generateThemesFromWallpaper(root.wallpaper);
     }
   }
 

@@ -1,0 +1,16 @@
+{
+  "lastChecked": 1792061968943,
+  "result": {
+    "channel": "main",
+    "current": "v1.1.10",
+    "commit": "2083ccf",
+    "latest": "2083ccf",
+    "state": "uptodate",
+    "ahead": false,
+    "behind": 0,
+    "blocked": "",
+    "notes": "",
+    "error": ""
+  },
+  "notifiedTag": "v1.0.7"
+}

@@ -61,4 +61,4 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Appearance.wallpaper.daemon`** · boolean = true
   - Start awww: Start awww-daemon for the wallpaper picker.
   - x-scope="machine", x-showIf={"backend":"awww"}
-  - read: `Appearance.wallpaperDaemon` · in: `components/methods/ConfigMigration.qml`, `services/GreeterManager.qml`, `services/WallpaperManager.qml`
+  - read: `Appearance.wallpaperDaemon` · in: `services/GreeterManager.qml`, `services/WallpaperManager.qml`

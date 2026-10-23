@@ -7,7 +7,7 @@
 How to look at, exercise and debug the live shell without breaking the user's session, plus where every feature's own testing notes live. What you must never do while testing is in AGENTS.md › "Never, while testing".
 
 ### The loop
-- `scripts/dev/verify.sh` after every change: formats the changed QML in place (keeping the inode), runs `check_structure`, regenerates the docs, lints, runs the affected unit tests (a changed `methods/<Name>` runs `tst_<Name>`, a schema or migration change runs `Config` and `ConfigExamples`, a changed script its `tests/scripts/test_scripts.py` classes, mapped in verify.sh), shellchecks changed scripts, runs the Go checks (`scripts/check_go.sh --fix`) when `backend/` or a file it embeds changed, builds the generated files first (`scripts/generate.sh`: the schema from `config/schema/`, and the shared fixtures when what they're recorded from changed), checks and replays the shared fixtures, and prints the shell's log since the reload. `--all` runs `check_all.sh`.
+- `scripts/dev/verify.sh` after every change: formats the changed QML in place (keeping the inode), runs `check_structure`, regenerates the docs, lints, runs the affected unit tests (a changed `methods/<Name>` runs `tst_<Name>`, a schema change runs `Config`, a changed script its `tests/scripts/test_scripts.py` classes, mapped in verify.sh), shellchecks changed scripts, runs the Go checks (`scripts/check_go.sh --fix`) when `backend/` or a file it embeds changed, builds the generated files first (`scripts/generate.sh`: the schema from `config/schema/`, and the shared fixtures when what they're recorded from changed), checks and replays the shared fixtures, and prints the shell's log since the reload. `--all` runs `check_all.sh`.
 - `scripts/dev/bench_overlay.sh [-w SECONDS] [PAGE…]` times the overlay: how long opening and each page switch blocked, and how long each page and its modules took to build (see [pages-and-grid.md › Loading](overlay/pages-and-grid.md)).
 - `scripts/dev/shot.sh` takes a screenshot of a surface and closes it again, printing the PNG's path: `page <ViewType>`, `launcher [text]`, `ipc <target> <open> [close]`, `screen`; `-m MONITOR` (default the focused one), `-w SECONDS`.
 
@@ -28,7 +28,7 @@ How to look at, exercise and debug the live shell without breaking the user's se
 - **Renaming or deleting a singleton** can leave a reload failing with `Type <Old> unavailable … File not found`: one fired between the edits and kept the old file in its module listing. Force one more reload (above); it rescans and loads. Add the old name to `RETIRED` in `scripts/check_docs.py` so docs still citing it fail.
 
 ### Seeing a page or surface
-- Overlay pages: `scripts/dev/shot.sh page <ViewType>` does all of this. By hand: `qs -c axiom ipc call overlay page <ViewType>`, then `grim -o <monitor>` (or `grim -g "X,Y WxH"`), crop with `magick`, read the PNG, then `qs -c axiom ipc call overlay close`.
+- Overlay pages: `scripts/dev/shot.sh page <ViewType>` does all of this. By hand: `axiom ipc overlay page <ViewType>`, then `grim -o <monitor>` (or `grim -g "X,Y WxH"`), crop with `magick`, read the PNG, then `axiom ipc overlay close`.
 - The overlay only instantiates the current page and its neighbours, so a page's QML errors only reach `scripts/log.sh` once it's been opened like this.
 - **`show` is a qs IPC keyword:** `qs -c axiom ipc call <target> show` prints the target's functions instead of calling `show()`. Use `toggle` (or `hide`).
 - A temporary `IpcHandler` (for a settings category, a lockscreen preview, a screenshot hook) goes in `shell.qml`, never inside a singleton, where it never registers. It needs `import Quickshell.Io`. Revert it in place afterwards.
@@ -50,7 +50,7 @@ How to look at, exercise and debug the live shell without breaking the user's se
   - Known Hyprland 0.56.2 bug: on scrolling-layout (strip) monitors, a fullscreen window on a special workspace goes under the bars.
 
 ### Config and schema
-- Rename or reshape a config key with the schema change first (or both in one edit), then the `ConfigMigration` step. A migration saved before its schema hot-reloads against the old schema, writes the config back and loses the user's values.
+- Rename or reshape a config key with the schema change first (or both in one edit), then its format-2 step (`docs/recipes/migration.md`).
 - Adding a module to the live config: [writing-modules.md › Testing](overlay/writing-modules.md). Confirm the schema reloaded (the latest `Loading config schema` line in the instance's `log.log` is newer than the schema file's mtime), back up config.json to a scratch dir and restore it afterwards, add one module at a time, and watch qs's RSS.
 
 ### JS and QML experiments

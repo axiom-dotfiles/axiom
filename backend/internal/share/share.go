@@ -12,8 +12,7 @@
 //	machine   what only means something here: monitors, wallpapers, accounts
 //
 // An array item can have a scope of its own by what it holds (`x-scopeIf:
-// {when, scope}`). This is ConfigExamples.qml, checked against it by the
-// shared fixtures. Pure: no I/O.
+// {when, scope}`). Pure: no I/O.
 package share
 
 import (

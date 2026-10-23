@@ -123,7 +123,7 @@ Seams: bar widgets' `popoutMenu`, popouts.
 ## config
 Scope: config loading, readers, schema and annotations, migrations, drafts and previews, the settings page, saved configs, i18n.
 Docs: core/config-manager.md core/config-readers.md core/schema-annotations.md core/editors-pattern.md core/settings-page.md core/saved-configs-sharing.md core/i18n.md
-Extra: components/methods/ConfigMigration.qml components/methods/LibraryOrder.qml
+Extra: backend/internal/migrate/steps/steps.go components/methods/LibraryOrder.qml
 Checks:
 - Readers have no `??` default fallbacks (only `previews.X ?? config.X`), read only owners and each other.
 - No write path except `ConfigManager`/`SettingsManager`; an invalid file never replaces the running config.

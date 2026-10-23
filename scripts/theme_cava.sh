@@ -24,7 +24,6 @@ else
     export GRADIENT_COUNT=6 GRADIENT_7="" GRADIENT_8=""
 fi
 render_template "$SCRIPT_DIR/templates/cava_template.conf" "$OUTPUT_FILE"
-[ $# -ge 2 ] || old_output_notice "${XDG_CONFIG_HOME:-$HOME/.config}/cava/colors/wal-generated.conf" "$OUTPUT_FILE"
 
 MAIN_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/cava/config"
 if [ ! -e "$MAIN_CONFIG" ]; then

@@ -24,10 +24,6 @@
     expands recurrences (DST, UNTIL, RDATE, EXDATE, overrides) without
     recurring-ical-events, and edits events (new, one occurrence, excluded,
     the series moved) so they read back right (skipped without icalendar)
-  - migrate_xdg.sh copies the repo's config and state into the XDG
-    folders once, never overwriting, and marks them moved
-  - restart.sh ends every running axiom (one ignoring SIGTERM too) and
-    starts one, and a second restart fired meanwhile does nothing
   - cursor_theme.py makes the companion theme filling in a cursor theme's
     missing standard names, and only for a theme that needs it
   - check_sizes.py finds sizes written as numbers, skipping hairlines and
@@ -595,8 +591,8 @@ class HookupScript(unittest.TestCase):
         path = self.write("hypr/hyprland.lua", '-- mine\nhl.bind("SUPER + Q", hl.dsp.exec_cmd("kitty"))\n')
         include = {"file": str(path), "place": "start", "comment": "--", "accept": r"axiom\.setup\(",
                    "text": 'local ok, axiom = pcall(dofile, "/x/axiom/hyprland.lua")\nif ok then axiom.setup() end'}
-        autostart = {"file": str(path), "place": "end", "comment": "--", "accept": r"(qs|quickshell) .*axiom",
-                     "text": 'hl.on("hyprland.start", function() hl.exec_cmd("qs -p \'/x/axiom\'") end) -- axiom'}
+        autostart = {"file": str(path), "place": "end", "comment": "--", "accept": r"(^|[\s'\"/])axiom['\"]? +run\b",
+                     "text": 'hl.on("hyprland.start", function() hl.exec_cmd("\'/x/axiom\' run") end) -- axiom'}
         targets = [include, autostart]
         self.assertFalse(any(t["done"] for t in self.hookup("status", "hyprland", targets=targets)["targets"]))
         self.hookup("apply", "hyprland", targets=targets)
@@ -606,7 +602,7 @@ class HookupScript(unittest.TestCase):
         self.assertEqual(len(self.backups(path)), 1)
         self.assertTrue(all(t["done"] for t in self.hookup("status", "hyprland", targets=targets)["targets"]))
         # install.sh's own autostart line counts as done
-        path.write_text('hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end) -- axiom\n')
+        path.write_text('hl.on("hyprland.start", function() hl.exec_cmd("\'/usr/bin/axiom\' run") end) -- axiom\n')
         self.assertTrue(self.hookup("status", "hyprland", targets=[autostart])["targets"][0]["done"])
 
     def test_start_goes_first(self):
@@ -814,20 +810,20 @@ class ClaimSway(unittest.TestCase):
         self.assertTrue((self.sway / "user").is_dir())
 
     def test_stock_is_only_backed_up(self):
-        (self.sway / "config").write_text("set $mod Mod4\n\n# mine now\nbindsym $mod+Return exec foot\nexec qs -c axiom\n")
+        (self.sway / "config").write_text("set $mod Mod4\n\n# mine now\nbindsym $mod+Return exec foot\nexec axiom run\n")
         self.assertEqual(self.claim("check"), "stock")
         self.assertEqual(self.claim("claim"), "replaced")
         self.assertEqual(list((self.sway / "user").iterdir()), [])
         self.assertEqual(len(list(self.sway.glob("config.axiom-backup-*"))), 1)
 
     def test_adopt_and_release(self):
-        mine = "set $mod Mod4\ninclude conf.d/*\nexec qs -c axiom\ninclude ~/.local/state/axiom/sway.conf\nbindsym $mod+q kill\n"
+        mine = "set $mod Mod4\ninclude conf.d/*\nexec axiom run\ninclude ~/.local/state/axiom/sway.conf\nbindsym $mod+q kill\n"
         (self.sway / "config").write_text(mine)
         self.assertEqual(self.claim("check"), "adopt")
         self.assertEqual(self.claim("claim"), "adopted:00-previous.conf")
         adopted = (self.sway / "user" / "00-previous.conf").read_text().splitlines()
         self.assertEqual(adopted[1], f"include {self.sway}/conf.d/*")
-        self.assertTrue(adopted[2].startswith("# (axiom starts and loads itself now) exec qs"))
+        self.assertTrue(adopted[2].startswith("# (axiom starts and loads itself now) exec axiom run"))
         self.assertTrue(adopted[3].startswith("# (axiom starts and loads itself now) include"))
         # Left for the managed one to replace
         self.assertEqual((self.sway / "config").read_text(), mine)
@@ -838,12 +834,12 @@ class ClaimSway(unittest.TestCase):
         self.assertEqual(self.claim("check"), "ours")
         self.assertTrue(self.claim("release").startswith("restored:user/00-previous.conf:"))
         restored = (self.sway / "config").read_text()
-        self.assertIn("\nexec qs -c axiom\n", restored)
+        self.assertIn("\nexec axiom run\n", restored)
         self.assertFalse((self.sway / "user" / "00-previous.conf").exists())
 
     def test_binds_calling_axiom_stay_for_the_merge(self):
-        mine = "set $ipc qs -p '/opt/axiom' ipc call\nbindsym $mod+d exec qs -p '/opt/axiom' ipc call launcher toggle\n" \
-            "bindsym $mod+space exec $ipc launcher toggle\nexec_always --no-startup-id qs -n -c axiom -d\n"
+        mine = "set $ipc '/opt/axiom/axiom' ipc\nbindsym $mod+d exec '/opt/axiom/axiom' ipc launcher toggle\n" \
+            "bindsym $mod+space exec $ipc launcher toggle\nexec_always --no-startup-id axiom run\n"
         (self.sway / "config").write_text(mine)
         self.assertEqual(self.claim("claim"), "adopted:00-previous.conf")
         adopted = (self.sway / "user" / "00-previous.conf").read_text().splitlines()
@@ -904,14 +900,14 @@ class MergeSwayBinds(unittest.TestCase):
         (self.tmp / "user").mkdir()
         self.file = self.tmp / "user" / "00-previous.conf"
         self.file.write_text("""set $mod Mod4
-set $ipc qs -p '/opt/axiom' ipc call
+set $ipc '/opt/axiom/axiom' ipc
 bindsym $mod+q kill
 bindsym --no-repeat $mod+Return exec foot
 bindsym $mod+h focus left
 bindsym --locked XF86AudioRaiseVolume exec $ipc audio volumeUp
 bindsym $mod+space exec $ipc appLauncher toggle
 bindsym $mod+1 exec $ipc workspaces nth 1 go
-bindsym --release $mod+Ctrl+r exec '/opt/axiom/scripts/restart.sh'
+bindsym --release $mod+Ctrl+r exec '/opt/axiom/axiom' restart
 bindsym $mod+x layout tabbed
 bindsym --border $mod+button2 kill
 bindcode $mod+49 exec thing
@@ -959,7 +955,7 @@ mode "resize" {
         1.12): one quoted word loses its quotes, an escaped quote is a bare
         one by then, several words keep theirs."""
         self.file.write_text("\n".join([
-            """bindsym Mod4+a exec "qs -p '/opt/axiom' ipc call workspaces step 'up' go\"""",
+            """bindsym Mod4+a exec "'/opt/axiom/axiom' ipc workspaces step 'up' go\"""",
             """bindsym Mod4+b exec 'echo "q"; echo  z'""",
             """bindsym Mod4+c exec "grim -g \\"$(slurp)\\" out.png\"""",
             """bindsym Mod4+d exec notify-send "a  b" c""",
@@ -1159,18 +1155,11 @@ class ClaimHyprland(unittest.TestCase):
         example = self.tmp / "example.lua"
         example.write_text("-- example\n")
         self.env["AXIOM_HYPR_EXAMPLE"] = str(example)
-        (self.hypr / "hyprland.lua").write_text(
-            "-- example\n" + 'hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end) -- axiom\n')
-        self.assertEqual(self.claim("check"), "stock")
-        self.assertEqual(self.claim("claim"), "replaced")
-        # With -n, as install.sh writes it now
-        (self.hypr / "hyprland.lua").write_text(
-            "-- example\n" + 'hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end) -- axiom\n')
-        self.assertEqual(self.claim("check"), "stock")
-        # The binary, as the autostart hookup writes it
+        # The binary, as install.sh and the autostart hookup write it
         (self.hypr / "hyprland.lua").write_text(
             "-- example\n" + 'hl.on("hyprland.start", function() hl.exec_cmd("\'/usr/bin/axiom\' run") end) -- axiom\n')
         self.assertEqual(self.claim("check"), "stock")
+        self.assertEqual(self.claim("claim"), "replaced")
 
     def test_autogenerated_example_is_stock(self):
         # What Hyprland writes with no hyprland.lua at its first start: a
@@ -1207,11 +1196,11 @@ class ClaimHyprland(unittest.TestCase):
 
     def test_adopted_config_no_longer_starts_or_loads_axiom(self):
         lines = [
-            'hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end) -- axiom',
+            'hl.on("hyprland.start", function() hl.exec_cmd("axiom run") end) -- axiom',
             'local ok, axiom = pcall(dofile, "/home/me/.local/state/axiom/hyprland.lua")',
             "if ok then axiom.setup() end",
             'hl.env("A", "b")',
-            'hl.bind("SUPER + D", hl.dsp.exec_cmd("qs -c axiom ipc call launcher toggle"))',
+            'hl.bind("SUPER + D", hl.dsp.exec_cmd("axiom ipc launcher toggle"))',
         ]
         (self.hypr / "hyprland.lua").write_text("\n".join(lines) + "\n")
         self.claim("claim")
@@ -1283,7 +1272,7 @@ class ClaimHyprland(unittest.TestCase):
 
     def test_release_gives_the_adopted_config_back(self):
         lines = [
-            'hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end) -- axiom',
+            'hl.on("hyprland.start", function() hl.exec_cmd("axiom run") end) -- axiom',
             'hl.env("A", "b")',
         ]
         (self.hypr / "hyprland.lua").write_text("\n".join(lines) + "\n")
@@ -1642,7 +1631,6 @@ class GenerateTheme(unittest.TestCase):
                 f"img.save({str(image)!r})\n")], check=True, env=env)
             out = tmp / "themes"
             out.mkdir()
-            (out / "pywal-dark-wal.json").write_text("{}")  # from before styles: removed
             result = subprocess.run([python, str(SCRIPTS / "generate_theme.py"), str(image), "--output_dir",
                                      str(out)], env=env, capture_output=True, text=True, timeout=300)
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -2488,7 +2476,7 @@ class ClaimNiri(unittest.TestCase):
     """claim_niri.sh on scratch dirs: check, claim and release of a niri
     config, with niri's default config stubbed (AXIOM_NIRI_EXAMPLE)."""
     HEADER = "// Generated by axiom"
-    FALLBACK = '// Given back by axiom\nspawn-sh-at-startup "qs -p /opt/axiom -n"'
+    FALLBACK = '// Given back by axiom\nspawn-sh-at-startup "/opt/axiom/axiom run"'
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -2512,7 +2500,7 @@ class ClaimNiri(unittest.TestCase):
 
     def test_stock_is_only_backed_up(self):
         (self.niri / "config.kdl").write_text('binds {\n\n    // mine now\n    Mod+T { spawn "alacritty"; }\n}\n'
-                                              'spawn-at-startup "qs" "-p" "/opt/axiom" "-n"\n')
+                                              'spawn-at-startup "/opt/axiom/axiom" "run"\n')
         self.assertEqual(self.claim("check"), "stock")
         self.assertEqual(self.claim("claim"), "replaced")
         self.assertEqual(list((self.niri / "user").iterdir()), [])
@@ -2525,8 +2513,8 @@ class ClaimNiri(unittest.TestCase):
                 self.assertEqual(self.claim("check"), "stock")
 
     def test_adopt_and_release(self):
-        mine = ('include "extra.kdl"\nspawn-sh-at-startup "qs -p \'/opt/axiom\' -n"\n'
-                'spawn-at-startup "qs" "-p" "/opt/axiom" "ipc" "call" "bar" "toggle"\n'
+        mine = ('include "extra.kdl"\nspawn-sh-at-startup "\'/opt/axiom/axiom\' run"\n'
+                'spawn-at-startup "/opt/axiom/axiom" "ipc" "bar" "toggle"\n'
                 'include "/home/u/.local/state/axiom/niri.kdl"\nbinds {\n    Mod+Q { close-window; }\n}\n')
         (self.niri / "config.kdl").write_text(mine)
         self.assertEqual(self.claim("check"), "adopt")
@@ -2575,7 +2563,7 @@ class BindMergeIpc(unittest.TestCase):
         cases = {
             "axiom ipc appLauncher toggle": {"action": "launcher", "call": "toggle"},
             "'/usr/bin/axiom' ipc appLauncher toggle": {"action": "launcher", "call": "toggle"},
-            "qs -c axiom ipc call appLauncher toggle": {"action": "launcher", "call": "toggle"},
+            "qs -c axiom ipc call appLauncher toggle": None,
             "axiom lock": {"action": "lock"},
             "axiom ipc lockscreen lock": {"action": "lock"},
             "'/usr/bin/axiom' restart": {"action": "restartShell"},
@@ -2599,7 +2587,7 @@ binds {
     Mod+H { focus-column-left; }
     Mod+1 { focus-workspace 1; }
     Mod+Shift+1 { move-column-to-workspace 1; }
-    Mod+Space { spawn "qs" "-p" "/opt/axiom" "ipc" "call" "appLauncher" "toggle"; }
+    Mod+Space { spawn "/opt/axiom/axiom" "ipc" "appLauncher" "toggle"; }
     XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+ -l 1.0"; }
     Mod+O repeat=false { toggle-overview; }
     Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }

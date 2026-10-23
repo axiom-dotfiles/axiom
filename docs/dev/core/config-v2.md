@@ -1,6 +1,6 @@
 # Config v2: the unified shape
 
-> **Files:** `config/schema/`, `backend/internal/schema/yamlsrc/`, `backend/internal/migrate/legacy/`, `components/methods/ConfigMigration.qml` (frozen format 1)
+> **Files:** `config/schema/`, `backend/internal/schema/yamlsrc/`, `backend/internal/migrate/legacy/`
 > **Related:** [Schema and its annotations](schema-annotations.md), [Config manager](config-manager.md), [Saved configs and sharing](saved-configs-sharing.md), [The axiom binary](../backend/README.md)
 
 **Status: accepted; being implemented** (the open questions at the end are settled as recommended). Each change below is one rule applied everywhere it fits. Format 1 is versions 1 to 75; v2 starts at `version: 76` with `format: 2`. The binary converts a format-1 file once: the frozen format-1 chain to v75, then the conversion described here. Old saved configs, exports, examples and community setups keep importing through the same path.

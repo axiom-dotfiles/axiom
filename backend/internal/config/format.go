@@ -49,10 +49,9 @@ func (p V2Pipeline) Load(parsed any) (Loaded, error) {
 	format, hasFormat := obj.Get("format")
 	switch {
 	case !hasFormat && version > legacy.LastVersion:
-		// Format 2's numbers in a file without a format: an older shell
-		// (format 1 only) rewrote it, dropping the keys it didn't know
+		// Format 1 ends at 75, and format 2 says its format: neither
 		return Loaded{Config: obj, Errors: []string{fmt.Sprintf(
-			"version: %v without a format: an older axiom rewrote this format-2 config (config.format1.json holds the file from before the conversion)", version)}}, nil
+			"version: %v without a format: not a config axiom reads (format 1 ends at %d; format 2 says \"format\": %d)", version, legacy.LastVersion, convert.Format)}}, nil
 	case !hasFormat:
 		old, err := LoadLegacy(schema.New(legacy.Schema()), obj)
 		if err != nil {
@@ -66,7 +65,6 @@ func (p V2Pipeline) Load(parsed any) (Loaded, error) {
 		stepped, _ := steps.Migrate(converted.Config)
 		l := p.normalize(converted.Config)
 		l.Changes = append(append(old.Changes, converted.Changes...), stepped...)
-		l.Secrets = old.Secrets
 		l.Migrated, l.FromFormat1 = true, true
 		return l, nil
 	case format != float64(convert.Format):

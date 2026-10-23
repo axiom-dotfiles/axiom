@@ -4,7 +4,7 @@
 > **Reader:** `LockscreenConfig` (`config/LockscreenConfig.qml`)
 > **Schema:** `config/json/config.schema.json` → `properties.Lockscreen` · category Screen & Power
 
-Lockscreen: Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in one.
+Lockscreen: Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `axiom lock` for the built-in one.
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 

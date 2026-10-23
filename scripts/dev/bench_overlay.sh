@@ -28,7 +28,7 @@ step() {
   local before after start end
   before=$(built | wc -l)
   start=$(date +%s%N)
-  qs -c axiom ipc call overlay "$@" 2>/dev/null
+  axiom ipc overlay "$@" 2>/dev/null
   end=$(date +%s%N)
   sleep "$wait_s"
   after=$(built)

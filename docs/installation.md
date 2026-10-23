@@ -58,7 +58,7 @@ It first prints its plan: the distribution, the compositor and each step. Then:
 3. **The clone.** It clones the latest release into `~/.config/quickshell/axiom`.
 4. **Autostart.** It asks before adding the line that starts axiom to the end of the compositor's config (`hyprland.lua`, sway's `config`, niri's `config.kdl`), backing up the file first. A config that doesn't exist yet starts as the compositor's own default one, so its starter keybinds are there too.
 
-Run from a text console (a TTY) outside a graphical session, it last offers to start the compositor. `--yes` answers yes to every question, `--minimal` installs only what's required, and `--dry-run` prints every command it would run and changes nothing. Running it again is safe. From a clone, run `./install.sh`: that clone is used wherever it is, and if it isn't at `~/.config/quickshell/axiom` (where `qs -c axiom` looks), the installer offers to link it there, or to move it.
+Run from a text console (a TTY) outside a graphical session, it last offers to start the compositor. `--yes` answers yes to every question, `--minimal` installs only what's required, and `--dry-run` prints every command it would run and changes nothing. Running it again is safe. From a clone, run `./install.sh`: that clone is used wherever it is, and if it isn't at `~/.config/quickshell/axiom` (where `axiom run` looks), the installer offers to link it there, or to move it.
 
 <details>
 <summary><b>From the AUR</b> (Arch, not published yet)</summary>
@@ -71,7 +71,7 @@ Run from a text console (a TTY) outside a graphical session, it last offers to s
 paru -S axiom-shell
 ```
 
-It installs axiom to `/usr/share/axiom` with the required packages; the compositor and each optional feature's packages are optional dependencies, so install the ones you want. `qs -c axiom` finds it (a clone in `~/.config/quickshell/axiom` runs instead, if you have one). Add the line that starts it to your compositor's config, as below. The package manager updates it, so **axiom updates** isn't in the settings, and the login screen runs the package's own copy.
+It installs axiom to `/usr/share/axiom` with the required packages; the compositor and each optional feature's packages are optional dependencies, so install the ones you want. `axiom run` finds it (a clone in `~/.config/quickshell/axiom` runs instead, if you have one). Add the line that starts it to your compositor's config, as below. The package manager updates it, so **axiom updates** isn't in the settings, and the login screen runs the package's own copy.
 
 </details>
 
@@ -84,13 +84,19 @@ Install the [requirements](#requirements), then clone into Quickshell's config d
 git clone https://github.com/axiom-shell/axiom.git ~/.config/quickshell/axiom
 ```
 
-`qs -c axiom` starts it once. To start it with your session, add its line to your compositor's config (`-n` keeps a second copy from starting):
+Build the `axiom` binary, the shell's parent (it needs `go`):
+
+```bash
+cd ~/.config/quickshell/axiom && scripts/generate.sh && go -C backend build -o ~/.local/bin/axiom ./cmd/axiom
+```
+
+`axiom run` starts it once. To start it with your session, add its line to your compositor's config (a second `axiom run` on the same display exits at once):
 
 | Compositor | File | Line |
 | --- | --- | --- |
-| Hyprland | `~/.config/hypr/hyprland.lua` | `hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)` |
-| niri | `~/.config/niri/config.kdl` | `spawn-sh-at-startup "qs -n -c axiom"` |
-| sway | `~/.config/sway/config` | `exec qs -n -c axiom` |
+| Hyprland | `~/.config/hypr/hyprland.lua` | `hl.on("hyprland.start", function() hl.exec_cmd("axiom run") end)` |
+| niri | `~/.config/niri/config.kdl` | `spawn-sh-at-startup "axiom run"` |
+| sway | `~/.config/sway/config` | `exec axiom run` |
 
 </details>
 
@@ -176,14 +182,14 @@ To keep your own idle daemon instead, point its lock command at axiom's built-in
 ```ini
 # hypridle.conf
 general {
-    lock_cmd = qs -c axiom ipc call lockscreen lock
+    lock_cmd = axiom lock
     before_sleep_cmd = loginctl lock-session
 }
 ```
 
 ```bash
 # swayidle
-swayidle -w timeout 300 'qs -c axiom ipc call lockscreen lock' before-sleep 'qs -c axiom ipc call lockscreen lock'
+swayidle -w timeout 300 'axiom lock' before-sleep 'axiom lock'
 ```
 
 With **Lockscreen → Mode** set to `none`, axiom doesn't register the `lockscreen` target. Point your idle daemon at your own locker, and set **Lockscreen → Lock command** so that axiom's lock buttons run it too.

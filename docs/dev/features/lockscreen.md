@@ -40,7 +40,7 @@ Run by `axiom run`, the binary makes locking dependable (`backend/internal/lock`
 #### hypridle
 - `Idle.enabled` has axiom run hypridle with its own config ([idle.md](idle.md)).
 - A user's own hypridle:
-  - For the first two modes it uses `lock_cmd = qs -c axiom ipc call lockscreen lock` and `before_sleep_cmd = loginctl lock-session`.
+  - For the first two modes it uses `lock_cmd = axiom lock` and `before_sleep_cmd = loginctl lock-session`.
   - For `none` it has no axiom references.
 
 ### Layout

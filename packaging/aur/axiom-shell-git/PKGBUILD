@@ -88,7 +88,7 @@ package() {
   # The marker the shell reads (Paths.packaged): updates come from pacman,
   # and the login screen runs this copy
   printf '%s\n' "$pkgver-$pkgrel" >"$dest/.packaged"
-  # Where `qs -c axiom` looks after ~/.config/quickshell/axiom
+  # Where `axiom run` looks after ~/.config/quickshell/axiom
   install -d "$pkgdir/etc/xdg/quickshell"
   ln -s /usr/share/axiom "$pkgdir/etc/xdg/quickshell/axiom"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"

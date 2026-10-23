@@ -4,12 +4,15 @@ import (
 	"testing"
 
 	"github.com/axiom-shell/axiom/backend/internal/jsonx"
+	"github.com/axiom-shell/axiom/backend/internal/migrate/legacy"
 	"github.com/axiom-shell/axiom/backend/internal/schema"
 	"github.com/axiom-shell/axiom/backend/internal/testkit"
 )
 
-// The schema.* shared cases (recorded from SchemaValidation.qml) replayed
-// through the Go pipeline: each output must be the JS bytes exactly.
+// The schema.* shared cases (recorded from SchemaValidation.qml, which the
+// shell still validates and fills defaults with, against the live schema
+// and the tests' own) replayed through the Go pipeline: each output must be
+// the JS bytes exactly.
 func TestSharedSchemaCases(t *testing.T) {
 	t.Parallel()
 	for _, c := range testkit.Cases(t, "schema.") {
@@ -32,9 +35,6 @@ func runSchemaOp(t *testing.T, c testkit.Case) any {
 			return nil
 		}
 		return out
-	case "schema.pruneUnknown":
-		removed := Prune(schema.New(c.Args[1]), c.Args[0], c.Args[1])
-		return jsonx.Obj("value", c.Args[0], "removed", stringArray(removed))
 	case "schema.validationErrors":
 		return stringArray(ValidationErrors(schema.New(c.Args[1]), c.Args[0], c.Args[1]))
 	case "schema.resolveRef":
@@ -52,18 +52,20 @@ func stringArray(list []string) *jsonx.Array {
 	return a
 }
 
-// The corpus: every past schema version's defaults and the old configs,
-// loaded whole, must come out as the shell's ConfigManager made them.
-func TestSharedLoadCases(t *testing.T) {
+// The corpus, frozen when the shell's migrations went: every past schema
+// version's defaults and the old configs, loaded whole, must come out as
+// the shell's ConfigManager made them.
+func TestFrozenLoadCases(t *testing.T) {
 	t.Parallel()
-	for _, c := range testkit.Cases(t, "legacy.load") {
+	s := schema.New(legacy.Schema())
+	for _, c := range testkit.Frozen(t, "load") {
 		t.Run(c.Name, func(t *testing.T) {
 			t.Parallel()
-			loaded, err := LoadLegacy(schema.New(c.Args[1]), c.Args[0])
+			loaded, err := LoadLegacy(s, c.Input)
 			if err != nil {
 				t.Fatal(err)
 			}
-			c.Compare(t, loaded.Object())
+			c.Check(t, loaded.Object())
 		})
 	}
 }

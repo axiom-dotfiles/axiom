@@ -25,7 +25,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `Appearance`, with the files that use it.
 
 - `Appearance.theme` (string): --- Theme (UI-owned, set on the overlay's Themes page) ---
-  - in: `components/content/ThemePicker/ThemePicker.qml`, `components/methods/ConfigMigration.qml`, `config/Theme.qml`, `services/ThemeManager.qml`
+  - in: `components/content/ThemePicker/ThemePicker.qml`, `config/Theme.qml`, `services/ThemeManager.qml`
 - `Appearance.darkMode` (bool): From the active theme, not config: a theme is dark or light
   - in: `components/content/QuickActions/QuickActions.qml`, `components/content/ThemePicker/ThemePicker.qml`, `components/content/WallpaperPicker/WallpaperPicker.qml`, `components/reusable/BackdropRequest.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 - `Appearance.fixedWallpaper` (string): The wallpapers picked by hand (fixed mode): the primary monitor's, the fallback for monitors without their own, and monitor name -> URL, set per monitor on the…
@@ -35,7 +35,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.wallpaperBackend` (string): As configured (for display), and with ~ expanded, no trailing slash "quickshell" (shell/Wallpaper draws it) | "awww" (setWallpaper.sh)
   - in: `services/ThemeManager.qml`, `services/WallpaperManager.qml`, `shell/Wallpaper.qml`
 - `Appearance.wallpaperDaemon` (bool): Start awww's daemon for the awww backend (WallpaperManager)
-  - in: `components/methods/ConfigMigration.qml`, `services/WallpaperManager.qml`
+  - in: `services/WallpaperManager.qml`
 - `Appearance.wallpaperFolder` (string)
   - in: `components/content/WallpaperPicker/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/LookPage.qml`
 - `Appearance.wallpaperPath` (string)

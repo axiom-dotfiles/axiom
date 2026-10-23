@@ -173,21 +173,22 @@ It uses the compositor you're running or have installed, or asks which one to in
 <details>
 <summary><b>By hand</b>: on another distribution, or if you'd rather not pipe to bash</summary>
 
-Install the requirements: a compositor (above), [Quickshell](https://quickshell.org) 0.3.2+, the [Material Symbols](https://fonts.google.com/icons) font, `git`, `jq`, `curl` and `python3`. Optional features have their own dependencies, listed in [the installation guide](docs/installation.md#requirements).
+Install the requirements: a compositor (above), [Quickshell](https://quickshell.org) 0.3.2+, the [Material Symbols](https://fonts.google.com/icons) font, `git`, `go`, `jq`, `curl` and `python3`. Optional features have their own dependencies, listed in [the installation guide](docs/installation.md#requirements).
 
-Clone into Quickshell's config directory, and try it with `qs -c axiom`:
+Clone into Quickshell's config directory, build the `axiom` binary (the shell's parent), and try it with `axiom run`:
 
 ```bash
 git clone https://github.com/axiom-shell/axiom.git ~/.config/quickshell/axiom
+cd ~/.config/quickshell/axiom && scripts/generate.sh && go -C backend build -o ~/.local/bin/axiom ./cmd/axiom
 ```
 
-To start it with your session, add one line to your compositor's config (`-n` keeps a second copy from starting):
+To start it with your session, add one line to your compositor's config (a second `axiom run` on the same display exits at once):
 
 | Compositor | File | Line |
 | --- | --- | --- |
-| Hyprland | `~/.config/hypr/hyprland.lua` | `hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)` |
-| niri | `~/.config/niri/config.kdl` | `spawn-sh-at-startup "qs -n -c axiom"` |
-| sway | `~/.config/sway/config` | `exec qs -n -c axiom` |
+| Hyprland | `~/.config/hypr/hyprland.lua` | `hl.on("hyprland.start", function() hl.exec_cmd("axiom run") end)` |
+| niri | `~/.config/niri/config.kdl` | `spawn-sh-at-startup "axiom run"` |
+| sway | `~/.config/sway/config` | `exec axiom run` |
 
 </details>
 

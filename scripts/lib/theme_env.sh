@@ -300,12 +300,3 @@ render_template() {
     fi
     echo "✅ Written to '$output'"
 }
-
-# old_output_notice OLD NEW: the output used to be OLD; say where it went
-# (never deletes OLD or edits the config that includes it)
-old_output_notice() {
-    local old="$1" new="$2"
-    if [ -e "$old" ]; then
-        warn "the theme file moved from '$old' to '$new': point your config at the new file, then delete the old one."
-    fi
-}

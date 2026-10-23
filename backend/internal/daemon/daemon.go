@@ -160,13 +160,6 @@ func Run(ctx context.Context, opts Options) error {
 	}
 	d.dev = newDevMode(d, devOn)
 
-	// An install from before the XDG folders: its config and state out of
-	// the repo first, so the store finds them
-	if moved, err := xdg.MoveLegacy(opts.Tree, d.dirs, time.Now()); err != nil {
-		opts.Log.Error("moving the config out of the repo failed; starting on the XDG folders", "err", err)
-	} else if moved {
-		opts.Log.Info("moved the config and state out of the repo into the XDG folders", "config", d.dirs.Config)
-	}
 	if err := d.loadSchema(); err != nil {
 		return err
 	}

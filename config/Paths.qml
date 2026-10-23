@@ -21,9 +21,8 @@ QtObject {
   // The restart binds' command: axiom restarts the shell it runs
   readonly property string restartCommand: `${root.shellCommand} restart`
   // A line in a compositor config that starts axiom (Python regex, for
-  // integration_hookup.py's `accept`): `axiom run`, or the `qs -c axiom` /
-  // `qs -p …axiom` of before the binary
-  readonly property string startPattern: "(qs|quickshell) .*(-c +['\"]?axiom|-p +['\"]?\\S*axiom)|(^|[\\s'\"/])axiom['\"]? +run\\b"
+  // integration_hookup.py's `accept`): `axiom run`
+  readonly property string startPattern: "(^|[\\s'\"/])axiom['\"]? +run\\b"
   readonly property string themePath: root.axiomPath + "config/themes/"
   readonly property string scriptsPath: root.axiomPath + "scripts/"
   // What ships with axiom in config/: json/ (schema, theme defaults,
@@ -36,8 +35,7 @@ QtObject {
   readonly property string packagedVersion: (FileManager.read(root.axiomPath + ".packaged") ?? "").trim()
   readonly property bool packaged: packagedVersion !== ""
 
-  // --- What axiom writes (ConfigManager.dataDirs: the XDG folders, or the
-  // repo's own until an old install's data is moved over) ---
+  // --- What axiom writes (ConfigManager.dataDirs: the XDG folders) ---
 
   // $XDG_CONFIG_HOME/axiom/: config.json and saved/
   readonly property string userConfigPath: ConfigManager.configDir

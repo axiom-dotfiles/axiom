@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell
 import Quickshell.Io
 import qs.config
 
@@ -355,43 +354,12 @@ QtObject {
     CommandManager.run(command, (code, out) => callback(code === 0, out, code));
   }
 
-  // Notes from before v17 were JSON state files (Paths.statePath note-<name>.json):
-  // each becomes <name>.md here, unless that exists, and is kept as
-  // note-<name>.json.migrated
-  function _migrateOldNotes() {
-    const stateDir = Paths.statePath;
-    root._run(["sh", "-c", "cd \"$1\" 2>/dev/null || exit 0; for f in note-*.json; do [ -e \"$f\" ] && printf '%s\\n' \"$f\"; done", "sh", stateDir], (ok, out) => {
-      out.split("\n").filter(file => file !== "").forEach(file => {
-        const name = file.replace(/^note-/, "").replace(/\.json$/, "") + ".md";
-        let text = "";
-        try {
-          text = JSON.parse(FileManager.read("file://" + stateDir + file) ?? "{}").text ?? "";
-        } catch (e) {
-          console.warn("[NotesManager] Could not read", file + ":", e);
-          return;
-        }
-        if (FileManager.read("file://" + root.absolute(name)) !== null) {
-          console.warn("[NotesManager] Not migrating", file + ":", name, "already exists");
-          return;
-        }
-        const view = _writerComponent.createObject(root, {
-          "path": root.absolute(name)
-        });
-        view.setText(text);
-        view.destroy();
-        Quickshell.execDetached(["mv", "-n", "--", stateDir + file, stateDir + file + ".migrated"]);
-        console.log("[NotesManager] Moved", file, "to", root.absolute(name));
-      });
-      root.refreshList();
-    });
-  }
-
   function _start() {
     if (NotesConfig.linked) {
       root.refreshList();
       return;
     }
-    root._run(["mkdir", "-p", "--", root.directory], () => root._migrateOldNotes());
+    root._run(["mkdir", "-p", "--", root.directory], () => root.refreshList());
   }
 
   onDirectoryChanged: {
@@ -497,14 +465,6 @@ QtObject {
           });
         }
       }
-    }
-  }
-
-  property Component _writerComponent: Component {
-    FileView {
-      blockWrites: true
-      atomicWrites: true
-      printErrors: false
     }
   }
 }

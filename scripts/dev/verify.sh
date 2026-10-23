@@ -67,7 +67,7 @@ for f in "${changed[@]}"; do
   *.sh) shells+=("$f") ;;
   esac
   case "$f" in
-  components/methods/ConfigMigration.qml | components/methods/ConfigExamples.qml | components/methods/SchemaValidation.qml) schema=1 go=1 ;;
+  components/methods/SchemaValidation.qml) schema=1 go=1 ;;
   config/schema/* | backend/internal/schema/*) schema=1 go=1 ;;
   esac
   # backend/ and the repo files the binary embeds (backend/tools/syncassets)
@@ -114,7 +114,7 @@ for f in "${changed[@]}"; do
   tests/scripts/test_scripts.py) script_tests+=(all) ;;
   esac
 done
-[[ $schema -eq 1 ]] && tests+=(Config ConfigExamples)
+[[ $schema -eq 1 ]] && tests+=(Config)
 
 reloads_before=$(scripts/log.sh --all 2>/dev/null | grep -c "Reloading configuration" || true)
 

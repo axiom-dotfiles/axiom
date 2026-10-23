@@ -10,7 +10,7 @@ The schema is written in YAML (`config/schema/`): `index.yaml` is the root and l
 
 ### Basics
 - Adding a setting = a schema entry with a `default` + a reader property.
-- Changing the layout of existing config = a format-2 step in the binary (`backend/internal/migrate/`) + a test; the format-1 `ConfigMigration` steps are frozen.
+- Changing the layout of existing config = a format-2 step in the binary (`backend/internal/migrate/`) + a test; the format-1 migrations (`backend/internal/migrate/legacy/legacy.js`) are frozen.
 - The live file is `~/.config/axiom/config.json` (`$XDG_CONFIG_HOME`, UI-owned).
 - A schema reaches QML as a map, whose keys come out sorted, so order always comes from `x-order`.
 - The settings page, forms and editors read the annotations: add an annotation rather than a hand-kept list in QML.

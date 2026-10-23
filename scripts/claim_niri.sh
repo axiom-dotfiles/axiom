@@ -89,12 +89,12 @@ if repo=$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null); then
 fi
 
 # The nodes that start axiom (a spawn-at-startup or spawn-sh-at-startup of
-# any `qs … -c axiom` / `-p …axiom` or `axiom run`, flags after it at most, so not an IPC
-# call) or include its module. Not a bind calling axiom: the bind merge
+# `axiom run`, flags after it at most, so not an IPC call) or include its
+# module. Not a bind calling axiom: the bind merge
 # reads those. `sep` is what's between two words: a space in a
 # spawn-sh-at-startup's string, `" "` between spawn-at-startup's arguments
 sep='("[[:space:]]+"|[[:space:]]+)'
-axiom_line="^[[:space:]]*(spawn(-sh)?-at-startup[[:space:]]+\"([^\"]*[[:space:]])?(qs|quickshell)${sep}(-c${sep}['\"]?axiom['\"]?|-p${sep}'?[^[:space:]\"']*axiom'?)(${sep}-[^[:space:]\"]+)*\"[[:space:]]*(;.*)?\$|spawn(-sh)?-at-startup[[:space:]]+\"([^\"]*[[:space:]])?'?([^[:space:]\"']*/)?axiom'?${sep}run(${sep}-[^[:space:]\"]+)*\"[[:space:]]*(;.*)?\$|include[[:space:]].*axiom/niri(-detached)?\\.kdl)"
+axiom_line="^[[:space:]]*(spawn(-sh)?-at-startup[[:space:]]+\"([^\"]*[[:space:]])?'?([^[:space:]\"']*/)?axiom'?${sep}run(${sep}-[^[:space:]\"]+)*\"[[:space:]]*(;.*)?\$|include[[:space:]].*axiom/niri(-detached)?\\.kdl)"
 
 # The default config, give or take comments, blank lines and whitespace,
 # and a line starting axiom

@@ -176,3 +176,39 @@ func TestExport(t *testing.T) {
 		t.Errorf("export:\n%s", data)
 	}
 }
+
+// Every shipped example (examples/, format 1 for now) applies, converted,
+// to a valid config.
+func TestShippedExamplesApply(t *testing.T) {
+	t.Parallel()
+	entries, err := os.ReadDir(filepath.Join(testkit.RepoRoot(), "examples"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	checked := 0
+	for _, e := range entries {
+		if !strings.HasSuffix(e.Name(), ".json") {
+			continue
+		}
+		name := strings.TrimSuffix(e.Name(), ".json")
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			f := setup(t)
+			data, err := os.ReadFile(filepath.Join(testkit.RepoRoot(), "examples", e.Name()))
+			if err != nil {
+				t.Fatal(err)
+			}
+			os.WriteFile(filepath.Join(f.ex, e.Name()), data, 0o644)
+			if _, err := f.svc.ApplyExample(name, nil); err != nil {
+				t.Fatal(err)
+			}
+			if _, st := f.store.Config(); st.Blocked {
+				t.Errorf("blocked: %v", st.Issues)
+			}
+		})
+		checked++
+	}
+	if checked == 0 {
+		t.Fatal("no examples")
+	}
+}

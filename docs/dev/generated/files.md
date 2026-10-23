@@ -504,9 +504,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `CommunityCatalog.qml`: The community setups catalog (github.com/axiom-shell/community-setups, its `catalog` branch): reading its index.json, searching it, and where each file comes from and goes.
 - `CompositorKind.qml`: Which compositor axiom runs under, from the environment (CompositorManager.kind).
 - `CompositorLayer.qml`: What axiom asks of the compositor, decided once in a neutral shape that every backend's config writer turns into its own text (Hyprland's Lua, sway's commands).
-- `ConfigExamples.qml`: Sharing a config.
-- `ConfigMigration.qml`: Upgrades older config.json layouts to the current one (see config/json/config.schema.json).
-- `DataDirs.qml`: Where axiom keeps what it writes (XDG base directories), and where it kept it inside the repo before (the legacy layout, until moved over).
+- `DataDirs.qml`: Where axiom keeps what it writes (XDG base directories).
 - `DockLayout.qml`: Pure helpers for the dock: which apps it shows (pinned ones, then running ones), which window a click goes to, how big each icon is under the pointer, and whether a window covers it.
 - `DynamicWorkspaces.qml`: niri's workspaces for a compositor that only has ids (Hyprland, under the scrolling layout): each output's workspaces are its block's ids from the first, without gaps, with one empty one after the last.
 - `EdgeAttach.qml`: Where a box that grows out of a screen edge goes along it: bar popouts, edge popouts (the launcher, OSDs, floating edge menus) and anything else drawn with AttachedSurface.
@@ -538,7 +536,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `PopoutGeometry.qml`: Which popouts give way to which (PopoutManager): every popout reports its footprint (rects in screen px, from SurfaceOutline.footprint, fillets included), and one opening closes only what it actually covers, by rank.
 - `Schedules.qml`: Pure helpers for what changes on its own: daily time windows ("HH:MM", 24-hour; the light/dark schedule, night light) and picking the next wallpaper of a rotation.
 - `SchemaLayout.qml`: Turns the config schema into the settings page's layout: categories (`x-category` on each top-level section, ordered by the root's `x-categories`), each made of groups (the section's own fields, then one per nested obje…
-- `SchemaValidation.qml`: JSON-schema helpers for the config: validation, filling in defaults, and pruning unknown keys.
+- `SchemaValidation.qml`: JSON-schema helpers for the config: validation and filling in defaults (pruning and loading are the axiom binary's).
 - `Search.qml`: Pure helpers for searching lists by typed text: the launcher's fuzzy score, frecency from a { count, last } use record (Utils.recordUse) and whether text reads as math for the calculator.
 - `ShownLook.qml`: What the look shows at the moment, from what the user chose (config) and what changes on its own (runtime state ThemeManager keeps: the rotation's wallpapers, the theme schedule's variant).
 - `StopwatchClock.qml`: The one-off timer's and the stopwatch's rules, for StopwatchManager.

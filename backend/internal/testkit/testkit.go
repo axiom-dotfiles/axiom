@@ -109,29 +109,8 @@ func load(name string) (Case, error) {
 	return Case{Name: name, Op: op, Args: args, Expected: expected}, nil
 }
 
-var (
-	schemaMu    sync.Mutex
-	schemaCache = map[string]any{}
-)
-
-// Schema returns a frozen schema from schemas/<name>.schema.json. The same
-// object is returned on every call, so sub-schemas keep their identity.
-func Schema(name string) (any, error) {
-	schemaMu.Lock()
-	defer schemaMu.Unlock()
-	if s, ok := schemaCache[name]; ok {
-		return s, nil
-	}
-	s, err := readJSON(filepath.Join(SharedDir(), "schemas", name+".schema.json"))
-	if err != nil {
-		return nil, err
-	}
-	schemaCache[name] = s
-	return s, nil
-}
-
-// resolve replaces {"$blob": h} with the blob and {"$fixtureSchema": n,
-// "pointer": p} with that (shared) schema object.
+// resolve replaces {"$blob": h} with the blob and {"$repoFile": p} with
+// that repo file (the live schema), read once.
 func resolve(v any) (any, error) {
 	switch t := v.(type) {
 	case *jsonx.Object:
@@ -143,24 +122,8 @@ func resolve(v any) (any, error) {
 			}
 			return resolve(blob)
 		}
-		if name, ok := t.Value("$fixtureSchema").(string); ok && (t.Len() == 1 || (t.Len() == 2 && t.Has("pointer"))) {
-			node, err := Schema(name)
-			if err != nil {
-				return nil, err
-			}
-			pointer, _ := t.Value("pointer").(string)
-			for _, part := range strings.Split(pointer, "/")[1:] {
-				part = strings.ReplaceAll(strings.ReplaceAll(part, "~1", "/"), "~0", "~")
-				switch n := node.(type) {
-				case *jsonx.Object:
-					node = n.Value(part)
-				case *jsonx.Array:
-					var i int
-					fmt.Sscan(part, &i)
-					node = n.Items[i]
-				}
-			}
-			return node, nil
+		if p, ok := t.Value("$repoFile").(string); ok && t.Len() == 1 {
+			return repoFile(p)
 		}
 		for _, k := range t.Keys() {
 			r, err := resolve(t.Value(k))
@@ -180,6 +143,26 @@ func resolve(v any) (any, error) {
 		}
 		return t, nil
 	}
+	return v, nil
+}
+
+var (
+	repoMu    sync.Mutex
+	repoFiles = map[string]any{}
+)
+
+// repoFile is a repo file's JSON, the same object on every call.
+func repoFile(p string) (any, error) {
+	repoMu.Lock()
+	defer repoMu.Unlock()
+	if v, ok := repoFiles[p]; ok {
+		return v, nil
+	}
+	v, err := readJSON(filepath.Join(RepoRoot(), filepath.FromSlash(p)))
+	if err != nil {
+		return nil, err
+	}
+	repoFiles[p] = v
 	return v, nil
 }
 

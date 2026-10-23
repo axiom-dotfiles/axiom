@@ -647,7 +647,7 @@ IPC_BLOCK = re.compile(r"\bIpcTarget\s*\{")
 
 def ipc_page():
     out = [NOTICE, "# IPC targets", "",
-           "Every `IpcTarget` (an `IpcHandler` that also registers with axiom): call with `axiom ipc <target> <function> [args]` (or `qs -c axiom ipc call …`). "
+           "Every `IpcTarget` (an `IpcHandler` that also registers with axiom): call with `axiom ipc <target> <function> [args]`. "
            "`enabled` handlers answer only on their target instance (AGENTS.md › UI conventions, Screen targeting). "
            "`show` is a qs keyword, so a function named `show` can't be called.", ""]
     rows = []

@@ -1,6 +1,6 @@
 # ConfigManager, drafts and previews
 
-> **Files:** `services/ConfigManager.qml`, `services/ConfigDraft.qml`, `services/BackendManager.qml`, `components/methods/DataDirs.qml`, `components/methods/SchemaValidation.qml`, `services/SettingsManager.qml`, `backend/internal/store/store.go`, `backend/internal/config/load.go`, `backend/internal/xdg/legacy.go`
+> **Files:** `services/ConfigManager.qml`, `services/ConfigDraft.qml`, `services/BackendManager.qml`, `components/methods/DataDirs.qml`, `components/methods/SchemaValidation.qml`, `services/SettingsManager.qml`, `backend/internal/store/store.go`, `backend/internal/config/load.go`
 > **Config:** all of `~/.config/axiom/config.json`
 > **Related:** [Config readers](config-readers.md), [Schema annotations](schema-annotations.md), [Editors pattern](editors-pattern.md), [Saved configs and sharing](saved-configs-sharing.md), [Secrets](secrets.md)
 
@@ -35,12 +35,11 @@ The repo (`Paths.axiomPath`) is read-only to the shell: a package installs it wh
 - Files under `userStatePath` keep their names: users' own configs point at several (the Hyprland include, the fzf/nvim/ncspot outputs).
 - The greeter has its own folders (`Paths.greeterDir`) and reads none of these.
 - **Data others installed** (Wayland sessions, Hyprland's example config and wallpapers, cursor themes) is looked up in `Paths.dataSearchDirs` (`DataDirs.searchDirs`: `$XDG_DATA_HOME`, then `$XDG_DATA_DIRS`, else `/usr/local/share:/usr/share`), never at a fixed `/usr/share` path: NixOS keeps nothing there. `claim_hyprland.sh` does the same in shell.
-- **Moving an old install over:** before this layout the config was in the repo's `config/user/`, the UI state and notes in `config/state/`, and generated themes in `config/themes/generated/`. axiom copies them out once at its start (`xdg.MoveLegacy`): nothing is overwritten, config.json goes last and whole, then `MOVED.md` in the old folder says where everything went. The old folders are kept for a rollback.
 
 ### Load pipeline
 In axiom (`config.Pipeline.Load`), for config.json, saved configs and imports alike:
 1. Parse (a byte-order mark is ignored).
-2. A format-1 file (no `format`): the frozen v1–v75 migrations (`backend/internal/migrate/legacy/`, the JS `ConfigMigration` run as it was), then the conversion to format 2 (`migrate/convert`). The file as it was is kept once as `config.format1.json`, and secrets a step pulls out go to the secrets store before the file is written back.
+2. A format-1 file (no `format`): the frozen v1–v75 migrations (`backend/internal/migrate/legacy/`, the shell's JS migrations run as they were), then the conversion to format 2 (`migrate/convert`). The file as it was is kept once as `config.format1.json`. This path stays only until format 1 is retired.
 3. Format-2 steps by `version`.
 4. Unknown keys are dropped (logged as warnings), defaults filled, the result validated. A file that fails runs nothing: axiom runs on the defaults and blocks saves until it's fixed.
 

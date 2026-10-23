@@ -194,31 +194,6 @@ TestCase {
     })[0].includes("does not match any schema"));
   }
 
-  function test_prune_removes_unknown_keys_in_place() {
-    const value = {
-      "size": 2,
-      "stray": true,
-      "nested": {
-        "on": true,
-        "old": 1
-      },
-      "widgets": [
-        {
-          "type": "Clock",
-          "gone": 1
-        }
-      ],
-      "free": {
-        "kept": 1
-      }
-    };
-    const removed = shared.pruneUnknown(value, schema);
-    compare(removed.sort(), ["nested.old", "stray", "widgets[0].gone"]);
-    compare(value.stray, undefined);
-    compare(value.free.kept, 1);
-    compare(errors(value), []);
-  }
-
   // Keys beside a $ref override the definition's: one definition, two
   // defaults (Lockscreen.layout and Greeter.layout share ScreenLayout)
   function test_ref_siblings_override_the_definition() {
@@ -274,17 +249,5 @@ TestCase {
       }
     }, twoDefaults).a.items, []);
     compare(shared.validationErrors(filled, twoDefaults), []);
-    const stray = {
-      "a": {
-        "size": 1,
-        "gone": true
-      }
-    };
-    compare(shared.pruneUnknown(stray, twoDefaults), ["a.gone"]);
-  }
-
-  function test_getSchemaProperty() {
-    compare(SchemaValidation.getSchemaProperty(schema, "nested.on").type, "boolean");
-    compare(SchemaValidation.getSchemaProperty(schema, "nested.missing"), null);
   }
 }

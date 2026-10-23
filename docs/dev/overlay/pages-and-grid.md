@@ -24,7 +24,7 @@ How the overlay turns `Overlay.items` into pages, and a page's modules into a gr
   - `CalendarPage`: the month with its events, the selected day's `DayPane`, and the calendars to switch on and off. It is not named `Calendar`, which `views/Themes`' import of `content/` would see twice.
   - The Themes page is described in [Themes](../theming/themes.md).
 - `Layouts` (the layouts editor, `views/Layouts/`) is pinned, not in config: see [Layouts editor](layouts-editor.md).
-- `ShellManager.showOverlayPage(type)` switches the overlay to a page. `qs -c axiom ipc call overlay page <type or name>` opens it on one.
+- `ShellManager.showOverlayPage(type)` switches the overlay to a page. `axiom ipc overlay page <type or name>` opens it on one.
 
 ### Grid maths (`methods/GridPlacement`)
 Pure, tested by `tst_GridPlacement`.

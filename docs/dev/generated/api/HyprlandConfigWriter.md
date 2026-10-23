@@ -18,7 +18,7 @@ section's options, loading ~/.config/hypr/user/*.lua after it Also the managed t
 - `includeTarget` (readonly var): The lines above as integration_hookup.py targets in the user's hyprland.lua (IntegrationHookupManager's "compositorInclude" and "compositorAutostart"): the include goes first, so what follows overrid…
 - `autostartTarget` (readonly var)
 - `shellCommand` (readonly string): How Hyprland and its binds start or call axiom (Paths.shellCommand)
-- `startCommand` (readonly string): Starting it: -n (--no-duplicate) exits at once if axiom already runs, so a second autostart line or a reloaded hyprland.lua can't start another copy
+- `startCommand` (readonly string): Starting it: a second `axiom run` on the display exits at once (the instance lock), so a reloaded hyprland.lua can't start another copy
 - `notIncludedProblem` (readonly string): Why a file mode isn't in effect (CompositorConfigManager.problem)
 - `notManagedProblem` (readonly string)
 - `blockedProblem` (readonly string)

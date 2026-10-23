@@ -36,8 +36,8 @@ Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`
 - `includeLines` (included) and `autostartLines` (included and detached) are hookup targets:
   - `autostartLines` is one line marked `-- axiom`, like install.sh's.
   - Managed mode starts axiom itself.
-  - Both start it with `startCommand`, which is `qs -p … -n`. Its `--no-duplicate` exits at once if axiom already runs, as install.sh's `qs -n -c axiom` does.
-- The targets are `includeTarget` (at the top of hyprland.lua) and `autostartTarget` (at the end). An `axiom run` line (`Paths.startPattern`, which still accepts the old `qs -c axiom` / `qs -p …axiom` forms) counts as done.
+  - Both start it with `startCommand`, `'<AXIOM_BIN>' run`. A second `axiom run` on the display exits at once (the instance lock), as install.sh's line does.
+- The targets are `includeTarget` (at the top of hyprland.lua) and `autostartTarget` (at the end). An `axiom run` line (`Paths.startPattern`) counts as done.
 - `IntegrationHookupManager` runs them under the keys `compositorInclude` (both lines) and `compositorAutostart` ([Config modes](../compositor/config-modes.md)).
 
 ### Is the file loaded?

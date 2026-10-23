@@ -1,0 +1,1591 @@
+{
+  "_example": {
+    "title": "demoConfig7",
+    "description": ""
+  },
+  "version": 54,
+  "Appearance": {
+    "theme": "rose-pine",
+    "font": {
+      "family": "Inter",
+      "size": 15
+    },
+    "shape": {
+      "radius": 28,
+      "borderWidth": 2,
+      "screenMargin": 14
+    },
+    "surface": {
+      "opacity": 69,
+      "blurBackdrops": true
+    },
+    "wallpaper": "file:///home/travmonkey/Pictures/wallpapers/northernLightsTravelor.jpg",
+    "wallpapers": {
+      "DP-1": "file:///home/travmonkey/Pictures/wallpapers/northernLightsTravelor.jpg"
+    }
+  },
+  "Popouts": {
+    "openDelay": 8,
+    "dismissDelay": 225
+  },
+  "Widget": {
+    "overrideRadius": true,
+    "radius": 22
+  },
+  "Overlay": {
+    "views": [
+      {
+        "type": "Custom",
+        "name": "Home",
+        "modules": [
+          {
+            "type": "ClockCalendar",
+            "place": {
+              "x": 8,
+              "y": 6,
+              "w": 8,
+              "h": 10
+            }
+          },
+          {
+            "type": "QuickActions",
+            "properties": {
+              "actions": [
+                "wifi",
+                "bluetooth",
+                "caffeine",
+                "dnd",
+                "darkMode",
+                "nightLight"
+              ]
+            },
+            "place": {
+              "x": 8,
+              "w": 8
+            }
+          },
+          {
+            "type": "NowPlaying",
+            "place": {
+              "x": 16,
+              "w": 16,
+              "h": 6
+            }
+          },
+          {
+            "type": "AudioMixer",
+            "place": {
+              "x": 16,
+              "y": 8,
+              "w": 8,
+              "h": 8
+            }
+          },
+          {
+            "type": "Network",
+            "place": {
+              "x": 24,
+              "y": 8,
+              "w": 8
+            }
+          },
+          {
+            "type": "Screenshot",
+            "place": {
+              "x": 28,
+              "y": 12
+            }
+          },
+          {
+            "type": "Notifications",
+            "place": {
+              "x": 32,
+              "w": 8,
+              "h": 8
+            }
+          },
+          {
+            "type": "Weather",
+            "place": {
+              "x": 32,
+              "y": 8,
+              "w": 8
+            }
+          },
+          {
+            "type": "Disks",
+            "properties": {},
+            "place": {
+              "x": 32,
+              "y": 12,
+              "w": 8
+            }
+          },
+          {
+            "type": "TopProcesses",
+            "place": {
+              "x": 24,
+              "y": 12
+            },
+            "properties": {
+              "count": 4
+            }
+          },
+          {
+            "type": "WifiNetworks",
+            "place": {
+              "w": 8,
+              "h": 8
+            }
+          },
+          {
+            "type": "QuickActions",
+            "place": {
+              "x": 8,
+              "y": 4,
+              "w": 8,
+              "h": 2
+            },
+            "properties": {
+              "actions": [
+                "lock",
+                "suspend",
+                "hibernate",
+                "logout",
+                "reboot",
+                "poweroff"
+              ]
+            }
+          },
+          {
+            "type": "BluetoothDevices",
+            "place": {
+              "y": 8,
+              "w": 8,
+              "h": 8
+            }
+          },
+          {
+            "type": "Brightness",
+            "place": {
+              "x": 16,
+              "y": 6,
+              "w": 8,
+              "h": 2
+            },
+            "properties": {}
+          },
+          {
+            "type": "AudioMixer",
+            "place": {
+              "x": 24,
+              "y": 6,
+              "w": 8,
+              "h": 2
+            }
+          }
+        ],
+        "icon": "home",
+        "fineGrid": true
+      },
+      {
+        "type": "Custom",
+        "name": "Tiny",
+        "modules": [
+          {
+            "type": "Battery",
+            "place": {
+              "w": 2,
+              "h": 2
+            }
+          },
+          {
+            "type": "Notifications",
+            "place": {
+              "x": 2,
+              "w": 2,
+              "h": 2
+            }
+          },
+          {
+            "type": "BluetoothDevices",
+            "place": {
+              "x": 4,
+              "w": 2,
+              "h": 2
+            }
+          },
+          {
+            "type": "WifiNetworks",
+            "place": {
+              "x": 6,
+              "w": 2,
+              "h": 2
+            }
+          },
+          {
+            "type": "NowPlaying",
+            "place": {
+              "x": 8,
+              "w": 8,
+              "h": 2
+            }
+          },
+          {
+            "type": "QuickActions",
+            "place": {
+              "x": 16,
+              "w": 8,
+              "h": 2
+            }
+          },
+          {
+            "type": "Network",
+            "place": {
+              "x": 24,
+              "w": 8,
+              "h": 2
+            }
+          },
+          {
+            "type": "Weather",
+            "place": {
+              "y": 2,
+              "h": 2
+            }
+          },
+          {
+            "type": "AudioMixer",
+            "place": {
+              "x": 4,
+              "y": 2,
+              "h": 2
+            }
+          },
+          {
+            "type": "Disks",
+            "place": {
+              "x": 8,
+              "y": 2,
+              "w": 8,
+              "h": 2
+            },
+            "properties": {}
+          },
+          {
+            "type": "ClockCalendar",
+            "place": {
+              "x": 16,
+              "y": 2,
+              "w": 8,
+              "h": 2
+            }
+          },
+          {
+            "type": "VolumeDials",
+            "place": {
+              "x": 24,
+              "y": 2,
+              "w": 8,
+              "h": 2
+            }
+          },
+          {
+            "type": "SystemGraphs",
+            "place": {
+              "y": 4
+            }
+          },
+          {
+            "type": "Updates",
+            "place": {
+              "x": 4,
+              "y": 4
+            },
+            "properties": {}
+          },
+          {
+            "type": "TopProcesses",
+            "place": {
+              "x": 8,
+              "y": 4,
+              "w": 6
+            }
+          },
+          {
+            "type": "Favourites",
+            "place": {
+              "x": 14,
+              "y": 4,
+              "w": 8,
+              "h": 2
+            }
+          },
+          {
+            "type": "Screenshot",
+            "place": {
+              "x": 14,
+              "y": 6,
+              "w": 8,
+              "h": 2
+            }
+          },
+          {
+            "type": "WorkspacesMap",
+            "place": {
+              "x": 22,
+              "y": 4,
+              "w": 6
+            }
+          },
+          {
+            "type": "ColorSwatch",
+            "place": {
+              "x": 28,
+              "y": 4,
+              "w": 2,
+              "h": 2
+            },
+            "properties": {
+              "color": "base0D",
+              "label": "accent"
+            }
+          },
+          {
+            "type": "ColorSwatch",
+            "place": {
+              "x": 30,
+              "y": 4,
+              "w": 2,
+              "h": 2
+            },
+            "properties": {
+              "color": "base08",
+              "label": "error"
+            }
+          },
+          {
+            "type": "Chat",
+            "place": {
+              "x": 28,
+              "y": 6,
+              "w": 2,
+              "h": 2
+            }
+          },
+          {
+            "type": "Notes",
+            "place": {
+              "x": 30,
+              "y": 6,
+              "w": 2,
+              "h": 2
+            },
+            "properties": {}
+          },
+          {
+            "type": "ClockCalendar",
+            "place": {
+              "y": 8,
+              "w": 8
+            }
+          },
+          {
+            "type": "Weather",
+            "place": {
+              "x": 8,
+              "y": 8,
+              "w": 6,
+              "h": 6
+            }
+          },
+          {
+            "type": "ThemePicker",
+            "place": {
+              "x": 14,
+              "y": 8
+            }
+          },
+          {
+            "type": "AudioMixer",
+            "place": {
+              "x": 22,
+              "y": 8,
+              "w": 8
+            }
+          },
+          {
+            "type": "Updates",
+            "place": {
+              "x": 30,
+              "y": 8,
+              "w": 2,
+              "h": 8
+            },
+            "properties": {}
+          },
+          {
+            "type": "Battery",
+            "place": {
+              "y": 12,
+              "w": 8,
+              "h": 2
+            }
+          },
+          {
+            "type": "NowPlaying",
+            "place": {
+              "y": 14,
+              "w": 2,
+              "h": 2
+            }
+          },
+          {
+            "type": "VolumeDials",
+            "place": {
+              "x": 2,
+              "y": 14,
+              "w": 6,
+              "h": 2
+            }
+          },
+          {
+            "type": "SystemGraphs",
+            "place": {
+              "x": 8,
+              "y": 14,
+              "w": 6,
+              "h": 2
+            }
+          },
+          {
+            "type": "Network",
+            "place": {
+              "x": 14,
+              "y": 12
+            }
+          },
+          {
+            "type": "Notifications",
+            "place": {
+              "x": 18,
+              "y": 8,
+              "h": 8
+            }
+          },
+          {
+            "type": "NowPlaying",
+            "place": {
+              "x": 22,
+              "y": 12,
+              "w": 8
+            }
+          }
+        ],
+        "fineGrid": true
+      },
+      {
+        "type": "Custom",
+        "name": "Utilities",
+        "icon": "handyman",
+        "fineGrid": true,
+        "modules": [
+          {
+            "type": "Calculator",
+            "place": {
+              "y": 9,
+              "w": 8,
+              "h": 7
+            }
+          },
+          {
+            "type": "WorldClocks",
+            "place": {
+              "x": 8,
+              "w": 12,
+              "h": 6
+            },
+            "properties": {
+              "clocks": [
+                {
+                  "timezone": "Europe/London"
+                },
+                {
+                  "timezone": "America/New_York"
+                },
+                {
+                  "timezone": "America/Los_Angeles"
+                }
+              ]
+            }
+          },
+          {
+            "type": "NightLightControls",
+            "place": {
+              "x": 8,
+              "y": 6,
+              "w": 12,
+              "h": 5
+            }
+          },
+          {
+            "type": "ScreenRecord",
+            "place": {
+              "x": 8,
+              "y": 11,
+              "w": 6,
+              "h": 5
+            }
+          },
+          {
+            "type": "CommandOutput",
+            "place": {
+              "x": 14,
+              "y": 11,
+              "w": 6,
+              "h": 5
+            },
+            "properties": {
+              "icon": "",
+              "interval": 60
+            }
+          },
+          {
+            "type": "Cheatsheet",
+            "place": {
+              "x": 20,
+              "w": 20,
+              "h": 8
+            }
+          },
+          {
+            "type": "ClipboardHistory",
+            "place": {
+              "x": 20,
+              "y": 8,
+              "w": 10,
+              "h": 8
+            }
+          },
+          {
+            "type": "EmojiPicker",
+            "place": {
+              "x": 30,
+              "y": 8,
+              "w": 10,
+              "h": 8
+            }
+          }
+        ]
+      },
+      {
+        "type": "CalendarPage"
+      },
+      {
+        "type": "Settings"
+      },
+      {
+        "type": "Themes"
+      },
+      {
+        "type": "Keybinds"
+      },
+      {
+        "type": "BarEditor"
+      },
+      {
+        "type": "Monitors"
+      }
+    ],
+    "size": 120
+  },
+  "Bars": [
+    {
+      "id": "top",
+      "background": "floatingPills",
+      "pillMerge": 16,
+      "pillPadding": 5,
+      "widgetSize": 34,
+      "padding": 8,
+      "spacing": 6,
+      "widgetPadding": 14,
+      "widgets": {
+        "left": [
+          {
+            "type": "Button",
+            "properties": {
+              "icon": "grid_view",
+              "action": "workspaceOverlay"
+            }
+          },
+          {
+            "type": "Workspaces",
+            "properties": {
+              "labels": "dots",
+              "showAppIcons": true,
+              "popoutMenu": "menu-5"
+            }
+          },
+          {
+            "type": "IdleInhibitor"
+          },
+          {
+            "type": "SystemStats",
+            "properties": {}
+          },
+          {
+            "type": "ClaudeUsage",
+            "properties": {}
+          },
+          {
+            "type": "Updates",
+            "properties": {}
+          }
+        ],
+        "leftCenter": [
+          {
+            "type": "Button",
+            "properties": {
+              "icon": "sticky_note_2",
+              "action": "edgeMenu",
+              "menu": "menu-3",
+              "hoverActivate": true
+            }
+          }
+        ],
+        "center": [
+          {
+            "type": "Time",
+            "properties": {
+              "showSeconds": false,
+              "popoutMenu": "menu-2"
+            }
+          }
+        ],
+        "rightCenter": [
+          {
+            "type": "Button",
+            "properties": {
+              "icon": "palette",
+              "action": "edgeMenu",
+              "menu": "menu-1",
+              "hoverActivate": true
+            }
+          }
+        ],
+        "right": [
+          {
+            "type": "Network"
+          },
+          {
+            "type": "Media",
+            "properties": {
+              "showArtist": false
+            }
+          },
+          {
+            "type": "SystemTray"
+          },
+          {
+            "type": "Weather"
+          },
+          {
+            "type": "Volume"
+          },
+          {
+            "type": "Notifications"
+          },
+          {
+            "type": "Button",
+            "properties": {
+              "icon": "power_settings_new"
+            }
+          }
+        ]
+      },
+      "lockCenter": true
+    }
+  ],
+  "OSD": {
+    "osds": [
+      {
+        "edge": "Top",
+        "orientation": "Horizontal",
+        "alongEdge": true,
+        "bars": [
+          {
+            "apps": [
+              "Zen"
+            ],
+            "icon": "web",
+            "type": "app"
+          },
+          {
+            "apps": [
+              "vesktop"
+            ],
+            "icon": "chat",
+            "type": "app"
+          },
+          {
+            "icon": "stadia_controller",
+            "type": "other"
+          },
+          {
+            "apps": [
+              "Spotify"
+            ],
+            "icon": "music_note",
+            "type": "app"
+          },
+          {
+            "type": "master"
+          }
+        ],
+        "name": "Deej",
+        "showPercent": false
+      },
+      {
+        "id": "osd",
+        "bars": [
+          {
+            "allMonitors": true,
+            "type": "brightness"
+          },
+          {
+            "type": "microphone"
+          }
+        ],
+        "name": "Utils",
+        "alongEdge": true,
+        "openOnHover": true,
+        "showPercent": false,
+        "edge": "Right"
+      }
+    ]
+  },
+  "Lockscreen": {
+    "layout": {
+      "modules": [
+        {
+          "type": "Greeting",
+          "place": {
+            "x": 18,
+            "y": 5,
+            "w": 8,
+            "h": 2
+          },
+          "properties": {
+            "color": "base07",
+            "bold": true
+          }
+        },
+        {
+          "type": "NowPlaying",
+          "place": {
+            "x": 16,
+            "y": 10,
+            "w": 10,
+            "h": 2
+          }
+        },
+        {
+          "type": "Password",
+          "place": {
+            "x": 20,
+            "y": 9,
+            "h": 1
+          }
+        },
+        {
+          "type": "ClockCalendar",
+          "place": {
+            "x": 22,
+            "y": 12,
+            "w": 6
+          }
+        },
+        {
+          "type": "Weather",
+          "place": {
+            "x": 16,
+            "y": 12,
+            "w": 6
+          }
+        },
+        {
+          "type": "VolumeDials",
+          "place": {
+            "x": 26,
+            "y": 10,
+            "w": 2,
+            "h": 2
+          }
+        },
+        {
+          "type": "Power",
+          "place": {
+            "x": 36,
+            "y": 16,
+            "w": 6,
+            "h": 2
+          }
+        }
+      ],
+      "columns": 21,
+      "otherScreens": "background",
+      "passwordBorder": true,
+      "fineGrid": true
+    }
+  },
+  "Workspaces": {
+    "layout": "grid",
+    "count": 4,
+    "wrap": true,
+    "columns": 3,
+    "rows": 3
+  },
+  "Hyprland": {
+    "binds": [
+      {
+        "key": "SUPER + mouse_down",
+        "action": "focusDir",
+        "argument": "right"
+      },
+      {
+        "key": "SUPER + mouse_up",
+        "action": "focusDir",
+        "argument": "left"
+      },
+      {
+        "key": "CTRL + SHIFT + Tab",
+        "action": "windowSwitcherReverse"
+      },
+      {
+        "key": "SUPER + space"
+      },
+      {
+        "key": "SUPER + SHIFT + space",
+        "action": "workspaceOverview"
+      },
+      {
+        "key": "SUPER + Tab",
+        "action": "overlay"
+      },
+      {
+        "key": "SUPER + A",
+        "action": "workspaceStep",
+        "argument": "left"
+      },
+      {
+        "key": "SUPER + D",
+        "action": "workspaceStep",
+        "argument": "right"
+      },
+      {
+        "key": "SUPER + W",
+        "action": "workspaceStep",
+        "argument": "up"
+      },
+      {
+        "key": "SUPER + S",
+        "action": "workspaceStep",
+        "argument": "down"
+      },
+      {
+        "key": "SUPER + SHIFT + A",
+        "action": "moveWindowStep",
+        "argument": "left"
+      },
+      {
+        "key": "SUPER + SHIFT + D",
+        "action": "moveWindowStep",
+        "argument": "right"
+      },
+      {
+        "key": "SUPER + SHIFT + W",
+        "action": "moveWindowStep",
+        "argument": "up"
+      },
+      {
+        "key": "SUPER + SHIFT + S",
+        "action": "moveWindowStep",
+        "argument": "down"
+      },
+      {
+        "key": "SUPER + 1",
+        "action": "workspaceNth",
+        "argument": "1"
+      },
+      {
+        "key": "SUPER + 2",
+        "action": "workspaceNth",
+        "argument": "2"
+      },
+      {
+        "key": "SUPER + 3",
+        "action": "workspaceNth",
+        "argument": "3"
+      },
+      {
+        "key": "SUPER + 4",
+        "action": "workspaceNth",
+        "argument": "4"
+      },
+      {
+        "key": "SUPER + 5",
+        "action": "workspaceNth",
+        "argument": "5"
+      },
+      {
+        "key": "SUPER + SHIFT + 1",
+        "action": "moveWindowNth",
+        "argument": "1"
+      },
+      {
+        "key": "SUPER + SHIFT + 2",
+        "action": "moveWindowNth",
+        "argument": "2"
+      },
+      {
+        "key": "SUPER + SHIFT + 3",
+        "action": "moveWindowNth",
+        "argument": "3"
+      },
+      {
+        "key": "SUPER + SHIFT + 4",
+        "action": "moveWindowNth",
+        "argument": "4"
+      },
+      {
+        "key": "SUPER + SHIFT + 5",
+        "action": "moveWindowNth",
+        "argument": "5"
+      },
+      {
+        "key": "SUPER + SHIFT + R",
+        "action": "exec",
+        "argument": "/home/travmonkey/.config/hypr/user/scripts/rotateMonitor.sh",
+        "description": "Media: Rotate Monitor"
+      },
+      {
+        "key": "SUPER + h",
+        "action": "focusDir",
+        "argument": "left"
+      },
+      {
+        "key": "SUPER + j",
+        "action": "focusDir",
+        "argument": "down"
+      },
+      {
+        "key": "SUPER + k",
+        "action": "focusDir",
+        "argument": "up"
+      },
+      {
+        "key": "SUPER + l",
+        "action": "focusDir",
+        "argument": "right"
+      },
+      {
+        "key": "SUPER + SHIFT + h",
+        "action": "moveWindowDir",
+        "argument": "left"
+      },
+      {
+        "key": "SUPER + SHIFT + j",
+        "action": "moveWindowDir",
+        "argument": "down"
+      },
+      {
+        "key": "SUPER + SHIFT + k",
+        "action": "moveWindowDir",
+        "argument": "up"
+      },
+      {
+        "key": "SUPER + SHIFT + l",
+        "action": "moveWindowDir",
+        "argument": "right"
+      },
+      {
+        "key": "SUPER + f",
+        "action": "fullscreen"
+      },
+      {
+        "key": "SUPER + c",
+        "action": "closeWindow"
+      },
+      {
+        "key": "SUPER + z",
+        "action": "toggleFloat"
+      },
+      {
+        "key": "SUPER + CTRL + h",
+        "action": "resizeWindow",
+        "argument": "-50 0",
+        "repeating": true
+      },
+      {
+        "key": "SUPER + CTRL + l",
+        "action": "resizeWindow",
+        "argument": "50 0",
+        "repeating": true
+      },
+      {
+        "key": "SUPER + CTRL + j",
+        "action": "resizeWindow",
+        "argument": "0 50",
+        "repeating": true
+      },
+      {
+        "key": "SUPER + CTRL + k",
+        "action": "resizeWindow",
+        "argument": "0 -50",
+        "repeating": true
+      },
+      {
+        "key": "SUPER + CTRL + r",
+        "action": "restartShell",
+        "release": true
+      },
+      {
+        "key": "SUPER + mouse:272",
+        "action": "mouseDrag"
+      },
+      {
+        "key": "SUPER + mouse:273",
+        "action": "mouseResize"
+      },
+      {
+        "key": "SUPER + g",
+        "action": "toggleSpecial",
+        "argument": "gaming"
+      },
+      {
+        "key": "SUPER + SHIFT + g",
+        "action": "moveToSpecial",
+        "argument": "gaming"
+      },
+      {
+        "key": "SUPER + v",
+        "action": "toggleSpecial",
+        "argument": "special"
+      },
+      {
+        "key": "SUPER + SHIFT + v",
+        "action": "moveToSpecial",
+        "argument": "special"
+      },
+      {
+        "key": "SUPER + q",
+        "action": "terminal"
+      },
+      {
+        "key": "SUPER + SHIFT + q",
+        "action": "browser"
+      },
+      {
+        "key": "SUPER + e",
+        "action": "fileManager"
+      },
+      {
+        "key": "SUPER + t",
+        "action": "exec",
+        "argument": "kitty --title \"btop\" -e btop"
+      },
+      {
+        "key": "SUPER + b",
+        "action": "exec",
+        "argument": "pavucontrol",
+        "description": "Media: Pavucontrol"
+      },
+      {
+        "key": "SUPER + SHIFT + c",
+        "action": "exec",
+        "argument": "element-desktop",
+        "description": "Apps: Element"
+      },
+      {
+        "key": "SUPER + SHIFT + e",
+        "action": "exec",
+        "argument": "vesktop",
+        "description": "Apps: Vesktop"
+      },
+      {
+        "key": "SUPER + SHIFT + CTRL + s",
+        "action": "exec",
+        "argument": "rm -f /tmp/ocr-input.png && rm -f /tmp/ocr-done && /home/travmonkey/.config/hypr/user/scripts/grimblast.sh --freeze save area /tmp/ocr-input.png",
+        "description": "Apps: Screenshot to OCR"
+      },
+      {
+        "key": "XF86AudioPause",
+        "action": "mediaPlayPause",
+        "locked": true
+      },
+      {
+        "key": "XF86AudioPlay",
+        "action": "mediaPlayPause",
+        "locked": true
+      },
+      {
+        "key": "XF86AudioNext",
+        "action": "mediaNext",
+        "locked": true
+      },
+      {
+        "key": "XF86AudioPrev",
+        "action": "mediaPrevious",
+        "locked": true
+      },
+      {
+        "key": "XF86AudioStop",
+        "action": "mediaStop",
+        "locked": true
+      },
+      {
+        "key": "XF86AudioRaiseVolume",
+        "action": "volumeUp",
+        "repeating": true,
+        "locked": true
+      },
+      {
+        "key": "XF86AudioLowerVolume",
+        "action": "volumeDown",
+        "repeating": true,
+        "locked": true
+      },
+      {
+        "key": "XF86AudioMute",
+        "action": "toggleMicMute",
+        "locked": true
+      },
+      {
+        "key": "XF86MonBrightnessUp",
+        "action": "brightnessUp",
+        "repeating": true,
+        "locked": true
+      },
+      {
+        "key": "XF86MonBrightnessDown",
+        "action": "brightnessDown",
+        "repeating": true,
+        "locked": true
+      },
+      {
+        "key": "SUPER + SHIFT + Escape",
+        "action": "exitHyprland",
+        "release": true
+      },
+      {
+        "key": "SUPER + CTRL + S",
+        "action": "screenshot",
+        "argument": "region"
+      },
+      {
+        "key": "SHIFT + Print",
+        "action": "screenshot",
+        "argument": "window"
+      },
+      {
+        "key": "SUPER + Print",
+        "action": "screenshot",
+        "argument": "screen"
+      },
+      {
+        "key": "CTRL + Tab",
+        "action": "windowSwitcher"
+      },
+      {
+        "key": "SUPER + X",
+        "action": "toggleSplit"
+      }
+    ],
+    "look": {
+      "borders": true,
+      "shape": true,
+      "gaps": true,
+      "blurSize": 5,
+      "blurPasses": 2,
+      "blur": true,
+      "opacity": true
+    }
+  },
+  "PowerMenu": {
+    "backdrop": 35
+  },
+  "Notifications": {
+    "position": "topRight"
+  },
+  "EdgeMenus": [
+    {
+      "id": "left-menu",
+      "name": "Left menu",
+      "modules": [
+        {
+          "type": "NowPlaying",
+          "place": {
+            "w": 3,
+            "h": 2
+          }
+        },
+        {
+          "type": "Chat",
+          "place": {
+            "y": 2,
+            "w": 3,
+            "h": 7
+          }
+        }
+      ],
+      "length": "edge",
+      "moduleBorders": false,
+      "pinButton": true,
+      "openOnHover": true
+    },
+    {
+      "id": "right-menu",
+      "name": "Right menu",
+      "edge": "Right",
+      "mode": "integrated",
+      "modules": [
+        {
+          "type": "NowPlaying",
+          "place": {
+            "y": 12,
+            "w": 3,
+            "h": 1
+          }
+        },
+        {
+          "type": "Chat",
+          "place": {
+            "y": 1,
+            "w": 5,
+            "h": 11
+          }
+        },
+        {
+          "type": "QuickActions",
+          "properties": {
+            "actions": [
+              "bluetooth",
+              "caffeine",
+              "dnd",
+              "darkMode",
+              "nightLight"
+            ]
+          },
+          "place": {
+            "w": 5,
+            "h": 1
+          }
+        },
+        {
+          "type": "Weather",
+          "place": {
+            "x": 3,
+            "y": 12,
+            "w": 2,
+            "h": 1
+          }
+        }
+      ],
+      "length": "edge",
+      "pinButton": true,
+      "moduleScale": 69,
+      "offset": -200
+    },
+    {
+      "id": "menu-1",
+      "name": "Theme Menu",
+      "edge": "Top",
+      "triggerSize": 4,
+      "modules": [
+        {
+          "type": "WallpaperPicker",
+          "place": {
+            "w": 6,
+            "h": 10
+          }
+        },
+        {
+          "type": "ThemePicker",
+          "place": {
+            "x": 6,
+            "w": 6,
+            "h": 10
+          }
+        }
+      ],
+      "pinButton": true,
+      "offset": 7,
+      "moduleBorders": false,
+      "fineGrid": true
+    },
+    {
+      "id": "menu-3",
+      "name": "notes",
+      "edge": "Top",
+      "moduleBorders": false,
+      "modules": [
+        {
+          "type": "Notes",
+          "properties": {},
+          "place": {
+            "w": 3
+          }
+        }
+      ],
+      "pinButton": true,
+      "offset": -2
+    },
+    {
+      "id": "menu-2",
+      "name": "dynamicIsland",
+      "modules": [
+        {
+          "type": "NowPlaying",
+          "place": {
+            "x": 4,
+            "y": 3,
+            "w": 7,
+            "h": 3
+          }
+        },
+        {
+          "type": "QuickActions",
+          "place": {
+            "x": 4,
+            "w": 6,
+            "h": 2
+          },
+          "properties": {
+            "actions": [
+              "wifi",
+              "bluetooth",
+              "darkMode",
+              "brightness"
+            ],
+            "style": "pills"
+          }
+        },
+        {
+          "type": "AudioMixer",
+          "place": {
+            "x": 4,
+            "y": 2,
+            "w": 7,
+            "h": 1
+          }
+        },
+        {
+          "type": "Calendar"
+        },
+        {
+          "type": "Submenu",
+          "place": {
+            "x": 10,
+            "w": 1,
+            "h": 2
+          },
+          "properties": {
+            "menu": "menu-4",
+            "icon": "notifications"
+          }
+        },
+        {
+          "type": "Agenda",
+          "place": {
+            "y": 4,
+            "h": 1
+          },
+          "properties": {
+            "grow": 4
+          }
+        }
+      ],
+      "edge": "Top",
+      "moduleBorders": false,
+      "openDelay": 8,
+      "fineGrid": true
+    },
+    {
+      "id": "menu-4",
+      "name": "island-menu",
+      "openOnHover": true,
+      "modules": [
+        {
+          "type": "Notifications",
+          "place": {
+            "h": 2
+          },
+          "properties": {
+            "grow": 4
+          }
+        }
+      ],
+      "mode": "submenu",
+      "fineGrid": true
+    },
+    {
+      "id": "menu-5",
+      "name": "Menu 5",
+      "openOnHover": true,
+      "modules": [
+        {
+          "type": "WorkspacesMap",
+          "place": {
+            "w": 1,
+            "h": 1
+          }
+        }
+      ],
+      "edge": "Top",
+      "offset": -10,
+      "gridOffset": -37
+    }
+  ],
+  "Apps": {
+    "browser": "flatpak run app.zen_browser.zen"
+  },
+  "Dock": {
+    "enabled": true,
+    "docks": [
+      {
+        "visibility": "intellihide",
+        "openDelay": 140,
+        "closeDelay": 260,
+        "iconSize": 35,
+        "magnify": true,
+        "detached": false,
+        "pinned": [
+          "kitty",
+          "dev.vencord.Vesktop",
+          "app.zen_browser.zen"
+        ]
+      }
+    ]
+  },
+  "WindowSwitcher": {},
+  "BarStyle": {
+    "widgetShape": "capsule",
+    "widgetGrouping": "merged",
+    "widgetEnds": "rounded",
+    "shadow": "glow",
+    "shadowColor": "base0E",
+    "shadowSize": 20
+  },
+  "Desktop": {
+    "primary": {
+      "columns": 21,
+      "fineGrid": true,
+      "modules": [
+        {
+          "type": "Clock",
+          "place": {
+            "x": 3,
+            "y": 4,
+            "w": 3
+          },
+          "properties": {
+            "timezone": "America/Denver",
+            "label": "Colorado"
+          }
+        },
+        {
+          "type": "Clock",
+          "place": {
+            "x": 6,
+            "y": 4,
+            "w": 3
+          },
+          "properties": {
+            "label": "Kyoto"
+          }
+        },
+        {
+          "type": "Weather",
+          "place": {
+            "x": 2,
+            "y": 8,
+            "w": 8,
+            "h": 6
+          }
+        },
+        {
+          "type": "Palette",
+          "place": {
+            "x": 34,
+            "y": 2,
+            "w": 8,
+            "h": 6
+          }
+        },
+        {
+          "type": "SystemGraphs",
+          "place": {
+            "x": 2,
+            "y": 14,
+            "w": 8,
+            "h": 2
+          },
+          "properties": {
+            "metrics": [
+              "cpu",
+              "mem",
+              "gpu",
+              "cpuTemp"
+            ]
+          }
+        },
+        {
+          "type": "NowPlaying",
+          "place": {
+            "x": 34,
+            "y": 8,
+            "w": 6,
+            "h": 2
+          }
+        },
+        {
+          "type": "VolumeDials",
+          "place": {
+            "x": 34,
+            "y": 10,
+            "w": 6,
+            "h": 3
+          }
+        },
+        {
+          "type": "Notes",
+          "place": {
+            "x": 12,
+            "y": 5,
+            "w": 8,
+            "h": 7
+          },
+          "properties": {}
+        },
+        {
+          "type": "QuickActions",
+          "place": {
+            "x": 12,
+            "y": 12,
+            "w": 8,
+            "h": 2
+          }
+        },
+        {
+          "type": "ClockCalendar",
+          "place": {
+            "x": 28,
+            "y": 2,
+            "w": 6,
+            "h": 8
+          }
+        }
+      ]
+    }
+  }
+}
