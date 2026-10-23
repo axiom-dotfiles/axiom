@@ -9,7 +9,7 @@ pkgname=axiom-shell-git
 pkgver=1.1.10.r7.g35d3a17
 pkgrel=1
 pkgdesc='A Quickshell desktop shell for Hyprland, sway and niri: bar, launcher, notifications, lock and login screens, overlay pages'
-arch=('any')
+arch=('x86_64' 'aarch64')
 url='https://github.com/axiom-shell/axiom'
 license=('MIT')
 # No compositor: it's the shell, not the session, and any one of
@@ -48,7 +48,7 @@ optdepends=(
   'greetd: axiom as the login screen (set up from Settings → Login screen)'
   'greetd-agreety: axiom as the login screen (its text fallback)'
 )
-makedepends=('git')
+makedepends=('git' 'go')
 install=axiom-shell-git.install
 source=("axiom::git+$url.git#branch=main")
 sha256sums=('SKIP')
@@ -59,8 +59,24 @@ pkgver() {
   git describe --long --tags --match 'v*' --abbrev=7 | sed 's/^v//;s/-\([0-9]*\)-g/.r\1.g/'
 }
 
+prepare() {
+  cd axiom/backend
+  go mod download
+}
+
+# The axiom binary (the shell's parent: `axiom run`) and the files a clone
+# generates that it is built from: the config schema (from config/schema/)
+# and the copies it embeds
+build() {
+  cd axiom
+  export CGO_ENABLED=0 GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw"
+  scripts/generate.sh
+  (cd backend && go build -o axiom ./cmd/axiom)
+}
+
 package() {
   cd axiom
+  install -Dm755 backend/axiom "$pkgdir/usr/bin/axiom"
   local dest="$pkgdir/usr/share/axiom"
   install -d "$dest"
   cp -r --no-preserve=ownership . "$dest"

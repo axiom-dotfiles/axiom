@@ -61,6 +61,9 @@ type Daemon struct {
 	dirs    xdg.Dirs
 	started time.Time
 
+	// The built schema: --dev rebuilds it on the watch goroutine while
+	// handlers read the hash
+	schemaMu    sync.Mutex
 	schemaBytes []byte
 	schemaHash  string
 	compatible  bool   // the tree's schema is the one this binary was built with
@@ -121,7 +124,8 @@ func Run(ctx context.Context, opts Options) error {
 	if err := d.loadSchema(); err != nil {
 		return err
 	}
-	parsed, err := jsonx.Unmarshal(d.schemaBytes)
+	built, _ := d.currentSchema()
+	parsed, err := jsonx.Unmarshal(built)
 	if err != nil {
 		return axerr.Wrap(axerr.Internal, err, "the built schema")
 	}
@@ -233,8 +237,25 @@ func Run(ctx context.Context, opts Options) error {
 			Log:      opts.Log.With("part", "shell"),
 			AdoptPID: adopt,
 			OnExit:   func(int, bool) { d.locker.ShellExited() },
+			OnStop:   func(int) { d.locker.ShellStopped() },
 		})
 		serve("the shell", d.shell.Run)
+		if _, hash := d.currentSchema(); h != nil && h.Schema != "" && h.Schema != hash {
+			// The shell read the schema of before (an update re-exec'd
+			// into the new binary): its hello would be refused
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				opts.Log.Info("the schema changed across the re-exec: restarting the shell")
+				restart := d.restartShell
+				if h.Locked {
+					restart = d.startLocked
+				}
+				if err := restart(ctx); err != nil && ctx.Err() == nil {
+					opts.Log.Error("restarting the shell for the new schema", "err", err)
+				}
+			}()
+		}
 	}
 	opts.Log.Info("axiom is running", "display", runtime.Display, "tree", opts.Tree, "socket", runtime.Socket(), "version", buildinfo.Get().Version, "reexec", h != nil)
 	<-ctx.Done()
@@ -251,10 +272,10 @@ func (d *Daemon) loadSchema() error {
 	if err != nil {
 		return err
 	}
-	d.schemaBytes = data
-	d.schemaHash = buildinfo.SchemaHash(data)
+	hash := buildinfo.SchemaHash(data)
+	d.setSchema(data, hash)
 	d.compatible = true
-	if embedded, err := assets.Read("config/json/config.schema.json"); err == nil && buildinfo.SchemaHash(embedded) != d.schemaHash {
+	if embedded, err := assets.Read("config/json/config.schema.json"); err == nil && buildinfo.SchemaHash(embedded) != hash {
 		if d.opts.Dev {
 			d.opts.Log.Warn("the tree's schema isn't the one this binary was built with (fine with --dev)")
 		} else {
@@ -279,6 +300,16 @@ func (d *Daemon) startLocked(ctx context.Context) error {
 		return axerr.New(axerr.Unavailable, "this daemon runs no shell")
 	}
 	return d.shell.Restart(ctx, map[string]string{"AXIOM_LOCK_ON_START": "1"})
+}
+
+// restartShell restarts the shell (axiom restart). Locked, the next one
+// locks first: the compositor holds the session locked meanwhile, and
+// nothing but PAM may end that.
+func (d *Daemon) restartShell(ctx context.Context) error {
+	if d.locker.State().Locked {
+		return d.startLocked(ctx)
+	}
+	return d.shell.Restart(ctx, nil)
 }
 
 // lockSetting is a Lockscreen setting (mode, lockCommand).
@@ -327,3 +358,16 @@ func (d *Daemon) onConfigEvent(ev store.Event) {
 }
 
 func itoa(n int) string { return strconv.Itoa(n) }
+
+// currentSchema is the built schema and its hash.
+func (d *Daemon) currentSchema() ([]byte, string) {
+	d.schemaMu.Lock()
+	defer d.schemaMu.Unlock()
+	return d.schemaBytes, d.schemaHash
+}
+
+func (d *Daemon) setSchema(data []byte, hash string) {
+	d.schemaMu.Lock()
+	d.schemaBytes, d.schemaHash = data, hash
+	d.schemaMu.Unlock()
+}

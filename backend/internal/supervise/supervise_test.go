@@ -152,3 +152,66 @@ func TestMissingBinaryCountsAsCrash(t *testing.T) {
 	run(t, s)
 	eventually(t, func() bool { return s.Status().GaveUp })
 }
+
+// After a re-exec the pid file names the adopted shell: it is supervised,
+// never stopped as an orphan.
+func TestAdoptedShellIsNotStoppedAsAnOrphan(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	pidFile := filepath.Join(dir, "child.pid")
+	command := []string{"sleep", "30"}
+	child := exec.Command(command[0], command[1:]...)
+	child.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	if err := child.Start(); err != nil {
+		t.Fatal(err)
+	}
+	pid := child.Process.Pid
+	os.WriteFile(pidFile, []byte(strconv.Itoa(pid)), 0o600)
+
+	s := New(fast(Options{Command: command, PIDFile: pidFile, AdoptPID: pid}))
+	cancel, done := run(t, s)
+	eventually(t, func() bool { return s.Status().PID == pid })
+	// Longer than an orphan's stop takes
+	time.Sleep(2 * fast(Options{}).StopGrace)
+	if syscall.Kill(pid, 0) != nil || s.Status().PID != pid {
+		t.Fatalf("the adopted shell was stopped (status %+v)", s.Status())
+	}
+	cancel()
+	<-done
+	if syscall.Kill(pid, 0) == nil {
+		t.Error("the adopted shell outlived the supervisor")
+	}
+}
+
+// A stop the supervisor asked for is OnStop's, never OnExit's: the
+// daemon relaunches a locked shell only when it ended on its own.
+func TestRequestedStopIsNotAnExit(t *testing.T) {
+	t.Parallel()
+	exits, stops := make(chan int, 4), make(chan int, 4)
+	s := New(fast(Options{
+		Command: []string{"sleep", "30"},
+		OnExit:  func(pid int, _ bool) { exits <- pid },
+		OnStop:  func(pid int) { stops <- pid },
+	}))
+	cancel, done := run(t, s)
+	eventually(t, func() bool { return s.Status().Running })
+	first := s.Status().PID
+	if err := s.Restart(context.Background(), nil); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case pid := <-stops:
+		if pid != first {
+			t.Errorf("OnStop got %d, want %d", pid, first)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("no OnStop for the restart")
+	}
+	cancel()
+	<-done
+	select {
+	case pid := <-exits:
+		t.Errorf("OnExit for %d, a stop that was asked for", pid)
+	default:
+	}
+}

@@ -143,3 +143,40 @@ func TestCorpusConvertsValid(t *testing.T) {
 		t.Fatalf("only %d corpus configs", checked)
 	}
 }
+
+// Ids items already had survive the conversion; made ones never take one
+// a later item owns, and a duplicate or invalid one is replaced.
+func TestConvertKeepsIDs(t *testing.T) {
+	t.Parallel()
+	cases := []struct {
+		name      string
+		providers string
+		want      []string
+	}{
+		{"kept", `[{"id":"anthropic","name":"Anthropic"},{"id":"openai","name":"OpenAI"}]`, []string{"anthropic", "openai"}},
+		{"made before an owner", `[{"name":"Anthropic"},{"id":"anthropic","name":"Mine"}]`, []string{"anthropic-2", "anthropic"}},
+		{"duplicate", `[{"id":"a","name":"A"},{"id":"a","name":"B"}]`, []string{"a", "b"}},
+		{"invalid", `[{"id":"-x","name":"Local"}]`, []string{"local"}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+			providers, err := jsonx.Unmarshal([]byte(c.providers))
+			if err != nil {
+				t.Fatal(err)
+			}
+			cfg := jsonx.Obj("Chat", jsonx.Obj("providers", providers))
+			got := convert.ToV2(cfg).Config
+			chat, _ := got.Value("Chat").(*jsonx.Object)
+			list, _ := chat.Value("providers").(*jsonx.Array)
+			var ids []string
+			for _, it := range list.Items {
+				id, _ := it.(*jsonx.Object).Value("id").(string)
+				ids = append(ids, id)
+			}
+			if fmt.Sprint(ids) != fmt.Sprint(c.want) {
+				t.Errorf("ids %v, want %v", ids, c.want)
+			}
+		})
+	}
+}

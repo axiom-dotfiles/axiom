@@ -37,6 +37,11 @@ type handoff struct {
 	ConfigLock int `json:"configLock"`
 	Listener   int `json:"listener"`
 	Shell      int `json:"shell"`
+	// The schema the shell read, and whether it held the session lock: a
+	// new image whose tree builds another schema (an update) restarts the
+	// shell, locked first when it was
+	Schema string `json:"schema,omitempty"`
+	Locked bool   `json:"locked,omitempty"`
 }
 
 // inherited reads (and clears) a handoff from the environment.
@@ -55,8 +60,8 @@ func inherited(getenv func(string) string) (*handoff, error) {
 
 // reexec replaces this process with the binary at its path, keeping the
 // locks, the socket and the shell. Clients see their connection close and
-// reconnect.
-func (d *Daemon) reexec() error {
+// reconnect. An exec that fails leaves the daemon as it was.
+func (d *Daemon) reexec() (err error) {
 	exe := d.executable
 	if _, err := os.Stat(exe); err != nil {
 		return axerr.Wrap(axerr.Unavailable, err, "the binary to re-exec")
@@ -67,15 +72,30 @@ func (d *Daemon) reexec() error {
 	}
 	listener, err := lf.File() // a duplicate, without close-on-exec once cleared
 	if err != nil {
-		return err
+		return axerr.Wrap(axerr.Internal, err, "the socket to hand over")
 	}
+	defer listener.Close() // only reached when the exec failed
 	h := handoff{
 		Lock:       int(d.instance.File().Fd()),
 		ConfigLock: int(d.store.LockFile().Fd()),
 		Listener:   int(listener.Fd()),
 		Shell:      d.shellPID(),
+		Locked:     d.locker.State().Locked,
 	}
-	for _, fd := range []int{h.Lock, h.ConfigLock, h.Listener} {
+	_, h.Schema = d.currentSchema()
+	// No child may start while the descriptors lose close-on-exec (it
+	// would inherit the locks): every fork takes ForkLock first
+	syscall.ForkLock.Lock()
+	defer syscall.ForkLock.Unlock()
+	fds := []int{h.Lock, h.ConfigLock, h.Listener}
+	defer func() {
+		if err != nil {
+			for _, fd := range fds {
+				unix.FcntlInt(uintptr(fd), unix.F_SETFD, unix.FD_CLOEXEC)
+			}
+		}
+	}()
+	for _, fd := range fds {
 		if _, err := unix.FcntlInt(uintptr(fd), unix.F_SETFD, 0); err != nil {
 			return axerr.Wrap(axerr.Internal, err, "keeping a descriptor across the re-exec")
 		}
@@ -90,7 +110,9 @@ func (d *Daemon) reexec() error {
 	// No config write may be cut in half: hold the store until the exec
 	d.store.Freeze()
 	d.opts.Log.Info("re-executing", "binary", exe, "shell", h.Shell)
-	return syscall.Exec(exe, os.Args, env)
+	err = syscall.Exec(exe, os.Args, env)
+	d.store.Thaw()
+	return axerr.Wrap(axerr.Unavailable, err, "re-executing %s", exe)
 }
 
 // adopt takes the handoff's descriptors over.
@@ -152,7 +174,7 @@ func (d *Daemon) watchSchema(ctx context.Context) error {
 				continue
 			}
 			if timer == nil {
-				timer = time.AfterFunc(100*time.Millisecond, func() { fire <- struct{}{} })
+				timer = time.AfterFunc(100*time.Millisecond, func() { notify(fire) })
 			} else {
 				timer.Reset(100 * time.Millisecond)
 			}
@@ -171,7 +193,7 @@ func (d *Daemon) rebuildSchema() {
 		return
 	}
 	hash := buildinfo.SchemaHash(data)
-	if hash == d.schemaHash {
+	if _, old := d.currentSchema(); hash == old {
 		return
 	}
 	parsed, err := jsonx.Unmarshal(data)
@@ -184,7 +206,7 @@ func (d *Daemon) rebuildSchema() {
 	}
 	// The tree's generated copy too, for the tools and tests
 	fsx.WriteFile(filepath.Join(d.opts.Tree, tree.SchemaJSON), data, 0o644)
-	d.schemaBytes, d.schemaHash = data, hash
+	d.setSchema(data, hash)
 	d.store.Reschema(config.V2Pipeline{S: schema.New(parsed)})
 	d.opts.Log.Info("rebuilt the schema", "hash", hash)
 	d.server.Broadcast("schema.changed", map[string]string{"hash": hash, "path": d.runtime.File(SchemaFile)}, subscribed)
@@ -216,7 +238,7 @@ func (d *Daemon) watchBinary(ctx context.Context) error {
 				continue
 			}
 			if timer == nil {
-				timer = time.AfterFunc(500*time.Millisecond, func() { fire <- struct{}{} })
+				timer = time.AfterFunc(500*time.Millisecond, func() { notify(fire) })
 			} else {
 				timer.Reset(500 * time.Millisecond)
 			}
@@ -230,5 +252,14 @@ func (d *Daemon) watchBinary(ctx context.Context) error {
 				d.opts.Log.Error("re-exec", "err", err)
 			}
 		}
+	}
+}
+
+// notify signals ch without blocking: one pending signal is enough, and a
+// timer firing after its watcher returned must not hang.
+func notify(ch chan struct{}) {
+	select {
+	case ch <- struct{}{}:
+	default:
 	}
 }

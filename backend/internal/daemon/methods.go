@@ -124,7 +124,7 @@ func (d *Daemon) registry() *rpc.Registry {
 		if p.Protocol != buildinfo.Protocol() {
 			return HelloResult{}, axerr.New(axerr.Incompatible, "this axiom speaks protocol %d, the client %d: the shell's files and the binary are from different versions", buildinfo.Protocol(), p.Protocol)
 		}
-		if p.SchemaHash != "" && p.SchemaHash != d.schemaHash {
+		if _, hash := d.currentSchema(); p.SchemaHash != "" && p.SchemaHash != hash {
 			return HelloResult{}, axerr.New(axerr.Incompatible, "the client read another schema than the daemon built (restart the shell)")
 		}
 		c.SetValue(sessionKey{}, &session{Client: p.Client, Subscribed: p.Subscribe, PID: p.PID})
@@ -161,7 +161,7 @@ func (d *Daemon) registry() *rpc.Registry {
 		if d.shell == nil {
 			return struct{}{}, axerr.New(axerr.Unavailable, "this daemon runs no shell")
 		}
-		return struct{}{}, d.shell.Restart(ctx, nil)
+		return struct{}{}, d.restartShell(ctx)
 	})
 
 	rpc.Handle(reg, "ipc.register", func(ctx context.Context, c *rpc.Conn, p struct {
@@ -277,9 +277,10 @@ func (d *Daemon) writable() error {
 func (d *Daemon) hello() HelloResult {
 	info := buildinfo.Get()
 	_, st := d.store.Config()
+	_, hash := d.currentSchema()
 	return HelloResult{
 		Protocol: info.Protocol, Version: info.Version, Commit: info.Commit,
-		SchemaHash: d.schemaHash, PID: os.Getpid(), Display: d.runtime.Display,
+		SchemaHash: hash, PID: os.Getpid(), Display: d.runtime.Display,
 		Tree: d.opts.Tree, Dirs: d.dirs, State: st,
 		Compatible: d.compatible, Reason: d.reason,
 	}

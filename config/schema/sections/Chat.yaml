@@ -70,7 +70,7 @@ properties:
     title: Providers
     description: 'Where chats are sent. The OpenAI kind also covers Ollama, LM Studio, llama.cpp, OpenRouter, Groq and anything else with an OpenAI-style API: set its address.'
     default:
-      - id: anthropic-2
+      - id: anthropic
         name: Anthropic
         kind: anthropic
         baseUrl: 'https://api.anthropic.com/v1'
@@ -79,7 +79,7 @@ properties:
         models: [claude-opus-5, claude-sonnet-5, claude-haiku-4-5, claude-fable-5-1, claude-opus-5-5]
         defaultModel: claude-opus-5
         fallbacks: true
-      - id: openai-2
+      - id: openai
         name: OpenAI
         kind: openai
         baseUrl: 'https://api.openai.com/v1'
@@ -88,7 +88,7 @@ properties:
         models: [gpt-5, gpt-5-mini]
         defaultModel: gpt-5
         fallbacks: false
-      - id: gemini-2
+      - id: gemini
         name: Gemini
         kind: gemini
         baseUrl: 'https://generativelanguage.googleapis.com/v1beta'
@@ -97,7 +97,7 @@ properties:
         models: [gemini-2.5-pro, gemini-2.5-flash]
         defaultModel: gemini-2.5-flash
         fallbacks: false
-      - id: ollama-2
+      - id: ollama
         name: Ollama
         kind: openai
         baseUrl: 'http://localhost:11434/v1'

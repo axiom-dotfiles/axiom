@@ -24,6 +24,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/axiom-shell/axiom/backend/internal/fsx"
 )
 
 // Options describe the child.
@@ -49,9 +51,12 @@ type Options struct {
 	// re-exec): supervised instead of starting one
 	AdoptPID int
 
-	// OnStart and OnExit see each run (OnExit with whether it crashed)
+	// OnStart sees each run start, OnExit each run that ended on its own
+	// (with whether it crashed), OnStop each one the supervisor stopped
+	// (a restart, or ctx ending)
 	OnStart func(pid int)
 	OnExit  func(pid int, crashed bool)
+	OnStop  func(pid int)
 }
 
 // Status is what the supervisor is doing.
@@ -136,9 +141,12 @@ func (s *Supervisor) Run(ctx context.Context) error {
 	if len(s.opts.Command) == 0 {
 		return ErrNoCommand
 	}
-	s.stopOrphan()
-	step := 0
 	adopt := s.opts.AdoptPID
+	// The pid file names an adopted shell too: it's ours, not an orphan
+	if adopt == 0 {
+		s.stopOrphan()
+	}
+	step := 0
 	for {
 		started := time.Now()
 		var exited <-chan exitResult
@@ -384,8 +392,8 @@ func (s *Supervisor) exitedQuietly(r exitResult) {
 	s.status.Running, s.status.PID, s.status.LastExit = false, 0, r.String()
 	s.mu.Unlock()
 	s.removePID()
-	if s.opts.OnExit != nil {
-		s.opts.OnExit(pid, false)
+	if s.opts.OnStop != nil {
+		s.opts.OnStop(pid)
 	}
 }
 
@@ -393,9 +401,8 @@ func (s *Supervisor) writePID(pid int) {
 	if s.opts.PIDFile == "" {
 		return
 	}
-	tmp := s.opts.PIDFile + ".tmp"
-	if err := os.WriteFile(tmp, []byte(strconv.Itoa(pid)+"\n"), 0o600); err == nil {
-		os.Rename(tmp, s.opts.PIDFile)
+	if err := fsx.WriteFile(s.opts.PIDFile, []byte(strconv.Itoa(pid)+"\n"), 0o600); err != nil {
+		s.opts.Log.Warn("writing the shell's pid file", "err", err)
 	}
 }
 
@@ -426,7 +433,14 @@ func (s *Supervisor) stopOrphan() {
 		return
 	}
 	s.opts.Log.Warn("stopping the shell an earlier daemon left running", "pid", pid)
-	syscall.Kill(pid, syscall.SIGTERM)
+	// Its group, as stop does: it was started as a group leader, and what
+	// it launched goes with it (the pid alone if it leads none)
+	signal := func(sig syscall.Signal) {
+		if syscall.Kill(-pid, sig) != nil {
+			syscall.Kill(pid, sig)
+		}
+	}
+	signal(syscall.SIGTERM)
 	for i := 0; i < int(s.opts.StopGrace/(50*time.Millisecond)); i++ {
 		if syscall.Kill(pid, 0) != nil {
 			break
@@ -434,7 +448,7 @@ func (s *Supervisor) stopOrphan() {
 		time.Sleep(50 * time.Millisecond)
 	}
 	if syscall.Kill(pid, 0) == nil {
-		syscall.Kill(pid, syscall.SIGKILL)
+		signal(syscall.SIGKILL)
 	}
 	os.Remove(s.opts.PIDFile)
 }
@@ -444,8 +458,9 @@ func (s *Supervisor) isOurChild(pid int) bool {
 	if err != nil {
 		return false
 	}
+	// Exactly: a prefix would take `qs -p /x/axiom` for `qs -p /x/axiom-old`
 	want := strings.Join(s.opts.Command, "\x00") + "\x00"
-	return bytes.Equal(cmdline, []byte(want)) || bytes.HasPrefix(cmdline, []byte(strings.Join(s.opts.Command, "\x00")))
+	return bytes.Equal(cmdline, []byte(want))
 }
 
 // ErrNoCommand is returned for an empty command.

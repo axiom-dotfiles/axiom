@@ -1,11 +1,11 @@
 post_install() {
   cat <<'EOF'
-==> axiom is installed in /usr/share/axiom; `qs -c axiom` runs it.
+==> axiom is installed in /usr/share/axiom; `axiom run` runs it.
     Start it with your compositor, by adding to its config:
       Hyprland (~/.config/hypr/hyprland.lua):
-        hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)
-      sway (~/.config/sway/config):    exec qs -n -c axiom
-      niri (~/.config/niri/config.kdl): spawn-sh-at-startup "qs -n -c axiom"
+        hl.on("hyprland.start", function() hl.exec_cmd("'/usr/bin/axiom' run") end)
+      sway (~/.config/sway/config):    exec '/usr/bin/axiom' run
+      niri (~/.config/niri/config.kdl): spawn-sh-at-startup "'/usr/bin/axiom' run"
     Its first start walks you through the rest. A clone in
     ~/.config/quickshell/axiom, if you have one, runs instead of this.
 EOF
@@ -13,7 +13,7 @@ EOF
 
 post_upgrade() {
   cat <<'EOF'
-==> Restart axiom to run the new version: qs -c axiom kill; qs -n -c axiom
+==> Run the new version: `axiom daemon reexec`, then `axiom restart`
     (or log out and back in).
 EOF
 }

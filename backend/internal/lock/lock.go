@@ -78,6 +78,16 @@ func (l *Locker) State() State {
 	return l.state
 }
 
+// ShellStopped is told when the shell was stopped on purpose (a restart,
+// which starts the next one locked itself, or the daemon stopping): its
+// surfaces went with it. It reports whether the session was locked.
+func (l *Locker) ShellStopped() bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.state.Surfaces = 0
+	return l.state.Locked
+}
+
 // confirmed: locked, with a lock surface on every output it knows of.
 func (s State) confirmed() bool {
 	return s.Locked && s.Surfaces > 0 && s.Surfaces >= s.Outputs
@@ -151,17 +161,12 @@ func (l *Locker) wait(ctx context.Context, d time.Duration) bool {
 	}
 }
 
-// ShellExited is told when the shell process ends. Locked, it is started
-// again at once and locks before anything else: the compositor keeps the
-// session locked meanwhile (ext-session-lock), and the new shell takes the
-// lock over.
+// ShellExited is told when the shell process ends on its own. Locked, it
+// is started again at once and locks before anything else: the compositor
+// keeps the session locked meanwhile (ext-session-lock), and the new shell
+// takes the lock over.
 func (l *Locker) ShellExited() {
-	l.mu.Lock()
-	locked := l.state.Locked
-	// Its surfaces went with it
-	l.state.Surfaces = 0
-	l.mu.Unlock()
-	if !locked || l.opts.StartLocked == nil {
+	if !l.ShellStopped() || l.opts.StartLocked == nil {
 		return
 	}
 	l.opts.Log.Warn("the shell exited while locked: starting it again, locked")

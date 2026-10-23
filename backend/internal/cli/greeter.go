@@ -38,7 +38,7 @@ greeter.qml on it (quickshell replaces this process). greeter-session.sh
 runs it as greetd's user. To look at it from a session, set
 AXIOM_GREETER_WINDOWED=1 and point --dir at a scratch folder.`,
 		Setup: func(fs *flag.FlagSet) Runner {
-			dir := fs.String("tree", "", "the axiom tree whose greeter runs (default: the one here, or $AXIOM_TREE)")
+			dir := fs.String("tree", "", "the axiom tree whose greeter runs (default: $AXIOM_TREE, the one here, else the installed one)")
 			greeterDir := fs.String("dir", "", "the greeter's folder (default $AXIOM_GREETER_DIR, else /var/lib/axiom-greeter)")
 			safe := fs.Bool("safe", false, "skip the bundle: the install's snapshot, else the defaults (also $AXIOM_GREETER_SAFE=1)")
 			qs := fs.String("qs", "qs", "the quickshell binary")

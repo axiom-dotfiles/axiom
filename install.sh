@@ -42,6 +42,7 @@ PACKAGED_DIR=/usr/share/axiom
 # your home), "-" (nothing needed there) or "n/a" (not packaged there)
 PACKAGES=(
   "git|git|git"
+  "go|go|golang"
   "quickshell|quickshell|errornointernet/quickshell:quickshell"
   "jq|jq|jq"
   "curl|curl|curl"
@@ -79,7 +80,8 @@ PACKAGES=(
 )
 ICON_FONT_URL="https://github.com/google/material-design-icons/raw/master/variablefont/MaterialSymbolsRounded%5BFILL,GRAD,opsz,wght%5D.ttf"
 ICON_FONT_FILE=$HOME/.local/share/fonts/MaterialSymbolsRounded.ttf
-REQUIRED=(git quickshell jq curl python3 iconFont)
+# go builds the axiom binary from a clone (a package brings its own)
+REQUIRED=(git go quickshell jq curl python3 iconFont)
 # "feature|keys|compositors" (none listed: any), offered one at a time;
 # the AUR package's optdepends say the same
 FEATURES=(
@@ -116,14 +118,19 @@ MIN_HYPRLAND=0.55.0
 # What axiom is checked against; older ones may lack something
 TESTED_SWAY=1.12
 TESTED_NIRI=26.04
-# The text each *ConfigWriter's autostartTarget writes, and the `accept`
-# pattern that finds a line already starting axiom
-declare -A AUTOSTART=(
-  [hyprland]='hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end) -- axiom'
-  [sway]='exec qs -n -c axiom'
-  [niri]='spawn-sh-at-startup "qs -n -c axiom"'
-)
-STARTS_AXIOM="(qs|quickshell) .*(-c +['\"]?axiom|-p +['\"]?[^[:space:]]*axiom)"
+# The text each *ConfigWriter's autostartTarget writes (the binary by its
+# path: a compositor's PATH may not have it), and the `accept` pattern
+# that finds a line already starting axiom (Paths.startPattern's): `axiom
+# run`, or the `qs -c axiom` of before the binary
+autostart_line() {
+  local start="'$AXIOM_BIN' run"
+  case "$1" in
+  hyprland) echo "hl.on(\"hyprland.start\", function() hl.exec_cmd(\"$start\") end) -- axiom" ;;
+  sway) echo "exec $start" ;;
+  niri) echo "spawn-sh-at-startup \"$start\"" ;;
+  esac
+}
+STARTS_AXIOM="(qs|quickshell) .*(-c +['\"]?axiom|-p +['\"]?[^[:space:]]*axiom)|(^|[[:space:]'\"/])axiom['\"]? +run([^[:alnum:]_-]|\$)"
 
 mode=ask dry_run=0 compositor_flag=""
 while (($#)); do
@@ -324,7 +331,7 @@ copr_enabled() {
   compgen -G "/etc/yum.repos.d/_copr*:${owner}:${project}.repo" >/dev/null
 }
 
-axiom_running() { pgrep -f '(^|/)(qs|quickshell) (.* )?(-c axiom|-p [^ ]*/axiom/?)( |$)' >/dev/null; }
+axiom_running() { pgrep -f '(^|/)((qs|quickshell) (.* )?(-c axiom|-p [^ ]*/axiom/?)|axiom run)( |$)' >/dev/null; }
 
 # ─── The compositor ──────────────────────────────────────────────────────────
 
@@ -493,6 +500,14 @@ fi
 packaged=0
 [[ -f "$PACKAGED_DIR/.packaged" ]] && ((!from_clone)) && ! is_axiom_clone "$AXIOM_DIR" && packaged=1
 
+# The axiom binary (the shell's parent: `axiom run`): the package's, else
+# built from the clone into your home
+if ((packaged)); then
+  AXIOM_BIN=/usr/bin/axiom
+else
+  AXIOM_BIN=${XDG_BIN_HOME:-$HOME/.local/bin}/axiom
+fi
+
 # ─── The plan ────────────────────────────────────────────────────────────────
 
 if ((packaged)); then
@@ -515,7 +530,12 @@ if ((${#compositors[@]})); then
   autostart_step="the line that starts axiom, at the end of $(joined "${configs[@]}") (asked for each)"
 else
   compositor_step="none (--compositor none)"
-  autostart_step="none: start \`qs -n -c axiom\` from your compositor yourself"
+  autostart_step="none: start \`'$AXIOM_BIN' run\` from your compositor yourself"
+fi
+if ((packaged)); then
+  binary_step="none: the package's, at $AXIOM_BIN"
+else
+  binary_step="the axiom binary, built from the clone (with go) into $AXIOM_BIN"
 fi
 if [[ "$distro" == arch ]]; then
   packages_step="packages from the official repositories, through sudo pacman"
@@ -529,14 +549,20 @@ cat <<EOF
    compositor: $compositor_step
    1. $packages_step (you'll see the exact command first)
    2. $clone_step
-   3. $autostart_step
+   3. $binary_step
+   4. $autostart_step
 EOF
 interactive && echo "   It asks before each step that changes anything."
 echo
 
 # ─── Packages ────────────────────────────────────────────────────────────────
 
-required_keys=("${REQUIRED[@]}" "${compositors[@]}")
+required_keys=()
+for key in "${REQUIRED[@]}" "${compositors[@]}"; do
+  # A package brings its binary: nothing to build
+  [[ "$key" == go ]] && ((packaged)) && continue
+  required_keys+=("$key")
+done
 mapfile -t need_required < <(missing "${required_keys[@]}")
 mapfile -t no_package < <(unavailable "${need_required[@]}")
 ((${#no_package[@]})) && die "$(joined "${no_package[@]}") isn't packaged for $distro_name."
@@ -857,13 +883,31 @@ fi
 # packages now (the optional features above)
 ((packaged)) || [[ ! -d "$AXIOM_DIR/.venv" ]] || run rm -rf "$AXIOM_DIR/.venv"
 
+# ─── The binary ──────────────────────────────────────────────────────────────
+
+if ((packaged)); then
+  [[ -x "$AXIOM_BIN" ]] || warn "The package has no $AXIOM_BIN: reinstall it."
+else
+  echo
+  info "Building the axiom binary into $AXIOM_BIN"
+  # The generated files first (the embedded schema among them), then the
+  # binary beside its old one, swapped in once it built
+  run "$AXIOM_DIR/scripts/generate.sh" || die "Generating axiom's files failed (see above)."
+  run mkdir -p "$(dirname "$AXIOM_BIN")"
+  run bash -c 'cd "$1/backend" && CGO_ENABLED=0 go build -trimpath -o "$2.new" ./cmd/axiom && mv -f "$2.new" "$2"' _ "$AXIOM_DIR" "$AXIOM_BIN" \
+    || die "Building the axiom binary failed (see above)."
+  ok "Built $AXIOM_BIN"
+  [[ ":$PATH:" == *":$(dirname "$AXIOM_BIN"):"* ]] \
+    || info "$(dirname "$AXIOM_BIN") isn't on your PATH: the compositor starts axiom by its full path, but for \`axiom\` commands in a terminal, add it."
+fi
+
 # ─── Autostart ───────────────────────────────────────────────────────────────
 
 # Per compositor: "present" | "added" | "manual"
 declare -A autostart=()
 for name in "${compositors[@]}"; do
   config=$(compositor_config "$name")
-  line=${AUTOSTART[$name]}
+  line=$(autostart_line "$name")
   label=$(compositor_label "$name")
   target=$(readlink -f "$config" 2>/dev/null || echo "$config")
   if [[ -f "$target" ]] && grep -qE "$STARTS_AXIOM" "$target"; then
@@ -914,9 +958,9 @@ if [[ -n "$running_compositor" && " ${compositors[*]} " == *" $running_composito
     started=1
   elif ((placed)) && ask "Start axiom now?"; then
     if ((dry_run)); then
-      run setsid qs -n -c axiom
+      run setsid "$AXIOM_BIN" run
     else
-      setsid qs -n -c axiom >/dev/null 2>&1 </dev/null &
+      setsid "$AXIOM_BIN" run >/dev/null 2>&1 </dev/null &
       disown
       ok "Started axiom"
     fi
@@ -957,7 +1001,7 @@ done
 if [[ " ${compositors[*]} " == *" sway "* ]] && ! sway --version 2>/dev/null | grep -qi swayfx; then
   info "For blur and rounded corners under sway, SwayFX replaces sway in place (Arch: the AUR's swayfx; Fedora: COPR swayfx/swayfx). This script doesn't install it."
 fi
-((${#compositors[@]})) || info "Start axiom from your compositor with \`qs -n -c axiom\`."
+((${#compositors[@]})) || info "Start axiom from your compositor with \`'$AXIOM_BIN' run\`."
 info "Keybinds and the compositor's setup are in axiom's Settings → Desktop."
 
 # ─── Into the compositor ─────────────────────────────────────────────────────

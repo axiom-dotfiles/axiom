@@ -35,7 +35,9 @@ type Limits struct {
 }
 
 // DefaultLimits suit the shell: a whole config is tens of KB.
-var DefaultLimits = Limits{MaxLine: 16 << 20, MaxDepth: 64, MaxInFlight: 256, QueueSize: 4096}
+func DefaultLimits() Limits {
+	return Limits{MaxLine: 16 << 20, MaxDepth: 64, MaxInFlight: 256, QueueSize: 4096}
+}
 
 // Handler handles one method; its result is marshalled as JSON
 // (json.RawMessage passes through as is).
@@ -136,6 +138,8 @@ type Conn struct {
 	pending map[string]chan message
 	nextID  atomic.Int64
 
+	handling sync.WaitGroup // the read loop and the handlers it started
+
 	values sync.Map // per-connection state a server keeps (hello, client kind)
 }
 
@@ -156,6 +160,7 @@ func NewConn(nc net.Conn, reg *Registry, limits Limits, log *slog.Logger) *Conn 
 		pending:  map[string]chan message{},
 	}
 	go c.writeLoop()
+	c.handling.Add(1)
 	go c.readLoop()
 	return c
 }
@@ -166,17 +171,18 @@ func (c *Conn) Done() <-chan struct{} { return c.done }
 // Close ends the connection.
 func (c *Conn) Close() error {
 	c.closeOnce.Do(func() {
+		// Pending calls see done; their channels stay open, so a reply
+		// read while closing has somewhere to go
 		close(c.done)
 		c.nc.Close()
-		c.mu.Lock()
-		for id, ch := range c.pending {
-			close(ch)
-			delete(c.pending, id)
-		}
-		c.mu.Unlock()
 	})
 	return nil
 }
+
+// Wait waits, once the connection has ended, for the handlers still
+// running its requests (their context is cancelled): nothing they touch
+// may be closed under them.
+func (c *Conn) Wait() { c.handling.Wait() }
 
 // Value and SetValue hold per-connection state for handlers.
 func (c *Conn) Value(key any) (any, bool) { return c.values.Load(key) }
@@ -209,10 +215,7 @@ func (c *Conn) Call(ctx context.Context, method string, params any, result any) 
 		return err
 	}
 	select {
-	case reply, ok := <-ch:
-		if !ok {
-			return axerr.New(axerr.Unavailable, "connection closed before %s replied", method)
-		}
+	case reply := <-ch:
 		if reply.Error != nil {
 			return reply.Error.toError()
 		}
@@ -303,6 +306,7 @@ func (c *Conn) writeLoop() {
 }
 
 func (c *Conn) readLoop() {
+	defer c.handling.Done()
 	defer c.Close()
 	sc := bufio.NewScanner(c.nc)
 	// The scanner allows tokens up to the larger of its max and the first
@@ -342,7 +346,9 @@ func (c *Conn) readLoop() {
 			}
 			continue
 		}
+		c.handling.Add(1)
 		go func(m message) {
+			defer c.handling.Done()
 			defer func() { <-c.inFlight }()
 			c.dispatch(ctx, m)
 		}(m)
@@ -352,12 +358,20 @@ func (c *Conn) readLoop() {
 	}
 }
 
+// deliver hands a reply to its call. The first reply for an id is taken
+// and a repeat or unknown one dropped: blocking on it would stop the read
+// loop.
 func (c *Conn) deliver(m message) {
 	c.mu.Lock()
+	defer c.mu.Unlock()
 	ch, ok := c.pending[string(m.ID)]
-	c.mu.Unlock()
-	if ok {
-		ch <- m
+	if !ok {
+		return
+	}
+	delete(c.pending, string(m.ID))
+	select {
+	case ch <- m:
+	default:
 	}
 }
 

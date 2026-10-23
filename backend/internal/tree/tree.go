@@ -23,7 +23,9 @@ const (
 )
 
 // Find is the tree to use: dir when given, else $AXIOM_TREE, else the
-// nearest directory up from start holding shell.qml and config/.
+// nearest directory up from start holding shell.qml and config/, else the
+// installed one, where `qs -c axiom` looks (a compositor's autostart runs
+// `axiom run` from $HOME).
 func Find(dir string, getenv func(string) string, start string) (string, error) {
 	if dir == "" {
 		dir = getenv("AXIOM_TREE")
@@ -43,9 +45,39 @@ func Find(dir string, getenv func(string) string, start string) (string, error) 
 			return d, nil
 		}
 		if filepath.Dir(d) == d {
-			return "", axerr.New(axerr.NotFound, "no axiom tree here or above (pass --tree)")
+			break
 		}
 	}
+	for _, d := range Installed(getenv) {
+		if isTree(d) {
+			return d, nil
+		}
+	}
+	return "", axerr.New(axerr.NotFound, "no axiom tree here or above, nor installed (pass --tree)")
+}
+
+// Installed is where an installed tree is looked for, in order, as
+// quickshell finds `-c axiom`: the user's config folder (a clone), then
+// each system one (a package links /etc/xdg/quickshell/axiom).
+func Installed(getenv func(string) string) []string {
+	var out []string
+	home := getenv("XDG_CONFIG_HOME")
+	if home == "" && getenv("HOME") != "" {
+		home = filepath.Join(getenv("HOME"), ".config")
+	}
+	if home != "" {
+		out = append(out, filepath.Join(home, "quickshell", "axiom"))
+	}
+	dirs := getenv("XDG_CONFIG_DIRS")
+	if dirs == "" {
+		dirs = "/etc/xdg"
+	}
+	for _, d := range filepath.SplitList(dirs) {
+		if filepath.IsAbs(d) {
+			out = append(out, filepath.Join(d, "quickshell", "axiom"))
+		}
+	}
+	return out
 }
 
 func isTree(dir string) bool {

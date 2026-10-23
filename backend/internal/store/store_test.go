@@ -248,3 +248,71 @@ func waitFor(t *testing.T, cond func() bool) {
 	}
 	t.Fatal("timed out")
 }
+
+// Breaking the file and undoing back to the bytes the store last wrote is
+// read again: saves unblock without a restart.
+func TestUndoToOwnBytesUnblocks(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	s := open(t, dir)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go s.Watch(ctx)
+	time.Sleep(50 * time.Millisecond)
+	path := filepath.Join(dir, FileName)
+	good, _ := os.ReadFile(path)
+	os.WriteFile(path, []byte(`{"format": 2, "Battery": `), 0o600)
+	waitFor(t, func() bool { _, st := s.Config(); return st.Blocked })
+	os.WriteFile(path, good, 0o600)
+	waitFor(t, func() bool { _, st := s.Config(); return !st.Blocked })
+}
+
+// A file that doesn't load at the start leaves the store on the defaults;
+// a restore keeps the takeover settings the file held, not the defaults'.
+func TestRestoreOverUnloadedFileKeepsItsTakeovers(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	first := open(t, dir)
+	if _, err := first.Set([]config.Op{config.SetValue(config.Keys("Idle", "enabled"), true)}, SetOptions{Takeover: true}); err != nil {
+		t.Fatal(err)
+	}
+	cfg, _ := first.Config()
+	restore := jsonx.Clone(cfg).(*jsonx.Object)
+	restore.Value("Idle").(*jsonx.Object).Set("enabled", false)
+	broken := jsonx.Clone(cfg).(*jsonx.Object)
+	broken.Value("Battery").(*jsonx.Object).Set("lowThreshold", "x")
+	first.Close()
+	os.WriteFile(filepath.Join(dir, FileName), jsonx.Marshal(broken), 0o600)
+
+	s := open(t, dir)
+	if _, st := s.Config(); !st.Blocked {
+		t.Fatal("the broken file loaded")
+	}
+	if _, err := s.Restore(restore, SetOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	got, _ := s.Config()
+	if got.Value("Idle").(*jsonx.Object).Value("enabled") != true {
+		t.Error("the restore reset a takeover the file held")
+	}
+}
+
+// A replace without a takeover's section (a saved look) keeps its value
+// rather than letting the defaults fill it in.
+func TestReplaceWithoutTakeoverSectionKeepsIt(t *testing.T) {
+	t.Parallel()
+	s := open(t, t.TempDir())
+	if _, err := s.Set([]config.Op{config.SetValue(config.Keys("Idle", "enabled"), true)}, SetOptions{Takeover: true}); err != nil {
+		t.Fatal(err)
+	}
+	cfg, _ := s.Config()
+	next := jsonx.Clone(cfg).(*jsonx.Object)
+	next.Delete("Idle")
+	if _, err := s.Replace(next, SetOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	got, _ := s.Config()
+	if got.Value("Idle").(*jsonx.Object).Value("enabled") != true {
+		t.Error("a replace without Idle reset Idle.enabled")
+	}
+}

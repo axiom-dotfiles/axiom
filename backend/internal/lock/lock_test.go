@@ -123,3 +123,23 @@ func TestShellDyingWhileLockedRelocks(t *testing.T) {
 	case <-time.After(50 * time.Millisecond):
 	}
 }
+
+// A stop axiom asked for (a restart, which locks the next shell itself)
+// never relaunches: relaunching from it restarted the shell in a loop.
+func TestRequestedStopDoesNotRelock(t *testing.T) {
+	t.Parallel()
+	restarted := make(chan struct{}, 1)
+	l := New(Options{StartLocked: func(ctx context.Context) error { restarted <- struct{}{}; return nil }})
+	l.Report(State{Locked: true, Surfaces: 1, Outputs: 1})
+	if !l.ShellStopped() {
+		t.Error("ShellStopped didn't report the lock")
+	}
+	if st := l.State(); st.Surfaces != 0 || !st.Locked {
+		t.Errorf("state %+v, want locked with no surfaces", st)
+	}
+	select {
+	case <-restarted:
+		t.Error("relaunched after a requested stop")
+	case <-time.After(50 * time.Millisecond):
+	}
+}

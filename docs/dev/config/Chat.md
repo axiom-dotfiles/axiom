@@ -39,7 +39,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Send with
   - x-scope="personal", x-group="Chat display"
   - read: `ChatConfig.sendKey` · in: `components/content/parts/chat/ChatComposer.qml`
-- **`Chat.providers`** · array<object> = [{"id":"anthropic-2","name":"Anthropic","kind":"anthropic","baseUrl":…
+- **`Chat.providers`** · array<object> = [{"id":"anthropic","name":"Anthropic","kind":"anthropic","baseUrl":"h…
   - Providers: Where chats are sent. The OpenAI kind also covers Ollama, LM Studio, llama.cpp, OpenRouter, Groq and anything else with an OpenAI-style API: set its address.
   - x-wide=true
   - read: `ChatConfig.savedProviders`, `ChatConfig.providers` (part) · in: `components/content/parts/chat/ModelPicker.qml`, `components/views/Settings/ChatProvidersCard.qml`, `services/SecretsManager.qml`, `services/SettingsManager.qml`

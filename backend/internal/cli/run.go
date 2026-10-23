@@ -23,7 +23,7 @@ child, restarting the shell if it crashes. Put "axiom run" in your
 compositor's autostart. With --dev, logs go to the terminal too and the
 tree's schema may differ from the one the binary was built with.`,
 		Setup: func(fs *flag.FlagSet) Runner {
-			dir := fs.String("tree", "", "the axiom tree to run (default: the one here, or $AXIOM_TREE)")
+			dir := fs.String("tree", "", "the axiom tree to run (default: $AXIOM_TREE, the one here, else the installed one)")
 			dev := fs.Bool("dev", false, "development: log to the terminal, accept a schema the binary wasn't built with")
 			noShell := fs.Bool("no-shell", false, "run the daemon without starting the shell")
 			qs := fs.String("qs", "qs", "the quickshell binary")

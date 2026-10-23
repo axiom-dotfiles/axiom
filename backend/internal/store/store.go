@@ -78,10 +78,14 @@ type Store struct {
 	mu        sync.Mutex
 	config    *jsonx.Object
 	state     State
-	written   []byte // what we last wrote, to tell our writes from others'
+	written   []byte // what we last wrote or read, to tell our writes from others'
 	takeovers [][]string
-	subs      map[int]func(Event)
-	nextSub   int
+	// Running on the defaults (the file didn't load at the start): the
+	// defaults with the takeover settings the file holds, which a restore
+	// keeps and a write is checked against, never the defaults' own
+	fileTakeovers *jsonx.Object
+	subs          map[int]func(Event)
+	nextSub       int
 }
 
 // Open takes the writer lock and loads the config (writing the defaults
@@ -132,7 +136,8 @@ func (s *Store) Config() (*jsonx.Object, State) {
 }
 
 // Subscribe calls fn after every change, until the returned func is
-// called. fn runs with no lock held, in change order.
+// called. fn runs in change order, holding the change lock (not the
+// state lock: it may read Config, but must not write).
 func (s *Store) Subscribe(fn func(Event)) func() {
 	s.mu.Lock()
 	id := s.nextSub
@@ -191,11 +196,20 @@ func (s *Store) Replace(cfg *jsonx.Object, opts SetOptions) (int64, error) {
 	return s.write(func(current *jsonx.Object) (*jsonx.Object, error) {
 		next := jsonx.Clone(cfg).(*jsonx.Object)
 		if !opts.Takeover {
-			kept, _ := share.KeepTakeovers(next, current, s.takeovers).(*jsonx.Object)
-			next = kept
+			base := s.takeoverBase()
+			next, _ = share.KeepTakeovers(next, base, s.takeovers).(*jsonx.Object)
+			// Where cfg lacks a takeover's section (a saved look), the
+			// section is made, so filling the defaults can't reset it
+			for _, path := range s.takeovers {
+				if v, ok := at(base, path); ok {
+					if _, has := at(next, path); !has {
+						putAt(next, path, jsonx.Clone(v))
+					}
+				}
+			}
 		}
 		return next, nil
-	}, SetOptions{Takeover: true, Restore: opts.Restore})
+	}, opts)
 }
 
 // Restore replaces the config with a parsed one of any format the
@@ -234,8 +248,9 @@ func (s *Store) write(change func(*jsonx.Object) (*jsonx.Object, error), opts Se
 		return 0, &axerr.Error{Kind: axerr.InvalidConfig, Message: "the change makes the config invalid", Issues: issues(problems)}
 	}
 	if !opts.Takeover {
+		base := s.takeoverBase()
 		for _, path := range s.takeovers {
-			before, _ := at(current, path)
+			before, _ := at(base, path)
 			after, _ := at(checked, path)
 			if !jsonx.Equal(before, after) {
 				s.mu.Unlock()
@@ -255,6 +270,7 @@ func (s *Store) write(change func(*jsonx.Object) (*jsonx.Object, error), opts Se
 	}
 	s.written = data
 	s.config = checked
+	s.fileTakeovers = nil
 	s.state.Revision++
 	s.state.Missing = false
 	if opts.Restore {
@@ -298,7 +314,12 @@ func (s *Store) Watch(ctx context.Context) error {
 				continue
 			}
 			if timer == nil {
-				timer = time.AfterFunc(s.opts.Debounce, func() { fire <- struct{}{} })
+				timer = time.AfterFunc(s.opts.Debounce, func() {
+					select {
+					case fire <- struct{}{}:
+					default: // one pending reload is enough
+					}
+				})
 			} else {
 				timer.Reset(s.opts.Debounce)
 			}
@@ -311,6 +332,15 @@ func (s *Store) Watch(ctx context.Context) error {
 			s.reload()
 		}
 	}
+}
+
+// takeoverBase is what the takeover settings are kept from and checked
+// against (s.mu held).
+func (s *Store) takeoverBase() *jsonx.Object {
+	if s.fileTakeovers != nil {
+		return s.fileTakeovers
+	}
+	return s.config
 }
 
 func isTarget(path, name string) bool {
@@ -339,6 +369,10 @@ func (s *Store) loadInitial() error {
 	if problems != nil {
 		// Run on the defaults, writes blocked, until the file is fixed
 		s.config = s.opts.Pipeline.Defaults()
+		s.fileTakeovers = s.config
+		if loaded != nil {
+			s.fileTakeovers, _ = share.KeepTakeovers(s.config, loaded, s.takeovers).(*jsonx.Object)
+		}
 		s.state.Blocked, s.state.Issues = true, problems
 		s.opts.Log.Warn("the config doesn't load: running on the defaults, saves blocked until it's fixed", "path", s.path, "issues", len(problems))
 		return nil
@@ -348,7 +382,8 @@ func (s *Store) loadInitial() error {
 }
 
 // load parses and normalizes file content: the config, or the issues
-// that keep it from loading. A migrated file is written back.
+// that keep it from loading (with the config as far as it got, nil when
+// it isn't JSON). A migrated file is written back.
 func (s *Store) load(data []byte) (*jsonx.Object, []axerr.Issue) {
 	parsed, err := jsonx.Unmarshal(bytes.TrimPrefix(data, []byte("\xef\xbb\xbf")))
 	if err != nil {
@@ -365,7 +400,7 @@ func (s *Store) load(data []byte) (*jsonx.Object, []axerr.Issue) {
 		s.opts.Log.Info("migrated the config", "change", change)
 	}
 	if len(loaded.Errors) > 0 {
-		return nil, issues(loaded.Errors)
+		return loaded.Config, issues(loaded.Errors)
 	}
 	if loaded.Migrated {
 		if loaded.FromFormat1 {
@@ -416,6 +451,9 @@ func (s *Store) reload() {
 		s.mu.Unlock()
 		return
 	}
+	// Seen now: an edit back to what the store last wrote (an undo after a
+	// broken edit) must still be read
+	s.written = data
 	s.mu.Unlock()
 
 	loaded, problems := s.load(data)
@@ -429,6 +467,7 @@ func (s *Store) reload() {
 		s.opts.Log.Warn("the config was edited into one that doesn't load: keeping the last good one, saves blocked", "issues", len(problems))
 	} else {
 		s.state.Blocked, s.state.Issues = false, nil
+		s.fileTakeovers = nil
 		if !jsonx.Equal(loaded, s.config) {
 			s.config = loaded
 			s.state.Revision++
@@ -490,6 +529,24 @@ func at(v any, path []string) (any, bool) {
 
 func joinPath(path []string) string { return strings.Join(path, ".") }
 
+// putAt sets v at path, making the objects on the way; a non-object on
+// the way is left alone (validation reports it).
+func putAt(o *jsonx.Object, path []string, v any) {
+	for _, k := range path[:len(path)-1] {
+		child, has := o.Get(k)
+		if !has {
+			child = jsonx.NewObject()
+			o.Set(k, child)
+		}
+		next, ok := child.(*jsonx.Object)
+		if !ok {
+			return
+		}
+		o = next
+	}
+	o.Set(path[len(path)-1], v)
+}
+
 // Peek loads the config without taking the writer lock or writing
 // anything (a migrated file is not written back): what `axiom config get`
 // reads when no daemon runs.
@@ -549,6 +606,7 @@ func (s *Store) Reschema(p config.Pipeline) {
 	} else {
 		s.state.Blocked, s.state.Issues = false, nil
 		s.config = loaded
+		s.fileTakeovers = nil
 		s.state.Revision++
 		ev = Event{State: s.state, Config: loaded}
 	}
@@ -583,3 +641,6 @@ func OpenAdopting(opts Options, lockFile *os.File) (*Store, error) {
 
 // Freeze holds the store so nothing more is written (a re-exec follows).
 func (s *Store) Freeze() { s.changeMu.Lock() }
+
+// Thaw undoes Freeze (a re-exec that failed).
+func (s *Store) Thaw() { s.changeMu.Unlock() }

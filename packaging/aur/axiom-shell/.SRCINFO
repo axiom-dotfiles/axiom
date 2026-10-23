@@ -4,8 +4,10 @@ pkgbase = axiom-shell
 	pkgrel = 1
 	url = https://github.com/axiom-shell/axiom
 	install = axiom-shell.install
-	arch = any
+	arch = x86_64
+	arch = aarch64
 	license = MIT
+	makedepends = go
 	depends = quickshell>=0.3.2
 	depends = jq
 	depends = curl

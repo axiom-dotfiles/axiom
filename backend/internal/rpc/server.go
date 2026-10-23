@@ -29,12 +29,13 @@ type Server struct {
 	OnConnect func(*Conn)
 	OnClose   func(*Conn)
 
-	mu    sync.Mutex
-	conns map[*Conn]struct{}
+	mu     sync.Mutex
+	conns  map[*Conn]struct{}
+	served sync.WaitGroup // each connection until its handlers are done
 }
 
 // Serve accepts until ctx ends or the listener fails, then closes every
-// connection.
+// connection and waits for their handlers.
 func (s *Server) Serve(ctx context.Context, ln net.Listener) error {
 	if s.Log == nil {
 		s.Log = slog.New(slog.DiscardHandler)
@@ -46,7 +47,7 @@ func (s *Server) Serve(ctx context.Context, ln net.Listener) error {
 		s.CheckPeer = SamePeerUser
 	}
 	if s.Limits == (Limits{}) {
-		s.Limits = DefaultLimits
+		s.Limits = DefaultLimits()
 	}
 	s.mu.Lock()
 	s.conns = map[*Conn]struct{}{}
@@ -56,6 +57,7 @@ func (s *Server) Serve(ctx context.Context, ln net.Listener) error {
 		<-ctx.Done()
 		ln.Close()
 	}()
+	defer s.served.Wait()
 	defer s.closeAll()
 	for {
 		nc, err := ln.Accept()
@@ -83,8 +85,11 @@ func (s *Server) Serve(ctx context.Context, ln net.Listener) error {
 		if s.OnConnect != nil {
 			s.OnConnect(c)
 		}
+		s.served.Add(1)
 		go func() {
+			defer s.served.Done()
 			<-c.Done()
+			c.Wait()
 			s.mu.Lock()
 			delete(s.conns, c)
 			s.mu.Unlock()
@@ -199,5 +204,5 @@ func Dial(ctx context.Context, path string, reg *Registry, log *slog.Logger) (*C
 	if err != nil {
 		return nil, axerr.Wrap(axerr.Unavailable, err, "connecting to %s", path)
 	}
-	return NewConn(nc, reg, DefaultLimits, log), nil
+	return NewConn(nc, reg, DefaultLimits(), log), nil
 }

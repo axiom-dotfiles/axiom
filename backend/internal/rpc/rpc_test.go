@@ -1,12 +1,15 @@
 package rpc
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
+	"io"
 	"net"
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -191,5 +194,73 @@ func TestDepth(t *testing.T) {
 	t.Parallel()
 	if d := depth([]byte(`{"a":["[[[",{"b":[]}]}`)); d != 4 {
 		t.Errorf("depth %d", d)
+	}
+}
+
+// A reply repeated (or for no call) is dropped: delivering it blocked the
+// read loop, and one read while closing panicked on a closed channel.
+func TestRepeatedReplyDoesNotStall(t *testing.T) {
+	t.Parallel()
+	a, b := net.Pipe()
+	c := NewConn(a, nil, DefaultLimits(), nil)
+	t.Cleanup(func() { c.Close(); b.Close() })
+	go func() {
+		r := bufio.NewReader(b)
+		for {
+			line, err := r.ReadBytes('\n')
+			if err != nil {
+				return
+			}
+			var m message
+			json.Unmarshal(line, &m)
+			reply := `{"jsonrpc":"2.0","id":` + string(m.ID) + `,"result":1}` + "\n"
+			// Twice, and one for nobody
+			io.WriteString(b, reply+reply+`{"jsonrpc":"2.0","id":999,"result":2}`+"\n")
+		}
+	}()
+	for i := 0; i < 3; i++ {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		var n int
+		err := c.Call(ctx, "x", nil, &n)
+		cancel()
+		if err != nil || n != 1 {
+			t.Fatalf("call %d: %v %d", i, err, n)
+		}
+	}
+}
+
+// Serve returns only once the handlers it was running are done, so the
+// daemon closes nothing under one.
+func TestServeWaitsForHandlers(t *testing.T) {
+	t.Parallel()
+	reg := NewRegistry()
+	started := make(chan struct{})
+	var finished atomic.Bool
+	Handle(reg, "slow", func(ctx context.Context, c *Conn, p struct{}) (struct{}, error) {
+		close(started)
+		<-ctx.Done()
+		time.Sleep(50 * time.Millisecond)
+		finished.Store(true)
+		return struct{}{}, nil
+	})
+	path := filepath.Join(t.TempDir(), "s.sock")
+	ln, err := Listen(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	served := make(chan struct{})
+	go func() { (&Server{Registry: reg}).Serve(ctx, ln); close(served) }()
+	c := dial(t, path, nil)
+	go c.Call(context.Background(), "slow", nil, nil)
+	<-started
+	cancel()
+	select {
+	case <-served:
+	case <-time.After(2 * time.Second):
+		t.Fatal("Serve didn't return")
+	}
+	if !finished.Load() {
+		t.Error("Serve returned before its handler finished")
 	}
 }

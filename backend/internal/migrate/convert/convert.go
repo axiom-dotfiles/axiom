@@ -857,14 +857,20 @@ func (c *converter) ids() {
 		if s == nil {
 			return
 		}
-		ids := newIDs()
+		// The ids items already have first, so a made one never takes
+		// one a later item owns
+		ids, kept := newIDs(), map[*jsonx.Object]bool{}
 		for _, it := range items(s, key) {
-			if id, ok := it.Value("id").(string); ok && id != "" {
-				ids.claim(id)
+			if id, _ := it.Value("id").(string); validID.MatchString(id) && !ids[id] {
+				ids[id], kept[it] = true, true
 			}
 		}
 		for _, it := range items(s, key) {
-			setID(it, ids, slug(name(it), base))
+			if kept[it] {
+				putID(it, it.Value("id").(string))
+			} else {
+				setID(it, ids, slug(name(it), base))
+			}
 		}
 	}
 	field := func(k string) func(*jsonx.Object) string {
@@ -941,6 +947,11 @@ func setID(o *jsonx.Object, ids idSet, base string) {
 	} else {
 		ids[id] = true
 	}
+	putID(o, id)
+}
+
+// putID sets o's id first in its keys.
+func putID(o *jsonx.Object, id string) {
 	o.Delete("id")
 	insertAt(o, "id", id, 0)
 }

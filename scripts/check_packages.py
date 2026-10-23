@@ -128,7 +128,8 @@ def main():
             error(INSTALL, f"{key!r} isn't in PACKAGES")
 
     arch = lambda keys: {table[key]["arch"] for key in keys if key in table and table[key]["arch"] not in ("-", "n/a")}
-    want_depends = arch(key for key in required if key != "git")
+    # git and go only fetch and build it: the PKGBUILDs' makedepends
+    want_depends = arch(key for key in required if key not in ("git", "go"))
     want_optdepends = arch(list(COMPOSITORS) + feature_keys) - want_depends
     for path in PKGBUILDS:
         depends, optdepends = pkgbuild_arrays(path)

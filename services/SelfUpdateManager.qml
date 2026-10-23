@@ -171,6 +171,14 @@ Singleton {
       notifiedTag: version
     });
     root._notify(I18n.tr("axiom updated to {0}", version), result.notes || I18n.tr("Click to see what's new."));
+    if (result.rebuilt) {
+      // The new binary takes over the daemon; when the update changed the
+      // schema, it restarts the shell itself
+      Quickshell.execDetached([Paths.axiomBin, "daemon", "reexec"]);
+    } else if (result.buildError) {
+      console.warn(`[SelfUpdateManager] The axiom binary didn't build: ${result.buildError}`);
+      root._notify(I18n.tr("The axiom binary didn't build"), I18n.tr("Until it does, settings can't be saved after the next start: {0}", result.buildError));
+    }
     // git replaces files rather than editing them, which qs's file
     // watcher can miss, so reload explicitly
     _reloadTimer.restart();

@@ -13,9 +13,10 @@
 
 ### What exists now
 - **`axiom run [--dev] [--tree DIR]`**: the daemon for `$WAYLAND_DISPLAY`.
+  - The tree is `--tree`, else `$AXIOM_TREE`, else the nearest one up from the working directory, else where `qs -c axiom` looks (`tree.Find`: `~/.config/quickshell/axiom`, then `/etc/xdg/quickshell/axiom`): a compositor's autostart runs it from `$HOME`.
   - It takes the display's instance lock and builds the schema from the tree (`config/schema/`).
   - It opens the config, writes both for the shell into `$XDG_RUNTIME_DIR/axiom/<display>/`, serves the socket there, and supervises `qs -p <tree>`.
-  - Supervision: restart with a growing delay after a crash, give up after 5 crashes in a minute, stop an orphan an earlier daemon left.
+  - Supervision: restart with a growing delay after a crash, give up after 5 crashes in a minute, stop an orphan an earlier daemon left (its process group, matched by its exact command line; never the shell a re-exec adopts). A run that ended on its own is `OnExit`'s, a stop the supervisor asked for `OnStop`'s.
   - It holds an idle connection to its compositor (`wire.Watch`) and stops when the compositor closes it: a daemon outliving its session would hold the display's lock, and the next session's `axiom run` would find it taken.
   - The shell gets `AXIOM_SOCKET`, `AXIOM_SCHEMA`, `AXIOM_CONFIG`, `AXIOM_TREE` (and `AXIOM_INCOMPATIBLE` when the tree's schema isn't the binary's).
   - `--dev`: logs to the terminal, rebuilds the schema within 100 ms of a YAML edit (pushing `schema.changed`), and re-execs when the binary is rebuilt. Without it the schema is read once, at the start: a YAML change reaches a running shell only through a restart, and a tree whose schema isn't the binary's runs read-only (`AXIOM_INCOMPATIBLE`).
@@ -23,7 +24,8 @@
 - **The config store** (`backend/internal/store`):
   - The one writer of config.json, holding `config.json.lock`.
   - Loading: format 1 through the frozen migrations and the conversion to format 2 (the file kept as `config.format1.json`), then the format-2 steps (`migrate/steps`), with defaults written on a first run. A file that doesn't load blocks saves until fixed. Edits made outside are watched; the store's own writes are recognised.
-  - Writing: path ops (keys and `{id}` selectors, never positions), validation, and takeover settings refused without `takeover`.
+  - Writing: path ops (keys and `{id}` selectors, never positions), validation, and takeover settings refused without `takeover`. A replace or restore keeps them (making a section it lacks, so the defaults can't reset one); over a file that didn't load at the start, the values that file held, not the defaults the store runs on.
+  - Outside edits are told from its own writes by the bytes last written or read, so undoing a broken edit back to them is read again.
   - Writes are atomic and keep a symlinked config a symlink.
 - **The shell's side:**
   - `BackendManager` (the connection, hello, reconnect).
@@ -34,12 +36,14 @@
 - **IPC through the daemon:**
   - `axiom ipc <target> <fn> [args]`, `axiom ipc list`, and named commands (`axiom launcher toggle`, `axiom volume up`, …, checked against `docs/dev/generated/ipc.md`).
   - The shell's registered targets are called over its connection; their signatures come from `qs ipc show`. Others go through `qs ipc --pid <shell> call`.
-- **`axiom lock`:** exits 0 only once the compositor has acknowledged the session lock (`WlSessionLock.secure`). Otherwise it starts the shell locked, then fails. A shell that dies while locked is restarted at once, locking first. Nothing unlocks but PAM; `lockscreen` takes only `lock`. With `Lockscreen.mode` `none` it runs `Lockscreen.lockCommand`, never `loginctl lock-session` (which loops back to axiom).
+- **`axiom lock`:** exits 0 only once the compositor has acknowledged the session lock (`WlSessionLock.secure`). Otherwise it starts the shell locked, then fails. A shell that dies while locked is restarted at once, locking first; `axiom restart` while locked starts the next one locked too, and a stop axiom asked for never relaunches it. Nothing unlocks but PAM; `lockscreen` takes only `lock`. With `Lockscreen.mode` `none` it runs `Lockscreen.lockCommand`, never `loginctl lock-session` (which loops back to axiom).
 - **The rest of the CLI:**
   - `axiom ping|restart|quit`, `axiom daemon status|reexec|logs`
   - `axiom config path|get|set|reset|validate|status`: online, or `--offline` against the file under the writer lock
   - `axiom schema build|check|hash`, `axiom debug wayland-globals`, `axiom version`
 - **Re-exec** (`axiom daemon reexec`, or `--dev` on a rebuild): the new image takes over the instance lock, the writer lock, the socket and the shell (still its child). It trusts the handoff only when the inherited lock really is this display's held lock.
+  - The descriptors lose close-on-exec only under `syscall.ForkLock`, so no child starts meanwhile and inherits a lock; an exec that fails gives them it back and thaws the store.
+  - The handoff carries the schema's hash and whether the session was locked: a new image whose tree builds another schema (an update, `axiom daemon reexec` after it) restarts the shell, locked first when it was.
 
 ### Wayland
 The daemon will talk Wayland itself for idle, gamma, clipboard and typing (branch 2). For now `backend/internal/wayland/wire` speaks the wire protocol far enough to list a compositor's globals: [what each compositor offers](wayland.md).
@@ -64,4 +68,4 @@ Behaviour implemented on both sides (the JS helpers and Go) is tested from one s
 - **Ops** are named by family: `legacy.*` (ConfigMigration and the whole load), `schema.*` (SchemaValidation), `share.*` (ConfigExamples). `tests/Shared.qml` maps each op onto its JS helper; the Go side maps the same names onto its packages.
 - **Recording:** `scripts/dev/fixtures.py record` runs tst_Config, tst_ConfigExamples, tst_SchemaValidation and tst_Shared with recording on. The tests call the helpers through `Shared`, which logs every call (arguments and output bytes), so the tests' inline cases become fixtures without being copied by hand. tst_Shared adds the **corpus**: the defaults of every past schema version (from HEAD's history, so every clone records the same) and the old config fixtures and examples, loaded as ConfigManager loads them.
 - **Owners:** the `legacy`, `schema`, `share` and `corpus` suites come from the JS helpers. The `legacy` ones are made from frozen code and the frozen schema, so recording again gives the same bytes. Suites only Go implements are written by Go's tests. `fixtures.py check` (CI) checks the index and the blobs.
-- **One known difference:** V4's `JSON.stringify` writes a lone surrogate unescaped (it predates ES2019); Go escapes it (`\udXXX`). No JS-owned case holds one (recording refuses it).
+- **One known difference:** V4's `JSON.stringify` writes a lone surrogate unescaped (it predates ES2019); Go never holds one (`jsonx` decodes it as U+FFFD). No JS-owned case holds one (recording refuses it).

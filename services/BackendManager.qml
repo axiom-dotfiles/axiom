@@ -43,8 +43,8 @@ QtObject {
   // Calls method; done(error, result) with error null or { kind, message,
   // issues }. Waits for the hello when not connected yet.
   function call(method, params, done) {
-    if (!root.active) {
-      done?.({
+    if (!root.active || root._refused) {
+      done?.(root._refused ?? {
         "kind": "unavailable",
         "message": "axiom isn't running this shell"
       }, null);
@@ -56,7 +56,10 @@ QtObject {
     if (root.ready)
       root._send(line);
     else
-      root._queue.push(line);
+      root._queue.push({
+        "id": id,
+        "line": line
+      });
   }
 
   // Sends a notification (no reply)
@@ -67,7 +70,10 @@ QtObject {
     if (root.ready)
       root._send(line);
     else
-      root._queue.push(line);
+      root._queue.push({
+        "id": null,
+        "line": line
+      });
   }
 
   // Answers the binary's calls of method with fn(params): a result, or a
@@ -77,8 +83,12 @@ QtObject {
   }
 
   property var _hello: null
+  // The hello's refusal ({ kind, message }): calls fail at once with it
+  // until a later connection is greeted
+  property var _refused: null
   property int _nextId: 1
   property var _pending: ({})
+  // Waiting for the hello: { id (null for a notification), line }
   property var _queue: []
   property var _handlers: ({
       "ipc.call": params => root._callTarget(params)
@@ -146,12 +156,19 @@ QtObject {
       return 0;
     }
   }
-  // The schema's identity, as the binary built it: the shell read this file
-  readonly property string _schemaHash: {
+  // The schema's identity, as the binary built it: the shell read this
+  // file, and again after schema.changed (`axiom run --dev` rebuilt it),
+  // whose hash the next hello then says
+  property string _schemaHash: {
     const path = Quickshell.env("AXIOM_SCHEMA") ?? "";
     const text = path ? FileManager.read("file://" + path) : null;
     return text ? Qt.md5(text) : "";
   }
+
+  Component.onCompleted: root.listen("schema.changed", params => {
+    if (params.hash)
+      root._schemaHash = params.hash;
+  })
 
   function _send(line) {
     _socket.write(line);
@@ -163,13 +180,17 @@ QtObject {
     root._pending[id] = (error, result) => {
       if (error) {
         console.error("[BackendManager] axiom refused the hello:", error.message);
+        // Nothing queued would ever go: fail it, and what follows
+        root._refused = error;
+        root._failQueued(error);
         return;
       }
       root._retry = 0;
+      root._refused = null;
       root._hello = result;
       const queued = root._queue;
       root._queue = [];
-      queued.forEach(line => root._send(line));
+      queued.forEach(entry => root._send(entry.line));
       // A new connection: axiom knows nothing of the targets yet
       root._register();
       root.greeted();
@@ -217,23 +238,30 @@ QtObject {
     }
   }
 
-  // Calls in flight when the connection went fail; the hello is said again
+  // Calls in flight or queued when the connection went fail (a failed one
+  // is never sent after all); queued notifications wait for the next
+  // hello, which is said again
   function _dropped() {
     root._hello = null;
+    root._failQueued({
+      "kind": "unavailable",
+      "message": "the connection to axiom closed"
+    });
+    if (root.active)
+      _reconnect.start();
+  }
+
+  function _failQueued(error) {
     const pending = root._pending;
     root._pending = {};
+    root._queue = error.kind === "unavailable" ? root._queue.filter(entry => entry.id === null) : [];
     for (const id in pending) {
       // Through a const: V4 crashes compiling an optional call on a
       // computed member (docs/dev/core/qml-pitfalls.md)
       const done = pending[id];
       if (done)
-        done({
-          "kind": "unavailable",
-          "message": "the connection to axiom closed"
-        }, null);
+        done(error, null);
     }
-    if (root.active)
-      _reconnect.start();
   }
 
   property Socket _socket: Socket {

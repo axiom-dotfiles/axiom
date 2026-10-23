@@ -24,7 +24,7 @@ func schemaCommand() *Command {
 				Name:    "build",
 				Summary: "Write config/json/config.schema.json from config/schema/",
 				Setup: func(fs *flag.FlagSet) Runner {
-					dir := fs.String("tree", "", "the axiom tree (default: the one here, or $AXIOM_TREE)")
+					dir := fs.String("tree", "", "the axiom tree (default: $AXIOM_TREE, the one here, else the installed one)")
 					out := fs.String("o", "", "write here instead (- for stdout)")
 					return func(ctx context.Context, e *Env, args []string) error {
 						if len(args) > 0 {
@@ -60,7 +60,7 @@ func schemaCommand() *Command {
 				Name:    "check",
 				Summary: "Check that config/schema/ builds, and that a built config/json/config.schema.json is fresh",
 				Setup: func(fs *flag.FlagSet) Runner {
-					dir := fs.String("tree", "", "the axiom tree (default: the one here, or $AXIOM_TREE)")
+					dir := fs.String("tree", "", "the axiom tree (default: $AXIOM_TREE, the one here, else the installed one)")
 					return func(ctx context.Context, e *Env, args []string) error {
 						root, data, err := buildSchema(e, *dir)
 						if err != nil {
@@ -80,7 +80,7 @@ func schemaCommand() *Command {
 				Name:    "hash",
 				Summary: "Print the schema's hash (what daemon.hello compares)",
 				Setup: func(fs *flag.FlagSet) Runner {
-					dir := fs.String("tree", "", "the axiom tree (default: the one here, or $AXIOM_TREE)")
+					dir := fs.String("tree", "", "the axiom tree (default: $AXIOM_TREE, the one here, else the installed one)")
 					return func(ctx context.Context, e *Env, args []string) error {
 						_, data, err := buildSchema(e, *dir)
 						if err != nil {

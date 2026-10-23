@@ -4,11 +4,14 @@ pkgbase = axiom-shell-git
 	pkgrel = 1
 	url = https://github.com/axiom-shell/axiom
 	install = axiom-shell-git.install
-	arch = any
+	arch = x86_64
+	arch = aarch64
 	license = MIT
 	makedepends = git
+	makedepends = go
 	depends = quickshell>=0.3.2
 	depends = jq
+	depends = curl
 	depends = python
 	depends = ttf-material-symbols-variable
 	optdepends = hyprland: the compositor with every feature

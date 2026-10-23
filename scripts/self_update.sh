@@ -10,13 +10,17 @@
 #              target is the `latest` a check reported. dir defaults to the
 #              repo this script is in. Prints one JSON object: { channel,
 #              current, commit, latest, state, ahead, behind, blocked, notes,
-#              error }
+#              rebuilt, buildError, error }
 #                latest  the newest tag, or main's short commit
 #                state   "uptodate" | "available" | "diverged" | ""
 #                blocked why it can't update: "dirty" (changed tracked
 #                        files), "diverged" (local commits), "branch" (a
 #                        branch other than main/master), "nogit", or ""
 #                notes   the tag's message, or main's new commit subjects
+#                rebuilt whether apply rebuilt the axiom binary ($AXIOM_BIN,
+#                        which axiom run sets) from the updated clone: done
+#                        when this user can replace it (not a package's)
+#                buildError why that build failed (the update itself is in)
 #              Never stashes, resets or forces: a blocked clone is left as
 #              it is.
 
@@ -50,9 +54,29 @@ emit() {
   jq -cn --arg channel "$channel" --arg current "${current:-}" --arg commit "${commit:-}" \
     --arg latest "${latest:-}" --arg state "${state:-}" --argjson ahead "${ahead:-false}" \
     --argjson behind "${behind:-0}" --arg blocked "${blocked:-}" --arg notes "${notes:-}" \
-    --arg error "${1:-}" \
+    --argjson rebuilt "${rebuilt:-false}" --arg buildError "${build_error:-}" --arg error "${1:-}" \
     '{channel: $channel, current: $current, commit: $commit, latest: $latest, state: $state,
-      ahead: $ahead, behind: $behind, blocked: $blocked, notes: $notes, error: $error}'
+      ahead: $ahead, behind: $behind, blocked: $blocked, notes: $notes, rebuilt: $rebuilt,
+      buildError: $buildError, error: $error}'
+}
+
+# The binary the shell runs, built again from the updated clone, so the
+# schema it embeds is the tree's (else the shell runs read-only). Built
+# beside it, then swapped in; only one this user can replace
+rebuild() {
+  local bin=${AXIOM_BIN:-} out
+  [[ -n "$bin" && -f "$bin" && -w "$bin" && -w "$(dirname "$bin")" ]] || return 0
+  if ! command -v go >/dev/null; then
+    build_error="go isn't installed"
+    return
+  fi
+  if out=$("$dir/scripts/generate.sh" 2>&1 && cd "$dir/backend" \
+    && CGO_ENABLED=0 go build -trimpath -o "$bin.new" ./cmd/axiom 2>&1 && mv -f "$bin.new" "$bin"); then
+    rebuilt=true
+  else
+    rm -f "$bin.new"
+    build_error=$(printf '%s\n' "$out" | grep -m 1 . || echo "the build failed")
+  fi
 }
 
 if [[ "$channel" != "tags" && "$channel" != "main" ]]; then
@@ -173,6 +197,7 @@ apply)
     emit "$(first_error "$out")"
     exit 1
   fi
+  rebuild
   emit
   ;;
 *)
