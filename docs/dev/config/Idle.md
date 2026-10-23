@@ -23,7 +23,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-showIf={"enabled":true}, x-group="Idle"
 - **`Idle.dim.timeout`** · integer = 150000 · 0–7200000 · s
   - Dim the screens after: 0 never dims. Brightness comes back when you return.
-  - read: `Idle.dimTimeout`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `services/HypridleManager.qml`
+  - read: `Idle.dimTimeout`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 - **`Idle.dim.mode`** · string = "to" · enum to|by
   - Dim: A set brightness leaves screens already darker as they are. A share always dims, unless a screen is already at 0.
   - read: `Idle.dimMode`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
@@ -43,7 +43,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-showIf={"enabled":true}, x-group="Idle"
 - **`Idle.lock.timeout`** · integer = 300000 · 0–7200000 · s
   - Lock after: 0 never locks on idle. Locks with the Lockscreen settings' locker.
-  - read: `Idle.lockTimeout`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `services/HypridleManager.qml`
+  - read: `Idle.lockTimeout`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 
 ### `Idle.screenOff`
 
@@ -52,7 +52,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-showIf={"enabled":true}, x-group="Idle"
 - **`Idle.screenOff.timeout`** · integer = 330000 · 0–7200000 · s
   - Turn the screens off after: 0 keeps them on.
-  - read: `Idle.screenOffTimeout`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `services/HypridleManager.qml`
+  - read: `Idle.screenOffTimeout`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 
 ### `Idle.suspend`
 
@@ -61,7 +61,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-showIf={"enabled":true}, x-group="Idle"
 - **`Idle.suspend.timeout`** · integer = 0 · 0–14400000 · s
   - Suspend after: 0 never suspends on idle.
-  - read: `Idle.suspendTimeout`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `services/HypridleManager.qml`
+  - read: `Idle.suspendTimeout`, `// reads:` marker · in: `components/methods/ConfigExamples.qml`, `services/HypridleManager.qml`
 
 ### `Idle`
 
@@ -109,7 +109,7 @@ Every public member of `Idle`, with the files that use it.
 - `Idle.enabled` (bool)
   - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/Settings/IdleStatusCard.qml`, `services/HypridleManager.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
 - `Idle.dimTimeout` (int)
-  - in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`
+  - in: `components/methods/ConfigExamples.qml`
 - `Idle.dimMode` (string): "to": down to dimLevel%; "by": dimBy% off each screen's brightness
   - in: `components/methods/ConfigExamples.qml`
 - `Idle.dimLevel` (int)
@@ -117,11 +117,11 @@ Every public member of `Idle`, with the files that use it.
 - `Idle.dimBy` (int)
   - in: `components/methods/ConfigExamples.qml`
 - `Idle.lockTimeout` (int)
-  - in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`
+  - in: `components/methods/ConfigExamples.qml`
 - `Idle.screenOffTimeout` (int)
-  - in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`
+  - in: `components/methods/ConfigExamples.qml`
 - `Idle.suspendTimeout` (int)
-  - in: `components/methods/ConfigExamples.qml`, `components/surfaces/onboarding/pages/IntegrationsPage.qml`
+  - in: `components/methods/ConfigExamples.qml`
 - `Idle.lockBeforeSleep` (bool)
   - in: `components/methods/ConfigExamples.qml`
 - `Idle.screenOnAfterSleep` (bool)

@@ -159,6 +159,15 @@ class Axiom(unittest.TestCase):
         self.assertTrue(self.denied("axiom config set Compositor.mode managed --takeover --offline"))
         self.assertFalse(self.denied("XDG_RUNTIME_DIR=/tmp/r XDG_CONFIG_HOME=/tmp/c axiom config set Idle.enabled on --takeover"))
 
+    def test_greeter_only_windowed_on_scratch(self):
+        for cmd in ("axiom greeter", "axiom greeter --dir /tmp/g", "AXIOM_GREETER_WINDOWED=1 axiom greeter",
+                    "AXIOM_GREETER_WINDOWED=1 axiom greeter --dir /var/lib/axiom-greeter",
+                    "AXIOM_GREETER_WINDOWED=1 AXIOM_GREETER_DIR=/var/lib/axiom-greeter/ axiom greeter"):
+            self.assertTrue(self.denied(cmd), cmd)
+        for cmd in ("AXIOM_GREETER_WINDOWED=1 axiom greeter --dir /tmp/g", "axiom greeter --dir $G --no-shell",
+                    "AXIOM_GREETER_WINDOWED=1 AXIOM_GREETER_DIR=/tmp/g axiom greeter --tree ."):
+            self.assertFalse(self.denied(cmd), cmd)
+
     def test_reads_pass(self):
         for cmd in ("axiom ping", "axiom config get Bars", "axiom ipc list", "axiom launcher toggle",
                     "axiom config set Battery.notify off", "axiom debug wayland-globals", "axiom schema build"):

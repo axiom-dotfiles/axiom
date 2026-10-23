@@ -67,7 +67,7 @@ OnboardingPage {
 
   SettingRows {
     Layout.fillWidth: true
-    paths: ["Launcher.clipboard", "Launcher.clipboardSource"]
+    paths: ["Launcher.providers.clipboard.enabled", "Launcher.providers.clipboard.source"]
   }
 
   StyledText {
@@ -123,7 +123,7 @@ OnboardingPage {
   SettingRows {
     Layout.fillWidth: true
     visible: DependencyManager.found.hypridle === true && Idle.enabled
-    paths: ["Idle.dimTimeout", "Idle.lockTimeout", "Idle.screenOffTimeout", "Idle.suspendTimeout"]
+    paths: ["Idle.dim.timeout", "Idle.lock.timeout", "Idle.screenOff.timeout", "Idle.suspend.timeout"]
   }
 
   ColumnLayout {

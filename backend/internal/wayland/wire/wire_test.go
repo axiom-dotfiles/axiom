@@ -2,7 +2,9 @@ package wire
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
+	"errors"
 	"net"
 	"path/filepath"
 	"testing"
@@ -61,5 +63,68 @@ func TestStrings(t *testing.T) {
 		if s != "" && (got != s || readUint(rest) != 9) {
 			t.Errorf("%q: got %q rest %v", s, got, rest)
 		}
+	}
+}
+
+func TestWatchEndsWithTheCompositor(t *testing.T) {
+	t.Parallel()
+	socket := filepath.Join(t.TempDir(), "wayland-0")
+	l, err := net.Listen("unix", socket)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer l.Close()
+	accepted := make(chan net.Conn, 1)
+	go func() {
+		c, err := l.Accept()
+		if err == nil {
+			accepted <- c
+		}
+	}()
+	result := make(chan error, 1)
+	go func() { result <- Watch(context.Background(), socket) }()
+	c := <-accepted
+	select {
+	case err := <-result:
+		t.Fatalf("Watch returned %v while the compositor was there", err)
+	case <-time.After(50 * time.Millisecond):
+	}
+	c.Close()
+	select {
+	case err := <-result:
+		if !errors.Is(err, ErrGone) {
+			t.Fatalf("Watch returned %v, want ErrGone", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Watch didn't return when the compositor closed the connection")
+	}
+}
+
+func TestWatchStopsWithItsContext(t *testing.T) {
+	t.Parallel()
+	socket := filepath.Join(t.TempDir(), "wayland-0")
+	l, err := net.Listen("unix", socket)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer l.Close()
+	go func() {
+		if c, err := l.Accept(); err == nil {
+			defer c.Close()
+			time.Sleep(5 * time.Second)
+		}
+	}()
+	ctx, cancel := context.WithCancel(context.Background())
+	result := make(chan error, 1)
+	go func() { result <- Watch(ctx, socket) }()
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	select {
+	case err := <-result:
+		if err != nil {
+			t.Fatalf("Watch returned %v after its context ended, want nil", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Watch didn't return when its context ended")
 	}
 }

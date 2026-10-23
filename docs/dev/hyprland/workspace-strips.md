@@ -11,7 +11,7 @@ Monitors on Hyprland's `scrolling` layout: how they're configured, how the Lua r
   - `*` means every monitor, and a named entry wins over it
   - an empty monitor means the primary monitor.
 - **The scrolling layout** (`Workspaces.layout: scrolling`, the one-choice niri-style setup) makes every monitor a horizontal strip: `WorkspacesConfig.strips` is `[{ monitor: "*", direction: "horizontal" }]` and the list is hidden, but kept for switching back. The onboarder offers it as a layout and then doesn't ask tiling or strips.
-- `stripColumnWidth`/`stripFollowFocus` show only while there are strips (`x-showIf` `{ notEmpty: true }`, or the scrolling layout). They are `x-hypr` fields, like `managed`'s, written through `configTable`.
+- `stripColumnWidth`/`stripFollowFocus` show only while there are strips (`x-showIf` `{ notEmpty: true }`, or the scrolling layout). They are `x-compositor.hyprland` fields, like the managed options, written through `configTable`.
 - `WorkspacesConfig.strips` resolves the monitors and keeps each monitor's first entry.
 - `stripDirection(screenName)` is `horizontal`, `vertical`, or `""` (tiles).
 

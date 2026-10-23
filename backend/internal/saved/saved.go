@@ -31,6 +31,7 @@ import (
 	"github.com/axiom-shell/axiom/backend/internal/jsonx"
 	"github.com/axiom-shell/axiom/backend/internal/migrate/convert"
 	"github.com/axiom-shell/axiom/backend/internal/migrate/legacy"
+	"github.com/axiom-shell/axiom/backend/internal/migrate/steps"
 	"github.com/axiom-shell/axiom/backend/internal/share"
 	"github.com/axiom-shell/axiom/backend/internal/store"
 )
@@ -244,7 +245,7 @@ func envelope(title, description, source string) *jsonx.Object {
 	if source != "" {
 		meta.Set("source", source)
 	}
-	return jsonx.Obj("format", float64(convert.Format), "version", float64(convert.Version), "meta", meta)
+	return jsonx.Obj("format", float64(convert.Format), "version", float64(steps.Current()), "meta", meta)
 }
 
 // Restore applies the snapshot name: its parts, and its wallpaper setup
@@ -595,7 +596,7 @@ func readShared(path string) (any, error) {
 	if !ok || version < 1 || version != float64(int64(version)) {
 		return nil, axerr.New(axerr.InvalidConfig, "%s has no config version, so it can't be imported", filepath.Base(path))
 	}
-	if format, has := obj.Get("format"); has && format != float64(convert.Format) || version > convert.Version {
+	if format, has := obj.Get("format"); has && format != float64(convert.Format) || version > float64(steps.Current()) {
 		return nil, axerr.New(axerr.InvalidConfig, "%s is from a newer axiom: update axiom to import it", filepath.Base(path))
 	}
 	return obj, nil

@@ -113,7 +113,7 @@ QtObject {
     }
     dock.pinned = change(dock.pinned);
     SettingsManager.commitValues({
-      "Dock.docks": docks
+      "Dock.items": docks
     });
   }
 

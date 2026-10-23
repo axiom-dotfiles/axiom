@@ -1,7 +1,7 @@
 # Launcher providers: calculator, clipboard, emoji
 
 > **Files:** `services/CalculatorManager.qml`, `services/ClipboardManager.qml`, `services/EmojiManager.qml`, `config/json/emoji.json`, `scripts/generate_emoji.py`, `components/methods/Search.qml`, `components/content/Calculator/Calculator.qml`, `components/content/ClipboardHistory/ClipboardHistory.qml`, `components/content/EmojiPicker/EmojiPicker.qml`
-> **Config:** `Launcher.clipboard`, `Launcher.clipboardSource`, `Launcher.clipboardMaxEntries`, `Launcher.emoji` (reader `LauncherConfig`)
+> **Config:** `Launcher.providers.clipboard.enabled`, `Launcher.providers.clipboard.source`, `Launcher.providers.clipboard.maxEntries`, `Launcher.providers.emoji` (reader `LauncherConfig`)
 > **Related:** [Launcher](launcher.md), [Utility modules](../overlay/utility-modules.md)
 
 This doc covers the services behind the launcher's `=`, `:` and `;` rows. Each one also backs an overlay module (Calculator, ClipboardHistory, EmojiPicker).
@@ -20,10 +20,10 @@ This doc covers the services behind the launcher's `=`, `:` and `;` rows. Each o
 
 ### ClipboardManager
 - **Opening it:** the launcher's clipboard history is `:` or `/clipboard`.
-- **Toggle:** `Launcher.clipboard` is on by default and also appears on the onboarder's Integrations page. Turning it off clears the history.
+- **Toggle:** `Launcher.providers.clipboard.enabled` is on by default and also appears on the onboarder's Integrations page. Turning it off clears the history.
 - **Created from** `shell.qml`'s `_services`.
 
-#### Source `axiom` (`Launcher.clipboardSource`)
+#### Source `axiom` (`Launcher.providers.clipboard.source`)
 - A `wl-paste --type text --watch` process records text clips while the history is on.
 - Clips are split at ASCII RS.
 - A clip whose `CLIPBOARD_STATE` isn't `data` is skipped (a password manager's `sensitive`).
@@ -57,7 +57,7 @@ This doc covers the services behind the launcher's `=`, `:` and `;` rows. Each o
 - The launcher and the ClipboardHistory module list pins first, then the history without them.
 
 ### EmojiManager
-- **Opening it:** the launcher's emoji are `;` or `/emoji`. `Launcher.emoji` is on by default.
+- **Opening it:** the launcher's emoji are `;` or `/emoji`. `Launcher.providers.emoji` is on by default.
 - **Data:** `entries()` reads `config/json/emoji.json` on first use.
   - Each entry is `{ e, n: name, g: group, k: [keywords] }`.
   - The list holds fully-qualified emoji without skin tones, in Unicode's order.

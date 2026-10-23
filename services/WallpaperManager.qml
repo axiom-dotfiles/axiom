@@ -57,7 +57,7 @@ Singleton {
     if (variant === (Appearance.darkMode ? "dark" : "light"))
       ThemeManager.generateThemesFromWallpaper(url.toString());
     const values = {};
-    values["Appearance.variantWallpapers." + variant] = url.toString();
+    values["Appearance.wallpaper.variants." + variant] = url.toString();
     SettingsManager.commitValues(values);
   }
 

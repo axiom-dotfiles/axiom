@@ -1,7 +1,7 @@
 # Bar widget classes, style and colors
 
 > **Files:** `components/bar/widgets/base/BarIconWidget.qml`, `components/bar/widgets/base/BarWidget.qml`, `components/bar/widgets/base/AudioLevelWidget.qml`, `components/reusable/BaseWidget.qml`, `components/methods/BarWidgetStyle.qml`, `components/methods/BarAutoColors.qml`, `config/Bar.qml`, `config/BarStyle.qml`, `components/bar/widgets/Workspaces/WorkspaceCell.qml`
-> **Config:** `BarStyle.*`, per bar `widgetStyle`, `widgetTextColor`, `overrideWidgetStyle`/`overrideAccents`/`overrideShadow`, `overrideFontSize`/`overrideRadius`, widget color fields with `x-autoColor`
+> **Config:** `BarStyle.*`, `Bars.style.*`, per bar `style` (inheriting) and `widgetTextColor`, widget color fields with `x-autoColor`
 > **Related:** [Bar composition](composition.md), [Widget shapes and runs](widget-shapes-runs.md), [Schema annotations](../core/schema-annotations.md)
 
 The base classes bar widgets extend, where their sizes come from, and how their colors are worked out: widget style, Auto colors, the shared look groups, and the Workspaces cells.
@@ -62,11 +62,10 @@ The base classes bar widgets extend, where their sizes come from, and how their 
   - Cells follow the widget shape: pills under capsule (`Bar.cellRadius`), otherwise the radius less the inset.
 - The bar's own look fields read the look it uses too (`BarsPanel` hands its form `Bar.lookOf(bar)`). The separator fields hide in a boxed powerline, where `enrichBarConfig` drops separators.
 
-### Look groups (`BarStyle`)
-- A bar's widget style, accents and shadow come from the `BarStyle` section (Look & Feel, reader `BarStyle`).
-- A bar can override each group separately: `overrideWidgetStyle` / `overrideAccents` / `overrideShadow`. The bar's own copies of the fields show only when its override is on.
-- `Bar.lookOf` fills the groups in before `enrichBarConfig`. `Bar.lookGroups` maps each flag to the keys of its `x-group`.
-- The section's fields and the bar's copies are kept identical by `tst_Config`'s `test_bar_look_fields_match_bar_style`.
+### Shared and per-bar style (`BarStyle`)
+- A bar's widget style, accents and shadow are a `BarStyle`: the shared one is `Bars.style` (shown in Look & Feel, reader `BarStyle`), and each bar has its own `style` (`x-inherit: Bars.style`) whose keys it leaves `null` take the shared one's.
+- `Bar.lookOf` fills a bar's look from both before `enrichBarConfig`, its shadow as flat `shadow` / `shadowColor` / `shadowSize`. `fontSize` and `widgetRadius` stay `null` where both leave them (Appearance's and Widget's then).
+- The bar editor shows the style by `x-group` (`Bar.styleGroups`, from `SchemaLayout.objectGroups`), each with a "This bar's own" switch: `BarManager.ownsStyle` / `setStyleOwned` (copies what it inherits, or sets the group back to `null`) / `updateStyleField`.
 
 ### Workspaces cells
 - Workspaces sits on a background like the rest (`backgroundColor`). Its box is Auto (`neutral`).

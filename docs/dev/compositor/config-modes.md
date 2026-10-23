@@ -1,13 +1,13 @@
 # Config modes (detached / included / managed)
 
 > **Files:** `services/CompositorConfigManager.qml`, `services/ConfigTakeover.qml`, `services/UserBindMerge.qml`, `services/RuntimeLayer.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/Settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`, `services/NiriConfigWriter.qml`, `config/WindowBehaviourConfig.qml`, `services/CursorThemeManager.qml`, `scripts/cursor_theme.py`
-> **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `WindowBehaviour.*`, `Keybinds.binds`, `Monitors.profiles`, `WindowLook`, `Input`, `Session`, `Workspaces.strips`
+> **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `WindowBehaviour.*`, `Keybinds.binds`, `Monitors.items`, `WindowLook`, `Input`, `Session`, `Workspaces.strips`
 > **Related:** [Contract](contract.md), [Window look](window-look.md), [Hyprland's writer](../hyprland/config-modes.md), [Managed takeover](../hyprland/managed-takeover.md), [Sway backend](sway-backend.md)
 
 How axiom sets the compositor up, the same on every compositor with `supports.configModes`. `CompositorConfigManager` drives the three modes; the backend's config writer (`CompositorManager.backend.configWriter`; on Hyprland `HyprlandConfigWriter`, on sway `SwayConfigWriter`: [sway backend](sway-backend.md)) turns axiom's layer into the compositor's own text. Read this before touching anything axiom writes into a compositor's config.
 
 ### The layer
-- One layer covers: the binds (`KeybindsConfig.activeBinds`: `Keybinds.binds` less the paused ones), the required settings (`Compositor.requiredSettings`), the [window look](window-look.md), the input (`Input`), the blur behind axiom's surfaces, the monitor profiles (`Monitors.profiles`) and the strips. In managed mode the writer adds `Session`, the shared options (`WindowBehaviour`: focus and the cursor, each field by its `x-hypr`/`x-sway`) and the compositor's own (the `Hyprland`, `Sway` or `Niri` section).
+- One layer covers: the binds (`KeybindsConfig.activeBinds`: `Keybinds.binds` less the paused ones), the required settings (`Compositor.requiredSettings`), the [window look](window-look.md), the input (`Input`), the blur behind axiom's surfaces, the monitor profiles (`Monitors.items`) and the strips. In managed mode the writer adds `Session`, the shared options (`WindowBehaviour`: focus and the cursor, each field by its `x-compositor` spec) and the compositor's own (`Compositor.hyprland`, `.sway` or `.niri`).
 - What the look and the input ask for is decided once, by `CompositorLayer.look` / `.input` (`spec(forFile)`: `{ look, surfaces, input }`, `surfaces` for `CompositorLayer.surfaceBlur`), and the writer turns that into text.
 - `mode` picks how the layer gets to the compositor:
   - **detached**: evaluated at runtime (`writer.runtimeApply()`), again after every config reload, which drops it

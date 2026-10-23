@@ -24,4 +24,3 @@ Secrets, which never go in config.json: chat API keys (scope `provider`) and cal
 - `refreshSecrets(scope, ids)`: Looks these ids' secrets up again, for a card showing their status
 - `setSecret(scope, id, label, value)`: Stores a secret (`label` names it in the keyring); an empty one clears it
 - `clearSecret(scope, id)`
-- `store(entries)`: Keys ConfigMigration pulled out of an old config: into the file, as before (the keyring may not be up this early)

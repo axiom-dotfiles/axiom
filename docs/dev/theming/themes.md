@@ -47,7 +47,7 @@ How the active theme is loaded, how themes are grouped into dark/light families,
 - When automatic wallpaper changes regenerate: see [Wallpaper and schedules](wallpaper-and-schedules.md).
 
 ### Themes page
-- `views/Themes/Themes.qml`, the `Themes` view type. It sits in `Overlay.views` like any other view, with nothing to configure.
+- `views/Themes/Themes.qml`, the `Themes` view type. It sits in `Overlay.items` like any other view, with nothing to configure.
 - A `BaseView` in the editors' shape (see [Editors pattern](../core/editors-pattern.md)). It hosts ordinary modules directly, as the onboarding Look page does, each streamed in as the page opens (`StreamedLoader`, [streamed building](../core/streamed-building.md)):
   - `WallpaperPicker` at `sideWidth`. Two cards tall, it adds a monitor picker and a preview, and sets the picked monitor's wallpaper.
   - `ThemePicker`: the theme list and the light mode switch (plus Auto, see [Wallpaper and schedules](wallpaper-and-schedules.md)). The list is three folding groups (`reusable/FoldingSection`): Built-in (`config/themes/`), Imported (community setups' palettes) and Generated. Which are folded is `ThemeManager.foldedGroups` (`toggleGroup`, kept in the look state).

@@ -176,12 +176,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-17, while auditing the niri branch for merge
 
-### Hyprland's own options are several cards that don't say they're Hyprland's
-- **Where:** `config/schema/sections/Hyprland.yaml` (`managed`: its `x-group`s), `components/methods/SchemaLayout.qml` (`groups`)
-- **What:** Sway's and niri's own options are one card each, titled by the compositor. Hyprland's managed options are split by `x-group` into Layout, Decoration, Animations, Windows and Behaviour cards beside the compositor-neutral ones (Windows and focus, Mouse & cursor), and nothing on them says they're Hyprland's. Either one Hyprland card (about 30 rows), or group titles naming it.
-- **Size:** small
-- **Found:** 2026-10-17, while making niri's options one card
-
 ### A greeter installed before v63 drops the monitor and keyboard layout
 - **Where:** `components/methods/GreeterBundle.qml` (`exportConfig`), `services/GreeterManager.qml`
 - **What:** An installed greeter on older code reads a v63 bundle without migrating it and prunes `Compositor`, `Monitors` and `Input` as unknown, so until the greeter is updated the login screen loses the monitor layout and, in managed mode, `kbLayout`/`kbOptions` (a password typed on the wrong layout). The outdated notice says to update, but not that it's required. Exporting the legacy `Hyprland.monitors`/`managed` keys for a while, or a firmer notice, would cover it.
@@ -273,7 +267,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-16, while auditing the sway branch
 
 ### `noWarps` off maps to sway's `mouse_warping output`
-- **Where:** `config/schema/sections/WindowBehaviour.yaml` (`noWarps`, `x-swayMap`)
+- **Where:** `config/schema/sections/WindowBehaviour.yaml` (`noWarps`, `x-compositor.sway.map`)
 - **What:** Hyprland with `cursor.no_warps` off moves the cursor to a window focused by keybind; sway's `mouse_warping output` only moves it when focus changes output (`container` would match Hyprland). Decide which sway value matches what the setting promises.
 - **Size:** trivial
 - **Found:** 2026-10-16, while auditing the sway branch
@@ -315,7 +309,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-18, while fixing shadow seams where a wall runs on into another surface
 
 ### niri's flags can't be turned off from axiom
-- **Where:** `components/methods/NiriConf.qml` (`_niriArgs`), `config/schema/` (`x-niriValue: "flag"`)
+- **Where:** `components/methods/NiriConf.qml` (`_niriArgs`), `config/schema/` (`x-compositor.niri.value: flag`)
 - **What:** A niri flag (`tap`, `natural-scroll`, `numlock`, `focus-follows-mouse`) is on by being there and has no `false`; axiom writes one on and leaves it out off. Off in axiom while the user's own config has it on, it stays on.
 - **Size:** small
 - **Found:** 2026-10-17, while adding the niri backend
@@ -338,15 +332,15 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** trivial
 - **Found:** 2026-10-16, while auditing the layer-placement branch
 
-### Hyprland starts axiom by its repo path, and self-update assumes git
-- **Where:** `services/HyprlandConfigWriter.qml` (`shellCommand`), `services/SelfUpdateManager.qml`, `scripts/greeter/greeter_install.sh`
-- **What:** `shellCommand` is `qs -p '<repo>'`, which a package would want as `qs -c axiom` or an `axiom` launcher. Self-update and the greeter installer work on `Paths.axiomPath` as a git clone. A package manager owns updates, so these should hide or switch when there is no `.git`. Blocks packaging, not the XDG move.
+### Self-update and the greeter installer assume git
+- **Where:** `services/SelfUpdateManager.qml`, `scripts/greeter/greeter_install.sh`
+- **What:** Self-update and the greeter installer work on `Paths.axiomPath` as a git clone. A package manager owns updates, so these should hide or switch when there is no `.git`. Blocks packaging, not the XDG move.
 - **Size:** needs a plan
 - **Found:** 2026-10-15, while moving config and state to the XDG folders
 
 ### Old config/state folders are kept in the repo after the XDG move
-- **Where:** `services/DataMigrationManager.qml`, `components/methods/DataDirs.qml` (`legacy`)
-- **What:** After moving an install over, `config/user/`, `config/state/` and `config/themes/generated/` are left in place (with `MOVED.md`) so a rollback still finds them. Once rolling back past the move is no longer supported, delete them (or offer to), and drop the legacy layout code.
+- **Where:** `backend/internal/xdg/legacy.go` (`MoveLegacy`)
+- **What:** After moving an install over, `config/user/`, `config/state/` and `config/themes/generated/` are left in place (with `MOVED.md`) so a rollback still finds them. Once rolling back past the move is no longer supported, delete them (or offer to), and drop the move.
 - **Size:** small
 - **Found:** 2026-10-15, while moving config and state to the XDG folders
 

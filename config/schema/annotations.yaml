@@ -34,7 +34,7 @@ x-libraryGroups: "(root) the groups, in order, the bar editor's and layouts edit
 x-link: where something it follows or names is set, drawn as a `SettingsLink` under the field in every form (`FieldLinks`), or in the bar widget / module inspector for a definition.
 x-links: 'pages its category''s header links to: a view type (`Themes`, `BarEditor`), `Layouts`, or the layouts editor on a screen (`Layouts:lockscreen`, `Layouts:greeter`, `Layouts:desktop`).'
 x-minSize: the least a drop into a gap shrinks it to; half the default when left out (`OverlayConfig.minSize`).
-x-monitorRef: a shared file names the monitor by its place, and a part for a place the user has no monitor for is turned off or left out (`ConfigExamples.apply`).
+x-monitorRef: a shared file names the monitor by its place, and a part for a place the user has no monitor for is turned off or left out (`share.Apply`).
 x-multiline: a growing text area.
 x-needs: the page is left out (and its launcher command unlisted) unless `CompositorManager.supports` has it (Keybinds, Monitors).
 x-options: a dynamic option list.

@@ -42,7 +42,7 @@ This file holds only rules. **How each service and surface works is in `docs/dev
 ## Running / reloading
 
 - **After any change run `scripts/dev/verify.sh`** until it prints `verify ok` (formats, checks, regenerates docs, runs affected tests, shows the log with known issues marked, lists the docs describing what you changed: read them if behaviour changed; `--all` runs every CI check). **To look at something**: `scripts/dev/shot.sh page <ViewType>` / `launcher [text]` / `ipc <target> <open> [close]` prints a screenshot's path.
-- The shell runs detached: never start or stop it from this session. Saving a loaded file hot-reloads it, but qs watches by inode: after `sed -i` or `git checkout`, force a reload (`docs/dev/testing.md`). A second axiom runs only nested: `scripts/dev/nested.sh <sway|niri|hyprland>`.
+- The shell runs under `axiom run` (its parent daemon, which owns config.json): never start, stop or restart either from this session. Saving a loaded QML file hot-reloads it, but qs watches by inode: after `sed -i` or `git checkout`, force a reload (`docs/dev/testing.md`). The schema is read once at the daemon's start unless it runs with `--dev`: a YAML change reaches the live shell only after the user restarts axiom (on a rebuilt binary when the schema changed). A second axiom runs only nested: `scripts/dev/nested.sh <sway|niri|hyprland>`.
 - **Logs**: `scripts/log.sh` (since the last reload; `--debug` adds `console.log`, `--all`, `-f`, `-g PATTERN`). A clean reload is just `Reloading configuration...` + `Configuration Loaded`; stdout/journalctl show nothing. `console.log` for tracing, `console.warn` only for real problems.
 - A settings category has no IPC: add a temporary `IpcHandler` calling `SettingsManager.openCategory(name)` to `shell.qml` (never inside a singleton) and revert it.
 - `~/.config/axiom/config.json` belongs to the settings UI but may be edited to test. An invalid file never replaces the running config (`savesBlocked` refuses saves until it's fixed).
@@ -57,15 +57,15 @@ Enforced by `.claude/hooks/guard.py` (PreToolUse hook plus `permissions.deny` in
 - Switch the real compositor config (`Compositor.mode`) into or out of `managed`, or out of `included` (test `claim_*.sh` / `merge_*_binds.py remove` on scratch dirs); allow a takeover (`CompositorConfigManager.allowTakeover`, the card's Allow); Keep a monitor layout; `apply` a self-update on the live repo; delete the real config.json (use `ipc call onboarding goTo <n>`); enable `Idle` on the live config without asking (it replaces the user's hypridle).
 - Make the live niri session quit, load another config or change outputs (`niri msg action quit` / `load-config-file` / `output`): only a nested one's `NIRI_SOCKET`.
 - Apply a theme integration's hookup to the real configs: run `integration_hookup.py` with a scratch `HOME`/`XDG_CONFIG_HOME`.
-- Install, update or remove the greeter for real, or restart greetd (it ends the session). Test `scripts/greeter/greeter_install.sh` with a scratch `AXIOM_GREETER_ROOT`; view the greeter with `AXIOM_GREETER=1 AXIOM_GREETER_WINDOWED=1 AXIOM_GREETER_DIR=<scratch> qs -p "$PWD/greeter.qml"` (`qs kill` only that instance).
+- Install, update or remove the greeter for real, or restart greetd (it ends the session). Test `scripts/greeter/greeter_install.sh` with a scratch `AXIOM_GREETER_ROOT`; view the greeter with `AXIOM_GREETER_WINDOWED=1 AXIOM_COMPOSITOR=none axiom greeter --tree "$PWD" --dir <scratch>` (a scratch `XDG_RUNTIME_DIR` too, `WAYLAND_DISPLAY` as an absolute path; stop only that instance).
 - Run, quit, restart or re-exec the live `axiom` daemon (`axiom run|quit|restart`, `axiom daemon stop|restart|reexec`), lock through it (`axiom lock`, `axiom ipc lockscreen …`), or pass `--takeover` against the live config: point it at a scratch instance instead (`XDG_RUNTIME_DIR=<scratch>`, `--socket`, `--config-dir`). A test lock screen's fallback must never be `loginctl lock-session`, which locks the real session.
 - Open a GitHub issue (`gh issue create`, or `gh api` posting one).
 
 ## Checks
 
 All run in CI; `scripts/dev/verify.sh --all` (= `scripts/check_all.sh`) runs every one. None runs the shell, so still read the log. What they leave to you:
-- `scripts/check_structure.py`: run after adding, renaming or moving QML files. It doesn't check that `x-card`/`x-intro` files exist.
-- `scripts/run_tests.sh [Name…]` (`tests/tst_<Name>.qml`; schema defaults and `ConfigMigration` are `tst_Config`): add a case when changing a methods helper or a migration step.
+- `scripts/check_structure.py`: run after adding, renaming or moving QML files.
+- `scripts/run_tests.sh [Name…]` (`tests/tst_<Name>.qml`; schema defaults are `tst_Config`): add a case when changing a methods helper. A migration step's tests are Go (`scripts/check_go.sh`).
 - `scripts/check_qmllint.py` fails on warnings not in `scripts/qmllint-baseline.json`: fix new ones. `--update-baseline` only for Quickshell type-info gaps or baselined warnings gone.
 - **Agents never translate**, however easy it looks, and never run `scripts/check_i18n.py --fill`/`--prune`: the pre-commit hook adds new keys empty (shown in English) to every `config/i18n/<code>.json` and drops unused ones. `config/i18n/template/language.json` is generated. Edit i18n files only through the checker's format (2-space JSON; `--format` fixes it).
 - `scripts/check_docs.py` fails on a hand-written doc citing a path or `Singleton.member` that's gone (fix the doc with the code), and on an `x-*` annotation missing from `docs/dev/core/schema-annotations.md`.
@@ -130,12 +130,12 @@ Dependencies point one way:
 
 ## Config
 
-- The schema is the single source of truth: shape, defaults, the generated settings page. Its source is YAML, `config/schema/` (`index.yaml`, `sections/`, `definitions/`, `annotations.yaml`), built into `config/json/config.schema.json` (never committed) by `axiom schema build` (`scripts/generate.sh`, which verify.sh runs): never edit the JSON. A new setting = schema entry with a `default` + a reader property. Reshaping existing config waits for config v2: the format-1 migrations (`ConfigMigration.qml`, run by the binary as `backend/internal/migrate/legacy/legacy.js`) are frozen at v75 and never change.
+- The schema is the single source of truth: shape, defaults, the generated settings page. Its source is YAML, `config/schema/` (`index.yaml`, `sections/`, `definitions/`, `annotations.yaml`), built into `config/json/config.schema.json` (never committed) by `axiom schema build` (`scripts/generate.sh`, which verify.sh runs): never edit the JSON. A new setting = schema entry with a `default` + a reader property. Reshaping existing config is a format-2 step in `backend/internal/migrate/steps/` (`docs/recipes/migration.md`); the format-1 migrations (`ConfigMigration.qml`, run by the binary as `backend/internal/migrate/legacy/legacy.js`) are frozen at v75 and never change.
 - Every default is filled at load, so **readers use no `??` fallbacks**. Readers are named for their section, `Config`-suffixed where the name is a type (`OSDConfig`). A reader exposing the saved config says so (`Bar.savedBars`).
 - **Schema annotations drive the UI; prefer a new annotation to a hand-kept list in QML** (complete list: `docs/dev/core/schema-annotations.md`). With rules attached:
-  - `x-scope` (`look`/`personal`/`commands`/`machine`, inherited, root `machine`) decides what an example, import or export carries: a setting in a look section naming a monitor, path or account is `machine`, one that runs something `commands`, a preference meaningful on any PC `personal`. A setting moved out of `machine` goes in `ConfigExamples.movedKeys` with a version bump, or older files reset it.
+  - `x-scope` (`look`/`personal`/`commands`/`machine`, inherited, root `machine`) decides what an example, import or export carries: a setting in a look section naming a monitor, path or account is `machine`, one that runs something `commands`, a preference meaningful on any PC `personal`. A setting moved out of `machine` needs older shared files to keep the user's value (`share.KeepMovedKeys`, format 1 only so far), or applying one resets it.
   - `x-takeover` marks a setting that takes something over on this PC (compositor mode, locker, idle, polkit, greeter): loading or importing a config never changes it, only its own card.
-  - `x-hosts` on overlay modules always lists `desktop`, `overlay` and `edgeMenu`; `lockscreen` and `greeter` are opt-in. A module with a text field sets `x-keyboard`.
+  - A bar widget, overlay module or view type's schema is `schema.yaml` in its folder, expanded over its kind's base (`definitions/kinds/`). Every module is on `desktop`, `overlay` and `edgeMenu` (the base's `x-hosts`); `lockscreen` and `greeter` are opt-in (`hosts`). A module with a text field sets `keyboard`.
   - `oneOf`s are discriminated by `type`.
 - An empty monitor means the primary monitor everywhere (`General.screensNamed`) except `General.primaryMonitor` itself.
 - A path setting may hold `~`: expand it (`Paths.expandHome`) in its reader, or the service using it, before a process or file read. Processes run without a shell.
@@ -152,7 +152,7 @@ Dependencies point one way:
 ## UI conventions
 
 - **Reuse before building**: check `docs/dev/core/shared-ui-pieces.md` first; a second copy of a pattern becomes a shared piece.
-- **Data-driven surfaces**: `Bars`, `Overlay.views`, `EdgeMenus`, `Dock.docks`, `OSD.osds` are config arrays; surfaces are `Variants`/Repeaters over them, keyed by stable ids.
+- **Data-driven surfaces**: `Bars`, `Overlay.items`, `EdgeMenus`, `Dock.items`, `OSD.items` are config arrays; surfaces are `Variants`/Repeaters over them, keyed by stable ids.
 - **Loaded by name**: `bar/widgets/<type>/<type>.qml`, `content/<Name>/<Name>.qml`, `views/<type>/<type>.qml`. A new one = the file + its schema `oneOf` entry (see those directories' `AGENTS.md`).
 - **Pages show at once and fill in** (`docs/dev/core/streamed-building.md`): a tool page's panels, cards and sections, and anything long, are `StreamedLoader`s sized from the page, never built in the frame it opens. Nothing is built hidden (a Loader gated on its mode, not `visible: false`), unbounded lists are ListViews, and `scripts/dev/bench_overlay.sh` measures it.
 - **Repeater models and `acquire()` requests come from config and tool availability only, never live values** (model by a count or joined string key). A model re-evaluated per sample once pushed qs past 25 GB.
@@ -160,13 +160,13 @@ Dependencies point one way:
 - **Radii**: `Appearance.borderRadius` only for outer edges (border, bars, pills, popout surfaces, overlay box, windows); `Widget.radius` inside.
 - **Rounded clipping** is Quickshell.Widgets' `ClippingRectangle` (set its `color`; it defaults to white), never a MultiEffect mask.
 - **Icons**: Material Symbols names drawn by `reusable/StyledIcon`, never sharing a Text with a label.
-- **Screen targeting**: surfaces are built on `General.screensFor(mode, name)` or `General.outputs`, never `Quickshell.screens` (stand-ins while no monitor is connected); only `ShellManager.isTarget(screen, mode)` answers shortcuts, IPC and OSD events, and IPC handlers are `enabled` on the target instance only.
+- **Screen targeting**: surfaces are built on `General.screensFor(target)` (a `ScreenTarget`) or `General.outputs`, never `Quickshell.screens` (stand-ins while no monitor is connected); only `ShellManager.isTarget(screen, target)` answers shortcuts, IPC and OSD events, and IPC handlers are `enabled` on the target instance only.
 
 Subsystem invariants (details in the named files):
 - **Overlay modules** exist only while their page is shown (acquire/release, lasting state in a service): `components/content/AGENTS.md`.
 - **Bars**: stacking is `LayerStack.layers` (`docs/dev/compositor/layer-arrangement.md`); corner ownership is `BarEnds` alone; bars and border never draw over fullscreen: `components/bar/AGENTS.md`.
 - **Popouts**: geometry only from `methods/SurfaceContext`, collisions only through a `PopoutClaim`, an open popout never moves: `components/hosts/popout/AGENTS.md`.
-- **Launcher**: one row shape for every provider; `/config` never edits `Bars` or `Overlay.views`: `services/AGENTS.md`.
+- **Launcher**: one row shape for every provider; `/config` never edits `Bars.items`, `Overlay.items` or `EdgeMenus`: `services/AGENTS.md`.
 - **Greeter**: data, never code; a side effect reachable from greeter mode checks `Paths.greeter`: `docs/dev/features/greeter-runtime.md`.
 - **Lockscreen**: `LockManager.lock()` only; only PAM unlocks, never IPC: `docs/dev/features/lockscreen.md`.
 

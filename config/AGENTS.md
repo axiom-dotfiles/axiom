@@ -8,7 +8,7 @@ Reader singletons (`<Section>.qml` / `<Section>Config.qml`), `json/config.schema
 - Readers read only the data owners (`ConfigManager`, `ThemeManager`, `I18n`) and each other. **No `??` fallbacks**: every default is filled at load. A section edited live through a draft reads `ConfigManager.previews.X ?? ConfigManager.config.X` (that one `??` is the preview, not a default).
 - **A new setting** = a schema property with a `default` (plus `title`, `description`, `x-group`, in `x-order` if the section has one) + a reader property + `scripts/check_i18n.py --fill`. Purely additive keys need no migration.
 - **A new section** = a root `properties.<Section>` with `x-category` (from the root's `x-categories`), `title`, `description`, `additionalProperties: false`, `x-order`, + a new reader. Unknown sections are pruned at load.
-- **Renaming or reshaping a key**: edit the schema first, then the `ConfigMigration` step (`components/methods/AGENTS.md`).
+- **Renaming or reshaping a key**: edit the schema first, then a format-2 step (`docs/recipes/migration.md`).
 - `x-scope`: a setting in a look section that names a monitor, path, account or command needs `machine`/`personal`.
 - After changing the schema or a reader, run `scripts/gen_docs.py`.
 - Edit `~/.config/axiom/config.json` and `i18n/*.json` atomically (temp file + rename): they're watched.

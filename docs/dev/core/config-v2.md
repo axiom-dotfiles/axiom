@@ -36,7 +36,7 @@ It covers two things: the **shape of config.json** (rules 1 to 10, then [Shared 
 
 | Definition | Shape | Replaces |
 |---|---|---|
-| `ScreenTarget` | `{ mode: "inherit" \| "primary" \| "focused" \| "all" \| "named", names: [] }`. `names` is `machine` scope (with `x-monitorRef`); `mode` is look. A use narrows `mode`'s enum with a sibling override. | `General.monitors` + `primaryMonitor` (kept as `General.primaryMonitor`); `Launcher/PowerMenu/Notifications/Overlay.monitors`; `Dock/OSD` `monitors` + `monitor`; `Bars[].monitor` and `EdgeMenus[].monitor` (`""` primary, `*` all); `Greeter.monitor`; `Desktop.*.monitor`; `Workspaces.strips[].monitor` |
+| `ScreenTarget` | `{ mode: "inherit" \| "primary" \| "focused" \| "all" \| "named", names: [] }`. `names` is `machine` scope (with `x-monitorRef`); `mode` is look. A use narrows `mode`'s enum with a sibling override. | General's `monitors` + `primaryMonitor` (kept as `General.primaryMonitor`); `Launcher/PowerMenu/Notifications/Overlay.monitors`; `Dock/OSD` `monitors` + `monitor`; `Bars[].monitor` and `EdgeMenus[].monitor` (`""` primary, `*` all); `Greeter.monitor`; `Desktop.*.monitor`; `Workspaces.strips[].monitor` |
 | `Layout` | `{ grid: { columns, rows, fine }, moduleScale, moduleBorders, modules: [Module] }` | `DesktopLayout`, `ScreenLayout`'s grid half, `EdgeMenu`'s grid keys, the Custom page's modules |
 | `ScreenLayout` | `Layout` + `backdrop: { source: "wallpaper" \| "color", blur, color, dim }`, `otherScreens`, `borders: { password, greeting }` | `ScreenLayout` (lock screen, greeter) |
 | `Blur` | `{ enabled, size, passes, … }` | `WindowLook.blur*` |
@@ -70,7 +70,7 @@ It covers two things: the **shape of config.json** (rules 1 to 10, then [Shared 
 |---|---|
 | `Appearance.theme` + `themeSchedule` | `Appearance.theme: { name, schedule: { enabled, lightAt, darkAt } }` |
 | `Appearance.wallpaper`, `wallpapers`, `wallpaperBackend`, `wallpaperDaemon`, `wallpaperFolder`, `wallpaperMode`, `wallpaperRotation`, `variantWallpapers` | `Appearance.wallpaper: { mode, file, perScreen: {}, folder, rotation: {…}, variants: { dark, light }, backend, daemon }` |
-| `Widget.overrideRadius` + `radius` | `Widget.radius` (`null` inherits `Appearance.shape.radius`) |
+| Widget's `overrideRadius` + `radius` | `Widget.radius` (`null` inherits `Appearance.shape.radius`) |
 | `Notifications.gap`, `gapTop`, …, `evenGaps` | `Notifications.gaps: { even, all, top, bottom, left, right }` |
 | `Launcher.windows`, `calculator`, `commands`, `runCommands`, `webSearch`, `chat`, `clipboard`, `emoji` (+ `searchEngine`, `clipboardSource`, `clipboardMaxEntries`) | `Launcher.providers: { windows, calculator, commands, run, web: { enabled, engine }, chat, clipboard: { enabled, source, maxEntries }, emoji }` |
 | `Idle.dimTimeout`, `dimMode`, `dimLevel`, `dimBy`, `lockTimeout`, `screenOffTimeout`, `suspendTimeout` (s) | `Idle.dim: { timeout, mode, level, by }`, `Idle.lock.timeout`, `Idle.screenOff.timeout`, `Idle.suspend.timeout` (ms) |

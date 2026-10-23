@@ -126,12 +126,6 @@ QtObject {
       root._setStatus(slot, "none");
   }
 
-  // Keys ConfigMigration pulled out of an old config: into the file, as
-  // before (the keyring may not be up this early)
-  function store(entries) {
-    Object.keys(entries).forEach(id => root._storeFile(id, entries[id]));
-  }
-
   // -- Private --
 
   property var _secrets: _read()

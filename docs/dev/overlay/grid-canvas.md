@@ -1,7 +1,7 @@
 # Grid canvas, drag layer and GridEditor
 
 > **Files:** `components/views/Layouts/GridCanvas.qml`, `components/views/Layouts/CanvasModule.qml`, `components/views/Layouts/GridDragLayer.qml`, `components/views/Layouts/EntryListTarget.qml`, `components/views/Layouts/EntryListRow.qml`, `components/views/Layouts/EditorInspector.qml`, `components/views/Layouts/ModuleLibrary.qml`, `components/views/Layouts/ModuleChip.qml`, `services/GridEditor.qml`, `components/methods/GridPlacement.qml`
-> **Config:** whatever the edit target's draft holds (`Overlay.views[].modules`, `EdgeMenus[].modules`, screen layouts' `modules`)
+> **Config:** whatever the edit target's draft holds (`Overlay.items[].layout.modules`, `EdgeMenus.items[].layout.modules`, screen layouts' `modules`)
 > **Related:** [Layouts editor](layouts-editor.md), [Pages and grid](pages-and-grid.md), [Edge menu editing](../edge-menus/editing-submenus.md), [Growing and expanding](grow-expand.md)
 
 The right side of the layouts editor: `GridCanvas` draws the selected page, menu or screen layout; `GridDragLayer` carries modules and list rows; `services/GridEditor` turns drops, moves and resizes into plans and edits, with undo.

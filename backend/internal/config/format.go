@@ -7,6 +7,7 @@ import (
 	"github.com/axiom-shell/axiom/backend/internal/jsonx"
 	"github.com/axiom-shell/axiom/backend/internal/migrate/convert"
 	"github.com/axiom-shell/axiom/backend/internal/migrate/legacy"
+	"github.com/axiom-shell/axiom/backend/internal/migrate/steps"
 	"github.com/axiom-shell/axiom/backend/internal/schema"
 )
 
@@ -31,7 +32,8 @@ type Pipeline interface {
 // V2Pipeline is format 2 (docs/dev/core/config-v2.md), against the tree's
 // schema. It reads format 1 too: such a file goes through the frozen
 // migrations to version 75 (against the frozen v75 schema), is converted,
-// then loads as format 2 (Loaded.FromFormat1).
+// then loads as format 2 (Loaded.FromFormat1). A format-2 file older than
+// steps.Current runs the steps newer than it.
 type V2Pipeline struct {
 	S *schema.Schema
 }
@@ -61,17 +63,21 @@ func (p V2Pipeline) Load(parsed any) (Loaded, error) {
 			return old, nil
 		}
 		converted := convert.ToV2(old.Config)
+		stepped, _ := steps.Migrate(converted.Config)
 		l := p.normalize(converted.Config)
-		l.Changes = append(old.Changes, converted.Changes...)
+		l.Changes = append(append(old.Changes, converted.Changes...), stepped...)
 		l.Secrets = old.Secrets
 		l.Migrated, l.FromFormat1 = true, true
 		return l, nil
 	case format != float64(convert.Format):
 		return Loaded{Config: obj, Errors: []string{fmt.Sprintf("format: %v isn't one this axiom reads (it reads 1 and %d)", format, convert.Format)}}, nil
-	case version > convert.Version:
-		return Loaded{Config: obj, Errors: []string{fmt.Sprintf("version: %v is newer than this axiom knows (%d): update axiom", version, convert.Version)}}, nil
+	case version > float64(steps.Current()):
+		return Loaded{Config: obj, Errors: []string{fmt.Sprintf("version: %v is newer than this axiom knows (%d): update axiom", version, steps.Current())}}, nil
 	}
-	return p.normalize(obj), nil
+	stepped, migrated := steps.Migrate(obj)
+	l := p.normalize(obj)
+	l.Changes, l.Migrated = stepped, migrated
+	return l, nil
 }
 
 // normalize prunes unknown keys, fills defaults and validates.

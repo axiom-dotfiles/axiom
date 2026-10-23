@@ -1,7 +1,7 @@
 # Sway backend
 
 > **Files:** `services/SwayManager.qml`, `services/SwayIpcManager.qml`, `services/SwayConfigWriter.qml`, `services/SwayRuntimeLayer.qml`, `services/ConfigTakeover.qml`, `services/UserBindMerge.qml`, `scripts/sway_config_text.py`, `scripts/claim_sway.sh`, `scripts/merge_sway_binds.py`, `components/surfaces/switcher/SwitcherKeys.qml`, `components/methods/SwayState.qml`, `components/methods/SwayConf.qml`, `tests/tst_SwayState.qml`, `tests/tst_SwayConf.qml`, `services/CompositorManager.qml`, `scripts/dev/nested.sh`
-> **Config:** `WindowLook.*`, `Input.*`, `Keybinds.binds`, `Monitors.profiles`, `Compositor.mode`, `WindowBehaviour.*`, `Sway.*`, `Session.*`
+> **Config:** `WindowLook.*`, `Input.*`, `Keybinds.binds`, `Monitors.items`, `Compositor.mode`, `WindowBehaviour.*`, `Compositor.sway.*`, `Session.*`
 > **Related:** [The compositor](README.md), [Backend contract](contract.md), [Recipe: compositor backend](../../recipes/compositor-backend.md)
 
 `SwayManager` is `CompositorManager.backend` under sway: the state, workspaces, windows, outputs, keyboard and special groups, and `SwayConfigWriter` for all three config modes (binds, the window look, input; managed also the shared `WindowBehaviour` options, the `Sway` section and the session).
@@ -40,7 +40,7 @@ Outputs and workspaces come live from Quickshell's `I3` module (as Hyprland's do
 - **outputs** (`SwayState.output`): `I3.monitors`; `description` = `make model serial` (the parts that aren't `Unknown`), sway's own identifier for an output; `reserved` = the output's rect minus its active workspace's (from the tree); `specialWorkspaceId` always 0.
 - **workspaces** (`SwayState.workspace`): `I3.workspaces` with a number; `windowCount` from the tree.
 - **gapsOut**: sway's IPC has no gaps. Read from its config with its includes (`scripts/sway_config_text.py`, `SwayState.configInfo`: `get_config` holds only the main file): outer plus inner per edge, as sway leaves both at the screen edge; read again on every reload.
-- **Keyboard**: `get_inputs`, the first keyboard named like one. Sway names layouts in full ("English (US)"): their short names come from `Input.kbLayout` when axiom sets the keyboard, else the config's `xkb_layout`, else from the name (`SwayState.keyboard`).
+- **Keyboard**: `get_inputs`, the first keyboard named like one. Sway names layouts in full ("English (US)"): their short names come from `Input.keyboard.layout` when axiom sets the keyboard, else the config's `xkb_layout`, else from the name (`SwayState.keyboard`).
 
 ### Primitives
 - `activateWindow` / `closeWindow`: `[con_id=N] focus` / `kill`.

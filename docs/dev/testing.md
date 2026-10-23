@@ -12,7 +12,8 @@ How to look at, exercise and debug the live shell without breaking the user's se
 - `scripts/dev/shot.sh` takes a screenshot of a surface and closes it again, printing the PNG's path: `page <ViewType>`, `launcher [text]`, `ipc <target> <open> [close]`, `screen`; `-m MONITOR` (default the focused one), `-w SECONDS`.
 
 ### Reloads and logs
-- The shell runs detached and hot-reloads files it has loaded. Never start or stop it yourself; a relaunch from a shell once reset config.json to defaults. Ask the user to restart.
+- The shell runs under `axiom run` and hot-reloads QML files it has loaded. Never start, stop or restart it (or the daemon) yourself; ask the user to restart.
+- The daemon reads the schema once, at its start (`axiom run --dev` rebuilds it on every YAML edit): after a schema change, the live shell keeps the old schema until the user restarts axiom, on a binary rebuilt with the new one (`scripts/generate.sh`, then `go -C backend build -o ~/.local/bin/axiom ./cmd/axiom` or wherever theirs lives). Test a schema change in `scripts/dev/nested.sh`, or with `axiom config validate`.
 - `scripts/log.sh` shows warnings and errors since the last reload. `--debug` adds `console.log`, `--all` covers earlier reloads, `-f` follows, `-g PATTERN` filters. A clean reload is just `Reloading configuration...` + `Configuration Loaded`.
 - `scripts/bug_info.sh` prints the block the bug report form asks for: axiom's version (a clone's `git describe`, or the `.packaged` marker), Quickshell's, the running compositor (from its socket variable) and its monitor count, the distribution, and config.json's `version` and `Compositor.mode`. No names or paths. It ships in packages; it's not a check.
 - **qs watches files by inode.** `sed -i`, `/usr/lib/qt6/bin/qmlformat -i`, `git checkout <file>` and `git stash push/pop` all replace the inode. Later edits to that file may then not reload, and the shell silently keeps old code.

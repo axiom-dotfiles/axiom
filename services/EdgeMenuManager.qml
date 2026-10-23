@@ -361,7 +361,7 @@ Singleton {
   // The selected menu's modules (see GridEditor)
   property GridEditor layout: GridEditor {
     host: "edgeMenu"
-    sizeScale: root.localMenus?.[root.selectedMenuIndex]?.fineGrid ? 2 : 1
+    sizeScale: root.localMenus?.[root.selectedMenuIndex]?.layout?.grid?.fine ? 2 : 1
     modulesOf: () => root.selectedMenu()?.modules ?? null
     // A submenu has no edge: just its grid
     readonly property var _onEdge: EdgeMenusConfig.isSubmenu(root.selectedMenu()) ? null : root.selectedMenu()

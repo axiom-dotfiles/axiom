@@ -16,19 +16,21 @@
   - It takes the display's instance lock and builds the schema from the tree (`config/schema/`).
   - It opens the config, writes both for the shell into `$XDG_RUNTIME_DIR/axiom/<display>/`, serves the socket there, and supervises `qs -p <tree>`.
   - Supervision: restart with a growing delay after a crash, give up after 5 crashes in a minute, stop an orphan an earlier daemon left.
+  - It holds an idle connection to its compositor (`wire.Watch`) and stops when the compositor closes it: a daemon outliving its session would hold the display's lock, and the next session's `axiom run` would find it taken.
   - The shell gets `AXIOM_SOCKET`, `AXIOM_SCHEMA`, `AXIOM_CONFIG`, `AXIOM_TREE` (and `AXIOM_INCOMPATIBLE` when the tree's schema isn't the binary's).
-  - `--dev`: logs to the terminal, rebuilds the schema within 100 ms of a YAML edit (pushing `schema.changed`), and re-execs when the binary is rebuilt.
+  - `--dev`: logs to the terminal, rebuilds the schema within 100 ms of a YAML edit (pushing `schema.changed`), and re-execs when the binary is rebuilt. Without it the schema is read once, at the start: a YAML change reaches a running shell only through a restart, and a tree whose schema isn't the binary's runs read-only (`AXIOM_INCOMPATIBLE`).
+- **`axiom greeter [--tree DIR] [--dir DIR] [--safe]`**: the login screen's parent (`greeter-session.sh` runs it as greetd's user). It loads the exported bundle, else the install's snapshot, else the defaults, through the same pipeline (`backend/internal/greeter`), writes it to `$XDG_RUNTIME_DIR/axiom/greeter-<display>/` and execs `qs -p <tree>/greeter.qml` on it: no daemon, no socket ([Greeter runtime](../features/greeter-runtime.md)).
 - **The config store** (`backend/internal/store`):
   - The one writer of config.json, holding `config.json.lock`.
-  - Loading: format 1 through the frozen migrations, with defaults written on a first run. A file that doesn't load blocks saves until fixed. Edits made outside are watched; the store's own writes are recognised.
+  - Loading: format 1 through the frozen migrations and the conversion to format 2 (the file kept as `config.format1.json`), then the format-2 steps (`migrate/steps`), with defaults written on a first run. A file that doesn't load blocks saves until fixed. Edits made outside are watched; the store's own writes are recognised.
   - Writing: path ops (keys and `{id}` selectors, never positions), validation, and takeover settings refused without `takeover`.
   - Writes are atomic and keep a symlinked config a symlink.
 - **The shell's side:**
   - `BackendManager` (the connection, hello, reconnect).
-  - `ConfigManager` in daemon mode: the config read from the snapshot and pushes. Writes are checked with the JS pipeline (equal to Go's by the shared fixtures), applied at once and sent to the daemon, whose answer stands.
+  - `ConfigManager`: the config read from the snapshot and pushes. Writes are checked against the schema in JS, applied at once and sent to the daemon, whose answer stands.
   - `IpcTarget` (every IPC target, registered with the daemon).
   - `LockManager` reporting the lock.
-  - A shell started by hand, without `AXIOM_SOCKET`, runs as before.
+  - A shell started by hand, without `AXIOM_SOCKET`, shows only a notice with the line that starts it (`NoParentNotice`).
 - **IPC through the daemon:**
   - `axiom ipc <target> <fn> [args]`, `axiom ipc list`, and named commands (`axiom launcher toggle`, `axiom volume up`, …, checked against `docs/dev/generated/ipc.md`).
   - The shell's registered targets are called over its connection; their signatures come from `qs ipc show`. Others go through `qs ipc --pid <shell> call`.

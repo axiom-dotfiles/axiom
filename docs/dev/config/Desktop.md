@@ -23,7 +23,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Grid
 - **`Desktop.items[].grid.fine`** · boolean = false
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
-  - read: entry field, name match repo-wide · in: `components/methods/GridPlacement.qml`, `components/views/Custom/Custom.qml`, `config/OverlayConfig.qml`, `services/EdgeMenuManager.qml`, `services/OverlayManager.qml`, `services/ScreenLayoutEditor.qml`
+  - read: entry field, name match · in: none found
 - **`Desktop.items[].grid.columns`** · integer = 16 · 1–64
   - x-settings=false
   - read: entry field, name match · in: none found

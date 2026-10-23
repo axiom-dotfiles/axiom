@@ -3,11 +3,13 @@
 // list which globals (protocols) a compositor offers. It is the start of
 // the daemon's own Wayland connection (idle, gamma, clipboard come later,
 // with file descriptor passing); for now it backs `axiom debug
-// wayland-globals`, which tells what each compositor supports.
+// wayland-globals`, which tells what each compositor supports, and tells
+// the daemon when its compositor is gone (Watch).
 package wire
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -94,6 +96,37 @@ func Globals(socket string, timeout time.Duration) ([]Global, error) {
 			return globals, nil
 		}
 	}
+}
+
+// ErrGone is Watch's answer when the compositor closed the connection.
+var ErrGone = errors.New("the compositor closed the connection")
+
+// Watch holds a connection to the compositor at socket open until it ends:
+// ErrGone when the compositor quit, nil when ctx is done first. It sends
+// nothing: a client without objects, which a compositor keeps until it
+// exits.
+func Watch(ctx context.Context, socket string) error {
+	conn, err := net.Dial("unix", socket)
+	if err != nil {
+		return axerr.Wrap(axerr.Unavailable, err, "connecting to the compositor")
+	}
+	done := make(chan struct{})
+	defer close(done)
+	go func() {
+		select {
+		case <-ctx.Done():
+		case <-done:
+		}
+		conn.Close()
+	}()
+	_, err = io.Copy(io.Discard, conn)
+	if ctx.Err() != nil {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrGone, err)
+	}
+	return ErrGone
 }
 
 func uint32Arg(v uint32) []byte {

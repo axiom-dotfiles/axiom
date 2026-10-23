@@ -16,6 +16,7 @@ func Root() *Command {
 		Summary: "The axiom desktop: runs the shell, owns its config, and is its command line.",
 		Subs: []*Command{
 			runCommand(),
+			greeterCommand(),
 			pingCommand(),
 			restartCommand(),
 			quitCommand(),

@@ -26,4 +26,4 @@ Where API keys and passwords live. (Rule: AGENTS.md › Services, "Secrets".)
 - Keys: `views/Settings/ChatProvidersCard` (the Chat section's `x-card`, with Test and Fetch models).
 - Passwords: `CalendarAccountsCard`.
 - Never through the settings draft.
-- `ConfigMigration` moves API keys found in config.json to SecretsManager.
+- A key never goes in config.json. The binary's store hands secrets a migration step pulls out of the file to its `OnSecrets` before writing it back; no step pulls any out now.

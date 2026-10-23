@@ -1,7 +1,7 @@
 # Layouts editor
 
 > **Files:** `components/views/Layouts/Layouts.qml`, `components/views/Layouts/` (`LayoutsPanel`, `PagesSection`, `MenusSection`, `EditTarget`, `PageTarget`, `MenuTarget`, `ScreenLayoutTarget`, `DesktopTarget`, `LockscreenTarget`, `GreeterTarget`, `LayoutsEditorLayout`, `EditorInspector`), `components/hosts/overlay/OverlayPages.qml`, `services/OverlayManager.qml`, `config/OverlayConfig.qml`, `components/reusable/TypePickerPopup.qml`
-> **Config:** `Overlay.views`, `EdgeMenus`, `Desktop`, `Lockscreen.layout`, `Greeter.layout`
+> **Config:** `Overlay.items`, `EdgeMenus`, `Desktop`, `Lockscreen.layout`, `Greeter.layout`
 > **Related:** [Grid canvas](grid-canvas.md), [Editors pattern](../core/editors-pattern.md), [Edge menu editing](../edge-menus/editing-submenus.md), [Desktop](../features/desktop.md), [Lockscreen](../features/lockscreen.md), [Greeter runtime](../features/greeter-runtime.md)
 
 One page that edits overlay pages, edge menus, the desktop, the lock screen and the login screen. This doc covers the page itself, its edit targets and its left panel; the canvas, drag and `GridEditor` are in [Grid canvas](grid-canvas.md).
@@ -11,12 +11,12 @@ One page that edits overlay pages, edge menus, the desktop, the lock screen and 
 - It's not in config: `OverlayPages` adds it (`pinnedPages`) as a persistent page after the Repeater, so it:
   - is always last;
   - can't be removed;
-  - survives the page rebuild that every `Overlay.views` change causes. Pages are keyed by the views' JSON, so other config edits don't rebuild them; `_onPinned` keeps the user on it across that rebuild.
+  - survives the page rebuild that every `Overlay.items` change causes. Pages are keyed by the views' JSON, so other config edits don't rebuild them; `_onPinned` keeps the user on it across that rebuild.
 
 ### Edit targets (`OverlayManager.editTarget`)
 | Target | What it edits | Draft |
 |---|---|---|
-| `"page"` | `OverlayManager.selectedViewIndex` | its draft of `Overlay.views` |
+| `"page"` | `OverlayManager.selectedViewIndex` | its draft of `Overlay.items` |
 | `"menu"` | `EdgeMenuManager.selectedMenuIndex` | its draft of `EdgeMenus` |
 | `"desktop"` | `DesktopManager.editor` | its draft of `Desktop` |
 | `"lockscreen"` | `LockManager.editor` | its draft of `Lockscreen.layout` |

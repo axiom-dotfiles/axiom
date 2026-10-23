@@ -198,6 +198,12 @@ def check_axiom(env, args):
         deny("Never, while testing", "don't lock the session; only the user can type the password (lock a scratch instance: XDG_RUNTIME_DIR=<scratch>).")
     if live and sub == "ipc" and words[1:3] in (["monitors", "keep"], ["selfUpdate", "update"]):
         deny("Never, while testing", f"`{' '.join(words[1:3])}` changes the live system; ask the user.")
+    if sub == "greeter":
+        gdir = axiom_flag(args, "--dir") or env.get("AXIOM_GREETER_DIR", "")
+        installed = gdir and "$" not in gdir and resolve(gdir, "/") == Path("/var/lib/axiom-greeter")
+        shown = env.get("AXIOM_GREETER_WINDOWED") == "1" or "--no-shell" in args
+        if not shown or not scratch(gdir) or installed:
+            deny("Never, while testing", "run the greeter only windowed on a scratch folder: AXIOM_GREETER_WINDOWED=1 AXIOM_COMPOSITOR=none axiom greeter --dir <scratch> (or --no-shell).")
     if sub == "config" and "--takeover" in args:
         config_dir = axiom_flag(args, "--config-dir") or env.get("XDG_CONFIG_HOME", "")
         if not scratch(config_dir) or live:
@@ -348,7 +354,7 @@ def check_qs(env, args):
     if sub is None:
         if greeter:
             return
-        deny("Running / reloading", "the shell runs detached; never start another from this session (the windowed greeter: AXIOM_GREETER=1 AXIOM_GREETER_WINDOWED=1 qs -p \"$PWD/greeter.qml\").")
+        deny("Running / reloading", "the shell runs detached; never start another from this session (the windowed greeter: AXIOM_GREETER_WINDOWED=1 axiom greeter --dir <scratch>).")
 
 
 # ---------------------------------------------------- Edit/Write config.json

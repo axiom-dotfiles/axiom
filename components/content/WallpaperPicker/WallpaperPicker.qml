@@ -138,7 +138,7 @@ Card {
           text: I18n.tr(modelData.label)
           active: root.mode === modelData.mode
           onClicked: SettingsManager.commitValues({
-            "Appearance.wallpaperMode": modelData.mode
+            "Appearance.wallpaper.mode": modelData.mode
           })
         }
       }
@@ -147,7 +147,7 @@ Card {
     SettingRows {
       visible: root.tall && root.mode === "rotate"
       Layout.fillWidth: true
-      paths: ["Appearance.wallpaperRotation.interval", "Appearance.wallpaperRotation.order", "Appearance.wallpaperRotation.sameOnAll"]
+      paths: ["Appearance.wallpaper.rotation.interval", "Appearance.wallpaper.rotation.order", "Appearance.wallpaper.rotation.sameOnAll"]
     }
 
     // Light/Dark: the two wallpapers; the selected one is what a click sets

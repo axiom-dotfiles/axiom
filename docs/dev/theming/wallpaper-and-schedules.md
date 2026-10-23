@@ -1,7 +1,7 @@
 # Wallpaper and schedules
 
 > **Files:** `services/WallpaperManager.qml`, `services/ThemeManager.qml`, `services/DailySchedule.qml`, `components/methods/Schedules.qml`, `components/methods/ShownLook.qml`, `shell/Wallpaper.qml`, `components/surfaces/wallpaper/WallpaperWindow.qml`, `scripts/setWallpaper.sh`, `components/content/WallpaperPicker/WallpaperPicker.qml`, `components/content/ThemePicker/ThemePicker.qml`, `components/forms/SettingRows.qml`
-> **Config:** `Appearance.wallpaper`, `Appearance.wallpapers`, `Appearance.wallpaperBackend`, `Appearance.wallpaperMode`, `Appearance.wallpaperRotation.*`, `Appearance.variantWallpapers.*`, `Appearance.themeSchedule.*`
+> **Config:** `Appearance.wallpaper.*` (`file`, `perScreen`, `folder`, `mode`, `rotation`, `variants`, `backend`, `daemon`), `Appearance.theme.schedule.*`
 > **Related:** [Themes](themes.md), [Night light](night-light.md)
 
 How the wallpaper is drawn, and everything that changes the look on its own: wallpaper rotation, light/dark wallpapers, and the light/dark theme schedule.
@@ -16,24 +16,24 @@ How the wallpaper is drawn, and everything that changes the look on its own: wal
 
 ### Wallpaper backend (ThemeManager `_applyShown`)
 - Any change of what's shown (a pick, a rotation, a light/dark switch, a mode switch, a restored config, a monitor connecting) runs `_applyShown`, which tells the backend about the monitors that changed and brings a generated theme in line (`syncGeneratedTheme`).
-- `Appearance.wallpaperBackend`:
+- `Appearance.wallpaper.backend` (reader `Appearance.wallpaperBackend`):
   - `quickshell` (the default): drawn by `shell/Wallpaper` from `wallpaperFor`, one Background-layer `surfaces/wallpaper/WallpaperWindow` per screen, crossfading.
-  - `awww`: runs `setWallpaper.sh`. `Appearance.wallpaperDaemon` starts its daemon (`awww-daemon`) only then, from `WallpaperManager` at start-up.
+  - `awww`: runs `setWallpaper.sh`. `Appearance.wallpaper.daemon` starts its daemon (`awww-daemon`) only then, from `WallpaperManager` at start-up.
 - Fixed wallpapers are written through `ThemeManager.setWallpaper` / `setWallpapers(map)` → `ConfigManager.setWallpaper(s)` (one save); the rotation's through `ThemeManager.showRotated(map)` (state only).
 
 ### WallpaperManager: wallpaper modes
-- `Appearance.wallpaperMode`:
+- `Appearance.wallpaper.mode` (reader `Appearance.wallpaperMode`):
   - `fixed`: picks write the config. `next()` here picks a new fixed one (asked for by hand).
-  - `rotate`: `wallpaperRotation` with `interval` minutes, `random`/`sequential` order (via `methods/Schedules.nextWallpaper`) and `sameOnAll`. `ThemeManager.lastRotated` (state file, so it survives restarts) is checked every 30 s. Triggers: IPC `wallpaper next`, bind `nextWallpaper`, launcher `/nextwallpaper`. A pick by hand shows until the next rotation; a monitor not rotated yet shows its fixed wallpaper.
-  - `variant`: `variantWallpapers.dark`/`light` on every monitor, following `Appearance.darkMode`, derived by `ShownLook` (falling back to the fixed ones when that variant has none). `next()` does nothing here.
+  - `rotate`: `wallpaper.rotation` with `interval` (ms, shown in minutes), `random`/`sequential` order (via `methods/Schedules.nextWallpaper`) and `sameOnAll`. `ThemeManager.lastRotated` (state file, so it survives restarts) is checked every 30 s. Triggers: IPC `wallpaper next`, bind `nextWallpaper`, launcher `/nextwallpaper`. A pick by hand shows until the next rotation; a monitor not rotated yet shows its fixed wallpaper.
+  - `variant`: `wallpaper.variants.dark`/`light` on every monitor, following `Appearance.darkMode`, derived by `ShownLook` (falling back to the fixed ones when that variant has none). `next()` does nothing here.
 - Regenerating the theme:
   - automatic changes regenerate only while a generated theme is active;
   - picks by hand (`pick(url, monitor, variant)`, from `WallpaperPicker`) always do.
 - Created from `shell.qml`'s `_services`.
 
 ### Theme schedule
-- `Appearance.themeSchedule`: light from `lightAt`, dark from `darkAt`.
-- An edge calls `ThemeManager.followSchedule(light)`: the variant is shown at runtime, and `Appearance.theme` keeps the theme picked. A pick or a light/dark switch by hand (`applyTheme`) writes the config and drops the schedule's variant until the next edge.
+- `Appearance.theme.schedule`: light from `lightAt`, dark from `darkAt`.
+- An edge calls `ThemeManager.followSchedule(light)`: the variant is shown at runtime, and `Appearance.theme.name` keeps the theme picked. A pick or a light/dark switch by hand (`applyTheme`) writes the config and drops the schedule's variant until the next edge.
 - Runs through a `services/DailySchedule`:
   - it fires `due(inWindow)` only on edges: the window opens or closes, the schedule is turned on, or the times are moved across now;
   - so a switch by hand lasts until the next edge;

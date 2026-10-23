@@ -392,8 +392,9 @@ QtObject {
     if (MonitorsConfig.profiles.length > 0 || !enabledOutputs.some(monitor => !Number.isInteger(monitor.scale)))
       return;
     SettingsManager.commitValues({
-      "Monitors.profiles": [
+      "Monitors.items": [
         {
+          "id": "layout-1",
           "name": I18n.tr("Layout {0}", 1),
           "outputs": MonitorLayout.wholeScaleRules(outputs)
         }

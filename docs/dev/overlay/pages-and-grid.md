@@ -1,15 +1,15 @@
 # Overlay pages and the module grid
 
 > **Files:** `shell/Overlay.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/overlay/OverlayGrid.qml`, `components/hosts/overlay/ModuleGrid.qml`, `components/hosts/overlay/OverlaySlot.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/views/base/BaseView.qml`, `components/views/Custom/Custom.qml`, `components/methods/GridPlacement.qml`, `config/OverlayConfig.qml`
-> **Config:** `Overlay.views`, `Overlay.moduleScale`, `Widget.cardSize`, `Widget.scale`, `Overlay.navigator`, `Overlay.navigatorLabels`, `Overlay.animation`, `Overlay.showBackdrop`, `Overlay.backdrop`
+> **Config:** `Overlay.items`, `Overlay.moduleScale`, `Widget.cardSize`, `Widget.scale`, `Overlay.navigator`, `Overlay.navigatorLabels`, `Overlay.animation`, `Overlay.showBackdrop`, `Overlay.backdrop`
 > **Related:** [Streamed building](../core/streamed-building.md), [Content roots](content-roots.md), [Writing modules](writing-modules.md), [Layouts editor](layouts-editor.md), [Edge menus](../edge-menus/overview.md)
 
-How the overlay turns `Overlay.views` into pages, and a page's modules into a grid of slots: views, the pure grid maths in `GridPlacement`, per-screen card sizing and what is loaded when. Read this before touching a view, the grid or overlay loading.
+How the overlay turns `Overlay.items` into pages, and a page's modules into a grid of slots: views, the pure grid maths in `GridPlacement`, per-screen card sizing and what is loaded when. Read this before touching a view, the grid or overlay loading.
 
 ### Views, modules and places
-- `Overlay.views` in the schema drives the overlay's pages, just as `Bars` drives the bar.
+- `Overlay.items` in the schema drives the overlay's pages, just as `Bars` drives the bar.
 - A Custom view is a grid of modules, each with a `place` `{ x, y, w, h }` in **grid units, four to a card** (a quarter card each).
-- With `fineGrid` ("Double grid") there are eight units to a card:
+- With `grid.fine` ("Double grid") there are eight units to a card:
   - `Custom.qml` lays the page out at `OverlayConfig.pageUnit`, `GridPlacement.fineUnit`: two of its units and their gap span one card unit exactly.
   - `OverlayManager.fitOf` and the onboarding fit use it too.
   - Toggling it rescales the places (`GridPlacement.scalePlace`), as for edge menus and screen layouts.

@@ -383,7 +383,7 @@ Singleton {
   // NiriState.keyboard), or null
   function withKeyboard(callback) {
     const input = InputConfig.input;
-    callback(NiriState.keyboard(root._state, input.keyboard ? input.kbLayout : root._configLayouts));
+    callback(NiriState.keyboard(root._state, input.keyboard.enabled ? input.keyboard.layout : root._configLayouts));
   }
 
   // Switches to the "next" or "prev" layout, then calls back

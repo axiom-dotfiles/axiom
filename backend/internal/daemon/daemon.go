@@ -7,6 +7,7 @@ package daemon
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"net"
@@ -30,6 +31,7 @@ import (
 	"github.com/axiom-shell/axiom/backend/internal/store"
 	"github.com/axiom-shell/axiom/backend/internal/supervise"
 	"github.com/axiom-shell/axiom/backend/internal/tree"
+	"github.com/axiom-shell/axiom/backend/internal/wayland/wire"
 	"github.com/axiom-shell/axiom/backend/internal/xdg"
 )
 
@@ -192,6 +194,25 @@ func Run(ctx context.Context, opts Options) error {
 		}()
 	}
 	serve("the socket", func(ctx context.Context) error { return d.server.Serve(ctx, d.listener) })
+	// Stop with the compositor: a daemon left over from a session that
+	// ended would hold the display's lock, and the next session's
+	// `axiom run` would find it taken
+	if socket, err := wire.SocketPath(opts.Getenv); err != nil {
+		opts.Log.Warn("not watching the compositor", "err", err)
+	} else {
+		serve("the compositor watch", func(ctx context.Context) error {
+			err := wire.Watch(ctx, socket)
+			if errors.Is(err, wire.ErrGone) {
+				opts.Log.Info("the compositor is gone: stopping")
+				d.stop()
+				return nil
+			}
+			if err != nil {
+				opts.Log.Warn("not watching the compositor", "err", err)
+			}
+			return nil
+		})
+	}
 	serve("the config watch", d.store.Watch)
 	if opts.Dev {
 		serve("the schema watch", d.watchSchema)

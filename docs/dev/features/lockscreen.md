@@ -50,7 +50,7 @@ Run by `axiom run`, the binary makes locking dependable (`backend/internal/lock`
 
 #### Grid
 - Overlay modules sit on a bounded grid fitted to each screen at the card size. The grid is a `ScreenLayout`, shared with the greeter. Its `columns` × `rows` (hidden, written by the editor) are the grid the modules were last placed on.
-- **`fineGrid` ("Double grid")** splits each unit in two each way. `GridPlacement.screenGrid(layout)` gives the grid in the units places use.
+- **`grid.fine` ("Double grid")** splits each unit in two each way. `GridPlacement.screenGrid(layout)` gives the grid in the units places use.
   - Turning it on or off rescales every place (`GridPlacement.scalePlace`, in `ScreenLayoutEditor.updateLayoutField`). Merging rounds each edge, so modules that met still meet.
   - The `GridEditor`'s `sizeScale` doubles new modules' default sizes.
 - **Fitting to the screen:** `LockSurface` is built on `surfaces/screenlayout/ScreenLayoutView`, which holds the background, dim and fitted grid it shares with `GreeterSurface` and the desktop. It takes `OverlayConfig.screenArrangement` (`GridPlacement.screenArrangement`):
@@ -98,7 +98,7 @@ Run by `axiom run`, the binary makes locking dependable (`backend/internal/lock`
 
 #### Background
 - `background` is one of:
-  - `wallpaper`: `ThemeManager.wallpaperFor(screen)`, blurred by a `MultiEffect` when the layout's `blurWallpaper` is on (each layout has its own: the lock screen's and the login screen's are independent).
+  - `wallpaper`: `ThemeManager.wallpaperFor(screen)`, blurred by a `MultiEffect` when the layout's `backdrop.blur` is on (each layout has its own: the lock screen's and the login screen's are independent).
   - `color`: `backgroundColor`.
 - Either way it sits under a black layer at `dim`%.
 

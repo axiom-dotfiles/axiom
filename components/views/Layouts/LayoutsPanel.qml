@@ -93,10 +93,14 @@ Item {
         Layout.fillWidth: true
         propertiesSchema: ({
             "icon": OverlayConfig.customViewSchema.icon,
-            "fineGrid": OverlayConfig.customViewSchema.fineGrid
+            "fineGrid": OverlayConfig.customViewSchema.layout.properties.grid.properties.fine
           })
         order: ["icon", "fineGrid"]
-        values: root.view ?? ({})
+        // fineGrid stands for layout.grid.fine (updateViewField rescales the
+        // modules with it)
+        values: Object.assign({}, root.view ?? {}, {
+          "fineGrid": root.view?.layout?.grid?.fine ?? false
+        })
         onEdited: (path, value) => OverlayManager.updateViewField(OverlayManager.selectedViewIndex, path[0], value)
       }
 

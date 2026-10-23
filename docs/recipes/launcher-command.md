@@ -43,7 +43,7 @@ Opening a page: `root._page("foo", ["aliases"], "<ViewType>", "Open the foo page
 3. Add it to the `docs/usage.md` table, then verify.
 
 ## Gotchas
-- `/config` can never edit `Bars` or `Overlay.views`; don't add commands that bypass that.
+- `/config` can never edit `Bars` or `Overlay.items`; don't add commands that bypass that.
 - Commands reachable in greeter mode must check `Paths.greeter` in `available` when they'd write or run anything (the `/event` entry checks it).
 - Page commands go through `ShellManager.openOverlayPage(type)`, which picks the target screen.
 - Every launcher row has the same shape ([features/launcher](../dev/features/launcher.md)); a new *provider* (prefix) is a bigger change than a command.

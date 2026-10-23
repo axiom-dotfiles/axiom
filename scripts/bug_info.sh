@@ -45,7 +45,7 @@ if [[ ! -f "$config" ]]; then
   config_info="missing"
 elif ! has jq; then
   config_info="present (jq not installed)"
-elif ! config_info=$(jq -r '"version \(.version // "?"), compositor mode \(.Compositor.mode // "detached")"' "$config" 2>/dev/null); then
+elif ! config_info=$(jq -r '"format \(.format // 1), version \(.version // "?"), compositor mode \(.Compositor.mode // "detached")"' "$config" 2>/dev/null); then
   config_info="invalid JSON"
 fi
 

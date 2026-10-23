@@ -30,7 +30,7 @@ OnboardingPage {
 
   SettingRows {
     Layout.fillWidth: true
-    paths: ["Appearance.wallpaperFolder"]
+    paths: ["Appearance.wallpaper.folder"]
   }
 
   Notice {
@@ -62,7 +62,7 @@ OnboardingPage {
       text: I18n.tr("Use Hyprland's wallpapers")
       iconText: "wallpaper"
       onClicked: SettingsManager.commitValues({
-        "Appearance.wallpaperFolder": WallpaperManager.hyprlandWallpapers
+        "Appearance.wallpaper.folder": WallpaperManager.hyprlandWallpapers
       })
     }
 
@@ -80,7 +80,7 @@ OnboardingPage {
 
   function setBar(key, value) {
     const values = {};
-    values["Bars.0." + key] = value;
+    values["Bars.items.0." + key] = value;
     SettingsManager.commitValues(values);
   }
 

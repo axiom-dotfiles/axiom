@@ -103,7 +103,7 @@ TitledCard {
         text: I18n.tr("Auto")
         active: Appearance.themeScheduled
         onClicked: SettingsManager.commitValues({
-          "Appearance.themeSchedule.enabled": !Appearance.themeScheduled
+          "Appearance.theme.schedule.enabled": !Appearance.themeScheduled
         })
       }
     },
@@ -115,13 +115,13 @@ TitledCard {
       SettingRows {
         Layout.fillWidth: true
         Layout.alignment: Qt.AlignTop
-        paths: ["Appearance.themeSchedule.lightAt"]
+        paths: ["Appearance.theme.schedule.lightAt"]
       }
 
       SettingRows {
         Layout.fillWidth: true
         Layout.alignment: Qt.AlignTop
-        paths: ["Appearance.themeSchedule.darkAt"]
+        paths: ["Appearance.theme.schedule.darkAt"]
       }
     },
     StyledText {

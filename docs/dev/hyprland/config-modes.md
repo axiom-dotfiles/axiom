@@ -1,7 +1,7 @@
 # Hyprland config writer
 
 > **Files:** `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprConfigLua.qml`, `components/methods/HyprLua.qml`, `components/methods/BindKeys.qml`, `config/InputConfig.qml`, `config/SessionConfig.qml`, `scripts/claim_hyprland.sh`
-> **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `Input.*`, `Session.*`, `Keybinds.binds`, `Hyprland.managed`, `WindowLook`, `Monitors.profiles`, `Workspaces.strips`
+> **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `Input.*`, `Session.*`, `Keybinds.binds`, `Compositor.hyprland`, `WindowLook`, `Monitors.items`, `Workspaces.strips`
 > **Related:** [Config modes](../compositor/config-modes.md), [Managed takeover](managed-takeover.md), [Window look](../compositor/window-look.md), [Bind merge](bind-merge.md), [Keybinds](keybinds.md), [Monitors](monitors.md), [Workspace strips](workspace-strips.md)
 
 Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`, which owns `HyprlandRuntimeLayer` (a [`RuntimeLayer`](../compositor/config-modes.md#the-runtime-layer)), and a `ConfigTakeover` and `UserBindMerge` on its scripts): what axiom's layer is in Hyprland's Lua, for each mode. The modes themselves, leaving one and the live parts are neutral: [Config modes](../compositor/config-modes.md). Read both before touching anything axiom writes into Hyprland.
@@ -37,7 +37,7 @@ Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`
   - `autostartLines` is one line marked `-- axiom`, like install.sh's.
   - Managed mode starts axiom itself.
   - Both start it with `startCommand`, which is `qs -p … -n`. Its `--no-duplicate` exits at once if axiom already runs, as install.sh's `qs -n -c axiom` does.
-- The targets are `includeTarget` (at the top of hyprland.lua) and `autostartTarget` (at the end). Any `qs -c axiom` / `qs -p …axiom` line counts as done.
+- The targets are `includeTarget` (at the top of hyprland.lua) and `autostartTarget` (at the end). An `axiom run` line (`Paths.startPattern`, which still accepts the old `qs -c axiom` / `qs -p …axiom` forms) counts as done.
 - `IntegrationHookupManager` runs them under the keys `compositorInclude` (both lines) and `compositorAutostart` ([Config modes](../compositor/config-modes.md)).
 
 ### Is the file loaded?
@@ -45,14 +45,9 @@ Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`
 - `checkLoaded` evals a check of it; when it isn't set, the runtime layer stands in and `problem` says why.
 
 ### Managed options (`HyprLua`)
-- The `managed` options become one `hl.config({...})` through `components/methods/HyprLua` (pure), driven by schema annotations:
-  - `x-hypr`: the option's dotted path, or a list of paths
-  - `x-hyprScale`: integers shown scaled (0.01 for a percent)
-  - `x-hyprValue`: `int`, `number` (numeric enums), `emptyIsDefault`, or `color` (a theme color name, with `x-hyprAlpha`)
-  - `x-hyprIf`: a boolean sibling gates it
-  - `x-hyprAlways`
+- The managed options (`Compositor.hyprland`) become one `hl.config({...})` through `components/methods/HyprLua` (pure), driven by each field's `x-compositor.hyprland` spec (`key`, `scale`, `value`, `if`, `always`: [Schema annotations](../core/schema-annotations.md) › Compositor config).
 - A field is written only when it differs from its default (Hyprland's own), so a new option is just a schema entry.
-- `managed` stays flat (the settings page nests one level); its cards come from `x-group`/`x-order`.
+- Its cards come from `x-group`/`x-order`, and it shows only while Hyprland is the compositor and the mode is managed (`x-showIf`).
 - Not mapped through annotations:
   - `animationPreset`, written after `axiom.setup()`:
     - `hyprland` writes nothing

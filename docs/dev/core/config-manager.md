@@ -1,23 +1,23 @@
 # ConfigManager, drafts and previews
 
-> **Files:** `services/ConfigManager.qml`, `services/ConfigDraft.qml`, `components/methods/DataDirs.qml`, `services/DataMigrationManager.qml`, `scripts/migrate_xdg.sh`, `components/methods/ConfigMigration.qml`, `components/methods/SchemaValidation.qml`, `services/SettingsManager.qml`
+> **Files:** `services/ConfigManager.qml`, `services/ConfigDraft.qml`, `services/BackendManager.qml`, `components/methods/DataDirs.qml`, `components/methods/SchemaValidation.qml`, `services/SettingsManager.qml`, `backend/internal/store/store.go`, `backend/internal/config/load.go`, `backend/internal/xdg/legacy.go`
 > **Config:** all of `~/.config/axiom/config.json`
 > **Related:** [Config readers](config-readers.md), [Schema annotations](schema-annotations.md), [Editors pattern](editors-pattern.md), [Saved configs and sharing](saved-configs-sharing.md), [Secrets](secrets.md)
 
 The owner of the runtime config: how it is loaded, written, drafted and previewed. Read before writing config from anywhere.
 
-### Run by axiom
-When the shell runs under `axiom run` (`BackendManager.active`), the binary owns config.json ([The axiom binary](../backend/README.md)).
-- **Loading:** `ConfigManager` reads the config from the snapshot the binary wrote (`$AXIOM_CONFIG`, already migrated and filled) and the schema it built (`$AXIOM_SCHEMA`). `config.changed` pushes replace it; `config.state` sets `savesBlocked`.
-- **Writing:** every write path (`saveConfig`, `commit`, `restoreConfig`, `setTheme`, `setWallpaper(s)`) still validates here with the same pipeline as the binary (kept equal by the shared fixtures). It applies the result at once and sends it (`config.restore`). If the binary refuses, the running config is read back from it.
-- **What it no longer does:** the file watch, the 5 s poll and the first-run check. First run comes from the hello, acknowledged so a QML reload doesn't repeat it.
-
-Started by hand (no `$AXIOM_SOCKET`), it works as described below.
+### Owned by axiom
+The binary is the shell's parent (`axiom run`) and owns config.json ([The axiom binary](../backend/README.md)); the shell never reads or writes the file.
+- **Loading:** at its start axiom loads config.json (converting an older file, below), writes the result as a snapshot and hands the shell its path (`$AXIOM_CONFIG`) and the schema it built (`$AXIOM_SCHEMA`). `ConfigManager` parses both at creation, so `config` is ready, migrated and filled before any reader binds.
+- **Changes:** axiom watches the file. An outside edit that loads is pushed (`config.changed`), replacing `config`; one that doesn't sets `savesBlocked` (`config.state`) and the shell keeps the last good config. `schema.changed` (`axiom run --dev`, after a YAML edit) reads the schema again.
+- **Writing:** every write path (`saveConfig`, `commit`, `setTheme`, `setWallpaper(s)`) validates here, applies the result at once and sends it (`config.replace`); axiom writes it, and if it refuses, the running config is read back from it (`hardResetConfig`). `restoreConfig(object, done)` hands a whole config of any version to axiom (`config.restore`), which loads it as it loads the file and keeps the `x-takeover` settings as they are.
+- **First run:** axiom found no config.json and wrote the defaults. It says so in its hello, and `firstRun` is acknowledged (`config.ackFirstRun`) so a QML reload doesn't start the onboarding again.
+- **Without axiom** (`qs` started by hand): `available` is false, there is no config, and `shell.qml` shows only a notice with the start line. The greeter (`greeter`) runs read-only on the config `axiom greeter` made from its bundle.
 
 ### What it owns
-- `_config`: the parsed `~/.config/axiom/config.json`.
-- `_configSchema`: `config/json/config.schema.json` (built from `config/schema/`).
-- Both are loaded eagerly at creation. The active theme's data belongs to ThemeManager, not here.
+- `_config`: the config as axiom has it, plus edits applied but not yet answered.
+- `_configSchema`: `$AXIOM_SCHEMA`, else the tree's `config/json/config.schema.json` (built from `config/schema/`, never committed).
+- The active theme's data belongs to ThemeManager, not here.
 
 ### Where files live
 The repo (`Paths.axiomPath`) is read-only to the shell: a package installs it where it can't write (`/usr/share/axiom`, [packaging.md](../packaging.md)). Everything axiom writes is in the XDG folders, resolved once by `DataDirs.xdg` (each `$XDG_*_HOME` when absolute, else its default) and handed out by `ConfigManager.dataDirs` and `Paths`:
@@ -35,24 +35,25 @@ The repo (`Paths.axiomPath`) is read-only to the shell: a package installs it wh
 - Files under `userStatePath` keep their names: users' own configs point at several (the Hyprland include, the fzf/nvim/ncspot outputs).
 - The greeter has its own folders (`Paths.greeterDir`) and reads none of these.
 - **Data others installed** (Wayland sessions, Hyprland's example config and wallpapers, cursor themes) is looked up in `Paths.dataSearchDirs` (`DataDirs.searchDirs`: `$XDG_DATA_HOME`, then `$XDG_DATA_DIRS`, else `/usr/local/share:/usr/share`), never at a fixed `/usr/share` path: NixOS keeps nothing there. `claim_hyprland.sh` does the same in shell.
-- **Moving an old install over:** before this layout the config was in the repo's `config/user/`, the UI state and notes in `config/state/`, and generated themes in `config/themes/generated/` (`DataDirs.legacy`). While `config/user/config.json` exists with no `MOVED.md` (`DataDirs.movedMarker`) beside it, `legacyLayout` is true and that session runs on the old folders as before. `DataMigrationManager` then holds saves (`holdSaves`) and runs `scripts/migrate_xdg.sh`. The script copies each folder over without overwriting anything, writes config.json last (in one piece), then writes the marker, and the shell reloads onto the XDG folders. The old folders are kept for a rollback. A failed copy writes no marker, so the next start tries again.
+- **Moving an old install over:** before this layout the config was in the repo's `config/user/`, the UI state and notes in `config/state/`, and generated themes in `config/themes/generated/`. axiom copies them out once at its start (`xdg.MoveLegacy`): nothing is overwritten, config.json goes last and whole, then `MOVED.md` in the old folder says where everything went. The old folders are kept for a rollback.
 
 ### Load pipeline
-1. Parse.
-2. `ConfigMigration.migrate`: upgrades old layouts by `version` and writes the result back once. It returns `secrets` (keys a step pulls out of the config, which ConfigManager hands to `SecretsManager`); no current step fills it.
-3. `SchemaValidation.pruneUnknown`: drops unknown keys with a warning.
-4. `SchemaValidation.applyDefaults`: fills every schema `default`.
-5. Validate.
+In axiom (`config.Pipeline.Load`), for config.json, saved configs and imports alike:
+1. Parse (a byte-order mark is ignored).
+2. A format-1 file (no `format`): the frozen v1–v75 migrations (`backend/internal/migrate/legacy/`, the JS `ConfigMigration` run as it was), then the conversion to format 2 (`migrate/convert`). The file as it was is kept once as `config.format1.json`, and secrets a step pulls out go to the secrets store before the file is written back.
+3. Format-2 steps by `version`.
+4. Unknown keys are dropped (logged as warnings), defaults filled, the result validated. A file that fails runs nothing: axiom runs on the defaults and blocks saves until it's fixed.
+
+`axiom config validate [FILE]` runs the same, read-only.
 
 ### New entries
 Editors create new entries at their definition's defaults with `withDefaults(value, "Bar" | "BarWidget" | "EdgeMenu" | "OverlayView" | "OverlayModule")`.
 
 ### Writes
 (Rule: AGENTS.md › Services, "Config writes".)
-- All writes go through `setTheme()` / `setWallpaper()` / `saveConfig()` / `commit(object)`.
-- They validate before writing, then `forceReload()`.
-- `commit(object)` is for the draft services: it runs prune/defaults/validate and returns false, changing nothing, if rejected, so drafts stay dirty.
-- Never mutate `ConfigManager.config` fields from UI code and expect persistence. Call the setters, or `SettingsManager.setValue(path, value)` from settings UI.
+- All writes go through `setTheme()` / `setWallpaper(s)()` / `saveConfig()` / `commit(object)`, or `SettingsManager.setValue(path, value)` from settings UI.
+- They validate against the schema here first: `commit(object)` (the draft services) fills defaults, and returns false, changing nothing, if rejected, so drafts stay dirty.
+- Never mutate `ConfigManager.config` fields from UI code and expect persistence.
 
 ### ConfigDraft
 - The editor services each hold a `ConfigDraft` (`services/ConfigDraft.qml`): SettingsManager, BarManager, OverlayManager, EdgeMenuManager, KeybindManager, MonitorManager, plus the `ScreenLayoutEditor` drafts of the desktop, lock screen and greeter layouts.
@@ -63,6 +64,6 @@ Editors create new entries at their definition's defaults with `withDefaults(val
 - Shape of an editor built on it: [Editors pattern](editors-pattern.md).
 
 ### Previews
-- `ConfigManager.previews` (`setPreview(section, value)` / `clearPreview(section)`) holds unsaved edits shown live without being part of `config`, so other saves and disk reloads don't touch them.
+- `ConfigManager.previews` (`setPreview(section, value)` / `clearPreview(section)`) holds unsaved edits shown live without being part of `config`, so other saves and axiom's pushes don't touch them.
 - Example: BarManager previews `Bars` while dirty, and `BarManager.bars` reads `previews.Bars ?? config.Bars`.
 - Readers that show previews read `previews.X ?? config.X` (`DesktopConfig`, `EdgeMenusConfig`).
