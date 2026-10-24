@@ -69,6 +69,8 @@ for f in "${changed[@]}"; do
   case "$f" in
   components/methods/SchemaValidation.qml) schema=1 go=1 ;;
   config/schema/* | backend/internal/schema/*) schema=1 go=1 ;;
+  # The bind merge (backend/internal/compositor/binds) reads its actions
+  components/methods/BindActions.qml) go=1 ;;
   esac
   # backend/ and the repo files the binary embeds (backend/tools/syncassets)
   case "$f" in
@@ -94,18 +96,12 @@ for f in "${changed[@]}"; do
     ;;
   scripts/integration_hookup.py) script_tests+=(HookupScript) ;;
   scripts/self_update.sh) script_tests+=(SelfUpdate) ;;
-  scripts/merge_sway_binds.py | components/methods/BindActions.qml) script_tests+=(MergeSwayBinds MergeNiriBinds) ;;
-  scripts/bind_merge_common.py) script_tests+=(MergeSwayBinds MergeHyprBinds MergeNiriBinds) ;;
   scripts/cursor_theme.py) script_tests+=(CursorTheme) ;;
-  scripts/merge_niri_binds.py) script_tests+=(MergeNiriBinds) ;;
-  scripts/niri_kdl.py | scripts/niri_config.py) script_tests+=(NiriConfig MergeNiriBinds) ;;
-  scripts/merge_hypr_binds.py | scripts/hypr_binds.lua) script_tests+=(MergeHyprBinds ClaimHyprland) ;;
   scripts/generate_theme.py) script_tests+=(GenerateTheme) ;;
   scripts/calendar_sync.py) script_tests+=(CalendarSync) ;;
   scripts/greeter/*) script_tests+=(GreeterInstall GreeterSession) ;;
   scripts/pick_path.py) script_tests+=(PickPath) ;;
   scripts/community_fetch.sh) script_tests+=(CommunityFetch) ;;
-  scripts/sway_config_text.py) script_tests+=(SwayConfigText) ;;
   scripts/dev/known_issues.py) script_tests+=(KnownIssues) ;;
   scripts/check_sizes.py) script_tests+=(CheckSizes) ;;
   tests/scripts/test_scripts.py) script_tests+=(all) ;;

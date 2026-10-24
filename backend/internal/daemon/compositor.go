@@ -2,9 +2,12 @@ package daemon
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/axiom-shell/axiom/backend/internal/axerr"
+	"github.com/axiom-shell/axiom/backend/internal/compositor/binds"
 	"github.com/axiom-shell/axiom/backend/internal/compositor/takeover"
+	"github.com/axiom-shell/axiom/backend/internal/jsonx"
 	"github.com/axiom-shell/axiom/backend/internal/rpc"
 )
 
@@ -18,8 +21,19 @@ type takeoverParams struct {
 	Fallback string `json:"fallback"`
 }
 
+// bindsParams are one bind merge verb, as the shell's UserBindMerge asks
+// for it
+type bindsParams struct {
+	Verb  string          `json:"verb"` // extract or remove
+	Kind  string          `json:"kind"`
+	Dir   string          `json:"dir"`
+	Only  string          `json:"only"`
+	Sites json.RawMessage `json:"sites"`
+}
+
 // compositorPart: the compositor's config (internal/compositor). For now
-// the managed mode's takeover, which the shell's config writers drive.
+// the managed mode's takeover and the bind merge, which the shell's config
+// writers drive.
 func (d *Daemon) compositorPart() part {
 	return part{name: "compositor", methods: d.compositorMethods}
 }
@@ -47,5 +61,34 @@ func (d *Daemon) compositorMethods(reg *rpc.Registry) {
 			return nil, err
 		}
 		return map[string]string{"result": result}, nil
+	})
+	rpc.Handle(reg, "compositor.binds", func(ctx context.Context, c *rpc.Conn, p bindsParams) (json.RawMessage, error) {
+		// remove edits the user's files: only the shell's Merge does that
+		if !fromShell(c) {
+			return nil, axerr.New(axerr.Refused, "only the shell moves the user's binds")
+		}
+		table, err := binds.LoadActions(d.opts.Tree)
+		if err != nil {
+			return nil, err
+		}
+		o := binds.Options{Kind: p.Kind, Dir: p.Dir, Only: p.Only, Actions: table, Getenv: d.opts.Getenv}
+		var result *jsonx.Object
+		switch p.Verb {
+		case "extract":
+			result, err = binds.Extract(ctx, o)
+		case "remove":
+			sites, perr := jsonx.Unmarshal(p.Sites)
+			list, ok := jsonx.AsArray(sites)
+			if perr != nil || !ok {
+				return nil, axerr.New(axerr.BadRequest, "sites must be a list")
+			}
+			result, err = binds.Remove(ctx, o, list)
+		default:
+			return nil, axerr.New(axerr.BadRequest, "unknown bind merge verb %q", p.Verb)
+		}
+		if err != nil {
+			return nil, err
+		}
+		return jsonx.MarshalCompact(result), nil
 	})
 }

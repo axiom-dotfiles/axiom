@@ -200,7 +200,7 @@ Singleton {
   // (SwayConf.configBinds; its includes in, axiom's files left out: the
   // included module, and the managed config's own lines), or null
   function readUserBinds(callback) {
-    CommandManager.run([Paths.scriptsPath + "sway_config_text.py", "--skip", root.includePath, "--skip-header", root._header], (code, out, err) => {
+    CommandManager.run([Paths.toolBin, "compositor", "sway-text", "--skip", root.includePath, "--skip-header", root._header], (code, out, err) => {
       if (code !== 0) {
         console.warn("[SwayConfigWriter] Can't read your sway config:", String(err).trim());
         callback(null);
@@ -320,12 +320,12 @@ Singleton {
     takeover.clearConflicts();
   }
 
-  // --- Moving the user's binds into axiom: UserBindMerge, on merge_sway_binds.py ---
+  // --- Moving the user's binds into axiom: UserBindMerge, through the daemon ---
 
   UserBindMerge {
     id: bindMerge
     enabled: CompositorConfig.mode === "managed"
-    script: Paths.scriptsPath + "merge_sway_binds.py"
+    kind: "sway"
     configDir: Paths.swayPath
     userDir: root.userDir
     logTag: "SwayConfigWriter"

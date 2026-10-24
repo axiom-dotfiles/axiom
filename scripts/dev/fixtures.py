@@ -3,8 +3,9 @@
 cases the JS helpers and the axiom binary (Go) must agree on, byte for
 byte (docs/dev/backend/README.md › Shared fixtures).
 
-  scripts/dev/fixtures.py record     re-record the schema suite: runs
-                                     tst_Config and tst_SchemaValidation with
+  scripts/dev/fixtures.py record     re-record the JS suites: runs tst_Config,
+                                     tst_SchemaValidation and the compositor
+                                     config helpers' tests (HELPERS) with
                                      recording on, and writes the calls they
                                      make as cases
   scripts/dev/fixtures.py ensure     record only when what the cases are
@@ -41,13 +42,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SHARED = ROOT / "tests/fixtures/shared"
 # Suites recorded from the JS helpers (the rest are written by Go's tests)
-JS_SUITES = ("schema",)
-RECORD_TESTS = ("Config", "SchemaValidation")
+# The compositor config helpers the binary ports (backend/internal/compositor/render)
+HELPERS = ("BindActions", "BindKeys", "CompositorLayer", "HyprConfigLua", "HyprLua", "KeyNames", "LayerStack",
+           "NiriConf", "SwayConf")
+JS_SUITES = ("schema",) + HELPERS
+RECORD_TESTS = ("Config", "SchemaValidation") + HELPERS
 BLOB_SIZE = 2048
 # What the recorded cases are made from: a change to any re-records them
 STAMP_INPUTS = ("components/methods/SchemaValidation.qml", "tests/Shared.qml", "tests/RepoFiles.qml",
                 "tests/tst_Config.qml", "tests/tst_SchemaValidation.qml",
                 "config/json/config.schema.json", "scripts/dev/fixtures.py",
+                *(f"components/methods/{h}.qml" for h in HELPERS), *(f"tests/tst_{h}.qml" for h in HELPERS),
+                "components/methods/MonitorLayout.qml", "components/methods/PolkitAgents.qml",
+                "components/methods/SwayState.qml", "components/methods/NiriState.qml",
                 "scripts/qml_modules.py", "scripts/run_tests.sh")
 
 

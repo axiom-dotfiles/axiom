@@ -3,7 +3,7 @@
 
 > **File:** `services/HyprlandConfigWriter.qml` · **Docs:** see [docs/dev](../../README.md)
 
-section's options, loading ~/.config/hypr/user/*.lua after it Also the managed takeover (ConfigTakeover, through the daemon) and moving the user's binds into axiom (UserBindMerge, on merge_hypr_binds.py).
+section's options, loading ~/.config/hypr/user/*.lua after it Also the managed takeover (ConfigTakeover, through the daemon) and moving the user's binds into axiom (UserBindMerge, through the daemon).
 
 ### Properties
 

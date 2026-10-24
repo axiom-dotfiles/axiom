@@ -96,7 +96,7 @@ def simple(tokens, exported):
     if Path(argv[0]).name in SHELLS and command_flag is not None:
         inner = argv[command_flag + 1]
         return [(dict(env, **e), a) for e, a in split_commands(inner)]
-    # A script run through a shell (`bash scripts/merge_sway_binds.py …`): judge the script
+    # A script run through a shell (`bash scripts/self_update.sh …`): judge the script
     if Path(argv[0]).name in SHELLS:
         rest = argv[1:]
         while rest and rest[0].startswith("-"):
@@ -204,10 +204,14 @@ def check_axiom(env, args, cwd):
         shown = env.get("AXIOM_GREETER_WINDOWED") == "1" or "--no-shell" in args
         if not shown or not scratch(gdir) or installed:
             deny("Never, while testing", "run the greeter only windowed on a scratch folder: AXIOM_GREETER_WINDOWED=1 AXIOM_COMPOSITOR=none axiom greeter --dir <scratch> (or --no-shell).")
-    # A compositor claim (managed mode) on the live config
+    # A compositor claim (managed mode) on the live config, or moving binds
+    # out of its files (the bind merge's remove)
     if sub == "compositor" and words[1:2] and words[1] in {"claim", "release"} and words[2:3]:
         if live_config_path(words[2], cwd, env):
             deny("Never, while testing", f"`axiom compositor {words[1]}` only on a scratch dir, never the live compositor config.")
+    if sub == "compositor" and words[1:3] == ["binds", "remove"] and words[3:4]:
+        if live_config_path(words[3], cwd, env):
+            deny("Never, while testing", "`axiom compositor binds remove` only on a scratch dir, never the live compositor config.")
     if sub == "config" and "--takeover" in args:
         config_dir = axiom_flag(args, "--config-dir") or env.get("XDG_CONFIG_HOME", "")
         if not scratch(config_dir) or live:
@@ -265,16 +269,6 @@ def check_argv(env, argv, cwd):
     if name == "greeter_install.sh" and args and args[0] in {"install", "update", "uninstall"}:
         if not scratch(env.get("AXIOM_GREETER_ROOT", "")):
             deny("Never, while testing", "greeter_install.sh install/update/uninstall only with a scratch AXIOM_GREETER_ROOT=<dir>.")
-
-    # Moving binds out of the live compositor config's files (managed mode's
-    # bind merge): Hyprland's, sway's. Run directly or through python
-    merge = argv if re.fullmatch(r"merge_\w+_binds\.py", name) else None
-    if merge is None and name.startswith("python"):
-        at = next((i for i, a in enumerate(args) if re.fullmatch(r"merge_\w+_binds\.py", Path(a).name)), None)
-        merge = args[at:] if at is not None else None
-    if merge and len(merge) >= 3 and merge[1] == "remove":
-        if live_config_path(merge[2], cwd, env):
-            deny("Never, while testing", f"{Path(merge[0]).name} remove only on a scratch dir, never the live compositor config.")
 
     # Ending, reconfiguring or swapping the config of the niri session
     # itself: only a nested niri (NIRI_SOCKET aimed at another one than the

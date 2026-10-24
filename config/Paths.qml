@@ -18,6 +18,11 @@ QtObject {
   // have it). `<shellCommand> ipc <target> <fn>` calls the shell.
   readonly property string axiomBin: Quickshell.env("AXIOM_BIN") || "axiom"
   readonly property string shellCommand: `'${root.axiomBin}'`
+  // What the shell runs axiom's tools with (`axiom compositor …`): the
+  // binary the daemon runs now, which a dev build's re-exec may have
+  // changed since $AXIOM_BIN was set (/proc follows the exec); the greeter,
+  // with no daemon, runs $AXIOM_BIN (itself)
+  readonly property string toolBin: Quickshell.env("AXIOM_DAEMON_PID") ? `/proc/${Quickshell.env("AXIOM_DAEMON_PID")}/exe` : root.axiomBin
   // The restart binds' command: axiom restarts the shell it runs
   readonly property string restartCommand: `${root.shellCommand} restart`
   // A line in a compositor config that starts axiom (Python regex, for

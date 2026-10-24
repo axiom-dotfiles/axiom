@@ -563,7 +563,7 @@ Singleton {
   // includes put in (get_config holds only the main file, so gaps set in
   // an included one, as managed mode's user/ files are, went unseen)
   function _readConfig() {
-    CommandManager.run([Paths.scriptsPath + "sway_config_text.py"], (code, out) => {
+    CommandManager.run([Paths.toolBin, "compositor", "sway-text"], (code, out) => {
       if (code !== 0)
         return;
       const info = SwayState.configInfo(out);

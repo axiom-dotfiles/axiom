@@ -5,7 +5,14 @@ import qs.components.methods
 // The Lua it writes also goes to tests/.out/, where scripts/run_tests.sh
 // checks it with `luac -p`.
 TestCase {
+  id: test
   name: "HyprLua"
+
+  // Records the helpers' calls as shared fixtures for the axiom binary
+  Shared {
+    id: shared
+    testCase: test
+  }
 
   RepoFiles {
     id: files
@@ -107,13 +114,13 @@ TestCase {
   }
 
   function test_string_escapes() {
-    compare(HyprLua.string('a "b" \\ c\nd'), '"a \\"b\\" \\\\ c\\nd"');
+    compare(shared.calls.HyprLua.string('a "b" \\ c\nd'), '"a \\"b\\" \\\\ c\\nd"');
     // A bare carriage return would end the string: Lua refuses the chunk
-    compare(HyprLua.string("us\r,de"), '"us\\r,de"');
+    compare(shared.calls.HyprLua.string("us\r,de"), '"us\\r,de"');
   }
 
   function test_layer_rules() {
-    const lines = HyprLua.layerRulesLua();
+    const lines = shared.calls.HyprLua.layerRulesLua();
     compare(lines.length, LayerStack.layers.length);
     verify(lines.includes('hl.layer_rule({ name = "axiom-bar-pill", match = { namespace = "^axiom-bar-pill$" }, order = -1 })'));
     verify(lines.includes('hl.layer_rule({ name = "axiom-desktop", match = { namespace = "^axiom-desktop$" }, no_anim = true })'), "no order, no animation");
@@ -121,9 +128,9 @@ TestCase {
   }
 
   function test_value() {
-    compare(HyprLua.value(0.1 + 0.2), "0.3");
-    compare(HyprLua.value(true), "true");
-    compare(HyprLua.value("x"), '"x"');
+    compare(shared.calls.HyprLua.value(0.1 + 0.2), "0.3");
+    compare(shared.calls.HyprLua.value(true), "true");
+    compare(shared.calls.HyprLua.value("x"), '"x"');
   }
 
   function test_defaults_write_only_always_fields() {
@@ -138,7 +145,7 @@ TestCase {
       "blur": false,
       "unmapped": 1
     };
-    compare(JSON.stringify(HyprLua.configTable(fieldSchema, values, hex)), JSON.stringify({
+    compare(JSON.stringify(shared.calls.HyprLua.configTable(fieldSchema, values, hex)), JSON.stringify({
       "general": {
         "layout": "dwindle"
       }
@@ -146,7 +153,7 @@ TestCase {
   }
 
   function test_changed_fields_convert() {
-    const table = HyprLua.configTable(fieldSchema, {
+    const table = shared.calls.HyprLua.configTable(fieldSchema, {
       "gaps": 8,
       "both": 2,
       "opacity": 90,
@@ -171,8 +178,8 @@ TestCase {
   }
 
   function test_serialize_is_sorted_and_nested() {
-    compare(HyprLua.serialize({}), "{}");
-    compare(HyprLua.serialize({
+    compare(shared.calls.HyprLua.serialize({}), "{}");
+    compare(shared.calls.HyprLua.serialize({
       "b": 1,
       "a": {
         "y": "s",
@@ -204,14 +211,14 @@ TestCase {
         values[key] = spec.value === "color" ? "base08" : "changed";
       expected.push(...(typeof spec.key === "string" ? [spec.key] : spec.key));
     }
-    const table = HyprLua.configTable(managed, values, hex);
+    const table = shared.calls.HyprLua.configTable(managed, values, hex);
     for (const path of expected) {
       let node = table;
       for (const key of path.split("."))
         node = node?.[key];
       verify(node !== undefined, path + " missing from the table");
     }
-    const lua = "hl = { config = function(t) end }\nhl.config(" + HyprLua.serialize(table) + ")\n";
+    const lua = "hl = { config = function(t) end }\nhl.config(" + shared.calls.HyprLua.serialize(table) + ")\n";
     const written = files.write("tests/.out/managed.lua", lua);
     tryVerify(() => written.done, 2000);
   }
@@ -219,7 +226,7 @@ TestCase {
   // --- Strips ---
 
   function test_stripsLua_without_strips_writes_nothing() {
-    compare(HyprLua.stripsLua([], {}, {}), []);
+    compare(shared.calls.HyprLua.stripsLua([], {}, {}), []);
   }
 
   // Every monitor sets the layout; a named one gets a rule that wins over
@@ -231,7 +238,7 @@ TestCase {
       "stripColumnWidth": 70,
       "stripFollowFocus": true
     };
-    const lines = HyprLua.stripsLua([
+    const lines = shared.calls.HyprLua.stripsLua([
       {
         "monitor": "*",
         "direction": "vertical"
@@ -243,7 +250,7 @@ TestCase {
     ], workspaces, options);
     compare(lines.length, 2);
     verify(!lines[0].includes("follow_focus"), "a default setting is left to Hyprland");
-    compare(HyprLua.stripsLua([
+    compare(shared.calls.HyprLua.stripsLua([
       {
         "monitor": "DP-2",
         "direction": "vertical"
@@ -271,7 +278,7 @@ assert(rules[1].layout == "scrolling" and rules[1].layout_opts.direction == "rig
 
   // Applied once per Hyprland load; other strips reload it
   function test_stripsRuntimeLua_runs() {
-    const lines = HyprLua.stripsRuntimeLua([`hl.workspace_rule({ workspace = "m[DP-1]" })`], "a");
+    const lines = shared.calls.HyprLua.stripsRuntimeLua([`hl.workspace_rule({ workspace = "m[DP-1]" })`], "a");
     const lua = `local rules, reloads = 0, 0
 hl = {
   workspace_rule = function() rules = rules + 1 end,
@@ -304,7 +311,7 @@ assert(rules == 1 and reloads == 1, "other strips reload")
   }
 
   function test_monitorSpec_writes_only_changes() {
-    compare(HyprLua.monitorSpec(rule({
+    compare(shared.calls.HyprLua.monitorSpec(rule({
       "output": "DP-1",
       "mode": "3440x1440@240"
     })), {
@@ -313,7 +320,7 @@ assert(rules == 1 and reloads == 1, "other strips reload")
       "position": "0x0",
       "scale": 1
     });
-    const spec = HyprLua.monitorSpec(rule({
+    const spec = shared.calls.HyprLua.monitorSpec(rule({
       "output": "DP-1",
       "x": -1440,
       "y": -1100,
@@ -330,7 +337,7 @@ assert(rules == 1 and reloads == 1, "other strips reload")
     compare(spec.cm, "hdr");
     compare(spec.sdrbrightness, 1.2);
     compare(spec.sdrsaturation, undefined);
-    compare(HyprLua.monitorSpec(rule({
+    compare(shared.calls.HyprLua.monitorSpec(rule({
       "output": "HDMI-A-1",
       "disabled": true,
       "x": 5
@@ -341,7 +348,7 @@ assert(rules == 1 and reloads == 1, "other strips reload")
   }
 
   function test_monitorCalls_resolve_mirrors() {
-    const calls = HyprLua.monitorCalls([rule({
+    const calls = shared.calls.HyprLua.monitorCalls([rule({
         "output": "desc:TV",
         "mirror": "desc:Main"
       }), rule({
@@ -353,7 +360,7 @@ assert(rules == 1 and reloads == 1, "other strips reload")
   }
 
   function test_monitorsLua_without_profiles_only_unsubscribes() {
-    const lines = HyprLua.monitorsLua([]);
+    const lines = shared.calls.HyprLua.monitorsLua([]);
     verify(lines.join("\n").includes("sub:remove()"));
     verify(!lines.join("\n").includes("axiom_apply_monitors"));
   }
@@ -394,10 +401,10 @@ assert(rules == 1 and reloads == 1, "other strips reload")
       "description": "LG TV"
     };
     const cases = [[[aoc], "3440x1440@240"], [[aoc, tv], "3440x1440@144"], [[tv], "3440x1440@144"]];
-    const monitorsLua = monitors => "{ " + monitors.map(m => `{ name = ${HyprLua.string(m.name)}, description = ${HyprLua.string(m.description)} }`).join(", ") + " }";
+    const monitorsLua = monitors => "{ " + monitors.map(m => `{ name = ${shared.calls.HyprLua.string(m.name)}, description = ${shared.calls.HyprLua.string(m.description)} }`).join(", ") + " }";
     const checks = cases.map(([connected, mode]) => {
       compare(profiles[MonitorLayout.matchProfile(profiles, connected)].outputs[0].mode, mode);
-      return `check(${monitorsLua(connected)}, ${HyprLua.string(mode)})`;
+      return `check(${monitorsLua(connected)}, ${shared.calls.HyprLua.string(mode)})`;
     });
     const lua = `local connected, applied, removed = {}, {}, 0
 hl = {
@@ -406,7 +413,7 @@ hl = {
   on = function() return { remove = function() removed = removed + 1 end } end,
 }
 local function run()
-${HyprLua.monitorsLua(profiles).join("\n")}
+${shared.calls.HyprLua.monitorsLua(profiles).join("\n")}
 end
 run()
 local function check(monitors, mode)
@@ -448,17 +455,17 @@ assert(removed == 2, "earlier handlers removed")
           })]
       }
     ];
-    const none = HyprLua.greeterLua(profiles, inputSchema, undefined, hex);
+    const none = shared.calls.HyprLua.greeterLua(profiles, inputSchema, undefined, hex);
     verify(none.some(line => line.startsWith("AXIOM_MONITOR_PROFILES")));
     verify(!none.some(line => line.startsWith("hl.config")));
 
     const input = SchemaValidation.applyDefaults({}, inputSchema, schema);
     input.keyboard.layout = "us,de";
     input.mouse.sensitivity = -50;
-    compare(HyprLua.greeterLua(profiles, inputSchema, input, hex).length, none.length, "every part off: nothing set");
+    compare(shared.calls.HyprLua.greeterLua(profiles, inputSchema, input, hex).length, none.length, "every part off: nothing set");
     input.keyboard.enabled = true;
     input.mouse.enabled = true;
-    const lines = HyprLua.greeterLua(profiles, inputSchema, input, hex);
+    const lines = shared.calls.HyprLua.greeterLua(profiles, inputSchema, input, hex);
     const config = lines[lines.length - 1];
     verify(config.startsWith("hl.config("));
     verify(config.includes('kb_layout = "us,de"'));
@@ -473,9 +480,9 @@ assert(removed == 2, "earlier handlers removed")
     const schema = files.json("config/json/config.schema.json");
     const inputSchema = schema.properties.Input;
     const input = SchemaValidation.applyDefaults({}, inputSchema, schema);
-    compare(HyprLua.inputLua(CompositorLayer.input(input), inputSchema), [], "every part off");
+    compare(shared.calls.HyprLua.inputLua(shared.calls.CompositorLayer.input(input), inputSchema), [], "every part off");
     input.touchpad.enabled = true;
-    const lines = HyprLua.inputLua(CompositorLayer.input(input), inputSchema);
+    const lines = shared.calls.HyprLua.inputLua(shared.calls.CompositorLayer.input(input), inputSchema);
     verify(lines[0].startsWith("hl.config("));
     verify(lines.every(line => !line.includes("\n")), "one line each, for indenting");
     const lua = lines.join("\n");
@@ -486,7 +493,7 @@ assert(removed == 2, "earlier handlers removed")
 
   // The look's spec (CompositorLayer.look) from WindowLook's values
   function look(values, activeHex, inactiveHex, borderWidth, radius, surfacesBlur) {
-    return CompositorLayer.look(values, {
+    return shared.calls.CompositorLayer.look(values, {
       "activeHex": activeHex,
       "inactiveHex": inactiveHex,
       "borderWidth": borderWidth,
@@ -509,7 +516,7 @@ assert(removed == 2, "earlier handlers removed")
         "strength": 20
       }
     });
-    const spec = opts => CompositorLayer.look(values, Object.assign({
+    const spec = opts => shared.calls.CompositorLayer.look(values, Object.assign({
         "activeHex": "ffffff",
         "inactiveHex": "000000",
         "borderWidth": 2,
@@ -524,40 +531,40 @@ assert(removed == 2, "earlier handlers removed")
             "offset": offset
           }
         });
-    const lua = HyprLua.lookLua(spec(cast("", 0)), lookSchema).join("\n");
+    const lua = shared.calls.HyprLua.lookLua(spec(cast("", 0)), lookSchema).join("\n");
     verify(lua.includes("range = 12") && lua.includes("render_power = 2") && lua.includes("enabled = true"));
     verify(!lua.includes("shadow = {") || !lua.includes("color ="), "no color: Hyprland's own");
     verify(lua.includes("dim_inactive = true") && lua.includes("dim_strength = 0.2"));
-    const themed = HyprLua.lookLua(spec(cast("101010", 3)), lookSchema).join("\n");
+    const themed = shared.calls.HyprLua.lookLua(spec(cast("101010", 3)), lookSchema).join("\n");
     verify(themed.includes('color = "rgba(10101099)"'), themed);
     verify(themed.includes("offset = { 0, 3 }"), themed);
     // Standing in for axiom's soft shadow: as long and as strong as that
     // looks (fitted on screen: HyprLua.softShadow)
     const soft = cast("101010", 0);
     soft.shadow.soft = true;
-    const softLua = HyprLua.lookLua(spec(soft), lookSchema).join("\n");
+    const softLua = shared.calls.HyprLua.lookLua(spec(soft), lookSchema).join("\n");
     verify(softLua.includes("range = 14") && softLua.includes("render_power = 4"), softLua);
     verify(softLua.includes('color = "rgba(1010102c)"'), "a dark color: about 0.3 of axiom's alpha");
   }
 
   function test_softShadow() {
-    const glow = HyprLua.softShadow({
+    const glow = shared.calls.HyprLua.softShadow({
       "size": 20,
       "rgb": "c4a7e7",
       "baseAlpha": 0.45
     });
-    compare([glow.range, glow.power, CompositorLayer.alphaHex(glow.alpha)], [24, 4, "02"], "the fit for a light glow");
-    compare(CompositorLayer.alphaHex(HyprLua.softShadow({
+    compare([glow.range, glow.power, shared.calls.CompositorLayer.alphaHex(glow.alpha)], [24, 4, "02"], "the fit for a light glow");
+    compare(shared.calls.CompositorLayer.alphaHex(shared.calls.HyprLua.softShadow({
       "size": 20,
       "rgb": "c4a7e7",
       "baseAlpha": 1
     }).alpha), "05");
-    compare(CompositorLayer.alphaHex(HyprLua.softShadow({
+    compare(shared.calls.CompositorLayer.alphaHex(shared.calls.HyprLua.softShadow({
       "size": 20,
       "rgb": "000000",
       "baseAlpha": 0.45
     }).alpha), "22", "black: 0.3 of it");
-    compare(CompositorLayer.alphaHex(HyprLua.softShadow({
+    compare(shared.calls.CompositorLayer.alphaHex(shared.calls.HyprLua.softShadow({
       "size": 20,
       "rgb": "c4a7e7",
       "baseAlpha": 1,
@@ -569,7 +576,7 @@ assert(removed == 2, "earlier handlers removed")
     const schema = files.json("config/json/config.schema.json");
     const lookSchema = schema.properties.WindowLook;
     const off = SchemaValidation.applyDefaults({}, lookSchema, schema);
-    compare(HyprLua.lookLua(look(off, "ffffff", "000000", 2, 8, true), lookSchema), []);
+    compare(shared.calls.HyprLua.lookLua(look(off, "ffffff", "000000", 2, 8, true), lookSchema), []);
     compare(look(off).parts, []);
 
     const gaps = merged(off, {
@@ -579,7 +586,7 @@ assert(removed == 2, "earlier handlers removed")
         "outer": 12
       }
     });
-    const gapsLua = HyprLua.lookLua(look(gaps, "ffffff", "000000", 2, 8, true), lookSchema).join("\n");
+    const gapsLua = shared.calls.HyprLua.lookLua(look(gaps, "ffffff", "000000", 2, 8, true), lookSchema).join("\n");
     verify(gapsLua.includes("gaps_in = 4"));
     verify(gapsLua.includes("gaps_out = 12"));
     verify(!gapsLua.includes("rounding"));
@@ -604,7 +611,7 @@ assert(removed == 2, "earlier handlers removed")
         "inactive": 90
       }
     });
-    const lines = HyprLua.lookLua(look(all, "aabbcc", "112233", 2, 8, false), lookSchema);
+    const lines = shared.calls.HyprLua.lookLua(look(all, "aabbcc", "112233", 2, 8, false), lookSchema);
     const lua = lines.join("\n");
     verify(lua.startsWith("hl.config("));
     verify(lua.includes('active_border = "rgb(aabbcc)"'));
@@ -627,7 +634,7 @@ assert(removed == 2, "earlier handlers removed")
         "popups": true
       }
     });
-    const run = (surfacesBlur, check) => `${HyprLua.lookLua(look(surfacesOnly, "aabbcc", "112233", 2, 8, surfacesBlur), lookSchema).join("\n")}\n${check}\n`;
+    const run = (surfacesBlur, check) => `${shared.calls.HyprLua.lookLua(look(surfacesOnly, "aabbcc", "112233", 2, 8, surfacesBlur), lookSchema).join("\n")}\n${check}\n`;
     const runLua = `local options, rules = {}, {}
 hl = {
   config = function(t) options = t end,
@@ -645,7 +652,7 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
   }
 
   function test_blurLua() {
-    const lines = opts => HyprLua.blurLua(Object.assign({
+    const lines = opts => shared.calls.HyprLua.blurLua(Object.assign({
         "threshold": 0.5
       }, opts));
     const on = lines({
@@ -691,18 +698,18 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
   }
 
   function test_leaveSubmap() {
-    compare(HyprLua.leaveSubmap("axiom_record"), `if hl.get_current_submap() == "axiom_record" then hl.dispatch(hl.dsp.submap("reset")) end`);
+    compare(shared.calls.HyprLua.leaveSubmap("axiom_record"), `if hl.get_current_submap() == "axiom_record" then hl.dispatch(hl.dsp.submap("reset")) end`);
   }
 
   function test_switcherHeld() {
-    compare(BindActions.switcherHeld(["ALT"]), ["ALT"]);
-    compare(BindActions.switcherHeld(["ALT", "SHIFT"]), ["ALT"], "SHIFT only turns it around");
-    compare(BindActions.switcherHeld(["SHIFT"]), ["SHIFT"], "unless it's all there is");
-    compare(BindActions.switcherHeld([]), [], "nothing to hold");
+    compare(shared.calls.BindActions.switcherHeld(["ALT"]), ["ALT"]);
+    compare(shared.calls.BindActions.switcherHeld(["ALT", "SHIFT"]), ["ALT"], "SHIFT only turns it around");
+    compare(shared.calls.BindActions.switcherHeld(["SHIFT"]), ["SHIFT"], "unless it's all there is");
+    compare(shared.calls.BindActions.switcherHeld([]), [], "nothing to hold");
   }
 
   function test_switcherLua_without_binds_only_unbinds() {
-    const lua = HyprLua.switcherLua([]).join("\n");
+    const lua = shared.calls.HyprLua.switcherLua([]).join("\n");
     verify(lua.includes("hl.unbind(key)"));
     verify(!lua.includes("hl.bind("));
     verify(lua.includes("AXIOM_SWITCHER_KEYS = {  }"));
@@ -739,7 +746,7 @@ hl = {
   },
 }
 local function run()
-${HyprLua.switcherLua(entries).join("\n")}
+${shared.calls.HyprLua.switcherLua(entries).join("\n")}
 end
 -- A key goes up or down; the check runs once its timer fires
 local function key(name, pressed)
@@ -749,7 +756,7 @@ local function key(name, pressed)
 end
 run()
 run()
-local open = ${HyprLua.switcherBindLua(1)}
+local open = ${shared.calls.HyprLua.switcherBindLua(1)}
 down["Alt_L"] = true
 open()
 assert(submap == "axiom_switcher" and events[1] == "axiom-switcher:step 1", "the bind opens")

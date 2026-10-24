@@ -12,7 +12,7 @@ tools/            go generate programs (syncassets, …)
 
 ## Rules
 
-- **Pure core, effects at the edge.** Packages marked pure in their doc comment (`axerr`, `jsonx`, `schema`, `config`, `migrate/…`, `share`) do no I/O and import no `os`, `net`, `os/exec` or `syscall`: they are the Go side of `components/methods/`. File, socket and process work lives in the packages above them, and the dependency direction only points down.
+- **Pure core, effects at the edge.** Packages marked pure in their doc comment (`axerr`, `jsonx`, `schema`, `config`, `migrate/…`, `share`, `compositor/kdl`, `compositor/actions`) do no I/O and import no `os`, `net`, `os/exec` or `syscall`: they are the Go side of `components/methods/`. File, socket and process work lives in the packages above them, and the dependency direction only points down.
 - **No globals, no `init()` side effects.** State lives in structs built by constructors taking an `Options` (logger, clock, paths injected), so tests build their own. `context.Context` first on anything that blocks; every goroutine has an owner that stops it.
 - **One error type across boundaries**: `axerr.Error` with a `Kind`. RPC codes, CLI exit codes and what the shell shows all come from the kind; messages stay English (the shell translates by kind). Wrap causes with `%w`.
 - **The config is a tree, not structs.** Migrate, prune, defaults, validate and write work on the ordered JSON tree (`jsonx`), so key order, unknown keys and old shapes survive and the bytes match the JS reference. Generated structs are read-only views, never written back.
@@ -37,7 +37,7 @@ Standard library first. A new module needs a line here saying why, and must be p
 | `golang.org/x/vuln` (tool) | govulncheck, pinned the same way |
 | `go.yaml.in/yaml/v3` | reads the config schema's YAML source (`schema/yamlsrc`, which adds the strictness) |
 | `github.com/dop251/goja` | a pure-Go JS engine, used only by `migrate/legacy` to run the frozen format-1 migrations (`legacy.js`) exactly as the shell did, instead of a hand port that could drift |
-| `github.com/yuin/gopher-lua` | a pure-Go Lua (5.1) parser and VM: checks that an edit to a user's Hyprland Lua still parses where `luac` isn't installed (`compositor/luacheck`), and will run their files for the bind merge, without `lua` as a dependency |
+| `github.com/yuin/gopher-lua` | a pure-Go Lua (5.1) parser and VM: runs a user's Hyprland Lua files, sandboxed, for the bind merge (`compositor/binds`), and checks that an edit to them still parses where `luac` isn't installed (`compositor/luacheck`), without `lua` as a dependency |
 
 ## Checks
 

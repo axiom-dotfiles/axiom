@@ -43,7 +43,7 @@ Singleton {
   // niri doesn't say how far it scrolls a strip, so the overview fits it
   readonly property real splitWidthMultiplier: 1
   // niri's blur as in effect, { enabled, size, passes }: the config's
-  // (niri_config.py info), its offset as the size (NiriConf.lookNodes
+  // (`axiom compositor niri info`), its offset as the size (NiriConf.lookNodes
   // writes the window look's size as the offset), niri's defaults until
   // read
   readonly property var blur: root._blur
@@ -471,12 +471,12 @@ Singleton {
   property string _configModKey: "SUPER"
 
   // The gaps, struts, layouts, mod key and blur the config niri runs sets
-  // (niri_config.py info)
+  // (`axiom compositor niri info`)
   function _readConfig() {
     // Reads finish in any order: only the last asked for counts (the
     // running config may have changed between them)
     const asked = ++root._configReads;
-    CommandManager.run([Paths.scriptsPath + "niri_config.py", "info", "--config", NiriConfigWriter.runningConfig], (code, out) => {
+    CommandManager.run([Paths.toolBin, "compositor", "niri", "info", "--config", NiriConfigWriter.runningConfig], (code, out) => {
       if (code !== 0 || asked !== root._configReads)
         return;
       try {

@@ -4,7 +4,14 @@ import qs.components.methods
 
 // SwayConf: sway's command and config text from axiom's settings.
 TestCase {
+  id: test
   name: "SwayConf"
+
+  // Records the helpers' calls as shared fixtures for the axiom binary
+  Shared {
+    id: shared
+    testCase: test
+  }
 
   RepoFiles {
     id: files
@@ -19,13 +26,13 @@ TestCase {
     })
 
   function test_quote() {
-    compare(SwayConf.quote("DP-1"), "DP-1");
-    compare(SwayConf.quote("AOC CU34G4Z XJ9"), "\"AOC CU34G4Z XJ9\"");
+    compare(shared.calls.SwayConf.quote("DP-1"), "DP-1");
+    compare(shared.calls.SwayConf.quote("AOC CU34G4Z XJ9"), "\"AOC CU34G4Z XJ9\"");
     // Sway keeps a backslash before a quote, so a `"` is single-quoted
-    compare(SwayConf.quote("say \"hi\""), "\"say \"'\"'\"hi\"'\"'");
-    compare(SwayConf.quote("\""), "'\"'");
-    compare(SwayConf.quote(""), "\"\"");
-    compare(SwayConf.quote("it's"), "\"it's\"");
+    compare(shared.calls.SwayConf.quote("say \"hi\""), "\"say \"'\"'\"hi\"'\"'");
+    compare(shared.calls.SwayConf.quote("\""), "'\"'");
+    compare(shared.calls.SwayConf.quote(""), "\"\"");
+    compare(shared.calls.SwayConf.quote("it's"), "\"it's\"");
   }
 
   // A bind's command: doubled backslashes in a file; quoted whole at
@@ -33,21 +40,21 @@ TestCase {
   // against sway 1.12: an unquoted `a, b` runs b at once, and an exec's
   // quotes are gone by the time the key is pressed)
   function test_bindCommand() {
-    compare(SwayConf.bindCommand("kill", true), "kill");
-    compare(SwayConf.bindCommand("kill", false), "kill");
-    compare(SwayConf.bindCommand("resize grow width 5 px, resize grow height 5 px", true), "\"resize grow width 5 px, resize grow height 5 px\"");
-    compare(SwayConf.bindCommand("exec \"a; b\"", true), "\"exec \"'\"'\"a; b\"'\"'");
-    compare(SwayConf.bindCommand("exec \"a\\tb\"", false), "exec \"a\\\\tb\"");
-    compare(SwayConf.bindCommand("exec \"a\nb\"", false), "exec \"a\\nb\"");
+    compare(shared.calls.SwayConf.bindCommand("kill", true), "kill");
+    compare(shared.calls.SwayConf.bindCommand("kill", false), "kill");
+    compare(shared.calls.SwayConf.bindCommand("resize grow width 5 px, resize grow height 5 px", true), "\"resize grow width 5 px, resize grow height 5 px\"");
+    compare(shared.calls.SwayConf.bindCommand("exec \"a; b\"", true), "\"exec \"'\"'\"a; b\"'\"'");
+    compare(shared.calls.SwayConf.bindCommand("exec \"a\\tb\"", false), "exec \"a\\\\tb\"");
+    compare(shared.calls.SwayConf.bindCommand("exec \"a\nb\"", false), "exec \"a\\nb\"");
   }
 
   function test_runtimeBindLine() {
-    compare(SwayConf.bindLine({
+    compare(shared.calls.SwayConf.bindLine({
       "key": "SUPER + SHIFT + R",
       "action": "restartShell",
       "release": true
     }, ctx, true), "bindsym --no-warn --release --no-repeat Mod4+Shift+r \"exec \"'\"'\"'/usr/bin/axiom' restart\"'\"'");
-    compare(SwayConf.bindLine({
+    compare(shared.calls.SwayConf.bindLine({
       "key": "SUPER + Q",
       "action": "closeWindow"
     }, ctx, true), "bindsym --no-warn --no-repeat Mod4+q kill");
@@ -55,7 +62,7 @@ TestCase {
 
   // An exec holding double quotes reaches the shell with them
   function test_execWithQuotes() {
-    compare(SwayConf.command({
+    compare(shared.calls.SwayConf.command({
       "key": "SUPER + S",
       "action": "exec",
       "argument": "grim -g \"$(slurp)\" /tmp/a.png"
@@ -63,57 +70,57 @@ TestCase {
   }
 
   function test_key() {
-    compare(SwayConf.key("SUPER + SHIFT + Q"), {
+    compare(shared.calls.SwayConf.key("SUPER + SHIFT + Q"), {
       "command": "bindsym",
       "spec": "Mod4+Shift+q",
       "mouse": false
     });
-    compare(SwayConf.key("CTRL + ALT + Delete").spec, "Ctrl+Mod1+Delete");
-    compare(SwayConf.key("SUPER + code:49"), {
+    compare(shared.calls.SwayConf.key("CTRL + ALT + Delete").spec, "Ctrl+Mod1+Delete");
+    compare(shared.calls.SwayConf.key("SUPER + code:49"), {
       "command": "bindcode",
       "spec": "Mod4+49",
       "mouse": false
     });
-    compare(SwayConf.key("SUPER + mouse_down"), {
+    compare(shared.calls.SwayConf.key("SUPER + mouse_down"), {
       "command": "bindsym",
       "spec": "Mod4+button5",
       "mouse": true
     });
-    compare(SwayConf.key("SUPER + mouse:272").spec, "Mod4+BTN_LEFT");
-    compare(SwayConf.key("SUPER + Super_L"), {
+    compare(shared.calls.SwayConf.key("SUPER + mouse:272").spec, "Mod4+BTN_LEFT");
+    compare(shared.calls.SwayConf.key("SUPER + Super_L"), {
       "command": "bindsym",
       "spec": "Super_L",
       "mouse": false,
       "tap": true
     });
-    compare(SwayConf.key("HYPER + Q"), null);
-    compare(SwayConf.key("SUPER + mouse:999"), null);
-    compare(SwayConf.key(""), null);
+    compare(shared.calls.SwayConf.key("HYPER + Q"), null);
+    compare(shared.calls.SwayConf.key("SUPER + mouse:999"), null);
+    compare(shared.calls.SwayConf.key(""), null);
   }
 
   function test_bindLine() {
-    compare(SwayConf.bindLine({
+    compare(shared.calls.SwayConf.bindLine({
       "key": "SUPER + Q",
       "action": "closeWindow"
     }, ctx), "bindsym --no-warn --no-repeat Mod4+q kill");
-    compare(SwayConf.bindLine({
+    compare(shared.calls.SwayConf.bindLine({
       "key": "XF86AudioRaiseVolume",
       "action": "volumeUp",
       "locked": true,
       "repeating": true
     }, ctx), "bindsym --no-warn --locked XF86AudioRaiseVolume exec \"'/opt/axiom' ipc audio volumeUp\"");
-    compare(SwayConf.bindLine({
+    compare(shared.calls.SwayConf.bindLine({
       "key": "SUPER + mouse_down",
       "action": "workspaceStep",
       "argument": "right"
     }, ctx), "bindsym --no-warn --whole-window --no-repeat Mod4+button5 exec \"'/opt/axiom' ipc workspaces step 'right' go\"");
-    compare(SwayConf.bindLine({
+    compare(shared.calls.SwayConf.bindLine({
       "key": "SUPER + ALT + L",
       "action": "resizeWindow",
       "argument": "50 -20",
       "repeating": true
     }, ctx), "bindsym --no-warn Mod4+Mod1+l resize grow width 50 px, resize shrink height 20 px");
-    compare(SwayConf.bindLine({
+    compare(shared.calls.SwayConf.bindLine({
       "key": "SUPER + SHIFT + R",
       "action": "restartShell",
       "release": true
@@ -123,11 +130,11 @@ TestCase {
   // Checked in a headless sway 1.12: a tap fires bound alone, on release,
   // and not after another key
   function test_tapBindsOnRelease() {
-    compare(SwayConf.bindLine({
+    compare(shared.calls.SwayConf.bindLine({
       "key": "Super_L",
       "action": "launcher"
     }, ctx), "bindsym --no-warn --release --no-repeat Super_L exec \"'/opt/axiom' ipc appLauncher toggle\"");
-    compare(SwayConf.unbindLines([
+    compare(shared.calls.SwayConf.unbindLines([
       {
         "key": "Super_L",
         "action": "launcher"
@@ -138,7 +145,7 @@ TestCase {
   // A tap's press is bound to nothing, so an input method's virtual
   // keyboard never sees it (and fires the tap after Super+Tab)
   function test_tapKeepsItsPress() {
-    const lines = SwayConf.bindLines([
+    const lines = shared.calls.SwayConf.bindLines([
       {
         "key": "Super_L",
         "action": "launcher"
@@ -156,20 +163,20 @@ TestCase {
       "action": "restartShell",
       "release": true
     };
-    compare(SwayConf.bindLines([restart], ctx).slice(1), ["bindsym --no-warn --no-repeat Mod4+Ctrl+r nop"]);
-    compare(SwayConf.unbindLines([restart], ctx), ["unbindsym --release Mod4+Ctrl+r", "unbindsym Mod4+Ctrl+r"]);
+    compare(shared.calls.SwayConf.bindLines([restart], ctx).slice(1), ["bindsym --no-warn --no-repeat Mod4+Ctrl+r nop"]);
+    compare(shared.calls.SwayConf.unbindLines([restart], ctx), ["unbindsym --release Mod4+Ctrl+r", "unbindsym Mod4+Ctrl+r"]);
     const locked = Object.assign({}, restart, {
       "locked": true
     });
-    compare(SwayConf.bindLines([locked], ctx).slice(1), ["bindsym --no-warn --no-repeat --locked Mod4+Ctrl+r nop"]);
-    compare(SwayConf.unbindLines([locked], ctx)[1], "unbindsym --locked Mod4+Ctrl+r");
+    compare(shared.calls.SwayConf.bindLines([locked], ctx).slice(1), ["bindsym --no-warn --no-repeat --locked Mod4+Ctrl+r nop"]);
+    compare(shared.calls.SwayConf.unbindLines([locked], ctx)[1], "unbindsym --locked Mod4+Ctrl+r");
     const press = {
       "key": "SUPER + CTRL + R",
       "action": "launcher"
     };
-    compare(SwayConf.bindLines([restart, press], ctx).length, 2, "the press is another bind's");
-    compare(SwayConf.unbindLines([press, restart], ctx).length, 2);
-    compare(SwayConf.bindLines([
+    compare(shared.calls.SwayConf.bindLines([restart, press], ctx).length, 2, "the press is another bind's");
+    compare(shared.calls.SwayConf.unbindLines([press, restart], ctx).length, 2);
+    compare(shared.calls.SwayConf.bindLines([
       {
         "key": "SUPER + mouse:272",
         "action": "closeWindow",
@@ -179,26 +186,26 @@ TestCase {
   }
 
   function test_switcherAndSpecialAreAxiomsOwn() {
-    compare(SwayConf.command({
+    compare(shared.calls.SwayConf.command({
       "key": "ALT + Tab",
       "action": "windowSwitcher"
     }, ctx), "nop axiom switcher step 1");
-    compare(SwayConf.command({
+    compare(shared.calls.SwayConf.command({
       "key": "ALT + SHIFT + Tab",
       "action": "windowSwitcherReverse"
     }, ctx), "nop axiom switcher step -1");
-    compare(SwayConf.command({
+    compare(shared.calls.SwayConf.command({
       "key": "SUPER + V",
       "action": "toggleSpecial",
       "argument": "magic"
     }, ctx), "nop axiom special toggle magic");
-    compare(SwayConf.command({
+    compare(shared.calls.SwayConf.command({
       "key": "SUPER + SHIFT + V",
       "action": "moveToSpecial",
       "argument": "magic"
     }, ctx), "nop axiom special move magic");
     for (const name of ["a;b", "a,b", "a\"b"])
-      compare(SwayConf.command({
+      compare(shared.calls.SwayConf.command({
         "key": "SUPER + V",
         "action": "toggleSpecial",
         "argument": name
@@ -207,22 +214,22 @@ TestCase {
 
   function test_whatSwayCantDo() {
     for (const action of ["pseudo", "toggleGroup", "stripWider", "stripFit"])
-      compare(SwayConf.command({
+      compare(shared.calls.SwayConf.command({
         "key": "SUPER + P",
         "action": action
       }, ctx), "", action);
-    compare(SwayConf.command({
+    compare(shared.calls.SwayConf.command({
       "key": "SUPER + P",
       "action": "raw",
       "argument": "hl.dsp.layout(\"swapsplit\")"
     }, ctx), "");
-    compare(SwayConf.command({
+    compare(shared.calls.SwayConf.command({
       "key": "SUPER + P",
       "action": "raw",
       "argument": "layout tabbed",
       "compositor": "sway"
     }, ctx), "layout tabbed");
-    compare(SwayConf.command({
+    compare(shared.calls.SwayConf.command({
       "key": "SUPER + H",
       "action": "focusDir",
       "argument": "l"
@@ -230,12 +237,12 @@ TestCase {
   }
 
   function test_execQuotesWhatSwayWouldSplit() {
-    compare(SwayConf.command({
+    compare(shared.calls.SwayConf.command({
       "key": "SUPER + E",
       "action": "exec",
       "argument": "notify-send a, b"
     }, ctx), "exec \"notify-send a, b\"");
-    compare(SwayConf.command({
+    compare(shared.calls.SwayConf.command({
       "key": "SUPER + E",
       "action": "exec",
       "argument": "foot -e htop"
@@ -243,49 +250,49 @@ TestCase {
   }
 
   function test_floatingModifier() {
-    compare(SwayConf.floatingModifier([
+    compare(shared.calls.SwayConf.floatingModifier([
       {
         "key": "SUPER + mouse:272",
         "action": "mouseDrag"
       }
     ]), "floating_modifier Mod4 normal");
-    compare(SwayConf.floatingModifier([
+    compare(shared.calls.SwayConf.floatingModifier([
       {
         "key": "ALT + mouse:273",
         "action": "mouseDrag"
       }
     ]), "floating_modifier Mod1 inverse");
-    compare(SwayConf.floatingModifier([]), "");
+    compare(shared.calls.SwayConf.floatingModifier([]), "");
     // A resize bind alone sets it too; resizing with the left button is
     // sway's inverse
-    compare(SwayConf.floatingModifier([
+    compare(shared.calls.SwayConf.floatingModifier([
       {
         "key": "SUPER + mouse:273",
         "action": "mouseResize"
       }
     ]), "floating_modifier Mod4 normal");
-    compare(SwayConf.floatingModifier([
+    compare(shared.calls.SwayConf.floatingModifier([
       {
         "key": "SUPER + mouse:272",
         "action": "mouseResize"
       }
     ]), "floating_modifier Mod4 inverse");
     // One modifier, the left or right button: else sway can't
-    verify(!SwayConf.isComplete({
+    verify(!shared.calls.SwayConf.isComplete({
       "key": "SUPER + SHIFT + mouse:272",
       "action": "mouseDrag"
     }, ctx));
-    verify(!SwayConf.isComplete({
+    verify(!shared.calls.SwayConf.isComplete({
       "key": "SUPER + mouse:274",
       "action": "mouseDrag"
     }, ctx));
-    compare(SwayConf.floatingModifier([
+    compare(shared.calls.SwayConf.floatingModifier([
       {
         "key": "SUPER + mouse:274",
         "action": "mouseDrag"
       }
     ]), "");
-    verify(SwayConf.isComplete({
+    verify(shared.calls.SwayConf.isComplete({
       "key": "SUPER + mouse:273",
       "action": "mouseResize"
     }, ctx));
@@ -295,16 +302,16 @@ TestCase {
   function test_defaultBinds() {
     const schema = files.json("config/json/config.schema.json");
     const binds = schema.properties.Keybinds.properties.binds["default"];
-    const unbound = binds.filter(bind => !SwayConf.isComplete(bind, ctx)).map(bind => bind.action);
+    const unbound = binds.filter(bind => !shared.calls.SwayConf.isComplete(bind, ctx)).map(bind => bind.action);
     compare(unbound, []);
-    const lines = SwayConf.bindLines(binds, ctx);
+    const lines = shared.calls.SwayConf.bindLines(binds, ctx);
     verify(lines.includes("floating_modifier Mod4 normal"));
-    compare(SwayConf.unbindLines(binds, ctx).length, lines.length - 1);
+    compare(shared.calls.SwayConf.unbindLines(binds, ctx).length, lines.length - 1);
   }
 
   // An unbind names the flags sway tells binds apart by, or it misses
   function test_unbindLinesCarryTheConflictFlags() {
-    compare(SwayConf.unbindLines([
+    compare(shared.calls.SwayConf.unbindLines([
       {
         "key": "XF86AudioRaiseVolume",
         "action": "volumeUp",
@@ -334,7 +341,7 @@ TestCase {
   }
 
   function test_lookLines() {
-    const look = CompositorLayer.look(off({
+    const look = shared.calls.CompositorLayer.look(off({
       "borders": {
         "enabled": true
       },
@@ -352,16 +359,16 @@ TestCase {
       "borderWidth": 2,
       "radius": 8
     });
-    compare(SwayConf.lookLines(look, false), ["client.focused #9ccfd8 #9ccfd8 #000000 #9ccfd8 #9ccfd8", "client.focused_inactive #403d52 #403d52 #ffffff #403d52 #403d52", "client.unfocused #403d52 #403d52 #ffffff #403d52 #403d52", "default_border pixel 2", "default_floating_border pixel 2", "gaps inner 3", "gaps outer 6"]);
-    const live = SwayConf.lookLines(look, true);
+    compare(shared.calls.SwayConf.lookLines(look, false), ["client.focused #9ccfd8 #9ccfd8 #000000 #9ccfd8 #9ccfd8", "client.focused_inactive #403d52 #403d52 #ffffff #403d52 #403d52", "client.unfocused #403d52 #403d52 #ffffff #403d52 #403d52", "default_border pixel 2", "default_floating_border pixel 2", "gaps inner 3", "gaps outer 6"]);
+    const live = shared.calls.SwayConf.lookLines(look, true);
     verify(live.includes("[all] border pixel 2"));
     verify(live.includes("gaps outer all set 6"));
-    compare(SwayConf.lookLines(CompositorLayer.look(off({}), {}), true), []);
+    compare(shared.calls.SwayConf.lookLines(shared.calls.CompositorLayer.look(off({}), {}), true), []);
   }
 
   function test_inputLines() {
     const schema = files.json("config/json/config.schema.json").properties.Input;
-    const input = CompositorLayer.input({
+    const input = shared.calls.CompositorLayer.input({
       "keyboard": {
         "enabled": true,
         "layout": "us,de",
@@ -387,12 +394,12 @@ TestCase {
         "size": 24
       }
     });
-    verify(!SwayConf.inputLines(input, schema, true).includes("input type:keyboard xkb_numlock enabled"));
-    compare(SwayConf.inputLines(input, schema, false), ["input type:keyboard xkb_layout \"us,de\"", "input type:keyboard xkb_variant \"\"", "input type:keyboard xkb_options caps:escape", "input type:keyboard repeat_rate 50", "input type:keyboard repeat_delay 300", "input type:keyboard xkb_numlock enabled", "input type:pointer pointer_accel -0.25", "input type:pointer left_handed disabled", "seat * xcursor_theme \"Bibata Modern\" 24"]);
+    verify(!shared.calls.SwayConf.inputLines(input, schema, true).includes("input type:keyboard xkb_numlock enabled"));
+    compare(shared.calls.SwayConf.inputLines(input, schema, false), ["input type:keyboard xkb_layout \"us,de\"", "input type:keyboard xkb_variant \"\"", "input type:keyboard xkb_options caps:escape", "input type:keyboard repeat_rate 50", "input type:keyboard repeat_delay 300", "input type:keyboard xkb_numlock enabled", "input type:pointer pointer_accel -0.25", "input type:pointer left_handed disabled", "seat * xcursor_theme \"Bibata Modern\" 24"]);
   }
 
   function test_moduleText() {
-    const text = SwayConf.moduleText({
+    const text = shared.calls.SwayConf.moduleText({
       "header": "# Generated by axiom",
       "includeLines": "include /state/axiom/sway.conf",
       "binds": ["bindsym --no-warn --no-repeat Mod4+q kill"],
@@ -405,7 +412,7 @@ TestCase {
     verify(!text.includes("# Window borders"));
     verify(text.includes("# Input\ninput type:keyboard repeat_rate 50\n"));
     verify(!text.includes("# Monitors"));
-    const withOutputs = SwayConf.moduleText({
+    const withOutputs = shared.calls.SwayConf.moduleText({
       "header": "# Generated by axiom",
       "includeLines": "include /state/axiom/sway.conf",
       "binds": [],
@@ -415,8 +422,8 @@ TestCase {
     });
     verify(withOutputs.includes("# Monitors\noutput DP-1 enable"));
     // Read back, as the writer does until the outputs are known
-    compare(SwayConf.fileOutputLines(withOutputs), ["output DP-1 enable pos 0 0 scale 1 transform normal adaptive_sync off render_bit_depth 8"]);
-    compare(SwayConf.fileOutputLines(SwayConf.managedText(withOutputs, {
+    compare(shared.calls.SwayConf.fileOutputLines(withOutputs), ["output DP-1 enable pos 0 0 scale 1 transform normal adaptive_sync off render_bit_depth 8"]);
+    compare(shared.calls.SwayConf.fileOutputLines(shared.calls.SwayConf.managedText(withOutputs, {
       "header": "# Generated by axiom",
       "userDir": "/u/user",
       "start": {
@@ -446,7 +453,7 @@ mode "resize" {
 mode "launch" bindsym f exec firefox
 bindsym $mod+space exec $ipc appLauncher toggle`;
 
-    compare(SwayConf.configBinds(text), [
+    compare(shared.calls.SwayConf.configBinds(text), [
       {
         "modmask": 64,
         "key": "Return",
@@ -534,12 +541,12 @@ bar {
     }
 }`;
 
-    compare(SwayConf.configBinds(text).map(entry => [entry.modmask, entry.key, entry.submap, entry.description]), [[64, "x", "", "exec foo"], [64, "y", "", "kill"], [0, "h", "resize", "resize shrink width 10px"]], "a bindsym block's lines are its binds, a bar's clicks aren't binds");
+    compare(shared.calls.SwayConf.configBinds(text).map(entry => [entry.modmask, entry.key, entry.submap, entry.description]), [[64, "x", "", "exec foo"], [64, "y", "", "kill"], [0, "h", "resize", "resize shrink width 10px"]], "a bindsym block's lines are its binds, a bar's clicks aren't binds");
   }
 
   function test_configBindsAgainstAxioms() {
-    const entries = SwayConf.configBinds("set $mod Mod4\nbindsym $mod+q kill\nbindsym $mod+button4 focus left\nbindcode Mod4+49 nop");
-    const plan = BindKeys.runtimeBinds([
+    const entries = shared.calls.SwayConf.configBinds("set $mod Mod4\nbindsym $mod+q kill\nbindsym $mod+button4 focus left\nbindcode Mod4+49 nop");
+    const plan = shared.calls.BindKeys.runtimeBinds([
       {
         "key": "SUPER + Q"
       },
@@ -558,7 +565,7 @@ bar {
   }
 
   function test_bindEntries() {
-    compare(SwayConf.bindEntries([
+    compare(shared.calls.SwayConf.bindEntries([
       {
         "key": "SUPER + Q",
         "action": "closeWindow"
@@ -571,16 +578,16 @@ bar {
         "key": "",
         "action": "launcher"
       }
-    ], ctx).map(entry => [BindKeys.entryId(entry), entry.description]), [["64:q", BindActions.descriptionFor({
+    ], ctx).map(entry => [shared.calls.BindKeys.entryId(entry), entry.description]), [["64:q", shared.calls.BindActions.descriptionFor({
           "action": "closeWindow"
-        })], ["64:mouse:272", BindActions.descriptionFor({
+        })], ["64:mouse:272", shared.calls.BindActions.descriptionFor({
           "action": "mouseDrag"
         })]]);
   }
 
   function test_optionLines() {
     const schema = files.json("config/json/config.schema.json").properties;
-    compare(SwayConf.optionLines(schema.WindowBehaviour, {
+    compare(shared.calls.SwayConf.optionLines(schema.WindowBehaviour, {
       "followMouse": true,
       "focusOnActivate": false,
       "workspaceBackAndForth": false,
@@ -588,7 +595,7 @@ bar {
       "hideCursorOnKeyPress": true,
       "noWarps": true
     }), ["focus_follows_mouse yes", "focus_on_window_activation urgent", "workspace_auto_back_and_forth no", "seat * hide_cursor 5000", "seat * hide_cursor when-typing enable", "mouse_warping none"]);
-    const sway = SwayConf.optionLines(schema.Compositor.properties.sway, {
+    const sway = shared.calls.SwayConf.optionLines(schema.Compositor.properties.sway, {
       "workspaceLayout": "tabbed",
       "hideEdgeBorders": "smart",
       "smartGaps": "off",
@@ -599,24 +606,24 @@ bar {
     });
     compare(sway[0], "workspace_layout tabbed");
     verify(!sway.some(line => line.startsWith("font")));
-    verify(SwayConf.optionLines(schema.Compositor.properties.sway, {
+    verify(shared.calls.SwayConf.optionLines(schema.Compositor.properties.sway, {
       "font": "pango:Inter 10"
     }).includes("font pango:Inter 10"));
   }
 
   function test_managedText() {
-    const module = SwayConf.moduleText({
+    const module = shared.calls.SwayConf.moduleText({
       "header": "# Generated by axiom",
       "includeLines": "include /s/sway.conf",
       "binds": ["bindsym --no-warn --no-repeat Mod4+q kill"],
       "look": [],
       "input": []
     });
-    const text = SwayConf.managedText(module, {
+    const text = shared.calls.SwayConf.managedText(module, {
       "header": "# Generated by axiom",
       "userDir": "/home/u/.config/sway/user",
       "options": ["focus_follows_mouse yes"],
-      "env": CompositorLayer.sessionEnv({
+      "env": shared.calls.CompositorLayer.sessionEnv({
         "recommendedEnv": false,
         "env": [
           {
@@ -671,14 +678,14 @@ bar {
   }
 
   function test_releasedText() {
-    const text = SwayConf.releasedText("/u/user", "exec axiom run");
+    const text = shared.calls.SwayConf.releasedText("/u/user", "exec axiom run");
     verify(text.startsWith("# Given back by axiom"));
     verify(text.includes("\nexec axiom run\n"));
     verify(text.endsWith("include /u/user/*\n"));
   }
 
   function test_outputCommand() {
-    compare(SwayConf.outputCommand({
+    compare(shared.calls.SwayConf.outputCommand({
       "output": "desc:AOC CU34G4Z XJ9",
       "mode": "3440x1440@240",
       "x": 15,
@@ -687,7 +694,7 @@ bar {
       "transform": 0,
       "vrr": 1
     }), "output \"AOC CU34G4Z XJ9\" enable mode 3440x1440@240Hz pos 15 83 scale 1 transform normal adaptive_sync on render_bit_depth 8");
-    compare(SwayConf.outputCommand({
+    compare(shared.calls.SwayConf.outputCommand({
       "output": "HDMI-A-1",
       "mode": "preferred",
       "x": 0,
@@ -696,14 +703,14 @@ bar {
       "transform": 5,
       "bitdepth": 10
     }), "output HDMI-A-1 enable pos 0 0 scale 1.5 transform flipped-90 adaptive_sync off render_bit_depth 10");
-    compare(SwayConf.outputCommand({
+    compare(shared.calls.SwayConf.outputCommand({
       "output": "DP-2",
       "disabled": true
     }), "output DP-2 disable");
   }
 
   function test_outputCommandsDisableLast() {
-    compare(SwayConf.outputCommands([
+    compare(shared.calls.SwayConf.outputCommands([
       {
         "output": "DP-2",
         "disabled": true
@@ -717,8 +724,8 @@ bar {
 
   // SwayFX's part of the look, sent at runtime only
   function test_fxLines() {
-    compare(SwayConf.fxLines(null, null).filter(line => !line.startsWith("layer_effects")), []);
-    const lines = SwayConf.fxLines({
+    compare(shared.calls.SwayConf.fxLines(null, null).filter(line => !line.startsWith("layer_effects")), []);
+    const lines = shared.calls.SwayConf.fxLines({
       "shape": {
         "width": 2,
         "radius": 14
@@ -758,11 +765,11 @@ bar {
     verify(lines.includes("layer_effects axiom-backdrop \"blur disable; blur_xray disable; blur_ignore_transparent enable\""), "backdrops only when asked");
     verify(lines.includes("layer_effects axiom-blur-backing-overlay \"blur enable; blur_xray disable; blur_ignore_transparent enable\""));
     // Surfaces not blurring: every layer's blur off
-    verify(SwayConf.fxLines(null, {
+    verify(shared.calls.SwayConf.fxLines(null, {
       "blur": false
     }).every(line => line.includes("\"blur disable;")));
     // No shadow color: SwayFX's own
-    verify(!SwayConf.fxLines({
+    verify(!shared.calls.SwayConf.fxLines({
       "shadow": {
         "size": 8,
         "power": 3,
@@ -771,7 +778,7 @@ bar {
       }
     }, null).some(line => line.startsWith("shadow_color")));
     // Matching axiom's (soft): fitted to its glow, the strength on top
-    const soft = (size, baseAlpha, strength) => SwayConf.fxLines({
+    const soft = (size, baseAlpha, strength) => shared.calls.SwayConf.fxLines({
         "shadow": {
           "size": size,
           "power": 3,

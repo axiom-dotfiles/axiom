@@ -19,7 +19,7 @@ ColumnLayout {
 
   spacing: Widget.spacing
 
-  // A merge's reason code (merge_hypr_binds.py, merge_sway_binds.py) as
+  // A merge's reason code (backend/internal/compositor/binds) as
   // text, with its detail
   function reasonText(entry) {
     switch (entry.reason) {

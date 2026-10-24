@@ -5,7 +5,14 @@ import qs.components.methods
 // BindActions: what each keybind action is (labels, sections, calls,
 // arguments), checked against the schema's action list.
 TestCase {
+  id: test
   name: "BindActions"
+
+  // Records the helpers' calls as shared fixtures for the axiom binary
+  Shared {
+    id: shared
+    testCase: test
+  }
 
   RepoFiles {
     id: files
@@ -26,32 +33,32 @@ TestCase {
   }
 
   function test_calls() {
-    verify(BindActions.hasCalls("launcher"));
-    verify(!BindActions.hasCalls("lock"));
-    compare(BindActions.callOf({
+    verify(shared.calls.BindActions.hasCalls("launcher"));
+    verify(!shared.calls.BindActions.hasCalls("lock"));
+    compare(shared.calls.BindActions.callOf({
       "action": "overlay",
       "call": "open"
     }), "open");
-    compare(BindActions.callOf({
+    compare(shared.calls.BindActions.callOf({
       "action": "lock",
       "call": "open"
     }), "toggle", "an action without calls always toggles");
-    compare(BindActions.callFunction({
+    compare(shared.calls.BindActions.callFunction({
       "action": "workspaceOverview",
       "call": "close"
     }), "hide", "the call's IPC function");
-    compare(BindActions.callFunction({
+    compare(shared.calls.BindActions.callFunction({
       "action": "overlay"
     }), "toggle");
   }
 
   function test_needsArgument() {
-    verify(BindActions.needsArgument("exec"));
-    verify(BindActions.needsArgument("workspaceNth"), "{0} in the IPC call");
-    verify(BindActions.needsArgument("focusDir"), "{0} in a compositor action's label");
-    verify(BindActions.needsArgument("raw"));
-    verify(!BindActions.needsArgument("launcher"));
-    verify(!BindActions.needsArgument("closeWindow"));
+    verify(shared.calls.BindActions.needsArgument("exec"));
+    verify(shared.calls.BindActions.needsArgument("workspaceNth"), "{0} in the IPC call");
+    verify(shared.calls.BindActions.needsArgument("focusDir"), "{0} in a compositor action's label");
+    verify(shared.calls.BindActions.needsArgument("raw"));
+    verify(!shared.calls.BindActions.needsArgument("launcher"));
+    verify(!shared.calls.BindActions.needsArgument("closeWindow"));
   }
 
   // An argument is needed exactly where the IPC call or the label has a
@@ -59,43 +66,43 @@ TestCase {
   function test_argumentsMatchTheTemplates() {
     for (const action of _schemaActions()) {
       const template = BindActions.ipcActions[action]?.[0] ?? BindActions.compositorActions[action]?.[0] ?? "";
-      compare(BindActions.needsArgument(action), action === "exec" || template.includes("{0}"), action);
+      compare(shared.calls.BindActions.needsArgument(action), action === "exec" || template.includes("{0}"), action);
     }
-    compare(BindActions.argumentKind("workspaceNth"), "workspace");
-    compare(BindActions.argumentKind("closeWindow"), "");
+    compare(shared.calls.BindActions.argumentKind("workspaceNth"), "workspace");
+    compare(shared.calls.BindActions.argumentKind("closeWindow"), "");
   }
 
   function test_labels() {
-    compare(BindActions.sectionFor("volumeUp"), "Media");
-    compare(BindActions.sectionFor("toggleSpecial"), "Special");
-    compare(BindActions.sectionFor("nope"), "Axiom", "unknown actions file under Axiom");
-    compare(BindActions.defaultLabel({
+    compare(shared.calls.BindActions.sectionFor("volumeUp"), "Media");
+    compare(shared.calls.BindActions.sectionFor("toggleSpecial"), "Special");
+    compare(shared.calls.BindActions.sectionFor("nope"), "Axiom", "unknown actions file under Axiom");
+    compare(shared.calls.BindActions.defaultLabel({
       "action": "workspaceNth",
       "argument": " 3 "
     }), "Go to workspace 3");
-    compare(BindActions.defaultLabel({
+    compare(shared.calls.BindActions.defaultLabel({
       "action": "exec",
       "argument": "kitty"
     }), "kitty", "exec shows its command");
-    compare(BindActions.defaultLabel({
+    compare(shared.calls.BindActions.defaultLabel({
       "action": "launcher",
       "call": "open"
     }), "App launcher (open)");
   }
 
   function test_descriptionFor() {
-    compare(BindActions.descriptionFor({
+    compare(shared.calls.BindActions.descriptionFor({
       "action": "closeWindow"
     }), "Window: Close");
-    compare(BindActions.descriptionFor({
+    compare(shared.calls.BindActions.descriptionFor({
       "action": "closeWindow",
       "description": "Kill it"
     }), "Window: Kill it");
-    compare(BindActions.descriptionFor({
+    compare(shared.calls.BindActions.descriptionFor({
       "action": "closeWindow",
       "description": "Mine: Kill it"
     }), "Mine: Kill it", "a description naming its own section keeps it");
-    verify(!BindActions.hasOwnSection("Mine:no space"));
+    verify(!shared.calls.BindActions.hasOwnSection("Mine:no space"));
   }
 
   function test_supported() {
@@ -104,10 +111,10 @@ TestCase {
       "namedSpecial": true,
       "switcher": true
     };
-    verify(BindActions.supported("closeWindow", {}), "needs nothing");
-    verify(BindActions.supported("stripWider", hyprland));
-    verify(!BindActions.supported("stripWider", {}));
-    verify(BindActions.supported("toggleSpecial", {
+    verify(shared.calls.BindActions.supported("closeWindow", {}), "needs nothing");
+    verify(shared.calls.BindActions.supported("stripWider", hyprland));
+    verify(!shared.calls.BindActions.supported("stripWider", {}));
+    verify(shared.calls.BindActions.supported("toggleSpecial", {
       "scratchpad": true
     }), "any one of its capabilities");
     for (const action in BindActions.needs)
@@ -120,9 +127,9 @@ TestCase {
       "compositor": "hyprland",
       "argument": "hl.dsp.layout(\"swapsplit\")"
     };
-    verify(BindActions.appliesUnder(raw, "hyprland", {}));
-    verify(!BindActions.appliesUnder(raw, "sway", {}), "written for another compositor");
-    verify(!BindActions.appliesUnder({
+    verify(shared.calls.BindActions.appliesUnder(raw, "hyprland", {}));
+    verify(!shared.calls.BindActions.appliesUnder(raw, "sway", {}), "written for another compositor");
+    verify(!shared.calls.BindActions.appliesUnder({
       "action": "pseudo"
     }, "sway", {}));
   }
@@ -132,10 +139,10 @@ TestCase {
       "key": "Super_L",
       "action": "launcher"
     };
-    verify(BindActions.appliesUnder(tap, "sway", {
+    verify(shared.calls.BindActions.appliesUnder(tap, "sway", {
       "modifierTap": true
     }));
-    verify(!BindActions.appliesUnder(tap, "niri", {}));
-    verify(BindActions.keySupported("SUPER + Q", {}));
+    verify(!shared.calls.BindActions.appliesUnder(tap, "niri", {}));
+    verify(shared.calls.BindActions.keySupported("SUPER + Q", {}));
   }
 }

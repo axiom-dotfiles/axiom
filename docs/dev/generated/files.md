@@ -906,7 +906,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `GreeterManager.qml`: Axiom as greetd's login screen, from the user's side (the greeter itself is greeter.qml, with GreetdManager).
 - `GridEditor.qml`: Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter cards), shared by the layouts editor's overlay pages and edge menus.
 - `HypridleManager.qml`: hypridle, run by axiom (the Idle section).
-- `HyprlandConfigWriter.qml`: section's options, loading ~/.config/hypr/user/*.lua after it Also the managed takeover (ConfigTakeover, through the daemon) and moving the user's binds into axiom (UserBindMerge, on merge_hypr_binds.py).
+- `HyprlandConfigWriter.qml`: section's options, loading ~/.config/hypr/user/*.lua after it Also the managed takeover (ConfigTakeover, through the daemon) and moving the user's binds into axiom (UserBindMerge, through the daemon).
 - `HyprlandGrab.qml`: Hyprland's focus grab, for surfaces that close (or drop keyboard focus) on a click outside them: while `active`, keyboard focus stays in `windows` and a click anywhere else ends the grab (`cleared`).
 - `HyprlandIpcManager.qml`: Requests on Hyprland's request socket, as hyprctl makes them but without a process each: what Quickshell.Hyprland doesn't cover (options, Lua evals, binds, devices, layers, the cursor, reloads).
 - `HyprlandManager.qml`: CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprland's state as the compositor-neutral shapes (HyprState), and the primitives CompositorManager builds on.
@@ -954,7 +954,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `TimeZoneManager.qml`: Other time zones' UTC offsets, for clocks set to one (a Clock module's or a bar Time widget's `timezone`): the JS engine can't convert times between zones (TimeZones).
 - `TodoManager.qml`: The todo list: one list for every widget and module, kept in $XDG_DATA_HOME/axiom/todo.json ({ version, items }: TodoItems' shape), written atomically and watched, so an edit made elsewhere shows at once.
 - `UpdatesManager.qml`: Pending package updates, shared by every Updates widget, checked the way this distribution does (Packages.updates: checkupdates on Arch, dnf on Fedora; nothing on one it doesn't know, `supported` false).
-- `UserBindMerge.qml`: Moves the user's binds into axiom (managed mode), through the compositor's merge script (scripts/merge_<compositor>_binds.py, every one with the same verbs and JSON), for that compositor's config writer.
+- `UserBindMerge.qml`: Moves the user's binds into axiom (managed mode), through the daemon (`compositor.binds`: backend/internal/compositor/binds, the same verbs and JSON on every compositor), for that compositor's config writer.
 - `WallpaperManager.qml`: What changes the look on its own.
 - `WeatherManager.qml`: Weather shared by every widget that shows it: one WeatherSource for the Weather settings' location and units, fetching while some widget wants it.
 - `WeatherSource.qml`: Weather for one location from Open-Meteo (no API key).

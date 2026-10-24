@@ -14,7 +14,7 @@ CompositorManager's backend on niri (docs/dev/compositor/contract.md, docs/dev/c
 - `activeWindowId` (readonly string): The focused window's id, or ""
 - `gapsOut` (readonly var): niri's gap at the screen edges: its gaps plus its struts, as the config it runs sets them (axiom's module in it)
 - `splitWidthMultiplier` (readonly real): niri doesn't say how far it scrolls a strip, so the overview fits it
-- `blur` (readonly var): niri's blur as in effect, { enabled, size, passes }: the config's (niri_config.py info), its offset as the size (NiriConf.lookNodes writes the window look's size as the offset), niri's defaults until…
+- `blur` (readonly var): niri's blur as in effect, { enabled, size, passes }: the config's (`axiom compositor niri info`), its offset as the size (NiriConf.lookNodes writes the window look's size as the offset), niri's defau…
 - `surfacesReady` (readonly bool): niri doesn't stack layers by axiom's order: LayerManager maps them in order itself, from the start
 - `travelingTo` (readonly int): niri slides between workspaces itself
 - `blockSize` (readonly int): Ids in each output's block (CompositorManager.blockSize): niri makes workspaces as they fill, so more than anyone has

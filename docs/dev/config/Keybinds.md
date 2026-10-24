@@ -37,7 +37,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Keybinds.binds[].call`** · string = "toggle" · enum toggle|open|close
   - Call: For actions that open and close something: whether the bind toggles it, only opens it or only closes it.
   - x-showIf={"action":["launcher","overlay","edgeMenu","dock","workspaceOverview"…
-  - read: entry field, name match · in: `components/views/Keybinds/BindInspector.qml`
+  - read: `KeybindsConfig.binds` (whole) · in: `services/UserBindMerge.qml`
 - **`Keybinds.binds[].compositor`** · string = "hyprland" · enum hyprland|sway|niri
   - Compositor: The compositor the command is written for: the bind does nothing under another.
   - x-showIf={"action":"raw"}

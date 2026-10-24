@@ -46,6 +46,7 @@ import (
 	"time"
 
 	"github.com/axiom-shell/axiom/backend/internal/axerr"
+	"github.com/axiom-shell/axiom/backend/internal/compositor/edit"
 	"github.com/axiom-shell/axiom/backend/internal/compositor/luacheck"
 	"github.com/axiom-shell/axiom/backend/internal/fsx"
 )
@@ -160,7 +161,7 @@ func Claim(ctx context.Context, o Options) (string, error) {
 	if !isFile(c.file) {
 		return "created", c.setAside("", "")
 	}
-	stamp := c.Now().Format("20060102-150405")
+	stamp := c.Now().Format(edit.Stamp)
 	backup := c.Kind.File + ".axiom-backup-" + stamp
 	if c.isReleased() {
 		return "replaced", c.setAside("", "")
@@ -176,7 +177,7 @@ func Claim(ctx context.Context, o Options) (string, error) {
 		}
 	}
 	if c.isStock() {
-		if err := copyFile(c.file, filepath.Join(c.Dir, backup)); err != nil {
+		if err := edit.Copy(c.file, filepath.Join(c.Dir, backup)); err != nil {
 			return "", err
 		}
 		return "replaced", c.setAside("", backup)
@@ -185,10 +186,10 @@ func Claim(ctx context.Context, o Options) (string, error) {
 	if exists(filepath.Join(c.user, name)) {
 		name = "00-previous-" + stamp + c.Kind.Ext
 	}
-	if err := copyFile(c.file, filepath.Join(c.Dir, backup)); err != nil {
+	if err := edit.Copy(c.file, filepath.Join(c.Dir, backup)); err != nil {
 		return "", err
 	}
-	if err := copyFile(c.file, filepath.Join(c.user, name)); err != nil {
+	if err := edit.Copy(c.file, filepath.Join(c.user, name)); err != nil {
 		return "", err
 	}
 	if err := c.adopt(ctx, filepath.Join(c.user, name)); err != nil {
@@ -222,7 +223,7 @@ func Release(ctx context.Context, o Options) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		if err := writeMode(c.file, []byte(c.enable(ctx, string(data))), info.Mode().Perm()); err != nil {
+		if err := edit.WriteMode(c.file, []byte(c.enable(ctx, string(data))), info.Mode().Perm()); err != nil {
 			return "", err
 		}
 		if err := os.Remove(path); err != nil {
@@ -235,7 +236,7 @@ func Release(ctx context.Context, o Options) (string, error) {
 		}
 		from = backup
 	default:
-		if err := writeMode(c.file, []byte(c.Fallback+"\n"), 0o644); err != nil {
+		if err := edit.WriteMode(c.file, []byte(c.Fallback+"\n"), 0o644); err != nil {
 			return "", err
 		}
 		c.forget()
@@ -335,7 +336,7 @@ func (c *call) adopt(ctx context.Context, path string) error {
 	if edited == text || (c.Kind.parses && !c.Lua.Parses(ctx, edited)) {
 		return nil
 	}
-	return writeMode(path, []byte(edited), modeOf(path))
+	return edit.WriteMode(path, []byte(edited), modeOf(path))
 }
 
 // enable undoes adopt's commenting out, unless that leaves it unparsable
@@ -464,28 +465,4 @@ func sameBytes(a, b string) bool {
 	x, err1 := os.ReadFile(a)
 	y, err2 := os.ReadFile(b)
 	return err1 == nil && err2 == nil && bytes.Equal(x, y)
-}
-
-// writeMode replaces path atomically, leaving it with mode
-func writeMode(path string, data []byte, mode os.FileMode) error {
-	if err := fsx.WriteFile(path, data, mode); err != nil {
-		return err
-	}
-	return os.Chmod(path, mode)
-}
-
-// copyFile copies src to dst with its mode and modification time (cp -p)
-func copyFile(src, dst string) error {
-	data, err := os.ReadFile(src)
-	if err != nil {
-		return err
-	}
-	info, err := os.Stat(src)
-	if err != nil {
-		return err
-	}
-	if err := writeMode(dst, data, info.Mode().Perm()); err != nil {
-		return err
-	}
-	return os.Chtimes(dst, info.ModTime(), info.ModTime())
 }

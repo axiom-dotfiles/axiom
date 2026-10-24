@@ -6,7 +6,14 @@ import qs.components.methods
 // files also go to tests/.out/ as *.niri.kdl, which run_tests.sh has niri
 // itself validate where it's installed.
 TestCase {
+  id: test
   name: "NiriConf"
+
+  // Records the helpers' calls as shared fixtures for the axiom binary
+  Shared {
+    id: shared
+    testCase: test
+  }
 
   RepoFiles {
     id: files
@@ -32,7 +39,7 @@ TestCase {
 
   function test_serialize() {
     const n = NiriConf.node;
-    compare(NiriConf.serialize([n("layout", [], {}, [n("gaps", [8]), n("focus-ring", [], {}, [n("off")])]), n("spawn", ["a \"b\"", "c\\d"]), n("position", [], {
+    compare(shared.calls.NiriConf.serialize([n("layout", [], {}, [n("gaps", [8]), n("focus-ring", [], {}, [n("off")])]), n("spawn", ["a \"b\"", "c\\d"]), n("position", [], {
         "x": 0,
         "y": -10
       }), n("empty", [], {}, []), n("Super+Shift+Q", [], {
@@ -54,10 +61,10 @@ Super+Shift+Q repeat=false {
 
   function test_setPathAndMerged() {
     const nodes = [];
-    NiriConf.setPath(nodes, "input.keyboard.xkb.layout", ["us"]);
-    NiriConf.setPath(nodes, "input.keyboard.repeat-rate", [50]);
-    NiriConf.setPath(nodes, "input.keyboard.xkb.layout", ["de"]);
-    compare(NiriConf.serialize(nodes), `input {
+    shared.calls.NiriConf.setPath(nodes, "input.keyboard.xkb.layout", ["us"]);
+    shared.calls.NiriConf.setPath(nodes, "input.keyboard.repeat-rate", [50]);
+    shared.calls.NiriConf.setPath(nodes, "input.keyboard.xkb.layout", ["de"]);
+    compare(shared.calls.NiriConf.serialize(nodes), `input {
     keyboard {
         xkb {
             layout "de"
@@ -67,9 +74,9 @@ Super+Shift+Q repeat=false {
 }`);
     // Sections of one name joined; rules that repeat kept apart
     const n = NiriConf.node;
-    const joined = NiriConf.merged([n("layout", [], {}, [n("gaps", [4]), n("border", [], {}, [n("width", [2])])]), n("window-rule", [], {}, [n("opacity", [0.9])]), n("layout", [], {}, [n("gaps", [8]), n("border", [], {}, [n("on")])]), n("window-rule", [], {}, [n("opacity", [0.5])])]);
+    const joined = shared.calls.NiriConf.merged([n("layout", [], {}, [n("gaps", [4]), n("border", [], {}, [n("width", [2])])]), n("window-rule", [], {}, [n("opacity", [0.9])]), n("layout", [], {}, [n("gaps", [8]), n("border", [], {}, [n("on")])]), n("window-rule", [], {}, [n("opacity", [0.5])])]);
     compare(joined.map(x => x.name), ["layout", "window-rule", "window-rule"]);
-    compare(NiriConf.serialize([joined[0]]), `layout {
+    compare(shared.calls.NiriConf.serialize([joined[0]]), `layout {
     gaps 8
     border {
         width 2
@@ -81,22 +88,22 @@ Super+Shift+Q repeat=false {
   // --- Keys and binds ---
 
   function test_key() {
-    compare(NiriConf.key("SUPER + SHIFT + Q"), "Super+Shift+Q");
-    compare(NiriConf.key("CTRL + ALT + Delete"), "Ctrl+Alt+Delete");
-    compare(NiriConf.key("SUPER + mouse_down"), "Super+WheelScrollDown");
-    compare(NiriConf.key("SUPER + mouse:274"), "Super+MouseMiddle");
-    compare(NiriConf.key("XF86AudioRaiseVolume"), "XF86AudioRaiseVolume");
+    compare(shared.calls.NiriConf.key("SUPER + SHIFT + Q"), "Super+Shift+Q");
+    compare(shared.calls.NiriConf.key("CTRL + ALT + Delete"), "Ctrl+Alt+Delete");
+    compare(shared.calls.NiriConf.key("SUPER + mouse_down"), "Super+WheelScrollDown");
+    compare(shared.calls.NiriConf.key("SUPER + mouse:274"), "Super+MouseMiddle");
+    compare(shared.calls.NiriConf.key("XF86AudioRaiseVolume"), "XF86AudioRaiseVolume");
     // What niri can't bind
-    compare(NiriConf.key("SUPER + code:10"), null);
-    compare(NiriConf.key("CAPS + A"), null);
-    compare(NiriConf.key("SUPER + mouse:280"), null);
-    compare(NiriConf.key("Super_L"), null, "niri has no release binds");
-    compare(NiriConf.key(""), null);
+    compare(shared.calls.NiriConf.key("SUPER + code:10"), null);
+    compare(shared.calls.NiriConf.key("CAPS + A"), null);
+    compare(shared.calls.NiriConf.key("SUPER + mouse:280"), null);
+    compare(shared.calls.NiriConf.key("Super_L"), null, "niri has no release binds");
+    compare(shared.calls.NiriConf.key(""), null);
   }
 
   function bindText(bind) {
-    const n = NiriConf.bindNode(bind, ctx);
-    return n ? NiriConf.serialize([n]) : "";
+    const n = shared.calls.NiriConf.bindNode(bind, ctx);
+    return n ? shared.calls.NiriConf.serialize([n]) : "";
   }
 
   function test_binds() {
@@ -108,7 +115,7 @@ Super+Shift+Q repeat=false {
     spawn "/usr/bin/axiom" "ipc" "appLauncher" "open"
 }`);
     // An argument stays one word
-    compare(NiriConf.actionFor({
+    compare(shared.calls.NiriConf.actionFor({
       "key": "SUPER + 1",
       "action": "workspaceNth",
       "argument": "1"
@@ -128,31 +135,31 @@ Super+Shift+Q repeat=false {
     }), `Super+WheelScrollDown hotkey-overlay-title="Window: Focus right" repeat=false cooldown-ms=150 {
     focus-column-or-monitor-right
 }`);
-    compare(NiriConf.actionFor({
+    compare(shared.calls.NiriConf.actionFor({
       "key": "SUPER + E",
       "action": "exec",
       "argument": "thunar ~"
-    }, ctx), NiriConf.node("spawn-sh", ["thunar ~"]));
-    compare(NiriConf.actionFor({
+    }, ctx), shared.calls.NiriConf.node("spawn-sh", ["thunar ~"]));
+    compare(shared.calls.NiriConf.actionFor({
       "key": "SUPER + M",
       "action": "exitSession"
-    }, ctx), NiriConf.node("quit", [], {
+    }, ctx), shared.calls.NiriConf.node("quit", [], {
       "skip-confirmation": true
     }));
-    compare(NiriConf.actionFor({
+    compare(shared.calls.NiriConf.actionFor({
       "key": "ALT + Tab",
       "action": "windowSwitcherReverse"
     }, ctx).args.slice(-2), ["windowSwitcher", "previous"]);
-    compare(NiriConf.actionFor({
+    compare(shared.calls.NiriConf.actionFor({
       "key": "SUPER + right",
       "action": "resizeWindow",
       "argument": "40 0"
-    }, ctx), NiriConf.node("set-column-width", ["+40"]));
-    compare(NiriConf.actionFor({
+    }, ctx), shared.calls.NiriConf.node("set-column-width", ["+40"]));
+    compare(shared.calls.NiriConf.actionFor({
       "key": "SUPER + up",
       "action": "resizeWindow",
       "argument": "0 -40"
-    }, ctx), NiriConf.node("set-window-height", ["-40"]));
+    }, ctx), shared.calls.NiriConf.node("set-window-height", ["-40"]));
     // Raw binds: niri's own pass through; another compositor's, nothing
     compare(bindText({
       "key": "SUPER + Home",
@@ -201,11 +208,11 @@ Super+Shift+Q repeat=false {
       }
     ];
     for (const bind of incomplete)
-      compare(NiriConf.isComplete(bind, ctx), false, bind.action);
+      compare(shared.calls.NiriConf.isComplete(bind, ctx), false, bind.action);
   }
 
   function test_bindsNodeBindsAKeyOnce() {
-    const node = NiriConf.bindsNode([
+    const node = shared.calls.NiriConf.bindsNode([
       {
         "key": "SUPER + Q",
         "action": "closeWindow"
@@ -220,11 +227,11 @@ Super+Shift+Q repeat=false {
       }
     ], ctx);
     compare(node.children.map(c => c.name), ["Super+Q"]);
-    compare(NiriConf.bindsNode([], ctx), null);
+    compare(shared.calls.NiriConf.bindsNode([], ctx), null);
   }
 
   function test_bindEntries() {
-    compare(NiriConf.bindEntries([
+    compare(shared.calls.NiriConf.bindEntries([
       {
         "key": "SUPER + SHIFT + Q",
         "action": "closeWindow"
@@ -253,7 +260,7 @@ Super+Shift+Q repeat=false {
       values[part] = Object.assign({
         "enabled": false
       }, parts[part] ?? {});
-    return CompositorLayer.look(values, {
+    return shared.calls.CompositorLayer.look(values, {
       "activeHex": "89b4fa",
       "inactiveHex": "45475a",
       "borderWidth": 2,
@@ -282,7 +289,7 @@ Super+Shift+Q repeat=false {
         "inactive": 90
       }
     });
-    compare(NiriConf.serialize(NiriConf.merged(NiriConf.lookNodes(look))), `layout {
+    compare(shared.calls.NiriConf.serialize(shared.calls.NiriConf.merged(shared.calls.NiriConf.lookNodes(look))), `layout {
     border {
         active-color "#89b4fa"
         inactive-color "#45475a"
@@ -315,7 +322,7 @@ window-rule {
     opacity 0.9
 }`);
     // Nothing on, nothing written
-    compare(NiriConf.lookNodes(lookOf({})), []);
+    compare(shared.calls.NiriConf.lookNodes(lookOf({})), []);
   }
 
   function test_shadowAndBlur() {
@@ -339,17 +346,17 @@ window-rule {
       "offset": 5,
       "soft": true
     });
-    const text = NiriConf.serialize(NiriConf.merged(NiriConf.lookNodes(look)));
-    const soft = CompositorLayer.gaussianShadow(look.shadow);
+    const text = shared.calls.NiriConf.serialize(shared.calls.NiriConf.merged(shared.calls.NiriConf.lookNodes(look)));
+    const soft = shared.calls.CompositorLayer.gaussianShadow(look.shadow);
     verify(text.includes(`softness ${soft.radius}`), text);
     verify(text.includes("offset x=0 y=5"), text);
-    verify(text.includes(`color "#000000${CompositorLayer.alphaHex(soft.alpha)}"`), text);
+    verify(text.includes(`color "#000000${shared.calls.CompositorLayer.alphaHex(soft.alpha)}"`), text);
     verify(text.includes("blur {\n    passes 3\n    offset 4\n    noise 0.012\n}"), text);
     verify(text.includes("background-effect {\n        blur true\n        xray false\n    }"), text);
   }
 
   function test_surfaceBlur() {
-    const nodes = surfaces => NiriConf.serialize(NiriConf.surfaceBlurNodes(Object.assign({
+    const nodes = surfaces => shared.calls.NiriConf.serialize(shared.calls.NiriConf.surfaceBlurNodes(Object.assign({
         "blur": true,
         "threshold": 0.5
       }, surfaces)));
@@ -367,7 +374,7 @@ window-rule {
     });
     verify(through.includes('"^axiom-(backdrop|polkit)$"'), through);
     verify(!through.includes("xray true"), "through windows: never xray");
-    compare(NiriConf.surfaceBlurNodes({
+    compare(shared.calls.NiriConf.surfaceBlurNodes({
       "blur": false
     }), [], "nothing while the surfaces don't blur");
     const written = files.write("tests/.out/surface_blur.niri.kdl", through + "\n");
@@ -402,7 +409,7 @@ window-rule {
         "size": 24
       }
     };
-    const text = NiriConf.serialize(NiriConf.inputNodes(CompositorLayer.input(values), schema.Input));
+    const text = shared.calls.NiriConf.serialize(shared.calls.NiriConf.inputNodes(shared.calls.CompositorLayer.input(values), schema.Input));
     compare(text, `input {
     keyboard {
         xkb {
@@ -425,11 +432,11 @@ cursor {
     xcursor-size 24
 }`);
     // The companion theme filling in the names the theme lacks
-    verify(NiriConf.serialize(NiriConf.inputNodes(CompositorLayer.input(values, "axiom-cursor"), schema.Input)).includes(`xcursor-theme "axiom-cursor"`));
+    verify(shared.calls.NiriConf.serialize(shared.calls.NiriConf.inputNodes(shared.calls.CompositorLayer.input(values, "axiom-cursor"), schema.Input)).includes(`xcursor-theme "axiom-cursor"`));
   }
 
   function test_options() {
-    const text = NiriConf.serialize(NiriConf.optionNodes(schema.WindowBehaviour, {
+    const text = shared.calls.NiriConf.serialize(shared.calls.NiriConf.optionNodes(schema.WindowBehaviour, {
       "followMouse": true,
       "focusOnActivate": true,
       "workspaceBackAndForth": false,
@@ -438,7 +445,7 @@ cursor {
       "noWarps": false
     }, false));
     // Never moving the cursor is niri's own default: nothing written
-    compare(NiriConf.serialize(NiriConf.optionNodes(schema.WindowBehaviour, {
+    compare(shared.calls.NiriConf.serialize(shared.calls.NiriConf.optionNodes(schema.WindowBehaviour, {
       "noWarps": true
     }, false)), "");
     compare(text, `input {
@@ -449,14 +456,14 @@ cursor {
     hide-after-inactive-ms 3000
     hide-when-typing
 }`);
-    compare(NiriConf.serialize(NiriConf.optionNodes(schema.Workspaces, {
+    compare(shared.calls.NiriConf.serialize(shared.calls.NiriConf.optionNodes(schema.Workspaces, {
       "stripColumnWidth": 50
     }, false)), `layout {
     default-column-width {
         proportion 0.5
     }
 }`);
-    compare(NiriConf.serialize(NiriConf.optionNodes(schema.Compositor.properties.niri, {
+    compare(shared.calls.NiriConf.serialize(shared.calls.NiriConf.optionNodes(schema.Compositor.properties.niri, {
       "centerFocusedColumn": "on-overflow",
       "alwaysCenterSingleColumn": true,
       "emptyWorkspaceAboveFirst": false,
@@ -488,7 +495,7 @@ hotkey-overlay {
 clipboard {
     disable-primary
 }`);
-    compare(NiriConf.serialize(NiriConf.optionNodes(schema.Compositor.properties.niri, {
+    compare(shared.calls.NiriConf.serialize(shared.calls.NiriConf.optionNodes(schema.Compositor.properties.niri, {
       "animations": false,
       "animationSlowdown": 200
     }, false)), `animations {
@@ -516,7 +523,7 @@ clipboard {
   ]
 
   function test_outputNodes() {
-    compare(NiriConf.serialize(NiriConf.outputNodes(rules)), `output "Dell Inc. U2720Q 1234" {
+    compare(shared.calls.NiriConf.serialize(shared.calls.NiriConf.outputNodes(rules)), `output "Dell Inc. U2720Q 1234" {
     mode "3840x2160@60.000"
     scale 1.5
     transform "90"
@@ -529,7 +536,7 @@ output "HDMI-A-1" {
   }
 
   function test_outputRequests() {
-    const requests = NiriConf.outputRequests(rules, [
+    const requests = shared.calls.NiriConf.outputRequests(rules, [
       {
         "name": "DP-1",
         "description": "Dell Inc. U2720Q 1234"
@@ -554,22 +561,22 @@ output "HDMI-A-1" {
       "on_demand": true
     });
     // A description nothing connected has: left out
-    compare(NiriConf.outputRequests([rules[0]], []), []);
+    compare(shared.calls.NiriConf.outputRequests([rules[0]], []), []);
   }
 
   function test_fileOutputNodes() {
-    const text = NiriConf.moduleText({
+    const text = shared.calls.NiriConf.moduleText({
       "header": "// Generated by axiom",
       "includeLines": "include \"/x\"",
-      "outputs": NiriConf.outputNodes(rules)
+      "outputs": shared.calls.NiriConf.outputNodes(rules)
     });
-    compare(NiriConf.serialize(NiriConf.fileOutputNodes(text)), NiriConf.serialize(NiriConf.outputNodes(rules)));
+    compare(shared.calls.NiriConf.serialize(shared.calls.NiriConf.fileOutputNodes(text)), shared.calls.NiriConf.serialize(shared.calls.NiriConf.outputNodes(rules)));
     // A file's outputs, kept as text until the outputs are read, go into
     // the next file as they were
-    const again = NiriConf.moduleText({
+    const again = shared.calls.NiriConf.moduleText({
       "header": "// Generated by axiom",
       "includeLines": "include \"/x\"",
-      "outputs": NiriConf.fileOutputNodes(text)
+      "outputs": shared.calls.NiriConf.fileOutputNodes(text)
     });
     compare(again, text);
   }
@@ -577,7 +584,7 @@ output "HDMI-A-1" {
   // --- The files, which niri itself checks (run_tests.sh) ---
 
   function test_files() {
-    const binds = NiriConf.bindsNode([
+    const binds = shared.calls.NiriConf.bindsNode([
       {
         "key": "SUPER + Return",
         "action": "terminal"
@@ -626,7 +633,7 @@ output "HDMI-A-1" {
         "locked": true
       }
     ], ctx);
-    const look = NiriConf.lookNodes(lookOf({
+    const look = shared.calls.NiriConf.lookNodes(lookOf({
       "borders": {
         "enabled": true
       },
@@ -661,7 +668,7 @@ output "HDMI-A-1" {
       "offset": 3,
       "soft": true
     }));
-    const input = NiriConf.inputNodes(CompositorLayer.input({
+    const input = shared.calls.NiriConf.inputNodes(shared.calls.CompositorLayer.input({
       "keyboard": {
         "enabled": true,
         "layout": "us",
@@ -680,30 +687,30 @@ output "HDMI-A-1" {
         "size": 24
       }
     }), schema.Input);
-    const options = NiriConf.optionNodes(schema.WindowBehaviour, {
+    const options = shared.calls.NiriConf.optionNodes(schema.WindowBehaviour, {
       "followMouse": true,
       "workspaceBackAndForth": true,
       "cursorHideTimeout": 0,
       "hideCursorOnKeyPress": false
-    }, false).concat(NiriConf.optionNodes(schema.Workspaces, {
+    }, false).concat(shared.calls.NiriConf.optionNodes(schema.Workspaces, {
       "stripColumnWidth": 50
     }, false));
-    const module = NiriConf.moduleText({
+    const module = shared.calls.NiriConf.moduleText({
       "header": "// Generated by axiom",
       "includeLines": "include \"/home/u/.local/state/axiom/niri.kdl\"",
       "binds": binds,
-      "outputs": NiriConf.outputNodes(rules),
+      "outputs": shared.calls.NiriConf.outputNodes(rules),
       "options": options,
       "look": look,
       "input": input
     });
     _write("tests/.out/module.niri.kdl", module);
-    const managed = NiriConf.managedText({
+    const managed = shared.calls.NiriConf.managedText({
       "header": "// Generated by axiom",
       "userDir": "/home/u/.config/niri/user",
       "userFiles": ["00-previous.kdl", "10-mine.kdl"],
       "binds": binds,
-      "outputs": NiriConf.outputNodes(rules),
+      "outputs": shared.calls.NiriConf.outputNodes(rules),
       "options": options,
       "look": look,
       "input": input,
@@ -740,18 +747,18 @@ output "HDMI-A-1" {
     verify(managed.includes(`spawn-sh-at-startup "nm-applet"`) && !managed.includes("hypridle") && !managed.includes("off-thing"), managed);
     verify(managed.indexOf("binds {") < managed.indexOf("include ") && managed.indexOf("include ") < managed.indexOf("layout {"), managed);
     verify(managed.includes(`environment {\n    QT_QPA_PLATFORM "wayland;xcb"\n}`), managed);
-    _write("tests/.out/released.niri.kdl", NiriConf.releasedText("/home/u/.config/niri/user", ["00-previous.kdl"], [NiriConf.node("spawn-sh-at-startup", ["'/opt/axiom/axiom' run"])]));
+    _write("tests/.out/released.niri.kdl", shared.calls.NiriConf.releasedText("/home/u/.config/niri/user", ["00-previous.kdl"], [shared.calls.NiriConf.node("spawn-sh-at-startup", ["'/opt/axiom/axiom' run"])]));
     // The included mode's module after the user's files, so its look wins
     // (not written: niri would look for the module)
-    const released = NiriConf.releasedText("/home/u/.config/niri/user", ["00-previous.kdl"], [NiriConf.node("spawn-sh-at-startup", ["'/opt/axiom/axiom' run"])], [NiriConf.node("include", ["/home/u/.local/state/axiom/niri.kdl"])]);
+    const released = shared.calls.NiriConf.releasedText("/home/u/.config/niri/user", ["00-previous.kdl"], [shared.calls.NiriConf.node("spawn-sh-at-startup", ["'/opt/axiom/axiom' run"])], [shared.calls.NiriConf.node("include", ["/home/u/.local/state/axiom/niri.kdl"])]);
     compare(released.split("\n").filter(line => line.startsWith("include")), [`include "/home/u/.config/niri/user/00-previous.kdl" optional=true`, `include "/home/u/.local/state/axiom/niri.kdl"`]);
-    _write("tests/.out/empty.niri.kdl", NiriConf.emptyModuleText("// Generated by axiom"));
+    _write("tests/.out/empty.niri.kdl", shared.calls.NiriConf.emptyModuleText("// Generated by axiom"));
     // One `layout` and one `binds` in a file: niri refuses a second
     compare(module.match(/^layout \{/gm).length, 1);
     compare(module.match(/^binds \{/gm).length, 1);
   }
 
   function test_wrapper() {
-    compare(NiriConf.wrapperText("// Generated by axiom", "/home/u/.config/niri/config.kdl", "/home/u/.local/state/axiom/niri-detached-module.kdl").split("\n").filter(line => line.startsWith("include")), [`include "/home/u/.config/niri/config.kdl"`, `include "/home/u/.local/state/axiom/niri-detached-module.kdl"`]);
+    compare(shared.calls.NiriConf.wrapperText("// Generated by axiom", "/home/u/.config/niri/config.kdl", "/home/u/.local/state/axiom/niri-detached-module.kdl").split("\n").filter(line => line.startsWith("include")), [`include "/home/u/.config/niri/config.kdl"`, `include "/home/u/.local/state/axiom/niri-detached-module.kdl"`]);
   }
 }

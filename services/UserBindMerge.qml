@@ -5,9 +5,9 @@ import qs.config
 import qs.components.methods
 
 /*
- * Moves the user's binds into axiom (managed mode), through the
- * compositor's merge script (scripts/merge_<compositor>_binds.py, every one
- * with the same verbs and JSON), for that compositor's config writer. Not
+ * Moves the user's binds into axiom (managed mode), through the daemon
+ * (`compositor.binds`: backend/internal/compositor/binds, the same verbs
+ * and JSON on every compositor), for that compositor's config writer. Not
  * a singleton: each config writer owns one (docs/dev/hyprland/bind-merge.md).
  *
  * Every bind in user/ that can move becomes one of axiom's binds (an
@@ -25,9 +25,9 @@ QtObject {
 
   // Merging only happens in managed mode
   property bool enabled: false
-  // The merge script, the compositor's config folder it's run on, and its
-  // user/ folder
-  property string script: ""
+  // The compositor (`kind`: hyprland, sway or niri), its config folder,
+  // and its user/ folder
+  property string kind: ""
   property string configDir: ""
   property string userDir: ""
   // The config writer's name, to start log lines with
@@ -37,7 +37,7 @@ QtObject {
   // The last merge: { moved, removed, kept: [{ file, line, key, reason,
   // detail }], failed: [{ file, line, reason, detail }], remapped: [{ from,
   // to, action }], tracked: [file], errors: [text], saveFailed }, or null.
-  // Reasons are codes (the script's, and "crashed"), which the
+  // Reasons are codes (the merge's, and "crashed"), which the
   // Keybinds page translates
   property var lastMerge: null
   // How many binds a Merge of all of user/ would move (previewMerge());
@@ -72,24 +72,33 @@ QtObject {
   property var _before: []
   property var _sites: []
 
+  // Runs a merge verb, calling back with the daemon's error (or null) and
+  // its JSON
+  function _call(verb, params, callback) {
+    BackendManager.call("compositor.binds", Object.assign({
+      "verb": verb,
+      "kind": root.kind,
+      "dir": root.configDir
+    }, params), callback);
+  }
+
   function _extract(only) {
     _extracting = true;
-    CommandManager.run([root.script, "extract", root.configDir].concat(only ? ["--only", only] : []), (code, out, err) => {
+    _call("extract", {
+      "only": only || ""
+    }, (err, found) => {
       root._extracting = false;
-      root._extracted(out, err);
+      root._extracted(err, found);
     });
   }
 
-  function _extracted(text, errors) {
-    let found;
-    try {
-      found = JSON.parse(text);
-    } catch (e) {
+  function _extracted(err, found) {
+    if (err) {
       if (_preview) {
         mergeable = 0;
         return;
       }
-      console.warn(`[${root.logTag}] Reading your binds failed:`, errors.trim() || e);
+      console.warn(`[${root.logTag}] Reading your binds failed:`, err.message);
       lastMerge = {
         "moved": 0,
         "removed": 0,
@@ -97,7 +106,7 @@ QtObject {
         "failed": [],
         "remapped": [],
         "tracked": [],
-        "errors": [errors.trim() || String(e)]
+        "errors": [err.message]
       };
       return;
     }
@@ -131,12 +140,12 @@ QtObject {
       return;
     }
     _removing = true;
-    CommandManager.run([root.script, "remove", root.configDir, JSON.stringify(found.sites)], (code, out, err) => {
+    _call("remove", {
+      "sites": found.sites
+    }, (err, result) => {
       root._removing = false;
-      let done;
-      try {
-        done = JSON.parse(out);
-      } catch (e) {
+      let done = result;
+      if (err) {
         // Nothing is known to be deleted: every file's binds go back
         done = {
           "removed": 0,
@@ -146,7 +155,7 @@ QtObject {
               "file": site.file,
               "line": 0,
               "reason": "crashed",
-              "detail": err.trim() || String(e)
+              "detail": err.message
             })).filter((f, i, all) => all.findIndex(other => other.file === f.file) === i);
       }
       root._removed(done);

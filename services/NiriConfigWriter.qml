@@ -29,7 +29,7 @@ import qs.components.methods
  *             rest of axiom's layer (so its look and settings win, with
  *             the Niri section's options), and the session (ConfigTakeover)
  * The modules leave out binds on keys the user's own config binds
- * (skippedKeys), read from their files (scripts/niri_config.py), so theirs
+ * (skippedKeys), read from their files (`axiom compositor niri`), so theirs
  * win. Every mode writes the monitor profile for what's connected (as
  * sway's do); MonitorManager applies it at runtime too.
  */
@@ -368,7 +368,7 @@ Singleton {
       callback(root._mainConfig === root.managedPath && FileManager.read(root.managedPath).startsWith(root._header));
       return;
     }
-    CommandManager.run([Paths.scriptsPath + "niri_config.py", "includes"], (code, out) => {
+    CommandManager.run([Paths.toolBin, "compositor", "niri", "includes"], (code, out) => {
       let files = [];
       try {
         files = JSON.parse(out).files;
@@ -390,7 +390,7 @@ Singleton {
 
   // --- The user's config ---
 
-  // The config niri started with (niri_config.py main): the user's,
+  // The config niri started with (`axiom compositor niri main`): the user's,
   // whatever niri runs now (the detached wrapper)
   property string _mainConfig: managedPath
   // The binds the user's own config holds (BindKeys' entries; axiom's files
@@ -405,14 +405,14 @@ Singleton {
   function _readUserConfig() {
     // Reads finish in any order: only the last asked for counts
     const asked = ++root._userReads;
-    CommandManager.run([Paths.scriptsPath + "niri_config.py", "main"], (code, out) => {
+    CommandManager.run([Paths.toolBin, "compositor", "niri", "main"], (code, out) => {
       if (asked !== root._userReads)
         return;
       try {
         root._mainConfig = JSON.parse(out).main;
       } catch (e) {}
     });
-    CommandManager.run([Paths.scriptsPath + "niri_config.py", "binds", "--skip", root.includePath, "--skip", root.detachedPath, "--skip-header", root._header], (code, out, err) => {
+    CommandManager.run([Paths.toolBin, "compositor", "niri", "binds", "--skip", root.includePath, "--skip", root.detachedPath, "--skip-header", root._header], (code, out, err) => {
       if (asked !== root._userReads)
         return;
       if (code !== 0) {
@@ -519,12 +519,12 @@ Singleton {
     takeover.clearConflicts();
   }
 
-  // --- Moving the user's binds into axiom: UserBindMerge, on merge_niri_binds.py ---
+  // --- Moving the user's binds into axiom: UserBindMerge, through the daemon ---
 
   UserBindMerge {
     id: bindMerge
     enabled: CompositorConfig.mode === "managed"
-    script: Paths.scriptsPath + "merge_niri_binds.py"
+    kind: "niri"
     configDir: Paths.niriPath
     userDir: root.userDir
     logTag: "NiriConfigWriter"

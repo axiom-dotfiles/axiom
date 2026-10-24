@@ -3,7 +3,14 @@ import QtTest
 import qs.components.methods
 
 TestCase {
+  id: test
   name: "CompositorLayer"
+
+  // Records the helpers' calls as shared fixtures for the axiom binary
+  Shared {
+    id: shared
+    testCase: test
+  }
 
   RepoFiles {
     id: files
@@ -31,7 +38,7 @@ TestCase {
   }
 
   function test_hex() {
-    compare(CompositorLayer.hex({
+    compare(shared.calls.CompositorLayer.hex({
       "r": 1,
       "g": 0,
       "b": 0.5
@@ -39,7 +46,7 @@ TestCase {
   }
 
   function test_look_off_by_default() {
-    const look = CompositorLayer.look(defaults(), opts);
+    const look = shared.calls.CompositorLayer.look(defaults(), opts);
     compare(look.parts, []);
     compare(look.borders, null);
     compare(look.shape, null);
@@ -69,7 +76,7 @@ TestCase {
           "offset": offset
         }
       });
-    const look = CompositorLayer.look(values, cast("101010", 0.6, 3));
+    const look = shared.calls.CompositorLayer.look(values, cast("101010", 0.6, 3));
     compare(look.parts, ["shadow", "dim"]);
     compare(look.shadow, {
       "size": 12,
@@ -85,13 +92,13 @@ TestCase {
     compare(look.dim, {
       "strength": 15
     });
-    compare(CompositorLayer.look(values, cast("", 1, 0)).shadow.color, "", "no color: the compositor's own");
-    compare(CompositorLayer.look(values, cast("c4a7e7", 1, 0)).shadow.color, "c4a7e7ff");
+    compare(shared.calls.CompositorLayer.look(values, cast("", 1, 0)).shadow.color, "", "no color: the compositor's own");
+    compare(shared.calls.CompositorLayer.look(values, cast("c4a7e7", 1, 0)).shadow.color, "c4a7e7ff");
     const strong = cast("101010", 0.4, 0);
     strong.shadow.strength = 2;
-    compare(CompositorLayer.look(values, strong).shadow.color, "101010cc", "the strength scales the alpha");
+    compare(shared.calls.CompositorLayer.look(values, strong).shadow.color, "101010cc", "the strength scales the alpha");
     strong.shadow.strength = 4;
-    compare(CompositorLayer.look(values, strong).shadow.color, "101010ff", "up to opaque");
+    compare(shared.calls.CompositorLayer.look(values, strong).shadow.color, "101010ff", "up to opaque");
   }
 
   function test_recommendedEnv() {
@@ -123,7 +130,7 @@ TestCase {
         }
       ]
     };
-    const env = CompositorLayer.sessionEnv(session, {
+    const env = shared.calls.CompositorLayer.sessionEnv(session, {
       "theme": "Bibata",
       "size": 24
     });
@@ -131,21 +138,21 @@ TestCase {
     compare(value("QT_QPA_PLATFORM"), ["wayland"], "the session's own wins over the recommended one, named once");
     compare(value("XCURSOR_SIZE"), ["32"], "and over the cursor's");
     compare(value("XCURSOR_THEME"), ["Bibata"]);
-    compare(CompositorLayer.sessionEnv({}, {
+    compare(shared.calls.CompositorLayer.sessionEnv({}, {
       "theme": "Bibata",
       "size": 24,
       "xcursor": "axiom-cursor"
     }).find(entry => entry.name === "XCURSOR_THEME").value, "axiom-cursor", "XCursor readers' name, where it differs");
     verify(env.every(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name)), "invalid names are left out");
     compare(env[env.length - 1].name, "XCURSOR_SIZE", "a name overridden goes where its winner is");
-    compare(CompositorLayer.sessionEnv({
+    compare(shared.calls.CompositorLayer.sessionEnv({
       "recommendedEnv": false,
       "env": []
     }, null), []);
   }
 
   function test_integrationEnv() {
-    compare(CompositorLayer.sessionEnv({}, null, {
+    compare(shared.calls.CompositorLayer.sessionEnv({}, null, {
       "qt": true
     }), [
       {
@@ -153,10 +160,10 @@ TestCase {
         "value": "qt5ct"
       }
     ], "the Qt integration loads qt5ct / qt6ct");
-    compare(CompositorLayer.sessionEnv({}, null, {
+    compare(shared.calls.CompositorLayer.sessionEnv({}, null, {
       "qt": false
     }), []);
-    compare(CompositorLayer.sessionEnv({
+    compare(shared.calls.CompositorLayer.sessionEnv({
       "env": [
         {
           "name": "QT_QPA_PLATFORMTHEME",
@@ -169,9 +176,9 @@ TestCase {
   }
 
   function test_luminance() {
-    compare(CompositorLayer.luminance("000000"), 0);
-    compare(CompositorLayer.luminance("ffffff"), 1);
-    fuzzyCompare(CompositorLayer.luminance("c4a7e7"), 0.45, 0.01);
+    compare(shared.calls.CompositorLayer.luminance("000000"), 0);
+    compare(shared.calls.CompositorLayer.luminance("ffffff"), 1);
+    fuzzyCompare(shared.calls.CompositorLayer.luminance("c4a7e7"), 0.45, 0.01);
   }
 
   // Matching axiom's shadow while it casts none: no shadow, the part off
@@ -179,7 +186,7 @@ TestCase {
     const values = Object.assign(defaults(), {
       "shadow": true
     });
-    const look = CompositorLayer.look(values, Object.assign({}, opts, {
+    const look = shared.calls.CompositorLayer.look(values, Object.assign({}, opts, {
       "shadow": null
     }));
     compare(look.shadow, null);
@@ -208,7 +215,7 @@ TestCase {
         "inactive": 90
       }
     });
-    const look = CompositorLayer.look(values, opts);
+    const look = shared.calls.CompositorLayer.look(values, opts);
     compare(look.parts, ["borders", "shape", "gaps", "blur", "opacity"]);
     compare(look.borders, {
       "active": "aabbcc",
@@ -239,23 +246,23 @@ TestCase {
   function test_input_parts() {
     const schema = files.json("config/json/config.schema.json");
     const values = SchemaValidation.applyDefaults({}, schema.properties.Input, schema);
-    compare(CompositorLayer.input(values).parts, []);
+    compare(shared.calls.CompositorLayer.input(values).parts, []);
     values.keyboard.enabled = true;
     values.cursor.enabled = true;
-    compare(CompositorLayer.input(values).parts, ["keyboard", "cursor"]);
-    compare(CompositorLayer.input(values).cursor, null, "no theme: the cursor is left alone");
+    compare(shared.calls.CompositorLayer.input(values).parts, ["keyboard", "cursor"]);
+    compare(shared.calls.CompositorLayer.input(values).cursor, null, "no theme: the cursor is left alone");
     values.cursor.theme = "Bibata";
-    compare(CompositorLayer.input(values).cursor, {
+    compare(shared.calls.CompositorLayer.input(values).cursor, {
       "theme": "Bibata",
       "size": 24,
       "xcursor": "Bibata"
     }, "XCursor readers get the theme's own name");
-    compare(CompositorLayer.input(values, "axiom-cursor").cursor.xcursor, "axiom-cursor", "or the companion theme filling in its names");
-    compare(CompositorLayer.input(values, "axiom-cursor").cursor.theme, "Bibata");
+    compare(shared.calls.CompositorLayer.input(values, "axiom-cursor").cursor.xcursor, "axiom-cursor", "or the companion theme filling in its names");
+    compare(shared.calls.CompositorLayer.input(values, "axiom-cursor").cursor.theme, "Bibata");
   }
 
   function test_surfaceBlur() {
-    const rules = CompositorLayer.surfaceBlur({
+    const rules = shared.calls.CompositorLayer.surfaceBlur({
       "blur": true,
       "threshold": 0.5,
       "backdrops": false
@@ -267,10 +274,10 @@ TestCase {
     verify(!by("axiom-blur-backdrops").on && by("axiom-blur-backdrops").threshold === 0.01, "backdrops only when asked, at every alpha");
     verify(by("axiom-blur-no-anim").noAnim && !by("axiom-blur-no-anim").blur);
     verify(by("axiom-blur-over-overlay").xray === false, "the overlay under it is what blurs");
-    verify(CompositorLayer.surfaceBlur({
+    verify(shared.calls.CompositorLayer.surfaceBlur({
       "blur": true,
       "throughWindows": true
     }).every(rule => rule.xray !== true), "through windows: no xray anywhere");
-    verify(CompositorLayer.surfaceBlur(null).every(rule => !rule.on && (rule.threshold === null || rule.threshold === 0.01)));
+    verify(shared.calls.CompositorLayer.surfaceBlur(null).every(rule => !rule.on && (rule.threshold === null || rule.threshold === 0.01)));
   }
 }

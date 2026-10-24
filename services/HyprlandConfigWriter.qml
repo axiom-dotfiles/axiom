@@ -19,7 +19,7 @@ import qs.components.methods
  *   managed   ~/.config/hypr/hyprland.lua itself, with the Hyprland
  *             section's options, loading ~/.config/hypr/user/*.lua after it
  * Also the managed takeover (ConfigTakeover, through the daemon) and
- * moving the user's binds into axiom (UserBindMerge, on merge_hypr_binds.py).
+ * moving the user's binds into axiom (UserBindMerge, through the daemon).
  */
 Singleton {
   id: root
@@ -297,12 +297,12 @@ Singleton {
     takeover.clearConflicts();
   }
 
-  // --- Moving the user's binds into axiom: UserBindMerge, on merge_hypr_binds.py ---
+  // --- Moving the user's binds into axiom: UserBindMerge, through the daemon ---
 
   UserBindMerge {
     id: bindMerge
     enabled: CompositorConfig.mode === "managed"
-    script: Paths.scriptsPath + "merge_hypr_binds.py"
+    kind: "hyprland"
     configDir: Paths.hyprlandPath
     userDir: root.userDir
     logTag: "HyprlandConfigWriter"

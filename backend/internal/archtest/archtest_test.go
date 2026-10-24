@@ -18,7 +18,7 @@ const module = "github.com/axiom-shell/axiom/backend/"
 
 // The pure packages, by directory under internal/ (a trailing / covers a
 // whole subtree)
-var pure = []string{"axerr", "jsonx", "schema", "config", "migrate/", "share"}
+var pure = []string{"axerr", "jsonx", "schema", "config", "migrate/", "share", "compositor/kdl", "compositor/actions"}
 
 // What a pure package may never import
 var forbidden = []string{"os", "os/exec", "os/signal", "net", "syscall", "golang.org/x/sys", "io/ioutil", "plugin", "unsafe"}

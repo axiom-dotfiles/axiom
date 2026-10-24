@@ -77,12 +77,10 @@ class Bash(unittest.TestCase):
                     "axiom compositor check --kind hyprland -- ~/.config/hypr '-- axiom'")
 
     def test_merge_binds(self):
-        self.blocks("scripts/merge_sway_binds.py remove ~/.config/sway '[]'", f"python3 scripts/merge_hypr_binds.py remove {HOME}/.config/hypr '[]'")
-        self.allows("scripts/merge_sway_binds.py extract ~/.config/sway", "scripts/merge_sway_binds.py remove /tmp/scratch/sway '[]'")
-
-    def test_merge_niri_binds(self):
-        self.blocks("scripts/merge_niri_binds.py remove ~/.config/niri '[]'")
-        self.allows("scripts/merge_niri_binds.py remove /tmp/scratch/niri '[]'")
+        self.blocks("axiom compositor binds remove --kind sway ~/.config/sway '[]'",
+                    f"axiom compositor binds remove --kind=hyprland {HOME}/.config/hypr '[]'")
+        self.allows("axiom compositor binds extract --kind sway ~/.config/sway",
+                    "axiom compositor binds remove --kind sway /tmp/scratch/sway '[]'")
 
     def test_niri_session(self):
         with mock.patch.dict(os.environ, {"NIRI_SOCKET": "/run/user/1000/niri.wayland-1.100.sock"}):
@@ -93,10 +91,10 @@ class Bash(unittest.TestCase):
                         "export NIRI_SOCKET=/run/user/1000/niri.wayland-2.200.sock; niri msg output winit scale 1")
 
     def test_scripts_run_through_a_shell_and_variables(self):
-        self.blocks("python3 scripts/merge_sway_binds.py remove ~/.config/sway '[]'", "bash scripts/greeter/greeter_install.sh install . me")
+        self.blocks("bash scripts/self_update.sh apply .", "bash scripts/greeter/greeter_install.sh install . me")
         self.assertTrue(denied("axiom compositor claim --kind sway $HOME/.config/sway axiom", cwd="/tmp"))
         self.assertTrue(denied("axiom compositor claim --kind sway ${HOME}/.config/sway axiom", cwd="/tmp"))
-        self.assertTrue(denied("export D=~/.config/hypr; scripts/merge_hypr_binds.py remove $D '[]'", cwd="/tmp"))
+        self.assertTrue(denied("export D=~/.config/hypr; axiom compositor binds remove --kind hyprland $D '[]'", cwd="/tmp"))
         self.blocks("bash -lc 'qs -c axiom kill'")
         self.allows("axiom compositor claim --kind sway scratch/sway axiom", "bash scripts/greeter/greeter_install.sh check .")
 

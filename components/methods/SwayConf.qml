@@ -625,7 +625,7 @@ include ${quote(userDir + "/*")}
 
   /**
    * The binds in a sway config's text (SwayConfigWriter reads it with its
-   * includes in, scripts/sway_config_text.py), as BindKeys' entries: {
+   * includes in, `axiom compositor sway-text`), as BindKeys' entries: {
    * modmask, key, keycode, submap ("" outside a mode), description (its
    * command) }. $variables are put in as they're set; line continuations
    * joined; `mode "name" { … }` blocks give their submap, `bindsym { … }`

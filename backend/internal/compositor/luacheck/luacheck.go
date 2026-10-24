@@ -6,6 +6,7 @@ package luacheck
 
 import (
 	"context"
+	"errors"
 	"os/exec"
 	"strings"
 	"time"
@@ -22,6 +23,11 @@ type Checker struct {
 
 // Parses reports whether src is a Lua chunk that parses.
 func (c Checker) Parses(ctx context.Context, src string) bool {
+	return c.Check(ctx, src) == nil
+}
+
+// Check is why src doesn't parse (luac's message), or nil.
+func (c Checker) Check(ctx context.Context, src string) error {
 	look := c.LookPath
 	if look == nil {
 		look = exec.LookPath
@@ -31,8 +37,16 @@ func (c Checker) Parses(ctx context.Context, src string) bool {
 		defer cancel()
 		cmd := exec.CommandContext(ctx, luac, "-p", "-")
 		cmd.Stdin = strings.NewReader(src)
-		return cmd.Run() == nil
+		var stderr strings.Builder
+		cmd.Stderr = &stderr
+		if err := cmd.Run(); err != nil {
+			if msg := strings.TrimSpace(stderr.String()); msg != "" {
+				return errors.New(msg)
+			}
+			return err
+		}
+		return nil
 	}
 	_, err := parse.Parse(strings.NewReader(src), "check")
-	return err == nil
+	return err
 }

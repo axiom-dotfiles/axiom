@@ -3,12 +3,12 @@
 
 > **File:** `services/UserBindMerge.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Moves the user's binds into axiom (managed mode), through the compositor's merge script (scripts/merge_<compositor>_binds.py, every one with the same verbs and JSON), for that compositor's config writer. Not a singleton: each config writer owns one (docs/dev/hyprland/bind-merge.md). Every bind in user/ that can move becomes one of axiom's binds (an action where one does the same, else the compositor's raw command), saved first, then it's taken out of its file (a dated backup kept). A bind that couldn't be has its binds taken back out of axiom's, so no key is ever bound twice. A key axiom binds too stays one bind, the user's replacing axiom's (BindKeys.mergeBinds). Runs by itself on the adopted file when a takeover adopts the previous config, so managed mode starts with no conflicts; the Keybinds page's Merge runs it on all of user/.
+Moves the user's binds into axiom (managed mode), through the daemon (`compositor.binds`: backend/internal/compositor/binds, the same verbs and JSON on every compositor), for that compositor's config writer. Not a singleton: each config writer owns one (docs/dev/hyprland/bind-merge.md). Every bind in user/ that can move becomes one of axiom's binds (an action where one does the same, else the compositor's raw command), saved first, then it's taken out of its file (a dated backup kept). A bind that couldn't be has its binds taken back out of axiom's, so no key is ever bound twice. A key axiom binds too stays one bind, the user's replacing axiom's (BindKeys.mergeBinds). Runs by itself on the adopted file when a takeover adopts the previous config, so managed mode starts with no conflicts; the Keybinds page's Merge runs it on all of user/.
 
 ### Properties
 
 - `enabled` (bool): Merging only happens in managed mode
-- `script` (string): The merge script, the compositor's config folder it's run on, and its user/ folder
+- `kind` (string): The compositor (`kind`: hyprland, sway or niri), its config folder, and its user/ folder
 - `configDir` (string)
 - `userDir` (string)
 - `logTag` (string): The config writer's name, to start log lines with

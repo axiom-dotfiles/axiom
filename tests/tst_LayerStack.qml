@@ -4,7 +4,14 @@ import qs.components.methods
 
 // The stacking order of axiom's layer surfaces (LayerStack)
 TestCase {
+  id: test
   name: "LayerStack"
+
+  // Records the helpers' calls as shared fixtures for the axiom binary
+  Shared {
+    id: shared
+    testCase: test
+  }
 
   function order(ns) {
     return LayerStack.layers.find(l => l.namespace === ns).order;
@@ -48,10 +55,10 @@ TestCase {
   }
 
   function test_orderOf() {
-    compare(LayerStack.orderOf("axiom-bar"), 5);
-    compare(LayerStack.orderOf("dock"), -7);
-    compare(LayerStack.orderOf("axiom-desktop"), 0, "listed without an order");
-    compare(LayerStack.orderOf("someone-else"), 0, "not listed");
+    compare(shared.calls.LayerStack.orderOf("axiom-bar"), 5);
+    compare(shared.calls.LayerStack.orderOf("dock"), -7);
+    compare(shared.calls.LayerStack.orderOf("axiom-desktop"), 0, "listed without an order");
+    compare(shared.calls.LayerStack.orderOf("someone-else"), 0, "not listed");
   }
 
   function entry(id, order, extra) {
@@ -70,13 +77,13 @@ TestCase {
   // Highest order first: each waits for those before it to have mapped
   function test_sequence_stages() {
     const shadow = entry("shadow", 11), bar = entry("bar", 5), border = entry("border", 0), pill = entry("pill", -1);
-    compare(LayerStack.sequence([border, pill, bar, shadow], false).show, ["shadow"]);
+    compare(shared.calls.LayerStack.sequence([border, pill, bar, shadow], false).show, ["shadow"]);
     shadow.mapped = true;
-    compare(LayerStack.sequence([border, pill, bar, shadow], false).show, ["bar", "shadow"]);
+    compare(shared.calls.LayerStack.sequence([border, pill, bar, shadow], false).show, ["bar", "shadow"]);
     bar.mapped = true;
-    compare(LayerStack.sequence([border, pill, bar, shadow], false).show.sort(), ["bar", "border", "shadow"]);
+    compare(shared.calls.LayerStack.sequence([border, pill, bar, shadow], false).show.sort(), ["bar", "border", "shadow"]);
     border.mapped = true;
-    compare(LayerStack.sequence([border, pill, bar, shadow], false).show.length, 4);
+    compare(shared.calls.LayerStack.sequence([border, pill, bar, shadow], false).show.length, 4);
   }
 
   // Not wanted, a window doesn't hold the others back; equal orders don't
@@ -92,7 +99,7 @@ TestCase {
     const above = entry("above", 9, {
       "layer": "overlay"
     });
-    compare(LayerStack.sequence([off, a, b, elsewhere, above], false).show.sort(), ["a", "above", "b", "elsewhere"]);
+    compare(shared.calls.LayerStack.sequence([off, a, b, elsewhere, above], false).show.sort(), ["a", "above", "b", "elsewhere"]);
   }
 
   // A bar remade (mapped after the border) puts the border out of place
@@ -110,10 +117,10 @@ TestCase {
       "mapped": true,
       "seq": 4
     });
-    const result = LayerStack.sequence([bar, border, dock], false);
+    const result = shared.calls.LayerStack.sequence([bar, border, dock], false);
     compare(result.remap, ["border"]);
     verify(!result.show.includes("border"), "hidden to map again");
-    compare(LayerStack.sequence([bar, border, dock], true).remap, [], "Hyprland sorts by order itself");
+    compare(shared.calls.LayerStack.sequence([bar, border, dock], true).remap, [], "Hyprland sorts by order itself");
   }
 
   // Held windows map at their place even unwanted, without layer order only
@@ -123,8 +130,8 @@ TestCase {
       "held": true
     });
     const bar = entry("bar", 5);
-    compare(LayerStack.sequence([menu, bar], false).show, ["menu"]);
-    compare(LayerStack.sequence([menu, bar], true).show, ["bar"]);
+    compare(shared.calls.LayerStack.sequence([menu, bar], false).show, ["menu"]);
+    compare(shared.calls.LayerStack.sequence([menu, bar], true).show, ["bar"]);
   }
 
   // A window ordered before others starting to show (a backdrop, opening
@@ -137,7 +144,7 @@ TestCase {
       "seq": 1
     });
     const border = entry("border", 0);
-    const result = LayerStack.sequence([backdrop, bar, border], true);
+    const result = shared.calls.LayerStack.sequence([backdrop, bar, border], true);
     compare(result.show.sort(), ["backdrop", "bar"], "the bar stays; the border, not shown yet, still waits");
   }
 
@@ -148,11 +155,11 @@ TestCase {
     const corner = entry("corner", 0, {
       "rank": 1
     });
-    compare(LayerStack.sequence([strip, corner], true).show, ["strip"]);
+    compare(shared.calls.LayerStack.sequence([strip, corner], true).show, ["strip"]);
     strip.mapped = true;
     strip.seq = 2;
     corner.mapped = true;
     corner.seq = 1;
-    compare(LayerStack.sequence([strip, corner], false).remap, ["corner"]);
+    compare(shared.calls.LayerStack.sequence([strip, corner], false).remap, ["corner"]);
   }
 }

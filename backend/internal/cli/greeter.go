@@ -104,6 +104,10 @@ AXIOM_GREETER_WINDOWED=1 and point --dir at a scratch folder.`,
 				if err != nil {
 					return axerr.Wrap(axerr.Unavailable, err, "quickshell (%s)", *qs)
 				}
+				self, err := os.Executable()
+				if err != nil {
+					return axerr.Wrap(axerr.Unavailable, err, "finding the axiom binary")
+				}
 				env := greeterEnv(os.Environ(), map[string]string{
 					"AXIOM_GREETER":          "1",
 					"AXIOM_GREETER_DIR":      gdir,
@@ -112,6 +116,8 @@ AXIOM_GREETER_WINDOWED=1 and point --dir at a scratch folder.`,
 					"AXIOM_CONFIG":           configPath,
 					"AXIOM_SCHEMA":           schemaPath,
 					"AXIOM_TREE":             root,
+					// What reads the compositor's config (axiom compositor …)
+					"AXIOM_BIN": self,
 				})
 				return syscall.Exec(bin, []string{*qs, "-p", filepath.Join(root, "greeter.qml")}, env)
 			}
