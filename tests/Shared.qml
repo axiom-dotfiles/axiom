@@ -27,20 +27,20 @@ QtObject {
   // op → function(args) returning the output: the schema's, and every
   // function of the compositor config helpers as "<Helper>.<function>"
   readonly property var ops: root._withHelperOps({
-      "schema.applyDefaults": args => SchemaValidation.applyDefaults(args[0], args[1], args.length > 2 ? args[2] : args[1]),
-      "schema.validationErrors": args => SchemaValidation.validationErrors(args[0], args[1]),
-      "schema.resolveRef": args => SchemaValidation.resolveRef(args[0], args[1])
-    })
+    "schema.applyDefaults": args => SchemaValidation.applyDefaults(args[0], args[1], args.length > 2 ? args[2] : args[1]),
+    "schema.validationErrors": args => SchemaValidation.validationErrors(args[0], args[1]),
+    "schema.resolveRef": args => SchemaValidation.resolveRef(args[0], args[1])
+  })
 
-  // The compositor config helpers the axiom binary ports
-  // (backend/internal/compositor/render), by name. A test calls one through
-  // its proxy here (shared.calls.HyprConfigLua.moduleLua(…)), which records
+  // The compositor config helpers the axiom binary also ports
+  // (backend/internal/compositor/render), still used by the shell itself,
+  // by name (the rest went to the binary, their cases frozen there). A test calls one through
+  // its proxy here (shared.calls.HyprLua.monitorsLua(…)), which records
   // the call; the helper's properties are read on the helper itself.
   readonly property var helpers: ({
       "BindActions": BindActions,
       "BindKeys": BindKeys,
       "CompositorLayer": CompositorLayer,
-      "HyprConfigLua": HyprConfigLua,
       "HyprLua": HyprLua,
       "KeyNames": KeyNames,
       "LayerStack": LayerStack,
@@ -71,7 +71,11 @@ QtObject {
     for (const name in root.helpers) {
       const proxy = {};
       for (const fn of _functionsOf(root.helpers[name]))
-        proxy[fn] = (...args) => root.call(name + "." + fn, args);
+        // (a function, not an arrow: qmlformat drops a lone rest
+        // parameter's parentheses)
+        proxy[fn] = function (...args) {
+          return root.call(name + "." + fn, args);
+        };
       out[name] = proxy;
     }
     return out;
@@ -130,7 +134,7 @@ QtObject {
   function _answering(value, tables) {
     if (typeof value === "function") {
       const entry = tables.find(t => t.fn === value);
-      return (...a) => {
+      return function (...a) {
         const answer = value(...a);
         entry.table[JSON.stringify(a)] = answer === undefined ? {
           "$undefined": true
@@ -218,7 +222,9 @@ QtObject {
     // A recorded function: its answers, by its arguments
     if (!Array.isArray(value) && value.$fn !== undefined && Object.keys(value).length === 1) {
       const table = _resolve(value.$fn);
-      return (...a) => table[JSON.stringify(a)];
+      return function (...a) {
+        return table[JSON.stringify(a)];
+      };
     }
     // Large arguments are stored once, by hash (scripts/dev/fixtures.py)
     if (!Array.isArray(value) && typeof value.$blob === "string" && Object.keys(value).length === 1)

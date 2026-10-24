@@ -1,6 +1,6 @@
 # Managed takeover (claim and release)
 
-> **Files:** `backend/internal/compositor/takeover/`, `backend/internal/compositor/luacheck/`, `backend/internal/daemon/compositor.go`, `services/ConfigTakeover.qml`, `services/HyprlandConfigWriter.qml`, `services/CompositorConfigManager.qml`, `components/methods/HyprConfigLua.qml`
+> **Files:** `backend/internal/compositor/takeover/`, `backend/internal/compositor/luacheck/`, `backend/internal/daemon/compositor.go`, `backend/internal/compositor/manager/hypr.go`, `services/CompositorConfigManager.qml`, `backend/internal/compositor/render/hyprconfig.go`
 > **Config:** `Compositor.mode` (`managed`), `Compositor.hyprland`
 > **Related:** [Config modes](config-modes.md), [Bind merge](bind-merge.md), [Onboarding](../features/onboarding.md)
 
@@ -15,7 +15,7 @@ How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how l
 - On this machine, `user/` is a symlink to `~/repos/dotfiles/hypr/user`.
 
 ### `check` and `claim`
-- The takeover is the binary's (`backend/internal/compositor/takeover`, the same on every compositor: `Kind` holds what differs). `ConfigTakeover` asks the daemon (`compositor.takeover`, the shell only), and `axiom compositor check|claim|release --kind hyprland -- DIR HEADER [FALLBACK]` runs it from the command line. Its verbs:
+- The takeover is the binary's (`backend/internal/compositor/takeover`, the same on every compositor: `Kind` holds what differs). The daemon runs it as it applies the managed mode (`compositor.checkManaged` asks for the check), and `axiom compositor check|claim|release --kind hyprland -- DIR HEADER [FALLBACK]` runs it from the command line. Its verbs:
   - `check`, used by `checkManaged()`
   - `claim`, which does the takeover
   - `release` (below).
@@ -44,7 +44,7 @@ How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how l
   - the adopted `user/00-previous*.lua`, with its commented-out lines that start or load axiom enabled again
   - else the example config's backup.
 - It prints `restored:<from>:<n>`, with a warning when `<n>` files in `user/` are no longer loaded.
-- With nothing set aside it writes `releasedLua()`. That file starts axiom, loads the module in included mode, and loads `user/*.lua` as the managed file does (`HyprConfigLua.userFilesLua()`).
+- With nothing set aside it writes `releasedLua()`. That file starts axiom, loads the module in included mode, and loads `user/*.lua` as the managed file does (`render.userFilesLua()`).
 - A symlinked or git-tracked file is refused, as `claim` refuses it.
 
 ### Testing

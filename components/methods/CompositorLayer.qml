@@ -1,10 +1,12 @@
 pragma Singleton
 import QtQuick
 
-// What axiom asks of the compositor, decided once in a neutral shape that
-// every backend's config writer turns into its own text (Hyprland's Lua,
-// sway's commands). Everything read from config, the theme and the shell's
-// look comes in as arguments (docs/dev/compositor/contract.md).
+// What axiom asks of the compositor, decided once in a neutral shape: the
+// window look and the input that are on, which the shell sends the
+// daemon's config layer (CompositorConfigManager.spec; the daemon's port of
+// the rest is internal/compositor/render). Everything read from config, the
+// theme and the shell's look comes in as arguments
+// (docs/dev/compositor/contract.md).
 QtObject {
   id: root
 
@@ -105,77 +107,6 @@ QtObject {
     };
   }
 
-  /**
-   * What blurs behind axiom's surfaces, by namespace, as rule groups every
-   * backend renders in its own terms (HyprLua.blurLua's layer rules,
-   * SwayConf.fxLines' layer effects, NiriConf.surfaceBlurNodes' xray).
-   * `surfaces`: { blur, throughWindows, backdrops, threshold }
-   * (CompositorConfigManager.spec). Each row:
-   *   name        the rule's name
-   *   namespaces  LayerStack's names (without "axiom-")
-   *   on          whether it applies now
-   *   blur        the layers blur themselves
-   *   popups      their popups blur (alone, without blur)
-   *   threshold   the alpha under which pixels are left out, or null
-   *   xray        whether only the wallpaper is blurred, or null to leave
-   *   noAnim      the compositor doesn't animate them
-   */
-  function surfaceBlur(surfaces) {
-    const on = surfaces?.blur === true;
-    const xray = surfaces?.throughWindows !== true;
-    const threshold = surfaces?.threshold ?? null;
-    const row = (name, namespaces, rowOn, fields) => Object.assign({
-        "name": name,
-        "namespaces": namespaces,
-        "on": rowOn,
-        "blur": false,
-        "popups": false,
-        "threshold": null,
-        "xray": null,
-        "noAnim": false
-      }, fields);
-    return [row("axiom-blur", LayerStack.blurSurfaces, on, {
-        "blur": true,
-        "popups": true,
-        "threshold": threshold,
-        "xray": xray
-      }), row("axiom-blur-popups", LayerStack.blurChrome, on, {
-        "popups": true,
-        "threshold": threshold,
-        // Hyprland never blurs a popup with xray; niri is told the same
-        "xray": false
-      }), row("axiom-blur-backdrops", LayerStack.blurBackdrops, on && surfaces?.backdrops === true, {
-        "blur": true,
-        "threshold": 0.01,
-        "xray": xray
-      }), row("axiom-blur-no-anim", LayerStack.blurBacked, on, {
-        "noAnim": true
-      }), row("axiom-blur-over-overlay", LayerStack.blurOverOverlay, on, {
-        "blur": true,
-        "threshold": threshold,
-        "xray": false
-      })];
-  }
-
-  /**
-   * A compositor shadow that's a gaussian of sigma radius / 2 (SwayFX's,
-   * niri's: their softness is a blur radius) standing in for axiom's own
-   * (a soft one: MultiEffect's blur; look()'s shadow, its baseAlpha
-   * axiom's and its strength the user's), as { radius, alpha }. It reaches
-   * about twice as far as axiom's at the same size. Fitted against axiom's
-   * glow (MultiEffect, sizes 8–64, scenefx 0.5's box_shadow.frag; within
-   * ~0.02 rms): the radius 0.7 × axiom's size, the alpha axiom's × 0.2
-   * ln(size), more as it grows.
-   */
-  function gaussianShadow(shadow) {
-    const size = Math.max(2, shadow.size);
-    return {
-      "radius": Math.round(size * 0.7),
-      // Strength scales what's fitted, which then has room to grow
-      "alpha": Math.min(1, shadow.baseAlpha * Math.min(1, 0.2 * Math.log(size)) * (shadow.strength ?? 1))
-    };
-  }
-
   readonly property var inputPartNames: ["keyboard", "mouse", "touchpad", "cursor"]
 
   /**
@@ -240,37 +171,5 @@ QtObject {
    */
   function annotatedFields(sectionSchema, values, compositor, gated) {
     return root.compositorFields(sectionSchema, values, compositor, "").filter(field => !gated || (field.on !== null ? field.on : field.value !== field.schema.default));
-  }
-
-  // The variables Hyprland's wiki recommends, good on any Wayland
-  // compositor ([name, value]; Session.recommendedEnv): toolkits on
-  // Wayland first (falling back to X11 where they can), Qt scaled by pixel
-  // density and without decorations of its own. Not SDL_VIDEODRIVER, which
-  // breaks games bundling an older SDL.
-  readonly property var recommendedEnv: [["GDK_BACKEND", "wayland,x11,*"], ["QT_QPA_PLATFORM", "wayland;xcb"], ["CLUTTER_BACKEND", "wayland"], ["ELECTRON_OZONE_PLATFORM_HINT", "auto"], ["QT_AUTO_SCREEN_SCALE_FACTOR", "1"], ["QT_WAYLAND_DISABLE_WINDOWDECORATION", "1"]]
-
-  // The theme integrations' variables ([name, value]; `integrations`: the
-  // ThemeIntegrations switches): the Qt one loads qt5ct / qt6ct, whose
-  // palette is axiom's (qt6ct's plugin answers to "qt5ct" too, so one
-  // value covers Qt 5 and Qt 6 apps)
-  function integrationEnv(integrations) {
-    return integrations?.qt ? [["QT_QPA_PLATFORMTHEME", "qt5ct"]] : [];
-  }
-
-  // The session's environment ([{ name, value }], each name once, every
-  // backend's): the recommended one when `session.recommendedEnv`, the
-  // theme integrations' (integrationEnv), the cursor's (`cursor`:
-  // input()'s, or null), then the session's own, which win over all of
-  // them. A name that isn't a variable's is left out.
-  function sessionEnv(session, cursor, integrations) {
-    const pairs = (session?.recommendedEnv ? root.recommendedEnv : []).concat(root.integrationEnv(integrations)).concat(cursor ? [["XCURSOR_THEME", cursor.xcursor ?? cursor.theme], ["XCURSOR_SIZE", String(cursor.size)]] : []);
-    const all = pairs.map(([name, value]) => ({
-          "name": name,
-          "value": value
-        })).concat((session?.env ?? []).map(entry => ({
-          "name": String(entry.name ?? "").trim(),
-          "value": String(entry.value ?? "")
-        }))).filter(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name));
-    return all.filter((entry, i) => !all.slice(i + 1).some(later => later.name === entry.name));
   }
 }

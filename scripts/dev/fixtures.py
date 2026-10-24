@@ -42,10 +42,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SHARED = ROOT / "tests/fixtures/shared"
 # Suites recorded from the JS helpers (the rest are written by Go's tests)
-# The compositor config helpers the binary ports (backend/internal/compositor/render)
-HELPERS = ("BindActions", "BindKeys", "CompositorLayer", "HyprConfigLua", "HyprLua", "KeyNames", "LayerStack",
-           "NiriConf", "SwayConf")
-JS_SUITES = ("schema",) + HELPERS
+# The compositor config helpers the binary also ports, still used by the
+# shell (backend/internal/compositor/render; the rest's cases are frozen there)
+HELPERS = ("BindActions", "BindKeys", "CompositorLayer", "HyprLua", "KeyNames", "LayerStack", "NiriConf", "SwayConf")
 RECORD_TESTS = ("Config", "SchemaValidation") + HELPERS
 BLOB_SIZE = 2048
 # What the recorded cases are made from: a change to any re-records them
@@ -97,8 +96,11 @@ def record():
     if not records:
         print("no calls were recorded (did the tests run?)", file=sys.stderr)
         return 1
-    for suite in JS_SUITES:
-        shutil.rmtree(SHARED / suite, ignore_errors=True)
+    # Every suite goes, so one no longer recorded (a helper removed) leaves
+    # no cases behind
+    for suite in SHARED.iterdir():
+        if suite.is_dir() and suite.name != "blobs":
+            shutil.rmtree(suite)
     blobs = SHARED / "blobs"
     shutil.rmtree(blobs, ignore_errors=True)
     blobs.mkdir()

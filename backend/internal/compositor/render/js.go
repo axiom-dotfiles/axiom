@@ -90,10 +90,6 @@ func keys(v any) []string {
 	return nil
 }
 
-func isObject(v any) bool { _, ok := v.(*jsonx.Object); return ok }
-
-func isArray(v any) bool { _, ok := v.(*jsonx.Array); return ok }
-
 // strs is a list of strings as a JSON array
 func strs(list []string) *jsonx.Array {
 	a := jsonx.Arr()

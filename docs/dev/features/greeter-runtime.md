@@ -54,7 +54,7 @@ This doc covers what runs at the login screen and the data it reads: the bundle 
   - It generates, links and runs nothing.
 - **State:** `Paths.statePath` / `userStatePath` point at the greeter's `state/`.
 - **Startup:** singletons are lazy, so nothing else from the session starts.
-- **No config writer:** each backend's `configWriter` is null in greeter mode, and `CompositorConfigManager.writer` too, so nothing writes or sends axiom's compositor layer (binds, look, rules) to the greeter's compositor, or, from a greeter run in a session, to the session's. Building the writer there also went past Qt's creation depth under sway (`Component creation is recursing`).
+- **No config layer:** the daemon does axiom's compositor layer, and the greeter has none; `CompositorConfigManager.enabled` is false in greeter mode too, so nothing writes or sends axiom's layer (binds, look, rules) to the greeter's compositor, or, from a greeter run in a session, to the session's.
 - (Rule: in greeter mode nothing writes config, generates or runs integrations; AGENTS.md › Greeter.)
 
 ### GreetdManager

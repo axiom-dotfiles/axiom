@@ -3,7 +3,7 @@
 
 > **File:** `config/SwayConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for Compositor.sway: sway's own options in the managed config (SwayConfigWriter; each field by its x-compositor.sway annotation), read whole.
+Reader for Compositor.sway: sway's own options in the managed config (the daemon's sway writer; each field by its x-compositor.sway annotation), read whole.
 
 ### Properties
 

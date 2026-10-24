@@ -15,13 +15,13 @@ Monitors on Hyprland's `scrolling` layout: how they're configured, how the Lua r
 - `WorkspacesConfig.strips` resolves the monitors and keeps each monitor's first entry.
 - `stripDirection(screenName)` is `horizontal`, `vertical`, or `""` (tiles).
 
-### Lua (`HyprLua.stripsLua`, the same in every mode)
+### Lua (`render.StripsLua`, the same in every mode)
 - A `*` strip makes `scrolling` the layout everywhere, with its `scrolling.direction`: horizontal is `right`, vertical is `down`.
 - Each named monitor gets a `hl.workspace_rule` on `m[<name>]` with `layout = "scrolling"` and its direction in `layout_opts`. This wins over the `*` strip.
 - **Included / managed:** `M.strips()` runs from `setup()`.
   - It runs after managed's `hl.config`, so it wins over `general.layout`.
   - `general.layout` only offers dwindle and master; scrolling belongs to the strips.
-- **Detached:** it runs in the runtime eval, wrapped by `HyprLua.stripsRuntimeLua` to apply once per Hyprland load (workspace rules add up rather than replace).
+- **Detached:** it runs in the runtime eval, wrapped by `render.StripsRuntimeLua` to apply once per Hyprland load (workspace rules add up rather than replace).
   - `AXIOM_STRIPS` names the strips applied. It lives in Hyprland's Lua state, so a Hyprland reload resets it and a shell reload keeps it.
   - Different strips can't be taken back, so a change reloads Hyprland's config. Its `configreloaded` then applies the new strips over the user's config alone.
 

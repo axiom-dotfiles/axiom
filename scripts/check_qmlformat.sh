@@ -35,8 +35,9 @@ export -f check_one
 export qmlformat fix
 
 bad=0
+# A file deleted but not staged yet is still listed: skipped
 git ls-files -z '*.qml' |
-  xargs -0 -n 8 -P "$(nproc)" bash -c 'status=0; for f; do check_one "$f" || status=1; done; exit $status' _ ||
+  xargs -0 -n 8 -P "$(nproc)" bash -c 'status=0; for f; do [[ -e "$f" ]] || continue; check_one "$f" || status=1; done; exit $status' _ ||
   bad=1
 
 if [[ $bad -ne 0 ]]; then

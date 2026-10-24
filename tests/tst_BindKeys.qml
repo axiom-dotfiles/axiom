@@ -48,47 +48,6 @@ TestCase {
     compare(shared.calls.BindKeys.keyId("CTRL + Super_L"), "4:super_l", "not a tap");
   }
 
-  function test_runtime_skips_keys_the_user_binds() {
-    const binds = [
-      {
-        "key": "SUPER + Return"
-      },
-      {
-        "key": "SUPER + SHIFT + Q"
-      },
-      {
-        "key": "SUPER + code:10"
-      },
-      {
-        "key": "SUPER + D"
-      },
-      {
-        "key": "BOGUS + X"
-      }
-    ];
-    const entries = [entry(64, "Return"), entry(65, "q"), entry(64, "", {
-        "keycode": 10
-      }), entry(64, "d", {
-        "submap": "resize"
-      })];
-    const plan = shared.calls.BindKeys.runtimeBinds(binds, entries);
-    compare(plan.skipped, ["SUPER + Return", "SUPER + SHIFT + Q", "SUPER + code:10"]);
-    // A submap's bind doesn't take the key outside it
-    compare(plan.apply.map(bind => bind.key), ["SUPER + D"]);
-    compare(plan.unreadable, ["BOGUS + X"]);
-  }
-
-  function test_runtime_with_nothing_bound() {
-    const plan = shared.calls.BindKeys.runtimeBinds([
-      {
-        "key": "SUPER + A"
-      }
-    ], []);
-    compare(plan.apply.length, 1);
-    compare(plan.skipped, []);
-    compare(shared.calls.BindKeys.runtimeBinds(undefined, undefined).apply, []);
-  }
-
   function test_userKeyCounts_less_axioms_own() {
     const entries = [entry(64, "a"), entry(64, "a"), entry(64, "b"), entry(64, "c", {
         "submap": "resize"
@@ -192,5 +151,35 @@ TestCase {
     compare(merged.map(bind => bind.action), ["focusDir", "exec", "focusDir", "exec"]);
     compare(merged[0].paused, true);
     compare(merged[2].paused, true);
+  }
+
+  // Not a shared case: withIds has no Go counterpart to replay it
+  function test_withIds() {
+    const kept = {
+      "id": "super-y",
+      "key": "SUPER + Y"
+    };
+    const binds = BindKeys.withIds([kept,
+      {
+        "id": "super-y",
+        "key": "SUPER + Y",
+        "action": "exec"
+      },
+      {
+        "key": "SUPER + SHIFT + space"
+      },
+      {
+        "id": "-bad",
+        "key": "Print"
+      },
+      {
+        "key": ""
+      }
+    ]);
+    compare(binds.map(bind => bind.id), ["super-y", "super-y-2", "super-shift-space", "print", "bind"]);
+    verify(binds[0] === kept, "a bind keeping its id is the same object");
+    compare(Object.keys(binds[1])[0], "id", "the id first");
+    compare(binds[1].action, "exec");
+    compare(BindKeys.withIds(undefined), []);
   }
 }

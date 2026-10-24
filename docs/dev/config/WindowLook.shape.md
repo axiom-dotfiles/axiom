@@ -15,7 +15,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`WindowLook.shape.enabled`** · boolean = false
   - Set border width and corners: The width of window borders and the rounding of their corners. Sway draws square corners, so there only the width applies.
   - x-enabledIf={"/$supports.windowShape":true}
-  - read: `WindowLookConfig.look` (whole) · in: `components/views/Settings/TranslucencyStatus.qml`
+  - read: `WindowLookConfig.look` (whole) · in: `components/views/Settings/TranslucencyStatus.qml`, `services/CompositorConfigManager.qml`
 - **`WindowLook.shape.matchShell`** · boolean = true
   - Match axiom's shape: Follow Look & Feel → Shape: its border width and corner radius (only the width on sway, which can't round corners).
   - x-link={"setting":"Appearance.shape"}, x-showIf={"enabled":true}, x-enabledIf={"/$supports.windowShape":true}

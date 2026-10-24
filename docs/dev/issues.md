@@ -20,7 +20,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### The shell's socket warns when the daemon re-execs
 - **Where:** `services/BackendManager.qml` (its `Socket`)
-- **What:** Every daemon re-exec (each dev-mode rebuild) logs `quickshell.io.socket` `Socket error for Socket(0x…) QLocalSocket::PeerClosedError` once: the old image closing the connection reaches the shell as an error, though `BackendManager` reconnects and it's expected. Five in one session's log (`scripts/log.sh --all -g PeerClosed`). Quieting it means telling a close the daemon announced (re-exec, quit) from a real failure, maybe with a notification before the exec.
+- **What:** Every daemon re-exec (each dev-mode rebuild) logs `quickshell.io.socket` `QLocalSocket::PeerClosedError` (a `Socket error for Socket(0x…)`) once: the old image closing the connection reaches the shell as an error, though `BackendManager` reconnects and it's expected. Five in one session's log (`scripts/log.sh --all -g PeerClosed`). Quieting it means telling a close the daemon announced (re-exec, quit) from a real failure, maybe with a notification before the exec.
 - **Size:** small
 - **Found:** 2026-10-24, while moving the compositor takeover into the binary
 
@@ -201,8 +201,8 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-17, while reviewing the shadow-on-or-off change
 
 ### A niri module refused in detached mode is only logged
-- **Where:** `services/NiriConfigWriter.qml` (`runtimeApply`), `services/CompositorConfigManager.qml` (`problem`)
-- **What:** In the file modes a module `niri validate` refuses sets `CompositorConfigManager.problem` (the Compositor card shows it). The detached mode's module (also the file modes' fallback) is checked the same way, but a refusal is only a `[NiriConfigWriter] niri refuses the config axiom made` warning in the log: the card says nothing, and niri keeps the module before. A raw bind niri refuses is the likely cause.
+- **Where:** `backend/internal/compositor/manager/niri.go` (`runtimeApply`), `services/CompositorConfigManager.qml` (`problem`)
+- **What:** In the file modes a module `niri validate` refuses sets `CompositorConfigManager.problem` (the Compositor card shows it). The detached mode's module (also the file modes' fallback) is checked the same way, but a refusal is only a `compositor: niri refuses the config axiom made` warning in the daemon's log in the log: the card says nothing, and niri keeps the module before. A raw bind niri refuses is the likely cause.
 - **Size:** small
 - **Found:** 2026-10-17, while auditing the niri branch for merge
 
@@ -231,7 +231,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
 ### Unreadable sway config means axiom binds over the user's keys
-- **Where:** `services/RuntimeLayer.qml` (`_start`)
+- **Where:** `backend/internal/compositor/manager/runtime.go` (`_start`)
 - **What:** When `axiom compositor sway-text` fails (it logs `Can't read your sway config`) the layer treats the user as binding nothing, and binds with `--no-warn` over their keys after every reload. Hyprland's layer does the same. Binding nothing (look and input only) with a problem shown would be safer, at the cost of axiom's binds.
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch for merge
@@ -279,8 +279,8 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-16, while auditing the sway branch
 
 ### Detached sway keeps the floating modifier after the mouse binds go
-- **Where:** `services/SwayRuntimeLayer.qml`, `components/methods/SwayConf.qml` (`unbindLines`, `floatingModifier`)
-- **What:** The runtime layer sends `floating_modifier` for the drag/resize binds but its unbind commands don't take it back, so removing them in detached mode leaves sway's floating modifier set until sway reloads. It also overrides a `floating_modifier` of the user's own config, which `BindKeys.runtimeBinds` doesn't see as a taken key.
+- **Where:** `backend/internal/compositor/manager/sway.go`, `components/methods/SwayConf.qml` (`unbindLines`, `floatingModifier`)
+- **What:** The runtime layer sends `floating_modifier` for the drag/resize binds but its unbind commands don't take it back, so removing them in detached mode leaves sway's floating modifier set until sway reloads. It also overrides a `floating_modifier` of the user's own config, which `render.RuntimeBinds` doesn't see as a taken key.
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch
 

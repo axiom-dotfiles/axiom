@@ -454,8 +454,11 @@ QtObject {
     CompositorConfigManager.previewMerge();
   }
 
+  // Binds added, duplicated, merged or restored from a preset have no id
+  // of their own yet (or another's): each gets one as it's saved
   function save() {
     stopRecording();
+    draft.local = BindKeys.withIds(draft.local);
     draft.save();
   }
 
@@ -1135,7 +1138,7 @@ QtObject {
     if (title === "")
       return "";
     const list = Utils.clone(KeybindsConfig.presets);
-    const binds = Utils.clone(draft.local);
+    const binds = BindKeys.withIds(Utils.clone(draft.local));
     let entry = list.find(preset => preset.name === title);
     if (entry)
       entry.binds = binds;

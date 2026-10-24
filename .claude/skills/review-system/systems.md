@@ -48,7 +48,7 @@ Seams: CompositorManager.
 Scope: the three backends compared: same contract, same semantics, same edge cases.
 Mode: parity
 Docs: compositor/contract.md compositor/sway-backend.md compositor/niri-backend.md hyprland/config-modes.md hyprland/bind-merge.md
-Extra: services/HyprlandManager.qml services/SwayManager.qml services/NiriManager.qml services/HyprlandConfigWriter.qml services/SwayConfigWriter.qml services/NiriConfigWriter.qml services/HyprlandRuntimeLayer.qml services/SwayRuntimeLayer.qml backend/internal/compositor/
+Extra: services/HyprlandManager.qml services/SwayManager.qml services/NiriManager.qml backend/internal/compositor/
 Checks:
 - Build a table: each contract member and `supports` key × backend. Every cell is implemented the same way, or the difference is a declared `supports` key, or it's a finding.
 - Same inputs → same outputs: workspace numbering and naming, focus order, output names and scale, window shapes (class/app id, title, workspace, floating, fullscreen).
@@ -179,7 +179,7 @@ Scope: translucency and compositor blur: blur regions, backing windows, openings
 Mode: parity
 Docs: theming/translucency-blur.md theming/blur-window-openings.md popouts/shadows.md
 Checks:
-- One rule table (`CompositorLayer.surfaceBlur`) rendered by each backend; no backend-specific list kept by hand.
+- One rule table (`render.SurfaceBlur`) rendered by each backend; no backend-specific list kept by hand.
 - Every self-blurring surface sends its region where `supports.blurRegion`, and its shape matches what's drawn (radii, joins, cut-outs).
 - Pausing for fullscreen and translucency off both stop blur on every backend.
 Seams: every translucent surface.

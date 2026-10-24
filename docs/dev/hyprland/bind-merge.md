@@ -1,6 +1,6 @@
 # Merging user binds (managed mode)
 
-> **Files:** `services/UserBindMerge.qml`, `services/HyprlandConfigWriter.qml`, `services/CompositorConfigManager.qml` (`mergeUserBinds`, `previewMerge`), `backend/internal/compositor/binds/`, `backend/internal/compositor/actions/`, `components/methods/BindKeys.qml`, `components/methods/BindActions.qml`
+> **Files:** `backend/internal/compositor/binds/`, `backend/internal/compositor/manager/hypr.go`, `services/CompositorConfigManager.qml` (`mergeUserBinds`, `previewMerge`), `backend/internal/compositor/actions/`, `components/methods/BindKeys.qml`, `components/methods/BindActions.qml`
 > **Config:** `Keybinds.binds`
 > **Related:** [Managed takeover](managed-takeover.md), [Keybinds](keybinds.md), [Config modes](config-modes.md)
 
@@ -13,7 +13,7 @@
 - A claim merges only the adopted file's binds, through `mergeUserBinds(name)` (`extract --only`) ([Managed takeover](managed-takeover.md)).
 
 ### Where it runs
-- The merge is the binary's (`backend/internal/compositor/binds`, every compositor's `extract` and `remove` with the same JSON, documented in its package comment). `UserBindMerge` asks the daemon for it (`compositor.binds`, the shell only); `axiom compositor binds extract|remove --kind K DIR [SITES]` runs it from the command line.
+- The merge is the binary's (`backend/internal/compositor/binds`, every compositor's `extract` and `remove` with the same JSON, documented in its package comment). The daemon runs it (managed mode: the adopted file on a takeover, all of `user/` on the Keybinds page's Merge, `compositor.merge` / `compositor.previewMerge`); `axiom compositor binds extract|remove --kind K DIR [SITES]` runs it from the command line.
 - What a command calling axiom (`axiom ipc …`, `axiom lock`, `axiom restart`) or a volume, brightness or media command maps onto comes from `compositor/actions`, which reads `BindActions.qml`'s `ipcActions` and `actionFlags` from the tree, so a new IPC action needs no Go change.
 
 ### Extracting
@@ -56,6 +56,7 @@
    - Only the binds that went are sent to `bindsMerged`.
 
 ### Duplicates and results
+- Moved binds get ids as they're saved (`manager.withIDs`, the same rule as `BindKeys.withIds`: from the key, `super-y`), as the schema requires one.
 - A key axiom already binds stays one bind. `BindKeys.mergeBinds` puts the moved bind in place of axiom's, because the user's config loads after axiom's layer and so was the one in effect. A paused bind holds no key, so it's never the one replaced: a preset's bind put after it on that key is. It does the same in a draft with unsaved edits.
 - Reasons are codes (listed in the `binds` package comment), translated by `BindEditor.reasonText`. `tracked` names files that are in a git repository.
 - `lastMerge` shows above the bind list. Its fields are `moved`, `removed`, `kept` (with reasons), `failed`, `remapped`, `tracked`, `errors` and `saveFailed`.

@@ -93,7 +93,7 @@ Dependencies point one way, methods → data owners → readers → services →
 
 ### hyprland/
 - [ipc](hyprland/ipc.md): `HyprlandIpcManager` (the request socket), Quickshell.Hyprland and `HyprlandManager`, the Hyprland backend; who may talk to Hyprland.
-- [config-modes](hyprland/config-modes.md): `HyprlandConfigWriter`: the Lua layer in each mode, `x-compositor` options.
+- [config-modes](hyprland/config-modes.md): Hyprland's writer: the Lua layer in each mode, `x-compositor` options.
 - [managed-takeover](hyprland/managed-takeover.md): the takeover's claim and release (`backend/internal/compositor/takeover`).
 - [bind-merge](hyprland/bind-merge.md): `mergeUserBinds` (managed mode).
 - [keybinds](hyprland/keybinds.md): bind actions and dispatchers, the Keybinds page, the key recorder.

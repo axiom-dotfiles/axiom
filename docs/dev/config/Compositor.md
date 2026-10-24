@@ -20,17 +20,17 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Compositor.mode`** · string = "detached" · enum detached|included|managed
   - Mode: Applies on Save. The status card says what the change will do.
   - x-takeover=true, x-group="Compositor setup", x-applyOnSave=true
-  - read: `CompositorConfig.mode` · in: `components/surfaces/onboarding/pages/FinishPage.qml`, `components/views/Monitors/Monitors.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/OnboardingManager.qml`, `services/SwayConfigWriter.qml`
+  - read: `CompositorConfig.mode` · in: `components/surfaces/onboarding/pages/FinishPage.qml`, `components/views/Monitors/Monitors.qml`, `services/CompositorConfigManager.qml`, `services/OnboardingManager.qml`
 - **`Compositor.requiredSettings`** · boolean = true
   - Required settings: Lock restore after a shell restart, ignoring apps' requests to maximize themselves, and a workspace slide animation.
   - x-group="Compositor setup", x-enabledIf={"/$compositor":"hyprland"}
-  - read: `CompositorConfig.requiredSettings` · in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`
+  - read: `CompositorConfig.requiredSettings` · in: `services/CompositorConfigManager.qml`
 
 ### Reader members
 
 Every public member of `CompositorConfig`, with the files that use it.
 
 - `CompositorConfig.mode` (string): "detached" | "included" | "managed"
-  - in: `components/surfaces/onboarding/pages/FinishPage.qml`, `components/views/Monitors/Monitors.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/OnboardingManager.qml`, `services/SwayConfigWriter.qml`
+  - in: `components/surfaces/onboarding/pages/FinishPage.qml`, `components/views/Monitors/Monitors.qml`, `services/CompositorConfigManager.qml`, `services/OnboardingManager.qml`
 - `CompositorConfig.requiredSettings` (bool)
-  - in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`
+  - in: `services/CompositorConfigManager.qml`

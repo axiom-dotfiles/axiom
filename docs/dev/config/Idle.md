@@ -14,7 +14,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Idle.enabled`** · boolean = false
   - Manage hypridle: axiom runs hypridle with a config of its own (~/.local/state/axiom/hypridle.conf) and stops any other hypridle while this is on. Your own hypridle.conf is never touched; remove your own hypridle autostart line.
   - x-scope="machine", x-takeover=true
-  - read: `Idle.enabled`, `// reads:` marker · in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/Settings/IdleStatusCard.qml`, `services/HypridleManager.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: `Idle.enabled`, `// reads:` marker · in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/Settings/IdleStatusCard.qml`, `services/CompositorConfigManager.qml`, `services/HypridleManager.qml`
 
 ### `Idle.dim`
 
@@ -107,7 +107,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `Idle`, with the files that use it.
 
 - `Idle.enabled` (bool)
-  - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/Settings/IdleStatusCard.qml`, `services/HypridleManager.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/Settings/IdleStatusCard.qml`, `services/CompositorConfigManager.qml`, `services/HypridleManager.qml`
 - `Idle.dimTimeout` (int)
   - in: `services/HypridleManager.qml`
 - `Idle.dimMode` (string): "to": down to dimLevel%; "by": dimBy% off each screen's brightness

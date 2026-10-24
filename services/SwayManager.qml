@@ -40,11 +40,6 @@ Singleton {
     "bottom": _liveGaps.outer + _liveGaps.inner,
     "left": _liveGaps.outer + _liveGaps.inner
   } : _gaps
-  // Writes axiom's layer into sway's config (CompositorConfigManager). None
-  // in the greeter, which writes no config: building the writer there, as
-  // the greeter's first singletons are still being built, went past Qt's
-  // creation depth ("Component creation is recursing") and broke them
-  readonly property var configWriter: Paths.greeter ? null : SwayConfigWriter
   // Whether sway is SwayFX (blur, rounded corners, shadows, dimming), once
   // known: its get_version reply adds sway_original_version. Kept across a
   // reload of the shell, so it's known at once then.
@@ -260,15 +255,22 @@ Singleton {
   function leaveSwitcher() {
   }
 
-  // --- Sending axiom's layer (SwayConfigWriter) ---
+  // --- axiom's config layer (the daemon's: CompositorConfigManager) ---
+
+  // axiom's config layer changed sway at runtime (the daemon's
+  // compositor.applied): sway sends no event for a gap change, so the
+  // windows are read again
+  function layerApplied() {
+    refresh();
+  }
 
   // Runs sway commands (`lines`), in order, after those sent before
   function runCommands(lines, callback) {
     SwayIpcManager.command(lines.filter(line => line !== "").join("; "), ok => callback?.(ok));
   }
 
-  // The window look as set now (CompositorLayer.look; SwayConfigWriter.
-  // liveLines): gapsOut and blur follow its gaps and blur until sway
+  // The window look as set now (CompositorLayer.look;
+  // CompositorConfigManager): gapsOut and blur follow its gaps and blur until sway
   // reloads its config, and what sway sets a window at a time (opacity;
   // SwayFX's blur, shadows, dim) is kept up as windows open and focus moves
   function setLiveLook(look) {
@@ -334,7 +336,7 @@ Singleton {
   // Calls back with the binds in effect outside axiom's own modes (the
   // user's, read from their config, and axiom's), or null
   function withMainBinds(callback) {
-    SwayConfigWriter.withEntries(callback);
+    CompositorConfigManager.withEntries(callback);
   }
 
   // While on, every key reaches axiom instead of a bind (the Keybinds

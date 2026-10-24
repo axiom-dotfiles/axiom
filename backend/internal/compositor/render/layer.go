@@ -4,7 +4,6 @@ import (
 	"math"
 	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/axiom-shell/axiom/backend/internal/jsonx"
 )
@@ -255,10 +254,6 @@ type Field struct {
 	On any
 }
 
-func (f Field) json() *jsonx.Object {
-	return jsonx.Obj("name", f.Name, "schema", f.Schema, "value", f.Value, "spec", f.Spec, "on", f.On)
-}
-
 // CompositorFields is CompositorLayer.compositorFields.
 func CompositorFields(objectSchema, values any, compositor, prefix string) []Field {
 	var out []Field
@@ -357,6 +352,3 @@ func SessionEnv(session, cursor, integrations any) *jsonx.Array {
 	}
 	return out
 }
-
-// lines joins with \n (the JS's array.join("\n"))
-func lines(list []string) string { return strings.Join(list, "\n") }

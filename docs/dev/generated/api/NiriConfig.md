@@ -3,7 +3,7 @@
 
 > **File:** `config/NiriConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for Compositor.niri: niri's own options in the managed config (NiriConfigWriter; each field by its x-compositor.niri annotation), read whole.
+Reader for Compositor.niri: niri's own options in the managed config (the daemon's niri writer; each field by its x-compositor.niri annotation), read whole.
 
 ### Properties
 

@@ -125,7 +125,7 @@ Nothing in v2's shape depends on these; rule 11's folders are where they would g
 - **Readers keep their public names** (`Bar.savedBars`, `DockConfig.docks`, `Widget.px`, …). Only reader internals change, so the components above them don't.
 - **What changes in QML:**
   - the editors that write shape directly (BarManager, EdgeMenuManager, OverlayManager, DockManager, ScreenLayoutEditor, MonitorManager, KeybindManager, the settings cards);
-  - the compositor config writers (`HyprConfigLua`, `SwayConf`, `NiriConf`, which read the annotations);
+  - the compositor config writers (the daemon's `render`, which reads the annotations);
   - the condition evaluator (`SchemaLayout`);
   - the form controls (duration units).
 - **Enum case** (rule 6) is the widest change: `edge === "Top"` style comparisons across the bar, popout and edge code. Readers could normalize instead, but that keeps two spellings alive. **Recommended: change them**, file by file with the readers.

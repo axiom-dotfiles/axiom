@@ -2,7 +2,7 @@
 // files into axiom (docs/dev/hyprland/bind-merge.md): extract reads what
 // can move (as Keybinds.binds entries) and what stays and why; remove takes
 // the moved ones out of the files after a dated backup. Every compositor
-// answers the same JSON, so the shell's UserBindMerge drives any of them:
+// answers the same JSON, so the compositor manager drives any of them:
 //
 //	extract: { binds, sites, kept, remapped, tracked, errors }
 //	  binds     axiom binds for every bind that can move

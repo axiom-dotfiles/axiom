@@ -15,7 +15,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`WindowLook.borders.enabled`** · boolean = false
   - Themed borders: Window borders in theme colors.
   - x-enabledIf={"/$supports.windowBorders":true}
-  - read: `WindowLookConfig.look` (whole) · in: `components/views/Settings/TranslucencyStatus.qml`
+  - read: `WindowLookConfig.look` (whole) · in: `components/views/Settings/TranslucencyStatus.qml`, `services/CompositorConfigManager.qml`
 - **`WindowLook.borders.activeColor`** · string = ""
   - Focused border: Empty follows the theme's focused border color.
   - x-options="colors", x-emptyLabel="Theme", x-showIf={"enabled":true}, x-enabledIf={"/$supports.windowBorders":true}

@@ -17,7 +17,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Input.keyboard.enabled`** · boolean = false
   - Set the keyboard: Layout and key repeat. Off, your compositor's own config applies.
   - x-greeter=true
-  - read: `InputConfig.input` (whole) · in: `services/CursorThemeManager.qml`, `services/NiriManager.qml`, `services/SwayManager.qml`
+  - read: `InputConfig.input` (whole) · in: `services/CompositorConfigManager.qml`, `services/CursorThemeManager.qml`, `services/NiriManager.qml`, `services/SwayManager.qml`
 - **`Input.keyboard.layout`** · string = "us"
   - Keyboard layout: XKB layouts, comma-separated (e.g. us,de).
   - x-scope="personal", x-greeter=true, x-compositor={"hyprland":{"key":"input.kb_layout","if":"enabled"},"sway":{"key":"i…, x-showIf={"enabled":true}
@@ -29,7 +29,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Input.keyboard.options`** · string = ""
   - XKB options: e.g. caps:escape,grp:alt_shift_toggle.
   - x-scope="personal", x-greeter=true, x-compositor={"hyprland":{"key":"input.kb_options","if":"enabled"},"sway":{"key":"…, x-showIf={"enabled":true}
-  - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
+  - read: `InputConfig.input` (whole) · in: `services/CompositorConfigManager.qml`
 - **`Input.keyboard.repeatRate`** · integer = 50 · 1–100
   - Key repeat rate
   - x-scope="personal", x-greeter=true, x-control="stepper", x-compositor={"hyprland":{"key":"input.repeat_rate","if":"enabled"},"sway":{"key":…, x-showIf={"enabled":true}
@@ -51,7 +51,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Input.mouse.enabled`** · boolean = false
   - Set the mouse: Acceleration, speed and buttons. Off, your compositor's own config applies.
   - x-greeter=true
-  - read: `InputConfig.input` (whole) · in: `services/CursorThemeManager.qml`, `services/NiriManager.qml`, `services/SwayManager.qml`
+  - read: `InputConfig.input` (whole) · in: `services/CompositorConfigManager.qml`, `services/CursorThemeManager.qml`, `services/NiriManager.qml`, `services/SwayManager.qml`
 - **`Input.mouse.accel`** · string = "default" · enum default|flat|adaptive
   - Pointer acceleration
   - x-greeter=true, x-compositor={"hyprland":{"key":"input.accel_profile","value":"emptyIsDefault","if…, x-showIf={"enabled":true}
@@ -73,7 +73,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Input.touchpad.enabled`** · boolean = false
   - Set the touchpad: Off, your compositor's own config applies.
   - x-greeter=true
-  - read: `InputConfig.input` (whole) · in: `services/CursorThemeManager.qml`, `services/NiriManager.qml`, `services/SwayManager.qml`
+  - read: `InputConfig.input` (whole) · in: `services/CompositorConfigManager.qml`, `services/CursorThemeManager.qml`, `services/NiriManager.qml`, `services/SwayManager.qml`
 - **`Input.touchpad.naturalScroll`** · boolean = false
   - Natural scrolling
   - x-scope="personal", x-greeter=true, x-compositor={"hyprland":{"key":"input.touchpad.natural_scroll","if":"enabled"},"s…, x-showIf={"enabled":true}
@@ -99,7 +99,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Input.cursor.enabled`** · boolean = false
   - Set the cursor: An installed cursor theme and its size. Off, the cursor is left alone.
   - x-greeter=true
-  - read: `InputConfig.input` (whole) · in: `services/CursorThemeManager.qml`, `services/NiriManager.qml`, `services/SwayManager.qml`
+  - read: `InputConfig.input` (whole) · in: `services/CompositorConfigManager.qml`, `services/CursorThemeManager.qml`, `services/NiriManager.qml`, `services/SwayManager.qml`
 - **`Input.cursor.theme`** · string = ""
   - Cursor theme: An installed cursor theme.
   - x-scope="look", x-greeter=true, x-options="cursorThemes", x-showIf={"enabled":true}
@@ -107,7 +107,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Input.cursor.size`** · integer = 24 · 8–128
   - Cursor size
   - x-scope="look", x-greeter=true, x-control="stepper", x-showIf={"enabled":true}
-  - read: `InputConfig.input` (whole) · in: `services/CompositorConfigManager.qml`, `services/CursorThemeManager.qml`, `services/SwayManager.qml`
+  - read: `InputConfig.input` (whole) · in: `services/CursorThemeManager.qml`, `services/SwayManager.qml`
 
 ### Reader members
 

@@ -21,6 +21,7 @@ import (
 	"github.com/axiom-shell/axiom/backend/internal/assets"
 	"github.com/axiom-shell/axiom/backend/internal/axerr"
 	"github.com/axiom-shell/axiom/backend/internal/buildinfo"
+	"github.com/axiom-shell/axiom/backend/internal/compositor/manager"
 	"github.com/axiom-shell/axiom/backend/internal/config"
 	"github.com/axiom-shell/axiom/backend/internal/fsx"
 	"github.com/axiom-shell/axiom/backend/internal/ipcroute"
@@ -97,8 +98,11 @@ type Daemon struct {
 	locker    *lock.Locker
 	dev       *devMode
 	savedKick *kicker
-	tasks     *tasks
-	stop      context.CancelFunc
+	// compositor is the compositor's config layer (nil without the tree's
+	// tables)
+	compositor *manager.Manager
+	tasks      *tasks
+	stop       context.CancelFunc
 
 	// isShell says whether a connection's peer pid is the shell's (a
 	// hello as "shell" from anything else is refused)
@@ -228,6 +232,7 @@ func Run(ctx context.Context, opts Options) error {
 	// delivery, since an apply may hold the service meanwhile
 	d.savedKick = newKicker(func(context.Context) { d.saved.Changed() })
 
+	d.compositor = d.newCompositor()
 	parts := []part{d.corePart(), d.configPart(), d.ipcPart(), d.sharingPart(), d.compositorPart(), d.dev.part()}
 	reg := d.registry(parts)
 	d.server = &rpc.Server{

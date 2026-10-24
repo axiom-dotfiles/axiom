@@ -62,12 +62,6 @@ Singleton {
   readonly property int blockSize: 100
   // Whether niri's last config load failed (it keeps the config before)
   readonly property bool lastLoadFailed: _state.configFailed
-  // Writes axiom's layer into niri's config (CompositorConfigManager)
-  // None in the greeter, which writes no config
-  readonly property var configWriter: Paths.greeter ? null : NiriConfigWriter
-  // Whether `supports` is final: once the user's binds are read, so axiom's
-  // layer never binds a key their config does (NiriConfigWriter)
-  readonly property bool ready: NiriConfigWriter.userBindsRead
   // What niri does (CompositorManager.supports). Its workspaces belong to
   // an output, and every output is a strip. A column's windows shown as
   // tabs are its window groups. No outputCapture: it has only
@@ -369,7 +363,7 @@ Singleton {
   // Calls back with the binds in effect outside axiom's own (the user's,
   // read from their config, and axiom's), or null
   function withMainBinds(callback) {
-    NiriConfigWriter.withEntries(callback);
+    CompositorConfigManager.withEntries(callback);
   }
 
   // Nothing to do: the key recorder's window inhibits niri's shortcuts
@@ -476,7 +470,7 @@ Singleton {
     // Reads finish in any order: only the last asked for counts (the
     // running config may have changed between them)
     const asked = ++root._configReads;
-    CommandManager.run([Paths.toolBin, "compositor", "niri", "info", "--config", NiriConfigWriter.runningConfig], (code, out) => {
+    CommandManager.run([Paths.toolBin, "compositor", "niri", "info", "--config", CompositorConfigManager.runningConfig], (code, out) => {
       if (code !== 0 || asked !== root._configReads)
         return;
       try {
@@ -574,7 +568,7 @@ Singleton {
   // The gaps come from the config niri runs, which axiom's detached mode
   // changes
   property Connections _writer: Connections {
-    target: NiriConfigWriter
+    target: CompositorConfigManager
 
     function onRunningConfigChanged() {
       root._readConfig();

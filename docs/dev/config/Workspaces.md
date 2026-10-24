@@ -64,18 +64,18 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Workspaces.strips[].direction`** · string = "horizontal" · enum horizontal|vertical
   - Direction: Horizontal: columns side by side, scrolling sideways. Vertical: rows one under another, scrolling up and down.
-  - read: entry field, name match · in: none found
+  - read: entry field, name match repo-wide · in: `components/content/parts/RateLabel.qml`, `components/hosts/overlay/OverlayPage.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/methods/BindRows.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `config/WorkspacesConfig.qml`
 
 ### `Workspaces`
 
 - **`Workspaces.stripColumnWidth`** · integer = 50 · 10–100 · %
   - Column width: A new column's share of the monitor.
   - x-group="Workspace strips", x-showIf={"anyOf":[{"strips":{"notEmpty":true},"/$supports.strips":true},{"lay…, x-compositor={"hyprland":{"key":"scrolling.column_width","scale":0.01},"niri":{"ke…
-  - read: `WorkspacesConfig.stripOptions` (computed), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`
+  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/CompositorConfigManager.qml`
 - **`Workspaces.stripFollowFocus`** · boolean = true
   - Scroll to the focused window
   - x-group="Workspace strips", x-showIf={"anyOf":[{"strips":{"notEmpty":true}},{"layout":"scrolling"}],"/$sup…, x-compositor={"hyprland":{"key":"scrolling.follow_focus"}}
-  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`
+  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/CompositorConfigManager.qml`
 
 ### Reader members
 
@@ -106,10 +106,10 @@ Every public member of `WorkspacesConfig`, with the files that use it.
 - `WorkspacesConfig.boardRows` (int)
   - in: `components/surfaces/workspaces/OverviewGrid.qml`
 - `WorkspacesConfig.strips` (var): Strips (Hyprland's scrolling layout), per monitor: [{ monitor, direction }] from each strip's ScreenTarget: the primary monitor's name, "*" for every monitor a…
-  - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/HyprlandConfigWriter.qml`
+  - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/CompositorConfigManager.qml`
 - `WorkspacesConfig.hasStrips` (bool)
   - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/KeybindManager.qml`
 - `WorkspacesConfig.stripOptions` (var): The strip settings Hyprland takes (HyprLua.stripsLua)
-  - in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`
+  - in: `services/CompositorConfigManager.qml`
 - `WorkspacesConfig.stripDirection(screenName)`: The strip direction of the monitor named `screenName`, "" when it tiles
   - in: `services/CompositorManager.qml`

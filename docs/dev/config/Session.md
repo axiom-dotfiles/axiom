@@ -13,11 +13,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Session.recommendedEnv`** · boolean = true
   - Recommended environment: Variables recommended on Wayland: GTK, Qt, Clutter and Electron apps run on Wayland (falling back to X11 where they can), Qt scales by pixel density and leaves window decorations to the compositor. Your own below win over them.
-  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `config/SessionConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: `SessionConfig.session` (whole) · in: `config/SessionConfig.qml`
 - **`Session.env`** · array<object> = []
   - Environment: Variables set before anything starts. Changes apply to apps started afterwards.
   - x-wide=true
-  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `config/SessionConfig.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: `SessionConfig.session` (whole) · in: `config/SessionConfig.qml`
 
 ### `Session.env[]`
 
@@ -25,19 +25,19 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Session.env[].id`** · string
   - The item's stable id, unique in its list: what editors, path ops and imports match it by.
   - pattern="^[A-Za-z0-9][A-Za-z0-9._-]*$", x-settings=false
-  - read: entry field, name match, `// reads:` marker · in: `components/content/Session/Session.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: entry field, name match · in: `components/content/Session/Session.qml`
 - **`Session.env[].name`** · string = ""
   - Name
-  - read: entry field, name match, `// reads:` marker · in: `components/content/Session/Session.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: entry field, name match · in: `components/content/Session/Session.qml`
 - **`Session.env[].value`** · string = ""
   - Value
-  - read: entry field, name match, `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: entry field, name match · in: none found
 
 ### `Session`
 
 - **`Session.autostart`** · array<object> = [{"id":"dbus-update-activation-environment","command":"dbus-update-ac…
   - Autostart: Commands run once when the compositor starts, after axiom.
-  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: `SessionConfig.session` (whole) · in: `config/SessionConfig.qml`
 
 ### `Session.autostart[]`
 
@@ -45,17 +45,17 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Session.autostart[].id`** · string
   - The item's stable id, unique in its list: what editors, path ops and imports match it by.
   - pattern="^[A-Za-z0-9][A-Za-z0-9._-]*$", x-settings=false
-  - read: entry field, name match, `// reads:` marker · in: `components/content/Session/Session.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: entry field, name match · in: `components/content/Session/Session.qml`
 - **`Session.autostart[].command`** · string = ""
   - Command
-  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: entry field, name match · in: none found
 - **`Session.autostart[].enabled`** · boolean = true
   - On
-  - read: `SessionConfig.session` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: `SessionConfig.session` (whole) · in: `services/CompositorConfigManager.qml`
 
 ### Reader members
 
 Every public member of `SessionConfig`, with the files that use it.
 
 - `SessionConfig.session` (var)
-  - in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - in: `services/CompositorConfigManager.qml`

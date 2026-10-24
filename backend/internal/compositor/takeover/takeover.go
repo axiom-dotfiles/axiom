@@ -1,7 +1,7 @@
 // Package takeover makes a compositor's config axiom's for the managed mode,
 // says what that would do, or gives it back when axiom leaves the mode
 // (docs/dev/hyprland/managed-takeover.md). Every verb answers one word, the
-// shell's ConfigTakeover reads:
+// compositor manager reads:
 //
 //	ours                the file is already axiom's (its first line starts with the header)
 //	blocked:link        the dir or its config is a symlink: never taken over

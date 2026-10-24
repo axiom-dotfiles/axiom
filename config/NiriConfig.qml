@@ -3,7 +3,7 @@ import QtQuick
 import qs.services
 
 // Reader for Compositor.niri: niri's own options in the managed config
-// (NiriConfigWriter; each field by its x-compositor.niri annotation),
+// (the daemon's niri writer; each field by its x-compositor.niri annotation),
 // read whole.
 QtObject {
   readonly property var _c: ConfigManager.config.Compositor.niri

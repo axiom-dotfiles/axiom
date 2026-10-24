@@ -503,7 +503,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ColumnSplit.qml`: Splits an ordered list of cards into two newspaper columns (the first k on the left, the rest on the right) so both end as close together as they can, from the cards' heights.
 - `CommunityCatalog.qml`: The community setups catalog (github.com/axiom-shell/community-setups, its `catalog` branch): reading its index.json, searching it, and where each file comes from and goes.
 - `CompositorKind.qml`: Which compositor axiom runs under, from the environment (CompositorManager.kind).
-- `CompositorLayer.qml`: What axiom asks of the compositor, decided once in a neutral shape that every backend's config writer turns into its own text (Hyprland's Lua, sway's commands).
+- `CompositorLayer.qml`: What axiom asks of the compositor, decided once in a neutral shape: the window look and the input that are on, which the shell sends the daemon's config layer (CompositorConfigManager.spec; the daemon's port of the rest…
 - `DataDirs.qml`: Where axiom keeps what it writes (XDG base directories).
 - `DockLayout.qml`: Pure helpers for the dock: which apps it shows (pinned ones, then running ones), which window a click goes to, how big each icon is under the pointer, and whether a window covers it.
 - `DynamicWorkspaces.qml`: niri's workspaces for a compositor that only has ids (Hyprland, under the scrolling layout): each output's workspaces are its block's ids from the first, without gaps, with one empty one after the last.
@@ -512,8 +512,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `GreeterSessions.qml`: The sessions the greeter can start (GreetdManager): Wayland session desktop entries (wayland-sessions/*.desktop in each data dir), their Exec line split into the argv greetd launches, and the environment they start in.
 - `GreeterUsers.qml`: The people the greeter offers to log in (GreetdManager): accounts from /etc/passwd whose uid is in /etc/login.defs' UID_MIN..UID_MAX (regular users, not system accounts) and whose shell lets them log in.
 - `GridPlacement.qml`: Pure geometry of the module grid shared by overlay pages, edge menus and the layouts editor.
-- `HyprConfigLua.qml`: The Lua axiom's Hyprland layer is made of (HyprlandConfigWriter): each bind's hl.bind(), the included module, the managed hyprland.lua and the one given back on leaving managed.
-- `HyprLua.qml`: Hyprland's Lua config from schema fields: each field with x-compositor.hyprland (CompositorLayer.compositorFields) becomes one value of a nested hl.config({...}) table, by its spec: key the option's dotted path, or a li…
+- `HyprLua.qml`: Hyprland's Lua from schema fields, for what the shell sends Hyprland itself (the layer rules, monitor calls, the greeter's config; axiom's config layer is the daemon's: internal/compositor/render): each field with x-com…
 - `HyprReply.qml`: Requests and replies on Hyprland's request socket (HyprlandIpcManager), which answers one request per connection, in hyprctl's wire format: "j/" asks for JSON, "[[BATCH]]a;b" runs several and joins their replies with bl…
 - `HyprState.qml`: Hyprland's JSON replies (HyprlandManager) as the shapes the rest of the shell reads, which don't depend on the compositor: what another compositor's service would hand back too.
 - `HypridleConf.qml`: The hypridle config axiom runs hypridle with (HypridleManager), from the Idle section: a general block, then one listener per step whose timeout isn't 0 (dim, lock, screen off, suspend) in timeout order, then the user's…
@@ -527,7 +526,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `LayerStack.qml`: The order axiom's layer surfaces stack and reserve their space in, on every compositor (pure).
 - `LibraryOrder.qml`: How the editors' libraries (bar widgets, overlay modules) order their types: by label, or by group (the schema's `x-libraryGroups`, in order) and by label within each.
 - `MonitorLayout.qml`: Pure helpers for the Monitors page (MonitorManager): modes, scales, rotation, the layout's rects and snapping, and picking the profile for the connected outputs.
-- `NiriConf.qml`: niri's config text (KDL) and IPC requests from axiom's settings (NiriManager, NiriConfigWriter), as SwayConf is for sway: each bind's node, the window look, input and options, outputs, and the files axiom writes (docs/d…
+- `NiriConf.qml`: niri's IPC requests the shell sends niri itself (NiriManager): monitor rules set now (docs/dev/compositor/niri-backend.md). axiom's config layer is the daemon's (internal/compositor/render).
 - `NiriState.qml`: niri's IPC replies and events (NiriManager) as the shapes the rest of the shell reads, which don't depend on the compositor (docs/dev/compositor/contract.md), as SwayState is for sway. niri's state is kept as its own ob…
 - `NoteMarkdown.qml`: A note's Markdown as blocks for the notes editor (content/parts/notes/ NoteEditor): paragraphs of plain lines (split at blank lines, which stay with the paragraph above; a code fence is never split, and holds no tasks),…
 - `Packages.qml`: Which distribution this is (from its os-release) and what installs a command there: each command's package per distribution, the shell lines that install a set of them (install hints), and how it checks for and installs…
@@ -542,7 +541,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `StopwatchClock.qml`: The one-off timer's and the stopwatch's rules, for StopwatchManager.
 - `SurfaceContext.qml`: What a surface growing out of a screen edge touches, and every rule that follows from it, for each kind of surface alike: bar popouts, edge popouts (OSDs, floating edge menus, the attached launcher), docks and submenus.
 - `SurfaceOutline.qml`: The outline of a surface that grows out of an edge (AttachedSurface): a content box joined to the attach edge by two concave fillets, or a plain box held off it.
-- `SwayConf.qml`: Sway's config and command text from axiom's settings (SwayManager, SwayConfigWriter), as HyprLua/HyprConfigLua are for Hyprland: each bind's `bindsym`, the window look and input as sway commands, the included file, outp…
+- `SwayConf.qml`: Sway commands the shell sends sway itself (SwayManager): output commands and the greeter's input (docs/dev/compositor/sway-backend.md). axiom's config layer is the daemon's (internal/compositor/render).
 - `SwayState.qml`: Sway's IPC replies (SwayManager) as the shapes the rest of the shell reads, which don't depend on the compositor (docs/dev/compositor/contract.md), as HyprState is for Hyprland.
 - `ThemeFamilies.qml`: Groups themes into the families the theme list shows (a dark/light pair is one theme) and finds the family a theme name belongs to, for ThemeManager.
 - `TimeZones.qml`: Pure helpers for clocks in another time zone.
@@ -884,11 +883,10 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `CommandManager.qml`: Shell commands polled for their output (e.g. a bar Button's label), shared by every widget asking for the same command: each distinct command runs once per interval (the shortest asked for), only while something has acq…
 - `CommunityFetch.qml`: One run of scripts/community_fetch.sh, for CommunitySetupsManager: its output is handed to `done` once it ends.
 - `CommunitySetupsManager.qml`: The community setups gallery (github.com/axiom-shell/community-setups): downloads the catalog (CommunitySetups.indexUrl) when the gallery is opened, never before, and the setups' thumbnails and screenshots into the cach…
-- `CompositorConfigManager.qml`: Sets the compositor up for axiom (the Compositor section's mode, CompositorConfig.mode), through its backend's config writer (CompositorManager.backend.configWriter, docs/dev/compositor/ config-modes.md).
+- `CompositorConfigManager.qml`: The compositor set up for axiom (the Compositor section's mode, CompositorConfig.mode): the axiom daemon does it (backend/internal/ compositor/manager, docs/dev/compositor/config-modes.md), writing the compositor's conf…
 - `CompositorManager.qml`: The running compositor, for the rest of axiom: its windows, outputs and workspaces in shapes that don't depend on it, what it supports, and every workspace switch and window focus (docs/dev/compositor/README.md).
 - `ConfigDraft.qml`: A working copy of one config section for an editor (settings, bar, overlay, edge menu, keybind and monitor editors).
 - `ConfigManager.qml`: The config, as axiom (the binary, the shell's parent: `axiom run`) has it. axiom owns config.json: it loads it (converting older files), normalizes it and writes it.
-- `ConfigTakeover.qml`: Taking a compositor's config over for the managed mode, and giving it back, through the daemon (`compositor.takeover`: backend/internal/ compositor/takeover, the same verbs and results on every compositor), for that com…
 - `ConsumerRegistry.qml`: Reference-counted consumers of a shared poller (SystemManager, UpdatesManager, ...): each owner registers one request, and the service polls for the union of them, stopping when there are none.
 - `CursorThemeManager.qml`: The cursor theme as XCursor readers get it (the compositor's xcursor-theme, XCURSOR_THEME, GTK's cursor-theme).
 - `DailySchedule.qml`: A daily window, `startAt` until `endAt` ("HH:MM"; past midnight when the end is earlier), that says when its state is due: `due(inWindow)` fires when the window opens or closes, when the schedule is turned on, and when …
@@ -906,11 +904,9 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `GreeterManager.qml`: Axiom as greetd's login screen, from the user's side (the greeter itself is greeter.qml, with GreetdManager).
 - `GridEditor.qml`: Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter cards), shared by the layouts editor's overlay pages and edge menus.
 - `HypridleManager.qml`: hypridle, run by axiom (the Idle section).
-- `HyprlandConfigWriter.qml`: section's options, loading ~/.config/hypr/user/*.lua after it Also the managed takeover (ConfigTakeover, through the daemon) and moving the user's binds into axiom (UserBindMerge, through the daemon).
 - `HyprlandGrab.qml`: Hyprland's focus grab, for surfaces that close (or drop keyboard focus) on a click outside them: while `active`, keyboard focus stays in `windows` and a click anywhere else ends the grab (`cleared`).
 - `HyprlandIpcManager.qml`: Requests on Hyprland's request socket, as hyprctl makes them but without a process each: what Quickshell.Hyprland doesn't cover (options, Lua evals, binds, devices, layers, the cursor, reloads).
 - `HyprlandManager.qml`: CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprland's state as the compositor-neutral shapes (HyprState), and the primitives CompositorManager builds on.
-- `HyprlandRuntimeLayer.qml`: Axiom's Hyprland layer evaluated at runtime (RuntimeLayer), for HyprlandConfigWriter, which owns it.
 - `IdleInhibitManager.qml`: Shared on/off state for keeping the session awake.
 - `IntegrationHookupManager.qml`: Hooks theme integrations into their apps' configs: each ThemeIntegrations switch's `x-hookup` targets (the line that loads its axiom file, where it goes), run by scripts/integration_hookup.py.
 - `IpcTarget.qml`: An IPC target: Quickshell's IpcHandler (so `qs ipc call` reaches it as before) that also registers with axiom (BackendManager), so `axiom ipc <target> <fn>` and the named commands reach it over the shell's own connectio…
@@ -924,7 +920,6 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `MonitorManager.qml`: The Monitors page: the connected outputs (CompositorManager. withOutputDetails, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Monitors.profiles, a draft of profiles (…
 - `NetworkingManager.qml`: Wi-Fi state and actions over NetworkManager (Quickshell.Networking, D-Bus, so nothing polls).
 - `NightLightManager.qml`: The night light (the NightLight section): warmer colors through hyprsunset, or wlsunset without it, started and stopped by axiom.
-- `NiriConfigWriter.qml`: niri's config writer (docs/dev/compositor/config-modes.md), reached as NiriManager.configWriter by CompositorConfigManager, which drives the modes.
 - `NiriIpcManager.qml`: niri's IPC socket ($NIRI_SOCKET), without a process per call: its event stream, and requests.
 - `NiriManager.qml`: CompositorManager's backend on niri (docs/dev/compositor/contract.md, docs/dev/compositor/niri-backend.md): niri's state as the compositor-neutral shapes (NiriState), and the primitives CompositorManager builds on.
 - `NotesManager.qml`: Notes: Markdown files in NotesConfig.directory ($XDG_DATA_HOME/axiom/notes/ by default, or a linked folder).
@@ -934,7 +929,6 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `PolkitManager.qml`: axiom as the session's polkit agent (the Polkit section): while PolkitConfig.enabled, a PolkitAgent answers apps' requests for administrator rights, and PolkitWindow (shell/PolkitPrompt) shows each one.
 - `PomodoroManager.qml`: The pomodoro timer: one for every widget and module, run here so it keeps time with nothing showing it.
 - `PopoutManager.qml`: Every popout showing, where it is, and which gives way to which.
-- `RuntimeLayer.qml`: Axiom's layer applied at runtime, for a compositor's config writer: the detached mode, and the fallback of the file modes while their file isn't loaded (docs/dev/compositor/config-modes.md).
 - `SavedConfigsManager.qml`: Named snapshots of the config (one JSON file each in $XDG_CONFIG_HOME/axiom/saved/) and shared configs: the examples shipped in examples/, imported files, exports to the home folder. axiom does the work (saved.* and sha…
 - `ScreenLayoutEditor.qml`: The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lock screen's, LockManager.editor, or the greeter's, GreeterManager.editor): its modules on a bounded grid, edited through `layout`, its own …
 - `ScreenshotManager.qml`: Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shell/Screenshot shows a frozen frame (ScreencopyView, or grim's…
@@ -944,17 +938,14 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ShellManager.qml`: Shell manager manages global options and signals
 - `StateManager.qml`: Small JSON state files in Paths.statePath: createStateHandler(name) gives a shared save/load handler per name.
 - `StopwatchManager.qml`: One one-off timer and one stopwatch, for every Stopwatch widget and module, both able to run at once.
-- `SwayConfigWriter.qml`: ~/.config/sway/user/* after it (ConfigTakeover) The file modes write the monitor profile for what's connected (a sway reload resets the outputs to what the config says); MonitorManager applies it at runtime too, at star…
 - `SwayIpcManager.qml`: Requests to sway that want a reply, through swaymsg: what Quickshell.I3 doesn't cover (its I3.dispatch runs a command with no reply, and it has no window tree, inputs or outputs in full).
 - `SwayManager.qml`: CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/compositor/sway-backend.md): sway's state as the compositor-neutral shapes (SwayState), and the primitives CompositorManager builds on.
-- `SwayRuntimeLayer.qml`: Axiom's sway layer sent at runtime (RuntimeLayer), for SwayConfigWriter, which owns it and sets readBinds: sway can't list its binds, so the user's are read from their config files (SwayConfigWriter.readUserBinds).
 - `SystemManager.qml`: CPU / memory / temperature / GPU / disk usage, polled only while something is showing it.
 - `TailscaleManager.qml`: Tailscale's state for every widget that shows it: one `tailscale status --json` at the shortest interval asked for, only while something has acquire()d it.
 - `ThemeManager.qml`: ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallpaper, the wallpaper itself, and re-theming integrated tools.
 - `TimeZoneManager.qml`: Other time zones' UTC offsets, for clocks set to one (a Clock module's or a bar Time widget's `timezone`): the JS engine can't convert times between zones (TimeZones).
 - `TodoManager.qml`: The todo list: one list for every widget and module, kept in $XDG_DATA_HOME/axiom/todo.json ({ version, items }: TodoItems' shape), written atomically and watched, so an edit made elsewhere shows at once.
 - `UpdatesManager.qml`: Pending package updates, shared by every Updates widget, checked the way this distribution does (Packages.updates: checkupdates on Arch, dnf on Fedora; nothing on one it doesn't know, `supported` false).
-- `UserBindMerge.qml`: Moves the user's binds into axiom (managed mode), through the daemon (`compositor.binds`: backend/internal/compositor/binds, the same verbs and JSON on every compositor), for that compositor's config writer.
 - `WallpaperManager.qml`: What changes the look on its own.
 - `WeatherManager.qml`: Weather shared by every widget that shows it: one WeatherSource for the Weather settings' location and units, fetching while some widget wants it.
 - `WeatherSource.qml`: Weather for one location from Open-Meteo (no API key).
@@ -977,17 +968,17 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `EdgeMenusConfig.qml`: EdgeMenus: menus that pop out of a screen edge, holding overlay modules.
 - `General.qml`: Reader for the General section.
 - `GreeterConfig.qml`: Reader for the Greeter section: axiom as the greetd login screen (GreeterManager sets it up; in the greeter itself, this is the bundle it was handed).
-- `HyprlandConfig.qml`: Reader for Compositor.hyprland: what axiom writes into Hyprland (HyprlandConfigWriter).
+- `HyprlandConfig.qml`: Reader for Compositor.hyprland: what axiom writes into Hyprland (the daemon's Hyprland writer).
 - `I18n.qml`: Translation and locale for the shell's text (General.language).
 - `IconsConfig.qml`: Reader for the Icons section.
 - `Idle.qml`: Reader for the Idle section: hypridle, run by HypridleManager.
 - `InputConfig.qml`: Reader for the Input section: the keyboard, mouse, touchpad and cursor axiom sets on the compositor, a part at a time ({ keyboard: { enabled, layout, … }, mouse, touchpad, cursor }, each set only while `enabled`), throu…
-- `KeybindsConfig.qml`: Reader for the Keybinds section: axiom's own binds, edited on the Keybinds page (KeybindManager) and applied by the compositor's config writer (on Hyprland, HyprlandConfigWriter)
+- `KeybindsConfig.qml`: Reader for the Keybinds section: axiom's own binds, edited on the Keybinds page (KeybindManager) and applied by the compositor's config writer (the daemon's)
 - `LauncherConfig.qml`: Reader for the Launcher section (the search launcher).
 - `LockscreenConfig.qml`: Reader for the Lockscreen section: which locker locks the session, and what the built-in one shows (`layout`, as saved: the lock never shows the layouts editor's unsaved draft, LockManager.editor.localLayout).
 - `MonitorsConfig.qml`: Reader for the Monitors section: the monitor profiles ({ id, name, outputs: [MonitorRule] }), edited on the Monitors page (MonitorManager) and applied by the compositor's config writer
 - `NightLight.qml`: Reader for the NightLight section: warmer colors through hyprsunset or wlsunset, run by NightLightManager.
-- `NiriConfig.qml`: Reader for Compositor.niri: niri's own options in the managed config (NiriConfigWriter; each field by its x-compositor.niri annotation), read whole.
+- `NiriConfig.qml`: Reader for Compositor.niri: niri's own options in the managed config (the daemon's niri writer; each field by its x-compositor.niri annotation), read whole.
 - `NotesConfig.qml`: Reader for the Notes section (see NotesManager).
 - `NotificationsConfig.qml`: Reader for the Notifications section (toasts and the history).
 - `OSDConfig.qml`: Reader for the OSD section (the volume, microphone and brightness on-screen displays).
@@ -1001,7 +992,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SelfUpdate.qml`: Reader for the SelfUpdate section (see SelfUpdateManager).
 - `SessionConfig.qml`: Reader for the Session section: what starts with the compositor while axiom manages its config ({ recommendedEnv, env, autostart }).
 - `StopwatchConfig.qml`: Reader for the Stopwatch section: the one-off timer's presets and whether its end notifies (see StopwatchManager).
-- `SwayConfig.qml`: Reader for Compositor.sway: sway's own options in the managed config (SwayConfigWriter; each field by its x-compositor.sway annotation), read whole.
+- `SwayConfig.qml`: Reader for Compositor.sway: sway's own options in the managed config (the daemon's sway writer; each field by its x-compositor.sway annotation), read whole.
 - `Theme.qml`: The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - `ThemeIntegrations.qml`: Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().
 - `TodoConfig.qml`: Reader for the Todo section: how every todo widget and module shows the list (the items are TodoManager's, in the data folder).

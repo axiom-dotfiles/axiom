@@ -15,7 +15,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`WindowLook.blur.enabled`** · boolean = false
   - Set the compositor's blur: The compositor has one blur, for windows and axiom's translucent surfaces alike. Off, your own config's applies.
   - x-enabledIf={"/$supports.windowBlur":true}
-  - read: `WindowLookConfig.look` (whole) · in: `components/views/Settings/TranslucencyStatus.qml`
+  - read: `WindowLookConfig.look` (whole) · in: `components/views/Settings/TranslucencyStatus.qml`, `services/CompositorConfigManager.qml`
 - **`WindowLook.blur.windowBlur`** · boolean = true
   - Blur transparent windows: Off, only axiom's surfaces blur (Blur behind axiom's surfaces, above).
   - x-showIf={"enabled":true}, x-enabledIf={"/$supports.windowBlur":true}, x-compositor={"hyprland":{"key":"decoration.blur.enabled","if":"enabled"}}
@@ -23,7 +23,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`WindowLook.blur.size`** · integer = 4 · 1–20
   - Blur size
   - x-control="stepper", x-showIf={"enabled":true}, x-enabledIf={"/$supports.windowBlur":true}, x-compositor={"hyprland":{"key":"decoration.blur.size","if":"enabled"}}
-  - read: `WindowLookConfig.look` (whole) · in: `components/views/Settings/TranslucencyStatus.qml`, `services/CompositorConfigManager.qml`
+  - read: `WindowLookConfig.look` (whole) · in: `components/views/Settings/TranslucencyStatus.qml`
 - **`WindowLook.blur.passes`** · integer = 3 · 1–6
   - Blur passes
   - x-showIf={"enabled":true}, x-enabledIf={"/$supports.windowBlur":true}, x-compositor={"hyprland":{"key":"decoration.blur.passes","if":"enabled"}}

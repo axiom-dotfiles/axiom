@@ -14,7 +14,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Keybinds.binds`** · array<Keybind> = [{"id":"super-space","key":"SUPER + space","action":"launcher"},{"id"…
   - Keybinds: Edited on the Keybinds page.
   - x-scope="personal"
-  - read: `KeybindsConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `services/EdgeMenuManager.qml`, `services/UserBindMerge.qml`
+  - read: `KeybindsConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `services/EdgeMenuManager.qml`
 
 ### `Keybinds.binds[]`
 
@@ -37,17 +37,17 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Keybinds.binds[].call`** · string = "toggle" · enum toggle|open|close
   - Call: For actions that open and close something: whether the bind toggles it, only opens it or only closes it.
   - x-showIf={"action":["launcher","overlay","edgeMenu","dock","workspaceOverview"…
-  - read: `KeybindsConfig.binds` (whole) · in: `services/UserBindMerge.qml`
+  - read: entry field, name match · in: `components/views/Keybinds/BindInspector.qml`
 - **`Keybinds.binds[].compositor`** · string = "hyprland" · enum hyprland|sway|niri
   - Compositor: The compositor the command is written for: the bind does nothing under another.
   - x-showIf={"action":"raw"}
   - read: entry field, name match · in: `components/views/Keybinds/BindInspector.qml`
 - **`Keybinds.binds[].repeating`** · boolean = false
   - Repeat while held
-  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/BindActions.qml`, `components/methods/NiriConf.qml`, `components/methods/SwayConf.qml`
+  - read: entry field, name match, `// reads:` marker · in: `components/methods/BindActions.qml`
 - **`Keybinds.binds[].locked`** · boolean = false
   - Works while locked
-  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/content/Notes/Notes.qml`, `components/methods/BindActions.qml`, `components/methods/NiriConf.qml`, `components/methods/SwayConf.qml`, `shell/Lockscreen.qml`
+  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/content/Notes/Notes.qml`, `components/methods/BindActions.qml`, `shell/Lockscreen.qml`
 - **`Keybinds.binds[].release`** · boolean = false
   - On release
   - read: entry field, name match, `// reads:` marker · in: `components/methods/BindActions.qml`
@@ -105,10 +105,10 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `KeybindsConfig.presets` (whole) · in: `services/KeybindManager.qml`
 - **`Keybinds.presets[].binds[].repeating`** · boolean = false
   - Repeat while held
-  - read: entry field, name match repo-wide · in: `components/methods/NiriConf.qml`, `components/methods/SwayConf.qml`
+  - read: entry field, name match · in: none found
 - **`Keybinds.presets[].binds[].locked`** · boolean = false
   - Works while locked
-  - read: entry field, name match repo-wide · in: `components/content/Notes/Notes.qml`, `components/methods/NiriConf.qml`, `components/methods/SwayConf.qml`, `shell/Lockscreen.qml`
+  - read: entry field, name match repo-wide · in: `components/content/Notes/Notes.qml`, `shell/Lockscreen.qml`
 - **`Keybinds.presets[].binds[].release`** · boolean = false
   - On release
   - read: entry field, name match · in: none found
@@ -124,8 +124,8 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `KeybindsConfig`, with the files that use it.
 
 - `KeybindsConfig.binds` (var)
-  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `services/EdgeMenuManager.qml`, `services/UserBindMerge.qml`
+  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `services/EdgeMenuManager.qml`
 - `KeybindsConfig.activeBinds` (var): The binds to bind: all but the paused ones, which stay in the list
-  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/HyprlandConfigWriter.qml`, `services/KeybindManager.qml`, `services/NiriConfigWriter.qml`, `services/RuntimeLayer.qml`, `services/SwayConfigWriter.qml`
+  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/CompositorConfigManager.qml`, `services/KeybindManager.qml`
 - `KeybindsConfig.presets` (var): Bind sets saved on the Keybinds page: [{ id, name, binds }]
   - in: `services/KeybindManager.qml`

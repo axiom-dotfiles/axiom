@@ -41,10 +41,10 @@ Every public member of `Apps`, with the files that use it.
 - `Apps.pinned` (var)
   - in: `components/views/Settings/DockListCard.qml`, `config/DockConfig.qml`, `services/DockManager.qml`
 - `Apps.terminalCommand` (string): What a bind (or the onboarder) runs to open each
-  - in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - in: `services/CompositorConfigManager.qml`
 - `Apps.fileManagerCommand` (string)
-  - in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - in: `services/CompositorConfigManager.qml`
 - `Apps.inTerminal(argv, terminal)`: `argv` run in a terminal: `terminal` (a widget's own), else the Apps one (which may carry arguments of its own), else xdg-terminal-exec, which takes the comman…
   - in: `services/LauncherManager.qml`, `services/UpdatesManager.qml`
 - `Apps.browserCommand` (string)
-  - in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - in: `services/CompositorConfigManager.qml`

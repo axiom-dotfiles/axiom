@@ -1,6 +1,9 @@
 package render
 
 import (
+	"bufio"
+	"compress/gzip"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"sort"
@@ -62,16 +65,16 @@ func replayed(v any) any {
 	return v
 }
 
-// The helpers' shared cases (recorded from their JS tests) replayed
-// through the port: each output must be the JS bytes exactly. Ops with no
-// port (KeyNames' key events, LayerStack.sequence: the shell's alone) are
-// left to the JS.
+// The shared cases of the helpers the shell still uses (recorded from
+// their JS tests) replayed through the port, so the two copies stay one:
+// each output must be the JS bytes exactly. Ops with no port (KeyNames'
+// key events, LayerStack.sequence: the shell's alone) are left to the JS.
 func TestSharedCases(t *testing.T) {
 	t.Parallel()
 	tab := repoTables(t)
 	ran := map[string]int{}
-	for _, suite := range []string{"BindActions.", "BindKeys.", "CompositorLayer.", "HyprConfigLua.", "HyprLua.", "KeyNames.",
-		"LayerStack.", "NiriConf.", "SwayConf."} {
+	for _, suite := range []string{"BindActions.", "BindKeys.", "CompositorLayer.", "HyprLua.", "KeyNames.", "LayerStack.",
+		"NiriConf.", "SwayConf."} {
 		for _, c := range testkit.Cases(t, suite) {
 			op, ok := ops[c.Op]
 			if !ok {
@@ -93,6 +96,90 @@ func TestSharedCases(t *testing.T) {
 	}
 	sort.Strings(names)
 	t.Logf("replayed: %s", strings.Join(names, " "))
+}
+
+// The helpers' cases as recorded from their JS tests when the config
+// writers moved into the binary (testdata/frozen.jsonl.gz: each call and
+// the exact bytes V4 made of it), replayed through the port. Most of
+// those JS functions are gone; the ones the shell still uses go on being
+// recorded, and TestSharedCases replays those too.
+func TestFrozenCases(t *testing.T) {
+	t.Parallel()
+	tab := repoTables(t)
+	ran := 0
+	for _, c := range frozenCases(t) {
+		op, ok := ops[c.Op]
+		if !ok {
+			continue
+		}
+		ran++
+		if got := string(jsonx.Marshal(op(tab, c.Args))); got != c.Expected {
+			g, w := strings.Split(got, "\n"), strings.Split(c.Expected, "\n")
+			for i := 0; i < len(g) || i < len(w); i++ {
+				var x, y string
+				if i < len(g) {
+					x = g[i]
+				}
+				if i < len(w) {
+					y = w[i]
+				}
+				if x != y {
+					t.Errorf("%s: line %d: got %q, want %q", c.Name, i+1, x, y)
+					break
+				}
+			}
+		}
+	}
+	if ran < 500 {
+		t.Fatalf("only %d frozen cases replayed", ran)
+	}
+}
+
+type frozenCase struct {
+	Name, Op, Expected string
+	Args               []any
+}
+
+// frozenCases are testdata/frozen.jsonl.gz's cases, their arguments as the
+// JS was handed them
+func frozenCases(t *testing.T) []frozenCase {
+	t.Helper()
+	f, err := os.Open(filepath.Join("testdata", "frozen.jsonl.gz"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	gz, err := gzip.NewReader(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out []frozenCase
+	lines := bufio.NewScanner(gz)
+	lines.Buffer(nil, 64<<20)
+	for lines.Scan() {
+		var c struct {
+			Name     string          `json:"name"`
+			Op       string          `json:"op"`
+			Args     json.RawMessage `json:"args"`
+			Expected string          `json:"expected"`
+		}
+		if err := json.Unmarshal(lines.Bytes(), &c); err != nil {
+			t.Fatal(err)
+		}
+		raw, err := jsonx.Unmarshal(c.Args)
+		if err != nil {
+			t.Fatalf("%s: %v", c.Name, err)
+		}
+		var args []any
+		for _, a := range items(raw) {
+			args = append(args, replayed(a))
+		}
+		out = append(out, frozenCase{c.Name, c.Op, c.Expected, args})
+	}
+	if err := lines.Err(); err != nil {
+		t.Fatal(err)
+	}
+	return out
 }
 
 // arg is args[i], nil past the end (an argument left out)

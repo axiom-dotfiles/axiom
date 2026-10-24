@@ -3,7 +3,7 @@ import QtQuick
 import qs.services
 
 // Reader for Compositor.hyprland: what axiom writes into Hyprland
-// (HyprlandConfigWriter). Named HyprlandConfig because `Hyprland` is
+// (the daemon's Hyprland writer). Named HyprlandConfig because `Hyprland` is
 // Quickshell's singleton.
 QtObject {
   readonly property var _c: ConfigManager.config.Compositor.hyprland

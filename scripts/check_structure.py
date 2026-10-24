@@ -296,7 +296,7 @@ def main():
     # its Quickshell module or None, what talks to it)
     backends = [
         ("Sway", "sway", "I3", r"\bSwayManager\.|\bSwayIpcManager\.|\"swaymsg\""),
-        ("Niri", "niri", None, r"\bNiriManager\.|\bNiriIpcManager\.|\bNiriConfigWriter\.|\"NIRI_SOCKET\"|\[\"niri\","),  # its CLI: ["niri", "msg", …]
+        ("Niri", "niri", None, r"\bNiriManager\.|\bNiriIpcManager\.|\"NIRI_SOCKET\"|\[\"niri\","),  # its CLI: ["niri", "msg", …]
     ]
     for prefix, name, module, talks in backends:
         for path, text in sources.items():
@@ -330,7 +330,7 @@ def main():
         code = "\n".join(line.split("//", 1)[0] for line in re.sub(r"/\*.*?\*/", "", text, flags=re.S).splitlines())
         if not path.startswith(("services/", "components/", "shell/", "config/")):
             continue
-        if not re.fullmatch(r"(services|components/methods)/Hypr\w*\.qml", path) and path not in hyprland_features and re.search(r"\b(HyprLua|HyprConfigLua|HyprState)\.", code):
+        if not re.fullmatch(r"(services|components/methods)/Hypr\w*\.qml", path) and path not in hyprland_features and re.search(r"\b(HyprLua|HyprState)\.", code):
             errors.append(f"{path}: uses a Hyprland Lua helper (only the Hyprland* services and helpers may; go through CompositorManager / CompositorConfigManager)")
         for prefix, name, _, _ in backends:
             if not re.fullmatch(rf"(services|components/methods)/{prefix}\w*\.qml", path) and re.search(rf"\b({prefix}Conf|{prefix}State)\.", code):

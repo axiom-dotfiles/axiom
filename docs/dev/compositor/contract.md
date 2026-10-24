@@ -46,14 +46,14 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 - **Outputs** (the Monitors page; `monitors`): `withOutputDetails(cb)`: every output, disabled ones too, as `{ name, description, width, height, refreshRate, x, y, scale, transform (0-7, Wayland's), disabled, mirrorOf ("none" or a name), vrr, availableModes: ["WxH@RHz"] }` plus optional `currentFormat`, `colorManagementPreset`, `sdrBrightness`, `sdrSaturation` (Hyprland's monitors JSON; `MonitorLayout` reads them), or null; `applyOutputs(rules, details)`: set the outputs as the `MonitorRule`s say, now (`details` resolve a mirror's connector). With `outputProfiles` the compositor also picks the saved profile for what's connected on every hotplug (Hyprland's Lua layer); without it `MonitorManager` applies it at start, after `outputsHotplugged`, and after `configReloaded` while no file of axiom's is loaded; a writer whose compositor resets outputs on a reload writes the matching profile into its files (sway's).
 - **Binds** (the Keybinds page): `withMainBinds(cb)`: the binds in effect outside the backend's own modes, as `{ modmask, key, keycode, description, submap }` (`modmask` in X11 bits: SHIFT 1, CAPS 2, CTRL 4, ALT 8, MOD2 16, MOD3 32, SUPER 64, MOD5 128; `BindKeys`), or null (`bindMerge`); `captureKeys(on)`: while on, every key reaches axiom instead of a bind (`keyCapture`). The facade's `withBinds` / `captureKeys` check the capability.
 - **Session and input**: `withKeyboard(cb)`, `cycleKeyboardLayout(direction, cb)`, `applyInput(input, inputSchema)` (optional: sets the input options and cursor now, for a compositor running no config of axiom's, the greeter's; only sway's backend has it), `withCursorPos(cb)`, `warpCursorToLayer(…)`, `withLayerRects(cb)`, `exitSession()`, `dpmsCommand(on)` (a shell command, for the idle daemon).
-- **Config writer** (with `configModes`): `configWriter`, the singleton turning axiom's layer into the compositor's config in each mode ([config modes](config-modes.md) › The writer). The window look and the input reach the compositor through it, as `CompositorLayer.look()` / `.input()` specs.
+- **Config layer** (with `configModes`): the daemon writes axiom's layer into the compositor's config in each mode ([config modes](config-modes.md)), talking to the compositor itself. Optional members it relies on: `layerApplied()` (it changed the compositor at runtime: read back what the backend follows, Hyprland's options, sway's windows), `setLiveLook(look)` (sway: the look set a window at a time as windows open), `fx` (SwayFX).
 
 ### Capabilities
 `supports` keys (absent means false):
 
 | Key | What it gates |
 |---|---|
-| `configModes` | the backend has a `configWriter`: the Compositor, Input and Session settings, `CompositorConfigManager` ([config modes](config-modes.md)), the onboarding's setup page |
+| `configModes` | the daemon has a config writer for it: the Compositor, Input and Session settings, `CompositorConfigManager` ([config modes](config-modes.md)), the onboarding's setup page |
 | `keybinds` | the Keybinds page (`x-needs`), `KeybindManager` |
 | `monitors` | the Monitors page, `MonitorManager` |
 | `switcher` | Alt+Tab driven by compositor keys (`WindowSwitcherManager`) |

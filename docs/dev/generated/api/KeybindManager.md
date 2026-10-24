@@ -85,7 +85,7 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `callOptions(action)`: The choices for an action's call, or null when it has none
 - `callLabels(action)`: A call's label for an action (a caffeine or night light bind turns it on or off, a recording bind starts or stops it)
 - `ensureLoaded()`: Loads the draft unless it holds unsaved edits (the page is rebuilt whenever the overlay reopens)
-- `save()`
+- `save()`: Binds added, duplicated, merged or restored from a preset have no id of their own yet (or another's): each gets one as it's saved
 - `reset()`
 - `revertBind(index)`: Puts a bind back as it was saved, or removes it if it's new
 - `undo()`
