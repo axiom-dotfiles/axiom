@@ -37,9 +37,9 @@ Item {
   // Its wallpaper, when the background is "wallpaper"
   property string wallpaper: ""
   // The layout's, unless the host says otherwise (the desktop never blurs)
-  property bool blurWallpaper: root.layout?.blurWallpaper ?? true
+  property bool blurWallpaper: root.layout?.backdrop?.blur ?? true
   // "wallpaper" | "color" (the layout's, else the wallpaper)
-  readonly property string background: root.layout?.background ?? "wallpaper"
+  readonly property string background: root.layout?.backdrop?.source ?? "wallpaper"
   // Whether the background is drawn (else it's only what modules frost)
   property bool showBackdrop: true
   // Whether modules may frost the background (see `frosted`)
@@ -89,7 +89,7 @@ Item {
 
     Rectangle {
       anchors.fill: parent
-      color: root.background === "color" ? Theme.resolveColor(root.layout.backgroundColor) : Theme.background
+      color: root.background === "color" ? Theme.resolveColor(root.layout.backdrop.color) : Theme.background
     }
 
     Image {
@@ -112,7 +112,7 @@ Item {
     Rectangle {
       anchors.fill: parent
       color: "black"
-      opacity: (root.layout?.dim ?? 0) / 100
+      opacity: (root.layout?.backdrop?.dim ?? 0) / 100
     }
   }
 

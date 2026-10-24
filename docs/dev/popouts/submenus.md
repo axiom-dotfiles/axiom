@@ -1,6 +1,6 @@
 # Submenus (one level deep)
 
-> **Files:** `components/hosts/popout/SubPopout.qml`, `components/hosts/popout/SubmenuHost.qml`, `components/hosts/popout/SubmenuSide.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/EdgePopout.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/content/parts/MenuSubmenu.qml`, `components/content/SystemTray.qml`
+> **Files:** `components/hosts/popout/SubPopout.qml`, `components/hosts/popout/SubmenuHost.qml`, `components/hosts/popout/SubmenuSide.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/EdgePopout.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/content/Submenu/MenuSubmenu.qml`, `components/content/SystemTray/SystemTray.qml`
 > **Config:** none
 > **Related:** [Hosts and switching](hosts-and-switching.md), [Edge attach](edge-attach.md), [Surface context](surface-context.md), [Registry](registry.md), [Edge menu submenus](../edge-menus/editing-submenus.md)
 
@@ -8,7 +8,7 @@ Every popout host can open one submenu beside its box. This doc covers how the s
 
 ### The submenu host
 - **One per popout host:** every popout host owns one `hosts/popout/SubPopout` (`submenu`).
-- **Opening one:** a `PopoutAnchor` in the host's content opens content in the submenu (`content/<name>.qml`, chosen by the payload's `name`).
+- **Opening one:** a `PopoutAnchor` in the host's content opens content in the submenu (`content/<name>/<name>.qml`, chosen by the payload's `name`).
   - Examples of such anchors: the tray's entries, an edge menu's modules.
   - The content is given `wrapper` and the payload's fields.
   - It opens beside the parent's box, level with what opened it.

@@ -12,7 +12,6 @@ CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprl
 - `workspaces` (readonly var): The workspaces (HyprState.workspace).
 - `focusedOutput` (readonly string): The focused monitor's name, or "" while Hyprland has none
 - `activeWindowId` (readonly string): The focused window's id (its "0x…" address), or ""
-- `configWriter` (readonly var): Writes axiom's layer into Hyprland's config (CompositorConfigManager).
 - `supports` (readonly var): What Hyprland does (CompositorManager.supports)
 - `dynamicByLayout` (readonly bool): Whether the workspaces are niri's, kept by axiom (the scrolling layout, WorkspacesConfig.scrolling) rather than the layout's fixed ids.
 - `blockSize` (readonly int): Ids in each output's block while the workspaces are dynamic (CompositorManager.blockSize): more than anyone opens
@@ -43,7 +42,8 @@ CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprl
 - `resizeWindow(id, dw, dh, dx, dy)`: Grows a window by (dw, dh) and moves it by (dx, dy).
 - `warpCursorToLayer(namespace, monitor, width, height, x, y)`: Moves the cursor to (x, y) inside one of axiom's layer surfaces: the mapped one in `namespace` on `monitor` that is `width` × `height` (layer-shell windows don't know where they are on screen, Hyprla…
 - `runLua(lua, callback)`: Runs a Lua chunk in Hyprland (config functions like hl.bind or hl.config, which a dispatch can't call) after the chunks queued before it, then calls back with Hyprland's reply ("ok" or the error); fa…
-- `refreshOptions()`: Re-reads the options axiom follows (gaps, split ratio, the workspaces animation), after something changed them at runtime: once the queued Lua has run, which may be what changes them
+- `layerApplied()`: Re-reads the options axiom follows (gaps, split ratio, the workspaces animation), after something changed them at runtime: once the queued Lua has run, which may be what changes them axiom's config l…
+- `refreshOptions()`
 - `withAnimations(callback)`: Reads the options again (refreshOptions), then calls back with the animations as read
 - `withKeyboard(callback)`: Calls back with the main keyboard's layouts ({ layouts, index, keymap }, HyprState.keyboard), or null
 - `cycleKeyboardLayout(direction, callback)`: Switches every keyboard to its "next" or "prev" layout, then calls back

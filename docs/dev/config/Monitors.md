@@ -11,59 +11,63 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 ### `Monitors`
 
-- **`Monitors.profiles`** · array<MonitorProfile> = []
+- **`Monitors.items`** · array<MonitorProfile> = []
   - Monitor layouts, one per set of connected monitors.
-  - read: `MonitorsConfig.profiles` (computed) · in: `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - read: `MonitorsConfig.profiles` (computed) · in: `services/CompositorConfigManager.qml`, `services/MonitorManager.qml`
 
-### `Monitors.profiles[]`
+### `Monitors.items[]`
 
-- **`Monitors.profiles[]`** · object
-- **`Monitors.profiles[].name`** · string = ""
-  - read: `MonitorsConfig.profiles` (whole) · in: `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
-- **`Monitors.profiles[].outputs`** · array<MonitorRule> = []
-  - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+- **`Monitors.items[]`** · object
+- **`Monitors.items[].id`** · string
+  - The item's stable id, unique in its list: what editors, path ops and imports match it by.
+  - pattern="^[A-Za-z0-9][A-Za-z0-9._-]*$", x-settings=false
+  - read: entry field, name match · in: none found
+- **`Monitors.items[].name`** · string = ""
+  - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
+- **`Monitors.items[].outputs`** · array<MonitorRule> = []
+  - read: `MonitorsConfig.profiles` (whole) · in: `services/CompositorConfigManager.qml`, `services/MonitorManager.qml`
 
-### `Monitors.profiles[].outputs[]`
+### `Monitors.items[].outputs[]`
 
-- **`Monitors.profiles[].outputs[]`** · object
-- **`Monitors.profiles[].outputs[].output`** · string = ""
+- **`Monitors.items[].outputs[]`** · object
+- **`Monitors.items[].outputs[].output`** · string = ""
   - desc:<description>, or a connector name (DP-1).
-  - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
-- **`Monitors.profiles[].outputs[].label`** · string = ""
+  - read: `MonitorsConfig.profiles` (whole) · in: `services/CompositorConfigManager.qml`, `services/MonitorManager.qml`
+- **`Monitors.items[].outputs[].label`** · string = ""
   - The connector it was last seen on, for display.
   - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
-- **`Monitors.profiles[].outputs[].mode`** · string = "preferred"
+- **`Monitors.items[].outputs[].mode`** · string = "preferred"
   - WIDTHxHEIGHT@HZ, or preferred.
-  - read: `MonitorsConfig.profiles` (whole) · in: `services/HyprlandConfigWriter.qml`, `services/MonitorManager.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
-- **`Monitors.profiles[].outputs[].x`** · integer = 0
+  - read: `MonitorsConfig.profiles` (whole) · in: `services/CompositorConfigManager.qml`, `services/MonitorManager.qml`
+- **`Monitors.items[].outputs[].x`** · integer = 0
   - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
-- **`Monitors.profiles[].outputs[].y`** · integer = 0
+- **`Monitors.items[].outputs[].y`** · integer = 0
   - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
-- **`Monitors.profiles[].outputs[].scale`** · number = 1 · –8
+- **`Monitors.items[].outputs[].scale`** · number = 1 · –8
   - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
-- **`Monitors.profiles[].outputs[].transform`** · integer = 0 · 0–7
+- **`Monitors.items[].outputs[].transform`** · integer = 0 · 0–7
   - Rotation in quarter turns, plus 4 when flipped.
-  - read: entry field, name match · in: `components/views/monitors/MonitorInspector.qml`
-- **`Monitors.profiles[].outputs[].disabled`** · boolean = false
-  - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
-- **`Monitors.profiles[].outputs[].mirror`** · string = ""
+  - read: entry field, name match · in: `components/views/Monitors/MonitorInspector.qml`
+- **`Monitors.items[].outputs[].disabled`** · boolean = false
+  - read: `MonitorsConfig.profiles` (whole) · in: `services/CompositorConfigManager.qml`, `services/MonitorManager.qml`
+- **`Monitors.items[].outputs[].mirror`** · string = ""
   - The output (as in `output`) this one mirrors, or empty.
   - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
-- **`Monitors.profiles[].outputs[].vrr`** · integer = 0 · 0–3
+- **`Monitors.items[].outputs[].vrr`** · integer = 0 · 0–3
   - 0 off, 1 on, 2 fullscreen only, 3 fullscreen games and video.
-  - read: entry field, name match · in: `components/views/monitors/MonitorInspector.qml`
-- **`Monitors.profiles[].outputs[].bitdepth`** · integer = 8 · enum 8|10
-  - read: entry field, name match · in: `components/views/monitors/MonitorInspector.qml`
-- **`Monitors.profiles[].outputs[].cm`** · string = "auto" · enum auto|srgb|dcip3|dp3|adobe|wide|edid|hdr|hdredid
-  - read: entry field, name match · in: `components/views/monitors/MonitorInspector.qml`
-- **`Monitors.profiles[].outputs[].sdrBrightness`** · number = 1 · 0.5–2
-  - read: entry field, name match · in: `components/views/monitors/MonitorInspector.qml`
-- **`Monitors.profiles[].outputs[].sdrSaturation`** · number = 1 · 0.5–2
-  - read: entry field, name match · in: `components/views/monitors/MonitorInspector.qml`
+  - read: entry field, name match · in: `components/views/Monitors/MonitorInspector.qml`
+- **`Monitors.items[].outputs[].bitdepth`** · integer = 8 · enum 8|10
+  - read: entry field, name match · in: `components/views/Monitors/MonitorInspector.qml`
+- **`Monitors.items[].outputs[].cm`** · string = "auto" · enum auto|srgb|dcip3|dp3|adobe|wide|edid|hdr|hdredid
+  - read: entry field, name match · in: `components/views/Monitors/MonitorInspector.qml`
+- **`Monitors.items[].outputs[].sdrBrightness`** · number = 1 · 0.5–2
+  - read: entry field, name match · in: `components/views/Monitors/MonitorInspector.qml`
+- **`Monitors.items[].outputs[].sdrSaturation`** · number = 1 · 0.5–2
+  - read: entry field, name match · in: `components/views/Monitors/MonitorInspector.qml`
 
 ### Reader members
 
 Every public member of `MonitorsConfig`, with the files that use it.
 
 - `MonitorsConfig.profiles` (var)
-  - in: `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - in: `services/CompositorConfigManager.qml`, `services/MonitorManager.qml`

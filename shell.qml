@@ -9,101 +9,119 @@ import qs.services
 import qs.shell
 
 // The shell's entrypoint: one top-level piece per surface (shell/), plus
-// _services, which creates the services nothing else would reference.
+// _services, which creates the services nothing else would reference. Run
+// only by axiom (`axiom run`, which hands it the config): started any other
+// way, or by an axiom built for other shell files, it shows only a notice
+// saying how to start it (NoParentNotice).
 ShellRoot {
   id: shellRoot
+
+  // axiom started this shell with a config it can run on
+  readonly property bool run: ConfigManager.available && BackendManager.incompatible === ""
 
   // Services with no UI of their own, which nothing else would create
   // (CompositorConfigManager only with configModes, where it has work at
   // start; elsewhere other services may still create it, and it stays
   // inert: live)
-  readonly property var _services: [InstanceManager, DataMigrationManager, DependencyManager, CompositorManager, CompositorManager.supports.configModes ? CompositorConfigManager : null, HypridleManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager, EdgeMenuManager, BrightnessManager, NotesManager, TodoManager, PomodoroManager, StopwatchManager, MonitorManager, OnboardingManager, ClipboardManager, NightLightManager, WallpaperManager, DockManager, SystemManager, BatteryManager, PolkitManager, GreeterManager, CalendarManager, CommunitySetupsManager]
+  readonly property var _services: run ? [DependencyManager, CompositorManager, CompositorManager.supports.configModes ? CompositorConfigManager : null, HypridleManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager, EdgeMenuManager, BrightnessManager, NotesManager, TodoManager, PomodoroManager, StopwatchManager, MonitorManager, OnboardingManager, ClipboardManager, NightLightManager, WallpaperManager, DockManager, SystemManager, BatteryManager, PolkitManager, GreeterManager, CalendarManager, CommunitySetupsManager] : []
 
-  Lockscreen {
-    id: lockscreen
+  LazyLoader {
+    active: !shellRoot.run
+
+    NoParentNotice {}
   }
 
-  Notifications {
-    id: notificationPopup
-  }
+  LazyLoader {
+    active: shellRoot.run
 
-  Overlay {
-    id: overlay
-  }
+    Scope {
+      Lockscreen {
+        id: lockscreen
+      }
 
-  Bar {
-    id: mainBar
-  }
+      Notifications {
+        id: notificationPopup
+      }
 
-  WorkspaceOverlay {
-    id: workspaceOverlay
-  }
+      Overlay {
+        id: overlay
+      }
 
-  WindowSwitcher {
-    id: windowSwitcher
-  }
+      Bar {
+        id: mainBar
+      }
 
-  Wallpaper {
-    id: wallpaper
-  }
+      WorkspaceOverlay {
+        id: workspaceOverlay
+      }
 
-  Desktop {
-    id: desktop
-  }
+      WindowSwitcher {
+        id: windowSwitcher
+      }
 
-  Screenshot {
-    id: screenshot
-  }
+      Wallpaper {
+        id: wallpaper
+      }
 
-  ScreenBorder {
-    id: screenBorder
-  }
+      Desktop {
+        id: desktop
+      }
 
-  Backdrops {
-    id: backdrops
-  }
+      Screenshot {
+        id: screenshot
+      }
 
-  BlurBacking {
-    id: blurBacking
-  }
+      ScreenBorder {
+        id: screenBorder
+      }
 
-  OSD {
-    id: osd
-  }
+      Backdrops {
+        id: backdrops
+      }
 
-  AppLauncher {
-    id: appLauncher
-  }
+      BlurBacking {
+        id: blurBacking
+      }
 
-  PowerMenu {
-    id: powerMenu
-  }
+      OSD {
+        id: osd
+      }
 
-  EdgeMenus {
-    id: edgeMenus
-  }
+      AppLauncher {
+        id: appLauncher
+      }
 
-  Dock {
-    id: dock
-  }
+      PowerMenu {
+        id: powerMenu
+      }
 
-  MonitorPrompt {
-    id: monitorPrompt
-  }
+      EdgeMenus {
+        id: edgeMenus
+      }
 
-  Onboarding {
-    id: onboarding
-  }
+      Dock {
+        id: dock
+      }
 
-  IdleInhibit {
-    id: idleInhibit
-  }
+      MonitorPrompt {
+        id: monitorPrompt
+      }
 
-  PolkitPrompt {
-    id: polkitPrompt
-  }
+      Onboarding {
+        id: onboarding
+      }
 
-  GreeterPreview {
-    id: greeterPreview
+      IdleInhibit {
+        id: idleInhibit
+      }
+
+      PolkitPrompt {
+        id: polkitPrompt
+      }
+
+      GreeterPreview {
+        id: greeterPreview
+      }
+    }
   }
 }

@@ -4,7 +4,7 @@
 > **Reader:** `LockscreenConfig` (`config/LockscreenConfig.qml`)
 > **Schema:** `config/json/config.schema.json` → `properties.Lockscreen` · category Screen & Power
 
-Lockscreen: Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in one.
+Lockscreen: Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `axiom lock` for the built-in one.
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
@@ -14,7 +14,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Lockscreen.mode`** · string = "quickshell" · enum quickshell|none
   - Locker: Built-in uses the Wayland session-lock protocol with PAM. None leaves locking to your own locker.
   - x-takeover=true
-  - read: `LockscreenConfig.mode` · in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/layouts/LockscreenTarget.qml`, `services/HypridleManager.qml`, `services/LockManager.qml`, `services/OverlayManager.qml`
+  - read: `LockscreenConfig.mode` · in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/Layouts/LockscreenTarget.qml`, `services/HypridleManager.qml`, `services/LockManager.qml`, `services/OverlayManager.qml`
 - **`Lockscreen.lockCommand`** · string = "loginctl lock-session"
   - Lock command: What axiom's lock buttons run when the locker is your own.
   - x-showIf={"mode":"none"}
@@ -24,68 +24,84 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Lockscreen.layout`** · object
   - A screen of overlay modules on a bounded grid fitted to each monitor at the card size: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).
-- **`Lockscreen.layout.columns`** · integer = 16 · 1–256
-  - Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it.
-  - x-settings=false
-  - read: `LockscreenConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/LockscreenConfig.qml`
-- **`Lockscreen.layout.rows`** · integer = 9 · 1–256
-  - Grid units down of the grid the modules were last placed on.
-  - x-settings=false
-  - read: `LockscreenConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/LockscreenConfig.qml`
-- **`Lockscreen.layout.fineGrid`** · boolean = false
-  - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
+
+### `Lockscreen.layout.grid`
+
+- **`Lockscreen.layout.grid`** · object
+  - Grid
   - x-group="Grid"
-  - read: `LockscreenConfig.layout` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/LockscreenConfig.qml`, `config/OverlayConfig.qml`
+- **`Lockscreen.layout.grid.fine`** · boolean = false
+  - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
+  - read: `LockscreenConfig.layout` (whole) · in: `config/LockscreenConfig.qml`
+- **`Lockscreen.layout.grid.columns`** · integer = 16 · 1–64
+  - x-settings=false
+  - read: `LockscreenConfig.layout` (whole) · in: `config/LockscreenConfig.qml`
+- **`Lockscreen.layout.grid.rows`** · integer = 9 · 1–64
+  - x-settings=false
+  - read: `LockscreenConfig.layout` (whole) · in: `config/LockscreenConfig.qml`
+
+### `Lockscreen.layout`
+
 - **`Lockscreen.layout.moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
-  - x-link={"setting":"Widget.cardSize"}, x-group="Grid", x-control="stepper"
+  - x-link={"setting":"Interface.cardSize"}, x-group="Grid", x-control="stepper"
   - read: `LockscreenConfig.layout` (whole), `// reads:` marker · in: `config/LockscreenConfig.qml`, `config/OverlayConfig.qml`
-- **`Lockscreen.layout.otherScreens`** · string = "layout" · enum layout|background
-  - Other monitors: What monitors other than the one with the password field show.
-  - x-group="Grid"
-  - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
-- **`Lockscreen.layout.background`** · string = "wallpaper" · enum wallpaper|color
-  - Background: Each monitor's wallpaper, or a plain color.
-  - x-group="Background"
-  - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
-- **`Lockscreen.layout.blurWallpaper`** · boolean = true
-  - Blur wallpaper
-  - x-group="Background", x-showIf={"background":"wallpaper"}
-  - read: `LockscreenConfig.layout` (whole) · in: `config/LockscreenConfig.qml`
-- **`Lockscreen.layout.backgroundColor`** · string = "base00"
-  - Color
-  - x-group="Background", x-options="colors", x-showIf={"background":"color"}
-  - read: `LockscreenConfig.layout` (whole) · in: `config/LockscreenConfig.qml`
-- **`Lockscreen.layout.dim`** · integer = 40 · 0–100 · %
-  - Dim: Darken the background so the modules stand out.
-  - x-group="Background", x-control="slider"
-  - read: `LockscreenConfig.layout` (whole) · in: `config/LockscreenConfig.qml`
 - **`Lockscreen.layout.moduleBorders`** · boolean = true
   - Module borders: Draw each module's card box. Off shows modules straight on the background. The password field and the greeting have their own switches.
-  - x-group="Style"
-  - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
-- **`Lockscreen.layout.passwordBorder`** · boolean = false
-  - Password field border: Draw a card box around the password field.
-  - x-group="Style"
-  - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
-- **`Lockscreen.layout.greetingBorder`** · boolean = false
-  - Greeting border: Draw a card box around the greeting.
   - x-group="Style"
   - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
 - **`Lockscreen.layout.modules`** · array<OverlayModules> = []
   - x-settings=false
   - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
 - **`Lockscreen.layout.modules[]`**: one of the [OverlayModules](OverlayModules.md) types (discriminated by `type`)
+- **`Lockscreen.layout.otherScreens`** · string = "layout" · enum layout|background
+  - Other monitors: What monitors other than the one with the password field show.
+  - x-group="Grid"
+  - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
+
+### `Lockscreen.layout.backdrop`
+
+- **`Lockscreen.layout.backdrop`** · object
+  - Backdrop
+- **`Lockscreen.layout.backdrop.source`** · string = "wallpaper" · enum wallpaper|color
+  - Background: Each monitor's wallpaper, or a plain color.
+  - x-group="Background"
+  - read: `LockscreenConfig.layout` (whole) · in: `config/LockscreenConfig.qml`
+- **`Lockscreen.layout.backdrop.blur`** · boolean = true
+  - Blur wallpaper
+  - x-group="Background", x-showIf={"source":"wallpaper"}
+  - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
+- **`Lockscreen.layout.backdrop.color`** · string = "base00"
+  - Color
+  - x-group="Background", x-options="colors", x-showIf={"source":"color"}
+  - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
+- **`Lockscreen.layout.backdrop.dim`** · integer = 40 · 0–100 · %
+  - Dim: Darken the background so the modules stand out.
+  - x-group="Background", x-control="slider"
+  - read: `LockscreenConfig.layout` (whole) · in: `config/LockscreenConfig.qml`
+
+### `Lockscreen.layout.borders`
+
+- **`Lockscreen.layout.borders`** · object
+  - Borders
+- **`Lockscreen.layout.borders.password`** · boolean = false
+  - Password field border: Draw a card box around the password field.
+  - x-group="Style"
+  - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
+- **`Lockscreen.layout.borders.greeting`** · boolean = false
+  - Greeting border: Draw a card box around the greeting.
+  - x-group="Style"
+  - read: `LockscreenConfig.layout` (whole) · in: `components/surfaces/lockscreen/LockSurface.qml`
 
 ### Reader members
 
 Every public member of `LockscreenConfig`, with the files that use it.
 
 - `LockscreenConfig.mode` (string): "quickshell" (built-in) | "none"
-  - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/layouts/LockscreenTarget.qml`, `services/HypridleManager.qml`, `services/LockManager.qml`, `services/OverlayManager.qml`
+  - in: `components/surfaces/onboarding/pages/IntegrationsPage.qml`, `components/views/Layouts/LockscreenTarget.qml`, `services/HypridleManager.qml`, `services/LockManager.qml`, `services/OverlayManager.qml`
 - `LockscreenConfig.lockCommand` (string): What lock buttons run in "none" mode
   - in: `services/HypridleManager.qml`, `services/LockManager.qml`
-- `LockscreenConfig.layout` (var): The built-in lock screen: { columns, rows (its grid, fitted to each monitor; fineGrid splits its units in two), otherScreens ("layout": the modules without the…
+- `LockscreenConfig.layout` (var): The built-in lock screen, a ScreenLayout: { grid: { columns, rows, fine } (fitted to each monitor; `fine` splits its units in two), moduleScale, moduleBorders,…
   - in: `components/surfaces/lockscreen/LockSurface.qml`
 - `LockscreenConfig.fieldGroups` (var): The layout's own fields in groups (`x-group`), for the layouts editor
-  - in: `components/views/layouts/LockscreenTarget.qml`
+  - in: `components/views/Layouts/LockscreenTarget.qml`

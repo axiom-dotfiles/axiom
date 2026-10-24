@@ -10,11 +10,11 @@ QtObject {
 
   // Level change per wheel notch (0-1); 0 when scrolling is off
   readonly property real scrollStep: _c.scrollToChange ? _c.scrollStep / 100 : 0
-  // [OSDEntry] (see the schema): each with its own place and bars,
-  // { type, apps, icon, showOsd }, type being master | other | microphone |
-  // brightness | app. Goes through a string so a reload that leaves the
-  // list unchanged doesn't rebuild the OSDs.
-  readonly property string _osdsJson: JSON.stringify(_c.osds)
+  // [OSDEntry] (see the schema): each with its id, screen (a ScreenTarget),
+  // place and bars, { type, apps, icon, showOsd }, type being master |
+  // other | microphone | brightness | app. Goes through a string so a
+  // reload that leaves the list unchanged doesn't rebuild the OSDs.
+  readonly property string _osdsJson: JSON.stringify(_c.items)
   readonly property var osds: JSON.parse(_osdsJson)
   // The enabled ones, by id: what the shell builds
   readonly property var shownIds: osds.filter(osd => osd.enabled).map(osd => osd.id)

@@ -1,0 +1,12 @@
+label: Timer & stopwatch
+icon: timer_play
+group: Tools
+keyboard: true
+defaultSize: [4, 6]
+settings:
+  mode:
+    type: string
+    title: Opens on
+    default: auto
+    enum: [auto, timer, stopwatch]
+    x-enumLabels: {auto: Whichever is running, timer: Timer, stopwatch: Stopwatch}

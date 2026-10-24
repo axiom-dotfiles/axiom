@@ -3,7 +3,9 @@ import QtQuick
 import qs.config
 import qs.components.methods
 
-/* BarManager holds the bar editor's working copy of the Bars config. Edits
+/* BarManager holds the bar editor's working copy of the Bars section (its
+ * `style`, every bar's look unless a bar sets its own, and the bars,
+ * `items`). Edits
  * show live on the running bars (through ConfigManager.previews) as
  * they're made; saveChanges() writes them to config.json, resetChanges()
  * drops them. The preview is never part of ConfigManager.config, so other
@@ -24,8 +26,11 @@ QtObject {
     id: draft
     path: ["Bars"]
   }
-  readonly property alias localConfig: draft.local
-  readonly property alias savedConfig: draft.saved
+  // The bars (Bars.items) in the draft, and as saved
+  readonly property var localConfig: draft.local?.items ?? null
+  readonly property var savedConfig: draft.saved?.items ?? null
+  // The style every bar inherits (Bars.style) in the draft
+  readonly property var localStyle: draft.local?.style ?? null
   readonly property alias isDirty: draft.isDirty
   property int selectedBarIndex: 0
   // The widget open in the inspector: { zone, index }, zone "" for none
@@ -36,10 +41,10 @@ QtObject {
   // The section last selected or added to, where the library adds
   property string lastZone: "center"
 
-  // A bar's look: the fields in its look groups (`x-group`), not its
-  // identity, placement, behaviour or widgets
-  readonly property var styleGroups: ["Size", "Style", "Widgets", "Accents", "Shadow"]
-  readonly property var styleKeys: [].concat(...Bar.fieldGroups.filter(group => root.styleGroups.includes(group.title)).map(group => group.keys))
+  // A bar's look: its `style`, and its fields in the look groups
+  // (`x-group`), not its identity, placement, behaviour or widgets
+  readonly property var styleGroups: ["Size", "Style"]
+  readonly property var styleKeys: ["style"].concat(...Bar.fieldGroups.filter(group => root.styleGroups.includes(group.title)).map(group => group.keys))
   // The style copied with copyStyle(): { index, values }, or null. By
   // index, since ids may be empty or shared: kept pointing at its bar as
   // bars are added, moved and removed. Never saved.
@@ -172,11 +177,15 @@ QtObject {
       return;
     const copy = Utils.clone(bar);
     copy.id = _uniqueId(`${bar.id}-copy`);
-    if (bar.monitor !== "*") {
-      const onEdge = root.localConfig.filter(b => b.location === bar.location).map(b => b.monitor === "*" ? "*" : General.screensNamed(b.monitor)[0]?.name ?? "");
-      const free = General.outputs.find(s => !onEdge.includes(s.name) && !onEdge.includes("*"));
+    if (bar.screen.mode !== "all") {
+      const onEdge = root.localConfig.filter(b => b.location === bar.location);
+      const taken = name => onEdge.some(b => b.screen.mode === "all" || General.screensFor(b.screen).some(s => s.name === name));
+      const free = General.outputs.find(s => !taken(s.name));
       if (free)
-        copy.monitor = free.name;
+        copy.screen = {
+          "mode": "named",
+          "names": [free.name]
+        };
     }
     root.localConfig.splice(index + 1, 0, copy);
     _moveCopied(i => i > index ? i + 1 : i);
@@ -251,6 +260,58 @@ QtObject {
     applyChanges();
   }
 
+  // --- A bar's own style ---
+  // A bar's `style` holds a BarStyle whose keys it leaves null take the
+  // shared one's (Bars.style). The editor switches whole groups
+  // (Bar.styleGroups' keys): owned, each key holds a value of the bar's
+  // own; not, all are null.
+
+  // Whether the bar at `index` sets any of `keys` itself
+  function ownsStyle(index, keys) {
+    const style = root.localConfig?.[index]?.style ?? {};
+    return keys.some(key => key === "shadow" ? Object.values(style.shadow ?? {}).some(value => value !== null) : (style[key] ?? null) !== null);
+  }
+
+  // Gives the selected bar its own `keys`, starting from what it inherits,
+  // or (`owned` false) hands them back to the shared style
+  function setStyleOwned(keys, owned) {
+    const bar = selectedBar();
+    if (!bar)
+      return;
+    const style = bar.style;
+    for (const key of keys) {
+      if (key === "shadow") {
+        const shared = root.localStyle.shadow;
+        style.shadow = Object.keys(style.shadow).reduce((out, part) => {
+          out[part] = owned ? shared[part] : null;
+          return out;
+        }, {});
+      } else {
+        style[key] = owned ? root._inherited(key) : null;
+      }
+    }
+    applyChanges();
+  }
+
+  // One key of the selected bar's own style (`part` of its shadow)
+  function updateStyleField(key, value, part) {
+    const bar = selectedBar();
+    if (!bar)
+      return;
+    if (part)
+      bar.style[key][part] = value;
+    else
+      bar.style[key] = value;
+    applyChanges();
+  }
+
+  // What a bar's style key is while it's null: the shared style's, or
+  // (null there too) the setting it follows (SettingsManager.inheritedValue)
+  function _inherited(key) {
+    const shared = root.localStyle[key] ?? null;
+    return shared !== null ? shared : SettingsManager.inheritedValue(ConfigManager.configSchema.definitions.BarStyle.properties[key]);
+  }
+
   // --- Widgets ---
 
   function selectWidget(zone, index) {
@@ -279,6 +340,7 @@ QtObject {
     const at = index < 0 || index > arr.length ? arr.length : index;
     // Properties start at the widget schema's defaults
     arr.splice(at, 0, ConfigManager.withDefaults({
+      "id": root._widgetId(widgetType, selectedBar()),
       "type": widgetType
     }, "BarWidget"));
     selectWidget(zone, at);
@@ -297,7 +359,9 @@ QtObject {
       bar.widgets = {};
     if (!bar.widgets[zone])
       bar.widgets[zone] = [];
-    bar.widgets[zone].push(ConfigManager.withDefaults(widget, "BarWidget"));
+    bar.widgets[zone].push(ConfigManager.withDefaults(Object.assign({
+      "id": root._widgetId(widget.type, bar)
+    }, widget), "BarWidget"));
     selectBar(barIndex);
     selectWidget(zone, bar.widgets[zone].length - 1);
     applyChanges();
@@ -322,7 +386,9 @@ QtObject {
     const arr = selectedBar()?.widgets?.[zone];
     if (!arr?.[index])
       return;
-    arr.splice(index + 1, 0, Utils.clone(arr[index]));
+    const copy = Utils.clone(arr[index]);
+    copy.id = root._widgetId(copy.type, selectedBar());
+    arr.splice(index + 1, 0, copy);
     selectWidget(zone, index + 1);
     applyChanges();
   }
@@ -358,6 +424,13 @@ QtObject {
         selectWidget(sel.zone, index);
     }
     applyChanges();
+  }
+
+  // A new widget's id: unique among every widget of the bar (they move
+  // between its sections)
+  function _widgetId(type, bar) {
+    const all = [].concat(...Bar.sectionNames.map(section => bar?.widgets?.[section] ?? []));
+    return Utils.newId(type, all);
   }
 
   function _widget(zone, index) {
@@ -418,7 +491,7 @@ QtObject {
   // The running bars (while the bar editor has unsaved edits, those),
   // each with what its ends meet among the bars on its screen (BarEnds:
   // which bar a shared corner goes to)
-  readonly property var bars: BarEnds.withEnds(Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar, CompositorManager.gapsOut)), Bar.endsOptions(CompositorManager.gapsOut))
+  readonly property var bars: BarEnds.withEnds(Bar.expandBars((ConfigManager.previews.Bars ?? ConfigManager.config.Bars).items).map(bar => Bar.enrichBarConfig(bar, CompositorManager.gapsOut)), Bar.endsOptions(CompositorManager.gapsOut))
 
   // The enabled bars on a screen by edge ({ top, bottom, left, right },
   // null where there is none)

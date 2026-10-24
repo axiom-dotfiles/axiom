@@ -1,0 +1,46 @@
+# The Session section of the config (config.json's "Session").
+
+type: object
+x-category: Compositor
+x-showIf: {/$supports.configModes: true, /Compositor.mode: managed}
+title: Session
+description: What starts with your compositor while axiom manages its config.
+additionalProperties: false
+properties:
+  recommendedEnv:
+    type: boolean
+    title: Recommended environment
+    default: true
+    description: 'Variables recommended on Wayland: GTK, Qt, Clutter and Electron apps run on Wayland (falling back to X11 where they can), Qt scales by pixel density and leaves window decorations to the compositor. Your own below win over them.'
+  env:
+    x-wide: true
+    type: array
+    title: Environment
+    default: []
+    description: Variables set before anything starts. Changes apply to apps started afterwards.
+    items:
+      type: object
+      additionalProperties: false
+      properties:
+        id: {$ref: '#/definitions/ItemId'}
+        name: {type: string, title: Name, default: ''}
+        value: {type: string, title: Value, default: ''}
+      required: [id]
+  autostart:
+    type: array
+    title: Autostart
+    default:
+      - id: dbus-update-activation-environment
+        command: dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+        enabled: true
+      - {id: systemctl, command: systemctl --user start hyprpolkitagent, enabled: true}
+      - {id: hypridle, command: hypridle, enabled: true}
+    description: Commands run once when the compositor starts, after axiom.
+    items:
+      type: object
+      additionalProperties: false
+      properties:
+        id: {$ref: '#/definitions/ItemId'}
+        command: {type: string, title: Command, default: ''}
+        enabled: {type: boolean, title: 'On', default: true}
+      required: [id]

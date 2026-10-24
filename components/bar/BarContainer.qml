@@ -324,7 +324,7 @@ Rectangle {
   // section's config, which hidden widgets leave out
   function widgetModel(widgetConfigArray) {
     return (widgetConfigArray || []).map((widgetConf, i) => ({
-          "component": "widgets/" + widgetConf.type + ".qml",
+          "component": Paths.widgetUrl(widgetConf.type),
           "properties": widgetConf.properties || {},
           "layout": widgetConf.layout || {},
           "configIndex": i,

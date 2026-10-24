@@ -65,7 +65,7 @@ QtObject {
   // The grid it's edited on there ({ cols, rows }): the layout's own
   // once rebased onto the screen, or as far as it reaches when its
   // modules don't fit there by their edges
-  readonly property var grid: GridPlacement.layoutReach((root.localLayout?.modules ?? []).map(module => module?.place ?? null), GridPlacement.screenGrid(root.localLayout))
+  readonly property var grid: GridPlacement.layoutReach((root.localLayout?.modules ?? []).map(module => module?.place ?? null), GridPlacement.screenGrid(root.localLayout?.grid))
   // The screen's own grid at the layout's card size, and its key: a
   // change (another screen, another card size, another layout) moves the
   // places onto it (rebase). Modules being moved don't change it, so the
@@ -94,7 +94,7 @@ QtObject {
   property GridEditor layout: GridEditor {
     host: root.host
     area: root.grid
-    sizeScale: root.localLayout?.fineGrid ? 2 : 1
+    sizeScale: root.localLayout?.grid?.fine ? 2 : 1
     modulesOf: () => root.localLayout?.modules ?? null
     scopeKey: root.host + ":" + root.scope
     onEdited: draft.changed()
@@ -116,7 +116,7 @@ QtObject {
   }
 
   // Why the draft can't be saved as is (empty = savable)
-  readonly property var problems: draft.local ? [].concat(...root.layoutsOf(draft.local).map(entry => root.layout.problemsFor(entry.layout?.modules, entry.name, entry.layout === root.localLayout ? root.grid : GridPlacement.screenGrid(entry.layout)))) : []
+  readonly property var problems: draft.local ? [].concat(...root.layoutsOf(draft.local).map(entry => root.layout.problemsFor(entry.layout?.modules, entry.name, entry.layout === root.localLayout ? root.grid : GridPlacement.screenGrid(entry.layout?.grid)))) : []
 
   // Moves the edited layout's places onto the screen's grid, each kept to
   // its nearest edge (OverlayConfig.screenArrangement, shrunk as far as
@@ -130,18 +130,18 @@ QtObject {
         return false;
       const modules = layout.modules ?? [];
       const shown = OverlayConfig.screenArrangement(layout, modules, root.screen, root.room.width, root.room.height);
-      const from = GridPlacement.screenGrid(layout);
+      const from = GridPlacement.screenGrid(layout?.grid);
       if (from.cols === shown.cols && from.rows === shown.rows)
         return false;
-      const scale = layout.fineGrid ? 2 : 1;
+      const scale = layout.grid.fine ? 2 : 1;
       if (shown.cols % scale !== 0 || shown.rows % scale !== 0)
         return false;
       modules.forEach((module, i) => {
         if (module && shown.places[i])
           module.place = shown.places[i];
       });
-      layout.columns = shown.cols / scale;
-      layout.rows = shown.rows / scale;
+      layout.grid.columns = shown.cols / scale;
+      layout.grid.rows = shown.rows / scale;
       return true;
     };
     const moved = move(root.layoutOf(draft.local));
@@ -176,21 +176,31 @@ QtObject {
       root.resetChanges();
   }
 
-  // One of the layout's own fields (columns, background, …). Doubling the
-  // grid (fineGrid) rescales the modules' places so they stay put
+  // One of the layout's own fields, by key or dotted path into its groups
+  // ("moduleScale", "backdrop.source", "grid.fine"). Doubling the grid
+  // (grid.fine; "fineGrid" too) rescales the modules' places so they stay
+  // put
   function updateLayoutField(key, value) {
     const layout = root.localLayout;
-    if (!layout || JSON.stringify(layout[key]) === JSON.stringify(value))
+    if (key === "fineGrid")
+      key = "grid.fine";
+    const parts = key.split(".");
+    if (!layout || JSON.stringify(parts.reduce((v, part) => v?.[part], layout)) === JSON.stringify(value))
       return;
     // One undo step with the places it moves (snapshotExtra)
     root.layout.recordField(`layout:${key}`);
-    if (key === "fineGrid") {
+    if (key === "grid.fine") {
       (layout.modules ?? []).forEach(module => {
         if (module?.place)
           module.place = GridPlacement.scalePlace(module.place, value);
       });
     }
-    layout[key] = value;
+    const holder = parts.slice(0, -1).reduce((v, part) => {
+      if (v[part] === undefined || v[part] === null)
+        v[part] = {};
+      return v[part];
+    }, layout);
+    holder[parts[parts.length - 1]] = value;
     // A new Module size or grid moves the places onto this screen's grid
     // now, inside that step, not later as an outside change would
     root.rebase(true);

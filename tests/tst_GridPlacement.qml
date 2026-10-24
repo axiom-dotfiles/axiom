@@ -396,7 +396,7 @@ TestCase {
     compare(GridPlacement.screenGrid({
       "columns": 16,
       "rows": 9,
-      "fineGrid": true
+      "fine": true
     }), {
       "cols": 32,
       "rows": 18
@@ -482,12 +482,12 @@ TestCase {
       return [b.x, b.y, b.w, b.h].map(v => Math.round(v * 130));
     }
     // Its sides lie midway in the gaps: half a gap (10 px) on
-    compare(box("Left", 0, 0), [10, 10, 1020, 500], "at the start, against the edge");
-    compare(box("Left", 130, 20), [-10, -120, 1020, 500], "a step along, 20 px in");
+    compare(box("left", 0, 0), [10, 10, 1020, 500], "at the start, against the edge");
+    compare(box("left", 130, 20), [-10, -120, 1020, 500], "a step along, 20 px in");
     // The grid is 240 px across: the screen's right side is 20 px past it
-    compare(box("Right", 0, 20), [-750, 10, 1020, 500], "against a right edge");
-    compare(box("Top", 260, 0), [-250, 10, 1020, 500], "along a top edge");
-    compare(box("Bottom", 0, 0).slice(1, 2), [-250], "against a bottom edge");
+    compare(box("right", 0, 20), [-750, 10, 1020, 500], "against a right edge");
+    compare(box("top", 260, 0), [-250, 10, 1020, 500], "along a top edge");
+    compare(box("bottom", 0, 0).slice(1, 2), [-250], "against a bottom edge");
   }
 
   // A rect as [x, y, width, height], as compare() doesn't compare objects
@@ -783,12 +783,14 @@ TestCase {
       "reserves": true
     };
     const menu = {
-      "edge": "Right",
+      "edge": "right",
       "length": "fit",
       "offset": -1,
-      "modules": [at(0, 0, 2, 4)]
+      "layout": {
+        "modules": [at(0, 0, 2, 4)]
+      }
     };
-    const place = GridPlacement.menuPlacement(menu, GridPlacement.bounds(menu.modules), 500, frame, 1920, 1080);
+    const place = GridPlacement.menuPlacement(menu, GridPlacement.bounds(menu.layout.modules), 500, frame, 1920, 1080);
     // Two units across (240), four along (500). The edge holds 8 cells
     // from 30 px: centred is cell 2, one before it cell 1, at 160
     compare([place.along, place.across, place.length, place.depth, place.edgeLength], [160, 20, 500, 240, 1080]);
@@ -801,7 +803,7 @@ TestCase {
     compare(r4(onScreen.rect), [1652, 152, 256, 516], "the modules plus `after` all round");
     compare(r4(onScreen.modules[0].rect), [1660, 160, 240, 500]);
     menu.length = "edge";
-    const whole = GridPlacement.menuOnScreen(menu, GridPlacement.menuPlacement(menu, GridPlacement.bounds(menu.modules), 500, frame, 1920, 1080), 500);
+    const whole = GridPlacement.menuOnScreen(menu, GridPlacement.menuPlacement(menu, GridPlacement.bounds(menu.layout.modules), 500, frame, 1920, 1080), 500);
     compare(r4(whole.modules[0].rect), [1660, 10, 240, 1060], "taking the whole edge: stretched along it");
   }
 
@@ -896,10 +898,10 @@ TestCase {
       "width": 100,
       "height": 50
     };
-    compare(r4(GridPlacement.edgeBand(rect, "Left", 5)), [10, 20, 5, 50]);
-    compare(r4(GridPlacement.edgeBand(rect, "Right", 5)), [105, 20, 5, 50]);
-    compare(r4(GridPlacement.edgeBand(rect, "Top", 5)), [10, 20, 100, 5]);
-    compare(r4(GridPlacement.edgeBand(rect, "Bottom", 5)), [10, 65, 100, 5]);
+    compare(r4(GridPlacement.edgeBand(rect, "left", 5)), [10, 20, 5, 50]);
+    compare(r4(GridPlacement.edgeBand(rect, "right", 5)), [105, 20, 5, 50]);
+    compare(r4(GridPlacement.edgeBand(rect, "top", 5)), [10, 20, 100, 5]);
+    compare(r4(GridPlacement.edgeBand(rect, "bottom", 5)), [10, 65, 100, 5]);
     compare(r4(GridPlacement.edgeBand(rect, "", 5)), [0, 0, 0, 0]);
     const span = {
       "x": 30,
@@ -907,9 +909,9 @@ TestCase {
       "width": 20,
       "height": 10
     };
-    compare(r4(GridPlacement.edgeBar(rect, "Left", rect, 4)), [8, 20, 4, 50], "the whole side, centred on it");
-    compare(r4(GridPlacement.edgeBar(rect, "Right", span, 4)), [108, 25, 4, 10], "along the span");
-    compare(r4(GridPlacement.edgeBar(rect, "Bottom", span, 4)), [30, 68, 20, 4]);
+    compare(r4(GridPlacement.edgeBar(rect, "left", rect, 4)), [8, 20, 4, 50], "the whole side, centred on it");
+    compare(r4(GridPlacement.edgeBar(rect, "right", span, 4)), [108, 25, 4, 10], "along the span");
+    compare(r4(GridPlacement.edgeBar(rect, "bottom", span, 4)), [30, 68, 20, 4]);
   }
 
   function test_trackSizes() {
@@ -995,13 +997,13 @@ TestCase {
     compare(GridPlacement.guideFrame(null, [p(0, 0, 2, 2)], [0]), null, "nothing else, no frame");
     // An edge menu: the screen along its edge, the others across it
     const screen = p(-10.5, -1, 30, 17);
-    compare(GridPlacement.guideFrame(null, [p(0, 0, 6, 2), p(1, 2, 2, 4)], [1], screen, "Top"), p(-10.5, 0, 30, 2), "a top menu: the screen across, the others down");
-    compare(GridPlacement.guideFrame(null, [p(0, 0, 2, 6), p(2, 1, 4, 2)], [1], screen, "Left"), p(0, -1, 2, 17), "a side menu: the screen down, the others across");
-    compare(GridPlacement.guideFrame(null, [p(3, 0, 2, 2)], [0], screen, "Top"), p(-10.5, 0, 30, 2), "alone: its own depth across");
+    compare(GridPlacement.guideFrame(null, [p(0, 0, 6, 2), p(1, 2, 2, 4)], [1], screen, "top"), p(-10.5, 0, 30, 2), "a top menu: the screen across, the others down");
+    compare(GridPlacement.guideFrame(null, [p(0, 0, 2, 6), p(2, 1, 4, 2)], [1], screen, "left"), p(0, -1, 2, 17), "a side menu: the screen down, the others across");
+    compare(GridPlacement.guideFrame(null, [p(3, 0, 2, 2)], [0], screen, "top"), p(-10.5, 0, 30, 2), "alone: its own depth across");
     compare(GridPlacement.guideFrame({
       "cols": 4,
       "rows": 4
-    }, [], [], screen, "Top"), p(0, 0, 4, 4), "a bounded grid wins");
+    }, [], [], screen, "top"), p(0, 0, 4, 4), "a bounded grid wins");
   }
 
   function test_alignments() {

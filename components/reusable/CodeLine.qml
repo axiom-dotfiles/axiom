@@ -4,7 +4,6 @@ import QtQuick.Layouts
 
 import qs.config
 import qs.services
-import qs.components.reusable
 
 // Text to paste somewhere (a config line, a command), in a monospace box
 // with a Copy button

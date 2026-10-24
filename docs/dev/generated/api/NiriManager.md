@@ -14,13 +14,11 @@ CompositorManager's backend on niri (docs/dev/compositor/contract.md, docs/dev/c
 - `activeWindowId` (readonly string): The focused window's id, or ""
 - `gapsOut` (readonly var): niri's gap at the screen edges: its gaps plus its struts, as the config it runs sets them (axiom's module in it)
 - `splitWidthMultiplier` (readonly real): niri doesn't say how far it scrolls a strip, so the overview fits it
-- `blur` (readonly var): niri's blur as in effect, { enabled, size, passes }: the config's (niri_config.py info), its offset as the size (NiriConf.lookNodes writes the window look's size as the offset), niri's defaults until…
+- `blur` (readonly var): niri's blur as in effect, { enabled, size, passes }: the config's (`axiom compositor niri info`), its offset as the size (NiriConf.lookNodes writes the window look's size as the offset), niri's defau…
 - `surfacesReady` (readonly bool): niri doesn't stack layers by axiom's order: LayerManager maps them in order itself, from the start
 - `travelingTo` (readonly int): niri slides between workspaces itself
 - `blockSize` (readonly int): Ids in each output's block (CompositorManager.blockSize): niri makes workspaces as they fill, so more than anyone has
 - `lastLoadFailed` (readonly bool): Whether niri's last config load failed (it keeps the config before)
-- `configWriter` (readonly var): Writes axiom's layer into niri's config (CompositorConfigManager) None in the greeter, which writes no config
-- `ready` (readonly bool): Whether `supports` is final: once the user's binds are read, so axiom's layer never binds a key their config does (NiriConfigWriter)
 - `supports` (readonly var): What niri does (CompositorManager.supports).
 - `builtInBinds` (readonly var): The binds niri carries out itself, by action, as axiom writes the key: Mod + drag moves a window, Mod + right drag resizes it (the Keybinds page's mouseDrag and mouseResize, which niri can't be told …
 

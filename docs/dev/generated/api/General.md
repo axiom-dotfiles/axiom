@@ -10,11 +10,11 @@ Reader for the General section.
 - `displayName` (readonly string)
 - `language` (readonly string): Monitor for the lockscreen input, launcher, power menu and overlay Language for the shell's text, dates and clock (see I18n): "en" | "ja"
 - `primaryMonitor` (readonly string)
-- `monitors` (readonly string): "primary" | "focused" | "all": where the power menu (and the overlay, launcher and OSD, unless their own `monitors` says otherwise) appear: the primary monitor, the focused one, or every monitor at o…
+- `screen` (readonly var): Where the power menu (and the overlay, launcher and OSD, unless their own `screen` says otherwise) appear: a ScreenTarget whose mode is "primary" | "focused" | "all", the primary monitor, the focused…
 - `outputs` (readonly var): The connected monitors: Quickshell.screens without the stand-ins shown while none is (Qt's nameless placeholder, Hyprland's headless FALLBACK).
 - `screens` (readonly var): The screens they're built on
 
 ### Functions
 
 - `screensNamed(name)`: The screen named `name` (as a one-screen list), else the primary monitor, else the first screen
-- `screensFor(mode, name)`: The screens a surface with its own `monitors` setting is built on: "general" (the above) | "primary" (the primary monitor) | "focused" (every screen, opening on the focused one) | "all" (every screen…
+- `screensFor(target)`: The screens a ScreenTarget ({ mode, names }) builds a surface on, by mode: "inherit" (General's, the above) | "primary" (the primary monitor) | "focused" (every screen, opening on the focused one) | …

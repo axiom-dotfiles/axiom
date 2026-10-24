@@ -1,0 +1,10 @@
+label: Custom
+icon: dashboard
+settings:
+  name: {type: string, title: Name, default: ''}
+  icon:
+    type: string
+    title: Icon
+    default: ''
+    description: 'Shown in the page navigator: a Material Symbols name (fonts.google.com/icons). Empty shows the default.'
+  layout: {$ref: '#/definitions/Layout', x-properties: {moduleScale: null, moduleBorders: null}}

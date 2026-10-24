@@ -1,0 +1,11 @@
+label: Weather
+icon: partly_cloudy_day
+group: Time & weather
+popout: {variant: own, enabled: {description: Show the forecast when hovered.}}
+colors: standard
+settings:
+  showCondition:
+    type: boolean
+    title: Show condition
+    default: false
+    description: Show the condition (e.g. Rain) next to the temperature.

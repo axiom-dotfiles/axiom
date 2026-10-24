@@ -1,6 +1,6 @@
 # Services pattern
 
-> **Files:** `services/*.qml`, `services/ConsumerRegistry.qml`, `services/CommandManager.qml`, `services/SystemManager.qml`, `services/UpdatesManager.qml`, `services/InstanceManager.qml`, `components/methods/ShellInstances.qml`, `scripts/restart.sh`, `shell.qml`
+> **Files:** `services/*.qml`, `scripts/quickshell-io-allowlist.json`, `services/ConsumerRegistry.qml`, `services/CommandManager.qml`, `services/SystemManager.qml`, `services/UpdatesManager.qml`, `config/Paths.qml`, `shell.qml`
 > **Config:** none of its own
 > **Related:** [Config manager](config-manager.md), [Config readers](config-readers.md), [Editors pattern](editors-pattern.md), [Shell manager and screen targeting](shell-manager-targeting.md)
 
@@ -38,7 +38,7 @@ How `services/` is built: one singleton per domain, owning state and side effect
 - `run(command, callback, input)` runs a service's one-off command.
   - callback is `(exitCode, stdout, stderr)`
   - `input` goes to stdin.
-- So services keep no `Process` of their own for one-off commands.
+- So services keep no `Process` of their own. Direct `Process`, `FileView`, `Socket`, `IpcHandler` and `Quickshell.execDetached` are frozen to the files in `scripts/quickshell-io-allowlist.json` (`check_structure`), which shrinks as those side effects move to the axiom daemon ([protocol](../backend/protocol.md)). Funnelling through `CommandManager`, `FileManager` and `StateManager` means each can later be switched to the daemon in one place.
 
 ### Other domain services
 They follow the same pattern:
@@ -51,8 +51,7 @@ They follow the same pattern:
 - **KeyboardLayoutManager**, **MediaManager** (MPRIS), **CompositorManager** (the compositor, through its backend `HyprlandManager`: [compositor/](../compositor/README.md)), **StateManager**, **BarManager**, **LauncherManager**, **SettingsManager**, **SavedConfigsManager**, **AuthManager**, **LockManager**.
 
 ### One axiom per display
-- **Restarting** is `scripts/restart.sh` (`Paths.restartCommand`), what every compositor's `restartShell` bind runs (SwayConf, NiriConf, HyprConfigLua; `bind_merge_common.py` reads it, and the old `qs kill …; qs … -d`, back as `restartShell`). It ends every axiom of the install on the display (SIGTERM, SIGKILL after 3 s) and starts one with `-n`. A lock per display drops a restart fired while one runs, and is held until the new one shows in `qs list`. Plain `qs kill` ends only one instance (the oldest, maybe already quitting) and returns before it has quit, so a bind fired twice left two, and every restart after kept two.
-- **InstanceManager** (from `_services`, not in the greeter) lists the install's instances on its display (`qs list -j`) at start and 5 s later. `ShellInstances.decide` keeps the newest (launch time, then pid, so every instance decides alike): it ends the others, an older one quits. A `console.warn` names what it ended.
+- **Restarting** is `axiom restart` (`Paths.restartCommand`), what every compositor's `restartShell` bind runs (the daemon's `render`; the bind merge (`compositor/actions`) reads it back as `restartShell`). The daemon restarts its quickshell child; it keeps one instance per display itself (its instance lock), so the shell no longer checks for others ([The axiom binary](../backend/README.md)).
 - `qs list` / `qs kill` match the display (`WAYLAND_DISPLAY`), so a nested axiom (`scripts/dev/nested.sh`) and the live one never end each other.
 
 Feature services each have their own doc under `docs/dev/features/`, `docs/dev/hyprland/` and `docs/dev/theming/` (see the index).

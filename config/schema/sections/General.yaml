@@ -1,0 +1,43 @@
+# The General section of the config (config.json's "General").
+
+type: object
+x-category: General
+x-card: {file: Onboarding, title: First-time setup}
+title: General
+additionalProperties: false
+properties:
+  language:
+    x-scope: personal
+    type: string
+    title: Language
+    default: en
+    description: Language for the shell's text, dates and clock. Each file in config/i18n adds one.
+    x-options: languages
+  displayName:
+    type: string
+    title: Display name
+    default: ''
+    description: Name shown on the lockscreen and in chat. Empty uses your login name.
+  primaryMonitor:
+    type: string
+    title: Primary monitor
+    default: ''
+    description: Monitor that hosts the lockscreen input, and the surfaces below when they're on one monitor. Empty uses the first screen.
+    x-options: screens
+    x-emptyLabel: First screen
+  screen:
+    $ref: '#/definitions/ScreenTarget'
+    title: Monitors
+    description: Where the overlay, launcher, power menu and OSD appear (each can override this). Focused monitor opens them on the one with your active workspace (and mouse); every monitor opens them on all of them at once. The workspace overview always opens on the monitor under the mouse.
+    x-properties:
+      mode:
+        x-scope: look
+        type: string
+        title: Monitors
+        enum: [primary, focused, all]
+        default: primary
+        x-enumLabels:
+          primary: Primary monitor only
+          focused: Focused monitor only
+          all: Every monitor
+      names: null

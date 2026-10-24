@@ -1,0 +1,194 @@
+name: Release
+
+# A release is an annotated v* tag on main (scripts/release.sh makes and
+# pushes it). From it this publishes:
+#   - the GitHub release: the tag's message as its notes, with the axiom
+#     binaries axiom-linux-amd64 and axiom-linux-arm64 (static, the version
+#     stamped in) and a SHA256SUMS listing them, as the greeter install and
+#     the installer download them (docs/dev/packaging.md › Release binaries)
+#   - the AUR packages axiom-shell (pointed at the tag, built once as a
+#     check) and axiom-shell-git, from main's packaging/aur/, so nothing is
+#     committed back to the repository. Skipped while the repository has no
+#     AUR_SSH_PRIVATE_KEY secret
+# Run by hand (Actions → Release → Run workflow) to publish a tag again,
+# with a higher pkgrel for a packaging-only fix merged to main since.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag to publish (vX.Y.Z)
+        required: true
+      pkgrel:
+        description: axiom-shell's pkgrel (above 1 for a packaging-only fix)
+        required: true
+        default: '1'
+
+permissions:
+  contents: read
+
+# One publish of a tag at a time
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+
+env:
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+  GOTOOLCHAIN: local
+
+jobs:
+  binaries:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    permissions:
+      contents: write
+    steps:
+      - name: Install tools
+        run: pacman -Syu --noconfirm --needed git python go github-cli
+
+      # The org only allows its own SHA-pinned actions, so check out with
+      # plain git (as checks.yml does): the tag, and main to check it's on it
+      - name: Checkout
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
+          git -c http.extraheader="AUTHORIZATION: basic $auth" fetch -q origin main "+refs/tags/$TAG:refs/tags/$TAG"
+          git checkout -q "refs/tags/$TAG"
+
+      - name: The tag is a release on main
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::$TAG isn't vX.Y.Z"; exit 1; }
+          git merge-base --is-ancestor "refs/tags/$TAG" origin/main || { echo "::error::$TAG isn't on main"; exit 1; }
+
+      # The schema and the copies the binary embeds (never committed)
+      - name: Generated files (scripts/generate.sh)
+        run: scripts/generate.sh
+
+      - name: Build
+        run: |
+          mkdir dist
+          for arch in amd64 arm64; do
+            CGO_ENABLED=0 GOOS=linux GOARCH=$arch go -C backend build -trimpath \
+              -ldflags "-s -w -X github.com/axiom-shell/axiom/backend/internal/buildinfo.version=$TAG" \
+              -o "../dist/axiom-linux-$arch" ./cmd/axiom
+          done
+          dist/axiom-linux-amd64 version | tee /dev/stderr | grep -qF "axiom $TAG " ||
+            { echo "::error::the binary doesn't report $TAG"; exit 1; }
+          (cd dist && sha256sum axiom-linux-* >SHA256SUMS && cat SHA256SUMS)
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --verify-tag --notes-from-tag --title "axiom ${TAG#v}"
+          fi
+
+  aur:
+    needs: binaries
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: AUR access
+        id: key
+        env:
+          KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::notice::No AUR_SSH_PRIVATE_KEY secret: the AUR packages weren't published"
+            echo "ok=false" >>"$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >>"$GITHUB_OUTPUT"
+          fi
+
+      - name: Install tools
+        if: steps.key.outputs.ok == 'true'
+        run: pacman -Syu --noconfirm --needed git base-devel openssh go python
+
+      - name: Checkout
+        if: steps.key.outputs.ok == 'true'
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
+          git -c http.extraheader="AUTHORIZATION: basic $auth" fetch -q origin main "+refs/tags/$TAG:refs/tags/$TAG"
+          # The packaging as main has it now (a packaging fix lands on main
+          # after the tag); the code it packages is the tag's
+          git checkout -q origin/main
+
+      # makepkg refuses to run as root
+      - name: Fill in the packages
+        if: steps.key.outputs.ok == 'true'
+        env:
+          PKGREL: ${{ github.event.inputs.pkgrel || '1' }}
+        run: |
+          useradd -m builder
+          version=${TAG#v}
+          mkdir -p work
+          cp -r packaging/aur/axiom-shell packaging/aur/axiom-shell-git work/
+          url=$(sed -n "s/^url='\(.*\)'$/\1/p" work/axiom-shell/PKGBUILD)
+          sum=$(curl -fsSL "$url/archive/refs/tags/$TAG.tar.gz" | sha256sum | cut -d' ' -f1)
+          sed -i -e "s/^pkgver=.*/pkgver=$version/" -e "s/^pkgrel=.*/pkgrel=$PKGREL/" \
+            -e "s/^sha256sums=.*/sha256sums=('$sum')/" work/axiom-shell/PKGBUILD
+          # -git's pkgver() recomputes it on every build: this is only
+          # what the AUR shows until then
+          short=$(git rev-parse --short=7 "refs/tags/$TAG^{commit}")
+          sed -i "s/^pkgver=.*/pkgver=$version.r0.g$short/" work/axiom-shell-git/PKGBUILD
+          chown -R builder: work
+
+      # The release package, built once from the tag's tarball (without its
+      # runtime depends, which a build doesn't need)
+      - name: Build axiom-shell
+        if: steps.key.outputs.ok == 'true'
+        run: su builder -c 'cd work/axiom-shell && makepkg --nodeps --noconfirm --cleanbuild'
+
+      - name: .SRCINFO
+        if: steps.key.outputs.ok == 'true'
+        run: |
+          for pkg in axiom-shell axiom-shell-git; do
+            su builder -c "cd work/$pkg && makepkg --printsrcinfo >.SRCINFO"
+          done
+
+      - name: Push to the AUR
+        if: steps.key.outputs.ok == 'true'
+        env:
+          KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          NAME: ${{ vars.AUR_GIT_NAME || 'axiom release' }}
+          EMAIL: ${{ vars.AUR_GIT_EMAIL || 'noreply@github.com' }}
+          # The AUR's ed25519 host key fingerprint (SHA256:…), as
+          # aur.archlinux.org publishes it: when set, the scanned key must match
+          PIN: ${{ vars.AUR_HOST_FINGERPRINT }}
+        run: |
+          # ssh reads the passwd home, not $HOME: name every file
+          ssh_dir=$(mktemp -d)
+          printf '%s\n' "$KEY" >"$ssh_dir/key"
+          chmod 600 "$ssh_dir/key"
+          ssh-keyscan -t ed25519 aur.archlinux.org >"$ssh_dir/known_hosts" 2>/dev/null
+          if [ -n "$PIN" ]; then
+            ssh-keygen -lf "$ssh_dir/known_hosts" | grep -qF "$PIN" ||
+              { echo "::error::aur.archlinux.org's host key doesn't match AUR_HOST_FINGERPRINT"; exit 1; }
+          fi
+          export GIT_SSH_COMMAND="ssh -i $ssh_dir/key -o IdentitiesOnly=yes -o UserKnownHostsFile=$ssh_dir/known_hosts -o StrictHostKeyChecking=yes"
+          for pkg in axiom-shell axiom-shell-git; do
+            rm -rf "aur-$pkg"
+            git clone -q "ssh://aur@aur.archlinux.org/$pkg.git" "aur-$pkg"
+            cp "work/$pkg/PKGBUILD" "work/$pkg/$pkg.install" "work/$pkg/.SRCINFO" "aur-$pkg/"
+            git -C "aur-$pkg" add PKGBUILD "$pkg.install" .SRCINFO
+            if git -C "aur-$pkg" diff --cached --quiet; then
+              echo "$pkg: already up to date"
+              continue
+            fi
+            git -C "aur-$pkg" -c user.name="$NAME" -c user.email="$EMAIL" commit -q -m "Update to $(sed -n 's/^pkgver=//p' "work/$pkg/PKGBUILD")"
+            git -C "aur-$pkg" push -q origin HEAD:master
+            echo "$pkg: pushed"
+          done

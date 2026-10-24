@@ -27,7 +27,7 @@ mode="${1:-}"
 [[ -n "$mode" ]] || { sed -n '2,16p' "$0" >&2; exit 2; }
 shift
 
-ipc() { qs -c axiom ipc call "$@" >/dev/null; }
+ipc() { axiom ipc "$@" >/dev/null; }
 # The focused monitor, from whichever compositor runs
 if [[ -z "$monitor" ]]; then
   # (its socket still there: a variable can outlive its compositor)

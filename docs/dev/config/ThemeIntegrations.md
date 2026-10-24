@@ -18,7 +18,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`ThemeIntegrations.qt`** · boolean = false
   - Qt and KDE apps: Writes an "axiom" color scheme for qt5ct and qt6ct, and an "Axiom" KDE color scheme (Dolphin, Gwenview, Okular, Kate…).
   - x-hookupNote="Qt apps take the palette from qt5ct / qt6ct only with QT_QPA_PLATFOR…, x-hookup=[{"file":"{config}/qt5ct/qt5ct.conf","place":"section","section":"App…
-  - read: `ThemeIntegrations.qt`, `// reads:` marker · in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`, `services/ThemeManager.qml`
+  - read: `ThemeIntegrations.qt`, `// reads:` marker · in: `services/CompositorConfigManager.qml`, `services/ThemeManager.qml`
 - **`ThemeIntegrations.kitty`** · boolean = false
   - Kitty: Writes kitty/axiom.conf. Reloads kitty when allow_remote_control is on.
   - x-hookup=[{"file":"{config}/kitty/kitty.conf","place":"end","text":"include ax…
@@ -107,7 +107,7 @@ Every public member of `ThemeIntegrations`, with the files that use it.
 - `ThemeIntegrations.gtk` (bool)
   - in: `services/ThemeManager.qml`
 - `ThemeIntegrations.qt` (bool)
-  - in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - in: `services/CompositorConfigManager.qml`
 - `ThemeIntegrations.kitty` (bool)
   - in: `services/ThemeManager.qml`
 - `ThemeIntegrations.alacritty` (bool)

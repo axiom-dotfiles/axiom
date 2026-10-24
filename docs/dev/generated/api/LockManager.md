@@ -3,12 +3,13 @@
 
 > **File:** `services/LockManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The one way to lock the session, whatever locks it (Lockscreen.mode): "quickshell" the built-in locker (shell/Lockscreen.qml: Wayland session lock + PAM through AuthManager) "none" the user's own locker: runs Lockscreen.lockCommand Lock buttons call lock(); idle daemons call the `lockscreen` IPC target (`qs -c axiom ipc call lockscreen lock`), which exists only when axiom provides the locker, so "none" can't loop through loginctl lock-session. Also holds the layouts editor's draft of the built-in lock screen (Lockscreen.layout, `editor`: its modules on a bounded grid) and its preview on screen. The lock itself only ever shows the saved layout (LockscreenConfig.layout).
+The one way to lock the session, whatever locks it (Lockscreen.mode): "quickshell" the built-in locker (shell/Lockscreen.qml: Wayland session lock + PAM through AuthManager) "none" the user's own locker: runs Lockscreen.lockCommand Lock buttons call lock(); idle daemons call the `lockscreen` IPC target (`axiom ipc lockscreen lock`), which exists only when axiom provides the locker, so "none" can't loop through loginctl lock-session. Also holds the layouts editor's draft of the built-in lock screen (Lockscreen.layout, `editor`: its modules on a bounded grid) and its preview on screen. The lock itself only ever shows the saved layout (LockscreenConfig.layout).
 
 ### Properties
 
 - `mode` (readonly string)
 - `builtinLocked` (bool): The built-in lock is up (set by shell/Lockscreen.qml, which owns it)
+- `builtinSecure` (bool): …and the compositor has acknowledged it (the session is locked)
 - `editor` (ScreenLayoutEditor)
 
 ### Signals

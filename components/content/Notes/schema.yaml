@@ -1,0 +1,34 @@
+label: Notes
+icon: sticky_note_2
+group: Tools
+keyboard: true
+defaultSize: [4, 8]
+settings:
+  note:
+    x-scope: machine
+    type: string
+    title: Note
+    default: ''
+    x-options: notes
+    description: The note to open, as a path in the notes folder (e.g. todo.md or work/ideas.md). Empty opens the last note this module showed.
+  lockNote:
+    type: boolean
+    title: Only this note
+    default: false
+    description: 'Always show this note, with no note list: a clean scratchpad for an edge menu.'
+    x-showIf: {note: {not: ''}}
+  showHeader:
+    type: boolean
+    title: Header
+    default: true
+    description: The note's name, the note list and the new note button.
+  showToolbar:
+    type: boolean
+    title: Toolbar
+    default: true
+    description: The checklist and bullet buttons.
+  showCompleted:
+    type: boolean
+    title: Show completed items
+    default: true
+    description: Hidden completed items stay in the note.

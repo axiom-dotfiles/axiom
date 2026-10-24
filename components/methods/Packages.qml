@@ -72,6 +72,10 @@ QtObject {
         "arch": "git",
         "fedora": "git"
       },
+      "go": {
+        "arch": "go",
+        "fedora": "golang"
+      },
       "quickshell": {
         "arch": "quickshell",
         "fedora": {

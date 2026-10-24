@@ -3,22 +3,17 @@
 
 > **File:** `config/CalendarConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the Calendar section (see CalendarManager). Account passwords are not config: see SecretsManager.
+Reader for the Calendar section (see CalendarManager, which adds what the servers say of each calendar). Account passwords are not config: see SecretsManager.
 
 ### Properties
 
-- `savedAccounts` (readonly var): Calendar.accounts as saved, for editing
-- `accounts` (readonly var): Calendar.accounts, each with an `id` (numbered when left empty) and a `name` (the username or the server's host when left empty; "This computer" for a local one)
-- `calendars` (readonly var): Every account's calendars, flattened: { id ("<account>|<href>"), account, accountName, kind, href, name, color (the override, else the server's, else the accent), enabled, readOnly, events (it holds …
-- `shownCalendars` (readonly var): The calendars shown, and those of them new events can go to
-- `writableCalendars` (readonly var)
-- `newEventCalendar` (readonly string): Where a new event goes: the default calendar while it's shown and writable, else the first that is ("" with none)
-- `colors` (readonly var): calendar id -> its color, for the views
+- `savedAccounts` (readonly var): Calendar.items as saved, for editing
+- `accounts` (readonly var): Calendar.items, each with a `name` (the username or the server's host when left empty; "This computer" for a local one); each account's `calendars` as configured: { href, name (an override, or ""), c…
 - `defaultCalendar` (readonly string)
-- `defaultDuration` (readonly int): Minutes
-- `defaultReminder` (readonly int): Minutes before the start, -1 for none
+- `defaultDuration` (readonly int): A new event's length (minutes)
+- `defaultReminder` (readonly int): A new event's reminder: minutes before the start, -1 for none
 - `reminders` (readonly bool)
-- `syncInterval` (readonly int): Minutes
+- `syncInterval` (readonly int): How often calendars sync (ms)
 - `pastMonths` (readonly int)
 - `futureMonths` (readonly int)
 - `maxDots` (readonly int)
@@ -28,6 +23,5 @@ Reader for the Calendar section (see CalendarManager). Account passwords are not
 
 ### Functions
 
-- `calendar(id)`
 - `writableKind(kind)`: Kinds whose events axiom can change: CalDAV accounts and local calendars (.ics subscriptions are read-only)
 - `hostOf(url)`

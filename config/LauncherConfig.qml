@@ -7,8 +7,8 @@ import qs.services
 QtObject {
   readonly property var _c: ConfigManager.config.Launcher
 
-  // "general" | "primary" | "focused" | "all" (see General.screensFor)
-  readonly property string monitors: _c.monitors
+  // The ScreenTarget it opens on (see General.screensFor)
+  readonly property var screen: _c.screen
   // Placed as docks and OSDs are: a Bar.Location, its centre's position
   // along it (0-1), and whether it floats off the edge (a FloatingPopout,
   // `distance` 0-0.5 across the free screen: 0.5 centres it) or grows out
@@ -33,20 +33,21 @@ QtObject {
   readonly property var hiddenApps: _c.hiddenApps
 
   // Providers
-  readonly property bool windows: _c.windows
-  readonly property bool calculator: _c.calculator
-  readonly property bool commands: _c.commands
-  readonly property bool runCommands: _c.runCommands
-  readonly property bool webSearch: _c.webSearch
+  readonly property var _p: _c.providers
+  readonly property bool windows: _p.windows
+  readonly property bool calculator: _p.calculator
+  readonly property bool commands: _p.commands
+  readonly property bool runCommands: _p.run
+  readonly property bool webSearch: _p.web.enabled
   // "@question" asks the overlay's chat
-  readonly property bool chat: _c.chat
+  readonly property bool chat: _p.chat
   // ":" searches the clipboard history (ClipboardManager)
-  readonly property bool clipboard: _c.clipboard
+  readonly property bool clipboard: _p.clipboard.enabled
   // "axiom" | "cliphist"
-  readonly property string clipboardSource: _c.clipboardSource
-  readonly property int clipboardMaxEntries: _c.clipboardMaxEntries
+  readonly property string clipboardSource: _p.clipboard.source
+  readonly property int clipboardMaxEntries: _p.clipboard.maxEntries
   // ";" searches emoji (EmojiManager)
-  readonly property bool emoji: _c.emoji
+  readonly property bool emoji: _p.emoji
   // With {} where the terms go
-  readonly property string searchEngine: _c.searchEngine
+  readonly property string searchEngine: _p.web.engine
 }

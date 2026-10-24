@@ -13,7 +13,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Stopwatch.presets`** · array<string> = ["1m","5m","10m","25m"]
   - Timer presets: One-click timers, comma-separated: 5m, 1h30m, 90s, or 10m tea for a label.
-  - read: `StopwatchConfig.presets` · in: `components/content/Stopwatch.qml`
+  - read: `StopwatchConfig.presets` · in: `components/content/Stopwatch/Stopwatch.qml`
 - **`Stopwatch.notify`** · boolean = true
   - Notify: A notification when a timer ends.
   - read: `StopwatchConfig.notify` · in: `services/StopwatchManager.qml`
@@ -23,6 +23,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `StopwatchConfig`, with the files that use it.
 
 - `StopwatchConfig.presets` (var): Durations as typed ("5m", "10m tea"), for StopwatchClock.parse
-  - in: `components/content/Stopwatch.qml`
+  - in: `components/content/Stopwatch/Stopwatch.qml`
 - `StopwatchConfig.notify` (bool)
   - in: `services/StopwatchManager.qml`

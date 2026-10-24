@@ -1,0 +1,4 @@
+label: Weather
+icon: partly_cloudy_day
+group: Time & weather
+hosts: [lockscreen, greeter]

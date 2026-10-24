@@ -1,0 +1,35 @@
+# The Apps section of the config (config.json's "Apps").
+
+x-scope: personal
+type: object
+x-category: General
+title: Apps
+description: "The apps axiom opens: by the Terminal, File manager and Browser keybinds, and the launcher's terminal apps and Shift+Enter commands."
+additionalProperties: false
+properties:
+  terminal:
+    x-scope: commands
+    type: string
+    title: Terminal
+    default: kitty
+    description: "Terminal used for commands run with Shift+Enter, for terminal apps and by the Terminal keybind. It's started as: terminal -e command."
+  fileManager:
+    x-scope: commands
+    type: string
+    title: File manager
+    default: ''
+    description: Command the File manager keybind runs. Empty opens your home folder in the system's default file manager.
+  browser:
+    x-scope: commands
+    type: string
+    title: Browser
+    default: ''
+    description: Command the Browser keybind runs. Empty starts the system's default web browser.
+  pinned:
+    x-scope: personal
+    type: array
+    title: Pinned apps
+    x-settings: false
+    default: []
+    items: {type: string}
+    description: 'Desktop entry ids, in order: the apps every dock shows first, unless it has its own (Dock → pinnedOwn).'

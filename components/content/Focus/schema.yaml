@@ -1,0 +1,14 @@
+label: Focus
+icon: center_focus_strong
+group: Tools
+keyboard: true
+defaultSize: [8, 8]
+minSize: [4, 6]
+settings:
+  showTimer: {type: boolean, title: Pomodoro timer, default: true}
+  showTodos: {type: boolean, title: Todo list, default: true}
+  showAgenda:
+    type: boolean
+    title: Today's events
+    default: true
+    description: Today in the shown calendars, with + to add an event.

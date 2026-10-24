@@ -14,8 +14,9 @@ QtObject {
 
   // Set up as the login screen (GreeterManager's install)
   readonly property bool enabled: _c.enabled
-  // Where the login box shows: a monitor name, empty for the primary
-  readonly property string monitor: _c.monitor
+  // Where the login box shows: a ScreenTarget (the primary monitor, or one
+  // named)
+  readonly property var screen: _c.screen
   readonly property bool rememberUser: _c.rememberUser
   // Where Install and Update take the code: "git" (the upstream, fetched
   // by root, on SelfUpdate.channel) | "local" (the clone as it is)

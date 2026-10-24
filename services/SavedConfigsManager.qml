@@ -1,85 +1,47 @@
 pragma Singleton
 import QtQuick
 import Qt.labs.folderlistmodel
-import Quickshell.Io
 
 import qs.config
-import qs.components.methods
 
 /**
- * Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/saved/.
- * A snapshot holds what ConfigExamples.snapshot picks: the look, personal
- * parts and commands (by the schema's x-scope) and the wallpaper setup (x-snapshot:
- * wallpapers, mode, rotation, light/dark ones, theme schedule), in the
- * export format, so a saved file can be shared or imported as it is.
- * Restoring applies it like an example, plus the wallpaper setup (other
- * machine settings stay as they are; a wallpaper only if its file is still
- * there), through ConfigManager's load pipeline, so
- * snapshots from older config versions (and older whole-config snapshots)
- * are migrated. The one last saved or restored is `active`, and `modified`
- * says whether the running config's snapshot parts have changed since.
- *
- * Also shares configs (ConfigExamples, by the schema's x-scope): applies
- * the example setups shipped in examples/ and imported files (the running
- * config is first saved as "before-<name>", then the file's look and layout
- * replace the running ones), and exports the running config's look to the
- * home folder in the same format. Nothing loaded changes a takeover setting
- * (the schema's x-takeover: the compositor mode, lock screen, idle, polkit,
- * greeter; ConfigManager.restoreConfig keeps them).
+ * Named snapshots of the config (one JSON file each in
+ * $XDG_CONFIG_HOME/axiom/saved/) and shared configs: the examples shipped in
+ * examples/, imported files, exports to the home folder. axiom does the
+ * work (saved.* and share.*, backend/internal/saved): a snapshot holds the
+ * look, personal parts and commands (by the schema's x-scope) and the
+ * wallpaper setup (x-snapshot), in the export format, so a saved file can
+ * be shared or imported as it is; restoring applies it like an example,
+ * plus the wallpaper setup where its files are still there. Applying a
+ * shared file first saves the running config as "before-<name>". Files of
+ * any version axiom reads are taken (an older one is converted), and
+ * nothing loaded changes a takeover setting (x-takeover). This keeps what
+ * the settings page shows: the list, the active snapshot, a status line.
  */
 QtObject {
   id: root
 
   readonly property string savedDir: Paths.userConfigPath + "saved/"
-  readonly property string examplesDir: Paths.axiomPath + "examples/"
   // [{ name, title, description }] by name, from examples/*.json
-  readonly property var examples: {
-    const list = [];
-    for (let i = 0; i < _examplesModel.count; i++) {
-      const name = _examplesModel.get(i, "fileBaseName");
-      const example = _readExample(name);
-      list.push({
-        name: name,
-        title: example?._example?.title ?? name,
-        description: example?._example?.description ?? ""
-      });
-    }
-    return list;
-  }
+  readonly property var examples: _examples
   // Newest first; roles: fileBaseName, filePath, fileModified
   readonly property FolderListModel model: _model
   // Last save/restore/delete outcome, for the settings UI
   property string status: ""
   // The saved config the running one was last saved as or restored from,
   // "" for none (or once its file is gone): the one the settings UI offers
-  // to overwrite. Kept in state/savedconfigs.json.
-  readonly property string active: _model.count > 0 && exists(_active) ? _active : ""
+  // to overwrite
+  readonly property string active: _state.active ?? ""
   // Whether the running config's snapshot parts differ from the active
   // saved one's (machine settings, which restoring doesn't change, are left
   // out)
-  readonly property bool modified: active !== "" && _baseline !== null && !Utils.deepEqual(ConfigExamples.snapshot(ConfigManager.config, ConfigManager.configSchema), _baseline)
-
+  readonly property bool modified: _state.modified ?? false
   // The shared setup the active saved config was saved from, unchanged
-  // since (`_example.source`, written by the apply): "" for one the user
-  // saved, or saved over
-  readonly property string activeSource: active !== "" ? _activeSource : ""
-
-  property string _active: ""
-  property string _activeSource: ""
-  // The snapshot parts of the active saved config as it loads (migrated,
-  // defaults filled)
-  property var _baseline: null
-  // The config being written by save(), the new baseline once it's saved
-  // (dropped once it's written or fails)
-  property var _saving: null
-  // The status to show once save() has written, "" for "Saved", and the
-  // shared setup it's saved from ("" for none)
-  property string _savedStatus: ""
-  property string _savedSource: ""
+  // since: "" for one the user saved, or saved over
+  readonly property string activeSource: _state.activeSource ?? ""
   // An imported file awaiting confirmation: { name, title, description,
-  // path, config, hasPersonal, hasCommands } (config loaded: migrated,
-  // defaults filled; hasPersonal: the file holds preferences, keybinds or
-  // apps; hasCommands: commands), or null
+  // path, hasPersonal, hasCommands } (hasPersonal: the file holds
+  // preferences, keybinds or apps; hasCommands: commands), or null
   property var importing: null
   // The file picker is open
   readonly property bool picking: FilePickerManager.running
@@ -87,23 +49,36 @@ QtObject {
   // An example, import or shared setup was applied as `name` (its backup
   // is "before-<name>"), or failed to be (status says why). Once applied,
   // it's saved as its own snapshot ("example-<name>", "import-<name>" or
-  // the shared file's), the active one, so the saved configs list shows
-  // it as Current; the prefixes keep it from replacing one of the user's.
+  // the shared file's), the active one.
   signal applied(string name)
   signal applyFailed(string name)
 
-  // What to apply once the running config is saved as its backup:
-  // { name, config, carry, snapshot } (carry: ConfigExamples.apply's), or
-  // null
-  property var _pendingApply: null
-  // The snapshot being restored once its wallpapers are checked:
-  // { name, path, config }, or null
-  property var _restoring: null
-  readonly property var _state: StateManager.createStateHandler("savedconfigs")
+  property var _state: ({})
+  property var _examples: []
+  property bool _busy: false
 
   Component.onCompleted: {
-    root._active = root._state.load({}).active ?? "";
-    root._loadBaseline();
+    BackendManager.listen("saved.state", state => root._state = state);
+    root._refresh();
+  }
+
+  property Connections _backend: Connections {
+    target: BackendManager
+
+    function onGreeted() {
+      root._refresh();
+    }
+  }
+
+  function _refresh() {
+    BackendManager.call("saved.state", null, (error, state) => {
+      if (!error)
+        root._state = state;
+    });
+    BackendManager.call("share.examples", null, (error, list) => {
+      if (!error)
+        root._examples = list;
+    });
   }
 
   function sanitize(name) {
@@ -119,127 +94,50 @@ QtObject {
     return false;
   }
 
-  // Saves the running config's snapshot parts (including unsaved settings
-  // edits) under `name`, replacing any existing snapshot of that name.
-  // `savedStatus`: the status once it's written, in place of "Saved";
-  // `source`: the shared setup it holds as applied (activeSource).
-  function save(name, savedStatus = "", source = "") {
-    const fileName = sanitize(name);
-    if (fileName === "") {
+  // Saves the running config's snapshot parts under `name`, replacing any
+  // existing snapshot of that name. Unsaved settings edits go first (the
+  // settings page saves before asking).
+  function save(name) {
+    if (sanitize(name) === "") {
       root.status = I18n.tr("Enter a name to save as");
       return;
     }
-    // Written by a FileView, not through argv, which caps one argument at
-    // 128 KiB (the folder was made at startup)
-    _writer.name = fileName;
-    root._savedStatus = savedStatus;
-    root._savedSource = source;
-    root._saving = Utils.clone(ConfigManager.config);
-    // Through an empty path first: a FileView skips setText of the text it
-    // last read or wrote (no `saved`), which would leave an apply waiting
-    // on this backup forever
-    _writer.path = "";
-    _writer.path = savedDir + fileName + ".json";
-    const schema = ConfigManager.configSchema;
-    const header = {
-      "_example": {
-        "title": fileName,
-        "description": ""
-      },
-      "version": ConfigMigration.currentVersion
-    };
-    if (source !== "")
-      header._example.source = source;
-    const saved = Object.assign({}, header, ConfigExamples.sparse(ConfigExamples.snapshot(root._saving, schema), schema));
-    _writer.setText(JSON.stringify(saved, null, 2) + "\n");
+    BackendManager.call("saved.save", {
+      "name": name
+    }, (error, result) => {
+      root.status = error ? I18n.tr("Failed to save \"{0}\"", sanitize(name)) : I18n.tr("Saved \"{0}\"", result.name);
+      if (error)
+        console.warn("[SavedConfigsManager] Saving", name, "failed:", error.message);
+    });
   }
 
   function restore(name) {
-    const path = savedDir + name + ".json";
-    const content = FileManager.read("file://" + path);
-    // JSON.parse(null) is null, which would restore pure defaults
-    if (!content) {
-      console.error("[SavedConfigsManager] Could not read", path);
-      root.status = I18n.tr("\"{0}\" could not be read", name);
-      return;
-    }
-    let parsed;
-    try {
-      parsed = JSON.parse(content);
-    } catch (e) {
-      console.error("[SavedConfigsManager] Could not parse", path, e);
-      root.status = I18n.tr("\"{0}\" is not valid JSON", name);
-      return;
-    }
-    const config = typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? root._load(parsed) : null;
-    if (!config) {
-      root.status = I18n.tr("\"{0}\" is not a valid config", name);
-      return;
-    }
-    if (_wallpaperCheck.running) {
-      root.status = I18n.tr("Busy, try again");
-      return;
-    }
-    // Its wallpapers only where their files are still there: find lists
-    // the ones that exist (and exits non-zero for the others)
-    const paths = ConfigExamples.snapshotFiles(config, ConfigManager.configSchema);
-    root._restoring = {
-      name: name,
-      path: path,
-      config: config,
-      source: root._sourceOf(parsed)
-    };
-    if (paths.length === 0) {
-      root._finishRestore([]);
-      return;
-    }
-    _wallpaperCheck.command = ["find"].concat(paths, ["-maxdepth", "0", "-print0"]);
-    _wallpaperCheck.running = true;
-  }
-
-  // `existing`: the files of the snapshot's wallpapers that are there
-  function _finishRestore(existing) {
-    const pending = root._restoring;
-    root._restoring = null;
-    if (!pending)
-      return;
-    const applied = ConfigExamples.apply(ConfigManager.config, pending.config, ConfigManager.configSchema, ConfigExamples.everything);
-    if (!ConfigManager.restoreConfig(ConfigExamples.withSnapshot(applied, pending.config, ConfigManager.configSchema, existing))) {
-      root.status = I18n.tr("\"{0}\" is not a valid config", pending.name);
-      return;
-    }
-    root._setActive(pending.name, ConfigManager.config, pending.source);
-    SettingsManager.loadConfig();
-    root.status = I18n.tr("Restored \"{0}\"", pending.name);
-    console.log("[SavedConfigsManager] Restored", pending.path);
+    BackendManager.call("saved.restore", {
+      "name": name
+    }, error => {
+      if (error) {
+        console.warn("[SavedConfigsManager] Restoring", name, "failed:", error.message);
+        root.status = I18n.tr("\"{0}\" is not a valid config", name);
+        return;
+      }
+      SettingsManager.loadConfig();
+      root.status = I18n.tr("Restored \"{0}\"", name);
+    });
   }
 
   // Applies the schema defaults like an example (the look, personal parts
   // and commands; machine settings stay), after saving the running config as
-  // "before-defaults". The current version skips migration, which would
-  // otherwise treat the empty object as a version 1 config.
+  // "before-defaults"
   function restoreDefaults() {
-    _backupThenApply("defaults", ConfigManager.normalizeConfig({
-      "version": ConfigMigration.currentVersion
-    }), ConfigExamples.everything);
+    root._apply("defaults", "share.defaults", {}, "defaults");
   }
 
-  // A file to apply, loaded (migrated, defaults filled; null if invalid),
-  // keeping what an older file never held (ConfigExamples.keepMovedKeys)
-  function _load(parsed) {
-    const config = ConfigManager.normalizeConfig(parsed);
-    return config ? ConfigExamples.keepMovedKeys(config, ConfigMigration.migrate(parsed).config, ConfigManager.config, parsed.version) : null;
-  }
-
-  // Saves the running config as "before-<name>", then applies the example
-  // (in _writer's onSaved, so a failed backup applies nothing)
+  // Applies an example's look, after saving the running config as
+  // "before-<name>"
   function applyExample(name) {
-    const example = _readExample(name);
-    if (!example) {
-      root.status = I18n.tr("\"{0}\" could not be read", name);
-      return;
-    }
-    _backupThenApply(name, root._load(example), [], name, "example-" + name);
+    root._apply(name, "share.example", {
+      "name": name
+    }, name);
   }
 
   // Opens the desktop's file picker; the chosen file goes to openImport
@@ -249,40 +147,22 @@ QtObject {
     }, path => root.openImport(path), () => root.status = I18n.tr("No file picker could be opened"));
   }
 
-  // Loads a shared file (an export, an example, or a whole config.json of
+  // Reads a shared file (an export, an example, or a whole config.json of
   // any version) as `importing`, for the settings page to confirm
   function openImport(path) {
     root.importing = null;
     const fileName = path.split("/").pop();
-    const parsed = root._readShared(path, fileName);
-    if (!parsed)
-      return;
-    const config = root._load(parsed);
-    if (!config) {
-      root.status = I18n.tr("\"{0}\" is not a valid config", fileName);
-      return;
-    }
-    const title = String(parsed._example?.title ?? "") || fileName.replace(/\.json$/, "");
-    // A file with no personal parts (or commands) loads with their
-    // defaults, which taking them would put in place of the user's own
-    // keybinds and apps. Read migrated (not filled), so an older file's are
-    // found where they are now
-    const schema = ConfigManager.configSchema;
-    const migrated = ConfigMigration.migrate(parsed).config;
-    const look = ConfigExamples.pick(migrated, schema);
-    const personal = ConfigExamples.pick(migrated, schema, ["personal"]);
-    root.importing = {
-      name: sanitize(title) || "import",
-      title: title,
-      description: String(parsed._example?.description ?? ""),
-      path: path,
-      config: config,
-      hasPersonal: !Utils.deepEqual(personal, look),
-      // Next to the personal parts, as exec binds are commands inside the
-      // (personal) bind list
-      hasCommands: !Utils.deepEqual(ConfigExamples.pick(migrated, schema, ["personal", "commands"]), personal)
-    };
-    root.status = "";
+    BackendManager.call("share.open", {
+      "path": path
+    }, (error, preview) => {
+      if (error) {
+        console.warn("[SavedConfigsManager] Can't import", path + ":", error.message);
+        root.status = root._refusal(error, fileName);
+        return;
+      }
+      root.importing = preview;
+      root.status = "";
+    });
   }
 
   // Applies `importing` (its personal parts too when `personal`:
@@ -293,56 +173,27 @@ QtObject {
     root.importing = null;
     if (!pending)
       return;
-    const carry = [].concat(personal && pending.hasPersonal ? ["personal"] : [], commands && pending.hasCommands ? ["commands"] : []);
-    _backupThenApply(pending.name, pending.config, carry, pending.name, "import-" + pending.name);
+    root._apply(pending.name, "share.import", {
+      "path": pending.path,
+      "personal": personal,
+      "commands": commands
+    }, pending.name);
   }
 
   function cancelImport() {
     root.importing = null;
   }
 
-  // Applies a shared file at `path` straight away, its look only (never
-  // preferences, keybinds, apps or commands), after saving the running config as
-  // "before-<name>", then saves the result as `snapshot`: a community
-  // setup (CommunitySetupsManager). False with `status` saying why when
-  // the file can't be applied.
+  // Applies a shared file at `path` straight away, its look only, after
+  // saving the running config as "before-<name>", then saves the result as
+  // `snapshot`: a community setup (CommunitySetupsManager). False when
+  // another apply is under way.
   function applyShared(name, path, title, snapshot) {
-    const parsed = root._readShared(path, title);
-    return parsed !== null && root._backupThenApply(name, root._load(parsed), [], title, snapshot);
-  }
-
-  // The parsed shared file at `path`, or null with `status` saying why (as
-  // `label`). One without a version would be migrated as a version 1
-  // config, which can quietly rewrite a newer layout; a newer one would
-  // lose what this version doesn't know.
-  function _readShared(path, label) {
-    const content = FileManager.read("file://" + path);
-    if (!content) {
-      root.status = I18n.tr("\"{0}\" could not be read", label);
-      return null;
-    }
-    let parsed;
-    try {
-      parsed = JSON.parse(content);
-    } catch (e) {
-      console.warn("[SavedConfigsManager] Could not parse", path + ":", e);
-      root.status = I18n.tr("\"{0}\" is not valid JSON", label);
-      return null;
-    }
-    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-      root.status = I18n.tr("\"{0}\" is not a valid config", label);
-      return null;
-    }
-    const version = parsed.version;
-    if (!Number.isInteger(version) || version < 1) {
-      root.status = I18n.tr("\"{0}\" has no config version, so it can't be imported", label);
-      return null;
-    }
-    if (version > ConfigMigration.currentVersion) {
-      root.status = I18n.tr("\"{0}\" is from a newer axiom. Update axiom to import it.", label);
-      return null;
-    }
-    return parsed;
+    return root._apply(name, "share.applyShared", {
+      "name": name,
+      "path": path,
+      "snapshot": snapshot
+    }, title);
   }
 
   // Writes the running config's look (and its personal parts when
@@ -350,225 +201,78 @@ QtObject {
   // ~/axiom-<name>-<date>-<time>.json, holding only what differs from the
   // defaults: a file to share, in the format examples and imports use.
   // `places`: per-monitor parts name their monitor by its place
-  // (ConfigExamples.pick's monitors), which the community setups' check
-  // doesn't take yet
   function exportConfig(personal, commands, places = true) {
-    const schema = ConfigManager.configSchema;
-    const header = {
-      "_example": {
-        "title": root.active || "axiom",
-        "description": ""
-      },
-      "version": ConfigMigration.currentVersion
-    };
-    // Applies as the whole pick would (tst_ConfigExamples' round trips)
-    const carry = [].concat(personal ? ["personal"] : [], commands ? ["commands"] : []);
-    const shared = Object.assign({}, header, ConfigExamples.sparse(ConfigExamples.pick(ConfigManager.config, schema, carry, places ? root._monitors() : null), schema));
-    const now = new Date();
-    // To the second, so a later export never replaces an earlier one
-    const pad = n => String(n).padStart(2, "0");
-    const stamp = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map(pad).join("-") + "-" + [now.getHours(), now.getMinutes(), now.getSeconds()].map(pad).join("");
-    const named = root.active ? sanitize(root.active).replace(/ /g, "-") + "-" : "";
-    _exporter.path = Paths.homeDirectory + "axiom-" + named + stamp + ".json";
-    _exporter.setText(JSON.stringify(shared, null, 2) + "\n");
-  }
-
-  // False (with `status` naming it as `label`) when `config` is invalid or
-  // another apply is under way. `snapshot`: the name to save the result
-  // as once applied ("" for none); `carry`: ConfigExamples.apply's
-  function _backupThenApply(name, config, carry, label = name, snapshot = "") {
-    if (!config) {
-      root.status = I18n.tr("\"{0}\" is not a valid config", label);
-      return false;
-    }
-    // One at a time: a second would replace the first's backup mid-write
-    if (root._pendingApply) {
-      root.status = I18n.tr("Busy, try again");
-      return false;
-    }
-    root._pendingApply = {
-      name: name,
-      config: config,
-      carry: carry,
-      snapshot: snapshot
-    };
-    save("before-" + name);
-    return true;
-  }
-
-  function _apply(pending) {
-    if (!ConfigManager.restoreConfig(ConfigExamples.apply(ConfigManager.config, pending.config, ConfigManager.configSchema, pending.carry, root._monitors()))) {
-      root.status = I18n.tr("\"{0}\" is not a valid config", pending.name);
-      root.applyFailed(pending.name);
-      return;
-    }
-    root._setActive("", null);
-    SettingsManager.loadConfig();
-    root.status = I18n.tr("Applied \"{0}\". The previous configuration is saved as \"{1}\".", pending.name, "before-" + pending.name);
-    console.log("[SavedConfigsManager] Applied", pending.name, pending.carry.length > 0 ? "with " + pending.carry.join(", ") : "");
-    // Handlers may change the config first (a community setup's wallpaper)
-    root.applied(pending.name);
-    // Later: this runs inside the backup's write, through the same FileView
-    if (pending.snapshot !== "")
-      Qt.callLater(root.save, pending.snapshot, I18n.tr("Applied \"{0}\" as \"{1}\". The previous configuration is saved as \"{2}\".", pending.name, sanitize(pending.snapshot), "before-" + pending.name), pending.name);
-  }
-
-  // This PC's monitors by place (ConfigExamples.monitorOrder): what a
-  // shared file's per-monitor parts are written against and put on
-  function _monitors() {
-    return ConfigExamples.monitorOrder(CompositorManager.outputs);
-  }
-
-  // The parsed example (with its _example header), or null
-  function _readExample(name) {
-    const content = FileManager.read("file://" + examplesDir + name + ".json");
-    if (!content)
-      return null;
-    try {
-      return JSON.parse(content);
-    } catch (e) {
-      console.error("[SavedConfigsManager] Could not parse example", name + ":", e);
-      return null;
-    }
+    BackendManager.call("share.export", {
+      "personal": personal,
+      "commands": commands,
+      "places": places,
+      "outputs": root._outputs()
+    }, (error, result) => {
+      root.status = error ? I18n.tr("Failed to export") : I18n.tr("Exported to {0}", Paths.shortenHome(result.path));
+      if (error)
+        console.warn("[SavedConfigsManager] Export failed:", error.message);
+    });
   }
 
   function remove(name) {
-    _run(["rm", "-f", "--", savedDir + name + ".json"], I18n.tr("Deleted \"{0}\"", name), I18n.tr("Failed to delete \"{0}\"", name), name);
+    BackendManager.call("saved.remove", {
+      "name": name
+    }, error => root.status = error ? I18n.tr("Failed to delete \"{0}\"", name) : I18n.tr("Deleted \"{0}\"", name));
   }
 
-  // `baseline`: the config as saved, or undefined to read it (and the
-  // source) from the file
-  function _setActive(name, baseline, source = "") {
-    root._active = name;
-    root._activeSource = source;
-    root._state.save({
-      "active": name
-    });
-    if (baseline === undefined)
-      root._loadBaseline();
-    else
-      root._baseline = baseline === null ? null : ConfigExamples.snapshot(baseline, ConfigManager.configSchema);
-  }
-
-  // A saved file's `_example.source`, or ""
-  function _sourceOf(parsed) {
-    const source = parsed?._example?.source;
-    return typeof source === "string" ? source : "";
-  }
-
-  function _loadBaseline() {
-    root._baseline = null;
-    if (root._active === "")
-      return;
-    const content = FileManager.read("file://" + savedDir + root._active + ".json");
-    if (!content)
-      return;
-    try {
-      const parsed = JSON.parse(content);
-      root._activeSource = root._sourceOf(parsed);
-      const config = root._load(parsed);
-      root._baseline = config ? ConfigExamples.snapshot(config, ConfigManager.configSchema) : null;
-    } catch (e) {
-      console.warn("[SavedConfigsManager] Could not parse the active saved config", root._active + ":", e);
-    }
-  }
-
-  // `removed`: the saved config the command deletes, if any
-  function _run(command, okText, failText, removed = "") {
-    if (_process.running) {
+  // One apply at a time: a second would replace the first's backup
+  // rpc: share.defaults, share.example, share.import, share.applyShared
+  function _apply(name, method, params, label) {
+    if (root._busy) {
       root.status = I18n.tr("Busy, try again");
-      return;
+      return false;
     }
-    _process.okText = okText;
-    _process.failText = failText;
-    _process.removed = removed;
-    _process.command = command;
-    _process.running = true;
-  }
-
-  property Process _process: Process {
-    property string okText
-    property string failText
-    property string removed
-    stderr: StdioCollector {
-      onStreamFinished: {
-        if (text.trim() !== "")
-          console.error("[SavedConfigsManager]", text.trim());
+    root._busy = true;
+    BackendManager.call(method, Object.assign({
+      "outputs": root._outputs()
+    }, params), (error, result) => {
+      root._busy = false;
+      if (error) {
+        console.warn("[SavedConfigsManager] Applying", label, "failed:", error.message);
+        root.status = root._refusal(error, label);
+        root.applyFailed(name);
+        return;
       }
-    }
-    onExited: code => {
-      if (code === 0 && removed !== "" && removed === root._active)
-        root._setActive("", null);
-      root.status = code === 0 ? okText : failText;
-      console.log("[SavedConfigsManager]", root.status);
-    }
+      SettingsManager.loadConfig();
+      root.status = result.saved ? I18n.tr("Applied \"{0}\" as \"{1}\". The previous configuration is saved as \"{2}\".", label, result.saved, result.backup) : I18n.tr("Applied \"{0}\". The previous configuration is saved as \"{1}\".", label, result.backup);
+      root.applied(name);
+    });
+    return true;
   }
 
-  property FileView _writer: FileView {
-    property string name
-    blockWrites: true
-    atomicWrites: true
-    printErrors: false
-    onSaved: {
-      root._setActive(name, root._saving, root._savedSource);
-      root._saving = null;
-      root.status = root._savedStatus || I18n.tr("Saved \"{0}\"", name);
-      console.log("[SavedConfigsManager]", root.status);
-      const pending = root._pendingApply;
-      root._pendingApply = null;
-      if (pending)
-        root._apply(pending);
-    }
-    onSaveFailed: error => {
-      root._saving = null;
-      const pending = root._pendingApply;
-      root._pendingApply = null;
-      root.status = I18n.tr("Failed to save \"{0}\"", name);
-      if (pending)
-        root.applyFailed(pending.name);
-      console.warn("[SavedConfigsManager] Could not write", path + ":", FileViewError.toString(error));
-    }
+  // Why axiom refused a file, for people
+  function _refusal(error, label) {
+    const message = error.message ?? "";
+    if (message.includes("newer axiom"))
+      return I18n.tr("\"{0}\" is from a newer axiom. Update axiom to import it.", label);
+    if (message.includes("no config version"))
+      return I18n.tr("\"{0}\" has no config version, so it can't be imported", label);
+    if (message.includes("can't be read") || error.kind === "not_found")
+      return I18n.tr("\"{0}\" could not be read", label);
+    return I18n.tr("\"{0}\" is not a valid config", label);
   }
 
-  // Which of a restored snapshot's wallpaper files exist
-  property Process _wallpaperCheck: Process {
-    stdout: StdioCollector {
-      onStreamFinished: root._finishRestore(text.split("\0").filter(path => path !== ""))
-    }
-  }
-
-  property FileView _exporter: FileView {
-    blockWrites: true
-    atomicWrites: true
-    printErrors: false
-    onSaved: {
-      root.status = I18n.tr("Exported to {0}", Paths.shortenHome(path));
-      console.log("[SavedConfigsManager] Exported", path);
-    }
-    onSaveFailed: error => {
-      root.status = I18n.tr("Failed to export to {0}", Paths.shortenHome(path));
-      console.warn("[SavedConfigsManager] Could not write", path + ":", FileViewError.toString(error));
-    }
+  // This PC's monitors, which shared files name by place
+  function _outputs() {
+    return CompositorManager.outputs.map(output => ({
+          "name": output.name,
+          "x": output.x,
+          "y": output.y
+        }));
   }
 
   // The folder must exist before FolderListModel watches it, or it never
-  // picks up files saved later.
-  property Process _mkdir: Process {
-    running: true
-    command: ["mkdir", "-p", root.savedDir]
-    onExited: root._model.folder = "file://" + root.savedDir
-  }
-
+  // picks up files saved later: axiom made it on its first save; until
+  // then this shows none
   property FolderListModel _model: FolderListModel {
+    folder: "file://" + root.savedDir
     nameFilters: ["*.json"]
     showDirs: false
     sortField: FolderListModel.Time
-  }
-
-  property FolderListModel _examplesModel: FolderListModel {
-    folder: "file://" + root.examplesDir
-    nameFilters: ["*.json"]
-    showDirs: false
-    sortField: FolderListModel.Name
   }
 }

@@ -1,10 +1,10 @@
 # Popout shadow
 
 > **Files:** `components/hosts/popout/SurfaceShadow.qml`, `components/hosts/popout/OutsideShadow.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/SlideAnimation.qml`, `components/methods/SurfaceContext.qml`, `components/bar/BarContainer.qml`
-> **Config:** `BarStyle.shadow`, `BarStyle.shadowColor`, `BarStyle.shadowSize`
+> **Config:** `Bars.style.shadow` (`enabled`, `color`, `size`)
 > **Related:** [Surface context](surface-context.md), [Submenus](submenus.md), [Translucency and blur](../theming/translucency-blur.md), [Blur window and openings](../theming/blur-window-openings.md), [Bar layering and corners](../bar/layering-and-corners.md)
 
-Every surface with an exposed border casts the shell's shadow. It uses the `BarStyle` section's `shadow` (on or off), `shadowColor` (Auto: the accent) and `shadowSize`, as the bars and border do. It always spreads evenly, so it never slides onto a stroke the surface joins. Read this before touching how any popout, dock or submenu casts its shadow. (Rule: AGENTS.md › QML pitfalls, `MultiEffect` and `OutsideShadow`.)
+Every surface with an exposed border casts the shell's shadow. It uses the bars' shared style's shadow (`Bars.style.shadow`: `enabled`, `color` (Auto: the accent) and `size`; reader `BarStyle.look`), as the bars and border do. It always spreads evenly, so it never slides onto a stroke the surface joins. Read this before touching how any popout, dock or submenu casts its shadow. (Rule: AGENTS.md › QML pitfalls, `MultiEffect` and `OutsideShadow`.)
 
 ### How it is drawn
 - **`hosts/popout/SurfaceShadow`:** a `MultiEffect`.
@@ -25,7 +25,7 @@ Every surface with an exposed border casts the shell's shadow. It uses the `BarS
 - **Each surface casts what it grows out of casts** (`SurfaceContext.shadow`). This is handed to `AttachedSurface.shadowLook`.
   - So joined shapes land in one `BlurBacking` group, and one shadow runs round them.
 - **By what it grows out of:**
-  - **Out of a bar** (its pills, islands, a merged box's outer edge, or a solid bar's own stroke with the border off): the bar's look (a bar may have its own, `Bars[].overrideShadow`).
+  - **Out of a bar** (its pills, islands, a merged box's outer edge, or a solid bar's own stroke with the border off): the bar's look (a bar may have its own, `Bars.items[].style.shadow`).
   - **Out of the border's stroke, off a bare edge, or free-standing (`detached`):** BarStyle's.
   - **A submenu:** casts its parent's look (`host.popupSurface`).
 

@@ -6,7 +6,8 @@
                          member that exposes it and the files that use it;
                          plus BarWidgets / OverlayModules / OverlayViews
   docs/dev/generated/    files.md (every QML file's purpose comment),
-                         ipc.md (every IpcHandler), layers.md (layer-rule
+                         ipc.md (every IpcTarget), rpc.md (the shell <->
+                         daemon methods and pushes), layers.md (layer-rule
                          stacking, from LayerStack.layers), api/<Name>.md (the
                          public members of each service and config reader)
 
@@ -533,19 +534,20 @@ class ConfigReference:
         defs = self.schema["definitions"]
         folder = f"{CONFIG_OUT}/{page}"
         index = [NOTICE, f"# Config: {page}", "",
-                 f"> **Schema:** `definitions.{union}.oneOf`, discriminated by `type` · **Files:** `{directory}/<type>.qml`", "",
+                 f"> **Schema:** `definitions.{union}.oneOf`, discriminated by `type` · **Files:** `{directory}/<Type>/<Type>.qml`", "",
                  f"Every `{union}` type, one page each: its file, annotations, and its own settings with the files that read them. "
                  f"Shared keys ({', '.join('`' + k + '`' for k in sorted(SHARED_KEYS))}) are left out.", "",
                  "| Type | Label | Annotations |", "|---|---|---|"]
         pages = {}
-        type_files = {p.stem for p in (ROOT / directory).glob("*.qml")}
+        # What every type of the root shares (base/, and content's parts/)
+        shared = [rel(p) for d in ("base", "parts") for p in sorted((ROOT / directory / d).rglob("*.qml"))]
         all_types = self._union_types()
         for option in defs[union]["oneOf"]:
             def_name = ref_name(option)
             node = resolve(self.schema, option)
             name = node["properties"]["type"]["const"]
             label = node["properties"]["type"].get("description", "")
-            file = f"{directory}/{name}.qml"
+            file = f"{directory}/{name}/{name}.qml"
             ann = annotations(node)
             index.append(f"| [{name}]({page}/{name}.md) | {label} | {ann} |")
             out = [NOTICE, f"# {page}: {name}", ""]
@@ -563,9 +565,9 @@ class ConfigReference:
                 walk(self.schema, child, key, leaves)
             if not leaves:
                 out.append("No settings of its own.")
-            sub = ROOT / directory / (name[0].lower() + name[1:])
-            scope = [file] + ([rel(p) for p in sorted(sub.rglob("*.qml"))] if sub.is_dir() else [])
-            scope += [f"{directory}/{s}.qml" for s in sorted(type_files) if s not in all_types]
+            # The type's folder, its own parts first, then what it shares
+            folder_files = [rel(p) for p in sorted((ROOT / directory / name).rglob("*.qml")) if rel(p) != file]
+            scope = [file] + folder_files + shared
             for path, child, kind in leaves:
                 child_r = resolve(self.schema, child)
                 out.append(f"- **`{path}`** · {describe(self.schema, child)}")
@@ -582,7 +584,7 @@ class ConfigReference:
                     if not hits:
                         # Read generically (e.g. showPopout through
                         # EdgeMenusConfig.opensOwnPopout), outside any type file
-                        type_paths = {f"{d}/{n}.qml" for _, _, d, _, _ in UNIONS for n in all_types}
+                        type_paths = {f"{d}/{n}/{n}.qml" for _, _, d, _, _ in UNIONS for n in all_types}
                         anywhere = [f for f in self.usage.of(r"\??\." + re.escape(top) + r"\b") if f not in type_paths]
                         if 0 < len(anywhere) <= 6:
                             hits = anywhere
@@ -641,12 +643,12 @@ def files_page():
     return "\n".join(out).rstrip() + "\n", missing
 
 
-IPC_BLOCK = re.compile(r"IpcHandler\s*\{")
+IPC_BLOCK = re.compile(r"\bIpcTarget\s*\{")
 
 
 def ipc_page():
     out = [NOTICE, "# IPC targets", "",
-           "Every `IpcHandler`: call with `qs -c axiom ipc call <target> <function> [args]`. "
+           "Every `IpcTarget` (an `IpcHandler` that also registers with axiom): call with `axiom ipc <target> <function> [args]`. "
            "`enabled` handlers answer only on their target instance (AGENTS.md › UI conventions, Screen targeting). "
            "`show` is a qs keyword, so a function named `show` can't be called.", ""]
     rows = []
@@ -670,6 +672,140 @@ def ipc_page():
         out += ["", f"## {target}", "", f"`{file}`" + (f" · enabled: `{enabled}`" if enabled else "")]
         out += [f"- `{f}`" for f in functions] or ["- (no functions)"]
     return "\n".join(out).rstrip() + "\n"
+
+
+GO_ROOT = ROOT / "backend/internal"
+# Go: a method registered (rpc.Handle, or a helper wrapping it: `name :=
+# func(name string, …` whose body calls rpc.Handle), a push sent
+# (Broadcast, or Push through an Options func), a call into the shell
+GO_HANDLE = re.compile(r'\brpc\.Handle\(reg,\s*"([\w.]+)"')
+GO_HELPER = re.compile(r'\b(\w+) := func\(name string\b')
+GO_BROADCAST = re.compile(r'\.Broadcast\(("([\w.]+)"|\w+),.*subscribedTo\((\w+)\)')
+GO_PUSH = re.compile(r'\bPush\("([\w.]+)"')
+GO_CALL = re.compile(r'\.Call\(ctx,\s*"([\w.]+)"')
+GO_TOPIC = re.compile(r'\b(topic\w+)\s*=\s*"(\w+)"')
+# QML: through BackendManager (or inside it, root.*), and `// rpc: a, b`
+# for methods named at runtime
+QML_CALL = re.compile(r'\b(?:BackendManager|root)\.(?:call|notify)\("([\w.]+)"|JsonRpc\.request\(\w+,\s*"([\w.]+)"')
+QML_LISTEN = re.compile(r'\b(?:BackendManager|root)\.listen\("([\w.]+)"')
+QML_HANDLE = re.compile(r'\b(?:BackendManager|root)\.handle\("([\w.]+)"|^\s*"([\w.]+)":\s*params\s*=>', re.M)
+QML_RPC_NOTE = re.compile(r"//\s*rpc:\s*(.+)")
+
+
+def go_sources():
+    return sorted(p for p in GO_ROOT.rglob("*.go")
+                  if not p.name.endswith("_test.go") and not p.name.startswith("zz_generated"))
+
+
+def _segment(text, start, ends):
+    """From start to the next registration or the end of the enclosing func."""
+    stop = min([e for e in ends if e > start] + [len(text)])
+    close = text.find("\n}\n", start)
+    return text[start: stop if close < 0 else min(stop, close)]
+
+
+def rpc_scan():
+    """Both sides of the socket, from the code: the daemon's methods (with
+    their guards and the files using them), its pushes, its calls into the
+    shell, and what the shell calls, listens to and answers."""
+    methods, pushes, to_shell, topics = {}, {}, {}, {}
+    dynamic_topic = None
+    for path in go_sources():
+        text = path.read_text()
+        topics.update(dict(GO_TOPIC.findall(text)))
+        helpers = {}
+        for m in GO_HELPER.finditer(text):
+            body = _segment(text, m.end(), [])
+            if "rpc.Handle(" in body:
+                helpers[m.group(1)] = body
+        regs = [(m.start(), m.group(1), None) for m in GO_HANDLE.finditer(text)]
+        for name, body in helpers.items():
+            regs += [(m.start(), m.group(1), body)
+                     for m in re.finditer(rf'\b{name}\("([\w.]+)"', text)]
+        starts = sorted([s for s, _, _ in regs] + [m.start() for m in GO_HELPER.finditer(text)])
+        for start, method, helper in regs:
+            body = (helper or "") + _segment(text, start + 1, starts)
+            guards = [g for g, words in (("shell only", ("fromShell(c)", "shellOnly(c)")),
+                                         ("writable", ("d.writable()",))) if any(w in body for w in words)]
+            methods[method] = {"go": rel(path), "guards": guards, "qml": set(), "cli": set()}
+        for m in GO_BROADCAST.finditer(text):
+            if m.group(2):
+                pushes.setdefault(m.group(2), {"go": set(), "topic": m.group(3), "qml": set()})["go"].add(rel(path))
+            else:
+                dynamic_topic = m.group(3)
+        for m in GO_PUSH.finditer(text):
+            pushes.setdefault(m.group(1), {"go": set(), "topic": None, "qml": set()})["go"].add(rel(path))
+        for m in GO_CALL.finditer(text):
+            to_shell.setdefault(m.group(1), {"go": set(), "qml": set()})["go"].add(rel(path))
+    for push in pushes.values():
+        push["topic"] = topics.get(push["topic"] or dynamic_topic, "?")
+    # The command line's own calls
+    for path in sorted((GO_ROOT / "cli").glob("*.go")):
+        text = path.read_text()
+        for method, info in methods.items():
+            if f'"{method}"' in text and not path.name.endswith("_test.go"):
+                info["cli"].add(rel(path))
+
+    problems = []
+    for path in qml_files():
+        if rel(path).startswith("tests/"):
+            continue
+        text = path.read_text()
+        calls = [a or b for a, b in QML_CALL.findall(text)]
+        for note in QML_RPC_NOTE.findall(text):
+            calls += [n.strip() for n in note.split(",") if n.strip()]
+        for method in calls:
+            if method in methods:
+                methods[method]["qml"].add(rel(path))
+            else:
+                problems.append(f"{rel(path)} calls {method}, which the daemon doesn't define")
+        if "BackendManager" not in text and path.stem != "BackendManager":
+            continue
+        for method in QML_LISTEN.findall(text):
+            if method in pushes:
+                pushes[method]["qml"].add(rel(path))
+            else:
+                problems.append(f"{rel(path)} listens to {method}, which the daemon never pushes")
+        for a, b in QML_HANDLE.findall(text):
+            if (a or b) in to_shell:
+                to_shell[a or b]["qml"].add(rel(path))
+    for method, info in to_shell.items():
+        if not info["qml"]:
+            problems.append(f"the daemon calls {method} on the shell, which nothing answers")
+    return methods, pushes, to_shell, problems
+
+
+def rpc_page():
+    methods, pushes, to_shell, problems = rpc_scan()
+
+    def files(items):
+        return "<br>".join(f"`{f}`" for f in sorted(items))
+
+    out = [NOTICE, "# Shell ↔ daemon RPC", "",
+           "Every JSON-RPC method the axiom daemon serves on its socket, every push it sends and every call it makes "
+           "into the shell, with the files on each side. Found by name in the code (`rpc.Handle`, `Broadcast`, `Push`; "
+           "`BackendManager.call` / `listen` / `handle`, and `// rpc: a, b` where a method is chosen at runtime); "
+           "`gen_docs.py` fails when the shell calls or listens to something the daemon lacks. "
+           "How the connection works: [protocol](../backend/protocol.md).", "",
+           "## Methods (client → daemon)", "",
+           "**Guard:** `shell only` refuses any connection but the shell's; `writable` refuses while the config is read-only "
+           "(`compatible: false`).", "",
+           "| Method | Guard | Daemon | Shell callers | CLI |", "|---|---|---|---|---|"]
+    for method in sorted(methods):
+        m = methods[method]
+        out.append(f"| `{method}` | {', '.join(m['guards'])} | `{m['go']}` | {files(m['qml']) or '(none)'} | {files(m['cli'])} |")
+    out += ["", "## Pushes (daemon → subscribers)", "",
+            "Sent to connections whose hello subscribed to the topic (the shell subscribes to all).", "",
+            "| Push | Topic | Sent from | Heard in |", "|---|---|---|---|"]
+    for method in sorted(pushes):
+        p = pushes[method]
+        out.append(f"| `{method}` | {p['topic']} | {files(p['go'])} | {files(p['qml']) or '(nothing)'} |")
+    out += ["", "## Calls into the shell (daemon → shell)", "",
+            "| Method | Called from | Answered in |", "|---|---|---|"]
+    for method in sorted(to_shell):
+        c = to_shell[method]
+        out.append(f"| `{method}` | {files(c['go'])} | {files(c['qml'])} |")
+    return "\n".join(out).rstrip() + "\n", problems
 
 
 LAYERS_PATH = ROOT / "components/methods/LayerStack.qml"
@@ -757,16 +893,21 @@ def generate():
     files, missing = files_page()
     pages[f"{GEN_OUT}/files.md"] = files
     pages[f"{GEN_OUT}/ipc.md"] = ipc_page()
+    pages[f"{GEN_OUT}/rpc.md"], rpc_problems = rpc_page()
     pages[f"{GEN_OUT}/layers.md"] = layers_page()
     pages.update(api_pages(readers))
     unused = sorted(f"{r}.{n}" for (r, n), users in ref.member_users.items()
                     if not users and (r, n) not in ref.inside and readers[r]["members"][n]["kind"] != "signal")
-    return pages, missing, unused
+    return pages, missing, unused, rpc_problems
 
 
 def main():
     check = "--check" in sys.argv
-    pages, missing, unused = generate()
+    pages, missing, unused, rpc_problems = generate()
+    if rpc_problems:
+        print("the shell and the daemon disagree (docs/dev/generated/rpc.md):")
+        print("\n".join("  " + p for p in rpc_problems))
+        return 1
     existing = {rel(p) for d in (CONFIG_OUT, GEN_OUT) for p in (ROOT / d).rglob("*.md")}
     stale = sorted(p for p, text in pages.items()
                    if not (ROOT / p).exists() or (ROOT / p).read_text() != text)

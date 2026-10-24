@@ -5,6 +5,8 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 
 | Section | Reader | Category |
 |---|---|---|
+| [format](format.md) | none |  |
+| [meta](meta.md) | none |  |
 | [Lockscreen](Lockscreen.md) | `LockscreenConfig` (`config/LockscreenConfig.qml`) | Screen & Power |
 | [Greeter](Greeter.md) | `GreeterConfig` (`config/GreeterConfig.qml`) | Screen & Power |
 | [Idle](Idle.md) | `Idle` (`config/Idle.qml`) | Screen & Power |
@@ -20,16 +22,12 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [Compositor](Compositor.md) | `CompositorConfig` (`config/CompositorConfig.qml`) | Compositor |
 | [Keybinds](Keybinds.md) | `KeybindsConfig` (`config/KeybindsConfig.qml`) | Compositor |
 | [Monitors](Monitors.md) | `MonitorsConfig` (`config/MonitorsConfig.qml`) | Compositor |
-| [Hyprland](Hyprland.md) | `HyprlandConfig` (`config/HyprlandConfig.qml`) | Compositor |
 | [WindowBehaviour](WindowBehaviour.md) | `WindowBehaviourConfig` (`config/WindowBehaviourConfig.qml`) | Compositor |
-| [Sway](Sway.md) | `SwayConfig` (`config/SwayConfig.qml`) | Compositor |
-| [Niri](Niri.md) | `NiriConfig` (`config/NiriConfig.qml`) | Compositor |
 | [Input](Input.md) | `InputConfig` (`config/InputConfig.qml`) | Compositor |
 | [Session](Session.md) | `SessionConfig` (`config/SessionConfig.qml`) | Compositor |
 | [WindowLook](WindowLook.md) | `Appearance` (`config/Appearance.qml`) | Compositor |
 | [Appearance](Appearance.md) | `Appearance` (`config/Appearance.qml`) | Look & Feel |
-| [Widget](Widget.md) | `Widget` (`config/Widget.qml`) | Look & Feel |
-| [BarStyle](BarStyle.md) | `BarStyle` (`config/BarStyle.qml`) | Look & Feel |
+| [Interface](Interface.md) | `Widget` (`config/Widget.qml`) | Look & Feel |
 | [Popouts](Popouts.md) | `PopoutsConfig` (`config/PopoutsConfig.qml`) | Overlay & Popouts |
 | [Chat](Chat.md) | `ChatConfig` (`config/ChatConfig.qml`) | Modules |
 | [Notes](Notes.md) | `NotesConfig` (`config/NotesConfig.qml`) | Modules |
@@ -50,7 +48,7 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [WindowSwitcher](WindowSwitcher.md) | `WindowSwitcherConfig` (`config/WindowSwitcherConfig.qml`) | Workspaces |
 | [SelfUpdate](SelfUpdate.md) | `SelfUpdate` (`config/SelfUpdate.qml`) | Maintenance |
 | [CommunitySetups](CommunitySetups.md) | `CommunitySetups` (`config/CommunitySetups.qml`) | Maintenance |
-| [Bars](Bars.md) | `Bar` (`config/Bar.qml`) |  |
+| [Bars](Bars.md) | `Bar` (`config/Bar.qml`) | Look & Feel |
 | [EdgeMenus](EdgeMenus.md) | `EdgeMenusConfig` (`config/EdgeMenusConfig.qml`) |  |
 | [Desktop](Desktop.md) | `DesktopConfig` (`config/DesktopConfig.qml`) |  |
 

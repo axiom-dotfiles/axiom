@@ -7,9 +7,9 @@ Reader for the Pomodoro section: the session and break lengths every pomodoro wi
 
 ### Properties
 
-- `workMinutes` (readonly int): Minutes
-- `shortBreakMinutes` (readonly int)
-- `longBreakMinutes` (readonly int)
+- `work` (readonly int): Lengths (ms)
+- `shortBreak` (readonly int)
+- `longBreak` (readonly int)
 - `longBreakEvery` (readonly int): Focus sessions before a long break
 - `autoStartBreaks` (readonly bool)
 - `autoStartWork` (readonly bool)

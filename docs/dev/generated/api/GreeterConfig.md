@@ -8,7 +8,7 @@ Reader for the Greeter section: axiom as the greetd login screen (GreeterManager
 ### Properties
 
 - `enabled` (readonly bool): Set up as the login screen (GreeterManager's install)
-- `monitor` (readonly string): Where the login box shows: a monitor name, empty for the primary
+- `screen` (readonly var): Where the login box shows: a ScreenTarget (the primary monitor, or one named)
 - `rememberUser` (readonly bool)
 - `source` (readonly string): Where Install and Update take the code: "git" (the upstream, fetched by root, on SelfUpdate.channel) | "local" (the clone as it is)
 - `layout` (readonly var): The login screen's ScreenLayout, as saved (the greeter shows the saved one; the layouts editor's draft is GreeterManager.editor.localLayout)

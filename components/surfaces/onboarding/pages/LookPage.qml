@@ -5,8 +5,9 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
-import qs.components.content
 import qs.components.forms
+import qs.components.content.ThemePicker
+import qs.components.content.WallpaperPicker
 
 // The look: the wallpaper folder, bar style and screen border here, with the Themes
 // page's wallpaper picker and theme list beside it
@@ -29,7 +30,7 @@ OnboardingPage {
 
   SettingRows {
     Layout.fillWidth: true
-    paths: ["Appearance.wallpaperFolder"]
+    paths: ["Appearance.wallpaper.folder"]
   }
 
   Notice {
@@ -61,7 +62,7 @@ OnboardingPage {
       text: I18n.tr("Use Hyprland's wallpapers")
       iconText: "wallpaper"
       onClicked: SettingsManager.commitValues({
-        "Appearance.wallpaperFolder": WallpaperManager.hyprlandWallpapers
+        "Appearance.wallpaper.folder": WallpaperManager.hyprlandWallpapers
       })
     }
 
@@ -79,7 +80,7 @@ OnboardingPage {
 
   function setBar(key, value) {
     const values = {};
-    values["Bars.0." + key] = value;
+    values["Bars.items.0." + key] = value;
     SettingsManager.commitValues(values);
   }
 
@@ -151,12 +152,12 @@ OnboardingPage {
     }
 
     Repeater {
-      // I18n.tr("Top") I18n.tr("Bottom") I18n.tr("Left") I18n.tr("Right")
-      model: ["Top", "Bottom", "Left", "Right"]
+      model: ["top", "bottom", "left", "right"]
 
       delegate: StyledTextButton {
         required property string modelData
-        text: I18n.tr(modelData)
+        // I18n.tr("Top") I18n.tr("Bottom") I18n.tr("Left") I18n.tr("Right")
+        text: I18n.tr(modelData[0].toUpperCase() + modelData.slice(1))
         backgroundColor: root.bar?.location === modelData ? Theme.accent : Theme.backgroundHighlight
         textColor: root.bar?.location === modelData ? Theme.background : Theme.foreground
         onClicked: root.setBar("location", modelData)

@@ -1,0 +1,58 @@
+// Package steps is the format-2 migrations: each takes a config from the
+// version before it to its own, so a file of any format-2 version loads in
+// the current shape. A format-1 file is converted first (to version 76,
+// package convert), then runs them too. A step reshapes existing config
+// only: a new setting is just its schema default. Pure: no I/O.
+package steps
+
+import (
+	"github.com/axiom-shell/axiom/backend/internal/jsonx"
+	"github.com/axiom-shell/axiom/backend/internal/migrate/convert"
+)
+
+// Step is one migration.
+type Step struct {
+	// Version is the one a config has after it: the version before it
+	// plus one
+	Version int
+	// Run changes cfg (a whole config of the version before, not yet
+	// pruned or filled) in place and says what it did (English, for the
+	// log), nothing when there was nothing to do. It checks each value's
+	// shape before using it, and running it twice changes nothing more.
+	Run func(cfg *jsonx.Object) []string
+}
+
+// all are the steps in order, the first at convert.Version + 1. The
+// schema's `version` default (config/schema/index.yaml) is the last one's.
+var all = []Step{}
+
+// Current is the version this axiom writes: the last step's, else the
+// conversion's.
+func Current() int {
+	return current(all)
+}
+
+func current(list []Step) int {
+	if len(list) == 0 {
+		return convert.Version
+	}
+	return list[len(list)-1].Version
+}
+
+// Migrate runs the steps newer than cfg's version on it, in place, and
+// sets its version to Current. migrated says it was older.
+func Migrate(cfg *jsonx.Object) (changes []string, migrated bool) {
+	return migrate(all, cfg)
+}
+
+func migrate(list []Step, cfg *jsonx.Object) ([]string, bool) {
+	from, _ := cfg.Value("version").(float64)
+	var changes []string
+	for _, step := range list {
+		if float64(step.Version) > from {
+			changes = append(changes, step.Run(cfg)...)
+			cfg.Set("version", float64(step.Version))
+		}
+	}
+	return changes, from < float64(current(list))
+}

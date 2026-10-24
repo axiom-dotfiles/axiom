@@ -18,6 +18,60 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### Leaving managed, the runtime layer can go on before the given-back config reloads
+- **Where:** `backend/internal/compositor/manager/manager.go` (`SetInputs`, `liveChanged`, `apply`)
+- **What:** The shell's first inputs arm both `debounce` and `liveDebounce` (300 ms each). When the live one fires first, `liveChanged` sees `AppliedMode != mode` and calls `apply`, which releases the managed config and asks for a reload; the layer debounce's `apply` then runs `runtimeApply` before that reload lands, so the runtime layer reads the managed config's binds (every axiom key looks taken, each logged once) and goes on over it. It's corrected after the reload (`configReloaded` applies again). Holding `runtimeApply` until `configReloaded` after a release that reloads would close it, but a missed reload event would then leave no runtime layer.
+- **Size:** small
+- **Found:** 2026-10-24, while reviewing the Go backend branch
+
+### `axiom lock` fails with no screen connected
+- **Where:** `services/LockManager.qml` (`_report`), `backend/internal/lock/lock.go` (`State.confirmed`)
+- **What:** `_report` sends `surfaces` and `outputs` from the same number (`Quickshell.screens.length`), so the daemon's `Surfaces >= Outputs` check can never catch a screen without a lock surface, and with no screen connected `confirmed()` needs `Surfaces > 0`, so `axiom lock` reports a failure. Locking should lock the session with no screens connected, and a screen connected while locked should get the lock surface; the shell should report the surfaces it actually built, and the daemon confirm on the session lock with zero outputs.
+- **Size:** small
+- **Found:** 2026-10-24, while reviewing the Go backend branch
+
+### The shell's socket warns when the daemon re-execs
+- **Where:** `services/BackendManager.qml` (its `Socket`)
+- **What:** Every daemon re-exec (each dev-mode rebuild) logs `quickshell.io.socket` `QLocalSocket::PeerClosedError` (a `Socket error for Socket(0x…)`) once: the old image closing the connection reaches the shell as an error, though `BackendManager` reconnects and it's expected. Five in one session's log (`scripts/log.sh --all -g PeerClosed`). Quieting it means telling a close the daemon announced (re-exec, quit) from a real failure, maybe with a notification before the exec.
+- **Size:** small
+- **Found:** 2026-10-24, while moving the compositor takeover into the binary
+
+### backend.json points at a protocol doc that doesn't exist
+- **Where:** `config/json/backend.json` (`_comment`)
+- **What:** The comment says "see docs/dev/backend/protocol.md", which was never written: what counts as a protocol change (and that push topics and new methods don't need one) is only in `docs/dev/backend/README.md`. Writing the page, or pointing the comment at the README, fixes it.
+- **Size:** small
+- **Found:** 2026-10-24, while auditing the Go backend
+
+### Some backend security checks have no tests
+- **Where:** `backend/internal/fsx/` (`Adopt`), `backend/internal/rpc/server.go` (`Listen`), `backend/internal/cli/greeter.go` (`greeterEnv`), `backend/internal/daemon/reexec.go` (`adopt`)
+- **What:** `backend/AGENTS.md` asks that every security check has a test. The daemon's (`daemon_test.go`: the handoff's parsing, the lockscreen refusal, the shell-peer check, `writable`) are covered; still untested: the stale socket removed only under the instance lock, `fsx.Adopt` refusing a wrong inode or an unheld lock (only its close-on-exec part is tested), the socket's 0600, an adopted handoff end to end, and the greeter's environment.
+- **Size:** small
+- **Found:** 2026-10-24, while reviewing the Go backend
+
+### The greeter's environment is a denylist
+- **Where:** `backend/internal/cli/greeter.go` (`greeterDropped`, `greeterEnv`)
+- **What:** The greeter drops four named `AXIOM_*` variables, so others (`AXIOM_BIN`, `AXIOM_REEXEC`, `AXIOM_TREE`) inherited by `axiom greeter` reach it. `supervise` strips every inherited `AXIOM_*` and sets its own: the greeter should do the same.
+- **Size:** trivial
+- **Found:** 2026-10-24, while reviewing the Go backend
+
+### Small backend error and robustness gaps
+- **Where:** `backend/internal/fsx/fsx.go` (`WriteFile`), `backend/internal/logfile/`, `backend/internal/ipcroute/ipcroute.go` (`exec`), `backend/internal/wayland/wire/wire.go` (`Globals`), `backend/internal/cli/cli.go` (`Main`), `backend/internal/config/format.go`, `backend/internal/saved/saved.go` (`Import`)
+- **What:** Raw errors reach the CLI as `Internal`: `fsx.WriteFile` (`fmt.Errorf`), `logfile.Open`, `daemon logs`' `ReadFile`. `ipcroute`'s exec path labels a timeout `NotFound` (should be `Unavailable`). `wire.Globals` slices `body[4:]`/`body[8:]` without checking a short message's length. `cli.Main` doesn't catch SIGHUP: closing the terminal kills a `--dev` daemon outright, leaving its shell for the next start to stop. `format: 1` is refused with "it reads 1 and 2", and `format: null` prints `<nil>`. The keys a format-1 load drops (`Removed`) are never logged. `saved.Import` reads the file twice, so the preview and what's applied can differ.
+- **Size:** small
+- **Found:** 2026-10-24, while reviewing the Go backend
+
+### Schema build gaps
+- **Where:** `backend/internal/schema/yamlsrc/kinds.go` (`orderKeys`), `backend/internal/cli/schema.go` (`schema check`), `backend/internal/config/pipeline.go` (patterns)
+- **What:** `orderKeys` overwrites an author-written `x-order` on every object with more than one property, though `config/schema/annotations.yaml` lets authors write one. `axiom schema check` passes when `config/json/config.schema.json` is missing. Go's RE2 `\S`/`\s` are ASCII-only while JS's are Unicode: a value of only U+00A0 passes `"\\S"` in Go and fails in JS. Translating the classes, or refusing them in `check.go`, keeps the two sides equal.
+- **Size:** small
+- **Found:** 2026-10-24, while reviewing the Go backend
+
+### The schema root's description contradicts the annotations doc
+- **Where:** `config/schema/index.yaml` (root `description`), `docs/dev/core/schema-annotations.md` (`x-hosts`)
+- **What:** The root `description` is a hand-kept prose copy of the annotations list, and it has drifted: it says `x-hosts` defaults to "the first two" (overlay, edgeMenu) and that the desktop only takes modules listing it, while `schema-annotations.md` says overlay, edgeMenu and desktop are the default. It also predates many annotations in `config/schema/annotations.yaml`. It reaches `config/json/config.schema.json`, so editors showing the schema's description show the stale text. Generating it from `annotations.yaml`, or dropping it, removes the copy (planned in [config v2](core/config-v2.md)).
+- **Size:** trivial
+- **Found:** 2026-10-23, while reviewing the config v2 proposal
+
 ### Compact cards still build their full layout
 - **Where:** `components/content/base/Card.qml` (`full`), `components/content/base/Panel.qml` (`column`, `background`)
 - **What:** A module's children go into `Card.full` / `Panel.column` (a default property alias), which is only hidden while `compactContent` shows, so a compact card builds its whole layout as well as its figure. On the Tiny page (34 modules in quarter-card slots) this is most of what's left of its build: WifiNetworks about 65 ms, each ClockCalendar about 45 ms (`Built overlay module <Type> in X ms` with `--debug`). It also slows the bar popouts using those panels. A fix is an optional `fullContent: Component` on both roots, loaded only while not compact, then moving the heavy modules to it one by one (their ids are referenced from the module root, so each needs its own pass): see [streamed-building](core/streamed-building.md).
@@ -25,7 +79,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-21, while benchmarking the overlay's opening (overlay performance overhaul)
 
 ### Unbounded lists still built in full
-- **Where:** `components/content/parts/chat/ChatMessageList.qml`, `components/content/parts/chat/ConversationList.qml`, `components/content/Agenda.qml`, `components/content/Calculator.qml` (history), `components/content/Stopwatch.qml` (laps), `components/content/parts/TodoList.qml`
+- **Where:** `components/content/parts/chat/ChatMessageList.qml`, `components/content/parts/chat/ConversationList.qml`, `components/content/Agenda/Agenda.qml`, `components/content/Calculator/Calculator.qml` (history), `components/content/Stopwatch/Stopwatch.qml` (laps), `components/content/parts/TodoList.qml`
 - **What:** Each builds one delegate per item in a Repeater, with no limit, as `DeviceList` did before it became a ListView (52 Wi-Fi networks took 1.8 s). None showed as slow on the test machine, but they grow with use: a long chat or note becomes a slow module and popout. ListViews (or streamed sections) would build only what's in view.
 - **Size:** small
 - **Found:** 2026-10-21, while benchmarking the overlay's opening (overlay performance overhaul)
@@ -37,13 +91,13 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-21, while reviewing the sizing revamp (overlaySettingsRevamp)
 
 ### Text clips on 1080p screens
-- **Where:** `components/views/layouts/MenuOpening.qml` (the Show on screen / Show other menus buttons)
+- **Where:** `components/views/Layouts/MenuOpening.qml` (the Show on screen / Show other menus buttons)
 - **What:** On a 1920×1080 monitor at the default Interface scale, the edge menu editor's two buttons side by side ("Show on screen", "Show other menus", and their Hide labels) don't fit their halves of the inspector and their labels clip. Likely not the only place: much of the UI was laid out on a 1440 px screen, and since the sizing revamp text keeps its size on every monitor while panels and cards follow the screen. Wants a pass over the overlay pages and inspectors at 1080p (`scripts/dev/nested.sh` with a 1080p output), wrapping or stacking what doesn't fit.
 - **Size:** needs a plan
 - **Found:** 2026-10-21, while checking the sizing revamp on 1080p (overlaySettingsRevamp)
 
 ### A popout taller than the screen runs off it
-- **Where:** `components/hosts/popout/BarPopouts.qml` (`popoutRoom`), `components/content/Calendar.qml`
+- **Where:** `components/hosts/popout/BarPopouts.qml` (`popoutRoom`), `components/content/Calendar/Calendar.qml`
 - **What:** Nothing keeps a bar popout's content within the screen: content taller than the room past the bar (the Calendar popout with its event editor open on a short screen, 1080 px or less with a top bar) draws its box past the screen's far side, and what's there is cut off. `popoutRoom` measures the room left, and only `StyledComboEntry`'s inline list keeps to it. A general guard would hand the content a most height (as `SubPopout.maxContentHeight` does for submenus) for it to scroll within.
 - **Size:** needs a plan
 - **Found:** 2026-10-20, while making dropdowns in popouts open inline
@@ -67,14 +121,14 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-20, while reviewing the popouts system
 
 ### ChatProvidersCard runs its own requests
-- **Where:** `components/views/settings/ChatProvidersCard.qml` (Test, Fetch models)
+- **Where:** `components/views/Settings/ChatProvidersCard.qml` (Test, Fetch models)
 - **What:** The card creates its own `ChatRequest` for Test and Fetch models, so a UI file owns a process, against the rule that services own every side effect (AGENTS.md › Services). Kept as a known exception; moving the requests into `ChatManager` would end it.
 - **Size:** small
 - **Found:** 2026-10-20, while tightening AGENTS.md (it was listed there under Known housekeeping)
 
 ### The community setups' check doesn't take monitor places yet
-- **Where:** `services/SavedConfigsManager.qml` (`exportConfig`'s `places`), `components/views/settings/CommunitySetupsCard.qml` (Export and submit), `components/methods/ConfigExamples.qml` (`pick`'s `monitors`)
-- **What:** An export names each per-monitor part's monitor (`x-monitorRef`: a bar's, dock's, OSD's, edge menu's, strip's, a monitor's own desktop) by its place (`#2`, `@primary`, `*`), so a multi-monitor setup lands on the importer's monitors. Those fields are `machine` scope, and the community-setups repo's CI admits only `look` keys (a walk mirroring `ConfigExamples.pick`), so it would refuse such a file: Export and submit leaves the places out (`exportConfig(false, false, false)`), and a shared setup's second-monitor bar still lands on the importer's bar by position. Its CI needs to admit an `x-monitorRef` field holding a place, and then the card can export with them.
+- **Where:** `services/SavedConfigsManager.qml` (`exportConfig`'s `places`), `components/views/Settings/CommunitySetupsCard.qml` (Export and submit), `backend/internal/share/share.go` (`Pick`'s `monitors`)
+- **What:** An export names each per-monitor part's monitor (`x-monitorRef`: a bar's, dock's, OSD's, edge menu's, strip's, a monitor's own desktop) by its place (`#2`, `@primary`, `*`), so a multi-monitor setup lands on the importer's monitors. Those fields are `machine` scope, and the community-setups repo's CI admits only `look` keys (a walk mirroring `share.Pick`), so it would refuse such a file: Export and submit leaves the places out (`exportConfig(false, false, false)`), and a shared setup's second-monitor bar still lands on the importer's bar by position. Its CI needs to admit an `x-monitorRef` field holding a place, and then the card can export with them.
 - **Size:** small
 - **Found:** 2026-10-20, while aligning the schema's scopes
 
@@ -84,14 +138,8 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-19, while adding the scrolling layout
 
-### Hyprland's and niri's release can restore an older claim's backup
-- **Where:** `scripts/claim_hyprland.sh` (`newest_backup`), `scripts/claim_niri.sh` (`newest_backup`)
-- **What:** Release falls back to the newest dated `*.axiom-backup-*` beside the config, whichever claim made it. A claim that found no config (`created`) set nothing aside, yet its release brings back the backup an earlier claim left there. `claim_sway.sh` had the same bug, reproduced on scratch dirs (`ClaimSway.test_release_ignores_an_older_claims_backup`), and now records what each claim set aside (`.axiom-claimed`); the other two likely need the same record (not reproduced).
-- **Size:** small
-- **Found:** 2026-10-19, while reviewing the sway system
-
 ### The calendar doc's Files header leaves out its page
-- **Where:** `docs/dev/features/calendar.md` (its `Files:` header), `components/views/CalendarPage.qml`
+- **Where:** `docs/dev/features/calendar.md` (its `Files:` header), `components/views/CalendarPage/CalendarPage.qml`
 - **What:** `CalendarPage.qml` is the only code file no doc's `Files:` header lists (`.claude/skills/review-system/scope.py --orphans`), though `calendar.md` describes it in its text. So `check_doc_drift.py` never flags the doc when the page changes, and a review of the calendar feature doesn't see the page.
 - **Size:** trivial
 - **Found:** 2026-10-19, while building the review-system skill
@@ -123,7 +171,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-18, while debugging the screenshot crash with a popout open
 
 ### WorkspaceStrip's Grid briefly has more items than cells
-- **Where:** `components/bar/widgets/workspaces/WorkspaceStrip.qml` (the `Grid`, `id: layout`)
+- **Where:** `components/bar/widgets/Workspaces/WorkspaceStrip.qml` (the `Grid`, `id: layout`)
 - **What:** The log shows `Grid contains more visible items (2) than rows*columns (1)` after a reload. `shown` counts `activeStrip.visible`, so for a moment the Grid's `rows`/`columns` lag a child becoming visible; likely harmless (the next layout pass fits), but it warns.
 - **Size:** small
 - **Found:** 2026-10-18, while auditing the community setups gallery
@@ -135,7 +183,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-18, while adding the community setups gallery
 
 ### CommandOutput's figure text loops on its size
-- **Where:** `components/content/CommandOutput.qml` (the text `StyledText`, `id: body`)
+- **Where:** `components/content/CommandOutput/CommandOutput.qml` (the text `StyledText`, `id: body`)
 - **What:** The log shows `Binding loop detected for property "textSize"` while a Command output card is on a shown page: in statement mode `body`'s `textSize` comes from `body.height / 5`, and a `Layout.fillHeight` text's height follows its implicit height, which follows the size.
 - **Size:** small
 - **Found:** 2026-10-18, while adding the todo list and pomodoro timer
@@ -159,28 +207,10 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-17, while reviewing the shadow-on-or-off change
 
 ### A niri module refused in detached mode is only logged
-- **Where:** `services/NiriConfigWriter.qml` (`runtimeApply`), `services/CompositorConfigManager.qml` (`problem`)
-- **What:** In the file modes a module `niri validate` refuses sets `CompositorConfigManager.problem` (the Compositor card shows it). The detached mode's module (also the file modes' fallback) is checked the same way, but a refusal is only a `[NiriConfigWriter] niri refuses the config axiom made` warning in the log: the card says nothing, and niri keeps the module before. A raw bind niri refuses is the likely cause.
+- **Where:** `backend/internal/compositor/manager/niri.go` (`runtimeApply`), `services/CompositorConfigManager.qml` (`problem`)
+- **What:** In the file modes a module `niri validate` refuses sets `CompositorConfigManager.problem` (the Compositor card shows it). The detached mode's module (also the file modes' fallback) is checked the same way, but a refusal is only a `compositor: niri refuses the config axiom made` warning in the daemon's log in the log: the card says nothing, and niri keeps the module before. A raw bind niri refuses is the likely cause.
 - **Size:** small
 - **Found:** 2026-10-17, while auditing the niri branch for merge
-
-### Hyprland's own options are several cards that don't say they're Hyprland's
-- **Where:** `config/json/config.schema.json` (`Hyprland.managed`: its `x-group`s), `components/methods/SchemaLayout.qml` (`groups`)
-- **What:** Sway's and niri's own options are one card each, titled by the compositor. Hyprland's managed options are split by `x-group` into Layout, Decoration, Animations, Windows and Behaviour cards beside the compositor-neutral ones (Windows and focus, Mouse & cursor), and nothing on them says they're Hyprland's. Either one Hyprland card (about 30 rows), or group titles naming it.
-- **Size:** small
-- **Found:** 2026-10-17, while making niri's options one card
-
-### A greeter installed before v63 drops the monitor and keyboard layout
-- **Where:** `components/methods/GreeterBundle.qml` (`exportConfig`), `services/GreeterManager.qml`
-- **What:** An installed greeter on older code reads a v63 bundle without migrating it and prunes `Compositor`, `Monitors` and `Input` as unknown, so until the greeter is updated the login screen loses the monitor layout and, in managed mode, `kbLayout`/`kbOptions` (a password typed on the wrong layout). The outdated notice says to update, but not that it's required. Exporting the legacy `Hyprland.monitors`/`managed` keys for a while, or a firmer notice, would cover it.
-- **Size:** small
-- **Found:** 2026-10-16, while auditing the sway branch for merge
-
-### Migrations read a missing key as off where the old managed config wrote a default
-- **Where:** `components/methods/ConfigMigration.qml` (`_v57ToV58`, `_v58ToV59`, `_v62ToV63`)
-- **What:** Each step moves what's present. A hand-trimmed config (the UI saves every default) loses what the managed file always wrote: no `Hyprland.managed` means no border 2/rounding 8; a missing `dimInactive` (old default on) leaves dim off; missing keyboard keys turn repeat 50/300 back to the compositor's; `shadowThemed` without `shadowColor` becomes the compositor's color, not `base00`. In managed mode a missing key could be read as its old default.
-- **Size:** small
-- **Found:** 2026-10-16, while auditing the sway branch for merge
 
 ### SwayFX remaps the chrome on a fresh qs start
 - **Where:** `services/SwayManager.qml` (`surfacesReady`), `shell/BlurBacking.qml`
@@ -207,14 +237,14 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
 ### Unreadable sway config means axiom binds over the user's keys
-- **Where:** `services/RuntimeLayer.qml` (`_start`)
-- **What:** When `sway_config_text.py` fails (it logs `Can't read your sway config`) the layer treats the user as binding nothing, and binds with `--no-warn` over their keys after every reload. Hyprland's layer does the same. Binding nothing (look and input only) with a problem shown would be safer, at the cost of axiom's binds.
+- **Where:** `backend/internal/compositor/manager/runtime.go` (`_start`)
+- **What:** When `axiom compositor sway-text` fails (it logs `Can't read your sway config`) the layer treats the user as binding nothing, and binds with `--no-warn` over their keys after every reload. Hyprland's layer does the same. Binding nothing (look and input only) with a problem shown would be safer, at the cost of axiom's binds.
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
-### claim_sway.sh doesn't check its own edits
-- **Where:** `scripts/claim_sway.sh` (`adopt_lines`)
-- **What:** `adopted:` is printed even when commenting out failed (its result isn't checked); `$dir` goes unescaped into a sed replacement with `|` as the delimiter, so a path holding `|`, `&` or `\` breaks it; quoted relative includes, and all but the first path of a multi-path `include`, aren't made absolute.
+### The takeover makes only some of sway's relative includes absolute
+- **Where:** `backend/internal/compositor/takeover/kinds.go` (`sway`'s `absInclude`)
+- **What:** Adopting a sway config makes its relative includes absolute (it moves to `user/`), but only an unquoted first path: a quoted relative include, and all but the first path of a multi-path `include`, stay relative and then resolve from `user/`. (The unchecked edit and the unescaped dir in the old script's sed went with the Go port.)
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
@@ -238,7 +268,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### Changing a setting under sway can flash the screen
 - **Where:** `services/LayerManager.qml` (`_sequence`), `components/hosts/popout/LayerSlot.qml`, `services/MonitorManager.qml`
-- **What:** Reported on sway: changing a setting flashes the whole settings page. Two causes fixed: the border's shadow window wasn't held, so turning the shadow on remapped every surface ordered under it (`LayerManager: mapping … again, in its place` for the backdrop, bars, border and dock, the backdrop dimming the overlay flashing with them), and a sway reload (any save rewriting axiom's file) reset the outputs to the config's, dropping the monitor profile. A third, on any compositor: the settings page rebuilt every card on each edit (its categories were recomputed from the config through `x-showIf`), fixed in `components/views/Settings.qml`. Not reproduced with an ordinary setting since (a save then logs no remap and no overlay resize). Without `layerOrder`, a bar remade by a change of kind still remaps everything after it, by design. If it still happens, note which setting and look for those log lines.
+- **What:** Reported on sway: changing a setting flashes the whole settings page. Two causes fixed: the border's shadow window wasn't held, so turning the shadow on remapped every surface ordered under it (`LayerManager: mapping … again, in its place` for the backdrop, bars, border and dock, the backdrop dimming the overlay flashing with them), and a sway reload (any save rewriting axiom's file) reset the outputs to the config's, dropping the monitor profile. A third, on any compositor: the settings page rebuilt every card on each edit (its categories were recomputed from the config through `x-showIf`), fixed in `components/views/Settings/Settings.qml`. Not reproduced with an ordinary setting since (a save then logs no remap and no overlay resize). Without `layerOrder`, a bar remade by a change of kind still remaps everything after it, by design. If it still happens, note which setting and look for those log lines.
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch
 
@@ -255,13 +285,13 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-16, while auditing the sway branch
 
 ### Detached sway keeps the floating modifier after the mouse binds go
-- **Where:** `services/SwayRuntimeLayer.qml`, `components/methods/SwayConf.qml` (`unbindLines`, `floatingModifier`)
-- **What:** The runtime layer sends `floating_modifier` for the drag/resize binds but its unbind commands don't take it back, so removing them in detached mode leaves sway's floating modifier set until sway reloads. It also overrides a `floating_modifier` of the user's own config, which `BindKeys.runtimeBinds` doesn't see as a taken key.
+- **Where:** `backend/internal/compositor/manager/sway.go`, `components/methods/SwayConf.qml` (`unbindLines`, `floatingModifier`)
+- **What:** The runtime layer sends `floating_modifier` for the drag/resize binds but its unbind commands don't take it back, so removing them in detached mode leaves sway's floating modifier set until sway reloads. It also overrides a `floating_modifier` of the user's own config, which `render.RuntimeBinds` doesn't see as a taken key.
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch
 
 ### `noWarps` off maps to sway's `mouse_warping output`
-- **Where:** `config/json/config.schema.json` (`WindowBehaviour.noWarps`, `x-swayMap`)
+- **Where:** `config/schema/sections/WindowBehaviour.yaml` (`noWarps`, `x-compositor.sway.map`)
 - **What:** Hyprland with `cursor.no_warps` off moves the cursor to a window focused by keybind; sway's `mouse_warping output` only moves it when focus changes output (`container` would match Hyprland). Decide which sway value matches what the setting promises.
 - **Size:** trivial
 - **Found:** 2026-10-16, while auditing the sway branch
@@ -280,7 +310,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### Floating bars sit flush on the border without a backend
 - **Where:** `config/Bar.qml` (`enrichBarConfig`: `floatGap`), `services/CompositorManager.qml` (`gapsOut`)
-- **What:** A floating bar's automatic gap (`floatGap` -1) is the compositor's outer gaps (`CompositorManager.gapsOut`). With no backend (an unknown compositor) `gapsOut` is all 0, so a floating bar sits flush against the border. Sway's and niri's backends read their gaps from the config (`SwayState.configInfo`, `scripts/niri_config.py info`); decide what the gap is with no backend at all (a fixed default, or `Appearance.screenMargin`).
+- **What:** A floating bar's automatic gap (`floatGap` -1) is the compositor's outer gaps (`CompositorManager.gapsOut`). With no backend (an unknown compositor) `gapsOut` is all 0, so a floating bar sits flush against the border. Sway's and niri's backends read their gaps from the config (`SwayState.configInfo`, `axiom compositor niri info`); decide what the gap is with no backend at all (a fixed default, or `Appearance.screenMargin`).
 - **Size:** small
 - **Found:** 2026-10-16, while testing layer order in nested sway
 
@@ -303,7 +333,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-18, while fixing shadow seams where a wall runs on into another surface
 
 ### niri's flags can't be turned off from axiom
-- **Where:** `components/methods/NiriConf.qml` (`_niriArgs`), `config/json/config.schema.json` (`x-niriValue: "flag"`)
+- **Where:** `components/methods/NiriConf.qml` (`_niriArgs`), `config/schema/` (`x-compositor.niri.value: flag`)
 - **What:** A niri flag (`tap`, `natural-scroll`, `numlock`, `focus-follows-mouse`) is on by being there and has no `false`; axiom writes one on and leaves it out off. Off in axiom while the user's own config has it on, it stays on.
 - **Size:** small
 - **Found:** 2026-10-17, while adding the niri backend
@@ -326,16 +356,10 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** trivial
 - **Found:** 2026-10-16, while auditing the layer-placement branch
 
-### Hyprland starts axiom by its repo path, and self-update assumes git
-- **Where:** `services/HyprlandConfigWriter.qml` (`shellCommand`), `services/SelfUpdateManager.qml`, `scripts/greeter/greeter_install.sh`
-- **What:** `shellCommand` is `qs -p '<repo>'`, which a package would want as `qs -c axiom` or an `axiom` launcher. Self-update and the greeter installer work on `Paths.axiomPath` as a git clone. A package manager owns updates, so these should hide or switch when there is no `.git`. Blocks packaging, not the XDG move.
+### Self-update and the greeter installer assume git
+- **Where:** `services/SelfUpdateManager.qml`, `scripts/greeter/greeter_install.sh`
+- **What:** Self-update and the greeter installer work on `Paths.axiomPath` as a git clone. A package manager owns updates, so these should hide or switch when there is no `.git`. Blocks packaging, not the XDG move.
 - **Size:** needs a plan
-- **Found:** 2026-10-15, while moving config and state to the XDG folders
-
-### Old config/state folders are kept in the repo after the XDG move
-- **Where:** `services/DataMigrationManager.qml`, `components/methods/DataDirs.qml` (`legacy`)
-- **What:** After moving an install over, `config/user/`, `config/state/` and `config/themes/generated/` are left in place (with `MOVED.md`) so a rollback still finds them. Once rolling back past the move is no longer supported, delete them (or offer to), and drop the legacy layout code.
-- **Size:** small
 - **Found:** 2026-10-15, while moving config and state to the XDG folders
 
 ### Text input warnings when the desktop takes the keyboard

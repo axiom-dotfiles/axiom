@@ -43,14 +43,14 @@ Opening a page: `root._page("foo", ["aliases"], "<ViewType>", "Open the foo page
 3. Add it to the `docs/usage.md` table, then verify.
 
 ## Gotchas
-- `/config` can never edit `Bars` or `Overlay.views`; don't add commands that bypass that.
+- `/config` can never edit `Bars` or `Overlay.items`; don't add commands that bypass that.
 - Commands reachable in greeter mode must check `Paths.greeter` in `available` when they'd write or run anything (the `/event` entry checks it).
 - Page commands go through `ShellManager.openOverlayPage(type)`, which picks the target screen.
 - Every launcher row has the same shape ([features/launcher](../dev/features/launcher.md)); a new *provider* (prefix) is a bigger change than a command.
 
 ## Verify
 - `scripts/dev/verify.sh`
-- To see it: `qs -c axiom ipc call appLauncher search "/foo"`, take a screenshot (`grim -o <monitor> <file>`), then `qs -c axiom ipc call appLauncher close`. The launcher steals keyboard focus, so the user's typing leaks in ([features/launcher](../dev/features/launcher.md) › Testing).
+- To see it: `axiom ipc appLauncher search "/foo"`, take a screenshot (`grim -o <monitor> <file>`), then `axiom ipc appLauncher close`. The launcher steals keyboard focus, so the user's typing leaks in ([features/launcher](../dev/features/launcher.md) › Testing).
 
 ## Docs to update
 - `docs/usage.md` launcher table; [features/launcher](../dev/features/launcher.md) if it adds a new kind of command.

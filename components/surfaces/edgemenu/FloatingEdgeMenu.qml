@@ -29,7 +29,7 @@ EdgePopout {
   // lowest, and pinned or previewing it gives way and comes back
   claimKey: "menu:" + root.menuId
   // As it was opened (EdgeMenuManager.claimKinds): a widget's menu popout
-  // (opened on hover, by its PopoutAnchor: a Button's popoutMenu too)
+  // (opened on hover, by its PopoutAnchor: a Button's popout.menu too)
   // ranks as that widget's bar popout, so a neighbour's popout replaces
   // it as bar popouts replace each other; opened any other way (a keybind, its edge, a bar Button's
   // click) it ranks as a menu
@@ -92,22 +92,22 @@ EdgePopout {
   maxContentDepth: !root.vertical && root._body ? root._body.maxGrownHeight : 0
   // Room for its submenus' stretch from the start (EdgePopout.roomForSubmenus):
   // from config, as the body loads with the window
-  roomForSubmenus: root.menu.modules.some(module => module?.type === "Submenu")
+  roomForSubmenus: root.menu.layout.modules.some(module => module?.type === "Submenu")
   // Read through a var: EdgeMenuBody's members, on EdgePopout's Item
   readonly property var _body: root.contentItem
   contentPadding: Appearance.borderWidth + EdgeMenusConfig.paddingOf(root.menu)
   fillColor: EdgeMenusConfig.colorsOf(root.menu).fill
   strokeColor: EdgeMenusConfig.colorsOf(root.menu).stroke
-  triggerEnabled: root.menu.openOnHover
-  hoverDelay: root.menu.openDelay
-  triggerWidth: root.menu.triggerSize
+  triggerEnabled: root.menu.open.onHover
+  hoverDelay: root.menu.open.delay
+  triggerWidth: root.menu.trigger.size
   triggerLength: sync.triggerLength(root.contentItem, root.vertical, root.contentPadding)
   // On the modules, in screen px (the box's own position is in this
   // window's coordinates, which start past the perpendicular edges')
   triggerCentre: root.menu.length === "edge" ? (root.startPad + root.screenLength - root.endPad) / 2 : root.modulesStart + root.gridLength / 2
-  dismissDelay: root.menu.closeDelay
+  dismissDelay: root.menu.close.delay
   keyboardOnDemand: true
-  closeOnClickOutside: root.menu.closeOnOutsideClick && !sync.held
+  closeOnClickOutside: root.menu.close.onOutsideClick && !sync.held
   // Over the overlay its grab (which lets input through to the menu) is
   // the one: a grab of its own would clear it, closing the overlay
   grabEnabled: !root.overlayOpen

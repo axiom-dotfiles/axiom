@@ -9,7 +9,7 @@ import qs.config
 // (surfaces/launcher/Launcher).
 Scope {
   Variants {
-    model: General.screensFor(LauncherConfig.monitors)
+    model: General.screensFor(LauncherConfig.screen)
     delegate: Launcher {
       required property ShellScreen modelData
       screen: modelData

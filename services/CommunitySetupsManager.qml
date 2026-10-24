@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell.Io
 
 import qs.config
 import qs.components.methods
@@ -180,7 +179,7 @@ QtObject {
       return false;
     let setups = null;
     try {
-      setups = CommunityCatalog.parse(JSON.parse(content), ConfigMigration.currentVersion);
+      setups = CommunityCatalog.parse(JSON.parse(content), ConfigManager.currentVersion);
     } catch (e) {
       console.warn("[CommunitySetupsManager] Could not parse the catalog:", e);
     }
@@ -241,11 +240,11 @@ QtObject {
   // Sets the setup's wallpaper on every monitor, as the fixed one, in one save
   function _setWallpaper(url) {
     const config = Utils.clone(ConfigManager.config);
-    const appearance = config.Appearance;
-    appearance.wallpaperMode = "fixed";
-    appearance.wallpaper = url;
+    const wallpaper = config.Appearance.wallpaper;
+    wallpaper.mode = "fixed";
+    wallpaper.file = url;
     for (const output of General.outputs)
-      appearance.wallpapers[output.name] = url;
+      wallpaper.perScreen[output.name] = url;
     if (!ConfigManager.commit(config))
       console.warn("[CommunitySetupsManager] Could not set the wallpaper", url);
   }
@@ -320,7 +319,7 @@ QtObject {
     onDone: output => root._finishApply(output.trim() !== "" && root._failures(output).length === 0, output)
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "community"
     enabled: root.enabled
 

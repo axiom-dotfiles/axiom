@@ -1,0 +1,5 @@
+label: Calendar
+keyboard: true
+icon: calendar_month
+group: Time & weather
+defaultSize: [4, 8]

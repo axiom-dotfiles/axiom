@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell.Io
 
 import qs.components.methods
 
@@ -162,9 +161,9 @@ QtObject {
     }
   }
 
-  // `qs ipc call popouts list`: every popout registered, one per line, with
+  // `axiom ipc popouts list`: every popout registered, one per line, with
   // where it shows (its footprint's bounds, in screen px)
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "popouts"
 
     function list(): string {

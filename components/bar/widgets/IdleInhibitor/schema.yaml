@@ -1,0 +1,18 @@
+label: Idle Inhibitor
+link: {setting: Idle}
+icon: coffee
+group: System
+popout: menu
+settings:
+  showLabel: {type: boolean, title: Show label, default: false}
+  activeColor: {$ref: '#/definitions/WidgetColor', title: Active color}
+  inactiveColor: {$ref: '#/definitions/WidgetColor', title: Inactive color, x-autoColor: 'off'}
+  foregroundColor:
+    type: string
+    title: Text color
+    x-options: colors
+    default: base00
+    x-showIf:
+      $bar.widgetStyle: filled
+      $bar.widgetGrouping: {not: merged}
+      $bar.widgetTextColor: ''

@@ -6,22 +6,22 @@ TestCase {
   name: "HypridleConf"
 
   readonly property var ctx: ({
-      "lockCmd": "qs -p '/axiom' ipc call lockscreen lock",
-      "shellCommand": "qs -p '/axiom'",
+      "lockCmd": "'/axiom' lock",
+      "shellCommand": "'/axiom'",
       "dpmsOff": "off-cmd",
       "dpmsOn": "on-cmd"
     })
 
-  // The Idle section's defaults, with overrides
+  // The Idle reader's defaults (times in ms), with overrides
   function idle(extra) {
     return Object.assign({
       "enabled": true,
-      "dimTimeout": 150,
+      "dimTimeout": 150000,
       "dimMode": "to",
       "dimLevel": 30,
       "dimBy": 50,
-      "lockTimeout": 300,
-      "screenOffTimeout": 330,
+      "lockTimeout": 300000,
+      "screenOffTimeout": 330000,
       "suspendTimeout": 0,
       "lockBeforeSleep": true,
       "screenOnAfterSleep": true,
@@ -32,11 +32,11 @@ TestCase {
 
   function test_defaults() {
     const text = HypridleConf.render(idle(), ctx);
-    verify(text.includes("lock_cmd = qs -p '/axiom' ipc call lockscreen lock"));
+    verify(text.includes("lock_cmd = '/axiom' lock"));
     verify(text.includes("before_sleep_cmd = loginctl lock-session"));
     verify(text.includes("after_sleep_cmd = on-cmd"));
     verify(!text.includes("ignore_dbus_inhibit"));
-    verify(text.includes("on-timeout = qs -p '/axiom' ipc call brightness dim 30"));
+    verify(text.includes("on-timeout = '/axiom' ipc brightness dim 30"));
     verify(!text.includes("systemctl suspend"), "suspend is off by default");
     compare(text.split("listener {").length - 1, 3);
   }
@@ -46,7 +46,7 @@ TestCase {
       "dimMode": "by",
       "dimBy": 40
     }), ctx);
-    verify(text.includes("on-timeout = qs -p '/axiom' ipc call brightness dimBy 40"));
+    verify(text.includes("on-timeout = '/axiom' ipc brightness dimBy 40"));
     verify(!text.includes("brightness dim 30"));
   }
 
@@ -67,12 +67,12 @@ TestCase {
 
   function test_listeners_in_timeout_order() {
     const timeouts = HypridleConf.listeners(idle({
-      "dimTimeout": 600,
-      "lockTimeout": 60,
-      "screenOffTimeout": 60,
-      "suspendTimeout": 900
+      "dimTimeout": 600000,
+      "lockTimeout": 60000,
+      "screenOffTimeout": 60000,
+      "suspendTimeout": 900000
     }), ctx).map(listener => listener.onTimeout);
-    compare(timeouts, ["loginctl lock-session", "off-cmd", "qs -p '/axiom' ipc call brightness dim 30", "systemctl suspend"]);
+    compare(timeouts, ["loginctl lock-session", "off-cmd", "'/axiom' ipc brightness dim 30", "systemctl suspend"]);
   }
 
   function test_own_listeners_skip_disabled_and_empty() {
@@ -83,19 +83,19 @@ TestCase {
       "listeners": [
         {
           "enabled": true,
-          "timeout": 10,
+          "timeout": 10000,
           "onTimeout": " notify-send idle ",
           "onResume": ""
         },
         {
           "enabled": false,
-          "timeout": 20,
+          "timeout": 20000,
           "onTimeout": "off",
           "onResume": ""
         },
         {
           "enabled": true,
-          "timeout": 30,
+          "timeout": 30000,
           "onTimeout": "  ",
           "onResume": "x"
         }
@@ -117,7 +117,7 @@ TestCase {
       "listeners": [
         {
           "enabled": true,
-          "timeout": 5,
+          "timeout": 5000,
           "onTimeout": "echo '#1'",
           "onResume": ""
         }
@@ -128,7 +128,7 @@ TestCase {
 
   function test_noDpmsCommand() {
     const text = HypridleConf.render(idle({
-      "screenOffTimeout": 600
+      "screenOffTimeout": 600000
     }), Object.assign({}, ctx, {
       "dpmsOff": "",
       "dpmsOn": ""

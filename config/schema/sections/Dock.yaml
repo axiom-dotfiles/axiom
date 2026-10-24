@@ -1,0 +1,19 @@
+# The Dock section of the config (config.json's "Dock").
+
+x-scope: look
+type: object
+x-category: Dock & OSD
+x-card: {file: DockList, title: Docks, wide: true, folds: true}
+title: Dock
+additionalProperties: false
+properties:
+  items:
+    type: array
+    title: Docks
+    x-settings: false
+    description: Each dock has its own place, apps and behaviour.
+    default:
+      - id: main
+        enabled: false
+        screen: {mode: inherit, names: []}
+    items: {$ref: '#/definitions/DockEntry'}

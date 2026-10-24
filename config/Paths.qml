@@ -13,11 +13,21 @@ QtObject {
   // Shell root (this repo), always with a trailing slash. Read-only: axiom
   // writes nothing under it (a package installs it where it can't)
   readonly property string axiomPath: decodeURIComponent(Quickshell.shellDir.toString().replace("file://", "")).replace(/\/?$/, "/")
-  // How compositors, binds and idle daemons start or call axiom
-  readonly property string shellCommand: `qs -p '${root.axiomPath.replace(/\/$/, "")}'`
-  // The restart binds' command: ends every axiom on the display and starts
-  // one (scripts/restart.sh)
-  readonly property string restartCommand: `'${root.axiomPath}scripts/restart.sh'`
+  // How compositors, binds and idle daemons call axiom: the binary that
+  // runs this shell ($AXIOM_BIN), by its path (a compositor's PATH may not
+  // have it). `<shellCommand> ipc <target> <fn>` calls the shell.
+  readonly property string axiomBin: Quickshell.env("AXIOM_BIN") || "axiom"
+  readonly property string shellCommand: `'${root.axiomBin}'`
+  // What the shell runs axiom's tools with (`axiom compositor …`): the
+  // binary the daemon runs now, which a dev build's re-exec may have
+  // changed since $AXIOM_BIN was set (/proc follows the exec); the greeter,
+  // with no daemon, runs $AXIOM_BIN (itself)
+  readonly property string toolBin: Quickshell.env("AXIOM_DAEMON_PID") ? `/proc/${Quickshell.env("AXIOM_DAEMON_PID")}/exe` : root.axiomBin
+  // The restart binds' command: axiom restarts the shell it runs
+  readonly property string restartCommand: `${root.shellCommand} restart`
+  // A line in a compositor config that starts axiom (Python regex, for
+  // integration_hookup.py's `accept`): `axiom run`
+  readonly property string startPattern: "(^|[\\s'\"/])axiom['\"]? +run\\b"
   readonly property string themePath: root.axiomPath + "config/themes/"
   readonly property string scriptsPath: root.axiomPath + "scripts/"
   // What ships with axiom in config/: json/ (schema, theme defaults,
@@ -30,8 +40,7 @@ QtObject {
   readonly property string packagedVersion: (FileManager.read(root.axiomPath + ".packaged") ?? "").trim()
   readonly property bool packaged: packagedVersion !== ""
 
-  // --- What axiom writes (ConfigManager.dataDirs: the XDG folders, or the
-  // repo's own until an old install's data is moved over) ---
+  // --- What axiom writes (ConfigManager.dataDirs: the XDG folders) ---
 
   // $XDG_CONFIG_HOME/axiom/: config.json and saved/
   readonly property string userConfigPath: ConfigManager.configDir
@@ -96,6 +105,20 @@ QtObject {
     if (!prefixed)
       return root.themePath + name + ".json";
     return (prefixed[1] === "generated" ? root.generatedThemesPath : root.communityThemesPath) + prefixed[2] + ".json";
+  }
+
+  // The file a type is loaded from (docs/dev/core/config-v2.md, rule 11):
+  // a type is a folder <root>/<Type>/ with <Type>.qml. A content name with
+  // a slash names another file in a type's folder ("Submenu/MenuSubmenu").
+  function widgetUrl(type) {
+    return "file://" + root.axiomPath + "components/bar/widgets/" + type + "/" + type + ".qml";
+  }
+  function contentUrl(name) {
+    const file = String(name).includes("/") ? name : name + "/" + name;
+    return "file://" + root.axiomPath + "components/content/" + file + ".qml";
+  }
+  function viewUrl(type) {
+    return "file://" + root.axiomPath + "components/views/" + type + "/" + type + ".qml";
   }
 
   // A path from config or the user: trimmed, a leading ~ as home, no

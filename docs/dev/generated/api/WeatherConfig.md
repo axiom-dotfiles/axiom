@@ -11,4 +11,4 @@ Reader for the Weather section: the one location and units every weather widget 
 - `latitude` (readonly string)
 - `longitude` (readonly string)
 - `units` (readonly string): "celsius" | "fahrenheit"
-- `intervalMinutes` (readonly int)
+- `interval` (readonly int): How often it's fetched (ms)

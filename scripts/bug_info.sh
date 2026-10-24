@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Print what a bug report needs to know about this machine, ready to paste
 # into the bug report form's "System info" field: axiom's version (a clone's
-# git description, or a package's), Quickshell's, the compositor and its
+# git description, or a package's), the axiom binary's and whether it runs
+# here, whether the config loads, Quickshell's, the compositor and its
 # version, the distribution, the config's version and compositor mode, and
 # how many monitors are on. Nothing personal: no monitor names, no paths.
 #
@@ -22,6 +23,22 @@ elif has git && git -C "$repo" rev-parse --git-dir >/dev/null 2>&1; then
   [[ -n "$branch" && "$branch" != main ]] && axiom+=" (branch $branch)"
 else
   axiom="unknown (neither a clone nor a package)"
+fi
+
+# The binary: the running daemon's (what the shell really runs), else the
+# one on PATH, else where install.sh puts it
+pid=$(pgrep -f '(^|/)axiom run( |$)' 2>/dev/null | head -1)
+if [[ -n "$pid" && -x "/proc/$pid/exe" ]]; then
+  bin="/proc/$pid/exe" state="running"
+else
+  bin=$(command -v axiom 2>/dev/null || echo "${XDG_BIN_HOME:-$HOME/.local/bin}/axiom") state="not running"
+fi
+if [[ -x "$bin" ]]; then
+  binary="$("$bin" version 2>/dev/null | head -1), $state"
+  # ok, blocked (config.json doesn't load), …: never the path
+  config_state=$("$bin" config status 2>/dev/null | head -1 | cut -d' ' -f1)
+else
+  binary="not found"
 fi
 
 quickshell=$(qs --version 2>/dev/null | head -1)
@@ -45,13 +62,14 @@ if [[ ! -f "$config" ]]; then
   config_info="missing"
 elif ! has jq; then
   config_info="present (jq not installed)"
-elif ! config_info=$(jq -r '"version \(.version // "?"), compositor mode \(.Compositor.mode // "detached")"' "$config" 2>/dev/null); then
+elif ! config_info=$(jq -r '"format \(.format // 1), version \(.version // "?"), compositor mode \(.Compositor.mode // "detached")"' "$config" 2>/dev/null); then
   config_info="invalid JSON"
 fi
 
 printf 'axiom:      %s\n' "$axiom"
+printf 'Binary:     %s\n' "$binary"
 printf 'Quickshell: %s\n' "${quickshell:-not found}"
 printf 'Compositor: %s\n' "${compositor:-unknown}"
 printf 'Monitors:   %s\n' "${monitors:-unknown}"
 printf 'Distro:     %s\n' "${distro:-unknown}"
-printf 'Config:     %s\n' "$config_info"
+printf 'Config:     %s\n' "$config_info${config_state:+, $config_state}"

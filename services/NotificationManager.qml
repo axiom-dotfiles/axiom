@@ -22,7 +22,7 @@ import qs.config
  * so its actions work; restored or withdrawn entries have none.
  *
  * The history keeps NotificationsConfig.maxEntries entries, none older
- * than maxAgeDays (when set), and with clearOnFocus an app's entries go
+ * than maxAge (when set), and with clearOnFocus an app's entries go
  * when one of its windows is focused. DND is saved in Paths.statePath.
  */
 Singleton {
@@ -34,7 +34,7 @@ Singleton {
   // The count for a badge: "99+" past 99
   readonly property string countLabel: count > 99 ? "99+" : String(count)
   readonly property int maxEntries: NotificationsConfig.maxEntries
-  readonly property int maxAgeDays: NotificationsConfig.maxAgeDays
+  readonly property real maxAge: NotificationsConfig.maxAge
 
   // Do Not Disturb: no toasts but critical ones (notifications still go
   // into the history). Kept across restarts. Set through setDnd/toggleDnd.
@@ -192,7 +192,7 @@ Singleton {
   // Sorts entries newest first and drops (forgetting) those past the
   // history's size or age
   function _prune(list) {
-    const cutoff = root.maxAgeDays > 0 ? Date.now() - root.maxAgeDays * 86400000 : -Infinity;
+    const cutoff = root.maxAge > 0 ? Date.now() - root.maxAge : -Infinity;
     const sorted = list.slice().sort((a, b) => b.time - a.time);
     const kept = sorted.filter(e => e.time >= cutoff).slice(0, root.maxEntries);
     sorted.filter(e => !kept.includes(e)).forEach(e => root._forget(e));
@@ -208,13 +208,13 @@ Singleton {
   }
 
   onMaxEntriesChanged: Qt.callLater(root._pruneNow)
-  onMaxAgeDaysChanged: Qt.callLater(root._pruneNow)
+  onMaxAgeChanged: Qt.callLater(root._pruneNow)
 
   // Entries age out while the shell runs, too
   property Timer _ageTimer: Timer {
     interval: 3600000
     repeat: true
-    running: root.maxAgeDays > 0
+    running: root.maxAge > 0
     onTriggered: root._pruneNow()
   }
 
@@ -453,8 +453,8 @@ Singleton {
       root._writeNow();
   }
 
-  // qs -c axiom ipc call notifications clear | toggleDnd
-  property IpcHandler _ipc: IpcHandler {
+  // axiom ipc notifications clear | toggleDnd
+  property IpcTarget _ipc: IpcTarget {
     target: "notifications"
     function clear(): void {
       root.clearAll();

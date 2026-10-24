@@ -61,22 +61,4 @@ TestCase {
       "XDG_DATA_DIRS": "relative"
     }).slice(1), ["/usr/local/share", "/usr/share"], "nothing usable is the same as unset");
   }
-
-  function test_legacy() {
-    const env = {
-      "HOME": "/home/u",
-      "XDG_STATE_HOME": "/st"
-    };
-    compare(DataDirs.legacy(env, "/repo"), {
-      "config": "/repo/config/user/",
-      "state": "/st/axiom/",
-      "ui": "/repo/config/state/",
-      "data": "/home/u/.local/share/axiom/",
-      "notes": "/repo/config/state/notes/",
-      "generatedThemes": "/repo/config/themes/generated/",
-      "communityThemes": "/home/u/.local/share/axiom/themes/",
-      "cache": "/home/u/.cache/axiom/"
-    }, "state and data were already XDG");
-    compare(DataDirs.legacy(env, "/repo/").config, "/repo/config/user/", "with or without a trailing slash");
-  }
 }

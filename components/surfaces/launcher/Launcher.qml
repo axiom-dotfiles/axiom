@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.components.hosts.popout
 import qs.components.reusable
@@ -54,7 +53,7 @@ Scope {
   SurfaceGroup {
     id: group
     kind: "launcher"
-    mode: LauncherConfig.monitors
+    target: LauncherConfig.screen
     screen: root.screen
     window: root.host?.window ?? null
     shown: root.shown
@@ -63,7 +62,7 @@ Scope {
 
   Connections {
     target: ShellManager
-    enabled: ShellManager.isTarget(root.screen, LauncherConfig.monitors)
+    enabled: ShellManager.isTarget(root.screen, LauncherConfig.screen)
     function onToggleAppLauncher() {
       root.toggle();
     }
@@ -77,9 +76,9 @@ Scope {
     }
   }
 
-  IpcHandler {
+  IpcTarget {
     target: "appLauncher"
-    enabled: ShellManager.isTarget(root.screen, LauncherConfig.monitors)
+    enabled: ShellManager.isTarget(root.screen, LauncherConfig.screen)
 
     function toggle(): void {
       root.toggle();

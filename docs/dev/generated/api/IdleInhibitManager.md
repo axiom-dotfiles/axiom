@@ -3,7 +3,7 @@
 
 > **File:** `services/IdleInhibitManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Shared on/off state for keeping the session awake. The Wayland idle inhibitor itself needs a mapped surface, so shell/IdleInhibit holds one while `enabled` is on. Kept across QML reloads, but a restart always starts with idle allowed. qs -c axiom ipc call idleInhibit toggle
+Shared on/off state for keeping the session awake. The Wayland idle inhibitor itself needs a mapped surface, so shell/IdleInhibit holds one while `enabled` is on. Kept across QML reloads, but a restart always starts with idle allowed. axiom ipc idleInhibit toggle
 
 ### Properties
 

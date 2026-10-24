@@ -1,6 +1,6 @@
 # OSD (on-screen displays)
 
-> **Files:** `config/OSDConfig.qml`, `shell/OSD.qml`, `components/surfaces/osd/OSDContent.qml`, `components/surfaces/osd/OSDBar.qml`, `components/surfaces/osd/OSDTriggers.qml`, `components/views/settings/OSDListCard.qml`
+> **Files:** `config/OSDConfig.qml`, `shell/OSD.qml`, `components/surfaces/osd/OSDContent.qml`, `components/surfaces/osd/OSDBar.qml`, `components/surfaces/osd/OSDTriggers.qml`, `components/views/Settings/OSDListCard.qml`
 > **Config:** `OSD.*` (reader `OSDConfig`); entries are `definitions/OSDEntry`
 > **Related:** [Brightness](brightness.md), [Held off an edge](../popouts/held-off-edge.md), [Edge attach](../popouts/edge-attach.md), [Popout registry](../popouts/registry.md), [Dock](dock.md)
 
@@ -52,7 +52,7 @@ Each bar is `{ type, apps, icon, allMonitors, showOsd }`, drawn by `surfaces/osd
 - When an OSD opens, `BrightnessManager.refresh(screen)` picks up brightness changed outside axiom.
 
 ### Editing
-- On the section's `x-card` `views/settings/OSDListCard`:
+- On the section's `x-card` `views/Settings/OSDListCard`:
   - tabs, one per OSD;
   - an edge picker with presets;
   - a Show button.

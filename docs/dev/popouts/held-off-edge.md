@@ -1,7 +1,7 @@
 # Surfaces held off an edge
 
 > **Files:** `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/EdgePopout.qml`, `components/hosts/popout/ClosedLatch.qml`, `components/methods/SurfaceContext.qml`
-> **Config:** `detached` and `gap` on floating edge menus (`EdgeMenus[]`), docks (`Dock.docks[]`) and OSDs (`OSD.osds[]`)
+> **Config:** `detached` and `gap` on floating edge menus (`EdgeMenus.items[]`), docks (`Dock.items[]`) and OSDs (`OSD.items[]`)
 > **Related:** [Edge attach](edge-attach.md), [Surface context](surface-context.md), [Pill and floating bars](pill-and-floating-bars.md), [Dock](../features/dock.md), [OSD](../features/osd.md), [Edge menu hosts](../edge-menus/hosts.md)
 
 Floating edge menus, docks and OSDs with `detached` set are held off their edge as islands. Edge popouts are also held over a fullscreen window. A new surface held off an edge uses these rules rather than distances of its own.

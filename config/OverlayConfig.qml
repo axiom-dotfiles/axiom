@@ -6,7 +6,8 @@ import qs.components.methods
 // Overlay: the configured views, plus the card grid's layout constants.
 // (Named OverlayConfig because `Overlay` is the module type.)
 QtObject {
-  readonly property var views: ConfigManager.config.Overlay.views
+  // The pages, Overlay.items: [OverlayView], each with its id
+  readonly property var views: ConfigManager.config.Overlay.items
   // The overlay's own Module size, in %: its cards are the card size
   // (cardUnitOn) times it, and their content drawn at it (see layoutFor)
   readonly property int moduleScale: ConfigManager.config.Overlay.moduleScale
@@ -19,8 +20,8 @@ QtObject {
   readonly property bool showBackdrop: ConfigManager.config.Overlay.showBackdrop
   // 0-1 opacity of the backdrop
   readonly property real backdrop: ConfigManager.config.Overlay.backdrop / 100
-  // "general" | "primary" | "focused" | "all" (see General.screensFor)
-  readonly property string monitors: ConfigManager.config.Overlay.monitors
+  // The ScreenTarget it opens on (see General.screensFor)
+  readonly property var screen: ConfigManager.config.Overlay.screen
   readonly property bool closeOnEscape: ConfigManager.config.Overlay.closeOnEscape
   readonly property bool closeOnOutsideClick: ConfigManager.config.Overlay.closeOnOutsideClick
 
@@ -89,8 +90,7 @@ QtObject {
   // The groups the editors' libraries sort bar widgets and modules into
   // (the schema's `x-libraryGroups`), in order
   readonly property var libraryGroups: ConfigManager.configSchema?.["x-libraryGroups"] ?? []
-  // A Custom page's own fields (name, icon, fineGrid), for the layouts
-  // editor
+  // A Custom page's own fields (name, icon, layout), for the layouts editor
   readonly property var customViewSchema: ConfigManager.configSchema.definitions.CustomOverlayView.properties
   readonly property var availableViewTypes: _oneOfTypes("OverlayView")
   // The module types a host's library offers: "overlay" pages,
@@ -155,7 +155,7 @@ QtObject {
     (views ?? []).forEach(view => {
       if (view?.type !== "Custom" || !view.name || view.visible === false)
         return;
-      (view.modules ?? []).forEach(module => {
+      (view.layout?.modules ?? []).forEach(module => {
         const area = module?.type === type ? module.place.w * module.place.h : 0;
         if (area > bestArea) {
           best = view.name;
@@ -199,15 +199,15 @@ QtObject {
     return GridPlacement.baseCard(width, height) * Widget.cardSize / 100;
   }
 
-  // A screen layout's (a DesktopLayout's, the lock screen's, the
+  // A screen layout's (a desktop item's, the lock screen's, the
   // greeter's) `modules` on `screen` in a `width` × `height` px room (its
   // room inside the bars and border): the units that fit there at its
   // card size (cardUnitOn times its Module size, its units split in two
-  // each way with fineGrid), each module kept to its nearest edge from the grid it was
-  // placed on (`columns` × `rows`), content drawn at its Module size.
+  // each way with grid.fine), each module kept to its nearest edge from the grid it was
+  // placed on (`grid.columns` × `grid.rows`), content drawn at its Module size.
   // GridPlacement.screenArrangement's { cols, rows, unit, gap, zoom,
   // places, shrunk }, plus `margin`, the px left all round the grid
-  // reads: Desktop.*.moduleScale, Desktop.*.fineGrid, Lockscreen.layout.moduleScale, Lockscreen.layout.fineGrid, Greeter.layout.moduleScale, Greeter.layout.fineGrid
+  // reads: Desktop.items.moduleScale, Desktop.items.grid, Lockscreen.layout.moduleScale, Lockscreen.layout.grid, Greeter.layout.moduleScale, Greeter.layout.grid
   function screenArrangement(layout, modules, screen, width, height) {
     if (!layout)
       return {
@@ -222,16 +222,16 @@ QtObject {
       };
     const card = cardUnitOn(screen?.width ?? width, screen?.height ?? height) * layout.moduleScale / 100;
     const places = (modules ?? []).map(module => module?.place ?? null);
-    const arranged = GridPlacement.screenArrangement(places, GridPlacement.screenGrid(layout), card, width, height, cardSpacing, layout.fineGrid, GridPlacement.zoomOf(layout.moduleScale / 100));
+    const arranged = GridPlacement.screenArrangement(places, GridPlacement.screenGrid(layout.grid), card, width, height, cardSpacing, layout.grid.fine, GridPlacement.zoomOf(layout.moduleScale / 100));
     arranged.margin = cardSpacing;
     return arranged;
   }
 
   // The card size a Custom page's modules are laid out at on an overlay
-  // whose cards are `unit` px: a double grid's (fineGrid) has twice the
-  // units across (GridPlacement.fineUnit)
+  // whose cards are `unit` px: a double grid's (layout.grid.fine) has twice
+  // the units across (GridPlacement.fineUnit)
   function pageUnit(view, unit) {
-    return view?.fineGrid ? GridPlacement.fineUnit(unit) : unit;
+    return view?.layout?.grid?.fine ? GridPlacement.fineUnit(unit) : unit;
   }
 
   function slotShape(rect) {

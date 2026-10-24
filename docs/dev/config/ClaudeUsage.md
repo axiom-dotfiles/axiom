@@ -11,32 +11,36 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 ### `ClaudeUsage`
 
-- **`ClaudeUsage.accounts`** · array<object> = [{"label":"Personal","configDir":"~/.claude"}]
+- **`ClaudeUsage.items`** · array<object> = [{"id":"personal","label":"Personal","configDir":"~/.claude"}]
   - Accounts: One per Claude Code login: the CLAUDE_CONFIG_DIR it uses (~/.claude when unset). Usage is read with that login's token, which is never changed.
-  - read: `ClaudeUsageConfig.accounts` · in: `components/bar/widgets/ClaudeUsage.qml`
+  - read: `ClaudeUsageConfig.accounts` · in: `components/bar/widgets/ClaudeUsage/ClaudeUsage.qml`
 
-### `ClaudeUsage.accounts[]`
+### `ClaudeUsage.items[]`
 
-- **`ClaudeUsage.accounts[]`** · object
-- **`ClaudeUsage.accounts[].label`** · string = ""
+- **`ClaudeUsage.items[]`** · object
+- **`ClaudeUsage.items[].id`** · string
+  - The item's stable id, unique in its list: what editors, path ops and imports match it by.
+  - pattern="^[A-Za-z0-9][A-Za-z0-9._-]*$", x-settings=false
+  - read: entry field, name match · in: none found
+- **`ClaudeUsage.items[].label`** · string = ""
   - Label: Shown in the popout; its first letter tells accounts apart on the bar.
-  - read: `ClaudeUsageConfig.accounts` (whole) · in: `components/bar/widgets/ClaudeUsage.qml`
-- **`ClaudeUsage.accounts[].configDir`** · string = "~/.claude"
+  - read: `ClaudeUsageConfig.accounts` (whole) · in: `components/bar/widgets/ClaudeUsage/ClaudeUsage.qml`
+- **`ClaudeUsage.items[].configDir`** · string = "~/.claude"
   - Config directory
   - x-control="folder"
-  - read: `ClaudeUsageConfig.accounts` (whole) · in: `components/bar/widgets/ClaudeUsage.qml`
+  - read: `ClaudeUsageConfig.accounts` (whole) · in: `components/bar/widgets/ClaudeUsage/ClaudeUsage.qml`
 
 ### `ClaudeUsage`
 
-- **`ClaudeUsage.intervalMinutes`** · integer = 5 · 2–60 · min
+- **`ClaudeUsage.interval`** · integer = 300000 · 120000–3600000 · min
   - Check interval
-  - read: `ClaudeUsageConfig.intervalMinutes` · in: `components/bar/widgets/ClaudeUsage.qml`
+  - read: `ClaudeUsageConfig.interval` · in: `components/bar/widgets/ClaudeUsage/ClaudeUsage.qml`
 
 ### Reader members
 
 Every public member of `ClaudeUsageConfig`, with the files that use it.
 
-- `ClaudeUsageConfig.accounts` (var): [{ label, configDir }], configDir as typed (may hold ~)
-  - in: `components/bar/widgets/ClaudeUsage.qml`
-- `ClaudeUsageConfig.intervalMinutes` (int)
-  - in: `components/bar/widgets/ClaudeUsage.qml`
+- `ClaudeUsageConfig.accounts` (var): [{ id, label, configDir }], configDir as typed (may hold ~)
+  - in: `components/bar/widgets/ClaudeUsage/ClaudeUsage.qml`
+- `ClaudeUsageConfig.interval` (int): How often usage is fetched (ms)
+  - in: `components/bar/widgets/ClaudeUsage/ClaudeUsage.qml`

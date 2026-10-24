@@ -41,7 +41,7 @@ axiom is built and tested on one machine with one GPU, so some help goes further
 
 ## Setting up
 
-axiom has no build step: Quickshell runs the QML as it is and reloads a file the moment you save it.
+axiom is two parts. The shell is QML with no build step: Quickshell runs it as it is and reloads a file the moment you save it. The `axiom` binary (Go, in `backend/`) is its parent process: it starts the shell, owns the config file and is the `axiom` command. You build it once, and dev mode rebuilds it as you edit. Most changes touch only the QML.
 
 1. Fork the repository and clone your fork where Quickshell looks for it:
    ```bash
@@ -52,13 +52,13 @@ axiom has no build step: Quickshell runs the QML as it is and reloads a file the
    ```bash
    git config core.hooksPath .githooks
    ```
-3. Start it with `qs -c axiom` (or let your compositor start it as usual).
+3. Build the binary with Go 1.26 or newer (`scripts/generate.sh && go -C backend build -o ~/.local/bin/axiom ./cmd/axiom`) and start it with `axiom run` (or let your compositor start it as usual). Working on the Go side or the config schema? `axiom dev on` rebuilds the schema and the binary as you edit them and switches to the new build without restarting the shell.
 
 ## The workflow
 
 1. **Branch** off `main`.
 2. **Find your way in.** Use the table below to find the doc for what you're touching, and read it first. Check the [open issues](https://github.com/axiom-shell/axiom/issues) in that area too.
-3. **Edit and save.** The running shell reloads, so you see the change straight away.
+3. **Edit and save.** The running shell reloads, so you see the change straight away. With dev mode on, a saved Go file rebuilds the binary too.
 4. **Check it** with `scripts/dev/verify.sh` until it prints `verify ok`. It formats your QML, runs the checks your change touches and shows the shell's log.
 5. **Update the docs** that describe what you changed (verify.sh lists them).
 6. **Open a pull request** against `main` and fill in the template, linking the issue it closes (`Fixes #123`). CI runs every check (`scripts/dev/verify.sh --all` locally).
@@ -80,14 +80,16 @@ components/
   bar/          # the bar; bar/widgets/ holds the bar widget types
   surfaces/     # standalone windows (launcher, lock screen, toasts, dock, power menu, …)
 services/       # *Manager singletons: state and every side effect (processes, files, the compositor)
-config/         # config readers; json/ (the config schema), themes/, i18n/
+config/         # config readers; schema/ (the config schema's YAML source), themes/, i18n/
+backend/        # the axiom binary (Go): the shell's parent, the config's owner, the command line
+packaging/      # the AUR packages
 scripts/        # scripts the shell runs (theming, wallpaper, updates, compositor configs) and the dev checks
 tests/          # qmltestrunner tests and script tests
 examples/       # the example setups
 docs/           # user docs; docs/dev/ for contributors
 ```
 
-Dependencies point one way: `methods/` helpers → config readers → services → UI. The UI never runs processes or writes files itself; it asks a service.
+Dependencies point one way: `methods/` helpers → config readers → services → UI. The UI never runs processes or writes files itself; it asks a service. Services are moving their side effects into the `axiom` binary bit by bit, so new code doesn't start processes, open files or sockets of its own either: it goes through the shared services (`CommandManager`, `FileManager`, `StateManager`) or the binary (`scripts/check_structure.py` enforces it).
 
 ## Where to look
 
@@ -104,6 +106,9 @@ Read [AGENTS.md](AGENTS.md) before your first change: it holds the project's rul
 | Build UI | [shared-ui-pieces](docs/dev/core/shared-ui-pieces.md): reuse what's there before drawing a new card or row |
 | Work on compositor support, or add a compositor | [docs/dev/compositor/](docs/dev/compositor/README.md) |
 | Work on themes or theming other apps | [docs/dev/theming/](docs/dev/theming/) |
+| Work on the `axiom` binary (Go) | [backend/AGENTS.md](backend/AGENTS.md), [docs/dev/backend/](docs/dev/backend/README.md) |
+| Change what the shell and the binary say to each other | [protocol](docs/dev/backend/protocol.md), and every method in [generated/rpc.md](docs/dev/generated/rpc.md) |
+| Change the config's shape (rename or move a setting) | [the migration recipe](docs/recipes/migration.md): a Go step and its test |
 | Find which file does something | `grep -n '<word>' docs/dev/generated/files.md` |
 | Look up a setting: its default, and what reads it | `docs/dev/config/<Section>.md` |
 
@@ -111,7 +116,7 @@ Read [AGENTS.md](AGENTS.md) before your first change: it holds the project's rul
 
 - **Use it.** Your change is live as soon as you save. For anything visual, add a screenshot to the pull request: `scripts/dev/shot.sh page <ViewType>` (or `launcher`, or `ipc <target> <open>`) takes one for you.
 - **Read the log.** `scripts/log.sh` shows warnings and errors since the last reload (`--debug` adds `console.log`, `-f` follows).
-- **Unit tests.** Changing a helper in `components/methods/` or a config migration? Add a case in `tests/` and run `scripts/run_tests.sh <Name>`.
+- **Unit tests.** Changing a helper in `components/methods/`? Add a case in `tests/` and run `scripts/run_tests.sh <Name>`. Changing the Go side, a config migration included? Its tests sit beside the code, and `scripts/check_go.sh` runs them with the other Go checks (verify.sh runs it whenever `backend/` changed).
 - **Another compositor, or a fresh config.** `scripts/dev/nested.sh <sway|niri>` runs that compositor in a window with a second axiom inside it, on its own config, so you can try managed mode or a first start without touching your desktop.
 
 More tricks for debugging the running shell are in [docs/dev/testing.md](docs/dev/testing.md).

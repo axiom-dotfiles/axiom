@@ -1,0 +1,29 @@
+# The ScreenTarget definition (#/definitions/ScreenTarget).
+
+x-inline: true
+type: object
+title: Monitors
+description: Which monitors it's shown on.
+additionalProperties: false
+properties:
+  mode:
+    x-scope: look
+    type: string
+    title: Monitors
+    enum: [inherit, primary, focused, all, named]
+    default: inherit
+    x-enumLabels:
+      inherit: As in General
+      primary: Primary monitor
+      focused: Focused monitor
+      all: Every monitor
+      named: These monitors
+    x-link: {setting: General.screen}
+  names:
+    x-scope: machine
+    x-monitorRef: 'off'
+    type: array
+    title: Monitors
+    default: []
+    items: {type: string, x-options: screens}
+    x-showIf: {mode: named}

@@ -1,0 +1,44 @@
+# The axiom binary (`backend/`)
+
+Go source of `axiom`: the parent process of the shell and greeter, the owner of config.json, and the command line. Rules here add to the root `AGENTS.md`. How it works: `docs/dev/backend/` (start at `README.md`).
+
+## Layout
+
+```
+cmd/axiom/        main: hands os.Args to cli.Main, nothing else
+internal/         every package (nothing is importable from outside the module)
+tools/            go generate programs (syncassets, …)
+```
+
+## Rules
+
+- **Pure core, effects at the edge.** Packages marked pure in their doc comment (`axerr`, `jsonx`, `schema`, `config`, `migrate/…`, `share`, `compositor/kdl`, `compositor/actions`, `compositor/render`) do no I/O and import no `os`, `net`, `os/exec` or `syscall`: they are the Go side of `components/methods/`. File, socket and process work lives in the packages above them, and the dependency direction only points down.
+- **No globals, no `init()` side effects.** State lives in structs built by constructors taking an `Options` (logger, clock, paths injected), so tests build their own. `context.Context` first on anything that blocks; every goroutine has an owner that stops it.
+- **One error type across boundaries**: `axerr.Error` with a `Kind`. RPC codes, CLI exit codes and what the shell shows all come from the kind; messages stay English (the shell translates by kind). Wrap causes with `%w`.
+- **The config is a tree, not structs.** Migrate, prune, defaults, validate and write work on the ordered JSON tree (`jsonx`), so key order, unknown keys and old shapes survive and the bytes match the JS reference. Generated structs are read-only views, never written back.
+- **The schema is the source of truth**: never hand-copy a key list, default or annotation from it into Go; read it through `schema`, or generate from it.
+- **Embedded repo files are generated copies** (`internal/assets/data/`, gitignored, by `tools/syncassets` through `go generate`; the schema among them is built from its YAML there): edit the originals. A fresh clone doesn't compile until `scripts/generate.sh` (or `go generate ./internal/assets`) has run.
+- **CLI commands are entries in the command table** (`internal/cli`): help, completions and the generated docs come from it. A command parses, calls a library package or the daemon, and prints through `Env.Output` (text, or one JSON value with `--json`).
+- **Security-relevant code** (sockets, locks, runtime dirs, atomic writes, the child's environment, the lock screen path) follows the security rules in `docs/dev/backend/README.md`, and every check there has a test.
+
+## Style
+
+- Every package has a doc comment saying what it is for (it feeds `docs/dev/generated/files.md`); exported names are documented; comments say why, at the density of the surrounding code.
+- Tests are table-driven with `t.Parallel()`, fakes are written by hand (no mocking library), files are tested in `t.TempDir()`. Behaviour shared with the QML side is tested through the shared fixtures (`docs/dev/backend/README.md` › Shared fixtures), never re-stated inline.
+- Generated Go files are named `zz_generated_*.go` and start with the standard `// Code generated … DO NOT EDIT.` line.
+
+## Dependencies
+
+Standard library first. A new module needs a line here saying why, and must be pure Go (`CGO_ENABLED=0` builds).
+
+| Module | Why |
+|---|---|
+| `honnef.co/go/tools` (tool) | staticcheck, pinned through go.mod's `tool` block |
+| `golang.org/x/vuln` (tool) | govulncheck, pinned the same way |
+| `go.yaml.in/yaml/v3` | reads the config schema's YAML source (`schema/yamlsrc`, which adds the strictness) |
+| `github.com/dop251/goja` | a pure-Go JS engine, used only by `migrate/legacy` to run the frozen format-1 migrations (`legacy.js`) exactly as the shell did, instead of a hand port that could drift |
+| `github.com/yuin/gopher-lua` | a pure-Go Lua (5.1) parser and VM: runs a user's Hyprland Lua files, sandboxed, for the bind merge (`compositor/binds`), and checks that an edit to them still parses where `luac` isn't installed (`compositor/luacheck`), without `lua` as a dependency |
+
+## Checks
+
+`scripts/check_go.sh` (`scripts/generate.sh --fixtures` first, then generated code, gofmt, vet, staticcheck, `go mod tidy`, tests with `-race`); `--fix` regenerates and formats; `--ci` adds govulncheck and the release cross-builds. `scripts/dev/verify.sh` runs it when anything under `backend/` (or an embedded file) changed.

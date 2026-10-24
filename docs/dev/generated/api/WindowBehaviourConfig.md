@@ -3,7 +3,7 @@
 
 > **File:** `config/WindowBehaviourConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the WindowBehaviour section: focus and the cursor, which every compositor's managed config writes (each field by its x-hypr / x-sway annotation). Named WindowBehaviourConfig as the section is read whole.
+Reader for the WindowBehaviour section: focus and the cursor, which every compositor's managed config writes (each field by its x-compositor annotation). Named WindowBehaviourConfig as the section is read whole.
 
 ### Properties
 

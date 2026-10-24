@@ -13,11 +13,21 @@ TestCase {
     compare(Utils.spaceWords(undefined), "");
   }
 
+  // An enum value with no label, as the form shows it (check_i18n.py's
+  // enum_label makes the same keys)
+  function test_enumLabel() {
+    compare(Utils.enumLabel("top"), "Top");
+    compare(Utils.enumLabel("accentText"), "Accent text");
+    compare(Utils.enumLabel("grid2x2"), "Grid 2x2");
+    compare(Utils.enumLabel("on-overflow"), "on-overflow", "not lowerCamel: as it is");
+    compare(Utils.enumLabel(""), "");
+  }
+
   function test_edgeArrow() {
-    compare(Utils.edgeArrow("Top"), "arrow_upward");
-    compare(Utils.edgeArrow("Bottom"), "arrow_downward");
-    compare(Utils.edgeArrow("Left"), "arrow_back");
-    compare(Utils.edgeArrow("Right"), "arrow_forward");
+    compare(Utils.edgeArrow("top"), "arrow_upward");
+    compare(Utils.edgeArrow("bottom"), "arrow_downward");
+    compare(Utils.edgeArrow("left"), "arrow_back");
+    compare(Utils.edgeArrow("right"), "arrow_forward");
   }
 
   function test_freeId() {

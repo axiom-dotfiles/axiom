@@ -12,11 +12,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Icons.overrides`** · object = {}
   - App name → icon path/URL, for apps whose tray or window icon doesn't resolve.
   - x-settings=false
-  - read: `IconsConfig.overrides` · in: `components/bar/widgets/SystemTray.qml`
+  - read: `IconsConfig.overrides` · in: `components/bar/widgets/SystemTray/SystemTray.qml`
 
 ### Reader members
 
 Every public member of `IconsConfig`, with the files that use it.
 
 - `IconsConfig.overrides` (var): App name → icon path/URL for apps whose icon doesn't resolve
-  - in: `components/bar/widgets/SystemTray.qml`
+  - in: `components/bar/widgets/SystemTray/SystemTray.qml`

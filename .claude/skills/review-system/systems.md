@@ -16,7 +16,7 @@ Seams: every feature reading windows, outputs, workspaces or `supports`.
 ## hyprland
 Scope: the Hyprland backend: services, Lua, config writer, binds merge, claim, monitors, workspaces, switcher, strips, managed takeover.
 Docs: hyprland/*.md
-Extra: scripts/claim_hyprland.sh scripts/merge_hypr_binds.py scripts/hypr_binds.lua
+Extra: backend/internal/compositor/takeover/kinds.go backend/internal/compositor/binds/hypr.go backend/internal/compositor/binds/hyprlua.go
 Checks:
 - Only the `Hyprland*` services import `Quickshell.Hyprland` or send `hl.*` Lua.
 - The writer's output is the same as what the runtime layer applies (one table, two renderers), and it never touches the user's own files outside its module.
@@ -27,7 +27,7 @@ Seams: CompositorManager; OnboardingManager and GreetdManager (the Hyprland-only
 ## sway
 Scope: the sway / SwayFX backend: IPC, state parsing, config writer, claim, binds merge.
 Docs: compositor/sway-backend.md
-Extra: scripts/claim_sway.sh scripts/merge_sway_binds.py scripts/sway_config_text.py
+Extra: backend/internal/compositor/takeover/kinds.go backend/internal/compositor/binds/sway.go backend/internal/compositor/userconf/sway.go
 Checks:
 - Every contract member behaves as the Hyprland one does, or is a declared `supports` gap.
 - SwayFX-only features (blur, shadows, corners) are gated on detecting SwayFX, not assumed.
@@ -37,7 +37,7 @@ Seams: CompositorManager.
 ## niri
 Scope: the niri backend: IPC event stream, state parsing, KDL config writer, claim, binds merge.
 Docs: compositor/niri-backend.md
-Extra: scripts/claim_niri.sh scripts/merge_niri_binds.py scripts/niri_config.py scripts/niri_kdl.py
+Extra: backend/internal/compositor/takeover/kinds.go backend/internal/compositor/binds/niri.go backend/internal/compositor/userconf/niri.go backend/internal/compositor/kdl/kdl.go
 Checks:
 - The event stream recovers when niri restarts or the socket drops; state rebuilt, not patched.
 - KDL is written and parsed by one module, round-trips the user's own nodes untouched, and is never loaded into the live session from a test.
@@ -48,11 +48,11 @@ Seams: CompositorManager.
 Scope: the three backends compared: same contract, same semantics, same edge cases.
 Mode: parity
 Docs: compositor/contract.md compositor/sway-backend.md compositor/niri-backend.md hyprland/config-modes.md hyprland/bind-merge.md
-Extra: services/HyprlandManager.qml services/SwayManager.qml services/NiriManager.qml services/HyprlandConfigWriter.qml services/SwayConfigWriter.qml services/NiriConfigWriter.qml services/HyprlandRuntimeLayer.qml services/SwayRuntimeLayer.qml scripts/claim_*.sh scripts/merge_*_binds.py
+Extra: services/HyprlandManager.qml services/SwayManager.qml services/NiriManager.qml backend/internal/compositor/
 Checks:
 - Build a table: each contract member and `supports` key × backend. Every cell is implemented the same way, or the difference is a declared `supports` key, or it's a finding.
 - Same inputs → same outputs: workspace numbering and naming, focus order, output names and scale, window shapes (class/app id, title, workspace, floating, fullscreen).
-- Writers: same settings produce the equivalent config in each; claim and merge scripts share behaviour through `bind_merge_common.py` rather than three copies.
+- Writers: same settings produce the equivalent config in each; the takeover and the merge share behaviour (`takeover.Kind`, `compositor/actions`) rather than three copies.
 - Runtime layers: same layer rules applied, same reaction to fullscreen.
 Seams: everything gated on `supports`.
 
@@ -123,7 +123,7 @@ Seams: bar widgets' `popoutMenu`, popouts.
 ## config
 Scope: config loading, readers, schema and annotations, migrations, drafts and previews, the settings page, saved configs, i18n.
 Docs: core/config-manager.md core/config-readers.md core/schema-annotations.md core/editors-pattern.md core/settings-page.md core/saved-configs-sharing.md core/i18n.md
-Extra: components/methods/ConfigMigration.qml components/methods/LibraryOrder.qml
+Extra: backend/internal/migrate/steps/steps.go components/methods/LibraryOrder.qml
 Checks:
 - Readers have no `??` default fallbacks (only `previews.X ?? config.X`), read only owners and each other.
 - No write path except `ConfigManager`/`SettingsManager`; an invalid file never replaces the running config.
@@ -179,7 +179,7 @@ Scope: translucency and compositor blur: blur regions, backing windows, openings
 Mode: parity
 Docs: theming/translucency-blur.md theming/blur-window-openings.md popouts/shadows.md
 Checks:
-- One rule table (`CompositorLayer.surfaceBlur`) rendered by each backend; no backend-specific list kept by hand.
+- One rule table (`render.SurfaceBlur`) rendered by each backend; no backend-specific list kept by hand.
 - Every self-blurring surface sends its region where `supports.blurRegion`, and its shape matches what's drawn (radii, joins, cut-outs).
 - Pausing for fullscreen and translucency off both stop blur on every backend.
 Seams: every translucent surface.

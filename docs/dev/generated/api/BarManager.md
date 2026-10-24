@@ -3,17 +3,18 @@
 
 > **File:** `services/BarManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-BarManager holds the bar editor's working copy of the Bars config. Edits show live on the running bars (through ConfigManager.previews) as they're made; saveChanges() writes them to config.json, resetChanges() drops them. The preview is never part of ConfigManager.config, so other saves (a theme, the settings page) don't persist unsaved bar edits. Also keeps the page's own state (selected bar and widget), since the page is unloaded whenever the overlay closes, and, while the page is on screen, what the running bars report back about the selected bar. And the running bars themselves (`bars`), laid out with Hyprland's gaps (Bar.enrichBarConfig), with what they leave on each screen edge: which bar is there, where windows start, where surfaces held off it measure from.
+BarManager holds the bar editor's working copy of the Bars section (its `style`, every bar's look unless a bar sets its own, and the bars, `items`). Edits show live on the running bars (through ConfigManager.previews) as they're made; saveChanges() writes them to config.json, resetChanges() drops them. The preview is never part of ConfigManager.config, so other saves (a theme, the settings page) don't persist unsaved bar edits. Also keeps the page's own state (selected bar and widget), since the page is unloaded whenever the overlay closes, and, while the page is on screen, what the running bars report back about the selected bar. And the running bars themselves (`bars`), laid out with Hyprland's gaps (Bar.enrichBarConfig), with what they leave on each screen edge: which bar is there, where windows start, where surfaces held off it measure from.
 
 ### Properties
 
-- `localConfig` (readonly alias)
-- `savedConfig` (readonly alias)
+- `localConfig` (readonly var): The bars (Bars.items) in the draft, and as saved
+- `savedConfig` (readonly var)
+- `localStyle` (readonly var): The style every bar inherits (Bars.style) in the draft
 - `isDirty` (readonly alias)
 - `selectedBarIndex` (int)
 - `selectedWidget` (var): The widget open in the inspector: { zone, index }, zone "" for none
 - `lastZone` (string): The section last selected or added to, where the library adds
-- `styleGroups` (readonly var): A bar's look: the fields in its look groups (`x-group`), not its identity, placement, behaviour or widgets
+- `styleGroups` (readonly var): A bar's look: its `style`, and its fields in the look groups (`x-group`), not its identity, placement, behaviour or widgets
 - `styleKeys` (readonly var)
 - `copiedStyle` (var): The style copied with copyStyle(): { index, values }, or null.
 - `editing` (readonly bool)
@@ -42,6 +43,9 @@ BarManager holds the bar editor's working copy of the Bars config. Edits show li
 - `pasteStyleToAll()`
 - `removeBar(index)`
 - `updateBarField(key, value)`
+- `ownsStyle(index, keys)`: Whether the bar at `index` sets any of `keys` itself
+- `setStyleOwned(keys, owned)`: Gives the selected bar its own `keys`, starting from what it inherits, or (`owned` false) hands them back to the shared style
+- `updateStyleField(key, value, part)`: One key of the selected bar's own style (`part` of its shadow)
 - `selectWidget(zone, index)`
 - `clearSelection()`
 - `selectedWidgetConfig()`

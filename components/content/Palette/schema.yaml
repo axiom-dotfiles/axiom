@@ -1,0 +1,6 @@
+label: Palette
+link: {page: Themes}
+icon: palette
+group: Look & layout
+defaultSize: [8, 4]
+hosts: [lockscreen, greeter]

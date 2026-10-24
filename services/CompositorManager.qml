@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.config
 import qs.components.methods
@@ -47,7 +46,7 @@ Singleton {
     const forced = Quickshell.env("AXIOM_COMPOSITOR") ?? "";
     if (forced !== "")
       return forced === "none" ? "" : forced;
-    const env = ["HYPRLAND_INSTANCE_SIGNATURE", "SWAYSOCK", "NIRI_SOCKET", "XDG_RUNTIME_DIR"].reduce((all, name) => {
+    const env = CompositorKind.envNames.reduce((all, name) => {
       all[name] = Quickshell.env(name) ?? "";
       return all;
     }, {});
@@ -697,9 +696,9 @@ Singleton {
 
   Component.onCompleted: _appliedLayout = _currentLayout()
 
-  // `qs -c axiom ipc call workspaces …`, for workspace keybinds. mode:
+  // `axiom ipc workspaces …`, for workspace keybinds. mode:
   // "go", "move" (take the focused window along) or "moveSilent"
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "workspaces"
 
     function go(id: string): void {

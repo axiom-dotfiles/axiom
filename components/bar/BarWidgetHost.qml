@@ -2,10 +2,11 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
 import qs.components.methods
-// Imported (though modules load by URL) so qs scans the modules directory:
-// without it, types there (e.g. BarIconWidget) aren't visible to each other
-import qs.components.bar.widgets // qmllint disable unused-imports
 import qs.components.reusable
+// Imported (though widgets load by URL) so qs scans what they import and
+// the folders whose files see each other (scripts/check_structure.py)
+import qs.components.bar.widgets.base // qmllint disable unused-imports
+import qs.components.bar.widgets.Workspaces // qmllint disable unused-imports
 import qs.components.hosts.popout
 
 // Hosts one bar module and turns its sizing contract into the numbers the

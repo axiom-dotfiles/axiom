@@ -1,0 +1,9 @@
+# The MonitorProfile definition (#/definitions/MonitorProfile).
+
+type: object
+additionalProperties: false
+properties:
+  id: {$ref: '#/definitions/ItemId'}
+  name: {type: string, default: ''}
+  outputs: {type: array, default: [], items: {$ref: '#/definitions/MonitorRule'}}
+required: [id]

@@ -24,6 +24,8 @@ python3 "$root/scripts/qml_modules.py" --pure "$tree"
 rm -rf "$root/tests/.out"
 mkdir -p "$root/tests/.out"
 
+# -maxwarnings 0: scripts/dev/fixtures.py records through the log, past
+# qmltestrunner's default cap of 2000 messages a test.
 # qmltestrunner takes one -input (a later one replaces it), so named tests
 # run one at a time
 inputs=()
@@ -36,7 +38,7 @@ fi
 status=0
 for input in "${inputs[@]}"; do
   QML_XHR_ALLOW_FILE_READ=1 QML_XHR_ALLOW_FILE_WRITE=1 QT_QPA_PLATFORM=offscreen \
-    "$qt_bin/qmltestrunner" -import "$tree" -input "$input" || status=$?
+    "$qt_bin/qmltestrunner" -maxwarnings 0 -import "$tree" -input "$input" || status=$?
 done
 
 shopt -s nullglob

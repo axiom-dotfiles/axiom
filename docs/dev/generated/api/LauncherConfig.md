@@ -7,7 +7,7 @@ Reader for the Launcher section (the search launcher). Named LauncherConfig beca
 
 ### Properties
 
-- `monitors` (readonly string): "general" | "primary" | "focused" | "all" (see General.screensFor)
+- `screen` (readonly var): The ScreenTarget it opens on (see General.screensFor)
 - `edge` (readonly int): Placed as docks and OSDs are: a Bar.Location, its centre's position along it (0-1), and whether it floats off the edge (a FloatingPopout, `distance` 0-0.5 across the free screen: 0.5 centres it) or g…
 - `position` (readonly real)
 - `detached` (readonly bool)
@@ -22,7 +22,7 @@ Reader for the Launcher section (the search launcher). Named LauncherConfig beca
 - `showRecent` (readonly bool)
 - `showHint` (readonly bool)
 - `hiddenApps` (readonly var): Desktop entry ids never listed
-- `windows` (readonly bool): Providers
+- `windows` (readonly bool)
 - `calculator` (readonly bool)
 - `commands` (readonly bool)
 - `runCommands` (readonly bool)

@@ -5,7 +5,7 @@ import qs.config
 
 // Weather for one location from Open-Meteo (no API key). Location comes
 // from latitude/longitude, else `location` (geocoded), else the machine's
-// IP. Refreshes every `intervalMinutes` while `active`; a failed refresh
+// IP. Refreshes every `interval` (ms) while `active`; a failed refresh
 // keeps the last good data. Not a singleton: WeatherManager owns the one
 // for the Weather settings.
 QtObject {
@@ -17,7 +17,7 @@ QtObject {
   property string location: ""
   // "celsius" | "fahrenheit"
   property string units: "celsius"
-  property int intervalMinutes: 30
+  property int interval: 1800000
   // Off while no widget wants weather: keeps its data, never fetches
   property bool active: true
 
@@ -216,7 +216,7 @@ QtObject {
   }
 
   property Timer _refreshTimer: Timer {
-    interval: Math.max(1, root.intervalMinutes) * 60000
+    interval: Math.max(60000, root.interval)
     running: root.active
     repeat: true
     triggeredOnStart: true

@@ -3,7 +3,7 @@
 
 > **File:** `config/Widget.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the Widget section: sizing for panels, cards, popouts and controls, and the card size every module grid starts from. Bars size their own widgets (Bar.enrichBarConfig).
+Reader for the Interface section (named Widget, as every size outside the bars is Widget.<size>): sizing for panels, cards, popouts and controls, and the card size every module grid starts from. Bars size their own widgets (Bar.enrichBarConfig).
 
 ### Properties
 
@@ -17,7 +17,7 @@ Reader for the Widget section: sizing for panels, cards, popouts and controls, a
 - `iconButton` (readonly int): Side of a square icon button (FlatIconButton)
 - `smallHeight` (readonly int): Height of chips, pills and small buttons (keybind chips, a notification's actions)
 - `smallPadding` (readonly int): Inner margins of rows, fields and dropdowns
-- `radius` (readonly int): Corners of what sits inside something (cards, controls, rows, bar widgets); outer edges use Appearance.borderRadius
+- `radius` (readonly int): Corners of what sits inside something (cards, controls, rows, bar widgets); outer edges use Appearance.borderRadius (null: the main radius, Appearance's: x-inherit)
 
 ### Functions
 

@@ -1,6 +1,6 @@
 # Notes
 
-> **Files:** `services/NotesManager.qml`, `config/NotesConfig.qml`, `components/content/Notes.qml`, `components/content/parts/notes/NoteEditor.qml`, `components/content/parts/notes/NoteBlock.qml`, `components/content/parts/notes/NoteBrowser.qml`, `components/methods/NoteMarkdown.qml`
+> **Files:** `services/NotesManager.qml`, `config/NotesConfig.qml`, `components/content/Notes/Notes.qml`, `components/content/parts/notes/NoteEditor.qml`, `components/content/parts/notes/NoteBlock.qml`, `components/content/parts/notes/NoteBrowser.qml`, `components/methods/NoteMarkdown.qml`
 > **Config:** `Notes.*` (reader `NotesConfig`)
 > **Related:** [Launcher](launcher.md), [Edge menus](../edge-menus/overview.md), [Writing modules](../overlay/writing-modules.md)
 
@@ -71,4 +71,3 @@ Notes are Markdown files edited in place by the Notes overlay / edge-menu module
 
 ### Lifecycle
 - Created from `shell.qml`'s `_services`.
-- At startup it moves old `note-<name>.json` state files (`Paths.statePath`) to `<name>.md`, keeping `*.json.migrated`.

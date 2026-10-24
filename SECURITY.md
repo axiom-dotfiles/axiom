@@ -19,10 +19,11 @@ Anything that gets past or weakens a boundary axiom is responsible for:
 - **Polkit agent:** granting an action that wasn't authenticated, or showing a prompt that misleads about what's being authorized.
 - **Secrets:** chat API keys or calendar passwords ending up anywhere other than the keyring (config.json, logs, a process's arguments), or pinned clips written somewhere they shouldn't be.
 - **Running commands:** a theme, config, imported setup, wallpaper or file name that gets a command run, or a file written outside axiom's own folders.
-- **Self-update and the installer:** anything that installs code other than the release it says it does.
+- **The `axiom` binary and its socket:** another user (or a program that isn't the shell axiom runs) changing the config, reaching the shell's IPC, or reporting the lock through it; a file axiom writes (the config, the compositor's config, the runtime files) ending up somewhere else or readable by others.
+- **Self-update, the installer and releases:** anything that installs code other than the release it says it does, including a release binary that doesn't match its `SHA256SUMS`.
 
 Report problems in Quickshell, Qt, PAM, greetd or the compositor to those projects. If axiom uses one of them in a way that makes the problem worse, report that here too.
 
 ## Supported versions
 
-Fixes go into the latest release. Self-update (**Settings → Updates**) brings a clone up to date. A distribution package gets the fix once its packager updates it.
+Fixes go into the latest release. Self-update (**Settings → Maintenance → axiom updates**) brings a clone up to date, the `axiom` binary included. A distribution package gets the fix once its packager updates it.

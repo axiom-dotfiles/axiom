@@ -1,0 +1,24 @@
+label: Timer & stopwatch
+icon: timer_play
+group: Tools
+popout:
+  variant: own
+  enabled: {description: 'The timer and stopwatch, to set and start, when hovered.'}
+settings:
+  hideWhenIdle:
+    type: boolean
+    title: Hide when stopped
+    default: false
+    description: Show only while the timer or stopwatch runs or is paused (start one from the launcher's /timer or /stopwatch, or a module).
+  timerColor: {$ref: '#/definitions/WidgetColor', title: Timer color}
+  stopwatchColor: {$ref: '#/definitions/WidgetColor', title: Stopwatch color, x-autoColor: alt}
+  idleColor: {$ref: '#/definitions/WidgetColor', title: Stopped color, x-autoColor: 'off'}
+  foregroundColor:
+    type: string
+    title: Text color
+    x-options: colors
+    default: base00
+    x-showIf:
+      $bar.widgetStyle: filled
+      $bar.widgetGrouping: {not: merged}
+      $bar.widgetTextColor: ''

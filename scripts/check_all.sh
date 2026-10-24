@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Every check CI runs (.github/workflows/checks.yml), in the same order
 # (the generated docs are rebuilt here, only checked in CI).
-# Needs Qt 6's tools, shellcheck, luac and jq; the theme and calendar script
+# Needs Qt 6's tools, go, shellcheck, luac and jq; the theme and calendar script
 # tests also want python's numpy, Pillow and icalendar (skipped without).
 #
 #   scripts/check_all.sh             everything
@@ -23,6 +23,8 @@ step() {
   "$@" || failed+=("$name")
 }
 
+# The generated files the checks read (the schema, the shared fixtures)
+step "generated files" scripts/generate.sh --fixtures
 step "structure" python3 scripts/check_structure.py
 step "sizes" python3 scripts/check_sizes.py
 # Rebuilt rather than checked: locally they follow your edits (the pre-commit
@@ -32,7 +34,9 @@ step "docs" python3 scripts/check_docs.py
 step "package lists" python3 scripts/check_packages.py
 step "qmlformat" scripts/check_qmlformat.sh
 step "qmllint" python3 scripts/check_qmllint.py
+step "shared fixtures" python3 scripts/dev/fixtures.py check
 step "unit tests" scripts/run_tests.sh
+step "go" scripts/check_go.sh
 step "shellcheck" shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh scripts/greeter/*.sh scripts/dev/*.sh .githooks/pre-commit
 step "script tests" python3 tests/scripts/test_scripts.py
 step "guard tests" python3 tests/scripts/test_guard.py

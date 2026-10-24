@@ -3,7 +3,7 @@
 
 > **File:** `config/KeybindsConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the Keybinds section: axiom's own binds, edited on the Keybinds page (KeybindManager) and applied by the compositor's config writer (on Hyprland, HyprlandConfigWriter)
+Reader for the Keybinds section: axiom's own binds, edited on the Keybinds page (KeybindManager) and applied by the compositor's config writer (the daemon's)
 
 ### Properties
 

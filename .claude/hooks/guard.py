@@ -22,10 +22,8 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent.parent
 HOME = Path(os.path.expanduser("~")).resolve()
-# The live config.json (DataDirs.xdg), and where an install from before the
-# XDG folders kept it (still read until it's moved over, and on a rollback)
+# The live config.json (DataDirs.xdg)
 LIVE_CONFIG = Path(os.environ.get("XDG_CONFIG_HOME") or HOME / ".config").resolve() / "axiom/config.json"
-LEGACY_CONFIG = REPO / "config/user/config.json"
 SCHEMA = REPO / "config/json/config.schema.json"
 SEPARATORS = {";", "&&", "||", "|", "&", "\n", "|&"}
 WRAPPERS = {"sudo", "env", "nohup", "exec", "command", "time", "timeout", "setsid"}
@@ -98,7 +96,7 @@ def simple(tokens, exported):
     if Path(argv[0]).name in SHELLS and command_flag is not None:
         inner = argv[command_flag + 1]
         return [(dict(env, **e), a) for e, a in split_commands(inner)]
-    # A script run through a shell (`bash scripts/claim_sway.sh …`): judge the script
+    # A script run through a shell (`bash scripts/self_update.sh …`): judge the script
     if Path(argv[0]).name in SHELLS:
         rest = argv[1:]
         while rest and rest[0].startswith("-"):
@@ -145,6 +143,81 @@ def scratch(value):
     return real != HOME and real != HOME / ".config" and real != Path("/")
 
 
+# What `axiom` runs against: the live display's daemon unless the command
+# names a scratch socket, runtime dir or config dir
+AXIOM_VALUE_OPTS = {"--socket", "--config-dir", "--tree", "--qs", "-o", "--kind"}
+LIVE_RUNTIME = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+
+
+def axiom_flag(args, flag):
+    for i, a in enumerate(args):
+        if a == flag and i + 1 < len(args):
+            return args[i + 1]
+        if a.startswith(flag + "="):
+            return a.split("=", 1)[1]
+    return ""
+
+
+def axiom_live_display(env, args):
+    """Whether an axiom command reaches the live session's daemon."""
+    socket = axiom_flag(args, "--socket") or env.get("AXIOM_SOCKET", "")
+    if socket:
+        return not scratch(socket) or resolve(socket, "/").is_relative_to(Path(LIVE_RUNTIME))
+    runtime = env.get("XDG_RUNTIME_DIR", "")
+    return not runtime or resolve(runtime, "/") == Path(LIVE_RUNTIME)
+
+
+def axiom_words(args):
+    """The subcommand words of an axiom command line, flags left out."""
+    words, skip = [], False
+    for a in args:
+        if skip:
+            skip = False
+            continue
+        if a in AXIOM_VALUE_OPTS:
+            skip = True
+            continue
+        if not a.startswith("-"):
+            words.append(a)
+    return words
+
+
+def check_axiom(env, args, cwd):
+    words = axiom_words(args)
+    if not words:
+        return
+    live = axiom_live_display(env, args)
+    sub = words[0]
+    if live and sub in {"run", "quit", "restart"}:
+        deny("Running / reloading", f"`axiom {sub}` starts or stops the live shell; never from this session (test with a scratch XDG_RUNTIME_DIR, or nested.sh).")
+    if live and sub == "daemon" and words[1:2] and words[1] in {"stop", "restart", "reexec"}:
+        deny("Running / reloading", f"`axiom daemon {words[1]}` stops or replaces the live daemon; never from this session.")
+    if live and sub == "dev" and words[1:2] and words[1] in {"on", "off", "rebuild"}:
+        deny("Running / reloading", f"`axiom dev {words[1]}` switches dev mode or re-execs the live daemon; ask the user (`axiom dev status` reads it).")
+    if live and (sub == "lock" or sub == "ipc" and words[1:2] == ["lockscreen"]):
+        deny("Never, while testing", "don't lock the session; only the user can type the password (lock a scratch instance: XDG_RUNTIME_DIR=<scratch>).")
+    if live and sub == "ipc" and words[1:3] in (["monitors", "keep"], ["selfUpdate", "update"]):
+        deny("Never, while testing", f"`{' '.join(words[1:3])}` changes the live system; ask the user.")
+    if sub == "greeter":
+        gdir = axiom_flag(args, "--dir") or env.get("AXIOM_GREETER_DIR", "")
+        installed = gdir and "$" not in gdir and resolve(gdir, "/") == Path("/var/lib/axiom-greeter")
+        shown = env.get("AXIOM_GREETER_WINDOWED") == "1" or "--no-shell" in args
+        if not shown or not scratch(gdir) or installed:
+            deny("Never, while testing", "run the greeter only windowed on a scratch folder: AXIOM_GREETER_WINDOWED=1 AXIOM_COMPOSITOR=none axiom greeter --dir <scratch> (or --no-shell).")
+    # A compositor claim (managed mode) on the live config, or moving binds
+    # out of its files (the bind merge's remove)
+    if sub == "compositor" and words[1:2] and words[1] in {"claim", "release"} and words[2:3]:
+        if live_config_path(words[2], cwd, env):
+            deny("Never, while testing", f"`axiom compositor {words[1]}` only on a scratch dir, never the live compositor config.")
+    if sub == "compositor" and words[1:3] == ["binds", "remove"] and words[3:4]:
+        if live_config_path(words[3], cwd, env):
+            deny("Never, while testing", "`axiom compositor binds remove` only on a scratch dir, never the live compositor config.")
+    if sub == "config" and "--takeover" in args:
+        config_dir = axiom_flag(args, "--config-dir") or env.get("XDG_CONFIG_HOME", "")
+        if not scratch(config_dir) or live:
+            deny("Never, while testing", "`--takeover` changes a setting that takes something over on this PC (compositor mode, locker, idle, polkit, greeter); ask the user.")
+
+
 def gh_api_opens_issue(args):
     """`gh api` creating an issue: GraphQL's createIssue, or a POST to a repo's
     issues (gh posts when given a field, -f/-F/--input, unless told GET)."""
@@ -179,6 +252,10 @@ def check_argv(env, argv, cwd):
     if name in QS:
         check_qs(env, args)
 
+    # The axiom binary: it is the shell's parent and its command line
+    if name == "axiom":
+        check_axiom(env, args, cwd)
+
     # Opening a GitHub issue: problems go in docs/dev/issues.md
     if name == "gh" and (args[:2] == ["issue", "create"] or args[:1] == ["api"] and gh_api_opens_issue(args[1:])):
         deny("Never, while testing", "don't open GitHub issues; record the problem in docs/dev/issues.md and tell the user.")
@@ -192,21 +269,6 @@ def check_argv(env, argv, cwd):
     if name == "greeter_install.sh" and args and args[0] in {"install", "update", "uninstall"}:
         if not scratch(env.get("AXIOM_GREETER_ROOT", "")):
             deny("Never, while testing", "greeter_install.sh install/update/uninstall only with a scratch AXIOM_GREETER_ROOT=<dir>.")
-
-    # A compositor claim (managed mode) on the live config: Hyprland's, sway's
-    if re.fullmatch(r"claim_\w+\.sh", name) and len(args) >= 2 and args[0] in {"claim", "release"}:
-        if live_config_path(args[1], cwd, env):
-            deny("Never, while testing", f"{name} claim/release only on a scratch dir, never the live compositor config.")
-
-    # Moving binds out of the live compositor config's files (managed mode's
-    # bind merge): Hyprland's, sway's. Run directly or through python
-    merge = argv if re.fullmatch(r"merge_\w+_binds\.py", name) else None
-    if merge is None and name.startswith("python"):
-        at = next((i for i, a in enumerate(args) if re.fullmatch(r"merge_\w+_binds\.py", Path(a).name)), None)
-        merge = args[at:] if at is not None else None
-    if merge and len(merge) >= 3 and merge[1] == "remove":
-        if live_config_path(merge[2], cwd, env):
-            deny("Never, while testing", f"{Path(merge[0]).name} remove only on a scratch dir, never the live compositor config.")
 
     # Ending, reconfiguring or swapping the config of the niri session
     # itself: only a nested niri (NIRI_SOCKET aimed at another one than the
@@ -237,12 +299,10 @@ def check_argv(env, argv, cwd):
             paths = paths[:-1]  # the sources
         for a in paths:
             target = resolve(a, cwd)
-            # The file, or a folder holding it up to its config folder (the repo for the old one)
-            for config, top in ((LIVE_CONFIG, LIVE_CONFIG.parent), (LEGACY_CONFIG, REPO)):
-                if target == config or target in config.parents and (target == top or top in target.parents):
-                    deny("Never, while testing", f"don't delete or move the real config.json ({config}); use `ipc call onboarding goTo <n>`.")
-    if name == "git" and args[:1] == ["clean"] and any(re.fullmatch(r"-[a-zA-Z]*[xX][a-zA-Z]*", a) for a in args[1:]):
-        deny("Never, while testing", "git clean -x/-X deletes the gitignored config/user/ and config/state/ (an install's data before it moves to the XDG folders).")
+            # The file, or a folder holding it up to its config folder
+            top = LIVE_CONFIG.parent
+            if target == LIVE_CONFIG or target in LIVE_CONFIG.parents and (target == top or top in target.parents):
+                deny("Never, while testing", f"don't delete or move the real config.json ({LIVE_CONFIG}); use `ipc call onboarding goTo <n>`.")
 
     # qmlformat -i replaces the inode
     if name == "qmlformat" and any(a in {"-i", "--inplace"} for a in args):
@@ -285,7 +345,7 @@ def check_qs(env, args):
     if sub is None:
         if greeter:
             return
-        deny("Running / reloading", "the shell runs detached; never start another from this session (the windowed greeter: AXIOM_GREETER=1 AXIOM_GREETER_WINDOWED=1 qs -p \"$PWD/greeter.qml\").")
+        deny("Running / reloading", "the shell runs detached; never start another from this session (the windowed greeter: AXIOM_GREETER_WINDOWED=1 axiom greeter --dir <scratch>).")
 
 
 # ---------------------------------------------------- Edit/Write config.json
@@ -315,7 +375,7 @@ def value_at(config, path):
 
 def check_config_edit(tool, tool_input):
     path = tool_input.get("file_path", "")
-    if not path or Path(path).resolve() not in {LIVE_CONFIG, LEGACY_CONFIG}:
+    if not path or Path(path).resolve() != LIVE_CONFIG:
         return
     try:
         before_text = Path(path).resolve().read_text()
@@ -336,6 +396,38 @@ def check_config_edit(tool, tool_input):
             deny("Never, while testing", f"`{'.'.join(path)}` takes something over on this PC (x-takeover: compositor mode, locker, idle, polkit, greeter). Ask the user before changing it in the live config.")
 
 
+# ------------------------------------------- Edit/Write generated or frozen
+
+# Files built from a source (edit the source) and frozen ones (never edit)
+GENERATED = {
+    REPO / "config/json/config.schema.json": "it's built from config/schema/ (edit the YAML there; scripts/generate.sh rebuilds it)",
+}
+# Generated directories (scripts/generate.sh), never committed
+GENERATED_DIRS = {
+    REPO / "backend/internal/assets/data": "the binary's embedded copies (go generate writes them from the repo files)",
+    REPO / "tests/fixtures/shared": "the shared fixtures, recorded from SchemaValidation.qml (scripts/dev/fixtures.py record)",
+    REPO / "backend/internal/migrate/legacy/testdata": "the format-1 migration's frozen cases, recorded from the shell before its copy was removed",
+}
+FROZEN = {
+    REPO / "backend/internal/migrate/legacy/legacy.js": "the format-1 migrations are frozen (docs/recipes/migration.md)",
+    REPO / "backend/internal/migrate/legacy/schema-v75.json": "the format-1 schema is frozen with its migrations (docs/recipes/migration.md)",
+}
+
+
+def check_generated_edit(tool_input):
+    path = tool_input.get("file_path", "")
+    if not path:
+        return
+    resolved = Path(path).resolve()
+    if resolved in GENERATED:
+        deny("Checks", f"`{resolved.relative_to(REPO)}` is generated: {GENERATED[resolved]}.")
+    if resolved in FROZEN:
+        deny("Checks", f"`{resolved.relative_to(REPO)}` is frozen: {FROZEN[resolved]}.")
+    for generated, why in GENERATED_DIRS.items():
+        if resolved.is_relative_to(generated):
+            deny("Checks", f"`{resolved.relative_to(REPO)}` is generated: {why}.")
+
+
 # ------------------------------------------------------------------ main
 
 def check(call):
@@ -344,6 +436,7 @@ def check(call):
         for env, argv in split_commands(tool_input.get("command", "")):
             check_argv(env, argv, call.get("cwd") or str(REPO))
     elif tool in {"Edit", "Write"}:
+        check_generated_edit(tool_input)
         check_config_edit(tool, tool_input)
 
 

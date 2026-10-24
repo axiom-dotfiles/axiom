@@ -144,7 +144,7 @@ OnboardingPage {
 
     SettingRows {
       Layout.fillWidth: true
-      paths: ["Input.keyboard", "Input.kbLayout", "Input.kbVariant"]
+      paths: ["Input.keyboard.enabled", "Input.keyboard.layout", "Input.keyboard.variant"]
     }
 
     StyledText {
@@ -157,7 +157,7 @@ OnboardingPage {
     SettingRows {
       Layout.fillWidth: true
       visible: BatteryManager.isAvailable
-      paths: ["Input.touchpad", "Input.naturalScroll", "Input.tapToClick"]
+      paths: ["Input.touchpad.enabled", "Input.touchpad.naturalScroll", "Input.touchpad.tapToClick"]
     }
   }
 

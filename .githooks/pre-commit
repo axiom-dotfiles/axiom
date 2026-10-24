@@ -8,6 +8,9 @@
 #     from, config/i18n/template/language.json
 #   - the theme template, config/themes/template/theme.json
 #     (scripts/gen_theme_template.py)
+# The config schema they're made from, config/json/config.schema.json, is
+# built from config/schema/ in the snapshot (`axiom schema build`, through go
+# run) and never committed (scripts/generate.sh builds it in the tree).
 # Enabled per clone with
 #   git config core.hooksPath .githooks
 set -euo pipefail
@@ -17,8 +20,9 @@ cd "$root"
 
 staged="$(git diff --cached --name-only --diff-filter=ACMRD)"
 docs=0 i18n=0 theme=0
-grep -qE '\.qml$|^config/json/config\.schema\.json$|^scripts/(gen_docs|qml_modules)\.py$' <<<"$staged" && docs=1
-grep -qE '\.qml$|^config/json/config\.schema\.json$|^scripts/check_i18n\.py$|^config/i18n/' <<<"$staged" && i18n=1
+grep -qE '^config/schema/|^backend/internal/schema/' <<<"$staged" && docs=1 && i18n=1
+grep -qE '\.qml$|^scripts/(gen_docs|qml_modules)\.py$' <<<"$staged" && docs=1
+grep -qE '\.qml$|^scripts/check_i18n\.py$|^config/i18n/' <<<"$staged" && i18n=1
 grep -qE '^config/json/theme-defaults\.json$|^scripts/gen_theme_template\.py$|^config/themes/template/' <<<"$staged" && theme=1
 [[ $docs -eq 1 || $i18n -eq 1 || $theme -eq 1 ]] || exit 0
 
@@ -33,6 +37,15 @@ place() {
   mv "$1.tmp" "$1"
   git add "$1"
 }
+
+# The schema first: the docs and translations are made from it
+if [[ $docs -eq 1 || $i18n -eq 1 ]]; then
+  if ! command -v go >/dev/null; then
+    echo "pre-commit: go isn't installed to build the config schema the docs and translations are made from" >&2
+    exit 1
+  fi
+  (cd "$tmp/backend" && go generate ./internal/assets && go run ./cmd/axiom schema build --tree "$tmp" >/dev/null)
+fi
 
 if [[ $docs -eq 1 ]]; then
   if [[ ! -f "$tmp/scripts/gen_docs.py" ]]; then

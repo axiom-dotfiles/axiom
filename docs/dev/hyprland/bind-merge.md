@@ -1,6 +1,6 @@
 # Merging user binds (managed mode)
 
-> **Files:** `services/UserBindMerge.qml`, `services/HyprlandConfigWriter.qml`, `services/CompositorConfigManager.qml` (`mergeUserBinds`, `previewMerge`), `scripts/merge_hypr_binds.py`, `scripts/hypr_binds.lua`, `components/methods/BindKeys.qml`
+> **Files:** `backend/internal/compositor/binds/`, `backend/internal/compositor/manager/hypr.go`, `services/CompositorConfigManager.qml` (`mergeUserBinds`, `previewMerge`), `backend/internal/compositor/actions/`, `components/methods/BindKeys.qml`, `components/methods/BindActions.qml`
 > **Config:** `Keybinds.binds`
 > **Related:** [Managed takeover](managed-takeover.md), [Keybinds](keybinds.md), [Config modes](config-modes.md)
 
@@ -12,16 +12,23 @@
   - While there are binds to move, the button shows in place of "Remove binds your Hyprland config also has".
 - A claim merges only the adopted file's binds, through `mergeUserBinds(name)` (`extract --only`) ([Managed takeover](managed-takeover.md)).
 
-### Extracting (`merge_hypr_binds.py extract`)
-- It runs the files through `scripts/hypr_binds.lua` with plain `lua` (which Hyprland depends on).
+### Where it runs
+- The merge is the binary's (`backend/internal/compositor/binds`, every compositor's `extract` and `remove` with the same JSON, documented in its package comment). The daemon runs it (managed mode: the adopted file on a takeover, all of `user/` on the Keybinds page's Merge, `compositor.merge` / `compositor.previewMerge`); `axiom compositor binds extract|remove --kind K DIR [SITES]` runs it from the command line.
+- What a command calling axiom (`axiom ipc …`, `axiom lock`, `axiom restart`) or a volume, brightness or media command maps onto comes from `compositor/actions`, which reads `BindActions.qml`'s `ipcActions` and `actionFlags` from the tree, so a new IPC action needs no Go change.
+
+### Extracting
+- It runs the files under gopher-lua (Lua 5.1), with no `lua` binary.
+  - The daemon runs them in a child (`axiom compositor binds extract --memory-limit`, its own image through `/proc/self/exe`) that caps itself at 1 GiB (`RLIMIT_DATA`, `binds.MemoryLimit`): gopher-lua has no heap limit, and a file building a huge string allocates it in one instruction, so only the kernel can refuse it, and then only the child dies, never the daemon (the shell's parent). The merge then fails with what happened, and nothing moves.
+  - In any process, `string.rep` refuses a result over 16 MiB and the call stack is bounded.
   - Each file is required as `user.<name>` against a stand-in `hl` that records `hl.bind`/`hl.unbind` with their file and line.
   - Because the files really run, variables, string building and loops work.
   - Limits:
-    - `io.popen` reads empty
-    - `io.open` only reads
-    - `print` goes to stderr
+    - `io.popen` reads empty, `io.open` only reads, `os.execute`, `os.remove` and `os.rename` do nothing, and there's no `debug` library (`require("io")` and `package.loaded.io` are the stand-in too)
+    - `print` goes nowhere
     - a stand-in value lists as empty
-    - submap and `hl.on` handlers aren't seen.
+    - submap and `hl.on` handlers aren't seen
+    - the run stops after 30 s (a file that never ends), and nothing moves.
+  - A file using Lua 5.4's syntax (`//`, `goto`, `<const>`, bitwise operators) doesn't parse under 5.1: it's one of the `errors`, and its binds stay. `table.unpack`, `table.pack` and `math.type` are there.
 - Each dispatcher is mapped onto an action:
   - `exec_cmd` of wpctl/pactl/brightnessctl/playerctl → the media actions
   - the example config's exit command → `exitSession`
@@ -29,7 +36,7 @@
   - focus/move/float/pseudo/togglesplit/special/drag → their own actions
   - anything else → the `raw` action (`compositor: hyprland`), with the dispatcher as written.
 - Hyprland's example config maps completely.
-- **Remapped keys.** Binds from an adopted `00-previous*.lua` on keys axiom's defaults use are moved (`EXAMPLE_KEYS`) and reported in `remapped`. A key in the user's other files was their own choice, so it isn't moved.
+- **Remapped keys.** Binds from an adopted `00-previous*.lua` on keys axiom's defaults use are moved (`exampleKeys`) and reported in `remapped`. A key in the user's other files was their own choice, so it isn't moved.
   - togglesplit: `SUPER + J` (focus down) → `SUPER + X`
   - the special workspace: `SUPER + S` / `SUPER + SHIFT + S` (WASD's down) → `SUPER + V` / `SUPER + SHIFT + V`
   - float: `SUPER + V` → axiom's `SUPER + Z`.
@@ -42,15 +49,17 @@
   - any variable it's kept in must be unused.
 
 ### Committing and removing
-1. The binds are committed first (`SettingsManager.commitValues`). `bindsMerged` lets KeybindManager add them to a dirty draft.
+1. The daemon saves the binds first (`Keybinds.binds`, through the store; refused while the config is read-only, `saveFailed`). The `compositor.bindsMerged` push lets KeybindManager add them to a dirty draft.
 2. `remove` then deletes those calls, plus any `hl.unbind` of a moved key (it would unbind the moved bind too).
    - It first writes a dated `<file>.axiom-backup-<date>` copy, keeping the file's mode.
-   - It leaves a file alone if `luac -p` rejects the result.
+   - It leaves a file alone if the result doesn't parse (`luacheck`: `luac -p` where it's installed, else gopher-lua).
+   - A file it can't read, back up or write is failed (`io`) and the others go on, so what was deleted is always known.
 3. Whatever it couldn't delete (`failed`, per file or per call) is taken back out.
    - The binds are committed again as `mergeBinds(before, binds from the sites that went)`, so no key is bound twice.
    - Only the binds that went are sent to `bindsMerged`.
 
 ### Duplicates and results
+- Moved binds get ids as they're saved (`manager.withIDs`, the same rule as `BindKeys.withIds`: from the key, `super-y`), as the schema requires one.
 - A key axiom already binds stays one bind. `BindKeys.mergeBinds` puts the moved bind in place of axiom's, because the user's config loads after axiom's layer and so was the one in effect. A paused bind holds no key, so it's never the one replaced: a preset's bind put after it on that key is. It does the same in a draft with unsaved edits.
-- Reasons are codes (listed in the script's docstring), translated by `BindEditor.reasonText`. `tracked` names files that are in a git repository.
+- Reasons are codes (listed in the `binds` package comment), translated by `BindEditor.reasonText`. `tracked` names files that are in a git repository.
 - `lastMerge` shows above the bind list. Its fields are `moved`, `removed`, `kept` (with reasons), `failed`, `remapped`, `tracked`, `errors` and `saveFailed`.

@@ -45,7 +45,7 @@ ColumnLayout {
       elide: Text.ElideRight
     }
     FlatIconButton {
-      visible: !root.readOnly && CalendarConfig.writableCalendars.length > 0
+      visible: !root.readOnly && CalendarManager.writableCalendars.length > 0
       size: Math.round(Appearance.fontSize * 1.8)
       iconText: "add"
       iconColor: Theme.accent

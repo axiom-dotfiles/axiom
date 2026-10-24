@@ -3,7 +3,7 @@
 
 > **File:** `services/EdgeMenuManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Which edge menus (EdgeMenusConfig) are open and which are pinned. The menus themselves (shell/EdgeMenus) follow this and report back when they close on their own. Kept across QML reloads, so a reload doesn't close an integrated menu and reflow the windows. Pins are also saved to $XDG_STATE_HOME/axiom/ui/edgemenus.json, and a pinned menu opens again when qs starts. Also the layouts editor's working copy of EdgeMenus (the pinned Layouts overlay page), as BarManager is the bar editor's: edits show live on the running menus (ConfigManager.previews) until saved or reset, and `previewing` holds one menu open to try them on. qs -c axiom ipc call edgeMenu toggle <id>
+Which edge menus (EdgeMenusConfig) are open and which are pinned. The menus themselves (shell/EdgeMenus) follow this and report back when they close on their own. Kept across QML reloads, so a reload doesn't close an integrated menu and reflow the windows. Pins are also saved to $XDG_STATE_HOME/axiom/ui/edgemenus.json, and a pinned menu opens again when qs starts. Also the layouts editor's working copy of EdgeMenus (the pinned Layouts overlay page), as BarManager is the bar editor's: edits show live on the running menus (ConfigManager.previews) until saved or reset, and `previewing` holds one menu open to try them on. axiom ipc edgeMenu toggle <id>
 
 ### Properties
 
@@ -75,7 +75,7 @@ Which edge menus (EdgeMenusConfig) are open and which are pinned. The menus them
 - `duplicateMenu(index)`
 - `moveMenu(from, to)`: The selected menu stays selected wherever it ends up
 - `removeMenu(index)`
-- `updateMenuField(key, value)`: One of the selected menu's own fields (not its columns)
+- `updateMenuField(key, value)`: One of the selected menu's own fields (not its columns), by key or dotted path into its groups ("open.onHover", "layout.grid.fine")
 - `references(id)`: What opens menu `id` besides hovering its edge: bar Buttons and widgets opening it as their popout (in the bar editor's draft) and keybinds (in the keybind editor's). [{ kind: "bar" | "bind" | "subme…
 - `goToReference(ref)`: Goes to where a reference is: the bar editor on its widget, the keybind editor on its bind (as links: the navigator offers the way back), or the menu holding the Submenu module
 - `isSaved(menu)`: Whether `menu` is saved under its id: bar buttons and keybinds are saved by other editors, so they may only point at a saved menu

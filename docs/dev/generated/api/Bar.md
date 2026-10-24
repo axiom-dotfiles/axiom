@@ -10,10 +10,10 @@ Reader for the Bars section and the bar look helpers: derived layout values (enr
 - `sectionNames` (readonly var): The bar's sections, start to end
 - `autoColorFields` (readonly var): Each widget type's Auto color fields: { type: { key: role } }
 - `boxedStyles` (readonly var): The widget styles that draw each widget on a box of its own: only they have shapes and grouping
-- `lookGroups` (readonly var): A bar's look groups (its override flag and the fields it covers, the flag's `x-group` in the Bar definition): each is the BarStyle section's unless the bar overrides it reads: Bars[].overrideWidgetSt…
-- `savedBars` (readonly var): The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings
+- `savedBars` (readonly var): The bars as saved (Bars.items): no previews, unexpanded
 - `widgetLayoutSchema` (readonly var): A widget's `layout` overrides (size, minSize, priority), for the bar editor's inspector
-- `fieldGroups` (readonly var): A bar's own fields in groups (`x-group`), for the bar editor
+- `fieldGroups` (readonly var): A bar's own fields in groups (`x-group`), for the bar editor (its style is edited apart: styleGroups)
+- `styleGroups` (readonly var): The BarStyle fields in groups, for the bar editor's style (a bar's, inheriting, or the Bars section's)
 - `availableWidgetTypes` (readonly var)
 
 ### Functions
@@ -32,10 +32,10 @@ Reader for the Bars section and the bar look helpers: derived layout values (enr
 - `reserveTrim(barConfig, gapsOut)`: How much less than its extent a bar reserves, given Hyprland's gaps_out on its edge.
 - `detachedPush(barConfig, gapsOut, connectorGap)`: How much further than half a connector gap past a transparent bar's inner edge a box detached from it (a bar popout, a floating edge menu) sits, so it starts in line with the windows: at the bar's in…
 - `reservedZone(barConfig, gapsOut)`: The exclusive zone a bar sets (BarPanel), given Hyprland's gaps_out on its edge.
-- `lookOf(barConfig)`: A bar entry with its look filled from BarStyle where it doesn't override it
+- `lookOf(barConfig, section)`: A bar's look: its `style` (a BarStyle) with every key it leaves null (inherit) taken from the Bars section's (`section`, BarStyle.values when left out), its shadow as flat shadow / shadowColor / shad…
 - `lookContext(barConfig)`: The look a bar's widgets draw in, as `$bar.<key>` for their options' `x-showIf`: lookOf's BarStyle keys, with grouping only for boxed styles (as enrichBarConfig)
-- `expandBars(bars)`: A bar on every monitor (`monitor: "*"`) becomes one entry per screen, each with its own id (keying its BarPanel) and that screen as its monitor.
+- `expandBars(bars)`: Each bar as one entry per screen it's on (its `screen`, a ScreenTarget): the primary monitor, every monitor, or those named (the primary monitor when none of them is connected).
 - `edgeName(location)`: A Bar.Location as the edge names zones and Hyprland use: "top" | "bottom" | "left" | "right"
 - `locationOf(name)`: The Bar.Location an edge name stands for (edgeName's inverse)
 - `oppositeOf(location)`: The edge across the screen from a Bar.Location
-- `getLocationFromString(locStr)`
+- `getLocationFromString(locStr)`: The Bar.Location of an edge in config ("top" | "bottom" | "left" | "right"), Top for anything else

@@ -1,7 +1,7 @@
 # Managed takeover (claim and release)
 
-> **Files:** `scripts/claim_hyprland.sh`, `services/ConfigTakeover.qml`, `services/HyprlandConfigWriter.qml`, `services/CompositorConfigManager.qml`, `components/methods/HyprConfigLua.qml`, `tests/scripts/test_scripts.py`
-> **Config:** `Compositor.mode` (`managed`), `Hyprland.managed`
+> **Files:** `backend/internal/compositor/takeover/`, `backend/internal/compositor/luacheck/`, `backend/internal/daemon/compositor.go`, `backend/internal/compositor/manager/hypr.go`, `services/CompositorConfigManager.qml`, `backend/internal/compositor/render/hyprconfig.go`
+> **Config:** `Compositor.mode` (`managed`), `Compositor.hyprland`
 > **Related:** [Config modes](config-modes.md), [Bind merge](bind-merge.md), [Onboarding](../features/onboarding.md)
 
 How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how leaving it gives the file back (`release`).
@@ -15,9 +15,11 @@ How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how l
 - On this machine, `user/` is a symlink to `~/repos/dotfiles/hypr/user`.
 
 ### `check` and `claim`
-- `scripts/claim_hyprland.sh` has two entry points:
+- Every verb holds the config dir's lock (`edit.LockDir`: `flock` on the dir itself, no file added; 10 s of waiting, then an error), as does the bind merge's removal, so the daemon and a command line never interleave. The daemon holds it across a claim and the managed write after it (`Options.Locked`), and rewrites the managed config later only while it's still axiom's.
+- The takeover is the binary's (`backend/internal/compositor/takeover`, the same on every compositor: `Kind` holds what differs). The daemon runs it as it applies the managed mode (`compositor.checkManaged` asks for the check), and `axiom compositor check|claim|release --kind hyprland -- DIR HEADER [FALLBACK]` runs it from the command line. Its verbs:
   - `check`, used by `checkManaged()`
-  - `claim`, which does the takeover.
+  - `claim`, which does the takeover
+  - `release` (below).
 - **Refusals.** It refuses a symlinked or git-tracked dir:
   - the codes are `blocked:link` and `blocked:git:<repo>`
   - `managedCheck` is then `blocked`
@@ -29,22 +31,23 @@ How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how l
   - `claim` only backs a stock file up (`replaced`) instead of adopting it into `user/`, since its binds and `hl.monitor` rule would fight axiom's.
 - **Results.** `claim` prints one of:
   - `adopted:<name>`: the file is copied to `user/00-previous.lua`, or to `00-previous-<date>.lua` when that's taken.
-    - Lines in it that start axiom (not a bind calling its IPC, which the bind merge reads), or that `dofile` its included module, are commented out, unless `luac -p` then rejects the file.
+    - Lines in it that start axiom (not a bind calling its IPC, which the bind merge reads), or that `dofile` its included module, are commented out, unless the file then no longer parses (`luacheck`: `luac -p` where it's installed, else gopher-lua). gopher-lua parses Lua 5.1 only: for a file it can't read (5.4's syntax), the edit is made when each line it changes holds whole statements (`luacheck.WholeLines`: outside any string or comment, its brackets and blocks closed on it), which 5.4's additions don't change. No `lua` package is needed.
     - Those lines are commented out because a second start without `-n` would be a second shell, and the include would bind everything twice.
   - `created`: there was no file.
 - **Released files.** A file that `release` wrote (`releasedLua()`, unedited apart from the include lines) is reported as `released` by `check`. It is only replaced, not kept.
 - **Writing.** `claim` leaves hyprland.lua in place, for the managed write to replace atomically. Hyprland reloads when the file changes, and must never find it missing.
-- **Re-claiming.** Claiming the same file again reuses its copies.
+- **Re-claiming.** Claiming the same file again before the managed write came reuses its copies (making the edits to the adopted copy again, which change nothing twice), but only as the claim's record (`.axiom-claimed`) names them: a config released unchanged has the newest backup's bytes too, and is copied anew.
+- **The record.** Each claim notes what it set aside in `.axiom-claimed` beside the config (`previous=`, `backup=`), so release gives back that, never an older claim's dated backup still lying there. A claim from before records gets the newest of each.
 - **Binds.** Only the adopted file's binds are merged straight away (`mergeUserBinds(name)`, `extract --only`), so managed mode starts with no conflicts. The rest of `user/` waits for the Merge button ([Bind merge](bind-merge.md)).
 
 ### Release
-- Leaving managed runs `claim_hyprland.sh release`. hyprland.lua goes back to what `claim` set aside:
-  - the newest adopted `user/00-previous*.lua`, with its commented-out lines that start or load axiom enabled again
+- Leaving managed runs the takeover's `release`. hyprland.lua goes back to what `claim` set aside (as its record names it):
+  - the adopted `user/00-previous*.lua`, with its commented-out lines that start or load axiom enabled again
   - else the example config's backup.
 - It prints `restored:<from>:<n>`, with a warning when `<n>` files in `user/` are no longer loaded.
-- With nothing set aside it writes `releasedLua()`. That file starts axiom, loads the module in included mode, and loads `user/*.lua` as the managed file does (`HyprConfigLua.userFilesLua()`).
+- With nothing set aside it writes `releasedLua()`. That file starts axiom, loads the module in included mode, and loads `user/*.lua` as the managed file does (`render.userFilesLua()`).
 - A symlinked or git-tracked file is refused, as `claim` refuses it.
 
 ### Testing
 - Never switch the real config into or out of `managed`.
-- Test the script on scratch dirs, as `tests/scripts/test_scripts.py` does.
+- Test the takeover on scratch dirs, as `backend/internal/compositor/takeover/takeover_test.go` does (`axiom compositor claim|release` on a live config dir is refused by the guard).

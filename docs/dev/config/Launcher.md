@@ -9,13 +9,14 @@ Launcher: The search launcher: apps, open windows, a calculator, web search, run
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
 
+### Parts
+
+- [`Launcher.screen`](Launcher.screen.md)
+- [`Launcher.providers`](Launcher.providers.md)
+
 ### `Launcher`
 
-- **`Launcher.monitors`** · string = "general" · enum general|primary|focused|all
-  - Monitors: Where the launcher opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
-  - x-link={"setting":"General.monitors"}, x-scope="look"
-  - read: `LauncherConfig.monitors` · in: `components/surfaces/launcher/Launcher.qml`, `services/LauncherCommands.qml`, `shell/AppLauncher.qml`
-- **`Launcher.edge`** · string = "Top" · enum Top|Bottom|Left|Right
+- **`Launcher.edge`** · string = "top" · enum top|bottom|left|right
   - Screen edge: Screen edge the launcher opens from, or is held off when detached.
   - x-scope="look"
   - read: `LauncherConfig.edge` (computed) · in: `components/surfaces/launcher/Launcher.qml`
@@ -71,57 +72,13 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Hidden apps: Desktop entry ids never shown, comma-separated (e.g. avahi-discover, qv4l2).
   - x-group="Launcher search"
   - read: `LauncherConfig.hiddenApps` · in: `services/LauncherManager.qml`
-- **`Launcher.windows`** · boolean = true
-  - Open windows: Also match open windows by title and class; picking one focuses it.
-  - x-group="Launcher search"
-  - read: `LauncherConfig.windows` · in: `services/LauncherManager.qml`
-- **`Launcher.calculator`** · boolean = true
-  - Calculator: Show the result of math as you type it (or after =), using qalc. Enter copies the result.
-  - x-group="Launcher search"
-  - read: `LauncherConfig.calculator` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`
-- **`Launcher.commands`** · boolean = true
-  - Shell commands (/): Type / for commands that control the shell: themes, volume, wifi, bluetooth, overlay pages, session and more.
-  - x-group="Launcher search"
-  - read: `LauncherConfig.commands` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherManager.qml`
-- **`Launcher.runCommands`** · boolean = true
-  - Run commands (>): Type > and a command to run it. Shift+Enter runs it in the terminal.
-  - x-group="Launcher search"
-  - read: `LauncherConfig.runCommands` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`
-- **`Launcher.webSearch`** · boolean = true
-  - Web search (?): Offer a web search for what you typed, last in the list (or first after ?).
-  - x-group="Launcher search"
-  - read: `LauncherConfig.webSearch` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`
-- **`Launcher.searchEngine`** · string = "https://duckduckgo.com/?q={}"
-  - Search engine URL: {} is replaced by the search terms.
-  - x-group="Launcher search", x-showIf={"webSearch":true}
-  - read: `LauncherConfig.searchEngine` · in: `services/LauncherManager.qml`
-- **`Launcher.chat`** · boolean = true
-  - Ask chat (@): Type @ and a question to ask it in the overlay's Chat module, with the default preset.
-  - x-link={"setting":"Chat"}, x-group="Launcher search"
-  - read: `LauncherConfig.chat` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherManager.qml`
-- **`Launcher.clipboard`** · boolean = true
-  - Clipboard history (:): Type : (or /clipboard) to search what you've copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don't; turning it off clears the history.
-  - x-group="Launcher search"
-  - read: `LauncherConfig.clipboard` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/ClipboardManager.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`
-- **`Launcher.clipboardSource`** · string = "axiom" · enum axiom|cliphist
-  - Clipboard history source: axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).
-  - x-scope="machine", x-group="Launcher search", x-showIf={"clipboard":true}
-  - read: `LauncherConfig.clipboardSource` · in: `services/ClipboardManager.qml`
-- **`Launcher.clipboardMaxEntries`** · integer = 100 · 10–1000
-  - Clipboard history size: How many clips axiom keeps.
-  - x-group="Launcher search", x-showIf={"clipboard":true,"clipboardSource":"axiom"}
-  - read: `LauncherConfig.clipboardMaxEntries` · in: `services/ClipboardManager.qml`
-- **`Launcher.emoji`** · boolean = true
-  - Emoji (;): Type ; (or /emoji) to search emoji by name or keyword; Enter copies one. With wtype installed, Shift+Enter also types it into the focused window.
-  - x-group="Launcher search"
-  - read: `LauncherConfig.emoji` · in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`
 
 ### Reader members
 
 Every public member of `LauncherConfig`, with the files that use it.
 
-- `LauncherConfig.monitors` (string): "general" | "primary" | "focused" | "all" (see General.screensFor)
-  - in: `components/surfaces/launcher/Launcher.qml`, `services/LauncherCommands.qml`, `shell/AppLauncher.qml`
+- `LauncherConfig.screen` (var): The ScreenTarget it opens on (see General.screensFor)
+  - in: `components/surfaces/launcher/Launcher.qml`, `shell/AppLauncher.qml`
 - `LauncherConfig.edge` (int): Placed as docks and OSDs are: a Bar.Location, its centre's position along it (0-1), and whether it floats off the edge (a FloatingPopout, `distance` 0-0.5 acro…
   - in: `components/surfaces/launcher/Launcher.qml`
 - `LauncherConfig.position` (real)
@@ -150,7 +107,7 @@ Every public member of `LauncherConfig`, with the files that use it.
   - in: `components/surfaces/launcher/LauncherPanel.qml`
 - `LauncherConfig.hiddenApps` (var): Desktop entry ids never listed
   - in: `services/LauncherManager.qml`
-- `LauncherConfig.windows` (bool): Providers
+- `LauncherConfig.windows` (bool)
   - in: `services/LauncherManager.qml`
 - `LauncherConfig.calculator` (bool)
   - in: `components/surfaces/launcher/LauncherPanel.qml`, `services/LauncherCommands.qml`, `services/LauncherManager.qml`

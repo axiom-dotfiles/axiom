@@ -6,13 +6,14 @@
 
 Everything is configured from inside the shell (see [Features](features.md)). Open the overlay, and use the **Settings**, **Bar editor**, **Layouts**, **Keybinds**, **Monitors** and **Themes** pages. Any single setting can also be set from the launcher: `/config Appearance.font.size 14`.
 
-- Settings are saved to `~/.config/axiom/config.json`. You never need to open it, but the shell watches that file and reloads when it changes, so editing it by hand also works.
-- Configs from older versions are migrated automatically.
-- `config/json/config.schema.json` defines every option and its default. It also generates the Settings page.
+- Settings are saved to `~/.config/axiom/config.json`. The `axiom` binary owns that file: it checks every change against the schema and writes it atomically. You never need to open it, but axiom notices when the file changes, so editing it by hand also works.
+- From a terminal or a script, `axiom config` reads and changes it while axiom runs, and the shell shows the change at once: `axiom config get Appearance.font`, `axiom config set Appearance.font.size 14`, `axiom config reset Appearance.font.size`. `axiom config validate` checks a file without changing anything, and `axiom config path` shows where everything is.
+- Configs from older versions are migrated automatically. A config from before the current format is converted once and the original kept beside it as `config.format1.json`.
+- The schema defines every option and its default, and generates the Settings page. Its source is YAML under `config/schema/` (one file per section and definition), built into `config/json/config.schema.json`.
 - Chat API keys are entered in **Settings → Modules → Chat** and stored in your keyring (or `$XDG_STATE_HOME/axiom/secrets.json`, mode 600, without one). A provider's environment variable (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`) wins over a stored key. Conversations are saved in `$XDG_STATE_HOME/axiom/chats/`.
 
 > [!IMPORTANT]
-> An invalid `config.json` never replaces the running config. The shell keeps the last good one and refuses to save until the file is fixed.
+> An invalid `config.json` never replaces the running config. axiom keeps the last good one and refuses to save until the file is fixed. `axiom config status` says what's wrong with it; restoring a saved config also fixes it.
 
 ### Where axiom keeps your files
 
@@ -27,9 +28,6 @@ axiom never writes inside its own folder (`~/.config/quickshell/axiom`). What it
 | Chats, notification history, secrets without a keyring, and the files axiom generates for your compositor, hypridle and themed apps | `~/.local/state/axiom/` |
 
 To back up your setup or keep it in a dotfiles repo, `~/.config/axiom/` is the folder to keep (`~/.local/share/axiom/notes/` too, if your notes live there).
-
-> [!NOTE]
-> Versions up to v1.1.10 kept the config in `config/user/` and the UI state and notes in `config/state/`, inside axiom's folder. The first start of a newer version copies them over by itself, then leaves `config/user/MOVED.md` listing where each went. The old folders are kept so an older version still runs. Once you're happy, they can be deleted. If you backed up or linked `config/user/`, switch to `~/.config/axiom/`.
 
 ### Saved configurations
 
@@ -88,6 +86,18 @@ scripts/log.sh -f       # follow
 ```
 
 A clean reload prints only `Reloading configuration...` and `Configuration Loaded`.
+
+The shell runs under `axiom run`, its parent process, which has a log of its own:
+
+```bash
+axiom ping              # is axiom running on this display, and which binary
+axiom daemon status     # the daemon, the shell it runs, and whether the config loads
+axiom daemon logs       # the daemon's log: config loads and saves, crashes, restarts
+axiom restart           # restart the shell (the daemon keeps running)
+```
+
+- **A notice saying axiom isn't running the shell:** the shell was started directly with `qs`. Start it with `axiom run` instead, and use that in your compositor's start-up line.
+- **A notice that the files and the binary are from different versions:** the `axiom` binary is older or newer than the shell's files, so axiom runs read-only and doesn't save settings. Rebuild the binary from the same clone (`scripts/generate.sh && go -C backend build -o ~/.local/bin/axiom ./cmd/axiom`), then `axiom daemon reexec`.
 
 Reporting a bug? Include the output of `scripts/bug_info.sh` (your versions, compositor, distribution and config mode) along with the log. Both scripts are in axiom's folder: `~/.config/quickshell/axiom` for a clone, `/usr/share/axiom` for a package.
 

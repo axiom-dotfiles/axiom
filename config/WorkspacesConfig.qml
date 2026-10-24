@@ -36,9 +36,9 @@ QtObject {
   readonly property int boardRows: Math.ceil(size / boardColumns)
 
   // Strips (Hyprland's scrolling layout), per monitor: [{ monitor, direction }]
-  // with an empty monitor resolved to the primary one, "*" for every
-  // monitor a named entry doesn't cover, and only a monitor's first entry
-  // kept. direction: "horizontal" | "vertical". The scrolling layout makes
+  // from each strip's ScreenTarget: the primary monitor's name, "*" for
+  // every monitor a named entry doesn't cover, or each one named; only a
+  // monitor's first entry kept. direction: "horizontal" | "vertical". The scrolling layout makes
   // every monitor a horizontal strip, whatever the list holds (it's kept
   // for switching back).
   readonly property var strips: scrolling ? [
@@ -46,10 +46,14 @@ QtObject {
       "monitor": "*",
       "direction": "horizontal"
     }
-  ] : _c.strips.map(strip => ({
-        "monitor": strip.monitor || General.primaryMonitor,
-        "direction": strip.direction
-      })).filter((strip, i, all) => all.findIndex(other => other.monitor === strip.monitor) === i)
+  ] : [].concat(..._c.strips.map(strip => {
+    const mode = strip.screen.mode;
+    const monitors = mode === "all" ? ["*"] : mode === "named" ? strip.screen.names : [General.primaryMonitor];
+    return monitors.map(monitor => ({
+          "monitor": monitor,
+          "direction": strip.direction
+        }));
+  })).filter((strip, i, all) => all.findIndex(other => other.monitor === strip.monitor) === i)
   readonly property bool hasStrips: strips.length > 0
   // The strips and their settings as a string, for CompositorConfigManager's
   // change check

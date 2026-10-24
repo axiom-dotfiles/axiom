@@ -555,7 +555,7 @@ QtObject {
     });
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "screenshot"
 
     function take(kind: string): void {
@@ -567,7 +567,7 @@ QtObject {
     }
   }
 
-  property IpcHandler _recordIpc: IpcHandler {
+  property IpcTarget _recordIpc: IpcTarget {
     target: "screenRecord"
 
     function toggle(): void {

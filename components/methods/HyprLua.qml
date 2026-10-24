@@ -1,18 +1,21 @@
 pragma Singleton
 import QtQuick
 
-// Hyprland's Lua config from schema fields: each field with `x-hypr` (the
-// option's dotted path, or a list of paths) becomes one value of a nested
-// hl.config({...}) table.
-//   x-hyprScale   a factor for integers shown scaled (0.01 for a percent)
-//   x-hyprValue   how the value is converted: "int" (a boolean as 0/1),
-//                 "number" (an enum of numbers written as strings),
-//                 "emptyIsDefault" ("default" → ""), "color" (a theme color
-//                 name as rgba(hex + x-hyprAlpha, "ff" unless given))
-//   x-hyprAlways  written even when it's the schema default; other fields
-//                 are only written once changed, so Hyprland's own default
-//                 (and the user's files) stay in charge otherwise
-//   x-hyprIf      a boolean sibling: written (default or not) only when on
+// Hyprland's Lua from schema fields, for what the shell sends Hyprland
+// itself (the layer rules, monitor calls, the greeter's config; axiom's
+// config layer is the daemon's: internal/compositor/render): each field with
+// x-compositor.hyprland (CompositorLayer.compositorFields) becomes one value
+// of a nested hl.config({...}) table, by its spec:
+//   key     the option's dotted path, or a list of paths
+//   scale   a factor for integers shown scaled (0.01 for a percent)
+//   value   how the value is converted: "int" (a boolean as 0/1),
+//           "number" (an enum of numbers written as strings),
+//           "emptyIsDefault" ("default" → ""), "color" (a theme color
+//           name as rgba(hex + alpha, "ff" unless given))
+//   always  written even when it's the schema default; other fields are
+//           only written once changed, so Hyprland's own default (and the
+//           user's files) stay in charge otherwise
+//   if      a switch beside it: written (default or not) only when on
 QtObject {
   id: root
 
@@ -30,10 +33,10 @@ QtObject {
     return String(v);
   }
 
-  function _convert(fieldSchema, v, resolveHex) {
-    if (fieldSchema["x-hyprScale"] !== undefined)
-      return v * fieldSchema["x-hyprScale"];
-    switch (fieldSchema["x-hyprValue"]) {
+  function _convert(spec, v, resolveHex) {
+    if (spec.scale !== undefined)
+      return v * spec.scale;
+    switch (spec.value) {
     case "int":
       return v ? 1 : 0;
     case "number":
@@ -41,7 +44,7 @@ QtObject {
     case "emptyIsDefault":
       return v === "default" ? "" : v;
     case "color":
-      return `rgba(${resolveHex(v)}${fieldSchema["x-hyprAlpha"] ?? "ff"})`;
+      return `rgba(${resolveHex(v)}${spec.alpha ?? "ff"})`;
     }
     return v;
   }
@@ -62,18 +65,13 @@ QtObject {
   // paths to values that win over the fields (axiom's shape, say).
   function configTable(objectSchema, values, resolveHex, overrides) {
     const table = {};
-    const props = objectSchema?.properties ?? {};
-    for (const key in props) {
-      const fieldSchema = props[key];
-      const target = fieldSchema["x-hypr"];
-      if (!target || values[key] === undefined)
+    for (const field of CompositorLayer.compositorFields(objectSchema, values, "hyprland", "")) {
+      const spec = field.spec;
+      if (field.on !== null ? !field.on : !spec.always && field.value === field.schema.default)
         continue;
-      const condition = fieldSchema["x-hyprIf"];
-      if (condition ? !values[condition] : !fieldSchema["x-hyprAlways"] && values[key] === fieldSchema.default)
-        continue;
-      const v = _convert(fieldSchema, values[key], resolveHex);
+      const v = _convert(spec, field.value, resolveHex);
       // A schema list reaches QML as a list object, not a JS Array
-      const paths = typeof target === "string" ? [target] : Array.prototype.slice.call(target);
+      const paths = typeof spec.key === "string" ? [spec.key] : Array.prototype.slice.call(spec.key);
       for (const path of paths)
         _set(table, path, v);
     }
@@ -103,82 +101,6 @@ QtObject {
     return `{\n${keys.map(key => `${pad}  ${entry(key)},`).join("\n")}\n${pad}}`;
   }
 
-  // --- The window look (WindowLook) ---
-
-  /**
-   * Hyprland's shadow standing in for axiom's own (a soft one: MultiEffect's
-   * blur; CompositorLayer.look's shadow, its baseAlpha axiom's and its
-   * strength the user's) as { range, power, alpha }. Hyprland's falls off
-   * differently, and its alpha isn't the strength it shows: a dark color
-   * darkens about in proportion, but a light one over a dark background
-   * shows several times stronger than its alpha says. Fitted on screen
-   * against axiom's glow and shadow (size 20, alpha 0.45 and 1, a dark
-   * theme, Hyprland 0.56; within ~0.01 of axiom's from 3px out): the reach
-   * 1.2 × axiom's size, power 4, and the alpha axiom's × 0.3 for black down
-   * to × 0.018 for a light color (relative luminance 0.45, c4a7e7),
-   * geometric in between.
-   */
-  function softShadow(shadow) {
-    const luminance = CompositorLayer.luminance(shadow.rgb);
-    const factor = Math.max(0.01, 0.3 * Math.pow(0.018 / 0.3, luminance / 0.45));
-    return {
-      "range": Math.round(shadow.size * 1.2),
-      "power": 4,
-      // Strength scales what's fitted, which then has room to grow
-      "alpha": Math.min(1, shadow.baseAlpha * factor * (shadow.strength ?? 1))
-    };
-  }
-
-  /**
-   * The look's parts that are on (`look`: CompositorLayer.look()), as the
-   * lines of one hl.config(), or []: the borders, the shape, gaps, shadows,
-   * dimming, and the blur and window opacity (`lookSchema`'s fields with
-   * `x-hyprIf` on those parts). Hyprland's blur stays on while axiom's
-   * surfaces blur (which they can't with it off); with windows not blurring
-   * a rule then keeps them unblurred.
-   */
-  function lookLua(look, lookSchema) {
-    const overrides = {};
-    if (look.blur) {
-      overrides["decoration.blur.enabled"] = look.blur.windows || look.blur.surfaces;
-      if (!look.blur.windows)
-        overrides["decoration.blur.popups"] = false;
-    }
-    const table = configTable(lookSchema, look.values, null, overrides);
-    if (look.borders)
-      _set(table, "general.col", {
-        "active_border": `rgb(${look.borders.active})`,
-        "inactive_border": `rgb(${look.borders.inactive})`
-      });
-    if (look.shape) {
-      _set(table, "general.border_size", look.shape.width);
-      _set(table, "decoration.rounding", look.shape.radius);
-    }
-    if (look.gaps) {
-      _set(table, "general.gaps_in", look.gaps.inner);
-      _set(table, "general.gaps_out", look.gaps.outer);
-    }
-    if (look.shadow) {
-      const soft = look.shadow.soft && look.shadow.rgb !== "" ? softShadow(look.shadow) : null;
-      _set(table, "decoration.shadow.enabled", true);
-      _set(table, "decoration.shadow.range", soft ? soft.range : look.shadow.size);
-      _set(table, "decoration.shadow.render_power", soft ? soft.power : look.shadow.power);
-      _set(table, "decoration.shadow.offset", [0, look.shadow.offset]);
-      if (look.shadow.rgb !== "")
-        _set(table, "decoration.shadow.color", `rgba(${look.shadow.rgb}${CompositorLayer.alphaHex(soft ? soft.alpha : look.shadow.alpha)})`);
-    }
-    if (look.dim) {
-      _set(table, "decoration.dim_inactive", true);
-      _set(table, "decoration.dim_strength", look.dim.strength / 100);
-    }
-    const lines = Object.keys(table).length > 0 ? `hl.config(${serialize(table)})`.split("\n") : [];
-    // Redefined (on or off) while the blur part is on; turning the part off
-    // reloads Hyprland, which drops it
-    if (look.blur)
-      lines.push(`hl.window_rule({ name = "axiom-no-window-blur", match = { class = ".*" }, no_blur = true, enabled = ${!look.blur.windows && look.blur.surfaces} })`);
-    return lines;
-  }
-
   // --- Layer stacking (LayerStack.layers) ---
 
   // A named layer rule per LayerStack.layers entry (re-adding one replaces
@@ -190,93 +112,6 @@ QtObject {
       const effects = (l.noAnim ? ", no_anim = true" : "") + (l.order !== undefined ? `, order = ${l.order}` : "");
       return `hl.layer_rule({ name = ${name}, match = { namespace = ${string("^axiom-" + l.namespace + "$")} }${effects} })`;
     });
-  }
-
-  // --- Blur behind axiom's surfaces (Appearance.blur) ---
-
-  // Layer rules can't set the blur's strength (Hyprland's one blur does, for
-  // windows too: the window look's blur part, or the user's own), only
-  // whether a layer blurs and which of its pixels count: ignore_alpha
-  // leaves out those under the threshold (shadows, dims, mid-fade), which
-  // the big transparent windows (the blur window, the overlay) need.
-  // The chrome (the border, bars and their popouts, edge popouts and
-  // menus, docks) doesn't blur itself: the blur window (BlurManager,
-  // shell/BlurBacking) draws its fills and is blurred in their place. The
-  // rest blur themselves, their popups too. What blurs is
-  // CompositorLayer.surfaceBlur's, shared with SwayFX and niri; Hyprland
-  // blurs a layer's popups whether or not the layer blurs, so the chrome's
-  // (a submenu drawn transparent over the blur window) are left to
-  // ignore_alpha.
-
-  function _blurRule(name, namespaces, effects, enabled) {
-    return `hl.layer_rule({ name = ${string(name)}, match = { namespace = ${string(`^axiom-(${namespaces.join("|")})$`)} }, ${effects}, enabled = ${enabled} })`;
-  }
-
-  /**
-   * Lua lines for the blur behind axiom's surfaces: named layer rules,
-   * always written, `enabled` or not, since a rule is taken back by
-   * redefining it (no reload). `surfaces`: { blur, threshold,
-   * throughWindows (xray off), backdrops } (CompositorConfigManager.spec).
-   * xray is always written where it's decided: left out, a layer takes
-   * decoration.blur.xray, which the window look turns on. Nothing blurs
-   * while Hyprland's blur is off.
-   * A rule read as a surface maps (no_anim) applies from the next one.
-   */
-  function blurLua(surfaces) {
-    return CompositorLayer.surfaceBlur(surfaces).map(rule => {
-      const effects = [];
-      if (rule.blur)
-        effects.push("blur = true");
-      if (rule.popups)
-        effects.push("blur_popups = true");
-      if (rule.threshold !== null)
-        effects.push(`ignore_alpha = ${value(rule.threshold)}`);
-      if (rule.xray !== null)
-        effects.push(`xray = ${rule.xray}`);
-      if (rule.noAnim)
-        effects.push("no_anim = true");
-      return _blurRule(rule.name, rule.namespaces, effects.join(", "), rule.on);
-    });
-  }
-
-  // --- Strips (Workspaces.strips, WorkspacesConfig.strips) ---
-
-  readonly property var _stripDirections: ({
-      "horizontal": "right",
-      "vertical": "down"
-    })
-
-  // Lua lines for the strips (Hyprland's scrolling layout): `strips` is
-  // [{ monitor, direction }] with monitors resolved ("*" = every monitor).
-  // Every monitor makes scrolling, in its direction, the layout everywhere;
-  // a named monitor gets a workspace rule (m[name]) that wins over it. The
-  // Workspaces schema's `x-hypr` strip settings come with them (`values`).
-  // Nothing without strips.
-  function stripsLua(strips, workspacesSchema, values) {
-    if (strips.length === 0)
-      return [];
-    const table = configTable(workspacesSchema, values);
-    const every = strips.find(strip => strip.monitor === "*");
-    if (every) {
-      _set(table, "general.layout", "scrolling");
-      _set(table, "scrolling.direction", _stripDirections[every.direction]);
-    }
-    const lines = Object.keys(table).length > 0 ? [`hl.config(${serialize(table)})`] : [];
-    for (const strip of strips) {
-      if (strip.monitor !== "*")
-        lines.push(`hl.workspace_rule({ workspace = ${string(`m[${strip.monitor}]`)}, layout = "scrolling", layout_opts = { direction = ${string(_stripDirections[strip.direction])} } })`);
-    }
-    return lines;
-  }
-
-  // The runtime (detached) form of stripsLua's `lines`: applied once per
-  // Hyprland config load, since workspace rules add up rather than
-  // replace. `key` names what they are (in AXIOM_STRIPS, Hyprland's Lua
-  // state, which a reload resets and a shell reload keeps); different
-  // strips can't be taken back, so they reload Hyprland, which applies the
-  // new ones over the user's config alone.
-  function stripsRuntimeLua(lines, key) {
-    return [`if AXIOM_STRIPS == nil then`].concat(lines.map(line => "  " + line), [`  AXIOM_STRIPS = ${string(key)}`, `elseif AXIOM_STRIPS ~= ${string(key)} then`, `  hl.dispatch(hl.dsp.exec_cmd("hyprctl reload"))`, `end`]);
   }
 
   // --- Monitors (Monitors.profiles, MonitorLayout) ---
@@ -422,14 +257,6 @@ end`);
     return lines;
   }
 
-  // The input's parts that are on (`input`: CompositorLayer.input()) as
-  // one hl.config(), or []: `inputSchema`'s fields, each gated by x-hyprIf
-  // on its part. The cursor theme isn't an option (HyprlandManager.setCursor)
-  function inputLua(input, inputSchema) {
-    const table = configTable(inputSchema, input.values, null, {});
-    return Object.keys(table).length > 0 ? `hl.config(${serialize(table)})`.split("\n") : [];
-  }
-
   // The greeter's Hyprland, from its bundle (GreeterBundle): the monitor
   // layouts (monitorsLua), and the Input options marked x-greeter whose
   // parts are on (`inputSchema`: Input's schema; any other option in
@@ -438,17 +265,29 @@ end`);
     const lines = monitorsLua(profiles);
     if (!input)
       return lines;
-    const props = inputSchema?.properties ?? {};
-    const greeterSchema = {
-      "properties": {}
-    };
-    for (const key in props)
-      if (props[key]["x-greeter"] === true)
-        greeterSchema.properties[key] = props[key];
-    const table = configTable(greeterSchema, input, resolveHex, {});
+    const table = configTable(root._greeterSchema(inputSchema), input, resolveHex, {});
     if (Object.keys(table).length > 0)
       lines.push(`hl.config(${serialize(table)})`);
     return lines;
+  }
+
+  // `objectSchema` with only its x-greeter settings (in its groups too)
+  function _greeterSchema(objectSchema) {
+    const out = {
+      "type": "object",
+      "properties": {}
+    };
+    const props = objectSchema?.properties ?? {};
+    for (const key in props) {
+      if (props[key]["x-greeter"] === true)
+        out.properties[key] = props[key];
+      else if (props[key].type === "object" && props[key].properties) {
+        const inner = root._greeterSchema(props[key]);
+        if (Object.keys(inner.properties).length > 0)
+          out.properties[key] = inner;
+      }
+    }
+    return out;
   }
 
   // A chunk resetting Hyprland to its main binds if it's in submap `name`
@@ -457,88 +296,13 @@ end`);
   }
 
   // --- The window switcher ---
-  // Hyprland holds every key while it's open: the bind enters the switcher
-  // submap on its press, so a release can't come before it, and the submap
-  // sends what happens as `custom>>axiom-switcher:<verb>` events on
-  // socket2 (WindowSwitcherManager listens). Releasing the held modifier
-  // picks and leaves the submap in Hyprland itself, so it never sticks
-  // without axiom. A release bind can't see that: Hyprland fires one on a
-  // modifier only when no other key came between its press and release
-  // (a tapped SUPER), and Tab always does. So while it's open a key
-  // listener checks, after each release, whether any held modifier is
-  // still down (by keysym name, a moment later, so it doesn't depend on
-  // when Hyprland updates what's down).
+  // Its submap is part of axiom's layer (the daemon's, internal/compositor/
+  // render's SwitcherLua): Hyprland holds every key while it's open and
+  // sends what happens as `custom>>axiom-switcher:<verb>` events on socket2
+  // (WindowSwitcherManager listens).
 
   readonly property string switcherSubmap: "axiom_switcher"
   readonly property string switcherEvent: "axiom-switcher:"
   // Leaves the switcher from outside its binds (a click on a tile)
   readonly property string switcherLeaveLua: "if axiom_switcher_leave then axiom_switcher_leave() end"
-  readonly property var _modifierKeys: ({
-      "SUPER": ["Super_L", "Super_R"],
-      "CTRL": ["Control_L", "Control_R"],
-      "ALT": ["Alt_L", "Alt_R"],
-      "SHIFT": ["Shift_L", "Shift_R"]
-    })
-
-  function _switcherDispatch(verb) {
-    return `hl.dispatch(hl.dsp.event(${string(switcherEvent + verb)}))`;
-  }
-
-  // The switcher bind's dispatcher: enters the submap, starts watching for
-  // the release (switcherLua defines axiom_switcher_watch), then steps
-  function switcherBindLua(step) {
-    return `function() hl.dispatch(hl.dsp.submap(${string(switcherSubmap)})); if axiom_switcher_watch then axiom_switcher_watch() end; ${_switcherDispatch("step " + step)} end`;
-  }
-
-  /**
-   * Lua lines for the switcher, from `entries` ([{ mods, key, step }], each
-   * a switcher bind split by KeyNames.split): the submap, where each combo
-   * steps again (repeating), Return picks and Escape cancels, and
-   * axiom_switcher_watch()/axiom_switcher_unwatch(), the key listener that
-   * picks once no held modifier (AXIOM_SWITCHER_HELD) is down, and
-   * axiom_switcher_leave(), which stops it and leaves the submap. Redefining
-   * a submap adds to its binds, so the keys the last run bound
-   * (AXIOM_SWITCHER_KEYS) are unbound first; with no entries that is all
-   * it does.
-   */
-  function switcherLua(entries) {
-    const binds = [];
-    const keys = [];
-    const bind = (key, body, options) => {
-      keys.push(key);
-      binds.push(`  hl.bind(${string(key)}, function() ${body} end, { ${options} })`);
-    };
-    const held = [];
-    for (const entry of entries ?? []) {
-      bind(entry.mods.concat([entry.key]).join(" + "), _switcherDispatch("step " + entry.step), "repeating = true");
-      for (const mod of BindActions.switcherHeld(entry.mods))
-        for (const key of _modifierKeys[mod])
-          if (!held.includes(key))
-            held.push(key);
-    }
-    if (binds.length > 0) {
-      bind("Return", `${_switcherDispatch("commit")}; axiom_switcher_leave()`, "ignore_mods = true");
-      bind("Escape", `${_switcherDispatch("cancel")}; axiom_switcher_leave()`, "ignore_mods = true");
-    }
-    return [`hl.define_submap(${string(switcherSubmap)}, function()`, "  for _, key in ipairs(AXIOM_SWITCHER_KEYS or {}) do hl.unbind(key) end"].concat(binds, ["end)", `AXIOM_SWITCHER_KEYS = { ${keys.map(key => string(key)).join(", ")} }`, `AXIOM_SWITCHER_HELD = { ${held.map(key => string(key)).join(", ")} }`, `function axiom_switcher_unwatch()
-  if AXIOM_SWITCHER_SUB then AXIOM_SWITCHER_SUB:remove() end
-  AXIOM_SWITCHER_SUB = nil
-end`, `function axiom_switcher_leave()
-  axiom_switcher_unwatch()
-  ${leaveSubmap(switcherSubmap)}
-end`, `function axiom_switcher_watch()
-  if AXIOM_SWITCHER_SUB then return end
-  AXIOM_SWITCHER_SUB = hl.on("input.keyboard.key", function(_, _, state)
-    if state ~= 0 then return end
-    AXIOM_SWITCHER_CHECK = hl.timer(function()
-      if hl.get_current_submap() ~= ${string(switcherSubmap)} then return axiom_switcher_unwatch() end
-      for _, key in ipairs(AXIOM_SWITCHER_HELD) do
-        if hl.is_key_down(key) then return end
-      end
-      ${_switcherDispatch("commit")}
-      axiom_switcher_leave()
-    end, { timeout = 10, type = "oneshot" })
-  end)
-end`]);
-  }
 }

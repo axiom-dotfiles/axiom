@@ -100,7 +100,7 @@ Item {
   // The look it casts it in: BarStyle's, or the bar it grows out of.
   // Hosts take it from what the surface grows out of
   // (SurfaceContext.shadow), so joined shapes cast one shadow
-  property var shadowLook: BarStyle.values
+  property var shadowLook: BarStyle.look
   // Rects (in this item's coordinates) its own shadow isn't cast on
   // either: a submenu's box beside it, whose translucent fill it would
   // show through (the blur window's shadow, cut by every shape, needs none)

@@ -1,0 +1,141 @@
+# The Keybinds section of the config (config.json's "Keybinds").
+
+type: object
+x-category: Compositor
+x-settings: false
+title: Keybinds
+description: Edited on the Keybinds page.
+additionalProperties: false
+properties:
+  binds:
+    x-scope: personal
+    type: array
+    title: Keybinds
+    description: Edited on the Keybinds page.
+    default:
+      - {id: super-space, key: SUPER + space, action: launcher}
+      - {id: super-tab, key: SUPER + Tab, action: overlay}
+      - {id: super-shift-space, key: SUPER + SHIFT + space, action: workspaceOverview}
+      - {id: alt-tab, key: ALT + Tab, action: windowSwitcher}
+      - {id: alt-shift-tab, key: ALT + SHIFT + Tab, action: windowSwitcherReverse}
+      - {id: super-escape, key: SUPER + Escape, action: powerMenu}
+      - {id: super-ctrl-l, key: SUPER + CTRL + L, action: lock}
+      - {id: super-ctrl-r, key: SUPER + CTRL + R, action: restartShell, release: true}
+      - {id: super-shift-escape, key: SUPER + SHIFT + Escape, action: exitSession, release: true}
+      - {id: super-return, key: SUPER + Return, action: terminal}
+      - {id: super-q, key: SUPER + Q, action: terminal}
+      - {id: super-e, key: SUPER + E, action: fileManager}
+      - {id: super-b, key: SUPER + B, action: browser}
+      - {id: print, key: Print, action: screenshot, argument: region}
+      - {id: shift-print, key: SHIFT + Print, action: screenshot, argument: window}
+      - {id: super-print, key: SUPER + Print, action: screenshot, argument: screen}
+      - {id: super-ctrl-s, key: SUPER + CTRL + S, action: screenshot, argument: region}
+      - {id: super-shift-print, key: SUPER + SHIFT + Print, action: screenRecord}
+      - {id: super-1, key: SUPER + 1, action: workspaceNth, argument: '1'}
+      - {id: super-shift-1, key: SUPER + SHIFT + 1, action: moveWindowNth, argument: '1'}
+      - {id: super-2, key: SUPER + 2, action: workspaceNth, argument: '2'}
+      - {id: super-shift-2, key: SUPER + SHIFT + 2, action: moveWindowNth, argument: '2'}
+      - {id: super-3, key: SUPER + 3, action: workspaceNth, argument: '3'}
+      - {id: super-shift-3, key: SUPER + SHIFT + 3, action: moveWindowNth, argument: '3'}
+      - {id: super-4, key: SUPER + 4, action: workspaceNth, argument: '4'}
+      - {id: super-shift-4, key: SUPER + SHIFT + 4, action: moveWindowNth, argument: '4'}
+      - {id: super-5, key: SUPER + 5, action: workspaceNth, argument: '5'}
+      - {id: super-shift-5, key: SUPER + SHIFT + 5, action: moveWindowNth, argument: '5'}
+      - {id: super-6, key: SUPER + 6, action: workspaceNth, argument: '6'}
+      - {id: super-shift-6, key: SUPER + SHIFT + 6, action: moveWindowNth, argument: '6'}
+      - {id: super-7, key: SUPER + 7, action: workspaceNth, argument: '7'}
+      - {id: super-shift-7, key: SUPER + SHIFT + 7, action: moveWindowNth, argument: '7'}
+      - {id: super-8, key: SUPER + 8, action: workspaceNth, argument: '8'}
+      - {id: super-shift-8, key: SUPER + SHIFT + 8, action: moveWindowNth, argument: '8'}
+      - {id: super-9, key: SUPER + 9, action: workspaceNth, argument: '9'}
+      - {id: super-shift-9, key: SUPER + SHIFT + 9, action: moveWindowNth, argument: '9'}
+      - {id: super-0, key: SUPER + 0, action: workspaceNth, argument: '10'}
+      - {id: super-shift-0, key: SUPER + SHIFT + 0, action: moveWindowNth, argument: '10'}
+      - {id: super-w, key: SUPER + W, action: workspaceStep, argument: up}
+      - {id: super-shift-w, key: SUPER + SHIFT + W, action: moveWindowStep, argument: up}
+      - {id: super-a, key: SUPER + A, action: workspaceStep, argument: left}
+      - {id: super-shift-a, key: SUPER + SHIFT + A, action: moveWindowStep, argument: left}
+      - {id: super-s, key: SUPER + S, action: workspaceStep, argument: down}
+      - {id: super-shift-s, key: SUPER + SHIFT + S, action: moveWindowStep, argument: down}
+      - {id: super-d, key: SUPER + D, action: workspaceStep, argument: right}
+      - {id: super-shift-d, key: SUPER + SHIFT + D, action: moveWindowStep, argument: right}
+      - {id: super-h, key: SUPER + H, action: focusDir, argument: left}
+      - {id: super-shift-h, key: SUPER + SHIFT + H, action: moveWindowDir, argument: left}
+      - {id: super-j, key: SUPER + J, action: focusDir, argument: down}
+      - {id: super-shift-j, key: SUPER + SHIFT + J, action: moveWindowDir, argument: down}
+      - {id: super-k, key: SUPER + K, action: focusDir, argument: up}
+      - {id: super-shift-k, key: SUPER + SHIFT + K, action: moveWindowDir, argument: up}
+      - {id: super-l, key: SUPER + L, action: focusDir, argument: right}
+      - {id: super-shift-l, key: SUPER + SHIFT + L, action: moveWindowDir, argument: right}
+      - id: super-alt-h
+        key: SUPER + ALT + H
+        action: resizeWindow
+        argument: '-50 0'
+        repeating: true
+      - id: super-alt-j
+        key: SUPER + ALT + J
+        action: resizeWindow
+        argument: '0 50'
+        repeating: true
+      - id: super-alt-k
+        key: SUPER + ALT + K
+        action: resizeWindow
+        argument: '0 -50'
+        repeating: true
+      - id: super-alt-l
+        key: SUPER + ALT + L
+        action: resizeWindow
+        argument: '50 0'
+        repeating: true
+      - {id: super-c, key: SUPER + C, action: closeWindow}
+      - {id: super-f, key: SUPER + F, action: fullscreen}
+      - {id: super-z, key: SUPER + Z, action: toggleFloat}
+      - {id: super-x, key: SUPER + X, action: toggleSplit}
+      - {id: super-v, key: SUPER + V, action: toggleSpecial, argument: magic}
+      - {id: super-shift-v, key: SUPER + SHIFT + V, action: moveToSpecial, argument: magic}
+      - {id: super-mouse-272, key: 'SUPER + mouse:272', action: mouseDrag}
+      - {id: super-mouse-273, key: 'SUPER + mouse:273', action: mouseResize}
+      - {id: super-mouse-down, key: SUPER + mouse_down, action: scrollStep, argument: right}
+      - {id: super-mouse-up, key: SUPER + mouse_up, action: scrollStep, argument: left}
+      - id: xf86audioraisevolume
+        key: XF86AudioRaiseVolume
+        action: volumeUp
+        locked: true
+        repeating: true
+      - id: xf86audiolowervolume
+        key: XF86AudioLowerVolume
+        action: volumeDown
+        locked: true
+        repeating: true
+      - {id: xf86audiomute, key: XF86AudioMute, action: toggleMute, locked: true}
+      - {id: xf86audiomicmute, key: XF86AudioMicMute, action: toggleMicMute, locked: true}
+      - id: xf86monbrightnessup
+        key: XF86MonBrightnessUp
+        action: brightnessUp
+        locked: true
+        repeating: true
+      - id: xf86monbrightnessdown
+        key: XF86MonBrightnessDown
+        action: brightnessDown
+        locked: true
+        repeating: true
+      - {id: xf86audioplay, key: XF86AudioPlay, action: mediaPlayPause, locked: true}
+      - {id: xf86audiopause, key: XF86AudioPause, action: mediaPlayPause, locked: true}
+      - {id: xf86audionext, key: XF86AudioNext, action: mediaNext, locked: true}
+      - {id: xf86audioprev, key: XF86AudioPrev, action: mediaPrevious, locked: true}
+      - {id: xf86audiostop, key: XF86AudioStop, action: mediaStop, locked: true}
+    items: {$ref: '#/definitions/Keybind'}
+  presets:
+    x-scope: personal
+    type: array
+    title: Saved keybind presets
+    description: Sets of binds saved from the Keybinds page, to restore or merge later. Edited on the Keybinds page.
+    default: []
+    items:
+      type: object
+      additionalProperties: false
+      properties:
+        id: {$ref: '#/definitions/ItemId'}
+        name: {type: string, default: ''}
+        binds: {type: array, default: [], items: {$ref: '#/definitions/Keybind'}}
+      required: [id]

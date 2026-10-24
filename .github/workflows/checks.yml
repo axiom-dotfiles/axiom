@@ -12,20 +12,35 @@ permissions:
 jobs:
   checks:
     runs-on: ubuntu-latest
+    # Arch, for a go new enough to build the schema (the other jobs' image)
+    container: archlinux:latest
     steps:
+      - name: Install tools
+        run: pacman -Syu --noconfirm --needed git python go
+
       # The org only allows its own SHA-pinned actions, so check out with plain
-      # git; the runner image already has git and python3. Whole history
-      # (a few MB): the doc drift counts commits since each doc changed
+      # git. Whole history (a few MB): the doc drift counts commits since each
+      # doc changed. The workspace is mounted from the runner, owned by
+      # another user than the container's root, which git refuses without
+      # safe.directory
       - name: Checkout
         env:
           TOKEN: ${{ github.token }}
         run: |
+          git config --global --add safe.directory "$PWD"
           git init -q .
           git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
           auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
           git -c http.extraheader="AUTHORIZATION: basic $auth" fetch -q origin "$GITHUB_SHA"
           git checkout -q FETCH_HEAD
           python3 --version
+
+      # config/json/config.schema.json, which the docs and checks read, is
+      # built from config/schema/ (never committed)
+      - name: Generated files (scripts/generate.sh)
+        env:
+          GOTOOLCHAIN: local
+        run: scripts/generate.sh
 
       - name: Structure (naming conventions, imports, singleton references)
         run: python3 scripts/check_structure.py
@@ -75,7 +90,7 @@ jobs:
     steps:
       - name: Install tools
         run: |
-          pacman -Syu --noconfirm --needed git diffutils qt6-declarative quickshell lua python
+          pacman -Syu --noconfirm --needed git diffutils qt6-declarative quickshell lua python go
           /usr/lib/qt6/bin/qmllint --version
 
       - name: Checkout
@@ -88,8 +103,15 @@ jobs:
           git init -q .
           git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
           auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
-          git -c http.extraheader="AUTHORIZATION: basic $auth" fetch -q --depth=1 origin "$GITHUB_SHA"
+          git -c http.extraheader="AUTHORIZATION: basic $auth" fetch -q origin "$GITHUB_SHA"
           git checkout -q FETCH_HEAD
+
+      # The schema and the shared fixtures tst_Shared replays (recorded
+      # from SchemaValidation against the live schema)
+      - name: Generated files (scripts/generate.sh --fixtures)
+        env:
+          GOTOOLCHAIN: local
+        run: scripts/generate.sh --fixtures
 
       - name: qmlformat
         run: scripts/check_qmlformat.sh
@@ -101,6 +123,42 @@ jobs:
       - name: Unit tests (components/methods, schema, migrations)
         run: scripts/run_tests.sh
 
+  # backend/ (the axiom binary): generated files, gofmt, vet, staticcheck,
+  # tests under -race, govulncheck and the release cross-builds. Arch's go
+  # and gcc (for -race), like the other jobs' containers; Qt and Quickshell
+  # to record the shared fixtures the tests replay (from SchemaValidation)
+  go:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install tools
+        run: |
+          pacman -Syu --noconfirm --needed git go gcc python qt6-declarative quickshell lua
+          go version
+
+      - name: Checkout
+        env:
+          TOKEN: ${{ github.token }}
+        # The workspace is mounted from the runner, owned by another user
+        # than the container's root, which git refuses without this
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
+          git -c http.extraheader="AUTHORIZATION: basic $auth" fetch -q origin "$GITHUB_SHA"
+          git checkout -q FETCH_HEAD
+
+      # GOTOOLCHAIN=local: build with the container's go, never a download
+      - name: Go checks
+        env:
+          GOTOOLCHAIN: local
+        run: scripts/check_go.sh --ci
+
+      # The cases the JS helpers and the axiom binary share (both replay them)
+      - name: Shared fixtures are indexed
+        run: python3 scripts/dev/fixtures.py check
+
   # The script tests (the slowest checks) and the shell script lint, beside
   # the qt job rather than after it
   scripts:
@@ -111,7 +169,7 @@ jobs:
         # numpy, Pillow and icalendar for theme generation and calendars, as
         # users install them: never python-recurring-ical-events, which
         # Fedora doesn't package (the calendar tests make importing it fail)
-        run: pacman -Syu --noconfirm --needed git diffutils shellcheck lua jq gettext python python-numpy python-pillow python-icalendar
+        run: pacman -Syu --noconfirm --needed git diffutils shellcheck lua jq gettext python python-numpy python-pillow python-icalendar go
 
       - name: Checkout
         env:
@@ -125,6 +183,12 @@ jobs:
           auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
           git -c http.extraheader="AUTHORIZATION: basic $auth" fetch -q --depth=1 origin "$GITHUB_SHA"
           git checkout -q FETCH_HEAD
+
+      # config/json/config.schema.json, which the hookup tests read
+      - name: Generated files (scripts/generate.sh)
+        env:
+          GOTOOLCHAIN: local
+        run: scripts/generate.sh
 
       - name: shellcheck
         run: shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh scripts/greeter/*.sh scripts/dev/*.sh .githooks/pre-commit

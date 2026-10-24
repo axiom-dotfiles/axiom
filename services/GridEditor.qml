@@ -484,8 +484,10 @@ QtObject {
     root.edited();
   }
 
+  // A new module of `type` at `place`, its id new in the modules
   function _newModule(type, place) {
     const module = ConfigManager.withDefaults({
+      "id": Utils.newId(type, root._modules()),
       "type": type
     }, "OverlayModule");
     module.place = place;
@@ -573,6 +575,7 @@ QtObject {
         return false;
       const copy = Utils.clone(module);
       copy.place = place;
+      copy.id = Utils.newId(module.type, modules);
       modules.push(copy);
       return copy;
     });

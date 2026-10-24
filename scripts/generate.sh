@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Builds the generated files the shell, the checks and the tests read, each
+# only when what it's made from changed. None of them is committed
+# (.gitignore); a fresh clone runs this once (verify.sh, check_all.sh,
+# check_go.sh and CI run it first):
+#   - backend/internal/assets/data/, the repo files compiled into the binary,
+#     the schema among them (`go generate`, backend/tools/syncassets): the
+#     binary doesn't compile without it
+#   - config/json/config.schema.json, from its YAML source config/schema/
+#     (`axiom schema build`, through go run)
+#   - with --fixtures: tests/fixtures/shared/, the cases SchemaValidation
+#     and the binary share (scripts/dev/fixtures.py ensure: a few seconds
+#     when stale; needs Qt 6's qmltestrunner)
+#
+#   scripts/generate.sh [--fixtures]
+set -euo pipefail
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+fixtures=0
+for arg in "$@"; do
+  case "$arg" in
+  --fixtures) fixtures=1 ;;
+  *)
+    sed -n '2,15p' "$0" >&2
+    exit 2
+    ;;
+  esac
+done
+
+if ! command -v go >/dev/null; then
+  echo "generate: go isn't installed (it builds config/json/config.schema.json)" >&2
+  exit 1
+fi
+# The embedded copies first (the binary needs them to compile), then the
+# tree's schema (the fixtures are made from it)
+(cd "$root/backend" && go generate ./internal/assets)
+(cd "$root/backend" && go run ./cmd/axiom schema build --tree .. >/dev/null)
+if [[ $fixtures -eq 1 ]]; then
+  python3 "$root/scripts/dev/fixtures.py" ensure
+fi

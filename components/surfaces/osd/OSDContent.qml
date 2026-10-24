@@ -22,7 +22,7 @@ Item {
   // the other direction
   readonly property int barLength: Widget.px(190)
   readonly property int barSpacing: Widget.padding * 2
-  readonly property bool vertical: osd.orientation === "Vertical"
+  readonly property bool vertical: osd.orientation === "vertical"
   // What a delegate past the end reads when the bar count drops (a restored
   // or applied config), until the Repeater removes it: no bar, rather than
   // undefined for every binding in OSDBar to guard against

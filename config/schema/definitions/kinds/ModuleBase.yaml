@@ -1,0 +1,12 @@
+# The base every module type's schema.yaml is expanded into (index.yaml's kinds).
+
+type: object
+required: [type, id]
+additionalProperties: false
+x-hosts: [overlay, edgeMenu, desktop]
+x-settingsAt: /properties/properties/properties
+properties:
+  type: {}
+  id: {$ref: '#/definitions/ItemId'}
+  place: {$ref: '#/definitions/GridPlace'}
+  properties: {type: object, additionalProperties: false, properties: {}}

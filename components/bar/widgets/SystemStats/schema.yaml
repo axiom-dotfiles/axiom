@@ -1,0 +1,49 @@
+label: System Stats
+icon: memory_alt
+group: System
+popout: {variant: own, enabled: {description: Open live graphs of the shown metrics when hovered.}}
+colors: standard
+settings:
+  showCpu: {type: boolean, title: CPU usage, default: true}
+  showMemory: {type: boolean, title: Memory, default: true}
+  memoryFormat:
+    type: string
+    title: Memory format
+    default: percent
+    enum: [percent, used]
+    description: Percentage of RAM in use, or GiB used.
+    x-showIf: {showMemory: true}
+  showTemp:
+    type: boolean
+    title: CPU temperature
+    default: true
+    description: Hidden on machines without a k10temp / coretemp / zenpower sensor.
+  showGpu:
+    type: boolean
+    title: GPU usage
+    default: false
+    description: AMD (sysfs) or NVIDIA (nvidia-smi). Hidden when no GPU is found.
+  showDisk: {type: boolean, title: Disk usage, default: false}
+  diskPath:
+    x-scope: machine
+    type: string
+    title: Disk path
+    x-control: folder
+    default: /
+    description: Any path on the filesystem to report.
+    x-showIf: {showDisk: true}
+  interval:
+    type: integer
+    title: Poll interval
+    x-unit: ms
+    default: 2000
+    minimum: 1000
+    maximum: 60000
+  warnThreshold:
+    type: integer
+    title: Warning at
+    default: 90
+    minimum: 1
+    maximum: 100
+    description: Any usage (%) or temperature (°C) at or above this switches to the warning background.
+  warnColor: {$ref: '#/definitions/WidgetColor', title: Warning color, x-autoColor: warning}

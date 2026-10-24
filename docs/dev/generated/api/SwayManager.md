@@ -13,7 +13,6 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `focusedOutput` (readonly string): The focused output's name, or ""
 - `activeWindowId` (readonly string): The focused window's id (its con_id), or "": from focus events as they come, the tree otherwise
 - `gapsOut` (readonly var): Sway's gap at the screen edges, after reserved zones: its outer gap plus the inner one every window keeps.
-- `configWriter` (readonly var): Writes axiom's layer into sway's config (CompositorConfigManager).
 - `fx` (readonly bool): Whether sway is SwayFX (blur, rounded corners, shadows, dimming), once known: its get_version reply adds sway_original_version.
 - `ready` (readonly bool): Whether `supports` is final (the variant is known)
 - `displayName` (readonly string)
@@ -48,8 +47,9 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `toggleSpecial(name)`: Shows the windows of special group `name` on the focused output, or hides them when any is shown there (SwayState.specialToggle)
 - `moveToSpecial(name)`: Puts the focused window in special group `name` (hidden until shown), out of any other: a window is on one special workspace at a time
 - `leaveSwitcher()`: Nothing to let go: sway's switcher binds enter no mode (SwitcherKeys reads the keys while it's open), and `mode default` would leave one of the user's own
+- `layerApplied()`: axiom's config layer changed sway at runtime (the daemon's compositor.applied): sway sends no event for a gap change, so the windows are read again
 - `runCommands(lines, callback)`: Runs sway commands (`lines`), in order, after those sent before
-- `setLiveLook(look)`: The window look as set now (CompositorLayer.look; SwayConfigWriter. liveLines): gapsOut and blur follow its gaps and blur until sway reloads its config, and what sway sets a window at a time (opacity…
+- `setLiveLook(look)`: The window look as set now (CompositorLayer.look; CompositorConfigManager): gapsOut and blur follow its gaps and blur until sway reloads its config, and what sway sets a window at a time (opacity; Sw…
 - `withMainBinds(callback)`: Calls back with the binds in effect outside axiom's own modes (the user's, read from their config, and axiom's), or null
 - `captureKeys(on)`: While on, every key reaches axiom instead of a bind (the Keybinds page's recorder): an empty mode, left by an unreachable key.
 - `withKeyboard(callback)`: Calls back with the main keyboard's layouts ({ layouts, index, keymap }, SwayState.keyboard), or null

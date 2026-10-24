@@ -226,7 +226,7 @@ QtObject {
     const inputSchema = ConfigManager.configSchema.properties.Input;
     if (CompositorManager.kind === "hyprland") {
       // Its Lua picks the monitor profile again on each hotplug
-      const lua = HyprLua.greeterLua(config.Monitors.profiles, inputSchema, config.Input, name => HyprConfigLua.hex(Theme.resolveColor(name)));
+      const lua = HyprLua.greeterLua(config.Monitors.profiles, inputSchema, config.Input, name => CompositorLayer.hex(Theme.resolveColor(name)));
       HyprlandManager.runLua(lua.join("\n"));
       const cursor = CompositorLayer.input(config.Input).cursor;
       if (cursor)

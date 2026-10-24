@@ -14,9 +14,12 @@ QtObject {
   id: root
 
   // Flattens an object schema into form rows:
-  //   { kind: "group", title, path }         for a nested object
-  //   { kind: "field", title, path, schema } for an editable value
-  //   { kind: "array", title, path, schema } for an array of objects
+  //   { kind: "group", title, path, showIf } for a nested object
+  //   { kind: "field", title, path, schema }  for an editable value
+  //   { kind: "array", title, path, schema }  for an array of objects
+  // A nested object's `x-showIf` goes on its group row and, as
+  // `groupShowIf` ([{ condition, path }], path: the object's parent), on
+  // every row inside it
   function rows(objectSchema, path) {
     const result = [];
     for (const key in objectSchema.properties ?? {}) {
@@ -27,11 +30,20 @@ QtObject {
       if (prop.type === "object" && prop.properties) {
         const children = rows(prop, propPath);
         if (children.length > 0) {
+          const showIf = prop["x-showIf"] ?? null;
           result.push({
             "kind": "group",
             "title": prop.title ?? key,
-            "path": propPath
+            "path": propPath,
+            "showIf": showIf
           });
+          if (showIf)
+            children.forEach(child => child.groupShowIf = [
+                {
+                  "condition": showIf,
+                  "path": path
+                }
+              ].concat(child.groupShowIf ?? []));
           result.push(...children);
         }
       } else if (prop.type === "array" && prop.items?.properties) {
@@ -54,7 +66,9 @@ QtObject {
   }
 
   // `x-showIf: { sibling: value | [values] | { not: value } | { notEmpty: true } }`: whether
-  // it holds (every key), with valueOf(key) giving a sibling's value. A key
+  // it holds (every key), with valueOf(key) giving a sibling's value. A
+  // plain key may be dotted (`open.onHover`: inside a sibling) and start
+  // with `../` (the parent's sibling): keyPath resolves both. A key
   // starting with `/` is a dotted path from the config's root
   // ("/Workspaces.layout"), which valueOf resolves too (callers use
   // SettingsManager.configValueAt). `anyOf: [conditions]` holds when any
@@ -77,6 +91,53 @@ QtObject {
         return value !== want.not;
       return value === want;
     });
+  }
+
+  // Stored values per shown one for a number with `x-unit`: a duration
+  // is stored in ms and shown in its unit (`s`, `min`, `h`, `d`); any
+  // other unit shows the value as stored
+  function unitScale(unit) {
+    return ({
+        "s": 1000,
+        "min": 60000,
+        "h": 3600000,
+        "d": 86400000
+      })[unit] ?? 1;
+  }
+
+  // `node` with every object `$ref` in its properties (Bars.style's
+  // BarStyle) replaced by the definition, the keys beside the `$ref` over
+  // it, down through nested objects (not array items)
+  function _resolved(node, schema) {
+    if (!node?.properties)
+      return node;
+    const properties = {};
+    for (const key in node.properties) {
+      let prop = node.properties[key];
+      if (prop.$ref) {
+        const definition = schema.definitions?.[prop.$ref.replace("#/definitions/", "")];
+        if (definition) {
+          prop = Object.assign({}, definition, prop);
+          delete prop.$ref;
+        }
+      }
+      properties[key] = root._resolved(prop, schema);
+    }
+    return Object.assign({}, node, {
+      "properties": properties
+    });
+  }
+
+  // A plain condition key (`mode`, `open.onHover`, `../position`) as a
+  // path, from `parent`: the path of the object holding the condition
+  function keyPath(parent, key) {
+    let base = parent;
+    let rest = key;
+    while (rest.startsWith("../")) {
+      base = base.slice(0, -1);
+      rest = rest.slice(3);
+    }
+    return base.concat(rest.split("."));
   }
 
   // The first key of `condition` (as showIfHolds reads it) that doesn't
@@ -117,24 +178,37 @@ QtObject {
   // An object definition's fields as titled groups, for an editor that
   // lays one object out itself (the bar and edge menu panels): by
   // `x-group` in `x-order` order, fields without a group last under
-  // "Other", `exclude` (keys edited elsewhere) and `x-settings: false`
-  // keys left out.
+  // "Other", `exclude` (keys edited elsewhere, dotted into a nested
+  // object: "layout.modules") and `x-settings: false` keys left out. A
+  // nested object's fields go to their own groups (else its, else its
+  // parent's): a group's `schema` holds the object with just those fields,
+  // for SchemaPropertiesForm.
   // [{ title, keys, schema: { key: fieldSchema } }]
   function objectGroups(definition, exclude) {
-    const order = definition["x-order"] ?? [];
-    const rank = key => {
-      const index = order.indexOf(key);
-      return index < 0 ? order.length : index;
-    };
-    const keys = Object.keys(definition.properties ?? {}).filter(key => !(exclude ?? []).includes(key) && definition.properties[key]["x-settings"] !== false).sort((a, b) => rank(a) - rank(b));
     const named = [];
     const other = {
       "title": "Other",
       "keys": [],
       "schema": {}
     };
-    for (const key of keys) {
-      const title = definition.properties[key]["x-group"];
+    const ordered = node => {
+      const order = node["x-order"] ?? [];
+      const rank = key => {
+        const index = order.indexOf(key);
+        return index < 0 ? order.length : index;
+      };
+      return Object.keys(node.properties ?? {}).sort((a, b) => rank(a) - rank(b));
+    };
+    // Puts `prop` at `path` (from the definition) into its group
+    function place(prop, path, inherited) {
+      if ((exclude ?? []).includes(path.join(".")) || prop["x-settings"] === false)
+        return;
+      const title = prop["x-group"] ?? inherited;
+      if (prop.type === "object" && prop.properties) {
+        for (const key of ordered(prop))
+          place(prop.properties[key], path.concat(key), title);
+        return;
+      }
       let group = title ? named.find(g => g.title === title) : other;
       if (!group) {
         group = {
@@ -144,9 +218,26 @@ QtObject {
         };
         named.push(group);
       }
-      group.keys.push(key);
-      group.schema[key] = definition.properties[key];
+      if (!group.keys.includes(path[0]))
+        group.keys.push(path[0]);
+      if (path.length === 1) {
+        group.schema[path[0]] = prop;
+        return;
+      }
+      // The nested object down to `prop`, holding this group's fields only
+      let node = group.schema;
+      let source = definition;
+      for (const key of path.slice(0, -1)) {
+        source = source.properties[key];
+        node[key] = node[key] ?? Object.assign({}, source, {
+          "properties": {}
+        });
+        node = node[key].properties;
+      }
+      node[path[path.length - 1]] = prop;
     }
+    for (const key of ordered(definition))
+      place(definition.properties[key], [key], undefined);
     return other.keys.length > 0 ? named.concat([other]) : named;
   }
 
@@ -154,31 +245,34 @@ QtObject {
   // rows, showIf, showIfParent, wide }. The section's direct values make the
   // first card (titled by the section), each nested object the next ones.
   // Fields with `x-group` go on a card of that name instead, so one object
-  // can make several cards. A nested object's `x-showIf` (on its siblings)
-  // applies to all its cards. A section's `x-card` names a hand-built card
-  // (settings/<name>Card.qml, titled by `x-cardTitle`) that goes first
-  // (`x-cardFolds`: it folds like the generated cards, given its `foldKey`;
-  // `x-cardWide`: it spans both columns); its `x-intro` names a hand-built
-  // piece (settings/<name>.qml) at the top of the section's own card, above
-  // its fields (`intro`), as a nested object's does on its own.
-  // `x-cardPerField` makes each of the section's direct fields a card of
+  // can make several cards; a nested object with `x-group` joins that card
+  // (under its own title), its `x-showIf` on its rows. A nested object's
+  // `x-showIf` (on its siblings) otherwise applies to all its cards. A
+  // section's `x-card: { file, title, wide, folds, perField }` names a
+  // hand-built card (settings/<file>Card.qml, titled `title`) that goes
+  // first (`folds`: it folds like the generated cards, given its
+  // `foldKey`; `wide`: it spans both columns); its `x-intro` names a
+  // hand-built piece (settings/<name>.qml) at the top of the section's own
+  // card, above its fields (`intro`), as a nested object's does on its
+  // own. `perField` makes each of the section's direct fields a card of
   // its own, titled and described by the field and sorted by title, a
   // switch's row labelled "Enabled"; the section's description gets a card
   // first. A card holding a field marked `x-wide` spans both columns
   // (`wide`).
   function groups(schema, sectionKey) {
-    const section = schema.properties[sectionKey];
+    const section = root._resolved(schema.properties[sectionKey], schema);
     const sectionTitle = section.title ?? sectionKey;
-    const perField = section["x-cardPerField"] === true;
+    const handBuilt = section["x-card"] ?? {};
+    const perField = handBuilt.perField === true;
     const result = [];
-    if (section["x-card"])
+    if (handBuilt.file)
       result.push({
         "kind": "card",
-        "key": sectionKey + ":" + section["x-card"],
-        "card": section["x-card"],
-        "folds": section["x-cardFolds"] === true,
-        "wide": section["x-cardWide"] === true,
-        "title": section["x-cardTitle"] ?? sectionTitle,
+        "key": sectionKey + ":" + handBuilt.file,
+        "card": handBuilt.file,
+        "folds": handBuilt.folds === true,
+        "wide": handBuilt.wide === true,
+        "title": handBuilt.title ?? sectionTitle,
         "description": "",
         "section": sectionTitle,
         "path": [sectionKey],
@@ -275,6 +369,26 @@ QtObject {
       const prop = section.properties[key];
       if (prop["x-settings"] === false)
         continue;
+      if (prop["x-group"]) {
+        const objectRows = root.rows({
+          "properties": {
+            [key]: prop
+          }
+        }, [sectionKey]);
+        // A heading repeating the card's title is left out (its rows keep
+        // the object's `x-showIf`)
+        if (objectRows[0]?.title === prop["x-group"])
+          objectRows.shift();
+        cardFor(prop["x-group"], {
+          "defaultTitle": sectionTitle,
+          "description": section.description ?? "",
+          "section": sectionTitle,
+          "path": [sectionKey],
+          "showIf": null,
+          "showIfParent": []
+        }).rows.push(...objectRows);
+        continue;
+      }
       place(prop, [sectionKey, key], {
         "defaultTitle": prop.title ?? key,
         "description": prop.description ?? "",
@@ -285,7 +399,7 @@ QtObject {
       }, prop["x-order"]);
     }
     // A description belongs to the object's first card only (each of
-    // `x-cardPerField`'s cards has its field's)
+    // `perField`'s cards has its field's)
     const seen = new Set();
     for (const card of cards) {
       const path = card.path.join(".");

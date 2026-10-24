@@ -3,7 +3,14 @@ import QtTest
 import qs.components.methods
 
 TestCase {
+  id: test
   name: "BindKeys"
+
+  // Records the helpers' calls as shared fixtures for the axiom binary
+  Shared {
+    id: shared
+    testCase: test
+  }
 
   // hyprctl binds -j entries, trimmed to what BindKeys reads
   function entry(modmask, key, extra) {
@@ -16,77 +23,36 @@ TestCase {
   }
 
   function test_keyId() {
-    compare(BindKeys.keyId("SUPER + SHIFT + Space"), "65:space");
-    compare(BindKeys.keyId("mod4+control+Q"), "68:q");
-    compare(BindKeys.keyId("F12"), "0:f12");
-    compare(BindKeys.keyId(" SUPER + code:10 "), "64:code:10");
-    compare(BindKeys.keyId("HYPER + A"), "", "unknown modifier");
-    compare(BindKeys.keyId(""), "");
-    compare(BindKeys.keyId(undefined), "");
+    compare(shared.calls.BindKeys.keyId("SUPER + SHIFT + Space"), "65:space");
+    compare(shared.calls.BindKeys.keyId("mod4+control+Q"), "68:q");
+    compare(shared.calls.BindKeys.keyId("F12"), "0:f12");
+    compare(shared.calls.BindKeys.keyId(" SUPER + code:10 "), "64:code:10");
+    compare(shared.calls.BindKeys.keyId("HYPER + A"), "", "unknown modifier");
+    compare(shared.calls.BindKeys.keyId(""), "");
+    compare(shared.calls.BindKeys.keyId(undefined), "");
   }
 
   function test_entryId_matches_keyId() {
-    compare(BindKeys.entryId(entry(65, "Space")), BindKeys.keyId("SUPER + SHIFT + space"));
-    compare(BindKeys.entryId(entry(64, "", {
+    compare(shared.calls.BindKeys.entryId(entry(65, "Space")), shared.calls.BindKeys.keyId("SUPER + SHIFT + space"));
+    compare(shared.calls.BindKeys.entryId(entry(64, "", {
       "keycode": 10
-    })), BindKeys.keyId("SUPER + code:10"));
+    })), shared.calls.BindKeys.keyId("SUPER + code:10"));
   }
 
   function test_tapIds() {
     // Hyprland lists a tap with its modifier held, sway without
-    compare(BindKeys.keyId("Super_L"), "0:super_l");
-    compare(BindKeys.keyId("SUPER + Super_L"), "0:super_l");
-    compare(BindKeys.entryId(entry(64, "SUPER_L")), "0:super_l");
-    compare(BindKeys.entryId(entry(0, "Super_L")), "0:super_l");
-    compare(BindKeys.keyId("CTRL + Super_L"), "4:super_l", "not a tap");
-  }
-
-  function test_runtime_skips_keys_the_user_binds() {
-    const binds = [
-      {
-        "key": "SUPER + Return"
-      },
-      {
-        "key": "SUPER + SHIFT + Q"
-      },
-      {
-        "key": "SUPER + code:10"
-      },
-      {
-        "key": "SUPER + D"
-      },
-      {
-        "key": "BOGUS + X"
-      }
-    ];
-    const entries = [entry(64, "Return"), entry(65, "q"), entry(64, "", {
-        "keycode": 10
-      }), entry(64, "d", {
-        "submap": "resize"
-      })];
-    const plan = BindKeys.runtimeBinds(binds, entries);
-    compare(plan.skipped, ["SUPER + Return", "SUPER + SHIFT + Q", "SUPER + code:10"]);
-    // A submap's bind doesn't take the key outside it
-    compare(plan.apply.map(bind => bind.key), ["SUPER + D"]);
-    compare(plan.unreadable, ["BOGUS + X"]);
-  }
-
-  function test_runtime_with_nothing_bound() {
-    const plan = BindKeys.runtimeBinds([
-      {
-        "key": "SUPER + A"
-      }
-    ], []);
-    compare(plan.apply.length, 1);
-    compare(plan.skipped, []);
-    compare(BindKeys.runtimeBinds(undefined, undefined).apply, []);
+    compare(shared.calls.BindKeys.keyId("Super_L"), "0:super_l");
+    compare(shared.calls.BindKeys.keyId("SUPER + Super_L"), "0:super_l");
+    compare(shared.calls.BindKeys.entryId(entry(64, "SUPER_L")), "0:super_l");
+    compare(shared.calls.BindKeys.entryId(entry(0, "Super_L")), "0:super_l");
+    compare(shared.calls.BindKeys.keyId("CTRL + Super_L"), "4:super_l", "not a tap");
   }
 
   function test_userKeyCounts_less_axioms_own() {
     const entries = [entry(64, "a"), entry(64, "a"), entry(64, "b"), entry(64, "c", {
         "submap": "resize"
       })];
-    const counts = BindKeys.userKeyCounts(entries, [
+    const counts = shared.calls.BindKeys.userKeyCounts(entries, [
       {
         "key": "SUPER + A"
       },
@@ -139,13 +105,13 @@ TestCase {
         "action": "pin"
       }
     ];
-    const merged = BindKeys.mergeBinds(axiom, user);
+    const merged = shared.calls.BindKeys.mergeBinds(axiom, user);
     compare(merged.map(bind => bind.action), ["exec", "lock", "fileManager", "exec", "pin"]);
     compare(merged[0].argument, "kitty");
     compare(merged[3].argument, "b");
     // The inputs are left as they were
     compare(axiom[0].action, "overlay");
-    compare(BindKeys.mergeBinds(axiom, []), axiom);
+    compare(shared.calls.BindKeys.mergeBinds(axiom, []), axiom);
   }
 
   // A paused bind holds no key: the user's replaces the active one on it
@@ -181,9 +147,39 @@ TestCase {
         "argument": "b"
       }
     ];
-    const merged = BindKeys.mergeBinds(axiom, user);
+    const merged = shared.calls.BindKeys.mergeBinds(axiom, user);
     compare(merged.map(bind => bind.action), ["focusDir", "exec", "focusDir", "exec"]);
     compare(merged[0].paused, true);
     compare(merged[2].paused, true);
+  }
+
+  // Not a shared case: withIds has no Go counterpart to replay it
+  function test_withIds() {
+    const kept = {
+      "id": "super-y",
+      "key": "SUPER + Y"
+    };
+    const binds = BindKeys.withIds([kept,
+      {
+        "id": "super-y",
+        "key": "SUPER + Y",
+        "action": "exec"
+      },
+      {
+        "key": "SUPER + SHIFT + space"
+      },
+      {
+        "id": "-bad",
+        "key": "Print"
+      },
+      {
+        "key": ""
+      }
+    ]);
+    compare(binds.map(bind => bind.id), ["super-y", "super-y-2", "super-shift-space", "print", "bind"]);
+    verify(binds[0] === kept, "a bind keeping its id is the same object");
+    compare(Object.keys(binds[1])[0], "id", "the id first");
+    compare(binds[1].action, "exec");
+    compare(BindKeys.withIds(undefined), []);
   }
 }

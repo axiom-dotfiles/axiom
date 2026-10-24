@@ -1,0 +1,99 @@
+# The Calendar section of the config (config.json's "Calendar").
+
+type: object
+x-category: Calendar
+x-links: [CalendarPage]
+x-card: {file: CalendarAccounts, title: Accounts, wide: true, folds: true}
+title: Calendar
+description: 'Events from CalDAV accounts (iCloud, Fastmail, Nextcloud, …) and .ics subscriptions, for the calendar popout, the Calendar, Clock & calendar and Agenda modules, the Next event bar widget and the Calendar page. Passwords are never stored here: they go to your keyring (or $XDG_STATE_HOME/axiom/secrets.json without one).'
+additionalProperties: false
+properties:
+  defaultCalendar:
+    type: string
+    title: New events go to
+    x-group: Events
+    default: ''
+    x-options: calendars
+    x-emptyLabel: The first calendar
+    description: The calendar picked for a new event (the launcher's /event uses it too).
+  defaultDuration:
+    x-scope: personal
+    type: integer
+    title: Event length
+    x-unit: min
+    x-group: Events
+    default: 3600000
+    minimum: 300000
+    maximum: 86400000
+    description: How long a new event lasts until you change it.
+  defaultReminder:
+    x-scope: personal
+    type: integer
+    title: Reminder
+    x-unit: min
+    x-group: Events
+    default: 600000
+    minimum: -60000
+    maximum: 604800000
+    description: How long before a new event's start its reminder fires. -1 adds none.
+  reminders:
+    x-scope: personal
+    type: boolean
+    title: Notify reminders
+    x-group: Events
+    default: true
+    description: Show a notification when an event's reminder is due (while axiom runs).
+  syncInterval:
+    type: integer
+    title: Sync every
+    x-unit: min
+    x-group: Sync
+    default: 900000
+    minimum: 60000
+    maximum: 86400000
+    description: How often calendars are checked for changes, while something shows them or reminders are on.
+  pastMonths:
+    x-scope: personal
+    type: integer
+    title: Months back
+    x-group: Sync
+    default: 2
+    minimum: 0
+    maximum: 24
+    description: How far back events are kept. Paging past it fetches more.
+  futureMonths:
+    x-scope: personal
+    type: integer
+    title: Months ahead
+    x-group: Sync
+    default: 12
+    minimum: 1
+    maximum: 60
+  use24Hour:
+    x-scope: look
+    type: boolean
+    title: '24-hour times'
+    x-group: Display
+    default: true
+    description: How event times show everywhere events do.
+  maxDots:
+    x-scope: look
+    type: integer
+    title: Dots per day
+    x-group: Display
+    default: 3
+    minimum: 1
+    maximum: 6
+    description: Most calendar-colored dots under a day in the month grids.
+  showOnLockscreen:
+    type: boolean
+    title: Events on the lock screen
+    x-group: Display
+    default: false
+    description: The Clock & calendar module shows the day's events on the lock screen too (read-only). Anyone at the locked screen can read them.
+  items:
+    type: array
+    title: Accounts
+    x-settings: false
+    default: []
+    items: {$ref: '#/definitions/CalendarAccount'}

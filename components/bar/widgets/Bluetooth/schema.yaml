@@ -1,0 +1,26 @@
+label: Bluetooth
+icon: bluetooth
+group: Network & devices
+popout: {variant: own, enabled: {description: Open the Bluetooth menu when hovered.}}
+colors: standard
+settings:
+  showDevice:
+    type: boolean
+    title: Show device
+    default: true
+    description: Show the connected device name (or count) next to the icon.
+  showBattery:
+    type: boolean
+    title: Show battery
+    default: true
+    description: Append the connected device's battery level, when it reports one.
+    x-showIf: {showDevice: true}
+  hideWhenOff: {type: boolean, title: Hide when off, default: false}
+  middleCommand:
+    x-scope: commands
+    type: string
+    title: Middle-click command
+    default: ''
+    description: Shell command run on middle click (e.g. blueman-manager). Empty does nothing.
+  connectedColor: {$ref: '#/definitions/WidgetColor', title: Connected color, x-autoColor: alt}
+  disabledColor: {$ref: '#/definitions/WidgetColor', title: Off color, x-autoColor: 'off'}

@@ -2,9 +2,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
-import qs.components.views
+import qs.components.views.Monitors
 
-// The monitor layout: the overlay's Monitors page as it is, beside a card
 // saying what to do with it
 OnboardingPage {
   id: root

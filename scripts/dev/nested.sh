@@ -21,13 +21,16 @@
 #                  time), so the takeover, its reloads and a release can be
 #                  tried
 #
-# axiom's "Restart shell" (scripts/restart.sh) and its one-per-display check
-# (InstanceManager) end only the axioms on their own display, so the nested
-# and the live one never end each other.
+# The nested axiom is this tree's binary, built into the scratch folder,
+# run as `axiom run --dev` (the schema rebuilt on every YAML edit, the
+# daemon re-exec'd when the binary is rebuilt there). Each display has its
+# own daemon and runtime folder ($XDG_RUNTIME_DIR/axiom/<display>), so the
+# nested and the live one never meet.
 #
-# Logs: qs log -p <repo> (the nested instance is the newest), or the
-# log.log under /run/user/$UID/quickshell/by-id/. IPC: qs ipc --newest call …
-# Closing the nested window ends it all.
+# Logs: the daemon's in <scratch>/state/axiom/log/daemon.log, the shell's
+# with qs log -p <repo> (the nested instance is the newest). IPC and the
+# CLI: <scratch>/axiom --socket $XDG_RUNTIME_DIR/axiom/<display>/axiom.sock …,
+# or qs ipc --pid <its qs> call …. Closing the nested window ends it all.
 
 set -euo pipefail
 
@@ -61,19 +64,27 @@ if [[ "$kind" == "hyprland" && -n "${SWAYSOCK:-}" ]]; then
   echo "nested Hyprland doesn't start under sway (it needs xdg_wm_base 6); run it from Hyprland or niri" >&2
   exit 1
 fi
+command -v go >/dev/null || {
+  echo "go is needed to build the nested axiom" >&2
+  exit 1
+}
 command -v dbus-run-session >/dev/null || {
   echo "dbus-run-session (dbus) is needed" >&2
   exit 1
 }
 
 mkdir -p "$scratch"/{config/axiom,state,data,cache}
+"$repo/scripts/generate.sh" >/dev/null
+go -C "$repo/backend" build -trimpath -o "$scratch/axiom" ./cmd/axiom
 
 # The config axiom starts with: the defaults, or the user's, with the parts
 # that reach outside the nested session off
-python3 - "$scratch/config/axiom/config.json" "$copy" <<'EOF'
+python3 - "$scratch/config/axiom/config.json" "$copy" "$repo/config/json/config.schema.json" <<'EOF'
 import json, os, sys
 path, copy = sys.argv[1], sys.argv[2] == "1"
-config = {}
+with open(sys.argv[3]) as f:
+    version = json.load(f)["properties"]["version"]["default"]
+config = {"format": 2, "version": version}
 if copy:
     with open(os.path.expanduser("~/.config/axiom/config.json")) as f:
         config = json.load(f)
@@ -93,7 +104,7 @@ launch="$scratch/launch.sh"
 cat >"$launch" <<EOF
 #!/usr/bin/env bash
 export XDG_CONFIG_HOME="$scratch/config" XDG_STATE_HOME="$scratch/state" XDG_DATA_HOME="$scratch/data" XDG_CACHE_HOME="$scratch/cache"
-exec qs -p "$repo"
+exec "$scratch/axiom" run --dev --tree "$repo"
 EOF
 chmod +x "$launch"
 

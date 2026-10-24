@@ -10,7 +10,7 @@ import qs.components.surfaces.notifications
 
 // Stacks incoming notifications as toasts from a corner of the work area
 // (NotificationsConfig), driven by NotificationManager.showPopup: one stack
-// per screen NotificationsConfig.monitors builds it on, each showing a toast
+// per screen NotificationsConfig.screen builds it on, each showing a toast
 // when ShellManager.showsOn its screen. Dismissing a toast only hides it
 // (unless closeRemoves / removeOnClick): the notification stays tracked and
 // remains visible/actionable from the bell popout.
@@ -25,7 +25,7 @@ Scope {
   signal toastClosed(var notification)
 
   Variants {
-    model: General.screensFor(NotificationsConfig.monitors)
+    model: General.screensFor(NotificationsConfig.screen)
 
     delegate: Scope {
       id: stack
@@ -138,7 +138,7 @@ Scope {
       }
 
       function createToast(notification) {
-        if (!ShellManager.showsOn(stack.modelData, NotificationsConfig.monitors))
+        if (!ShellManager.showsOn(stack.modelData, NotificationsConfig.screen))
           return;
         const critical = notification.urgency === NotificationUrgency.Critical;
         if (NotificationsConfig.quietFullscreen && stack.fullscreen && !critical)

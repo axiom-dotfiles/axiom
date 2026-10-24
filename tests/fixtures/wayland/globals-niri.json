@@ -1,0 +1,202 @@
+[
+  {
+    "name": 34,
+    "interface": "ext_background_effect_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 20,
+    "interface": "ext_data_control_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 28,
+    "interface": "ext_foreign_toplevel_list_v1",
+    "version": 1
+  },
+  {
+    "name": 15,
+    "interface": "ext_idle_notifier_v1",
+    "version": 2
+  },
+  {
+    "name": 7,
+    "interface": "ext_session_lock_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 30,
+    "interface": "ext_workspace_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 39,
+    "interface": "mutter_x11_interop",
+    "version": 1
+  },
+  {
+    "name": 1,
+    "interface": "wl_compositor",
+    "version": 6
+  },
+  {
+    "name": 17,
+    "interface": "wl_data_device_manager",
+    "version": 3
+  },
+  {
+    "name": 43,
+    "interface": "wl_output",
+    "version": 4
+  },
+  {
+    "name": 40,
+    "interface": "wl_seat",
+    "version": 9
+  },
+  {
+    "name": 8,
+    "interface": "wl_shm",
+    "version": 2
+  },
+  {
+    "name": 2,
+    "interface": "wl_subcompositor",
+    "version": 1
+  },
+  {
+    "name": 41,
+    "interface": "wp_cursor_shape_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 10,
+    "interface": "wp_fractional_scale_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 21,
+    "interface": "wp_presentation",
+    "version": 2
+  },
+  {
+    "name": 22,
+    "interface": "wp_security_context_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 33,
+    "interface": "wp_viewporter",
+    "version": 1
+  },
+  {
+    "name": 38,
+    "interface": "xdg_activation_v1",
+    "version": 1
+  },
+  {
+    "name": 3,
+    "interface": "xdg_wm_base",
+    "version": 7
+  },
+  {
+    "name": 19,
+    "interface": "zwlr_data_control_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 29,
+    "interface": "zwlr_foreign_toplevel_manager_v1",
+    "version": 3
+  },
+  {
+    "name": 6,
+    "interface": "zwlr_layer_shell_v1",
+    "version": 5
+  },
+  {
+    "name": 31,
+    "interface": "zwlr_output_manager_v1",
+    "version": 4
+  },
+  {
+    "name": 32,
+    "interface": "zwlr_screencopy_manager_v1",
+    "version": 3
+  },
+  {
+    "name": 27,
+    "interface": "zwlr_virtual_pointer_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 16,
+    "interface": "zwp_idle_inhibit_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 24,
+    "interface": "zwp_input_method_manager_v2",
+    "version": 1
+  },
+  {
+    "name": 25,
+    "interface": "zwp_keyboard_shortcuts_inhibit_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 42,
+    "interface": "zwp_linux_dmabuf_v1",
+    "version": 5
+  },
+  {
+    "name": 14,
+    "interface": "zwp_pointer_constraints_v1",
+    "version": 1
+  },
+  {
+    "name": 12,
+    "interface": "zwp_pointer_gestures_v1",
+    "version": 3
+  },
+  {
+    "name": 18,
+    "interface": "zwp_primary_selection_device_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 13,
+    "interface": "zwp_relative_pointer_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 11,
+    "interface": "zwp_tablet_manager_v2",
+    "version": 1
+  },
+  {
+    "name": 23,
+    "interface": "zwp_text_input_manager_v3",
+    "version": 1
+  },
+  {
+    "name": 26,
+    "interface": "zwp_virtual_keyboard_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 35,
+    "interface": "zxdg_exporter_v2",
+    "version": 1
+  },
+  {
+    "name": 36,
+    "interface": "zxdg_importer_v2",
+    "version": 1
+  },
+  {
+    "name": 9,
+    "interface": "zxdg_output_manager_v1",
+    "version": 3
+  }
+]

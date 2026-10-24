@@ -2,13 +2,15 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
+import qs.components.methods
 import qs.components.reusable
 
-// A form for one flat object, generated from its `properties` schema: one
-// SchemaField per key (keys marked `x-settings: false` skipped), valued
-// from `values` with schema defaults for what's missing. Used for array
-// items, bar widget options and overlay module options; it acts as the
-// `form` for its SchemaField rows.
+// A form for one object, generated from its `properties` schema: one
+// SchemaField per key (keys marked `x-settings: false` skipped), a nested
+// object's (a screen target, a shadow) in its place, valued from `values`
+// with schema defaults for what's missing. Used for array items, bar
+// widget options and overlay module options; it acts as the `form` for
+// its SchemaField rows.
 ColumnLayout {
   id: root
 
@@ -28,7 +30,8 @@ ColumnLayout {
   // while both are shown; off, every field takes the whole width
   property bool pairs: false
 
-  // Emitted with the key path ([key]) of the edited field
+  // Emitted with the key ([key]) of the edited field and its value: a
+  // nested object's field as the whole object
   signal edited(var path, var value)
 
   // Depends on the schema only, so edits update the rows in place
@@ -38,21 +41,39 @@ ColumnLayout {
       return index < 0 ? Infinity : index;
     };
     return rank(a) - rank(b);
-  }).filter(key => {
-    const prop = root.propertiesSchema[key];
-    return prop["x-settings"] !== false && prop.type !== "object";
-  }).map(key => {
-    const prop = root.propertiesSchema[key];
-    return {
-      "kind": prop.type === "array" && prop.items?.properties ? "array" : "field",
-      "title": prop.title ?? key,
-      "path": [key],
-      "schema": prop
-    };
-  })
+  }).reduce((rows, key) => rows.concat(SchemaLayout.rows({
+      "properties": {
+        [key]: root.propertiesSchema[key]
+      }
+    }, []).filter(row => row.kind !== "group")), [])
 
   function valueAt(path) {
-    return root.values?.[path[0]] ?? root.propertiesSchema?.[path[0]]?.default;
+    let value = root.values;
+    let schema = {
+      "properties": root.propertiesSchema
+    };
+    for (const key of path) {
+      value = value?.[key];
+      schema = schema?.properties?.[key];
+    }
+    return value ?? schema?.default;
+  }
+
+  // A row's edit (SchemaField's form): a nested field's as its whole
+  // top-level object
+  function edit(path, value) {
+    if (path.length === 1) {
+      root.edited(path, value);
+      return;
+    }
+    const top = Utils.clone(root.valueAt([path[0]]) ?? {});
+    let node = top;
+    for (const key of path.slice(1, -1)) {
+      node[key] = node[key] ?? {};
+      node = node[key];
+    }
+    node[path[path.length - 1]] = value;
+    root.edited([path[0]], top);
   }
 
   spacing: Widget.spacing

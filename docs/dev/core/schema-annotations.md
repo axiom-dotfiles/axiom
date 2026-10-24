@@ -1,46 +1,51 @@
 # Schema and its annotations
 
-> **Files:** `config/json/config.schema.json`, `components/methods/SchemaLayout.qml`, `components/methods/SchemaValidation.qml`, `components/forms/SchemaField.qml`, `components/methods/HyprLua.qml`
+> **Files:** `config/schema/`, `config/json/config.schema.json`, `components/methods/SchemaLayout.qml`, `components/methods/SchemaValidation.qml`, `components/forms/SchemaField.qml`, `components/methods/HyprLua.qml`
 > **Config:** every section
 > **Related:** [Settings page](settings-page.md), [Saved configs and sharing](saved-configs-sharing.md), [Config manager](config-manager.md), [Config readers](config-readers.md), [Hyprland config modes](../hyprland/config-modes.md)
 
-The schema is the single source of truth for config: shape, `default`s (there is no separate defaults file) and the generated settings page (`views/Settings.qml`). This doc is the complete list of `x-*` annotations: `scripts/check_docs.py` fails on one the schema uses that isn't named here. (Rule: AGENTS.md › Config.)
+The schema is the single source of truth for config: shape, `default`s (there is no separate defaults file) and the generated settings page (`views/Settings/Settings.qml`). This doc is the complete list of `x-*` annotations: `scripts/check_docs.py` fails on one the schema uses that isn't named here, and building the schema (`axiom schema build`) refuses one missing from `config/schema/annotations.yaml`, the registry with a line on each.
+
+The schema is written in YAML (`config/schema/`): `index.yaml` is the root and lists the sections and definitions in order; `sections/<Section>.yaml` and `definitions/{widgets,modules,views,common}/<Name>.yaml` hold one each. The YAML is read strictly (no anchors, aliases, merge keys or tags; quote `on`/`off`/`yes`/`no`, which YAML 1.1 reads as booleans; write `null` out), and every key of a schema node must be a draft-07 keyword the validators read or a registered annotation, so a typo fails the build with its file and line. (Rule: AGENTS.md › Config.)
 
 ### Basics
 - Adding a setting = a schema entry with a `default` + a reader property.
-- Changing the layout of existing config = bump `version` + a `ConfigMigration` step + a test.
+- Changing the layout of existing config = a format-2 step in the binary (`backend/internal/migrate/`) + a test; the format-1 migrations (`backend/internal/migrate/legacy/legacy.js`) are frozen.
 - The live file is `~/.config/axiom/config.json` (`$XDG_CONFIG_HOME`, UI-owned).
 - A schema reaches QML as a map, whose keys come out sorted, so order always comes from `x-order`.
 - The settings page, forms and editors read the annotations: add an annotation rather than a hand-kept list in QML.
 - A `$ref` may carry keys beside it (`default`, `title`, …) that override the definition's (`SchemaValidation._resolve`). `Lockscreen.layout` and `Greeter.layout` share `definitions/ScreenLayout`, each with its own default modules.
 - `oneOf`s (bar widgets, overlay views and modules) are discriminated by `type`.
+- `x-inherit: "<path>"`: the setting may be `null`, and is by default, meaning the value at that dotted path (`Interface.radius` follows `Appearance.shape.radius`). On a `$ref`, the build makes an inheriting copy of the definition (`<Definition>Inherited`, every leaf `null` and inheriting from `<path>.<key>`): a bar's `style` from `Bars.style`. Validation lets the `null` through; the form shows the inherited value with "Follows … until set" (`SettingsManager.inheritedValue`), and readers resolve it (`Bar.lookOf`).
+- Build-time keys, never in the built schema: `x-inline: true` on a definition copies it into each use; `x-properties` beside a `$ref` makes a copy of that definition with its properties adjusted (a schema replaces or adds one, `null` removes one: `ScreenLayout` of `Layout`).
 
 ### Placement
 - `x-settings: false`: hides a key from the settings page (edited elsewhere, or UI-owned state).
 - `x-category` (on a top-level section): names its sidebar category.
 - `x-categories` (root, `[{ name, icon, card, cardTitle }]`): orders the categories and gives their icons (`SchemaLayout.categories`). A category left out comes last, with a generic icon.
-  - `card` is a hand-built card of the category's own (`views/settings/<card>Card.qml`), always wide, after its sections' cards; `cardTitle` titles it, on the card and in the sidebar. A category with one can have no sections. Example: Maintenance's `SavedConfigsCard`; see [Saved configs and sharing](saved-configs-sharing.md).
+  - `card` is a hand-built card of the category's own (`views/Settings/<card>Card.qml`), always wide, after its sections' cards; `cardTitle` titles it, on the card and in the sidebar. A category with one can have no sections. Example: Maintenance's `SavedConfigsCard`; see [Saved configs and sharing](saved-configs-sharing.md).
 - `x-links` (on a section): pages its category's header links to: a view type (`Themes`, `BarEditor`), `Layouts`, or the layouts editor on a screen (`Layouts:lockscreen`, `Layouts:greeter`, `Layouts:desktop`). Labels, icons, availability and following go through `OverlayManager.pageLinkLabel` / `pageLinkIcon` / `pageLinkAvailable` / `followPageLink`.
-- `x-link` (on a field, or a widget/module definition): where something it follows or names is set, drawn as a `SettingsLink` under the field in every form (`FieldLinks`), or in the bar widget / module inspector for a definition. `{ "setting": "<key path>" }` (a field, an object or a section: `SchemaLayout.locate` finds its card) or `{ "page": "<page link>" }` (as `x-links`), or a list of them. A link hides itself when its setting has no card or its page isn't shown. Examples: a bar's `overrideShadow` → `BarStyle.shadow`, every `moduleScale` → `Widget.cardSize`, the Battery widget → `Battery`. `tst_SchemaLayout`'s `test_real_schema_links_resolve` checks every target.
+- `x-link` (on a field, or a widget/module definition): where something it follows or names is set, drawn as a `SettingsLink` under the field in every form (`FieldLinks`), or in the bar widget / module inspector for a definition. `{ "setting": "<key path>" }` (a field, an object or a section: `SchemaLayout.locate` finds its card) or `{ "page": "<page link>" }` (as `x-links`), or a list of them. A link hides itself when its setting has no card or its page isn't shown. Examples: a bar's `style.shadow` → `Bars.style.shadow`, every `moduleScale` → `Widget.cardSize`, the Battery widget → `Battery`. `tst_SchemaLayout`'s `test_real_schema_links_resolve` checks every target.
 - `x-order` (on an object): the keys shown first, in order. This applies to its form, or to its settings cards, whose order is their first field's.
 - `x-group`: puts a field on a card of that name. One section or object can make several cards.
   - The bar and edge menu editors group a `Bar`'s / `EdgeMenu`'s own fields the same way (`SchemaLayout.objectGroups`, as `Bar.fieldGroups` / `EdgeMenusConfig.fieldGroups`).
-- `x-cardPerField: true` (on a section): each direct field becomes a card of its own, titled and described by the field, sorted by title, a switch's row labelled "Enabled" (`row.label`, `row.description` override the field's in `SchemaField`). The section's description gets a card first. Example: `ThemeIntegrations`, one card per app.
+  - A nested object with an `x-group` joins that card (a group heading repeating the card's title is left out); `objectGroups` places a nested object's fields by their own or an ancestor's `x-group`.
 - `x-scope` (`look` | `personal` | `commands` | `machine`, inherited, root `machine`): what a snapshot, example, import or export carries. See [Saved configs and sharing](saved-configs-sharing.md).
   - A new setting inside a look section that names a monitor, path or account needs `machine`; one that runs something (a command, a terminal) `commands`; a preference that means something on any PC `personal`.
 - `x-scopeIf: { when, scope }` (on an array's item schema): an item that matches `when` (`x-showIf`'s form, over the item's keys) has `scope` as its own: an exec bind is `commands`, an app's OSD bar `personal`.
-- `x-monitorRef` (`"off"` | `"drop"`, on a per-monitor part's `monitor`): a shared file names the monitor by its place, and a part for a place the user has no monitor for is turned off or left out (`ConfigExamples.apply`).
+- `x-monitorRef` (`"off"` | `"drop"`, on a per-monitor part's `monitor`): a shared file names the monitor by its place, and a part for a place the user has no monitor for is turned off or left out (`share.Apply`).
 - `x-libraryGroups` (root) lists in order the groups the bar editor's and layouts editor's libraries sort their types into (by category).
   - Each bar widget and overlay module definition joins one with `x-libraryGroup` (`methods/LibraryOrder`, `reusable/TypeLibrary`).
   - `check_structure.py` errors on an unknown group.
 
 ### Hand-built parts
-- `x-card: "<Name>"` (section): adds `views/settings/<Name>Card.qml` as its first card.
-  - `x-cardFolds: true`: it folds like the generated cards and joins Fold all, getting its group key `<Section>:<Name>` as `foldKey`.
-  - `x-cardTitle`: its title, on the card and in the sidebar (the card's QML sets none). Every `x-card` has one.
-  - `x-cardWide: true`: it spans both columns (the calendar accounts, chat API keys, the Dock and OSD lists).
-  - `check_structure.py` does not verify the file exists: a typo only shows in `scripts/log.sh`.
-- `x-intro: "<Name>"`: puts `views/settings/<Name>.qml` at the top of the section's own card, above its fields (NightLight's `NightLightStatus`).
+- `x-card: { file, title, wide, folds, perField }` (section):
+  - `file`: adds `views/Settings/<file>Card.qml` as the section's first card, titled `title` (on the card and in the sidebar; the card's QML sets none).
+  - `wide: true`: it spans both columns (the calendar accounts, chat API keys, the Dock and OSD lists).
+  - `folds: true`: it folds like the generated cards and joins Fold all, getting its group key `<Section>:<file>` as `foldKey`.
+  - `perField: true` (with or without a `file`): each direct field becomes a card of its own, titled and described by the field, sorted by title, a switch's row labelled "Enabled" (`row.label`, `row.description` override the field's in `SchemaField`). The section's description gets a card first. Example: `ThemeIntegrations`, one card per app.
+  - `check_structure.py` checks the file exists.
+- `x-intro: "<Name>"`: puts `views/Settings/<Name>.qml` at the top of the section's own card, above its fields (NightLight's `NightLightStatus`).
 
 ### Behaviour
 - `x-showIf`: hides a field unless a condition holds. `SchemaField` evaluates it (`SchemaLayout.showIfHolds`), so it works in every form; on a nested object it hides that object's cards.
@@ -98,32 +103,23 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-needs: "<capability>"` on a view type: the page is left out (and its launcher command unlisted) unless `CompositorManager.supports` has it (Keybinds, Monitors).
 - `x-autoColor` (`accent`, `alt`, `warning`, `critical`, `off`, `neutral`): a bar widget color picked by its bar when left empty (`Bar.autoColorFields`, `methods/BarAutoColors`). See [Bar widget style](../bar/widget-style.md).
 
-### Hyprland options (`x-hypr*`, `methods/HyprLua`)
-- `x-hypr`: the option's dotted path (or a list of paths). The field becomes one value of a nested `hl.config({...})` table.
-- `x-hyprScale`: a factor for integers shown scaled (0.01 for a percent).
-- `x-hyprValue`: how the value is converted.
-  - `"int"`: a boolean as 0/1
-  - `"number"`: an enum of numbers written as strings
-  - `"emptyIsDefault"`: `"default"` → `""`
-  - `"color"`: a theme color name as `rgba(hex + x-hyprAlpha)`, with `"ff"` unless given.
-- `x-hyprAlways`: written even when it's the schema default. Other fields are only written once changed, so Hyprland's own default (and the user's files) stay in charge otherwise.
-- `x-hyprIf`: a boolean sibling; the field is written (default or not) only when that sibling is on.
-
-### Sway commands (`x-sway*`, `methods/SwayConf`)
-- `x-sway`: the sway command with `{}` for the value (`"input type:keyboard repeat_rate {}"`). Written under the same rules as `x-hypr`: when its `x-hyprIf` sibling is on, else once changed from the default.
-- `x-swayValue`: how the value is written: `"enabled"` (a boolean as `enabled`/`disabled`), `"yesNo"` (`yes`/`no`), `"enableDisable"` (`enable`/`disable`), `"raw"` (as it is, unquoted). Without one, the value is quoted as one argument (`SwayConf.quote`).
-- `x-swayMap`: `{ value: sway's word }` for an enum whose names differ from sway's; a value missing from it is left out.
-- `x-swayScale`: a factor, as `x-hyprScale`.
-- `x-swaySkip`: a value written as nothing (sway's own default stays), e.g. `"default"`.
-- `x-swayConfigOnly: true`: sway takes the command only from a config file (`xkb_numlock`): left out of what's sent at runtime.
-- Details: [Sway backend](../compositor/sway-backend.md).
-
-### niri config nodes (`x-niri*`, `methods/NiriConf`)
-- `x-niri`: the dotted path of the node in niri's config (`"input.keyboard.repeat-rate"`, `"layout.default-column-width.proportion"`), its value the node's argument. Written under the same rules as `x-hypr` (`CompositorLayer.annotatedFields`): when its `x-hyprIf` sibling is on, else once changed from the default; a managed config's options every one.
-- `x-niriValue`: `"flag"` (a boolean as the node alone when on, left out when off: niri has no `false` for a flag), `"offFlag"` (the node alone when off, for a setting niri turns off with a flag: `animations.off`, `gestures.hot-corners.off`) or `"float"` (written with a point, where niri wants a float).
-- `x-niriScale`: a factor, as `x-hyprScale`.
-- `x-niriSkip`: a value written as nothing (niri's own default stays), e.g. `"default"` or `0`.
-- Details: [niri backend](../compositor/niri-backend.md).
+### Compositor config (`x-compositor`)
+A setting a compositor's config takes says how, per compositor: `x-compositor: { hyprland: {…}, sway: {…}, niri: {…} }`. `CompositorLayer.compositorFields` collects a section's annotated fields (inside its objects too) with their spec. Each is written, under a gated part (the input), only while its `if` switch is on, else once changed from its default; a managed config's options every one (`annotatedFields`).
+- Every compositor's spec takes:
+  - `key`: Hyprland's option path (or a list of paths), sway's command with `{}` for the value (`"input type:keyboard repeat_rate {}"`), or niri's node path (`"input.keyboard.repeat-rate"`, its value the node's argument).
+  - `scale`: a factor for a value stored scaled (0.01 for a percent, 0.001 for ms written as seconds).
+  - `if`: a boolean beside it (a part's `enabled`): written, default or not, only when that is on.
+- Hyprland (`methods/HyprLua`, one value of a nested `hl.config({...})` table):
+  - `value`: `"int"` (a boolean as 0/1), `"number"` (an enum of numbers written as strings), `"emptyIsDefault"` (`"default"` → `""`), `"color"` (a theme color name as `rgba(hex + alpha)`, `alpha` `"ff"` unless given).
+  - `always: true`: written even when it's the schema default. Other fields are only written once changed, so Hyprland's own default (and the user's files) stay in charge otherwise.
+- sway (`methods/SwayConf`; [Sway backend](../compositor/sway-backend.md)):
+  - `value`: `"enabled"` (a boolean as `enabled`/`disabled`), `"yesNo"` (`yes`/`no`), `"enableDisable"` (`enable`/`disable`), `"raw"` (as it is, unquoted). Without one, the value is quoted as one argument (`SwayConf.quote`).
+  - `map`: `{ value: sway's word }` for an enum whose names differ from sway's; a value missing from it is left out.
+  - `skip`: a value written as nothing (sway's own default stays), e.g. `"default"`.
+  - `configOnly: true`: sway takes the command only from a config file (`xkb_numlock`): left out of what's sent at runtime.
+- niri (`methods/NiriConf`; [niri backend](../compositor/niri-backend.md)):
+  - `value`: `"flag"` (a boolean as the node alone when on, left out when off: niri has no `false` for a flag), `"offFlag"` (the node alone when off, for a setting niri turns off with a flag: `animations.off`, `gestures.hot-corners.off`) or `"float"` (written with a point, where niri wants a float).
+  - `skip`: a value written as nothing (niri's own default stays), e.g. `"default"` or `0`.
 
 - `x-greeter: true` on an `Input` option: the greeter's compositor takes it (`methods/GreeterBundle`). See [Greeter install](../features/greeter-install.md).
 - Details: [Hyprland config modes](../hyprland/config-modes.md), [Window look](../compositor/window-look.md).

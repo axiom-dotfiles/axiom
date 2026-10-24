@@ -1,6 +1,6 @@
 # Packaging: install.sh and the AUR packages
 
-> **Files:** `install.sh`, `packaging/aur/axiom-shell/PKGBUILD`, `packaging/aur/axiom-shell-git/PKGBUILD`, `scripts/check_packages.py`, `scripts/release.sh`, `components/methods/Packages.qml`, `config/Paths.qml`
+> **Files:** `install.sh`, `packaging/aur/axiom-shell/PKGBUILD`, `packaging/aur/axiom-shell-git/PKGBUILD`, `scripts/check_packages.py`, `scripts/release.sh`, `.github/workflows/release.yml`, `components/methods/Packages.qml`, `config/Paths.qml`
 > **Config:** none
 > **Related:** [Self-update](features/self-update.md), [Greeter install](features/greeter-install.md), [Onboarding](features/onboarding.md), [Config manager](core/config-manager.md)
 
@@ -12,7 +12,7 @@ How axiom gets onto a machine: the installer (a clone in the user's home) or a d
 - `scripts/check_packages.py` (CI, `check_all.sh`, `verify.sh` when one of them changes) fails when:
   - an install.sh key's Arch or Fedora package differs from `Packages.packages` (a COPR is `owner/project:name` there and `{ name, repo }` here; `download` is `{ file, to }`, the same URL and file; `-` and `n/a` are `null`);
   - a key in `REQUIRED` or `FEATURES` isn't in `PACKAGES`;
-  - a PKGBUILD's `depends` aren't `REQUIRED`'s Arch packages (less `git`), or its `optdepends` aren't exactly the compositors' and `FEATURES`' Arch packages.
+  - a PKGBUILD's `depends` aren't `REQUIRED`'s Arch packages (less `git` and `go`, which only fetch and build it: `makedepends`), or its `optdepends` aren't exactly the compositors' and `FEATURES`' Arch packages.
 - Adding an optional feature: its keys in `Packages.packages` (if new), a `PACKAGES` row, a `FEATURES` row, and an `optdepends` line in both PKGBUILDs, in the same words.
 
 ### install.sh
@@ -25,24 +25,32 @@ How axiom gets onto a machine: the installer (a clone in the user's home) or a d
   - Each gets the autostart line its `*ConfigWriter.autostartTarget` writes (`AUTOSTART`), unless a line matching the same `accept` pattern is there. A missing config is seeded from the compositor's default (`/usr/share/hypr/hyprland.lua`, `/etc/sway/config`, `/usr/share/doc/niri/default-config.kdl`); with no default to seed from, it says what to add instead of writing a config with no binds.
   - Night light's tool and X11 apps' helper (`xwayland-satellite` on niri, Xwayland on sway) depend on the compositors (`FEATURES`' third column; `DependencyManager.tools`' `compositors`). The login screen's feature installs sway, which it runs whatever the session's compositor is. With Hyprland among the compositors it's two features instead (the first entry matching wins): greetd alone, and sway on its own, recommended (so "all" takes it); declined, the login screen runs in Hyprland.
   - Versions: Hyprland below 0.55 warns; sway and niri below what axiom is tested with (`TESTED_SWAY`, `TESTED_NIRI`) only say so.
+- **The binary:** from a clone it runs `scripts/generate.sh`, then builds `axiom` (`CGO_ENABLED=0 go build -trimpath`) into `$XDG_BIN_HOME` or `~/.local/bin` (`AXIOM_BIN`): beside the old one, then swapped in. `go` is in `REQUIRED` for that, and dropped from it when packaged. The binary needn't be on `PATH`: the autostart line names it by its path, as `Paths.shellCommand` does.
+- **Autostart:** `autostart_line` is the line each `*ConfigWriter.autostartTarget` writes (`'<AXIOM_BIN>' run`), and `STARTS_AXIOM` is `Paths.startPattern` (`axiom run`). `axiom run` from `$HOME` finds the tree in the installed places (`tree.Find`: `~/.config/quickshell/axiom`, then `/etc/xdg/quickshell/axiom`).
 - **`--dry-run`:** every change goes through `run` / `sudo_run` / `append_line`, which print instead.
-- **Packaged:** with `/usr/share/axiom/.packaged` and no clone, it skips the clone and only does packages and autostart.
+- **Packaged:** with `/usr/share/axiom/.packaged` and no clone, it skips the clone and the build, and only does packages and autostart (with `/usr/bin/axiom`).
 - **Testing:** `--dry-run` on the host, and real runs in `fedora:latest` / `archlinux:latest` containers with a sudo user and `AXIOM_REPO` pointing at a mounted clone (copy install.sh out of the clone first, or it treats the read-only mount as the install). Never run it for real on the dev machine.
 
 ### The AUR packages
 Not on the AUR yet: AUR account registration is closed, so they wait in `packaging/aur/` until it reopens ([#76](https://github.com/axiom-shell/axiom/issues/76), help wanted). The user docs describe installing them and say they aren't published.
 
-- `axiom-shell` (a release's tag tarball) and `axiom-shell-git` (main, `pkgver()` from `git describe`, `provides`/`conflicts` `axiom-shell`). The same `package()` otherwise.
+- `axiom-shell` (a release's tag tarball) and `axiom-shell-git` (main, `pkgver()` from `git describe`, `provides`/`conflicts` `axiom-shell`). The same `prepare()`, `build()` and `package()` otherwise.
+- **The binary:** `arch=(x86_64 aarch64)`, `makedepends` `go`. `prepare()` downloads the modules; `build()` runs `scripts/generate.sh` (the embedded copies and `config/json/config.schema.json`, which isn't committed) and `go build` with `CGO_ENABLED=0` and `-buildmode=pie -trimpath -mod=readonly`; `package()` installs it as `/usr/bin/axiom`.
 - **No compositor in `depends`:** pacman has no "one of"; `hyprland`, `sway` (which `swayfx` provides) and `niri` are `optdepends`. The package is the shell, not the session.
 - **Layout:**
-  - The code in `/usr/share/axiom`, less what only development needs (tests, docs, CI, git hooks, `install.sh`, the check scripts, every `*.md`).
-  - `/etc/xdg/quickshell/axiom` → `/usr/share/axiom`, so `qs -c axiom` finds it after `~/.config/quickshell/axiom` (a clone there still wins).
+  - The code in `/usr/share/axiom`, with the built schema, less what only development needs (tests, docs, CI, git hooks, `install.sh`, the check scripts, every `*.md`, and `backend/`, the axiom binary's Go source).
+  - The binary, `/usr/bin/axiom`.
+  - `/etc/xdg/quickshell/axiom` → `/usr/share/axiom`, so `axiom run` finds it after `~/.config/quickshell/axiom` (a clone there still wins).
   - The license in `/usr/share/licenses/<pkgname>/`.
   - The marker `/usr/share/axiom/.packaged`, holding `pkgver-pkgrel`.
 - Nothing writes under the code ([config-manager.md](core/config-manager.md) › Where files live). Python's bytecode cache can't be written there either, which Python ignores; the package ships none, since bytecode for one Python version goes stale on the next.
-- `axiom-shell.install` prints the autostart lines on install, and to restart axiom on upgrade (pacman replaces files, which qs's watcher can miss).
-- **Releases:** `scripts/release.sh`, after pushing the tag, sets the release PKGBUILD's `pkgver`, `pkgrel=1` and the tarball's `sha256sums`, and regenerates `.SRCINFO` (`makepkg --printsrcinfo`). Committing that and pushing it to the AUR is the maintainer's step.
-- **Testing:** `makepkg` in a scratch copy of the folder, `namcap` on the PKGBUILD and the package (in an `archlinux` container if it isn't installed: its QML-module and `bash`/`sh` warnings are expected), and `tar -tf` the package to see its files.
+- `axiom-shell.install` prints the autostart lines on install (`'/usr/bin/axiom' run`), and on upgrade to run `axiom daemon reexec` then `axiom restart` (pacman replaces files, which qs's watcher can miss).
+- **Releases:** `scripts/release.sh` checks main, opens the notes and pushes an annotated `v*` tag. The tag runs `.github/workflows/release.yml`, and nothing is committed back:
+  - **The GitHub release** (`binaries` job), once the tag is checked to be on main: the tag's message as its notes, and the assets `axiom-linux-amd64` and `axiom-linux-arm64` (static: `CGO_ENABLED=0 go build -trimpath`, the tag stamped in as `buildinfo.version`, checked with `axiom version`) and a `SHA256SUMS` listing them, as `sha256sum` writes it. The greeter install takes the binary from there for a tag, else builds it ([greeter-install.md](features/greeter-install.md)); the installer will too.
+  - **The AUR** (`aur` job, skipped without the `AUR_SSH_PRIVATE_KEY` secret): `packaging/aur/` as main has it, `axiom-shell` given the tag's `pkgver`, the `pkgrel` and the tag tarball's `sha256sums`, built once with `makepkg --nodeps` as a check, `.SRCINFO` made for both, and each pushed to its AUR repository when it changed. The repository keeps no `.SRCINFO`, and the PKGBUILD's version fields are only the last release's.
+  - Settings: the `AUR_SSH_PRIVATE_KEY` secret (the AUR account's key); optional variables `AUR_HOST_FINGERPRINT` (pins `aur.archlinux.org`'s ed25519 key, `SHA256:…`), `AUR_GIT_NAME` and `AUR_GIT_EMAIL` (the AUR commits' author).
+  - **A packaging-only fix:** merge it to main, then run the workflow by hand (Actions → Release → Run workflow) with the tag and a higher `pkgrel`. A rerun also publishes the binaries again.
+- **Testing:** `makepkg` in a scratch copy of the folder (or its functions sourced with `srcdir`/`pkgdir` on a scratch clone, which tests uncommitted work), then `axiom schema check --tree <pkgdir>/usr/share/axiom`, `namcap` on the PKGBUILD and the package (in an `archlinux` container if it isn't installed: its QML-module and `bash`/`sh` warnings are expected), and `tar -tf` the package to see its files.
 
 ### A packaged shell
 `Paths.packagedVersion` reads the marker beside the code (`Paths.packaged` when there is one). It changes:

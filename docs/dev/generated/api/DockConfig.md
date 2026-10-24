@@ -14,5 +14,5 @@ Reader for the Dock section: any number of docks, each with its own place, pinne
 
 - `pinnedOf(dock)`: The apps a dock pins: its own with pinnedOwn, else the shared Apps.pinned
 - `dockById(id)`
-- `screensOf(dock)`: The screens a dock may be on, by its `monitors` (as an OSD's): every one for "focused" and "all" (shell/Dock shows it only where ShellManager.showsOn puts it), else the one it's on
+- `screensOf(dock)`: The screens a dock may be on, by its `screen` (as an OSD's): every one for "focused" and "all" (shell/Dock shows it only where ShellManager.showsOn puts it), else those it's on
 - `labelOf(dock)`: The name on its tab: its own, else its edge's

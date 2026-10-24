@@ -35,9 +35,6 @@ Singleton {
   readonly property string focusedOutput: Hyprland.focusedMonitor?.name ?? ""
   // The focused window's id (its "0x…" address), or ""
   readonly property string activeWindowId: Hyprland.activeToplevel ? "0x" + Hyprland.activeToplevel.address : ""
-  // Writes axiom's layer into Hyprland's config (CompositorConfigManager).
-  // None in the greeter, which writes no config
-  readonly property var configWriter: Paths.greeter ? null : HyprlandConfigWriter
   // What Hyprland does (CompositorManager.supports)
   readonly property var supports: ({
       "configModes": true,
@@ -247,6 +244,12 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // Re-reads the options axiom follows (gaps, split ratio, the workspaces
   // animation), after something changed them at runtime: once the queued
   // Lua has run, which may be what changes them
+  // axiom's config layer changed Hyprland at runtime (the daemon's
+  // compositor.applied): its options are read again
+  function layerApplied() {
+    refreshOptions();
+  }
+
   function refreshOptions() {
     if (_evaluating || _evalQueue.length > 0) {
       _refreshAfterEval = true;
@@ -646,7 +649,7 @@ hl.dispatch(hl.dsp.submap("${_captureSubmap}"))`
   // why each sits where it does; docs/dev/generated/layers.md). Named, so
   // re-adding one replaces it instead of piling up copies. Rules added at
   // runtime are lost when Hyprland reloads its config.
-  // HyprlandConfigWriter also writes them into its Lua files, since a
+  // axiom's config layer also writes them into its Lua files, since a
   // reload Hyprland does by itself (a watched file changing) doesn't always
   // send the configreloaded event that re-adds them here.
   readonly property var _layerRulesLua: HyprLua.layerRulesLua()

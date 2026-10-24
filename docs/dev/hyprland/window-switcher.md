@@ -11,10 +11,10 @@ Alt+Tab is the bind actions `windowSwitcher` and `windowSwitcherReverse`.
 **Hyprland holds every key.** A surface can't see a modifier released before it maps and takes focus, and a quick tap always is.
 
 ### The bind and the submap
-- The bind is a Lua function (`HyprLua.switcherBindLua`). On the press itself it:
+- The bind is a Lua function (`render.SwitcherBindLua`). On the press itself it:
   1. enters the `axiom_switcher` submap
   2. emits `hl.dsp.event("axiom-switcher:step ±1")`.
-- **The submap** (`HyprLua.switcherLua`) is built from the switcher binds (`KeyNames.split`).
+- **The submap** (`render.SwitcherLua`) is built from the switcher binds (`KeyNames.split`).
   - It is emitted with the binds in every mode; in detached mode, only for the binds applied.
   - It repeats each switcher combo as a step, and binds Return (pick) and Escape (cancel).
 - **The release is no bind.** Hyprland fires a release bind on a modifier only when no other key came between (as with a tapped SUPER), and Tab always comes between.

@@ -4,128 +4,68 @@
 > **Reader:** `DesktopConfig` (`config/DesktopConfig.qml`)
 > **Schema:** `config/json/config.schema.json` → `properties.Desktop` · scope look
 
-Overlay modules on the desktop, under the windows, edited on the overlay's Layouts page. Each monitor shows its own layout if it has one, else the primary monitor's (on the primary monitor), else the one for all monitors; each is fitted inside the bars and the border.
-
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
 
-### `Desktop.all`
-
-- **`Desktop.all`** · object
-  - A desktop's overlay modules on a bounded grid, fitted to each monitor inside its bars and border at the card size (Desktop).
-- **`Desktop.all.enabled`** · boolean = true
-  - Shown. Off on a monitor's own layout leaves that monitor's desktop empty.
-  - x-settings=false
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
-- **`Desktop.all.monitor`** · string = ""
-  - The monitor (connector name) a layout in Desktop.monitors is for.
-  - x-scope="machine", x-monitorRef="drop", x-settings=false
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
-- **`Desktop.all.columns`** · integer = 16 · 1–256
-  - Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it.
-  - x-settings=false
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`
-- **`Desktop.all.rows`** · integer = 9 · 1–256
-  - Grid units down of the grid the modules were last placed on.
-  - x-settings=false
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`
-- **`Desktop.all.fineGrid`** · boolean = false
-  - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
-  - x-group="Grid"
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`, `config/OverlayConfig.qml`
-- **`Desktop.all.moduleScale`** · integer = 100 · 50–200 · %
-  - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
-  - x-link={"setting":"Widget.cardSize"}, x-group="Grid", x-control="stepper"
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `config/DesktopConfig.qml`, `config/OverlayConfig.qml`
-- **`Desktop.all.moduleBorders`** · boolean = false
-  - Module borders: Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper.
-  - x-group="Style"
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`
-- **`Desktop.all.modules`** · array<OverlayModules> = []
-  - x-settings=false
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `shell/Desktop.qml`
-- **`Desktop.all.modules[]`**: one of the [OverlayModules](OverlayModules.md) types (discriminated by `type`)
-
-### `Desktop.primary`
-
-- **`Desktop.primary`** · object
-  - A desktop's overlay modules on a bounded grid, fitted to each monitor inside its bars and border at the card size (Desktop).
-- **`Desktop.primary.enabled`** · boolean = true
-  - Shown. Off on a monitor's own layout leaves that monitor's desktop empty.
-  - x-settings=false
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
-- **`Desktop.primary.monitor`** · string = ""
-  - The monitor (connector name) a layout in Desktop.monitors is for.
-  - x-scope="machine", x-monitorRef="drop", x-settings=false
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
-- **`Desktop.primary.columns`** · integer = 16 · 1–256
-  - Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it.
-  - x-settings=false
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`
-- **`Desktop.primary.rows`** · integer = 9 · 1–256
-  - Grid units down of the grid the modules were last placed on.
-  - x-settings=false
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`
-- **`Desktop.primary.fineGrid`** · boolean = false
-  - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
-  - x-group="Grid"
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/DesktopConfig.qml`, `config/OverlayConfig.qml`
-- **`Desktop.primary.moduleScale`** · integer = 100 · 50–200 · %
-  - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
-  - x-link={"setting":"Widget.cardSize"}, x-group="Grid", x-control="stepper"
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole), `// reads:` marker · in: `config/DesktopConfig.qml`, `config/OverlayConfig.qml`
-- **`Desktop.primary.moduleBorders`** · boolean = false
-  - Module borders: Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper.
-  - x-group="Style"
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`
-- **`Desktop.primary.modules`** · array<OverlayModules> = []
-  - x-settings=false
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.layoutFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `shell/Desktop.qml`
-- **`Desktop.primary.modules[]`**: one of the [OverlayModules](OverlayModules.md) types (discriminated by `type`)
-
 ### `Desktop`
 
-- **`Desktop.monitors`** · array<DesktopLayout> = []
-  - Monitors: Layouts of monitors by name (their connector), ahead of the primary monitor's and the one for all.
-  - x-scope="look"
-  - read: `DesktopConfig.layoutFor` (part) · in: `shell/Desktop.qml`
+- **`Desktop.items`** · array<DesktopLayout> = [{"id":"all","enabled":false,"screen":{"mode":"all","names":[]}},{"id…
+  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.matchFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
 
-### `Desktop.monitors[]`
+### `Desktop.items[]`
 
-- **`Desktop.monitors[]`** · object
+- **`Desktop.items[]`** · object
   - A desktop's overlay modules on a bounded grid, fitted to each monitor inside its bars and border at the card size (Desktop).
-- **`Desktop.monitors[].enabled`** · boolean = true
-  - Shown. Off on a monitor's own layout leaves that monitor's desktop empty.
-  - x-settings=false
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
-- **`Desktop.monitors[].monitor`** · string = ""
-  - The monitor (connector name) a layout in Desktop.monitors is for.
-  - x-scope="machine", x-monitorRef="drop", x-settings=false
-  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
-- **`Desktop.monitors[].columns`** · integer = 16 · 1–256
-  - Grid units across of the grid the modules were last placed on (written by the layouts editor). Each monitor fits its own grid at the card size, and modules keep to their nearest edge on it.
-  - x-settings=false
-  - read: entry field, name match, `// reads:` marker · in: `components/methods/GridPlacement.qml`
-- **`Desktop.monitors[].rows`** · integer = 9 · 1–256
-  - Grid units down of the grid the modules were last placed on.
-  - x-settings=false
-  - read: entry field, name match, `// reads:` marker · in: `components/methods/GridPlacement.qml`
-- **`Desktop.monitors[].fineGrid`** · boolean = false
+
+### `Desktop.items[].grid`
+
+- **`Desktop.items[].grid`** · object
+  - Grid
+- **`Desktop.items[].grid.fine`** · boolean = false
   - Double grid: Split each grid unit in two each way, for finer placement. Modules keep their size and spot.
-  - x-group="Grid"
-  - read: entry field, name match, `// reads:` marker · in: `components/methods/GridPlacement.qml`, `config/OverlayConfig.qml`
-- **`Desktop.monitors[].moduleScale`** · integer = 100 · 50–200 · %
+  - read: entry field, name match · in: none found
+- **`Desktop.items[].grid.columns`** · integer = 16 · 1–64
+  - x-settings=false
+  - read: entry field, name match · in: none found
+- **`Desktop.items[].grid.rows`** · integer = 9 · 1–64
+  - x-settings=false
+  - read: entry field, name match · in: none found
+
+### `Desktop.items[]`
+
+- **`Desktop.items[].moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the modules, relative to the card size in Look & Feel. Their text and content grow and shrink with them, and each monitor fits as many as its screen holds.
-  - x-link={"setting":"Widget.cardSize"}, x-group="Grid", x-control="stepper"
-  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/ConfigMigration.qml`, `components/views/layouts/PageTarget.qml`, `config/OverlayConfig.qml`, `services/EdgeMenuManager.qml`
-- **`Desktop.monitors[].moduleBorders`** · boolean = false
+  - x-link={"setting":"Interface.cardSize"}, x-group="Grid", x-control="stepper"
+  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/views/Layouts/PageTarget.qml`, `config/OverlayConfig.qml`, `services/EdgeMenuManager.qml`
+- **`Desktop.items[].moduleBorders`** · boolean = false
   - Module borders: Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper.
   - x-group="Style"
   - read: entry field, name match · in: `components/surfaces/desktop/DesktopWindow.qml`
-- **`Desktop.monitors[].modules`** · array<OverlayModules> = []
+- **`Desktop.items[].modules`** · array<OverlayModules> = []
   - x-settings=false
   - read: entry field, name match · in: `components/surfaces/desktop/DesktopWindow.qml`, `shell/Desktop.qml`
-- **`Desktop.monitors[].modules[]`**: one of the [OverlayModules](OverlayModules.md) types (discriminated by `type`)
+- **`Desktop.items[].modules[]`**: one of the [OverlayModules](OverlayModules.md) types (discriminated by `type`)
+- **`Desktop.items[].id`** · string
+  - The item's stable id, unique in its list: what editors, path ops and imports match it by.
+  - pattern="^[A-Za-z0-9][A-Za-z0-9._-]*$", x-settings=false
+  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.matchFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
+- **`Desktop.items[].enabled`** · boolean = true
+  - Shown. Off on a monitor's own layout leaves that monitor's desktop empty.
+  - x-settings=false
+  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.matchFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
+
+### `Desktop.items[].screen`
+
+- **`Desktop.items[].screen`** · object
+  - Monitors: Which monitors it's shown on.
+- **`Desktop.items[].screen.mode`** · string = "primary" · enum all|primary|named
+  - Monitors
+  - x-scope="look", x-link={"setting":"General.screen"}
+  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.matchFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
+- **`Desktop.items[].screen.names`** · array<string> = []
+  - Monitors
+  - x-scope="machine", x-monitorRef="drop", x-showIf={"mode":"named"}
+  - read: `DesktopConfig.desktop` (whole), `DesktopConfig.matchFor` (whole), `DesktopConfig.sourceFor` (whole) · in: `config/DesktopConfig.qml`, `services/DesktopManager.qml`
 
 ### Reader members
 
@@ -134,10 +74,12 @@ Every public member of `DesktopConfig`, with the files that use it.
 - `DesktopConfig.desktop` (var)
   - in: only inside the reader
 - `DesktopConfig.fieldGroups` (var): A DesktopLayout's own fields in groups (`x-group`), for the layouts editor
-  - in: `components/views/layouts/DesktopTarget.qml`
+  - in: `components/views/Layouts/DesktopTarget.qml`
 - `DesktopConfig.primaryName` (string): The primary monitor's name, as surfaces place on it (a primary monitor that isn't plugged in falls back to the first screen)
   - in: `services/DesktopManager.qml`
-- `DesktopConfig.sourceFor(name, desktop)`: Which layout the screen named `name` shows in `desktop` (a Desktop section; the live one when left out): "monitor" (its own), "primary", "all", or "" for none
+- `DesktopConfig.matchFor(name, desktop)`: The layout the screen named `name` matches in `desktop` (a Desktop section; the live one when left out), most specific first, enabled or not; null for none
+  - in: only inside the reader
+- `DesktopConfig.sourceFor(name, desktop)`: Which layout the screen named `name` shows in `desktop`: "named" (one naming it), "primary", "all", or "" for none (none matches, or the match is turned off)
   - in: `services/DesktopManager.qml`
 - `DesktopConfig.layoutFor(name)`: The DesktopLayout the screen named `name` shows, or null
   - in: `shell/Desktop.qml`

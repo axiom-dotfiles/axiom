@@ -1,6 +1,6 @@
 # Idle (hypridle) and idle inhibit
 
-> **Files:** `services/HypridleManager.qml`, `components/methods/HypridleConf.qml`, `config/Idle.qml`, `components/views/settings/IdleStatusCard.qml`, `services/IdleInhibitManager.qml`, `shell/IdleInhibit.qml`, `components/bar/widgets/IdleInhibitor.qml`
+> **Files:** `services/HypridleManager.qml`, `components/methods/HypridleConf.qml`, `config/Idle.qml`, `components/views/Settings/IdleStatusCard.qml`, `services/IdleInhibitManager.qml`, `shell/IdleInhibit.qml`, `components/bar/widgets/IdleInhibitor/IdleInhibitor.qml`
 > **Config:** `Idle.*` (reader `Idle`)
 > **Related:** [Lockscreen](lockscreen.md), [Brightness](brightness.md), [Hyprland config modes](../hyprland/config-modes.md)
 
@@ -31,7 +31,7 @@ Axiom can run hypridle with its own generated config, and it keeps a caffeine (i
 
 ### A user's own hypridle
 For the lock screen's `quickshell` mode, a user's own hypridle should use:
-- `lock_cmd = qs -c axiom ipc call lockscreen lock`
+- `lock_cmd = axiom lock`
 - `before_sleep_cmd = loginctl lock-session`
 
 For `none` mode it should have no axiom references. See [Lockscreen](lockscreen.md).

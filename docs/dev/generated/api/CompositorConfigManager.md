@@ -3,25 +3,18 @@
 
 > **File:** `services/CompositorConfigManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Sets the compositor up for axiom (the Compositor section's mode, CompositorConfig.mode), through its backend's config writer (CompositorManager.backend.configWriter, docs/dev/compositor/ config-modes.md). One layer (binds, required settings, the window look, input, blur, monitor profiles, strips) reaches the compositor in one of three ways: detached evaluated at runtime, again after every config reload, which drops it included written to a module the user's config loads (includeLines) managed written as the compositor's config itself, loading the user's own files after it Whenever the file isn't loaded (included but the lines are missing, or a managed takeover refused), the runtime layer is applied instead, so axiom still works, and `problem` says why. The window look, the input and the blur behind axiom's surfaces are also evaluated after every config reload in each mode, so they win over the user's own config while they're on (_applyLive). A compositor taking nothing at runtime (niri: the writer's `liveByFile`) gets them in its files instead, rewritten as they change, which it reloads by itself.
+The compositor set up for axiom (the Compositor section's mode, CompositorConfig.mode): the axiom daemon does it (backend/internal/ compositor/manager, docs/dev/compositor/config-modes.md), writing the compositor's config, taking it over and giving it back, moving the user's binds in and applying the runtime layer. This sends it what the layer is made of, as the shell's readers resolve it (compositor.inputs: the binds, the window look and input, monitors, strips, the session, theme colors), and shows what it pushes back (compositor.state): the status, the problem, the takeover, the merge. Notifications are sent from here, translated.
 
 ### Properties
 
-- `writer` (readonly var): The running compositor's config writer, or null: only with configModes may anything here touch a compositor's config, and never in the greeter, whose compositor is its own (its binds would reach the …
-- `live` (readonly bool): Only once the compositor's capabilities are final: the parts applied depend on them (_appliedParts), and one seen missing for a moment would count as turned off and reload the compositor.
+- `enabled` (readonly bool): Only with configModes, and never in the greeter, whose compositor is its own (its binds would reach the login screen, its files the session's config)
+- `live` (readonly bool): Only once the compositor's capabilities are final (the parts applied depend on them) and the cursor theme's XCursor name is known
 - `mode` (readonly string)
 - `problem` (readonly string): Why the chosen mode isn't in effect, or ""
 - `status` (readonly string): "runtime" (detached), "loaded" (the file is in effect), "fallback" (it isn't: see `problem`) or "pending" (still checking)
 - `skippedKeys` (readonly var): Configured keys the runtime layer skipped because the compositor's config already binds them
-- `configDir` (readonly string)
-- `includePath` (readonly string)
-- `managedPath` (readonly string)
-- `userDir` (readonly string)
-- `userFiles` (readonly string)
-- `includeLines` (readonly string)
-- `autostartLines` (readonly string)
-- `includeTarget` (readonly var): integration_hookup.py targets, or null
-- `autostartTarget` (readonly var)
+- `takeoverPending` (readonly bool)
+- `releaseProblem` (readonly string): Why the managed config couldn't be given back on leaving managed mode (the daemon tries again), or ""
 - `managedCheck` (readonly string): What switching to managed would do: "ours" | "adopt" | "stock" | "released" | "new" | "blocked" (by managedBlockedBy "link" or "git")
 - `managedBlockedBy` (readonly string)
 - `managedBlockedRepo` (readonly string)
@@ -29,8 +22,17 @@ Sets the compositor up for axiom (the Compositor section's mode, CompositorConfi
 - `merging` (readonly bool)
 - `lastMerge` (readonly var): The last merge, or null
 - `mergeable` (readonly int): How many binds a Merge of all the user's files would move; -1 until looked
-- `takeoverPending` (readonly bool): Managed mode waits for the user before taking over a config of theirs on this compositor: one that came with the mode from elsewhere (another compositor's, an import) never took it over here.
-- `approvalProblem` (readonly string): Why it waits (`problem` meanwhile)
+- `runningConfig` (readonly string): niri's: the config it runs now (the detached wrapper while it's loaded), and whether the user's binds have been read
+- `userBindsRead` (readonly bool)
+- `configDir` (readonly string)
+- `includePath` (readonly string)
+- `managedPath` (readonly string)
+- `userDir` (readonly string)
+- `userFiles` (readonly string)
+- `includeLines` (readonly string)
+- `autostartLines` (readonly string)
+- `includeTarget` (readonly var): integration_hookup.py targets, or null.
+- `autostartTarget` (readonly var)
 
 ### Signals
 
@@ -38,15 +40,15 @@ Sets the compositor up for axiom (the Compositor section's mode, CompositorConfi
 
 ### Functions
 
-- `isComplete(bind)`: Whether a configured bind has everything it needs to be bound
-- `spec(forFile)`: The window look and the input that are on, for a file (`forFile`) or for now: { look (CompositorLayer.look), surfaces ({ blur, throughWindows, backdrops, threshold }: CompositorLayer.surfaceBlur's), …
-- `checkManaged()`
+- `isComplete(bind)`: Whether a configured bind (one of KeybindsConfig.activeBinds) has everything it needs to be bound, as the daemon says for the binds sent
+- `spec(forFile)`: The window look and the input that are on, for a file (`forFile`) or for now: { look (CompositorLayer.look), surfaces ({ blur, throughWindows, backdrops, threshold }), input (CompositorLayer.input) }
+- `checkManaged(callback)`: `callback` (optional) gets managedCheck once known
+- `allowTakeover()`: The status card's (and the notification's) Allow
 - `mergeUserBinds(only)`: `only`: one of the user's files (the adopted one), else all of them
 - `previewMerge()`: Counts what a Merge would move, changing nothing (`mergeable`)
+- `withEntries(callback)`: Calls back with the binds in effect (the user's and axiom's), where the shell can't read them from the compositor (sway, niri), or null
 - `copyIncludeLines()`
 - `copyAutostartLines()`
 - `addAutostartLines()`: Adds the autostart line to the user's config (the autostart hookup, with a backup); it takes effect with the next session, so no reload
 - `openConfigDir()`
-- `apply()`
-- `allowTakeover()`: The status card's (and the notification's) Allow
-- `addIncludeLines()`: Adds the include lines to the user's config (the include hookup, with a backup), then reloads it so they take effect
+- `addIncludeLines()`: Adds the include lines to the user's config (the include hookup, with a backup), then has the compositor reload so they take effect

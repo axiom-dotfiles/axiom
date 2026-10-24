@@ -1,6 +1,6 @@
 # Lockscreen
 
-> **Files:** `services/LockManager.qml`, `services/AuthManager.qml`, `shell/Lockscreen.qml`, `components/surfaces/lockscreen/LockSurface.qml`, `components/surfaces/lockscreen/LockPreviewWindow.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/content/Password.qml`, `components/content/parts/PasswordField.qml`, `components/content/parts/FocusKeeper.qml`, `components/reusable/PasswordEntry.qml`, `components/content/Greeting.qml`, `services/ScreenLayoutEditor.qml`, `components/views/layouts/LockscreenTarget.qml`, `config/LockscreenConfig.qml`
+> **Files:** `services/LockManager.qml`, `services/AuthManager.qml`, `shell/Lockscreen.qml`, `components/surfaces/lockscreen/LockSurface.qml`, `components/surfaces/lockscreen/LockPreviewWindow.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/content/Password/Password.qml`, `components/content/parts/PasswordField.qml`, `components/content/parts/FocusKeeper.qml`, `components/reusable/PasswordEntry.qml`, `components/content/Greeting/Greeting.qml`, `services/ScreenLayoutEditor.qml`, `components/views/Layouts/LockscreenTarget.qml`, `config/LockscreenConfig.qml`
 > **Config:** `Lockscreen.mode`, `Lockscreen.lockCommand`, `Lockscreen.layout` (reader `LockscreenConfig`)
 > **Related:** [Idle](idle.md), [Greeter runtime](greeter-runtime.md), [Desktop](desktop.md), [Layouts editor](../overlay/layouts-editor.md), [Grid canvas](../overlay/grid-canvas.md), [Themes](../theming/themes.md), [Shell targeting](../core/shell-manager-targeting.md)
 
@@ -11,6 +11,14 @@ This doc covers the three lock modes, how the built-in lock screen's layout of m
   - Lock buttons call it through `ShellManager.sessionAction("lock")`.
   - Idle daemons call it through the `lockscreen` IPC target.
 - `lock()` ends a running preview first.
+
+### Under axiom (`axiom lock`)
+Run by `axiom run`, the binary makes locking dependable (`backend/internal/lock`):
+- `axiom lock` (and `axiom ipc lockscreen lock`) asks the shell. It exits 0 only once `shell/Lockscreen.qml`'s session lock is `secure` (the compositor acknowledged it), which `LockManager` reports as `lock.state`.
+- If that doesn't come within 3 s, the binary restarts the shell with `AXIOM_LOCK_ON_START=1`, which locks before anything else shows. If that fails too, `axiom lock` fails: the built-in locker has nothing to fall back on.
+- A shell that dies while locked is restarted at once, locked. The compositor keeps the session locked meanwhile.
+- Nothing goes the other way: `lock.state` only informs, `lockscreen` takes no function but `lock`, and only PAM unlocks.
+- With `Lockscreen.mode` `none`, `axiom lock` runs `Lockscreen.lockCommand`, except `loginctl lock-session`, which would come back to axiom through the idle daemon.
 
 ### Modes (`Lockscreen.mode`)
 
@@ -32,7 +40,7 @@ This doc covers the three lock modes, how the built-in lock screen's layout of m
 #### hypridle
 - `Idle.enabled` has axiom run hypridle with its own config ([idle.md](idle.md)).
 - A user's own hypridle:
-  - For the first two modes it uses `lock_cmd = qs -c axiom ipc call lockscreen lock` and `before_sleep_cmd = loginctl lock-session`.
+  - For the first two modes it uses `lock_cmd = axiom lock` and `before_sleep_cmd = loginctl lock-session`.
   - For `none` it has no axiom references.
 
 ### Layout
@@ -42,7 +50,7 @@ This doc covers the three lock modes, how the built-in lock screen's layout of m
 
 #### Grid
 - Overlay modules sit on a bounded grid fitted to each screen at the card size. The grid is a `ScreenLayout`, shared with the greeter. Its `columns` × `rows` (hidden, written by the editor) are the grid the modules were last placed on.
-- **`fineGrid` ("Double grid")** splits each unit in two each way. `GridPlacement.screenGrid(layout)` gives the grid in the units places use.
+- **`grid.fine` ("Double grid")** splits each unit in two each way. `GridPlacement.screenGrid(layout)` gives the grid in the units places use.
   - Turning it on or off rescales every place (`GridPlacement.scalePlace`, in `ScreenLayoutEditor.updateLayoutField`). Merging rounds each edge, so modules that met still meet.
   - The `GridEditor`'s `sizeScale` doubles new modules' default sizes.
 - **Fitting to the screen:** `LockSurface` is built on `surfaces/screenlayout/ScreenLayoutView`, which holds the background, dim and fitted grid it shares with `GreeterSurface` and the desktop. It takes `OverlayConfig.screenArrangement` (`GridPlacement.screenArrangement`):
@@ -90,7 +98,7 @@ This doc covers the three lock modes, how the built-in lock screen's layout of m
 
 #### Background
 - `background` is one of:
-  - `wallpaper`: `ThemeManager.wallpaperFor(screen)`, blurred by a `MultiEffect` when the layout's `blurWallpaper` is on (each layout has its own: the lock screen's and the login screen's are independent).
+  - `wallpaper`: `ThemeManager.wallpaperFor(screen)`, blurred by a `MultiEffect` when the layout's `backdrop.blur` is on (each layout has its own: the lock screen's and the login screen's are independent).
   - `color`: `backgroundColor`.
 - Either way it sits under a black layer at `dim`%.
 

@@ -2,212 +2,38 @@
 # Config: Bars
 
 > **Reader:** `Bar` (`config/Bar.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.Bars` · scope look
+> **Schema:** `config/json/config.schema.json` → `properties.Bars` · category Look & Feel · scope look
 > **Read whole by:** `services/BarManager.qml`
-
-Bars, edited in the overlay's bar editor.
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
 
 ### Parts
 
-- [`Bars.widgets`](Bars.widgets.md)
-
-### `Bars[]`
-
-- **`Bars[]`** · object
-- **`Bars[].id`** · string
-  - Id
-  - x-group="General"
-  - read: `Bar.savedBars` (whole), `barConfig.id` · in: `components/bar/BarContainer.qml`, `components/bar/CornerMerge.qml`, `components/hosts/popout/BarPopouts.qml`, `config/Bar.qml`, `services/EdgeMenuManager.qml`
-- **`Bars[].enabled`** · boolean = true
-  - Enabled
-  - x-group="General"
-  - read: `Bar.savedBars` (whole), `barConfig.enabled` · in: `components/bar/BarPanel.qml`, `config/Bar.qml`, `services/EdgeMenuManager.qml`, `services/ShellManager.qml`
-- **`Bars[].monitor`** · string = ""
-  - Monitor: Monitor this bar is shown on. Empty uses the primary monitor; All monitors puts an identical copy on each.
-  - x-link={"setting":"General.primaryMonitor"}, x-monitorRef="off", x-scope="machine", x-group="General", x-options="screens", x-allScreens=true
-  - read: `Bar.savedBars` (whole), `barConfig.monitor` · in: `components/bar/BarPanel.qml`, `config/Bar.qml`
-- **`Bars[].location`** · string = "Top" · enum Top|Bottom|Left|Right
-  - Location
-  - x-group="General"
-  - read: `Bar.savedBars` (whole), `barConfig.location` · in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/PopoutAnchor.qml`, `components/surfaces/onboarding/pages/LookPage.qml`, `config/Bar.qml`, `services/ShellManager.qml`
-- **`Bars[].widgetSize`** · integer = 26 · 10–150 · px
-  - Widget size: How thick the widgets are across the bar. The bar grows to fit them, their padding, and any border it shares an edge with.
-  - x-group="Size", x-control="stepper"
-  - read: `Bar.savedBars` (whole), `barConfig.widgetSize` · in: `components/bar/BarWidgetHost.qml`, `components/bar/WidgetGroup.qml`, `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/Separator.qml`, `components/bar/widgets/SystemStats.qml`, `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/Time.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `config/Bar.qml`
-- **`Bars[].padding`** · integer = 4 · 0–50 · px
-  - Padding: Space between the widgets and the bar's visible edges, on both sides.
-  - x-group="Size", x-control="stepper", x-showIf={"background":{"not":"pills"}}
-  - read: `Bar.savedBars` (whole), `barConfig.padding` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
-- **`Bars[].background`** · string = "solid" · enum solid|transparent|pills|floating|floatingPills
-  - Background: Every bar but a solid one sits inside the screen border. Pills grow out of it; floating bars and pills are held away from it.
-  - x-group="Style"
-  - read: `Bar.savedBars` (whole), `barConfig.background` · in: `components/surfaces/onboarding/pages/LookPage.qml`, `config/Bar.qml`
-- **`Bars[].floatGap`** · integer = -1 · -1–60 · px
-  - Float gap: How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends. Auto keeps the compositor's gap to the screen edges, as your windows do. Windows always keep the compositor's gap between windows from the bar.
-  - x-link={"setting":"WindowLook.gapsOut"}, x-group="Style", x-control="stepper", x-auto={"value":-1,"start":8}, x-showIf={"background":["floating","floatingPills"]}
-  - read: `Bar.savedBars` (whole), `barConfig.floatGap` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
-- **`Bars[].pillPadding`** · integer = 4 · 0–20 · px
-  - Pill padding: Extra space around a pill's widgets (px). They sit the screen margin plus this from the screen edge, and as far from the pill's other edges.
-  - x-group="Style", x-control="stepper", x-showIf={"background":"pills"}
-  - read: `barConfig.pillPadding`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].pillMerge`** · integer = 12 · 0–200 · px
-  - Merge distance: Groups closer than this share one pill (px).
-  - x-group="Style", x-control="stepper", x-showIf={"background":["pills","floatingPills"]}
-  - read: `Bar.savedBars` (whole), `barConfig.pillMerge` · in: `components/bar/BarContainer.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/PillBarJoin.qml`, `config/Bar.qml`
-- **`Bars[].spacing`** · integer = 4 · 0–50 · px
-  - Spacing: Gap between widgets (px).
-  - x-group="Size", x-control="stepper"
-  - read: `Bar.savedBars` (whole), `barConfig.spacing` · in: `components/bar/BarContainer.qml`, `components/bar/WidgetGroup.qml`, `components/surfaces/onboarding/pages/LookPage.qml`, `components/views/layouts/OpenerButtons.qml`, `config/Bar.qml`
-- **`Bars[].lockCenter`** · boolean = false
-  - Lock center: Keep the center section dead center on the bar. The other sections shrink or hide widgets on their own side instead of pushing it.
-  - x-group="Behaviour"
-  - read: `Bar.savedBars` (whole), `barConfig.lockCenter` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
-- **`Bars[].reserveSpace`** · boolean = true
-  - Reserve space: Keep windows from tiling underneath the bar.
-  - x-group="Behaviour"
-  - read: `barConfig.reserveSpace`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].widgetPadding`** · integer = 10 · 0–40 · px
-  - Widget padding: Space inside each widget, before its icon or text.
-  - x-group="Size", x-control="stepper"
-  - read: `Bar.savedBars` (whole), `barConfig.widgetPadding` · in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/SystemStats.qml`, `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/Time.qml`, `config/Bar.qml`
-- **`Bars[].widgetSpacing`** · integer = 4 · 0–20 · px
-  - Inner spacing: Gap between items inside a widget.
-  - x-group="Size", x-control="stepper"
-  - read: `Bar.savedBars` (whole), `barConfig.widgetSpacing` · in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/SystemStats.qml`, `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/Time.qml`, `components/bar/widgets/Workspaces.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `components/bar/widgets/workspaces/StripWindows.qml`, `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `config/Bar.qml`
-- **`Bars[].overrideFontSize`** · boolean = false
-  - Own font size: Off: the bar follows the font size in Look & Feel.
-  - x-link={"setting":"Appearance.font.size"}, x-group="Style"
-  - read: `barConfig.overrideFontSize`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].fontSize`** · integer = 14 · 8–32 · px
-  - Font size
-  - x-group="Style", x-control="stepper", x-showIf={"overrideFontSize":true}
-  - read: `Bar.savedBars` (whole), `barConfig.fontSize` · in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/SystemStats.qml`, `components/bar/widgets/Time.qml`, `components/bar/widgets/workspaces/WorkspaceCell.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `config/Bar.qml`
-- **`Bars[].overrideRadius`** · boolean = false
-  - Own corner radius: Off: widgets follow the interior corner radius in Panels & controls. Pills follow the corner radius in Look & Feel.
-  - x-link=[{"setting":"Widget.radius"},{"setting":"Appearance.shape.radius"}], x-group="Style"
-  - read: `barConfig.overrideRadius`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].widgetRadius`** · integer = 6 · 0–50 · px
-  - Widget corner radius
-  - x-group="Style", x-control="stepper", x-showIf={"overrideRadius":true}
-  - read: `barConfig.widgetRadius`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].overrideWidgetStyle`** · boolean = false
-  - Own widget style: Off: the bar follows the Bar style settings in Look & Feel.
-  - x-link={"setting":"BarStyle.widgetStyle"}, x-group="Widgets"
-  - read: `barConfig.overrideWidgetStyle`, entry field, name match, `// reads:` marker · in: `config/Bar.qml`
-- **`Bars[].widgetStyle`** · string = "filled" · enum filled|tinted|outline|underline|accentText|plain
-  - Widget style: How each widget shows its color: as its background, a faint tint, an outline, a line beside it, or on its icon. Plain text draws them straight onto the bar.
-  - x-group="Widgets", x-showIf={"overrideWidgetStyle":true}
-  - read: `Bar.savedBars` (whole), `barConfig.widgetStyle` · in: `components/bar/WidgetBackground.qml`, `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/bar/widgets/workspaces/CellUnderline.qml`, `components/bar/widgets/workspaces/WorkspaceCell.qml`, `config/Bar.qml`
-- **`Bars[].tintOpacity`** · integer = 20 · 5–100 · %
-  - Tint strength
-  - x-group="Widgets", x-control="slider", x-showIf={"overrideWidgetStyle":true,"widgetStyle":"tinted"}
-  - read: `barConfig.tintOpacity`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].outlineWidth`** · integer = 2 · 1–6 · px
-  - Outline width
-  - x-group="Widgets", x-control="stepper", x-showIf={"overrideWidgetStyle":true,"widgetStyle":"outline"}
-  - read: `Bar.savedBars` (whole), `barConfig.outlineWidth` · in: `components/bar/WidgetBackground.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/bar/widgets/workspaces/WorkspaceCell.qml`, `config/Bar.qml`
-- **`Bars[].lineWidth`** · integer = 2 · 1–8 · px
-  - Line width
-  - x-group="Widgets", x-control="stepper", x-showIf={"overrideWidgetStyle":true,"widgetStyle":"underline"}
-  - read: `Bar.savedBars` (whole), `barConfig.lineWidth` · in: `components/bar/WidgetBackground.qml`, `components/bar/widgets/workspaces/CellUnderline.qml`, `config/Bar.qml`
-- **`Bars[].lineSide`** · string = "inner" · enum inner|outer
-  - Line side
-  - x-group="Widgets", x-beside=true, x-showIf={"overrideWidgetStyle":true,"widgetStyle":"underline"}
-  - read: `Bar.savedBars` (whole), `barConfig.lineSide` · in: `components/bar/WidgetBackground.qml`, `components/bar/widgets/workspaces/CellUnderline.qml`, `config/Bar.qml`
-- **`Bars[].widgetShape`** · string = "rounded" · enum rounded|capsule|slant|arrow
-  - Shape: Rounded follows the widget corner radius. Capsule always gives fully round pill ends, whatever the radius. Slanted and arrow widgets take a little more room for their points.
-  - x-group="Widgets", x-showIf={"overrideWidgetStyle":true,"widgetStyle":["filled","tinted","outline…
-  - read: `Bar.savedBars` (whole), `barConfig.widgetShape` · in: `components/bar/WidgetGroup.qml`, `config/Bar.qml`
-- **`Bars[].widgetGrouping`** · string = "separate" · enum separate|merged|powerline
-  - Grouping: Merged: neighbouring widgets share one background. Powerline: each widget's shape runs into the next.
-  - x-group="Widgets", x-beside=true, x-showIf={"overrideWidgetStyle":true,"widgetStyle":["filled","tinted","outline…
-  - read: `Bar.savedBars` (whole), `barConfig.widgetGrouping` · in: `components/bar/WidgetGroup.qml`, `config/Bar.qml`
-- **`Bars[].widgetEnds`** · string = "shaped" · enum shaped|pointed|rounded
-  - Ends: The ends of a slanted or arrow widget, or of a run of them: as shaped, rounded, or (arrows) pointed at both.
-  - x-group="Widgets", x-showIf={"overrideWidgetStyle":true,"widgetStyle":["filled","tinted","outline…, x-enumShowIf={"pointed":{"widgetShape":"arrow"}}
-  - read: `Bar.savedBars` (whole), `barConfig.widgetEnds` · in: `components/bar/WidgetGroup.qml`, `config/Bar.qml`
-- **`Bars[].groupColor`** · string = "backgroundAlt"
-  - Merged background: Widget colors show on their icons instead.
-  - x-group="Widgets", x-options="colors", x-showIf={"overrideWidgetStyle":true,"widgetStyle":["filled","tinted","outline…
-  - read: `barConfig.groupColor`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].widgetTextColor`** · string = ""
-  - Text color: One color for every widget's text and icons. Auto: each widget's own on a filled background, its color when tinted or outlined, else one that contrasts with the bar.
-  - x-group="Widgets", x-options="colors", x-emptyLabel="Auto", x-showIf={"overrideWidgetStyle":true}
-  - read: `barConfig.widgetTextColor`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].overrideAccents`** · boolean = false
-  - Own accents: Off: the bar follows the Bar style settings in Look & Feel.
-  - x-link={"setting":"BarStyle.separatorStyle"}, x-group="Accents"
-  - read: `barConfig.overrideAccents`, entry field, name match, `// reads:` marker · in: `config/Bar.qml`
-- **`Bars[].separatorStyle`** · string = "none" · enum none|line|dot|slash|chevron
-  - Separators: Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing.
-  - x-group="Accents", x-showIf={"overrideAccents":true,"anyOf":[{"widgetGrouping":{"not":"powerline"…
-  - read: `Bar.savedBars` (whole), `barConfig.separatorStyle` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
-- **`Bars[].separatorColor`** · string = "base03"
-  - Separator color
-  - x-group="Accents", x-options="colors", x-showIf={"overrideAccents":true,"anyOf":[{"widgetGrouping":{"not":"powerline"…
-  - read: `Bar.savedBars` (whole), `barConfig.separatorColor` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
-- **`Bars[].separatorThickness`** · integer = 2 · 1–6 · px
-  - Separator thickness
-  - x-group="Accents", x-control="stepper", x-showIf={"overrideAccents":true,"anyOf":[{"widgetGrouping":{"not":"powerline"…
-  - read: `Bar.savedBars` (whole), `barConfig.separatorThickness` · in: `components/bar/WidgetGroup.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `config/Bar.qml`
-- **`Bars[].separatorGap`** · integer = 2 · 0–24 · px
-  - Separator margin: Room between a separator and the widgets on either side of it.
-  - x-group="Accents", x-control="stepper", x-showIf={"overrideAccents":true,"anyOf":[{"widgetGrouping":{"not":"powerline"…
-  - read: `barConfig.separatorGap`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].accentLine`** · string = "none" · enum none|inner|outer
-  - Accent line: A line along the bar's edge toward the windows (inner) or the screen edge (outer); on pills, along each pill.
-  - x-group="Accents", x-showIf={"overrideAccents":true}
-  - read: `Bar.savedBars` (whole), `barConfig.accentLine` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
-- **`Bars[].accentLineColor`** · string = "accent"
-  - Line color
-  - x-group="Accents", x-options="colors", x-showIf={"overrideAccents":true,"accentLine":{"not":"none"}}
-  - read: `Bar.savedBars` (whole), `barConfig.accentLineColor` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
-- **`Bars[].accentLineFade`** · string = ""
-  - Fade to: Runs the line from its color into this one along the bar.
-  - x-group="Accents", x-options="colors", x-emptyLabel="None", x-beside=true, x-showIf={"overrideAccents":true,"accentLine":{"not":"none"}}
-  - read: `Bar.savedBars` (whole), `barConfig.accentLineFade` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
-- **`Bars[].accentLineWidth`** · integer = 2 · 1–8 · px
-  - Line width
-  - x-group="Accents", x-control="stepper", x-showIf={"overrideAccents":true,"accentLine":{"not":"none"}}
-  - read: `Bar.savedBars` (whole), `barConfig.accentLineWidth` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
-- **`Bars[].overrideShadow`** · boolean = false
-  - Own shadow: Off: the bar follows the Bar style settings in Look & Feel.
-  - x-link={"setting":"BarStyle.shadow"}, x-group="Shadow"
-  - read: `barConfig.overrideShadow`, entry field, name match, `// reads:` marker · in: `config/Bar.qml`
-- **`Bars[].shadow`** · boolean = false
-  - Shadow: Spread evenly round the bar, or its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.
-  - x-group="Shadow", x-showIf={"overrideShadow":true}
-  - read: `barConfig.shadow`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].shadowColor`** · string = ""
-  - Shadow color: Auto: the theme's accent.
-  - x-group="Shadow", x-options="colors", x-emptyLabel="Auto", x-showIf={"overrideShadow":true,"shadow":true}
-  - read: `barConfig.shadowColor`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].shadowSize`** · integer = 12 · 2–64 · px
-  - Shadow size
-  - x-group="Shadow", x-control="stepper", x-beside=true, x-showIf={"overrideShadow":true,"shadow":true}
-  - read: `Bar.savedBars` (whole), `barConfig.shadowSize` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`
+- [`Bars.style`](Bars.style.md)
+- [`Bars.items.screen`](Bars.items.screen.md)
+- [`Bars.items.style`](Bars.items.style.md)
+- [`Bars.items.widgets`](Bars.items.widgets.md)
+- [`Bars.items`](Bars.items.md)
 
 ### Reader members
 
 Every public member of `Bar`, with the files that use it.
 
 - `Bar.enrichBarConfig(barConfig, gapsOut)`: Adds derived orientation flags to a bar entry from the Bars section (whose keys are always filled in from the schema defaults).
-  - in: `components/views/barEditor/BarsPanel.qml`, `services/BarManager.qml`
+  - in: `components/views/BarEditor/BarsPanel.qml`, `services/BarManager.qml`
 - `Bar.layerNamespace(barConfig)`: A bar window's layer namespace, whose rule's `order` decides where Hyprland arranges it (HyprLua.layerRulesLua): by its kind (solid, outside the border; pills;…
   - in: `components/bar/BarPanel.qml`, `shell/Bar.qml`
 - `Bar.endsOptions(gapsOut)`: BarEnds' options, from Appearance and Hyprland's gaps_out
   - in: `services/BarManager.qml`
 - `Bar.widgetColors(barConfig, accent, foregroundName)`: What a bar widget draws in on its bar ({ fill, stroke, indicator, text, icon }, see BarWidgetStyle): `accent` is its color for its state, `foregroundName` the …
-  - in: `components/bar/widgets/BarIconWidget.qml`, `components/bar/widgets/BarWidget.qml`
+  - in: `components/bar/widgets/base/BarIconWidget.qml`, `components/bar/widgets/base/BarWidget.qml`
 - `Bar.cellColors(barConfig, color, own, state)`: What a cell inside a widget (a workspace) draws in on its bar ({ fill, stroke, indicator, content }, see BarWidgetStyle.cell): `color` is its state color, `own…
-  - in: `components/bar/widgets/workspaces/StripWindows.qml`, `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/content/WorkspaceGrid.qml`, `components/content/WorkspaceStrips.qml`
+  - in: `components/bar/widgets/Workspaces/StripWindows.qml`, `components/bar/widgets/Workspaces/WorkspaceCellRow.qml`, `components/content/WorkspaceGrid/WorkspaceGrid.qml`, `components/content/WorkspaceStrips/WorkspaceStrips.qml`
 - `Bar.cellRadius(barConfig, cell, inset)`: The corners of a Workspaces cell `cell` thick, inset by `inset` in its widget: a pill for capsule widgets, else the widgets' radius less the inset
-  - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`
+  - in: `components/bar/widgets/Workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/Workspaces/WorkspaceStrip.qml`
 - `Bar.cellHoverColor(properties)`: A Workspaces cell's box while hovered: its `hoverColor`, or for Auto (empty) the theme's highlight
-  - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `components/content/WorkspaceGrid.qml`, `components/content/WorkspaceStrips.qml`
+  - in: `components/bar/widgets/Workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/Workspaces/WorkspaceStrip.qml`, `components/content/WorkspaceGrid/WorkspaceGrid.qml`, `components/content/WorkspaceStrips/WorkspaceStrips.qml`
 - `Bar.groupColors(barConfig)`: What a merged run of widgets draws its shared background in
   - in: `components/bar/WidgetGroup.qml`
 - `Bar.withAutoColors(widgets, widgetStyle, grouping, groupColor)`: A bar's widgets (by section) with each Auto color field (`x-autoColor`, left empty) set to the color BarAutoColors picks for it among its shown neighbours, see…
@@ -228,27 +54,27 @@ Every public member of `Bar`, with the files that use it.
   - in: `components/bar/BarPanel.qml`, `services/BarManager.qml`
 - `Bar.boxedStyles` (var): The widget styles that draw each widget on a box of its own: only they have shapes and grouping
   - in: only inside the reader
-- `Bar.lookGroups` (var): A bar's look groups (its override flag and the fields it covers, the flag's `x-group` in the Bar definition): each is the BarStyle section's unless the bar ove…
-  - in: only inside the reader
-- `Bar.lookOf(barConfig)`: A bar entry with its look filled from BarStyle where it doesn't override it
-  - in: `components/views/barEditor/BarsPanel.qml`
+- `Bar.lookOf(barConfig, section)`: A bar's look: its `style` (a BarStyle) with every key it leaves null (inherit) taken from the Bars section's (`section`, BarStyle.values when left out), its sh…
+  - in: `components/views/BarEditor/BarsPanel.qml`, `config/WindowLookConfig.qml`
 - `Bar.lookContext(barConfig)`: The look a bar's widgets draw in, as `$bar.<key>` for their options' `x-showIf`: lookOf's BarStyle keys, with grouping only for boxed styles (as enrichBarConfi…
-  - in: `components/views/barEditor/WidgetInspector.qml`
-- `Bar.savedBars` (var): The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings
-  - in: `components/surfaces/onboarding/pages/LookPage.qml`, `components/views/layouts/OpenerButtons.qml`, `services/EdgeMenuManager.qml`
-- `Bar.expandBars(bars)`: A bar on every monitor (`monitor: "*"`) becomes one entry per screen, each with its own id (keying its BarPanel) and that screen as its monitor.
+  - in: `components/views/BarEditor/WidgetInspector.qml`
+- `Bar.savedBars` (var): The bars as saved (Bars.items): no previews, unexpanded
+  - in: `components/surfaces/onboarding/pages/LookPage.qml`, `components/views/Layouts/OpenerButtons.qml`, `services/EdgeMenuManager.qml`
+- `Bar.expandBars(bars)`: Each bar as one entry per screen it's on (its `screen`, a ScreenTarget): the primary monitor, every monitor, or those named (the primary monitor when none of t…
   - in: `services/BarManager.qml`
 - `Bar.widgetLayoutSchema` (var): A widget's `layout` overrides (size, minSize, priority), for the bar editor's inspector
-  - in: `components/views/barEditor/WidgetInspector.qml`
-- `Bar.fieldGroups` (var): A bar's own fields in groups (`x-group`), for the bar editor
-  - in: `components/views/barEditor/BarsPanel.qml`
+  - in: `components/views/BarEditor/WidgetInspector.qml`
+- `Bar.fieldGroups` (var): A bar's own fields in groups (`x-group`), for the bar editor (its style is edited apart: styleGroups)
+  - in: `components/views/BarEditor/BarsPanel.qml`
+- `Bar.styleGroups` (var): The BarStyle fields in groups, for the bar editor's style (a bar's, inheriting, or the Bars section's)
+  - in: `components/views/BarEditor/BarsPanel.qml`
 - `Bar.availableWidgetTypes` (var)
-  - in: `components/views/barEditor/BarDragLayer.qml`, `components/views/barEditor/SectionsBoard.qml`, `components/views/barEditor/WidgetInspector.qml`, `services/EdgeMenuManager.qml`
+  - in: `components/views/BarEditor/BarDragLayer.qml`, `components/views/BarEditor/SectionsBoard.qml`, `components/views/BarEditor/WidgetInspector.qml`, `services/EdgeMenuManager.qml`
 - `Bar.edgeName(location)`: A Bar.Location as the edge names zones and Hyprland use: "top" | "bottom" | "left" | "right"
   - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/EdgePopout.qml`, `components/hosts/popout/EdgeTrigger.qml`, `components/surfaces/dock/DockWindow.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `services/BarManager.qml`, `services/DesktopManager.qml` (+1 more)
 - `Bar.locationOf(name)`: The Bar.Location an edge name stands for (edgeName's inverse)
   - in: `components/hosts/popout/StrokeOpening.qml`, `services/BarManager.qml`
 - `Bar.oppositeOf(location)`: The edge across the screen from a Bar.Location
   - in: `components/surfaces/launcher/Launcher.qml`
-- `Bar.getLocationFromString(locStr)`
+- `Bar.getLocationFromString(locStr)`: The Bar.Location of an edge in config ("top" | "bottom" | "left" | "right"), Top for anything else
   - in: `components/surfaces/dock/DockWindow.qml`, `config/EdgeMenusConfig.qml`, `config/LauncherConfig.qml`, `shell/OSD.qml`

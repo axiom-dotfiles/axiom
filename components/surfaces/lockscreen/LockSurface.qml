@@ -42,8 +42,8 @@ ScreenLayoutView {
       "preview": root.preview,
       "key": root.passwordKey,
       "bare": !(root.layout?.moduleBorders ?? false),
-      "passwordBorder": root.layout?.passwordBorder ?? false,
-      "greetingBorder": root.layout?.greetingBorder ?? false
+      "passwordBorder": root.layout?.borders?.password ?? false,
+      "greetingBorder": root.layout?.borders?.greeting ?? false
     })
 
   // The fallback field waits a tick, so a Password module can report first

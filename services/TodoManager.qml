@@ -10,7 +10,7 @@ import qs.components.methods
 // While the file can't be read (a hand edit half done), nothing is written
 // over it. Never read or written in the greeter.
 //
-//   qs -c axiom ipc call todo add "Buy milk"
+//   axiom ipc todo add "Buy milk"
 QtObject {
   id: root
 
@@ -128,7 +128,7 @@ QtObject {
     }
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "todo"
     enabled: !Paths.greeter
 

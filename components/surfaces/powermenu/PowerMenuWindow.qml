@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Io
 
 import qs.components.reusable
 import qs.config
@@ -86,7 +85,7 @@ PanelWindow {
   Connections {
     target: ShellManager
     function onOpenPowerMenu() {
-      if (ShellManager.isTarget(root.screen, PowerMenuConfig.monitors))
+      if (ShellManager.isTarget(root.screen, PowerMenuConfig.screen))
         root.toggle();
     }
   }
@@ -99,9 +98,9 @@ PanelWindow {
     }
   }
 
-  IpcHandler {
+  IpcTarget {
     target: "powermenu"
-    enabled: ShellManager.isTarget(root.screen, PowerMenuConfig.monitors)
+    enabled: ShellManager.isTarget(root.screen, PowerMenuConfig.screen)
     function toggle() {
       root.toggle();
     }
@@ -118,7 +117,7 @@ PanelWindow {
   SurfaceGroup {
     id: group
     kind: "powermenu"
-    mode: PowerMenuConfig.monitors
+    target: PowerMenuConfig.screen
     screen: root.screen
     window: root
     shown: root.shown

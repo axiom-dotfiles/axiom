@@ -1,6 +1,6 @@
 # Secrets
 
-> **Files:** `services/SecretsManager.qml`, `components/views/settings/ChatProvidersCard.qml`, `components/views/settings/CalendarAccountsCard.qml`
+> **Files:** `services/SecretsManager.qml`, `components/views/Settings/ChatProvidersCard.qml`, `components/views/Settings/CalendarAccountsCard.qml`
 > **Config:** none (secrets never go in config.json); a provider's `keyEnv`
 > **Related:** [Chat](../features/chat.md), [Calendar](../features/calendar.md), [Config manager](config-manager.md)
 
@@ -23,7 +23,7 @@ Where API keys and passwords live. (Rule: AGENTS.md › Services, "Secrets".)
 - Provider wrappers: `withKey`, `status` (adds `env` | `unneeded`), `setKey`, `clearKey`, `refresh`.
 
 ### Where they're entered
-- Keys: `views/settings/ChatProvidersCard` (the Chat section's `x-card`, with Test and Fetch models).
+- Keys: `views/Settings/ChatProvidersCard` (the Chat section's `x-card`, with Test and Fetch models).
 - Passwords: `CalendarAccountsCard`.
 - Never through the settings draft.
-- `ConfigMigration` moves API keys found in config.json to SecretsManager.
+- A key never goes in config.json. The binary's store hands secrets a migration step pulls out of the file to its `OnSecrets` before writing it back; no step pulls any out now.

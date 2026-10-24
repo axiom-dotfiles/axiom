@@ -11,7 +11,9 @@
 #                                           greetd's text greeter, agreety,
 #                                           so a login is always possible
 #                greeter-session.sh shell   (from that compositor) the
-#                                           greeter itself, its log in the
+#                                           greeter itself (axiom greeter:
+#                                           it loads the bundle and runs
+#                                           greeter.qml on it), its log in the
 #                                           greeter's state folder
 #                                           (greeter.log); if it fails
 #                                           without starting a session, once
@@ -32,8 +34,11 @@ if [ -f "$install/.greeter-source" ]; then
   read -r kind dir <"$install/.greeter-source"
   [ "$kind" = package ] && [ -f "$dir/greeter.qml" ] && copy=$dir
 fi
-# Where ConfigManager and ThemeManager find that snapshot
+# Where axiom greeter and ThemeManager find that snapshot
 export AXIOM_GREETER_FALLBACK="$install/fallback/"
+# The axiom binary: the install's own copy (root's), else a packaged one
+axiom="$install/bin/axiom"
+[ -x "$axiom" ] || axiom=$(command -v axiom) || axiom=false
 # Left by `shell` when the greeter failed twice: in greetd's user's own
 # folders (its runtime dir, else the greeter's state folder), never a
 # shared one another user could plant it in
@@ -45,14 +50,13 @@ export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$state/cache}"
 
 case "${1:-}" in
 shell)
-  export AXIOM_GREETER=1
   # The greeter's log, kept past its session (greetd's user's runtime dir,
   # where qs keeps its own, goes with it): this start's only
   log="$state/greeter.log"
   true 2>/dev/null >"$log" || log=/dev/null
-  if ! qs -p "$copy/greeter.qml" 2>>"$log"; then
+  if ! "$axiom" greeter --tree "$copy" 2>>"$log"; then
     echo "axiom greeter: failed, trying its fallback config" >>"$log"
-    AXIOM_GREETER_SAFE=1 qs -p "$copy/greeter.qml" 2>>"$log" || : >"$failed"
+    "$axiom" greeter --tree "$copy" --safe 2>>"$log" || : >"$failed"
   fi
   if [ -n "${SWAYSOCK:-}" ]; then
     swaymsg exit >/dev/null

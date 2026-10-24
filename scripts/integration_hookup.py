@@ -58,7 +58,9 @@ import time
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parent
-SCHEMA = SCRIPTS.parent / "config" / "json" / "config.schema.json"
+# The schema axiom built for the running shell (axiom run sets it), else
+# the tree's own build (scripts/generate.sh)
+SCHEMA = Path(os.environ.get("AXIOM_SCHEMA") or SCRIPTS.parent / "config" / "json" / "config.schema.json")
 HEADER = re.compile(r"^\s*\[")
 NAMED_HEADER = re.compile(r"^\s*\[\s*([^\[\]\"]+?)\s*\]\s*(?:[#;].*)?$")
 EXPORT = re.compile(r'^export\s+([A-Za-z_][A-Za-z0-9_]*)=(.*)$')

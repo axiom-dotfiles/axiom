@@ -42,36 +42,37 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Chat.providers`** · array<object> = [{"id":"anthropic","name":"Anthropic","kind":"anthropic","baseUrl":"h…
   - Providers: Where chats are sent. The OpenAI kind also covers Ollama, LM Studio, llama.cpp, OpenRouter, Groq and anything else with an OpenAI-style API: set its address.
   - x-wide=true
-  - read: `ChatConfig.savedProviders`, `ChatConfig.providers` (part) · in: `components/content/parts/chat/ModelPicker.qml`, `components/views/settings/ChatProvidersCard.qml`, `services/SecretsManager.qml`, `services/SettingsManager.qml`
+  - read: `ChatConfig.savedProviders`, `ChatConfig.providers` (part) · in: `components/content/parts/chat/ModelPicker.qml`, `components/views/Settings/ChatProvidersCard.qml`, `services/SecretsManager.qml`, `services/SettingsManager.qml`
 
 ### `Chat.providers[]`
 
 - **`Chat.providers[]`** · object
-- **`Chat.providers[].id`** · string = ""
-  - ID: Names the provider's key in the keyring and presets' provider field. Lowercase letters, digits and dashes.
-  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
+- **`Chat.providers[].id`** · string
+  - The item's stable id, unique in its list: what editors, path ops and imports match it by.
+  - pattern="^[A-Za-z0-9][A-Za-z0-9._-]*$", x-settings=false
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/Settings/ChatProvidersCard.qml`
 - **`Chat.providers[].name`** · string = ""
   - Name
-  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/Settings/ChatProvidersCard.qml`
 - **`Chat.providers[].kind`** · string = "openai" · enum anthropic|openai|gemini
   - API
-  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/Settings/ChatProvidersCard.qml`
 - **`Chat.providers[].baseUrl`** · string = ""
   - Address: The API's base URL, up to and including its version (e.g. http://localhost:11434/v1).
-  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/Settings/ChatProvidersCard.qml`
 - **`Chat.providers[].auth`** · string = "key" · enum key|none
   - Key
-  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/Settings/ChatProvidersCard.qml`
 - **`Chat.providers[].keyEnv`** · string = ""
   - Key variable: An environment variable that holds the key, if you keep it there. It wins over a stored key.
   - x-showIf={"auth":"key"}
-  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/Settings/ChatProvidersCard.qml`
 - **`Chat.providers[].models`** · array<string> = []
   - Models: Model ids to choose from, comma-separated. Fetch models on the card above fills this in.
-  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/Settings/ChatProvidersCard.qml`
 - **`Chat.providers[].defaultModel`** · string = ""
   - Default model: Empty uses the first of the models.
-  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/Settings/ChatProvidersCard.qml`
 - **`Chat.providers[].fallbacks`** · boolean = true
   - Refusal fallback: When the model declines a request, the API retries it on another model within the same reply.
   - x-showIf={"kind":"anthropic"}
@@ -79,7 +80,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 ### `Chat`
 
-- **`Chat.presets`** · array<object> = [{"name":"Default","icon":"chat","systemPrompt":"You are a helpful as…
+- **`Chat.presets`** · array<object> = [{"id":"default","name":"Default","icon":"chat","systemPrompt":"You a…
   - Presets: Saved setups to start a conversation with: a system prompt, and optionally a provider, model and effort of their own.
   - x-scope="personal"
   - read: `ChatConfig.presets` (part) · in: `components/content/parts/chat/ModelPicker.qml`, `services/SettingsManager.qml`
@@ -87,6 +88,10 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 ### `Chat.presets[]`
 
 - **`Chat.presets[]`** · object
+- **`Chat.presets[].id`** · string
+  - The item's stable id, unique in its list: what editors, path ops and imports match it by.
+  - pattern="^[A-Za-z0-9][A-Za-z0-9._-]*$", x-settings=false
+  - read: entry field, name match · in: `components/content/parts/chat/ConversationList.qml`, `components/content/parts/chat/ModelPicker.qml`, `config/ChatConfig.qml`, `services/SettingsManager.qml`
 - **`Chat.presets[].name`** · string = ""
   - Name
   - read: entry field, name match · in: `components/content/parts/chat/ChatComposer.qml`, `components/content/parts/chat/ChatHeader.qml`, `components/content/parts/chat/ChatMessageList.qml`, `components/content/parts/chat/ModelPicker.qml`, `config/ChatConfig.qml`, `services/SettingsManager.qml`
@@ -112,9 +117,9 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `ChatConfig`, with the files that use it.
 
 - `ChatConfig.providers` (var): Chat.providers, each with an `id` (from its name when left empty) and a `defaultModel` (the first model when left empty)
-  - in: `components/content/parts/chat/ModelPicker.qml`, `components/views/settings/ChatProvidersCard.qml`, `services/SecretsManager.qml`, `services/SettingsManager.qml`
+  - in: `components/content/parts/chat/ModelPicker.qml`, `components/views/Settings/ChatProvidersCard.qml`, `services/SecretsManager.qml`, `services/SettingsManager.qml`
 - `ChatConfig.savedProviders` (var): Chat.providers as saved (no filled-in ids or names), for editing
-  - in: `components/views/settings/ChatProvidersCard.qml`
+  - in: `components/views/Settings/ChatProvidersCard.qml`
 - `ChatConfig.presets` (var)
   - in: `components/content/parts/chat/ModelPicker.qml`, `services/SettingsManager.qml`
 - `ChatConfig.defaultProvider` (string)

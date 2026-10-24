@@ -3,8 +3,8 @@ import QtQuick
 import qs.services
 
 // Reader for the WindowBehaviour section: focus and the cursor, which
-// every compositor's managed config writes (each field by its x-hypr /
-// x-sway annotation). Named WindowBehaviourConfig as the section is read
+// every compositor's managed config writes (each field by its
+// x-compositor annotation). Named WindowBehaviourConfig as the section is read
 // whole.
 QtObject {
   readonly property var _c: ConfigManager.config.WindowBehaviour

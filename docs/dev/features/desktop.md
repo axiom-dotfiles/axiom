@@ -1,6 +1,6 @@
 # Desktop
 
-> **Files:** `services/DesktopManager.qml`, `config/DesktopConfig.qml`, `shell/Desktop.qml`, `components/surfaces/desktop/DesktopWindow.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `services/ScreenLayoutEditor.qml`, `components/views/layouts/DesktopTarget.qml`
+> **Files:** `services/DesktopManager.qml`, `config/DesktopConfig.qml`, `shell/Desktop.qml`, `components/surfaces/desktop/DesktopWindow.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `services/ScreenLayoutEditor.qml`, `components/views/Layouts/DesktopTarget.qml`
 > **Config:** `Desktop.all`, `Desktop.primary`, `Desktop.monitors[]` (reader `DesktopConfig`)
 > **Related:** [Lockscreen](lockscreen.md), [Layouts editor](../overlay/layouts-editor.md), [Clock and time zones](clock-timezones.md), [Saved configs](../core/saved-configs-sharing.md), [Edge menus hosts](../edge-menus/hosts.md), [Dock](dock.md)
 
@@ -10,7 +10,7 @@ Overlay modules drawn on the desktop, under the windows. Read this doc for deskt
 - `Desktop.all`, `Desktop.primary` and `Desktop.monitors[]` are each a `DesktopLayout` with these fields:
   - `enabled`
   - `monitor` (in `monitors` only)
-  - `moduleScale` (Module size: cards and content together, over the card size), `fineGrid`
+  - `moduleScale` (Module size: cards and content together, over the card size), `grid.fine`
   - `columns`, `rows` (hidden: the grid the modules were last placed on, written by the editor; each monitor fits its own, see [Lockscreen › Layout](lockscreen.md#layout))
   - `moduleBorders` (off by default: modules sit straight on the wallpaper)
   - `modules`.

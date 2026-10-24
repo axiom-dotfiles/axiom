@@ -5,7 +5,6 @@ import qs.config
 import qs.services
 import qs.components.methods
 import qs.components.reusable
-import qs.components.content.parts
 
 // The keybinds reference as a keyboard: under the modifiers picked
 // (`mods`), each key

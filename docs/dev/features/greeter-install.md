@@ -1,6 +1,6 @@
 # Greeter: install, update, status
 
-> **Files:** `services/GreeterManager.qml`, `config/GreeterConfig.qml`, `scripts/greeter/greeter_install.sh`, `scripts/greeter/org.axiom.greeter.policy`, `components/views/settings/GreeterStatusCard.qml`, `components/forms/GreeterSetup.qml`
+> **Files:** `services/GreeterManager.qml`, `config/GreeterConfig.qml`, `scripts/greeter/greeter_install.sh`, `scripts/greeter/org.axiom.greeter.policy`, `components/views/Settings/GreeterStatusCard.qml`, `components/forms/GreeterSetup.qml`
 > **Config:** `Greeter.enabled`, `Greeter.source`, `SelfUpdate.channel` (reader `GreeterConfig`)
 > **Related:** [Greeter runtime](greeter-runtime.md), [Lockscreen](lockscreen.md), [Self-update](self-update.md), [Polkit](polkit.md), [Shell targeting](../core/shell-manager-targeting.md)
 
@@ -8,7 +8,7 @@ Axiom as greetd's login screen, laid out like the lock screen. This doc covers t
 
 ### Overview
 - Off by default.
-- Set up from Settings → Screen & Power → Login screen (`views/settings/GreeterStatusCard`) or from the onboarder's Integrations page. Both go through `forms/GreeterSetup`.
+- Set up from Settings → Screen & Power → Login screen (`views/Settings/GreeterStatusCard`) or from the onboarder's Integrations page. Both go through `forms/GreeterSetup`.
 - The greeter runs as greetd's user, who can't read the user's home, so it runs from a copy and reads an export (the [bundle](greeter-runtime.md#the-bundle)).
 - `GreeterManager` is created from `shell.qml`'s `_services`.
 
@@ -20,13 +20,14 @@ Axiom as greetd's login screen, laid out like the lock screen. This doc covers t
 - **Root's copy afterwards:** the installed polkit action `org.axiom.greeter.manage` (`scripts/greeter/org.axiom.greeter.policy`) names that copy by `exec.path`.
   - Its prompt says what it's for.
   - The user's own file never runs as root again; `check` reports `helper`.
-- **Script compatibility:** an update is run by the copy it replaces, so the script's arguments must stay compatible.
+- **Script compatibility:** an update is run by the copy it replaces, so the script's arguments must stay compatible (a new one goes last). The check's `binaries` says whether the installed helper installs the binary too; while it doesn't, `GreeterManager` runs the clone's script instead (through `pkexec bash`), so a copy is never left without its binary.
 - **Root-free actions:** `check` and `hash` run without root.
 - **The user argument:** under pkexec, `<user>` must be `$PKEXEC_UID`'s.
 
 #### What gets copied
 - The code, minus tests, docs and `*.md`.
-- **From:** `Greeter.source` (`GreeterConfig.source`), passed as the script's `<source> <channel>` arguments. The channel is `SelfUpdate.channel`.
+- **From:** `Greeter.source` (`GreeterConfig.source`), passed as the script's `<source> <channel> <binary>` arguments. The channel is `SelfUpdate.channel`; `<binary>` is the axiom binary the shell runs (`$AXIOM_BIN`).
+- **The binary** the greeter runs (`axiom greeter`, [greeter-runtime.md](greeter-runtime.md)) goes in the copy's `bin/axiom`, by source (below); a package's is its own, on `PATH`.
 - **To:** `/usr/share/axiom-greeter`, owned by root.
   - `.greeter-source` says where the copy came from: `"git <channel> <url>"`, `"local"` or `"package <dir>"`.
   - `.greeter-hash` names the version.
@@ -36,10 +37,12 @@ Axiom as greetd's login screen, laid out like the lock screen. This doc covers t
   - It finds them with `git ls-remote` on the url recorded at the first git install. That url is the clone's branch remote, else `origin`, made https so root needs no keys.
   - The clone and its remote can't redirect it later.
   - The hash is the commit.
+  - **Its binary:** for a tag, the release's prebuilt `axiom-linux-<amd64|arm64>` (`https://github.com/<owner>/<repo>/releases/download/<tag>/`), checked against that release's `SHA256SUMS`: a mismatch fails the install. Without one (not GitHub, `main`, or a release with no binary: none has one yet), it is built from the mirror's target with `go` (`go generate ./internal/assets`, `go build -trimpath`) as greetd's user, the account that runs it anyway, in a temporary folder of its own (`GOTOOLCHAIN=local`, `CGO_ENABLED=0`; the log in the greeter's `state/binary-build.log`). Neither: the install fails, and the old copy stays.
 - **Source `local`:**
   - It archives the clone's tracked files as they are in the working tree: whatever branch, uncommitted changes included.
   - It uses `git ls-files` + `tar`, run as the user through `runuser`, so the clone's config and filters never run as root.
-  - The hash is the files' content, so docs-only edits are not an update.
+  - The hash is the files' content, the binary's Go source (`backend/`) included, so docs-only edits are not an update. `backend/` is left out of the archive.
+  - **Its binary:** `<binary>`, read as the user (root follows none of their links), refused unless it's an executable ELF file. The same trust as copying the working tree.
 - **Source `package`** (always, for a packaged axiom: `GreeterManager.wantedSource` ignores `Greeter.source`, which is hidden; [packaging.md](../packaging.md)):
   - The greeter runs `/usr/share/axiom` itself (always that path, never `<repo>`), and the package manager updates it.
   - The install folder gets only `scripts/greeter/` (what greetd and polkit name by path), `.greeter-source` and the snapshot. The session script reads `.greeter-source` to find the code.

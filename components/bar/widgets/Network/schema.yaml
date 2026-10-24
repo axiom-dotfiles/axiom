@@ -1,0 +1,21 @@
+label: Network Status
+icon: wifi
+group: Network & devices
+popout: {variant: own, enabled: {description: Open the Wi-Fi menu when hovered.}}
+colors: {variant: standard, backgroundColor: {title: Connected color}}
+settings:
+  showName:
+    type: boolean
+    title: Show device
+    default: false
+    description: Show the connected device name next to the icon.
+  middleCommand:
+    x-scope: commands
+    type: string
+    title: Middle-click command
+    default: ''
+    description: Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing.
+  disconnectedColor:
+    $ref: '#/definitions/WidgetColor'
+    title: Disconnected color
+    x-autoColor: critical

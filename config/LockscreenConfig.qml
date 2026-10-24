@@ -17,12 +17,13 @@ QtObject {
   // What lock buttons run in "none" mode
   readonly property string lockCommand: _c.lockCommand
 
-  // The built-in lock screen: { columns, rows (its grid, fitted to each
-  // monitor; fineGrid splits its units in two), otherScreens ("layout":
-  // the modules without the password | "background"), background
-  // ("wallpaper" | "color"), blurWallpaper, backgroundColor, dim (%), moduleBorders,
-  // modules }. LockSurface takes it whole, so the layouts editor's preview
-  // can hand it the draft instead
+  // The built-in lock screen, a ScreenLayout: { grid: { columns, rows,
+  // fine } (fitted to each monitor; `fine` splits its units in two),
+  // moduleScale, moduleBorders, modules, otherScreens ("layout": the
+  // modules without the password | "background"), backdrop: { source
+  // ("wallpaper" | "color"), blur, color, dim (%) }, borders: { password,
+  // greeting } }. LockSurface takes it whole, so the layouts editor's
+  // preview can hand it the draft instead
   readonly property var layout: _c.layout
   // The layout's own fields in groups (`x-group`), for the layouts editor
   readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.definitions.ScreenLayout, ["modules"])

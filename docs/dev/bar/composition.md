@@ -15,7 +15,7 @@ How a bar is built from config: the panel per bar, the widget hosts, the layout 
 - Any other bar's monitor is resolved to a connected screen there.
 
 ### Widgets and their options
-- Bar contents are built from `components/bar/{BarContainer,BarWidgetHost,WidgetGroup,BarPanel}.qml`. These compose widgets from `components/bar/widgets/<type>.qml` (Time, Battery, Network, Workspaces, Media, SystemTray, Notifications, etc.).
+- Bar contents are built from `components/bar/{BarContainer,BarWidgetHost,WidgetGroup,BarPanel}.qml`. These compose widgets from `components/bar/widgets/<type>/<type>.qml` (Time, Battery, Network, Workspaces, Media, SystemTray, Notifications, etc.).
 - Each widget's options live under its `<Type>Widget.properties.properties` definition in the schema.
 - `SchemaValidation` picks the `BarWidget` oneOf option by `type`. Widget properties therefore get their defaults filled like the rest of the config, and widgets read `properties.<key>` directly.
 - Widget types come from `Bar.availableWidgetTypes`, the `BarWidget` oneOf. Each type's label comes from its description and its icon from its `x-icon`.
@@ -30,12 +30,11 @@ How a bar is built from config: the panel per bar, the widget hosts, the layout 
 
 ### Popouts
 - A widget opens a popout by dropping in a `PopoutAnchor` with a `popoutName`.
-- The per-bar `BarPopouts` (in `hosts/popout/`) loads `content/<popoutName>.qml` by URL. A new popout is therefore a content file plus an anchor.
+- The per-bar `BarPopouts` (in `hosts/popout/`) loads `content/<popoutName>/<popoutName>.qml` by URL. A new popout is therefore a content file plus an anchor.
 - See [Popout hosts](../popouts/hosts-and-switching.md).
 
 ### Menu popouts
-- Every widget except Button, Separator and the tray has `showPopout` and `popoutMenu`. Button covers this with its `edgeMenu` action instead.
-  - `popoutMenu` is an edge menu id (`x-options: edgeMenus`), shown under the switch.
+- Every widget except Separator has a `popout`: `enabled` and `menu`, an edge menu id (`x-options: edgeMenus`) shown under the switch. Button's is a menu only (its click action is separate).
   - A widget with a popout of its own opens that menu in its place. A widget without one gets a "Menu popout" switch.
 - `BarWidgetHost` holds the one anchor for the menu:
   - It is a `PopoutAnchor` with `menu`, hovered through the host's `hitArea` but sized to the module (not the hit area's powerline reach back), so a menu opened at its widget (`popoutAtWidget`) centres on it.

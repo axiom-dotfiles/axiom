@@ -1,7 +1,6 @@
 pragma Singleton
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import qs.config
 import qs.components.methods
 
@@ -13,7 +12,7 @@ import qs.components.methods
 // acquire(owner, interval) a `now` ticking at the shortest interval asked
 // (a stopwatch's tenths want 100 ms), only while one runs.
 //
-//   qs -c axiom ipc call stopwatch timer "10m tea"
+//   axiom ipc stopwatch timer "10m tea"
 Singleton {
   id: root
 
@@ -214,7 +213,7 @@ Singleton {
     NotificationManager.registerHandler(root._desktopEntry, () => root.openModule());
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "stopwatch"
     enabled: !Paths.greeter
 

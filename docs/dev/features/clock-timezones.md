@@ -1,6 +1,6 @@
 # Clocks and time zones
 
-> **Files:** `services/TimeZoneManager.qml`, `components/methods/TimeZones.qml`, `components/content/Clock.qml`, `components/content/WorldClocks.qml`, `components/bar/widgets/Time.qml`
+> **Files:** `services/TimeZoneManager.qml`, `components/methods/TimeZones.qml`, `components/content/Clock/Clock.qml`, `components/content/WorldClocks/WorldClocks.qml`, `components/bar/widgets/Time/Time.qml`
 > **Config:** module/widget `timezone` properties (no section of its own)
 > **Related:** [Services pattern](../core/services-pattern.md), [Schema annotations](../core/schema-annotations.md), [Desktop](desktop.md), [Utility modules](../overlay/utility-modules.md)
 

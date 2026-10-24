@@ -1,0 +1,13 @@
+label: Favourite apps
+icon: star
+group: Tools
+defaultSize: [4, 2]
+settings:
+  apps:
+    x-scope: personal
+    type: array
+    title: Apps
+    default: []
+    items: {type: string}
+    description: Desktop entry ids, comma-separated (e.g. firefox, kitty). Empty shows recently launched apps.
+  showLabels: {type: boolean, title: Show names, default: true}

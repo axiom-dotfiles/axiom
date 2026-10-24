@@ -61,11 +61,11 @@ Item {
     id: indicator
     readonly property real dot: Math.max(3, Math.min(6, root.dockWindow.base / 10))
     readonly property int dots: Math.min(3, root.windows.length)
-    readonly property bool line: root.dock.runningIndicator === "line"
+    readonly property bool line: root.dock.running.indicator === "line"
     readonly property real alongLength: line ? root.dockWindow.base * 0.4 : dots * dot + (dots - 1) * dot
     readonly property real fromEdge: root.dockWindow.boxOffset + Math.max(1, (root.dockWindow.pad - dot) / 2)
 
-    visible: root.dock.runningIndicator !== "none" && root.windows.length > 0 && !root.dragging
+    visible: root.dock.running.indicator !== "none" && root.windows.length > 0 && !root.dragging
     x: root.vertical ? root.dockWindow.crossAt(fromEdge, dot) : (root.size - alongLength) / 2
     y: root.vertical ? (root.size - alongLength) / 2 : root.dockWindow.crossAt(fromEdge, dot)
     width: root.vertical ? dot : alongLength

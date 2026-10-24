@@ -3,7 +3,7 @@
 
 > **File:** `services/WeatherSource.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Weather for one location from Open-Meteo (no API key). Location comes from latitude/longitude, else `location` (geocoded), else the machine's IP. Refreshes every `intervalMinutes` while `active`; a failed refresh keeps the last good data. Not a singleton: WeatherManager owns the one for the Weather settings.
+Weather for one location from Open-Meteo (no API key). Location comes from latitude/longitude, else `location` (geocoded), else the machine's IP. Refreshes every `interval` (ms) while `active`; a failed refresh keeps the last good data. Not a singleton: WeatherManager owns the one for the Weather settings.
 
 ### Properties
 
@@ -11,7 +11,7 @@ Weather for one location from Open-Meteo (no API key). Location comes from latit
 - `longitude` (var)
 - `location` (string)
 - `units` (string): "celsius" | "fahrenheit"
-- `intervalMinutes` (int)
+- `interval` (int)
 - `active` (bool): Off while no widget wants weather: keeps its data, never fetches
 - `place` (var): -- Data -- { latitude, longitude, name }, resolved once per location setting
 - `weather` (var): Open-Meteo forecast response: current, hourly (12h), daily (5 days)

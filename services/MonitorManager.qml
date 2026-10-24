@@ -1,7 +1,6 @@
 pragma Singleton
 
 import QtQuick
-import Quickshell.Io
 
 import qs.config
 import qs.components.methods
@@ -393,8 +392,9 @@ QtObject {
     if (MonitorsConfig.profiles.length > 0 || !enabledOutputs.some(monitor => !Number.isInteger(monitor.scale)))
       return;
     SettingsManager.commitValues({
-      "Monitors.profiles": [
+      "Monitors.items": [
         {
+          "id": "layout-1",
           "name": I18n.tr("Layout {0}", 1),
           "outputs": MonitorLayout.wholeScaleRules(outputs)
         }
@@ -456,9 +456,9 @@ QtObject {
   on_CanReadChanged: refresh()
   Component.onCompleted: refresh()
 
-  // Recovers from a layout that can't be seen: `qs -c axiom ipc call
+  // Recovers from a layout that can't be seen: `axiom ipc
   // monitors revert`
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "monitors"
 
     function open(): void {

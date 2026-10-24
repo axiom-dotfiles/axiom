@@ -1,0 +1,7 @@
+# The ScreenGrid definition (#/definitions/ScreenGrid).
+
+x-inline: true
+$ref: '#/definitions/Grid'
+x-properties:
+  columns: {type: integer, default: 16, minimum: 1, maximum: 64, x-settings: false}
+  rows: {type: integer, default: 9, minimum: 1, maximum: 64, x-settings: false}

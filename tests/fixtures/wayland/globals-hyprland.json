@@ -1,0 +1,362 @@
+[
+  {
+    "name": 59,
+    "interface": "ext_background_effect_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 54,
+    "interface": "ext_data_control_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 64,
+    "interface": "ext_foreign_toplevel_image_capture_source_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 16,
+    "interface": "ext_foreign_toplevel_list_v1",
+    "version": 1
+  },
+  {
+    "name": 25,
+    "interface": "ext_idle_notifier_v1",
+    "version": 2
+  },
+  {
+    "name": 65,
+    "interface": "ext_image_copy_capture_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 63,
+    "interface": "ext_output_image_capture_source_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 27,
+    "interface": "ext_session_lock_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 53,
+    "interface": "ext_workspace_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 46,
+    "interface": "hyprland_ctm_control_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 33,
+    "interface": "hyprland_focus_grab_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 42,
+    "interface": "hyprland_global_shortcuts_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 47,
+    "interface": "hyprland_input_capture_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 26,
+    "interface": "hyprland_lock_notifier_v1",
+    "version": 1
+  },
+  {
+    "name": 48,
+    "interface": "hyprland_surface_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 62,
+    "interface": "hyprland_toplevel_export_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 41,
+    "interface": "hyprland_toplevel_mapping_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 32,
+    "interface": "org_kde_kwin_server_decoration_manager",
+    "version": 1
+  },
+  {
+    "name": 52,
+    "interface": "vicinae_hotkey_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 3,
+    "interface": "wl_compositor",
+    "version": 6
+  },
+  {
+    "name": 2,
+    "interface": "wl_data_device_manager",
+    "version": 3
+  },
+  {
+    "name": 70,
+    "interface": "wl_drm",
+    "version": 2
+  },
+  {
+    "name": 72,
+    "interface": "wl_output",
+    "version": 4
+  },
+  {
+    "name": 1,
+    "interface": "wl_seat",
+    "version": 9
+  },
+  {
+    "name": 5,
+    "interface": "wl_shm",
+    "version": 2
+  },
+  {
+    "name": 4,
+    "interface": "wl_subcompositor",
+    "version": 1
+  },
+  {
+    "name": 14,
+    "interface": "wp_alpha_modifier_v1",
+    "version": 1
+  },
+  {
+    "name": 66,
+    "interface": "wp_color_manager_v1",
+    "version": 3
+  },
+  {
+    "name": 60,
+    "interface": "wp_commit_timing_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 49,
+    "interface": "wp_content_type_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 10,
+    "interface": "wp_cursor_shape_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 69,
+    "interface": "wp_drm_lease_device_v1",
+    "version": 1
+  },
+  {
+    "name": 67,
+    "interface": "wp_drm_lease_device_v1",
+    "version": 1
+  },
+  {
+    "name": 56,
+    "interface": "wp_fifo_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 8,
+    "interface": "wp_fractional_scale_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 68,
+    "interface": "wp_linux_drm_syncobj_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 55,
+    "interface": "wp_pointer_warp_v1",
+    "version": 1
+  },
+  {
+    "name": 36,
+    "interface": "wp_presentation",
+    "version": 2
+  },
+  {
+    "name": 45,
+    "interface": "wp_security_context_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 44,
+    "interface": "wp_single_pixel_buffer_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 7,
+    "interface": "wp_tearing_control_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 6,
+    "interface": "wp_viewporter",
+    "version": 1
+  },
+  {
+    "name": 24,
+    "interface": "xdg_activation_v1",
+    "version": 1
+  },
+  {
+    "name": 51,
+    "interface": "xdg_system_bell_v1",
+    "version": 1
+  },
+  {
+    "name": 50,
+    "interface": "xdg_toplevel_tag_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 37,
+    "interface": "xdg_wm_base",
+    "version": 7
+  },
+  {
+    "name": 43,
+    "interface": "xdg_wm_dialog_v1",
+    "version": 1
+  },
+  {
+    "name": 40,
+    "interface": "xwayland_shell_v1",
+    "version": 1
+  },
+  {
+    "name": 38,
+    "interface": "zwlr_data_control_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 18,
+    "interface": "zwlr_foreign_toplevel_manager_v1",
+    "version": 3
+  },
+  {
+    "name": 15,
+    "interface": "zwlr_gamma_control_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 35,
+    "interface": "zwlr_layer_shell_v1",
+    "version": 5
+  },
+  {
+    "name": 31,
+    "interface": "zwlr_output_manager_v1",
+    "version": 4
+  },
+  {
+    "name": 23,
+    "interface": "zwlr_output_power_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 61,
+    "interface": "zwlr_screencopy_manager_v1",
+    "version": 3
+  },
+  {
+    "name": 30,
+    "interface": "zwlr_virtual_pointer_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 11,
+    "interface": "zwp_idle_inhibit_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 28,
+    "interface": "zwp_input_method_manager_v2",
+    "version": 1
+  },
+  {
+    "name": 19,
+    "interface": "zwp_keyboard_shortcuts_inhibit_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 71,
+    "interface": "zwp_linux_dmabuf_v1",
+    "version": 5
+  },
+  {
+    "name": 22,
+    "interface": "zwp_pointer_constraints_v1",
+    "version": 1
+  },
+  {
+    "name": 17,
+    "interface": "zwp_pointer_gestures_v1",
+    "version": 3
+  },
+  {
+    "name": 39,
+    "interface": "zwp_primary_selection_device_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 12,
+    "interface": "zwp_relative_pointer_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 34,
+    "interface": "zwp_tablet_manager_v2",
+    "version": 1
+  },
+  {
+    "name": 20,
+    "interface": "zwp_text_input_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 21,
+    "interface": "zwp_text_input_manager_v3",
+    "version": 1
+  },
+  {
+    "name": 29,
+    "interface": "zwp_virtual_keyboard_manager_v1",
+    "version": 1
+  },
+  {
+    "name": 13,
+    "interface": "zxdg_decoration_manager_v1",
+    "version": 2
+  },
+  {
+    "name": 57,
+    "interface": "zxdg_exporter_v2",
+    "version": 1
+  },
+  {
+    "name": 58,
+    "interface": "zxdg_importer_v2",
+    "version": 1
+  },
+  {
+    "name": 9,
+    "interface": "zxdg_output_manager_v1",
+    "version": 3
+  }
+]

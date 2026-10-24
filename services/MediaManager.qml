@@ -135,7 +135,7 @@ QtObject {
   }
 
   // Media keys (keybind actions mediaPlayPause, ...), for the active player
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "media"
 
     function playPause(): void {

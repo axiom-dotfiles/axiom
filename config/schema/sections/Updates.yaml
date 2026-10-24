@@ -1,0 +1,33 @@
+# The Updates section of the config (config.json's "Updates").
+
+type: object
+x-category: Modules
+title: Package updates
+description: How every updates widget and module checks for and installs updates.
+additionalProperties: false
+properties:
+  includeAur:
+    type: boolean
+    title: Include AUR
+    default: false
+    description: Also count outdated AUR packages.
+    x-showIf: {/$distro: arch}
+  aurHelper:
+    type: string
+    title: AUR helper
+    default: paru
+    enum: [paru, yay]
+    x-showIf: {includeAur: true, /$distro: arch}
+  terminal:
+    x-link: {setting: Apps.terminal}
+    x-scope: commands
+    type: string
+    title: Terminal
+    default: ''
+    description: Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal.
+  upgradeCommand:
+    x-scope: commands
+    type: string
+    title: Upgrade command
+    default: ''
+    description: Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu.

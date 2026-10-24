@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.config
 
@@ -265,7 +264,7 @@ Singleton {
     }
   }
 
-  IpcHandler {
+  IpcTarget {
     target: "onboarding"
 
     function open(): void {

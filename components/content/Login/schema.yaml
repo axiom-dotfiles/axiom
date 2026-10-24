@@ -1,0 +1,31 @@
+label: Login
+link: {setting: Greeter}
+icon: login
+group: Session
+defaultSize: [6, 3]
+required: true
+hosts: {only: [greeter]}
+settings:
+  userField:
+    type: string
+    title: User
+    enum: [list, typed]
+    x-enumLabels: {list: 'Pick from a list, or type', typed: Type the name}
+    default: list
+    description: Typed only shows no one's name before they type it.
+  showAvatar:
+    type: boolean
+    title: Picture
+    default: true
+    description: The user's picture (AccountsService's), when they have one.
+  placeholder:
+    type: string
+    title: Placeholder
+    default: ''
+    description: Shown in the empty password field. Empty says Enter password...
+  centered: {type: boolean, title: Centre the text, default: true}
+  showMessages:
+    type: boolean
+    title: Messages
+    default: true
+    description: 'Show what the login checks say under the field: prompts, failures and errors.'

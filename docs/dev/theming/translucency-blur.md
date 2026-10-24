@@ -1,6 +1,6 @@
 # Translucency and blur
 
-> **Files:** `config/Appearance.qml`, `services/BlurManager.qml`, `components/reusable/BlurRegion.qml`, `components/reusable/BoxBlurRegion.qml`, `components/methods/NiriConf.qml`, `components/methods/HyprLua.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/views/settings/TranslucencyStatus.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`
+> **Files:** `config/Appearance.qml`, `services/BlurManager.qml`, `components/reusable/BlurRegion.qml`, `components/reusable/BoxBlurRegion.qml`, `components/methods/NiriConf.qml`, `components/methods/HyprLua.qml`, `services/CompositorConfigManager.qml`, `backend/internal/compositor/manager/hypr.go`, `components/views/Settings/TranslucencyStatus.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`
 > **Config:** `Appearance.surface.opacity`, `WindowLook.surfaceBlur*` (`surfaceBlur`, `surfaceBlurThroughWindows`, `surfaceBlurBackdrops`, `surfaceBlurPauseFullscreen`)
 > **Related:** [Blur window and openings](blur-window-openings.md), [Window look](../compositor/window-look.md), [Popout registry](../popouts/registry.md)
 
@@ -27,7 +27,7 @@ The translucency setting, how fills apply it, the Hyprland layer rules axiom wri
 - Accent colors and hover tints are left alone.
 
 ### Hyprland layer rules
-Written by `HyprLua.blurLua` from `CompositorLayer.surfaceBlur`'s rule groups (the ones SwayFX's `layer_effects` and niri's xray rules are written from too), handed `spec.surfaces` (`M.blur()` in the module). The named layer rules are always written, `enabled` or not, since a rule is taken back by redefining it (no reload).
+Written by `render.BlurLua` from `render.SurfaceBlur`'s rule groups (the ones SwayFX's `layer_effects` and niri's xray rules are written from too), handed `spec.surfaces` (`M.blur()` in the module). The named layer rules are always written, `enabled` or not, since a rule is taken back by redefining it (no reload).
 - `axiom-blur`, on the namespaces that blur themselves (`LayerStack.blurSurfaces`: the blur window, the overlay, the floating launcher and switcher, notifications, …):
   - `blur_popups`, and `ignore_alpha` at the threshold. The big transparent windows need it; shadows are capped under the threshold while blurring (`Bar.shadowColor`).
   - `xray` is always written, off with `surfaceBlurThroughWindows`. Left out, a layer takes `decoration.blur.xray`, which the window look turns on.
@@ -49,8 +49,8 @@ niri (26.04) blurs a layer rule's whole rectangle, with no alpha threshold, so a
 - Backdrops and polkit's dim send their whole rect while `blurBackdrops` (at any alpha, `threshold` 0.01).
 - They do while `BlurManager.regions` (`backdropRegions`): the pause and the screens never touch niri's config.
 - `BackgroundEffect` is attached only where `supports.blurRegion`, from `Component.onCompleted` (`BackgroundEffect.blurRegion = Qt.binding(…)`), never as a binding: attached at all, even with a null region, Quickshell creates the window's ext-background-effect object, and Hyprland (which speaks the protocol too) then blurs only what it asks, ignoring the layer rules.
-- The module holds only xray: a `layer-rule` per `CompositorLayer.surfaceBlur` group that blurs or whose popups do (`NiriConf.surfaceBlurNodes`), xray off with `surfaceBlurThroughWindows`, always off over the overlay and for the chrome's popups (as Hyprland, which never blurs a popup with xray). niri marks non-xray blur experimental: it can vanish during open and close animations.
-- The strength is niri's `blur {}` (the window look's blur part writes it); `NiriManager.blur` reads it back from `scripts/niri_config.py info` (its offset as the size) for the Translucency card and the lock screen's frost.
+- The module holds only xray: a `layer-rule` per `render.SurfaceBlur` group that blurs or whose popups do (`render.NiriSurfaceBlurNodes`), xray off with `surfaceBlurThroughWindows`, always off over the overlay and for the chrome's popups (as Hyprland, which never blurs a popup with xray). niri marks non-xray blur experimental: it can vanish during open and close animations.
+- The strength is niri's `blur {}` (the window look's blur part writes it); `NiriManager.blur` reads it back from `axiom compositor niri info` (its offset as the size) for the Translucency card and the lock screen's frost.
 
 ### No reload per step
 - The window look and the blur are CompositorConfigManager's `_liveInputs`.

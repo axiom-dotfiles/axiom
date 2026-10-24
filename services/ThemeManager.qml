@@ -54,13 +54,13 @@ QtObject {
   // The theme showing: Appearance.theme, or the variant the light/dark
   // schedule last switched it to. Read from the config itself: the
   // Appearance reader's darkMode reads currentTheme, which loads from this.
-  // reads: Appearance.theme, Appearance.themeSchedule.enabled
+  // reads: Appearance.theme.name, Appearance.theme.schedule.enabled
   readonly property string activeTheme: {
-    const appearance = ConfigManager.config.Appearance;
-    return Paths.greeter ? appearance.theme : ShownLook.theme(appearance.theme, appearance.themeSchedule.enabled, root._look.theme ?? null);
+    const theme = ConfigManager.config.Appearance.theme;
+    return Paths.greeter ? theme.name : ShownLook.theme(theme.name, theme.schedule.enabled, root._look.theme ?? null);
   }
   // The wallpapers showing ({ wallpaper, wallpapers }): the fixed ones, the
-  // rotation's or the light/dark ones, by Appearance.wallpaperMode
+  // rotation's or the light/dark ones, by Appearance.wallpaper.mode
   readonly property var shownWallpapers: ShownLook.wallpapers(Paths.greeter ? "fixed" : Appearance.wallpaperMode, {
     "wallpaper": Appearance.fixedWallpaper,
     "wallpapers": Appearance.fixedWallpapers
@@ -714,8 +714,7 @@ QtObject {
   }
 
   // Ready is reported once before the rows arrive, then again with them.
-  // Directories are hidden (showDirs), so a generated/ folder an install
-  // from before the XDG folders left there isn't listed.
+  // Directories are hidden (showDirs): themes are files.
   property FolderListModel _defaultThemeLoader: FolderListModel {
     nameFilters: ["*.json"]
     showDirs: false
@@ -731,10 +730,6 @@ QtObject {
     onStatusChanged: if (status === FolderListModel.Ready && count > 0) {
       root._generatedThemes = root._readThemes(root._generatedThemeLoader, "generated/");
       root._rebuildFamilies();
-      // Pairs from before styles (one per pywal backend): a run replaces
-      // them with every style's, and removes them, so this happens once
-      if (root.wallpaper && root._generatedThemes.some(theme => theme.name.startsWith("generated/pywal-")))
-        root.generateThemesFromWallpaper(root.wallpaper);
     }
   }
 

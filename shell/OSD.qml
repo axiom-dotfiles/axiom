@@ -26,7 +26,7 @@ Scope {
         source: entry._found
       }
       readonly property var osd: entry._held.value
-      readonly property var screens: entry._found ? General.screensFor(entry._found.monitors, entry._found.monitor) : []
+      readonly property var screens: entry._found ? General.screensFor(entry._found.screen) : []
 
       Variants {
         model: entry.screens

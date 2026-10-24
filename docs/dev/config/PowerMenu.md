@@ -4,17 +4,22 @@
 > **Reader:** `PowerMenuConfig` (`config/PowerMenuConfig.qml`)
 > **Schema:** `config/json/config.schema.json` → `properties.PowerMenu` · category Screen & Power
 
-Power menu: The power menu: lock, suspend, hibernate, log out, reboot and power off, opened by the power button, a keybind or `qs -c axiom ipc call powermenu toggle`.
+Power menu: The power menu: lock, suspend, hibernate, log out, reboot and power off, opened by the power button, a keybind or `axiom ipc powermenu toggle`.
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
 
+### `PowerMenu.screen`
+
+- **`PowerMenu.screen`** · object
+  - Monitors: Where the power menu opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
+- **`PowerMenu.screen.mode`** · string = "inherit" · enum inherit|primary|focused|all
+  - Monitors
+  - x-scope="look", x-link={"setting":"General.screen"}
+  - read: `PowerMenuConfig.screen` (whole) · in: `config/PowerMenuConfig.qml`
+
 ### `PowerMenu`
 
-- **`PowerMenu.monitors`** · string = "general" · enum general|primary|focused|all
-  - Monitors: Where the power menu opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.
-  - x-link={"setting":"General.monitors"}, x-scope="look"
-  - read: `PowerMenuConfig.monitors` · in: `components/surfaces/powermenu/PowerMenuWindow.qml`, `shell/PowerMenu.qml`
 - **`PowerMenu.actions`** · array<string> = ["lock","suspend","hibernate","logout","reboot","poweroff"]
   - Actions: Which actions the menu shows, in order.
   - x-scope="look"
@@ -48,7 +53,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 Every public member of `PowerMenuConfig`, with the files that use it.
 
-- `PowerMenuConfig.monitors` (string): "general" | "primary" | "focused" | "all" (see General.screensFor)
+- `PowerMenuConfig.screen` (var): The ScreenTarget it opens on (see General.screensFor)
   - in: `components/surfaces/powermenu/PowerMenuWindow.qml`, `shell/PowerMenu.qml`
 - `PowerMenuConfig.actions` (var): Session actions shown, in order
   - in: `components/surfaces/powermenu/PowerMenuWindow.qml`

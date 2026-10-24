@@ -19,4 +19,3 @@ export_theme_colors
 readable_text_colors
 map_theme_colors quote_color
 render_template "$SCRIPT_DIR/templates/k9s_template.yaml" "$OUTPUT_FILE"
-[ $# -ge 2 ] || old_output_notice "${XDG_CONFIG_HOME:-$HOME/.config}/k9s/skins/wal-generated.yaml" "$OUTPUT_FILE"

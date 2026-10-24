@@ -29,7 +29,7 @@ Scope {
       readonly property var dock: entry._held.value
 
       Variants {
-        model: entry._found ? DockConfig.screensOf(entry._found).filter(screen => ShellManager.showsOn(screen, entry._found.monitors, entry._found.monitor)) : []
+        model: entry._found ? DockConfig.screensOf(entry._found).filter(screen => ShellManager.showsOn(screen, entry._found.screen)) : []
 
         delegate: DockWindow {
           required property ShellScreen modelData

@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.config
 import qs.components.methods
@@ -108,9 +107,9 @@ Singleton {
     }
   }
 
-  // `qs -c axiom ipc call windowSwitcher …`, for scripts and testing: it
+  // `axiom ipc windowSwitcher …`, for scripts and testing: it
   // doesn't enter the submap, so nothing picks on a release here
-  IpcHandler {
+  IpcTarget {
     target: "windowSwitcher"
 
     function next(): void {

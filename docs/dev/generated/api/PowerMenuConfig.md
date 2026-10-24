@@ -7,7 +7,7 @@ Reader for the PowerMenu section. Named PowerMenuConfig because `PowerMenu` is t
 
 ### Properties
 
-- `monitors` (readonly string): "general" | "primary" | "focused" | "all" (see General.screensFor)
+- `screen` (readonly var): The ScreenTarget it opens on (see General.screensFor)
 - `actions` (readonly var): Session actions shown, in order
 - `confirm` (readonly bool): Destructive actions ask for a second press
 - `tileSize` (readonly int)

@@ -1,0 +1,13 @@
+label: System graphs
+icon: show_chart
+group: System
+canvasDetail: metrics
+hosts: [lockscreen]
+settings:
+  metrics:
+    type: array
+    title: Metrics
+    default: [cpu, mem]
+    items:
+      type: string
+      enum: [cpu, mem, gpu, cpuTemp, net]

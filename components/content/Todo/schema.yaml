@@ -1,0 +1,11 @@
+label: Todo list
+icon: checklist
+group: Tools
+keyboard: true
+defaultSize: [4, 6]
+settings:
+  showHeader:
+    type: boolean
+    title: Header
+    default: true
+    description: The title, the open count and Clear completed.

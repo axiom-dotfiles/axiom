@@ -40,7 +40,7 @@ body:
     id: distro
     attributes:
       label: (Distribution) Packages
-      description: Its package manager and base (Debian, openSUSE, NixOS, …). Are Quickshell 0.3.2+ and your compositor packaged there, and in which repositories? Does anyone package axiom for it already?
+      description: Its package manager and base (Debian, openSUSE, NixOS, …). Are Quickshell 0.3.2+, Go 1.26+ (to build the `axiom` binary) and your compositor packaged there, and in which repositories? Does anyone package axiom for it already?
   - type: checkboxes
     id: maintainer
     attributes:

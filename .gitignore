@@ -1,15 +1,14 @@
 .qmlls.ini
 *.bak
 
-
-config/themes/generated
-
-config/user
-config/state
-
 .venv
 
 __pycache__/
 *.pyc
 
 tests/.out/
+
+# Generated (scripts/generate.sh), never committed
+config/json/config.schema.json
+backend/internal/assets/data/
+tests/fixtures/shared/

@@ -1,7 +1,7 @@
 # Edge menus: editing and submenus
 
-> **Files:** `services/EdgeMenuManager.qml`, `config/EdgeMenusConfig.qml`, `components/views/layouts/MenuTarget.qml`, `components/views/layouts/MenuOpening.qml`, `components/views/layouts/OpenerButtons.qml`, `components/content/Submenu.qml`, `components/content/parts/MenuSubmenu.qml`, `services/GridEditor.qml`
-> **Config:** `EdgeMenus[]` (`mode: "submenu"`, `offset`, `gridOffset`, `modules[]` with `Submenu` modules' `menu`, `openOnHover`)
+> **Files:** `services/EdgeMenuManager.qml`, `config/EdgeMenusConfig.qml`, `components/views/Layouts/MenuTarget.qml`, `components/views/Layouts/MenuOpening.qml`, `components/views/Layouts/OpenerButtons.qml`, `components/content/Submenu/Submenu.qml`, `components/content/Submenu/MenuSubmenu.qml`, `services/GridEditor.qml`
+> **Config:** `EdgeMenus.items[]` (`mode: "submenu"`, `offset`, `gridOffset`, `modules[]` with `Submenu` modules' `menu`, `openOnHover`)
 > **Related:** [Overview](overview.md), [Hosts](hosts.md), [Layouts editor](../overlay/layouts-editor.md), [Grid canvas](../overlay/grid-canvas.md), [Popout submenus](../popouts/submenus.md), [Editors pattern](../core/editors-pattern.md)
 
 How edge menus are edited on the Layouts page (draft, field groups, previewing, openers, moving along the edge), and how one menu opens another as a submenu.
@@ -54,4 +54,4 @@ How edge menus are edited on the Layouts page (draft, field groups, previewing, 
 - Any other menu can be opened as a submenu too.
 - `references(id)` lists the Submenu modules opening a menu; one opening the menu it's in is a problem.
 - "Show on screen" on a submenu menu opens the first enabled floating menu with a Submenu module opening it (`submenuParentOf`, `previewParent`, held as the preview is). That menu's first such row opens it and holds it (`content/Submenu.previewed`).
-- A bar widget's `popoutMenu` never opens a submenu menu (`popoutMenuOf`).
+- A bar widget's `popout.menu` never opens a submenu menu (`popoutMenuOf`).

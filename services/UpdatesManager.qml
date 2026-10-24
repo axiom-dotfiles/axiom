@@ -10,7 +10,7 @@ import qs.components.methods
 // Fedora; nothing on one it doesn't know, `supported` false). Only one
 // check may run at a time: concurrent `checkupdates` runs share its
 // temporary sync db and fail with "Cannot fetch updates". Widgets register
-// with acquire(owner, {intervalMinutes, aurHelper}) (aurHelper "" for no
+// with acquire(owner, {interval (ms), aurHelper}) (aurHelper "" for no
 // AUR) and drop it with release(owner); checks run at the shortest
 // requested interval, and the AUR is checked if any widget asks for it and
 // the distribution has one.
@@ -31,7 +31,7 @@ QtObject {
 
   function acquire(owner, request) {
     _registry.acquire(owner, {
-      "interval": (request?.intervalMinutes ?? 30) * 60000,
+      "interval": request?.interval ?? 1800000,
       "aurHelper": request?.aurHelper ?? ""
     });
   }

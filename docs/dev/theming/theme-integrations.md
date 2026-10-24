@@ -31,7 +31,7 @@ How axiom themes other apps: one script per app writing its own `axiom.*` file, 
 
 ### Qt and KDE apps
 - `theme_qt.sh` writes qt5ct's / qt6ct's `colors/axiom.conf` (a QPalette per state; for each tool installed, if any) and the KDE color scheme `$XDG_DATA_HOME/color-schemes/Axiom.colors` (`templates/qt_template.colors`, colors as `r,g,b`). The switch counts as installed with qt*ct or a common KDE app (`ThemeManager._integrationCommands`).
-- Qt apps load qt*ct only with `QT_QPA_PLATFORMTHEME`: a managed compositor config sets it to `qt5ct` while the switch is on (`CompositorLayer.integrationEnv`; qt6ct's plugin answers to `qt5ct` too). `ThemeIntegrations.qt` is in `CompositorConfigManager._inputs`, so switching it rewrites the file. The session's own `Session.env` wins; apps started before the next login (qs's children included) keep the old environment.
+- Qt apps load qt*ct only with `QT_QPA_PLATFORMTHEME`: a managed compositor config sets it to `qt5ct` while the switch is on (`render.SessionEnv`; qt6ct's plugin answers to `qt5ct` too). `ThemeIntegrations.qt` is in `CompositorConfigManager._inputs`, so switching it rewrites the file. The session's own `Session.env` wins; apps started before the next login (qs's children included) keep the old environment.
 - KDE apps (KColorScheme) read most of their colors from `kdeglobals`' `[Colors:*]`, `[ColorEffects:*]` and `[WM]` groups, a copy of the chosen scheme that Plasma keeps. The hookup's third target sets `ColorScheme=Axiom` in its `[General]`; from then on `theme_qt.sh` keeps those groups a copy of `Axiom.colors` on every theme change, replacing only the keys the scheme sets (others, like `[WM] activeFont`, stay), and emits `org.kde.KGlobalSettings.notifyChange` (palette) so running KDE apps re-read it. With any other `ColorScheme` it leaves `kdeglobals` alone. This is the second exception to "only Apply edits a user's config": a file KDE's tools write, after the user opted in.
 - That copy reaches only apps reading KColorScheme straight (System Settings). Apps with a color scheme menu (KColorSchemeManager: Okular, Dolphin, Kate, Gwenview) take the scheme named by `[UiSettings] ColorScheme` in their own rc, which falls back to `kdeglobals`'. With none they use the platform theme's (only `QT_QPA_PLATFORMTHEME=kde`, or the portal under `XDG_CURRENT_DESKTOP=KDE`, has one; qt5ct and qt6ct don't), else BreezeLight / BreezeDark, hard-coded (KF 6.31's `kcolorschememanager.cpp`). So the hookup's fourth target sets `ColorScheme=Axiom` in `kdeglobals`' `[UiSettings]` too, in effect for every app whose own menu is left at Default. An app that picked another scheme in its menu keeps it: `theme_qt.sh` warns, naming its rc, and changes nothing.
   - Both `kdeglobals` targets go without `accept`: it would match the line in the other group (an `accept` is checked against the whole file).
@@ -102,7 +102,7 @@ How axiom themes other apps: one script per app writing its own `axiom.*` file, 
   - per target, the text with a copy button and an outline of what Apply will do (backup, link, where it goes, lines commented out);
   - then Apply.
 - `SettingsField` adds it under any field with `x-hookup`.
-- In settings they are their own category, one folding card per app (`x-cardPerField` on `ThemeIntegrations`).
+- In settings they are their own category, one folding card per app (`x-card`'s `perField` on `ThemeIntegrations`).
 - The onboarder's Integrations page lists the switched-on ones under "Finish setting up".
 - Only Apply, on the user's click, edits a user's config.
 

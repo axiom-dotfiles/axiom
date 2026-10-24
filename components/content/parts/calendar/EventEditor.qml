@@ -24,7 +24,7 @@ ColumnLayout {
   property int reminder: -1
 
   readonly property bool isNew: !root.draft?.href
-  readonly property bool readOnly: !root.isNew && !(CalendarConfig.calendar(root.draft?.originalCalendar ?? "")?.writable ?? false)
+  readonly property bool readOnly: !root.isNew && !(CalendarManager.calendar(root.draft?.originalCalendar ?? "")?.writable ?? false)
   property bool busy: false
   property string error: ""
   // "save" | "delete" while asking which of a recurring event's,
@@ -164,7 +164,7 @@ ColumnLayout {
         Layout.fillWidth: true
         icon: "event"
         readOnly: root.readOnly || root.draft?.origRepeat === "custom"
-        options: (root.readOnly ? CalendarConfig.calendars : CalendarConfig.writableCalendars).map(calendar => ({
+        options: (root.readOnly ? CalendarManager.calendars : CalendarManager.writableCalendars).map(calendar => ({
               "value": calendar.id,
               "label": CalendarConfig.accounts.length > 1 ? I18n.tr("{0} · {1}", calendar.name, calendar.accountName) : calendar.name
             }))

@@ -1,7 +1,6 @@
 pragma Singleton
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.config
 import qs.components.methods
@@ -17,7 +16,7 @@ import qs.components.methods
 // show live on the running menus (ConfigManager.previews) until saved or
 // reset, and `previewing` holds one menu open to try them on.
 //
-//   qs -c axiom ipc call edgeMenu toggle <id>
+//   axiom ipc edgeMenu toggle <id>
 Singleton {
   id: root
 
@@ -122,7 +121,7 @@ Singleton {
     const screen = EdgeMenusConfig.screenFor(menu);
     if (!menu || !screen || EdgeMenusConfig.isSubmenu(menu))
       return null;
-    const place = GridPlacement.menuPlacement(menu, bounds ?? GridPlacement.bounds(menu.modules), root.cardUnitOf(menu), root.frameOf(menu), screen.width, screen.height, root.gapOf(menu));
+    const place = GridPlacement.menuPlacement(menu, bounds ?? GridPlacement.bounds(menu.layout.modules), root.cardUnitOf(menu), root.frameOf(menu), screen.width, screen.height, root.gapOf(menu));
     place.screen = screen;
     return place;
   }
@@ -145,7 +144,7 @@ Singleton {
     const place = root.placementOf(menu);
     if (!place)
       return null;
-    return GridPlacement.screenBox(place.screenWidth, place.screenHeight, root.cardUnitOf(menu), GridPlacement.bounds(menu.modules), menu.edge, place.along, place.across, root.gapOf(menu));
+    return GridPlacement.screenBox(place.screenWidth, place.screenHeight, root.cardUnitOf(menu), GridPlacement.bounds(menu.layout.modules), menu.edge, place.along, place.across, root.gapOf(menu));
   }
 
   // The draft's other enabled menus on the screen of the one at `index`,
@@ -193,7 +192,7 @@ Singleton {
     const was = menu ? root.placementOf(menu, boundsBefore) : null;
     if (!was || was.cell === null)
       return;
-    const vertical = menu.edge === "Left" || menu.edge === "Right";
+    const vertical = menu.edge === "left" || menu.edge === "right";
     const units = GridPlacement.unitsAlong(menu);
     const range = GridPlacement.offsetRange(was.lattice, units);
     const offset = GridPlacement.offsetFor(was.lattice, was.cell + (vertical ? shift.y : shift.x), units);
@@ -352,7 +351,7 @@ Singleton {
 
   property ConfigDraft _draft: ConfigDraft {
     id: draft
-    path: ["EdgeMenus"]
+    path: ["EdgeMenus", "items"]
   }
   readonly property alias localMenus: draft.local
   readonly property alias savedMenus: draft.saved
@@ -362,7 +361,7 @@ Singleton {
   // The selected menu's modules (see GridEditor)
   property GridEditor layout: GridEditor {
     host: "edgeMenu"
-    sizeScale: root.localMenus?.[root.selectedMenuIndex]?.fineGrid ? 2 : 1
+    sizeScale: root.localMenus?.[root.selectedMenuIndex]?.layout?.grid?.fine ? 2 : 1
     modulesOf: () => root.selectedMenu()?.modules ?? null
     // A submenu has no edge: just its grid
     readonly property var _onEdge: EdgeMenusConfig.isSubmenu(root.selectedMenu()) ? null : root.selectedMenu()
@@ -373,7 +372,7 @@ Singleton {
     // bottom one, so a drop at its start makes room in its run
     pushDir: {
       const edge = root.localMenus?.[root.selectedMenuIndex]?.edge;
-      const side = edge === "Left" || edge === "Right";
+      const side = edge === "left" || edge === "right";
       return {
         "x": side ? 0 : 1,
         "y": side ? 1 : 0
@@ -385,7 +384,7 @@ Singleton {
     // _keepPlace)
     hold: {
       const menu = root.localMenus?.[root.selectedMenuIndex];
-      const side = menu?.edge === "Left" || menu?.edge === "Right";
+      const side = menu?.edge === "left" || menu?.edge === "right";
       return menu?.length === "edge" ? {
         "x": !side,
         "y": side
@@ -414,7 +413,7 @@ Singleton {
   // The first enabled floating menu (in the draft, else saved) with a
   // Submenu module opening menu `id`, else null
   function submenuParentOf(id) {
-    return (root.localMenus ?? EdgeMenusConfig.menus).find(menu => menu.id !== id && menu.enabled && menu.mode === "floating" && (menu.modules ?? []).some(module => module?.type === "Submenu" && module.properties?.menu === id)) ?? null;
+    return (root.localMenus ?? EdgeMenusConfig.menus).find(menu => menu.id !== id && menu.enabled && menu.mode === "floating" && (menu.layout.modules ?? []).some(module => module?.type === "Submenu" && module.properties?.menu === id)) ?? null;
   }
 
   // Why the draft can't be saved as is (empty = savable)
@@ -427,8 +426,8 @@ Singleton {
         out.push(I18n.tr("{0} has no id", name));
       else if (menus.findIndex(other => other.id === menu.id) !== m)
         out.push(I18n.tr("{0}: another menu has the id {1}", name, menu.id));
-      out.push(...root.layout.problemsFor(menu.modules, name));
-      if ((menu.modules ?? []).some(module => module?.type === "Submenu" && module.properties?.menu === menu.id))
+      out.push(...root.layout.problemsFor(menu.layout.modules, name));
+      if ((menu.layout.modules ?? []).some(module => module?.type === "Submenu" && module.properties?.menu === menu.id))
         out.push(I18n.tr("{0}: a Submenu module opens the menu it's in", name));
     });
     return out;
@@ -460,7 +459,9 @@ Singleton {
   function applyChanges() {
     draft.changed();
     if (draft.isDirty)
-      ConfigManager.setPreview("EdgeMenus", draft.local);
+      ConfigManager.setPreview("EdgeMenus", {
+        "items": draft.local
+      });
     else
       ConfigManager.clearPreview("EdgeMenus");
   }
@@ -480,7 +481,7 @@ Singleton {
     screen = screen ?? EdgeMenusConfig.screenFor(menu);
     const unit = screen ? OverlayConfig.cardUnitOn(screen.width, screen.height) : GridPlacement.cardUnit;
     // A double grid (fineGrid) splits each unit in two each way
-    return GridPlacement.gridUnitOf(unit * menu.moduleScale / 100, menu.fineGrid, root.gapOf(menu));
+    return GridPlacement.gridUnitOf(unit * menu.layout.moduleScale / 100, menu.layout.grid.fine, root.gapOf(menu));
   }
 
   // The px between a menu's cards: the layout's gap drawn at the menu's
@@ -493,7 +494,7 @@ Singleton {
   // (GridPlacement.zoomOf), so it scales their text and controls with
   // its cards, while the screen only changes how big the cards are
   function zoomOf(menu) {
-    return GridPlacement.zoomOf(menu.moduleScale / 100);
+    return GridPlacement.zoomOf(menu.layout.moduleScale / 100);
   }
 
   function selectedMenu() {
@@ -516,6 +517,11 @@ Singleton {
     return `${base}-${n}`;
   }
 
+  // A menu's field by dotted path ("open.onHover", "layout.grid.fine")
+  function _fieldOf(menu, key) {
+    return key.split(".").reduce((value, part) => value?.[part], menu);
+  }
+
   // A new menu at the schema defaults, opening on hover, and held open on
   // screen so edits show as they're made
   function addMenu() {
@@ -523,8 +529,12 @@ Singleton {
     const menu = ConfigManager.withDefaults({
       "id": id,
       "name": I18n.tr("Menu {0}", id.split("-").pop()),
-      "openOnHover": true,
-      "modules": []
+      "open": {
+        "onHover": true
+      },
+      "layout": {
+        "modules": []
+      }
     }, "EdgeMenu");
     root.localMenus.push(menu);
     root.applyChanges();
@@ -574,10 +584,13 @@ Singleton {
     root._followPreview();
   }
 
-  // One of the selected menu's own fields (not its columns)
+  // One of the selected menu's own fields (not its columns), by key or
+  // dotted path into its groups ("open.onHover", "layout.grid.fine")
   function updateMenuField(key, value) {
     const menu = root.selectedMenu();
-    if (!menu || JSON.stringify(menu[key]) === JSON.stringify(value))
+    if (key === "fineGrid")
+      key = "layout.grid.fine";
+    if (!menu || JSON.stringify(root._fieldOf(menu, key)) === JSON.stringify(value))
       return;
     const wasPreviewing = root.previewing !== "" && root.previewing === menu.id;
     if (wasPreviewing && key === "id")
@@ -585,8 +598,8 @@ Singleton {
     // Doubling the grid rescales the modules' places and the offset (in
     // cells), so they stay put; the grid offset (px) keeps within half a
     // cell
-    if (key === "fineGrid") {
-      (menu.modules ?? []).forEach(module => {
+    if (key === "layout.grid.fine") {
+      (menu.layout.modules ?? []).forEach(module => {
         if (module?.place)
           module.place = GridPlacement.scalePlace(module.place, value);
       });
@@ -594,8 +607,14 @@ Singleton {
       // Older snapshots are on the other grid
       root.layout.clearHistory();
     }
-    menu[key] = value;
-    if (key === "fineGrid") {
+    const parts = key.split(".");
+    const holder = parts.slice(0, -1).reduce((value, part) => {
+      if (value[part] === undefined || value[part] === null)
+        value[part] = {};
+      return value[part];
+    }, menu);
+    holder[parts[parts.length - 1]] = value;
+    if (key === "layout.grid.fine") {
       const limit = root.gridOffsetLimit(menu);
       menu.gridOffset = Math.max(-limit, Math.min(menu.gridOffset, limit));
     }
@@ -623,14 +642,14 @@ Singleton {
           const type = Bar.availableWidgetTypes.find(t => t?.type === widget.type);
           out.push({
             "kind": "bar",
-            "label": widget.type === "Button" && !(widget.properties?.showPopout && widget.properties.popoutMenu === id) ? I18n.tr("Button on {0}", barLabel) : I18n.tr("{0} popout on {1}", I18n.tr(type?.label ?? widget.type), barLabel),
+            "label": widget.type === "Button" && !(widget.properties?.popout?.enabled && widget.properties.popout.menu === id) ? I18n.tr("Button on {0}", barLabel) : I18n.tr("{0} popout on {1}", I18n.tr(type?.label ?? widget.type), barLabel),
             "bar": b,
             "zone": zone,
             "index": bar.widgets[zone].indexOf(widget)
           });
         })));
     (root.localMenus ?? EdgeMenusConfig.menus).forEach((menu, m) => {
-      if (menu.id !== id && (menu.modules ?? []).some(module => module?.type === "Submenu" && module.properties?.menu === id))
+      if (menu.id !== id && (menu.layout.modules ?? []).some(module => module?.type === "Submenu" && module.properties?.menu === id))
         out.push({
           "kind": "submenu",
           "label": I18n.tr("Submenu module in {0}", root.menuLabel(menu, m)),
@@ -772,7 +791,7 @@ Singleton {
     root.loadConfig();
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "edgeMenu"
 
     function open(id: string): void {

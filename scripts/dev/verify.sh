@@ -2,11 +2,15 @@
 # The loop to run after changing anything: checks what changed against HEAD
 # (plus new files), the way CI will, and shows what the live shell logged.
 #
+#   0. builds the generated files (scripts/generate.sh: the schema from
+#      config/schema/, the binary's embedded copies, and the shared fixtures
+#      when a change touches what they're recorded from)
 #   1. formats changed QML with Qt 6's qmlformat, writing in place so the
 #      file keeps its inode and the running shell still reloads it
 #   2. check_structure, check_sizes, gen_docs (rewrites docs/dev/config + generated),
 #      check_docs, check_packages, qmllint, the unit tests the change touches (QML, and
-#      the test_scripts.py classes of a changed script), shellcheck, i18n
+#      the test_scripts.py classes of a changed script), the Go checks (backend/:
+#      go generate, gofmt, vet, staticcheck, tests), shellcheck, i18n
 #   3. the shell's log since its last reload, lines issues.md already
 #      covers marked (known: …)
 #   4. warnings: the docs describing the changed files (check_doc_drift.py),
@@ -29,7 +33,7 @@ for arg in "$@"; do
   --all) all=1 ;;
   --no-docs) docs=0 ;;
   *)
-    sed -n '2,19p' "$0" >&2
+    sed -n '2,21p' "$0" >&2
     exit 2
     ;;
   esac
@@ -56,14 +60,23 @@ step() {
   "$@" || failed+=("$name")
 }
 
-qml=() tests=() shells=() script_tests=() schema=0
+qml=() tests=() shells=() script_tests=() schema=0 go=0 fixtures=0
 for f in "${changed[@]}"; do
   case "$f" in
   *.qml) qml+=("$f") ;;
   *.sh) shells+=("$f") ;;
   esac
   case "$f" in
-  config/json/config.schema.json | components/methods/ConfigMigration.qml) schema=1 ;;
+  components/methods/SchemaValidation.qml) schema=1 go=1 ;;
+  config/schema/* | backend/internal/schema/*) schema=1 go=1 ;;
+  # The bind merge (backend/internal/compositor/binds) reads its actions
+  components/methods/BindActions.qml) go=1 ;;
+  esac
+  # backend/ and the repo files the binary embeds (backend/tools/syncassets)
+  case "$f" in
+  backend/* | config/json/backend.json | config/json/theme-defaults.json) go=1 ;;
+  # The shared fixtures: both sides replay them (docs/dev/backend/README.md)
+  tests/Shared.qml | scripts/dev/fixtures.py | scripts/generate.sh) go=1 fixtures=1 tests+=(Shared) ;;
   esac
   case "$f" in
   components/methods/*.qml)
@@ -83,29 +96,18 @@ for f in "${changed[@]}"; do
     ;;
   scripts/integration_hookup.py) script_tests+=(HookupScript) ;;
   scripts/self_update.sh) script_tests+=(SelfUpdate) ;;
-  scripts/claim_hyprland.sh) script_tests+=(ClaimHyprland) ;;
-  scripts/claim_sway.sh) script_tests+=(ClaimSway) ;;
-  scripts/merge_sway_binds.py | components/methods/BindActions.qml) script_tests+=(MergeSwayBinds MergeNiriBinds) ;;
-  scripts/bind_merge_common.py) script_tests+=(MergeSwayBinds MergeHyprBinds MergeNiriBinds) ;;
-  scripts/claim_niri.sh) script_tests+=(ClaimNiri) ;;
   scripts/cursor_theme.py) script_tests+=(CursorTheme) ;;
-  scripts/merge_niri_binds.py) script_tests+=(MergeNiriBinds) ;;
-  scripts/niri_kdl.py | scripts/niri_config.py) script_tests+=(NiriConfig MergeNiriBinds) ;;
-  scripts/merge_hypr_binds.py | scripts/hypr_binds.lua) script_tests+=(MergeHyprBinds ClaimHyprland) ;;
   scripts/generate_theme.py) script_tests+=(GenerateTheme) ;;
   scripts/calendar_sync.py) script_tests+=(CalendarSync) ;;
   scripts/greeter/*) script_tests+=(GreeterInstall GreeterSession) ;;
   scripts/pick_path.py) script_tests+=(PickPath) ;;
   scripts/community_fetch.sh) script_tests+=(CommunityFetch) ;;
-  scripts/restart.sh) script_tests+=(RestartScript) ;;
-  scripts/sway_config_text.py) script_tests+=(SwayConfigText) ;;
   scripts/dev/known_issues.py) script_tests+=(KnownIssues) ;;
   scripts/check_sizes.py) script_tests+=(CheckSizes) ;;
-  scripts/migrate_xdg.sh) script_tests+=(MigrateXdg) ;;
   tests/scripts/test_scripts.py) script_tests+=(all) ;;
   esac
 done
-[[ $schema -eq 1 ]] && tests+=(Config ConfigExamples)
+[[ $schema -eq 1 ]] && tests+=(Config)
 
 reloads_before=$(scripts/log.sh --all 2>/dev/null | grep -c "Reloading configuration" || true)
 
@@ -127,7 +129,12 @@ if [[ ${#qml[@]} -gt 0 ]]; then
   [[ $formatted -eq 0 ]] && echo "already formatted"
 fi
 
-# 2. Checks
+# 2. Checks (the generated files built first: the docs and checks read them)
+if [[ $go -eq 1 || $fixtures -eq 1 || $schema -eq 1 ]]; then
+  step "generated files" scripts/generate.sh --fixtures
+else
+  step "generated files" scripts/generate.sh
+fi
 step "structure" python3 scripts/check_structure.py
 if [[ ${#qml[@]} -gt 0 ]]; then
   step "sizes" python3 scripts/check_sizes.py
@@ -156,6 +163,12 @@ if [[ ${#script_tests[@]} -gt 0 ]]; then
 fi
 if printf '%s\n' "${changed[@]}" | grep -qE '^(\.claude/hooks/|tests/scripts/test_guard\.py)'; then
   step "guard tests" python3 tests/scripts/test_guard.py
+fi
+if [[ $fixtures -eq 1 ]]; then
+  step "shared fixtures" python3 scripts/dev/fixtures.py check
+fi
+if [[ $go -eq 1 ]]; then
+  step "go" scripts/check_go.sh --fix
 fi
 if [[ ${#shells[@]} -gt 0 ]]; then
   step "shellcheck" shellcheck -x -S warning "${shells[@]}"

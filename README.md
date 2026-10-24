@@ -129,7 +129,7 @@ See **[all the features](docs/features.md)**, with screenshots of every surface.
 
 One repository and one config for the whole desktop:
 
-- **Edge menus** built from 40 modules (media, mixer, system graphs, weather, calendar, notes, todos, AI chat, clipboard, quick actions and more), sliding out of any edge, over your windows or beside them. Build anything with them: a sidebar, a control center, a dynamic island.
+- **Edge menus** built from 41 modules (media, mixer, system graphs, weather, calendar, notes, todos, AI chat, clipboard, quick actions and more), sliding out of any edge, over your windows or beside them. Build anything with them: a sidebar, a control center, a dynamic island.
 - **Overlay** pages from the same modules, full screen.
 - **Desktop widgets** from the same modules, under your windows, per monitor.
 - **Lock screen** and **login screen** (greetd), laid out from the same modules too.
@@ -141,6 +141,7 @@ One repository and one config for the whole desktop:
 - **Launcher** for apps, windows, math, the clipboard, emoji and `/` commands for the whole shell.
 - **Docks** on any edge with pinning and magnification, **OSDs**, notifications, a **polkit** prompt and a power menu.
 - **AI chat** (Claude, OpenAI, Gemini or Ollama) in a page, a menu or the launcher.
+- **The `axiom` command:** the shell's parent, which restarts it if it crashes and owns your config, and a command line for scripts and keybinds (`axiom launcher toggle`, `axiom lock`, `axiom config set …`).
 - A **monitor** layout editor, notes, a todo list, a pomodoro timer, a timer and stopwatch, screenshots and recording, night light, idle, translations, a first-run setup, and **saved configs** you can export, share and import.
 
 ## Compositors
@@ -173,21 +174,22 @@ It uses the compositor you're running or have installed, or asks which one to in
 <details>
 <summary><b>By hand</b>: on another distribution, or if you'd rather not pipe to bash</summary>
 
-Install the requirements: a compositor (above), [Quickshell](https://quickshell.org) 0.3.2+, the [Material Symbols](https://fonts.google.com/icons) font, `git`, `jq`, `curl` and `python3`. Optional features have their own dependencies, listed in [the installation guide](docs/installation.md#requirements).
+Install the requirements: a compositor (above), [Quickshell](https://quickshell.org) 0.3.2+, the [Material Symbols](https://fonts.google.com/icons) font, `git`, `go`, `jq`, `curl` and `python3`. Optional features have their own dependencies, listed in [the installation guide](docs/installation.md#requirements).
 
-Clone into Quickshell's config directory, and try it with `qs -c axiom`:
+Clone into Quickshell's config directory, build the `axiom` binary (the shell's parent), and try it with `axiom run`:
 
 ```bash
 git clone https://github.com/axiom-shell/axiom.git ~/.config/quickshell/axiom
+cd ~/.config/quickshell/axiom && scripts/generate.sh && go -C backend build -o ~/.local/bin/axiom ./cmd/axiom
 ```
 
-To start it with your session, add one line to your compositor's config (`-n` keeps a second copy from starting):
+To start it with your session, add one line to your compositor's config (a second `axiom run` on the same display exits at once):
 
 | Compositor | File | Line |
 | --- | --- | --- |
-| Hyprland | `~/.config/hypr/hyprland.lua` | `hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)` |
-| niri | `~/.config/niri/config.kdl` | `spawn-sh-at-startup "qs -n -c axiom"` |
-| sway | `~/.config/sway/config` | `exec qs -n -c axiom` |
+| Hyprland | `~/.config/hypr/hyprland.lua` | `hl.on("hyprland.start", function() hl.exec_cmd("axiom run") end)` |
+| niri | `~/.config/niri/config.kdl` | `spawn-sh-at-startup "axiom run"` |
+| sway | `~/.config/sway/config` | `exec axiom run` |
 
 </details>
 
@@ -205,7 +207,7 @@ By default axiom runs *detached*: it applies its keybinds and settings at runtim
 
 Contributions are welcome. [Open an issue](https://github.com/axiom-shell/axiom/issues/new/choose) and pick the form that fits (a bug, a feature, a bar widget or module, an app to theme, a compositor or distribution, a translation), or fork the repository and open a pull request against `main`. CI runs the same checks as `scripts/check_all.sh`.
 
-[CONTRIBUTING.md](CONTRIBUTING.md) covers setting up, the workflow, and where in the docs to start. There's no build step: `qs` interprets the QML and hot-reloads on save.
+[CONTRIBUTING.md](CONTRIBUTING.md) covers setting up, the workflow, and where in the docs to start. The shell is QML with no build step: it reloads the moment you save. The `axiom` binary that runs it is Go, and `axiom dev on` rebuilds it as you edit.
 
 **Looking to help?** axiom is built and tested on one machine, so people running Hyprland, sway or niri on other hardware, packagers (`axiom-shell` for the AUR, COPR and Nix) and translators are especially welcome: see [Help wanted](https://github.com/orgs/axiom-shell/discussions/67), the [translations tracker](https://github.com/axiom-shell/axiom/issues/66) and the [good first issues](https://github.com/axiom-shell/axiom/labels/good%20first%20issue).
 
@@ -216,6 +218,8 @@ Contributions are welcome. [Open an issue](https://github.com/axiom-shell/axiom/
 - **More styles** for bars, widgets and menus
 - **More translations**
 - **Performance Improvements**
+- **Fewer dependencies**: the `axiom` binary taking over what helper tools and scripts do today (clipboard history, idle, night light, typing, the Python scripts)
+- **Installing without Go**: the installer and updates using each release's prebuilt `axiom` binary
 - **Community Config Library and Showcase**
 - **Packages**: `axiom-shell` and `axiom-shell-git` for the AUR and COPR, and Nix. The AUR packages are ready but wait on AUR account registration reopening ([#76](https://github.com/axiom-shell/axiom/issues/76))
 
@@ -224,6 +228,7 @@ Contributions are welcome. [Open an issue](https://github.com/axiom-shell/axiom/
 axiom is built on:
 - [Hyprland](https://hypr.land), [niri](https://github.com/YaLTeR/niri) and [sway](https://swaywm.org), the compositors it runs on
 - [Quickshell](https://quickshell.org), the QML toolkit every surface is written in, and without which axiom couldn't exist
+- [Go](https://go.dev), which the `axiom` binary is written in, with [goja](https://github.com/dop251/goja) (running the old config migrations) and [gopher-lua](https://github.com/yuin/gopher-lua) (reading Hyprland's Lua configs)
 - [Material Symbols](https://fonts.google.com/icons), the icons
 
 The static themes are ports of [Catppuccin](https://catppuccin.com), [Gruvbox](https://github.com/morhetz/gruvbox), [Gruvbox Material](https://github.com/sainnhe/gruvbox-material), [Solarized](https://ethanschoonover.com/solarized/), [Tokyo Night](https://github.com/tokyo-night/tokyo-night-vscode-theme), [Rosé Pine](https://rosepinetheme.com), [Nord](https://www.nordtheme.com) (Nord Light after [threddast's](https://github.com/tinted-theming/schemes/blob/spec-0.11/base16/nord-light.yaml)), [Dracula and Alucard](https://draculatheme.com), [Everforest](https://github.com/sainnhe/everforest), [Kanagawa](https://github.com/rebelot/kanagawa.nvim), [One Dark/Light](https://github.com/atom/atom/tree/master/packages), [Ayu](https://github.com/ayu-theme/ayu-colors), [Nightfox](https://github.com/EdenEast/nightfox.nvim), [GitHub](https://github.com/primer/github-vscode-theme) and [Oxocarbon](https://github.com/nyoom-engineering/oxocarbon.nvim), most by way of [tinted-theming](https://github.com/tinted-theming/schemes)'s base16 palettes. Submarine Sonar is axiom's own.

@@ -43,7 +43,7 @@ Singleton {
   // niri doesn't say how far it scrolls a strip, so the overview fits it
   readonly property real splitWidthMultiplier: 1
   // niri's blur as in effect, { enabled, size, passes }: the config's
-  // (niri_config.py info), its offset as the size (NiriConf.lookNodes
+  // (`axiom compositor niri info`), its offset as the size (NiriConf.lookNodes
   // writes the window look's size as the offset), niri's defaults until
   // read
   readonly property var blur: root._blur
@@ -62,12 +62,6 @@ Singleton {
   readonly property int blockSize: 100
   // Whether niri's last config load failed (it keeps the config before)
   readonly property bool lastLoadFailed: _state.configFailed
-  // Writes axiom's layer into niri's config (CompositorConfigManager)
-  // None in the greeter, which writes no config
-  readonly property var configWriter: Paths.greeter ? null : NiriConfigWriter
-  // Whether `supports` is final: once the user's binds are read, so axiom's
-  // layer never binds a key their config does (NiriConfigWriter)
-  readonly property bool ready: NiriConfigWriter.userBindsRead
   // What niri does (CompositorManager.supports). Its workspaces belong to
   // an output, and every output is a strip. A column's windows shown as
   // tabs are its window groups. No outputCapture: it has only
@@ -369,7 +363,7 @@ Singleton {
   // Calls back with the binds in effect outside axiom's own (the user's,
   // read from their config, and axiom's), or null
   function withMainBinds(callback) {
-    NiriConfigWriter.withEntries(callback);
+    CompositorConfigManager.withEntries(callback);
   }
 
   // Nothing to do: the key recorder's window inhibits niri's shortcuts
@@ -383,7 +377,7 @@ Singleton {
   // NiriState.keyboard), or null
   function withKeyboard(callback) {
     const input = InputConfig.input;
-    callback(NiriState.keyboard(root._state, input.keyboard ? input.kbLayout : root._configLayouts));
+    callback(NiriState.keyboard(root._state, input.keyboard.enabled ? input.keyboard.layout : root._configLayouts));
   }
 
   // Switches to the "next" or "prev" layout, then calls back
@@ -471,12 +465,12 @@ Singleton {
   property string _configModKey: "SUPER"
 
   // The gaps, struts, layouts, mod key and blur the config niri runs sets
-  // (niri_config.py info)
+  // (`axiom compositor niri info`)
   function _readConfig() {
     // Reads finish in any order: only the last asked for counts (the
     // running config may have changed between them)
     const asked = ++root._configReads;
-    CommandManager.run([Paths.scriptsPath + "niri_config.py", "info", "--config", NiriConfigWriter.runningConfig], (code, out) => {
+    CommandManager.run([Paths.toolBin, "compositor", "niri", "info", "--config", CompositorConfigManager.runningConfig], (code, out) => {
       if (code !== 0 || asked !== root._configReads)
         return;
       try {
@@ -574,7 +568,7 @@ Singleton {
   // The gaps come from the config niri runs, which axiom's detached mode
   // changes
   property Connections _writer: Connections {
-    target: NiriConfigWriter
+    target: CompositorConfigManager
 
     function onRunningConfigChanged() {
       root._readConfig();

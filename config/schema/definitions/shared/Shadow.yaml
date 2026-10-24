@@ -1,0 +1,24 @@
+# The Shadow definition (#/definitions/Shadow).
+
+x-inline: true
+type: object
+title: Shadow
+additionalProperties: false
+properties:
+  enabled: {type: boolean, title: Shadow, default: false}
+  color:
+    type: string
+    title: Shadow color
+    x-options: colors
+    x-emptyLabel: Theme
+    default: ''
+    x-showIf: {enabled: true}
+  size:
+    type: integer
+    x-control: stepper
+    title: Shadow size
+    x-unit: px
+    default: 12
+    minimum: 0
+    maximum: 100
+    x-showIf: {enabled: true}

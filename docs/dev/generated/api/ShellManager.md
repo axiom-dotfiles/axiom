@@ -40,11 +40,11 @@ Shell manager manages global options and signals
 - `setLinkOrigin(type)`: Sets or ("") drops the way back (OverlayPages, as it switches pages)
 - `followLinkBack()`: Back to the page the last link was followed from
 - `openModule(types)`: Opens the overlay page with the biggest module of the first of `types` any page has, else an edge menu with one (the first of `types` again); false with none
-- `modeFor(mode)`: A surface's `monitors` mode with "general" resolved: "primary" | "focused" | "all"
-- `targetFor(mode, name)`: The screen whose instance of a surface answers a shortcut or IPC call and holds the keyboard: the focused monitor when it opens there or everywhere, else the one it's built on (`name` for a "monitor"…
-- `isTarget(screen, mode, name)`
-- `everywhere(mode)`: Opens on every monitor at once (SurfaceGroup keeps the instances in step)
-- `showsOn(screen, mode, name)`: Whether a surface opened for its target also shows on `screen`
+- `modeFor(target)`: A surface's ScreenTarget mode with "inherit" resolved: "primary" | "focused" | "all" | "named" (no target is General's)
+- `targetFor(target)`: The screen whose instance of a surface answers a shortcut or IPC call and holds the keyboard: the focused monitor when it opens there or everywhere, else the first it's built on
+- `isTarget(screen, target)`
+- `everywhere(target)`: Opens on every monitor at once (SurfaceGroup keeps the instances in step)
+- `showsOn(screen, target)`: Whether a surface opened for its target also shows on `screen`
 - `registerSurfaceWindow(group, kind, window)`
 - `unregisterSurfaceWindow(group)`
 - `setSurfaceOpen(group, kind, open)`

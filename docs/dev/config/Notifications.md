@@ -9,44 +9,58 @@ Notifications: Where notification toasts appear, how long they stay, and what th
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
 
+### `Notifications.screen`
+
+- **`Notifications.screen`** · object
+  - Monitors: Where toasts appear. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace when the notification arrives; every monitor shows each toast on all of them, and closing one closes the rest.
+- **`Notifications.screen.mode`** · string = "inherit" · enum inherit|primary|focused|all
+  - Monitors
+  - x-scope="look", x-link={"setting":"General.screen"}
+  - read: `NotificationsConfig.screen` (whole) · in: `config/NotificationsConfig.qml`
+
 ### `Notifications`
 
-- **`Notifications.monitors`** · string = "general" · enum general|primary|focused|all
-  - Monitors: Where toasts appear. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace when the notification arrives; every monitor shows each toast on all of them, and closing one closes the rest.
-  - x-link={"setting":"General.monitors"}, x-scope="look"
-  - read: `NotificationsConfig.monitors` · in: `shell/Notifications.qml`
 - **`Notifications.position`** · string = "topLeft" · enum topLeft|topRight|bottomLeft|bottomRight
   - Corner: Corner of the work area the toasts stack from. Bottom corners stack upwards.
   - x-scope="look"
   - read: `NotificationsConfig.position` · in: `config/NotificationsConfig.qml`
-- **`Notifications.evenGaps`** · boolean = true
+
+### `Notifications.gaps`
+
+- **`Notifications.gaps`** · object
+  - Gaps: How far toasts sit from the edges of the work area.
+  - x-group="Notifications"
+- **`Notifications.gaps.even`** · boolean = true
   - Even gaps: Use one gap for both sides of the corner. Turn off to set each side on its own.
   - x-scope="look"
-  - read: `NotificationsConfig.evenGaps` · in: `config/NotificationsConfig.qml`
-- **`Notifications.gap`** · integer = 12 · 0–200 · px
+  - read: `NotificationsConfig.evenGaps` (whole), `NotificationsConfig.gapBottom` (whole), `NotificationsConfig.gapLeft` (whole), `NotificationsConfig.gapRight` (whole), `NotificationsConfig.gapTop` (whole) · in: `config/NotificationsConfig.qml`
+- **`Notifications.gaps.all`** · integer = 12 · 0–200 · px
   - Gap: Space between the toasts and the edges of the work area.
-  - x-scope="look", x-control="stepper", x-showIf={"evenGaps":true}
-  - read: `NotificationsConfig.gapBottom` (computed), `NotificationsConfig.gapLeft` (computed), `NotificationsConfig.gapRight` (computed), `NotificationsConfig.gapTop` (computed) · in: `shell/Notifications.qml`
-- **`Notifications.gapTop`** · integer = 12 · 0–200 · px
+  - x-scope="look", x-control="stepper", x-showIf={"even":true}
+  - read: `NotificationsConfig.evenGaps` (whole), `NotificationsConfig.gapBottom` (whole), `NotificationsConfig.gapLeft` (whole), `NotificationsConfig.gapRight` (whole), `NotificationsConfig.gapTop` (whole) · in: `config/NotificationsConfig.qml`
+- **`Notifications.gaps.top`** · integer = 12 · 0–200 · px
   - Top gap: Space between the toasts and the top of the work area.
-  - x-scope="look", x-control="stepper", x-showIf={"evenGaps":false,"position":["topLeft","topRight"]}
-  - read: `NotificationsConfig.gapTop` (computed) · in: `shell/Notifications.qml`
-- **`Notifications.gapBottom`** · integer = 12 · 0–200 · px
+  - x-scope="look", x-control="stepper", x-showIf={"even":false,"../position":["topLeft","topRight"]}
+  - read: `NotificationsConfig.evenGaps` (whole), `NotificationsConfig.gapBottom` (whole), `NotificationsConfig.gapLeft` (whole), `NotificationsConfig.gapRight` (whole), `NotificationsConfig.gapTop` (whole) · in: `config/NotificationsConfig.qml`, `shell/Notifications.qml`
+- **`Notifications.gaps.bottom`** · integer = 12 · 0–200 · px
   - Bottom gap: Space between the toasts and the bottom of the work area.
-  - x-scope="look", x-control="stepper", x-showIf={"evenGaps":false,"position":["bottomLeft","bottomRight"]}
-  - read: `NotificationsConfig.gapBottom` (computed) · in: `shell/Notifications.qml`
-- **`Notifications.gapLeft`** · integer = 12 · 0–200 · px
+  - x-scope="look", x-control="stepper", x-showIf={"even":false,"../position":["bottomLeft","bottomRight"]}
+  - read: `NotificationsConfig.evenGaps` (whole), `NotificationsConfig.gapBottom` (whole), `NotificationsConfig.gapLeft` (whole), `NotificationsConfig.gapRight` (whole), `NotificationsConfig.gapTop` (whole) · in: `config/NotificationsConfig.qml`
+- **`Notifications.gaps.left`** · integer = 12 · 0–200 · px
   - Left gap: Space between the toasts and the left of the work area.
-  - x-scope="look", x-control="stepper", x-showIf={"evenGaps":false,"position":["topLeft","bottomLeft"]}
-  - read: `NotificationsConfig.gapLeft` (computed) · in: `shell/Notifications.qml`
-- **`Notifications.gapRight`** · integer = 12 · 0–200 · px
+  - x-scope="look", x-control="stepper", x-showIf={"even":false,"../position":["topLeft","bottomLeft"]}
+  - read: `NotificationsConfig.evenGaps` (whole), `NotificationsConfig.gapBottom` (whole), `NotificationsConfig.gapLeft` (whole), `NotificationsConfig.gapRight` (whole), `NotificationsConfig.gapTop` (whole) · in: `config/NotificationsConfig.qml`, `shell/Notifications.qml`
+- **`Notifications.gaps.right`** · integer = 12 · 0–200 · px
   - Right gap: Space between the toasts and the right of the work area.
-  - x-scope="look", x-control="stepper", x-showIf={"evenGaps":false,"position":["topRight","bottomRight"]}
-  - read: `NotificationsConfig.gapRight` (computed) · in: `shell/Notifications.qml`
-- **`Notifications.timeout`** · integer = 5 · 1–60 · s
+  - x-scope="look", x-control="stepper", x-showIf={"even":false,"../position":["topRight","bottomRight"]}
+  - read: `NotificationsConfig.evenGaps` (whole), `NotificationsConfig.gapBottom` (whole), `NotificationsConfig.gapLeft` (whole), `NotificationsConfig.gapRight` (whole), `NotificationsConfig.gapTop` (whole) · in: `config/NotificationsConfig.qml`
+
+### `Notifications`
+
+- **`Notifications.timeout`** · integer = 5000 · 1000–60000 · s
   - Toast duration: How long a toast stays up. Hovering it pauses the countdown.
   - x-control="stepper", x-group="Toasts"
-  - read: `NotificationsConfig.timeout` (computed) · in: `shell/Notifications.qml`
+  - read: `NotificationsConfig.timeout` · in: `shell/Notifications.qml`
 - **`Notifications.appTimeouts`** · boolean = true
   - Use app timeouts: When an app asks for its own duration, or for its notification to stay until dismissed, use that instead of the duration above.
   - x-group="Toasts"
@@ -83,16 +97,16 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - History size: How many notifications the history keeps. The oldest go first.
   - x-group="Notification history"
   - read: `NotificationsConfig.maxEntries` · in: `services/NotificationManager.qml`
-- **`Notifications.maxAgeDays`** · integer = 0 · 0–365 · days
+- **`Notifications.maxAge`** · integer = 0 · 0–31536000000 · d
   - Keep for: Remove notifications older than this many days. 0 keeps them until removed.
   - x-group="Notification history"
-  - read: `NotificationsConfig.maxAgeDays` · in: `services/NotificationManager.qml`
+  - read: `NotificationsConfig.maxAge` · in: `services/NotificationManager.qml`
 
 ### Reader members
 
 Every public member of `NotificationsConfig`, with the files that use it.
 
-- `NotificationsConfig.monitors` (string): "general" | "primary" | "focused" | "all" (see General.screensFor)
+- `NotificationsConfig.screen` (var): The ScreenTarget toasts show on (see General.screensFor)
   - in: `shell/Notifications.qml`
 - `NotificationsConfig.position` (string): "topLeft" | "topRight" | "bottomLeft" | "bottomRight"
   - in: only inside the reader
@@ -100,7 +114,7 @@ Every public member of `NotificationsConfig`, with the files that use it.
   - in: `shell/Notifications.qml`
 - `NotificationsConfig.left` (bool)
   - in: `shell/Notifications.qml`
-- `NotificationsConfig.evenGaps` (bool): Gaps from the work area's edges, per side (only the corner's two apply)
+- `NotificationsConfig.evenGaps` (bool)
   - in: only inside the reader
 - `NotificationsConfig.gapTop` (int)
   - in: `shell/Notifications.qml`
@@ -130,5 +144,5 @@ Every public member of `NotificationsConfig`, with the files that use it.
   - in: `components/surfaces/notifications/NotificationToast.qml`
 - `NotificationsConfig.maxEntries` (int)
   - in: `services/NotificationManager.qml`
-- `NotificationsConfig.maxAgeDays` (int): 0 = keep forever
+- `NotificationsConfig.maxAge` (real): How old an entry may get (ms), 0 = keep forever
   - in: `services/NotificationManager.qml`

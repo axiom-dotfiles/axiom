@@ -69,17 +69,18 @@ class Bash(unittest.TestCase):
                     "AXIOM_GREETER_ROOT=/tmp/x scripts/greeter/greeter_install.sh install . me",
                     'export AXIOM_GREETER_ROOT="$tmp"; scripts/greeter/greeter_install.sh uninstall . me')
 
-    def test_claim_sway(self):
-        self.blocks(f"scripts/claim_sway.sh claim {HOME}/.config/sway axiom", "scripts/claim_sway.sh release ~/.config/sway h f")
-        self.allows("scripts/claim_sway.sh claim /tmp/scratch/sway axiom", "scripts/claim_sway.sh check ~/.config/sway axiom")
+    def test_compositor_claim(self):
+        self.blocks(f"axiom compositor claim --kind sway -- {HOME}/.config/sway '# axiom'",
+                    "axiom compositor release --kind hyprland -- ~/.config/hypr '-- h' f",
+                    "axiom compositor claim ~/.config/niri h --kind niri", "axiom --json compositor release --kind=sway ~/.config/sway h f")
+        self.allows("axiom compositor claim --kind sway -- /tmp/scratch/sway '# axiom'",
+                    "axiom compositor check --kind hyprland -- ~/.config/hypr '-- axiom'")
 
     def test_merge_binds(self):
-        self.blocks("scripts/merge_sway_binds.py remove ~/.config/sway '[]'", f"python3 scripts/merge_hypr_binds.py remove {HOME}/.config/hypr '[]'")
-        self.allows("scripts/merge_sway_binds.py extract ~/.config/sway", "scripts/merge_sway_binds.py remove /tmp/scratch/sway '[]'")
-
-    def test_claim_niri(self):
-        self.blocks(f"scripts/claim_niri.sh claim {HOME}/.config/niri axiom", "scripts/merge_niri_binds.py remove ~/.config/niri '[]'")
-        self.allows("scripts/claim_niri.sh claim /tmp/scratch/niri axiom", "scripts/claim_niri.sh check ~/.config/niri axiom")
+        self.blocks("axiom compositor binds remove --kind sway ~/.config/sway '[]'",
+                    f"axiom compositor binds remove --kind=hyprland {HOME}/.config/hypr '[]'")
+        self.allows("axiom compositor binds extract --kind sway ~/.config/sway",
+                    "axiom compositor binds remove --kind sway /tmp/scratch/sway '[]'")
 
     def test_niri_session(self):
         with mock.patch.dict(os.environ, {"NIRI_SOCKET": "/run/user/1000/niri.wayland-1.100.sock"}):
@@ -89,22 +90,17 @@ class Bash(unittest.TestCase):
                         "NIRI_SOCKET=/run/user/1000/niri.wayland-2.200.sock niri msg action quit",
                         "export NIRI_SOCKET=/run/user/1000/niri.wayland-2.200.sock; niri msg output winit scale 1")
 
-    def test_claim_hyprland(self):
-        self.blocks(f"scripts/claim_hyprland.sh claim {HOME}/.config/hypr axiom", "scripts/claim_hyprland.sh release ~/.config/hypr h f")
-        self.allows("scripts/claim_hyprland.sh claim /tmp/scratch/hypr axiom", "scripts/claim_hyprland.sh check ~/.config/hypr axiom")
-
     def test_scripts_run_through_a_shell_and_variables(self):
-        self.blocks("bash scripts/claim_sway.sh claim ~/.config/sway axiom", "sh scripts/claim_hyprland.sh claim ~/.config/hypr axiom",
-                    "bash scripts/greeter/greeter_install.sh install . me")
-        self.assertTrue(denied("scripts/claim_sway.sh claim $HOME/.config/sway axiom", cwd="/tmp"))
-        self.assertTrue(denied("scripts/claim_sway.sh claim ${HOME}/.config/sway axiom", cwd="/tmp"))
-        self.assertTrue(denied("export D=~/.config/hypr; scripts/merge_hypr_binds.py remove $D '[]'", cwd="/tmp"))
+        self.blocks("bash scripts/self_update.sh apply .", "bash scripts/greeter/greeter_install.sh install . me")
+        self.assertTrue(denied("axiom compositor claim --kind sway $HOME/.config/sway axiom", cwd="/tmp"))
+        self.assertTrue(denied("axiom compositor claim --kind sway ${HOME}/.config/sway axiom", cwd="/tmp"))
+        self.assertTrue(denied("export D=~/.config/hypr; axiom compositor binds remove --kind hyprland $D '[]'", cwd="/tmp"))
         self.blocks("bash -lc 'qs -c axiom kill'")
-        self.allows("scripts/claim_sway.sh claim scratch/sway axiom", "bash scripts/claim_sway.sh claim /tmp/s axiom")
+        self.allows("axiom compositor claim --kind sway scratch/sway axiom", "bash scripts/greeter/greeter_install.sh check .")
 
     def test_a_custom_xdg_config_home_is_live(self):
         with mock.patch.object(guard, "CONFIG_HOMES", guard.CONFIG_HOMES | {Path("/srv/conf")}):
-            self.assertTrue(denied("scripts/claim_sway.sh claim /srv/conf/sway axiom"))
+            self.assertTrue(denied("axiom compositor claim --kind sway /srv/conf/sway axiom"))
 
     def test_integration_hookup(self):
         self.blocks("python3 scripts/integration_hookup.py apply kitty", "scripts/integration_hookup.py apply kitty",
@@ -121,14 +117,58 @@ class Bash(unittest.TestCase):
     def test_live_config_file(self):
         self.blocks(f"rm {guard.LIVE_CONFIG}", f"rm -rf {guard.LIVE_CONFIG.parent}", f"mv {guard.LIVE_CONFIG} /tmp/x",
                     "rm ~/.config/axiom/config.json" if not os.environ.get("XDG_CONFIG_HOME") else f"rm {guard.LIVE_CONFIG}",
-                    "rm config/user/config.json", "rm -rf config/user", "mv config/user/config.json /tmp/x",
-                    f"rm {REPO}/config/user/config.json", "git clean -fdx", "git clean -X -f")
-        self.allows("rm /tmp/config.json", f"cp {guard.LIVE_CONFIG} /tmp/backup.json", "cp config/user/config.json /tmp/backup.json",
+                    )
+        self.allows("rm /tmp/config.json", f"cp {guard.LIVE_CONFIG} /tmp/backup.json",
                     f"rm {guard.LIVE_CONFIG.parent}/saved/old.json", "git clean -fd", "mv /tmp/new.json /tmp/other.json")
 
     def test_qmlformat_inplace(self):
         self.blocks("qmlformat -i shell.qml", "/usr/lib/qt6/bin/qmlformat --inplace shell.qml")
         self.allows("/usr/lib/qt6/bin/qmlformat shell.qml")
+
+
+class Axiom(unittest.TestCase):
+    def denied(self, cmd):
+        try:
+            guard.check({"tool_name": "Bash", "tool_input": {"command": cmd}})
+        except guard.Denied:
+            return True
+        return False
+
+    def test_live_shell_lifecycle_refused(self):
+        for cmd in ("axiom run", "axiom run --dev --tree .", "axiom quit", "axiom restart", "./axiom daemon reexec",
+                    "/usr/bin/axiom --json quit", "axiom dev on", "axiom dev off", "axiom --json dev rebuild"):
+            self.assertTrue(self.denied(cmd), cmd)
+
+    def test_scratch_instances_pass(self):
+        for cmd in ("XDG_RUNTIME_DIR=$R axiom run --no-shell --tree .", "XDG_RUNTIME_DIR=/tmp/x axiom quit",
+                    "axiom --socket /tmp/x/axiom.sock restart", "XDG_RUNTIME_DIR=/tmp/x axiom lock",
+                    "XDG_RUNTIME_DIR=/tmp/x axiom dev on"):
+            self.assertFalse(self.denied(cmd), cmd)
+
+    def test_live_lock_refused(self):
+        for cmd in ("axiom lock", "axiom ipc lockscreen lock", "axiom --json ipc lockscreen lock",
+                    "env -i bash -c 'axiom lock'", "axiom ipc monitors keep", "axiom ipc selfUpdate update"):
+            self.assertTrue(self.denied(cmd), cmd)
+
+    def test_takeover_refused_on_live_config(self):
+        self.assertTrue(self.denied("axiom config set Idle.enabled on --takeover"))
+        self.assertTrue(self.denied("axiom config set Compositor.mode managed --takeover --offline"))
+        self.assertFalse(self.denied("XDG_RUNTIME_DIR=/tmp/r XDG_CONFIG_HOME=/tmp/c axiom config set Idle.enabled on --takeover"))
+
+    def test_greeter_only_windowed_on_scratch(self):
+        for cmd in ("axiom greeter", "axiom greeter --dir /tmp/g", "AXIOM_GREETER_WINDOWED=1 axiom greeter",
+                    "AXIOM_GREETER_WINDOWED=1 axiom greeter --dir /var/lib/axiom-greeter",
+                    "AXIOM_GREETER_WINDOWED=1 AXIOM_GREETER_DIR=/var/lib/axiom-greeter/ axiom greeter"):
+            self.assertTrue(self.denied(cmd), cmd)
+        for cmd in ("AXIOM_GREETER_WINDOWED=1 axiom greeter --dir /tmp/g", "axiom greeter --dir $G --no-shell",
+                    "AXIOM_GREETER_WINDOWED=1 AXIOM_GREETER_DIR=/tmp/g axiom greeter --tree ."):
+            self.assertFalse(self.denied(cmd), cmd)
+
+    def test_reads_pass(self):
+        for cmd in ("axiom ping", "axiom config get Bars", "axiom ipc list", "axiom launcher toggle",
+                    "axiom config set Battery.notify off", "axiom debug wayland-globals", "axiom schema build",
+                    "axiom dev status", "axiom dev"):
+            self.assertFalse(self.denied(cmd), cmd)
 
 
 class ConfigEdits(unittest.TestCase):
@@ -163,6 +203,26 @@ class ConfigEdits(unittest.TestCase):
 
     def test_other_files_pass(self):
         guard.check({"tool_name": "Write", "tool_input": {"file_path": os.devnull, "content": "{}"}})
+
+
+class GeneratedEdits(unittest.TestCase):
+    def denied(self, path):
+        try:
+            guard.check({"tool_name": "Edit", "tool_input": {"file_path": str(REPO / path), "old_string": "a", "new_string": "b"}})
+        except guard.Denied:
+            return True
+        return False
+
+    def test_generated_and_frozen_refused(self):
+        for path in ("config/json/config.schema.json", "backend/internal/migrate/legacy/schema-v75.json",
+                     "backend/internal/migrate/legacy/legacy.js", "tests/fixtures/shared/schema/Config/x.0.json",
+                     "backend/internal/migrate/legacy/testdata/frozen.jsonl.gz",
+                     "tests/fixtures/shared/blobs/abc.json", "backend/internal/assets/data/config/json/backend.json"):
+            self.assertTrue(self.denied(path), path)
+
+    def test_sources_pass(self):
+        for path in ("config/schema/sections/Bars.yaml", "components/methods/SchemaValidation.qml", "examples/basic.json"):
+            self.assertFalse(self.denied(path), path)
 
 
 class Hook(unittest.TestCase):

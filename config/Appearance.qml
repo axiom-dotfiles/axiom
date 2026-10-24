@@ -10,37 +10,38 @@ QtObject {
   readonly property var _c: ConfigManager.config.Appearance
 
   // --- Theme (UI-owned, set on the overlay's Themes page) ---
-  readonly property string theme: _c.theme
+  readonly property string theme: _c.theme.name
   // From the active theme, not config: a theme is dark or light
   readonly property bool darkMode: ThemeManager.currentTheme.variant !== "light"
   // The wallpapers picked by hand (fixed mode): the primary monitor's, the
   // fallback for monitors without their own, and monitor name -> URL, set
   // per monitor on the Themes page. What's showing (rotated, light/dark)
   // is ThemeManager.wallpaperFor(monitor).
-  readonly property string fixedWallpaper: _c.wallpaper
-  readonly property var fixedWallpapers: _c.wallpapers
+  readonly property string fixedWallpaper: _c.wallpaper.file
+  readonly property var fixedWallpapers: _c.wallpaper.perScreen
   // As configured (for display), and with ~ expanded, no trailing slash
   // "quickshell" (shell/Wallpaper draws it) | "awww" (setWallpaper.sh)
-  readonly property string wallpaperBackend: _c.wallpaperBackend
+  readonly property string wallpaperBackend: _c.wallpaper.backend
   // Start awww's daemon for the awww backend (WallpaperManager)
-  readonly property bool wallpaperDaemon: _c.wallpaperDaemon
-  readonly property string wallpaperFolder: _c.wallpaperFolder
-  readonly property string wallpaperPath: Paths.expandHome(_c.wallpaperFolder)
+  readonly property bool wallpaperDaemon: _c.wallpaper.daemon
+  readonly property string wallpaperFolder: _c.wallpaper.folder
+  readonly property string wallpaperPath: Paths.expandHome(_c.wallpaper.folder)
   // "fixed" | "rotate" (wallpaperRotation) | "variant" (variantWallpapers),
   // driven by WallpaperManager
-  readonly property string wallpaperMode: _c.wallpaperMode
-  readonly property int rotationInterval: _c.wallpaperRotation.interval
+  readonly property string wallpaperMode: _c.wallpaper.mode
+  // How often it rotates (ms)
+  readonly property int rotationInterval: _c.wallpaper.rotation.interval
   // "random" | "sequential"
-  readonly property string rotationOrder: _c.wallpaperRotation.order
-  readonly property bool rotationSameOnAll: _c.wallpaperRotation.sameOnAll
+  readonly property string rotationOrder: _c.wallpaper.rotation.order
+  readonly property bool rotationSameOnAll: _c.wallpaper.rotation.sameOnAll
   // { dark, light }: file URLs, "" for none
-  readonly property string darkWallpaper: _c.variantWallpapers.dark
-  readonly property string lightWallpaper: _c.variantWallpapers.light
+  readonly property string darkWallpaper: _c.wallpaper.variants.dark
+  readonly property string lightWallpaper: _c.wallpaper.variants.light
 
   // --- Light/dark by time of day (WallpaperManager) ---
-  readonly property bool themeScheduled: _c.themeSchedule.enabled
-  readonly property string lightAt: _c.themeSchedule.lightAt
-  readonly property string darkAt: _c.themeSchedule.darkAt
+  readonly property bool themeScheduled: _c.theme.schedule.enabled
+  readonly property string lightAt: _c.theme.schedule.lightAt
+  readonly property string darkAt: _c.theme.schedule.darkAt
 
   // --- Font ---
   readonly property string fontFamily: _c.font.family
@@ -89,13 +90,13 @@ QtObject {
   // user's config). The options are the window look's (Compositor ›
   // Window look › Blur)
   readonly property var _look: ConfigManager.config.WindowLook
-  readonly property bool blur: translucent && _look.surfaceBlur
-  readonly property bool blurBackdrops: blur && _look.surfaceBlurBackdrops
+  readonly property bool blur: translucent && _look.surfaceBlur.enabled
+  readonly property bool blurBackdrops: blur && _look.surfaceBlur.backdrops
   // Blurring what's under each surface, windows included, rather than the
   // wallpaper alone (xray), which every surface shares
-  readonly property bool blurThroughWindows: _look.surfaceBlurThroughWindows
+  readonly property bool blurThroughWindows: _look.surfaceBlur.throughWindows
   // Nothing blurs while a fullscreen window is open (BlurManager.active)
-  readonly property bool blurPauseFullscreen: _look.surfaceBlurPauseFullscreen
+  readonly property bool blurPauseFullscreen: _look.surfaceBlur.pauseFullscreen
   readonly property real blurThreshold: 0.5
   // A shadow's darkest alpha while blurring: under the threshold, so its
   // halo isn't blurred (the blur window casts the chrome's, and Hyprland

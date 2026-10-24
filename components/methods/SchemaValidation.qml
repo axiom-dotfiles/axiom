@@ -2,8 +2,8 @@ pragma Singleton
 import QtQuick
 
 /**
- * JSON-schema helpers for the config: validation, filling in defaults, and
- * pruning unknown keys. Every entry point takes the root schema, which is
+ * JSON-schema helpers for the config: validation and filling in defaults
+ * (pruning and loading are the axiom binary's). Every entry point takes the root schema, which is
  * used to resolve `#/definitions/...` refs, so this has no dependency on
  * ConfigManager (which lets ConfigManager load eagerly at startup).
  */
@@ -51,29 +51,10 @@ QtObject {
     return _applyDefaults(copy, schema);
   }
 
-  /**
-   * Removes keys the schema doesn't allow (additionalProperties: false)
-   * from `value` in place and returns their paths. Used on load, so a stray
-   * or outdated key is dropped with a warning instead of rejecting the
-   * whole config.
-   */
-  function pruneUnknown(value, schema) {
-    _ctx.root = schema;
-    const removed = [];
-    _prune(value, schema, '', removed);
-    return removed;
-  }
-
   // `schema` with its $ref resolved, for walking a value along its schema
   function resolveRef(schema, root) {
     _ctx.root = root;
     return _resolve(schema);
-  }
-
-  // The option of a `type`-discriminated oneOf that `value` matches, or null
-  function oneOfOption(value, schema, root) {
-    _ctx.root = root;
-    return _discriminate(value, schema);
   }
 
   // A $ref's definition, with any keys beside the $ref (a `default`,
@@ -141,38 +122,14 @@ QtObject {
     return value;
   }
 
-  function _prune(value, schema, path, removed) {
-    schema = _resolve(schema);
-    if (schema?.oneOf)
-      schema = _discriminate(value, schema);
-    if (!schema || value === null || typeof value !== 'object')
-      return;
-
-    if (Array.isArray(value)) {
-      if (schema.items)
-        value.forEach((item, i) => _prune(item, schema.items, `${path}[${i}]`, removed));
-      return;
-    }
-
-    const props = schema.properties || {};
-    Object.keys(value).forEach(key => {
-      const propPath = path ? `${path}.${key}` : key;
-      if (props[key]) {
-        _prune(value[key], props[key], propPath, removed);
-      } else if (schema.additionalProperties === false) {
-        removed.push(propPath);
-        delete value[key];
-      } else if (typeof schema.additionalProperties === 'object') {
-        _prune(value[key], schema.additionalProperties, propPath, removed);
-      }
-    });
-  }
-
   function _validate(value, schema, path, errors) {
     if (!schema)
       return;
 
     schema = _resolve(schema);
+    // An inheriting setting is null while it takes its value from elsewhere
+    if (value === null && schema["x-inherit"])
+      return;
 
     if (schema.type) {
       if (!_validateType(value, schema.type, path, errors)) {
@@ -342,19 +299,5 @@ QtObject {
     } else if (matchingSchemas.length > 1) {
       errors.push(`${path}: value matches multiple schemas in oneOf (indices: ${matchingSchemas.join(', ')})`);
     }
-  }
-
-  function getSchemaProperty(schema, path) {
-    const parts = path.split('.');
-    let current = schema;
-
-    for (const part of parts) {
-      if (current.properties && current.properties[part]) {
-        current = current.properties[part];
-      } else {
-        return null;
-      }
-    }
-    return current;
   }
 }

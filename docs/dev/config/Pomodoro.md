@@ -11,15 +11,15 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 ### `Pomodoro`
 
-- **`Pomodoro.workMinutes`** · integer = 25 · 1–180 · min
+- **`Pomodoro.work`** · integer = 1500000 · 60000–10800000 · min
   - Focus session
-  - read: `PomodoroConfig.workMinutes` · in: `config/PomodoroConfig.qml`
-- **`Pomodoro.shortBreakMinutes`** · integer = 5 · 1–60 · min
+  - read: `PomodoroConfig.work` · in: `config/PomodoroConfig.qml`
+- **`Pomodoro.shortBreak`** · integer = 300000 · 60000–3600000 · min
   - Short break
-  - read: `PomodoroConfig.shortBreakMinutes` · in: `config/PomodoroConfig.qml`
-- **`Pomodoro.longBreakMinutes`** · integer = 15 · 1–120 · min
+  - read: `PomodoroConfig.shortBreak` · in: `config/PomodoroConfig.qml`
+- **`Pomodoro.longBreak`** · integer = 900000 · 60000–7200000 · min
   - Long break
-  - read: `PomodoroConfig.longBreakMinutes` · in: `config/PomodoroConfig.qml`
+  - read: `PomodoroConfig.longBreak` · in: `config/PomodoroConfig.qml`
 - **`Pomodoro.longBreakEvery`** · integer = 4 · 1–12 · sessions
   - Long break every: A long break follows this many focus sessions.
   - read: `PomodoroConfig.longBreakEvery` · in: `components/content/parts/PomodoroDial.qml`
@@ -37,11 +37,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 Every public member of `PomodoroConfig`, with the files that use it.
 
-- `PomodoroConfig.workMinutes` (int): Minutes
+- `PomodoroConfig.work` (int): Lengths (ms)
   - in: only inside the reader
-- `PomodoroConfig.shortBreakMinutes` (int)
+- `PomodoroConfig.shortBreak` (int)
   - in: only inside the reader
-- `PomodoroConfig.longBreakMinutes` (int)
+- `PomodoroConfig.longBreak` (int)
   - in: only inside the reader
 - `PomodoroConfig.longBreakEvery` (int): Focus sessions before a long break
   - in: `components/content/parts/PomodoroDial.qml`

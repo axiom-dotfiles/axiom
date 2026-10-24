@@ -3,7 +3,7 @@
 
 > **File:** `services/DesktopManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The desktop's modules: the layouts editor's draft of the Desktop section (`editor`, shown live on the desktop while it differs from the config), which of its layouts is edited (`selectedTarget`: "all", "primary" or a monitor's name), and the room each screen's desktop has. A monitor shows its own layout (Desktop.monitors) if it has one, else the primary monitor's on the primary monitor, else the one for all monitors (DesktopConfig.sourceFor): a monitor without one of its own is edited by giving it one (createForTarget), a copy of what it showed.
+The desktop's modules: the layouts editor's draft of the Desktop section (`editor`, shown live on the desktop while it differs from the config), which of its layouts is edited (`selectedTarget`: "all", "primary" or a monitor's name), and the room each screen's desktop has. Desktop.items are layouts, each for what its `screen` picks: a monitor shows one naming it if there is one, else the primary monitor's on the primary monitor, else the one for all monitors (DesktopConfig.sourceFor). A monitor without one of its own is edited by giving it one (createForTarget), a copy of what it showed.
 
 ### Properties
 
@@ -14,7 +14,7 @@ The desktop's modules: the layouts editor's draft of the Desktop section (`edito
 
 ### Functions
 
-- `layoutIn(desktop, key)`: The layout `key` names in a Desktop section, or null
+- `layoutIn(desktop, key)`: The layout `key` names in a Desktop section ("all", "primary", or the one naming that monitor), or null
 - `isMonitorTarget(key)`: Whether `key` names one monitor (not all monitors or the primary one)
 - `selectTarget(key)`
 - `statusOf(name, desktop)`: What the monitor named `name` shows, in words

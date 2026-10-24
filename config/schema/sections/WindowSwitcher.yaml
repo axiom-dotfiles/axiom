@@ -1,0 +1,43 @@
+# The WindowSwitcher section of the config (config.json's "WindowSwitcher").
+
+x-scope: personal
+type: object
+x-category: Workspaces
+title: Window switcher
+description: Your windows, most recently used first, while the switch windows keys are held (ALT + Tab and ALT + SHIFT + Tab on the Keybinds page). Releasing the modifier focuses the chosen window; Escape keeps the current one.
+additionalProperties: false
+properties:
+  scope:
+    type: string
+    title: Windows listed
+    default: all
+    enum: [all, monitor, workspace]
+    x-enumLabels:
+      all: Every window
+      monitor: Windows on the focused monitor
+      workspace: Windows on the focused workspace
+  previews:
+    x-scope: look
+    type: boolean
+    title: Window previews
+    default: true
+    description: Show each window's live contents; off shows app icons.
+  tileSize:
+    x-scope: look
+    type: integer
+    x-control: stepper
+    title: Tile size
+    x-unit: px
+    default: 200
+    minimum: 64
+    maximum: 480
+    description: Width of each window's tile.
+  showDelay:
+    type: integer
+    x-control: stepper
+    title: Show after
+    x-unit: ms
+    default: 120
+    minimum: 0
+    maximum: 1000
+    description: How long the keys must be held before the switcher shows. A quicker tap swaps to the last window without showing it.

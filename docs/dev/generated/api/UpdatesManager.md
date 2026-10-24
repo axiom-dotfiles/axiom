@@ -3,7 +3,7 @@
 
 > **File:** `services/UpdatesManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Pending package updates, shared by every Updates widget, checked the way this distribution does (Packages.updates: checkupdates on Arch, dnf on Fedora; nothing on one it doesn't know, `supported` false). Only one check may run at a time: concurrent `checkupdates` runs share its temporary sync db and fail with "Cannot fetch updates". Widgets register with acquire(owner, {intervalMinutes, aurHelper}) (aurHelper "" for no AUR) and drop it with release(owner); checks run at the shortest requested interval, and the AUR is checked if any widget asks for it and the distribution has one.
+Pending package updates, shared by every Updates widget, checked the way this distribution does (Packages.updates: checkupdates on Arch, dnf on Fedora; nothing on one it doesn't know, `supported` false). Only one check may run at a time: concurrent `checkupdates` runs share its temporary sync db and fail with "Cannot fetch updates". Widgets register with acquire(owner, {interval (ms), aurHelper}) (aurHelper "" for no AUR) and drop it with release(owner); checks run at the shortest requested interval, and the AUR is checked if any widget asks for it and the distribution has one.
 
 ### Properties
 

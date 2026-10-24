@@ -3,7 +3,7 @@
 
 > **File:** `services/ClaudeUsageManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Claude plan usage (the numbers Claude Code's /usage shows) for one or more Claude Code accounts, each a CLAUDE_CONFIG_DIR. Read from api.anthropic.com/api/oauth/usage (undocumented, so parsed defensively) with the OAuth token in the dir's .credentials.json. The credentials are only ever read: an expired token marks the account `expired`, keeping its last numbers, until Claude Code refreshes it (the file is watched). The endpoint rate limits hard, so each account is fetched at most once per interval (tracked across restarts in $XDG_STATE_HOME/axiom/claude-usage.json) and a failure backs off exponentially, honouring Retry-After on a 429. Widgets register with acquire(owner, { accounts: [{label, configDir}], intervalMinutes }) and drop it with release(owner).
+Claude plan usage (the numbers Claude Code's /usage shows) for one or more Claude Code accounts, each a CLAUDE_CONFIG_DIR. Read from api.anthropic.com/api/oauth/usage (undocumented, so parsed defensively) with the OAuth token in the dir's .credentials.json. The credentials are only ever read: an expired token marks the account `expired`, keeping its last numbers, until Claude Code refreshes it (the file is watched). The endpoint rate limits hard, so each account is fetched at most once per interval (tracked across restarts in $XDG_STATE_HOME/axiom/claude-usage.json) and a failure backs off exponentially, honouring Retry-After on a 429. Widgets register with acquire(owner, { accounts: [{label, configDir}], interval (ms) }) and drop it with release(owner).
 
 ### Properties
 

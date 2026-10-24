@@ -1,0 +1,43 @@
+# The Lockscreen section of the config (config.json's "Lockscreen").
+
+type: object
+x-category: Screen & Power
+title: Lockscreen
+x-links: ['Layouts:lockscreen']
+description: Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `axiom lock` for the built-in one.
+additionalProperties: false
+properties:
+  mode:
+    x-takeover: true
+    type: string
+    title: Locker
+    enum: [quickshell, none]
+    x-enumLabels: {quickshell: Built-in (Quickshell), none: None (bring your own)}
+    default: quickshell
+    description: Built-in uses the Wayland session-lock protocol with PAM. None leaves locking to your own locker.
+  lockCommand:
+    type: string
+    title: Lock command
+    default: loginctl lock-session
+    description: What axiom's lock buttons run when the locker is your own.
+    x-showIf: {mode: none}
+  layout:
+    x-scope: look
+    $ref: '#/definitions/ScreenLayout'
+    x-settings: false
+    title: Built-in lock screen
+    description: 'What the built-in locker shows, edited on the Layouts page: its modules on a grid of columns × rows units, fitted to each monitor.'
+    default:
+      modules:
+        - id: clockCalendar
+          type: ClockCalendar
+          place: {x: 0, 'y': 0, w: 4, h: 2}
+        - id: greeting
+          type: Greeting
+          place: {x: 4, 'y': 2, w: 8, h: 2}
+        - id: password
+          type: Password
+          place: {x: 5, 'y': 4, w: 6, h: 1}
+        - id: nowPlaying
+          type: NowPlaying
+          place: {x: 0, 'y': 7, w: 5, h: 2}

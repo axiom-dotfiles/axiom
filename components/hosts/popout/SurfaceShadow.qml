@@ -24,7 +24,7 @@ MultiEffect {
   property var cutSource: source
 
   // BarStyle's, or a bar's own (Bar.barConfig: shadow, shadowColor, shadowSize)
-  property var look: BarStyle.values
+  property var look: BarStyle.look
 
   shadowEnabled: look.shadow
   shadowColor: Bar.shadowColor(look)

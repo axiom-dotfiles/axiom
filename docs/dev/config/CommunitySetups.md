@@ -17,7 +17,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`CommunitySetups.indexUrl`** · string = "https://raw.githubusercontent.com/axiom-shell/community-setups/catal…
   - Catalog: Where the gallery comes from: the community-setups catalog's index.json. Change it only for a mirror or a fork.
   - x-showIf={"enabled":true}
-  - read: `CommunitySetups.indexUrl` · in: `components/methods/ConfigMigration.qml`, `services/CommunitySetupsManager.qml`
+  - read: `CommunitySetups.indexUrl` · in: `services/CommunitySetupsManager.qml`
 
 ### Reader members
 
@@ -26,4 +26,4 @@ Every public member of `CommunitySetups`, with the files that use it.
 - `CommunitySetups.enabled` (bool)
   - in: `services/CommunitySetupsManager.qml`
 - `CommunitySetups.indexUrl` (string): The catalog's index.json; its files are relative to it
-  - in: `components/methods/ConfigMigration.qml`, `services/CommunitySetupsManager.qml`
+  - in: `services/CommunitySetupsManager.qml`

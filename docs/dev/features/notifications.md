@@ -1,6 +1,6 @@
 # Notifications
 
-> **Files:** `services/NotificationManager.qml`, `shell/Notifications.qml`, `config/NotificationsConfig.qml`, `components/content/Notifications.qml`
+> **Files:** `services/NotificationManager.qml`, `shell/Notifications.qml`, `config/NotificationsConfig.qml`, `components/content/Notifications/Notifications.qml`
 > **Config:** `Notifications.*` (reader `NotificationsConfig`)
 > **Related:** [Self-update](self-update.md) (registerHandler), [Calendar](calendar.md) (reminders), [Grow and expand](../overlay/grow-expand.md)
 
@@ -18,13 +18,13 @@ The D-Bus notification server, its persistent history, the toasts, and do-not-di
 - `keepOnReload` keeps live notifications across QML reloads.
 
 ### What removes an entry (NotificationsConfig)
-- `maxEntries` and `maxAgeDays` set the history's size and age.
+- `maxEntries` and `maxAge` (ms) set the history's size and age.
 - `clearOnFocus`: an `activewindow` event whose class matches the entry's desktop entry or app name.
 - `removeOnClick`.
 - `closeRemoves`.
 
 ### Toasts
-- `shell/Notifications` stacks the toasts once per screen in `NotificationsConfig.monitors` (`showsOn`).
+- `shell/Notifications` stacks the toasts once per screen of `NotificationsConfig.screen` (`ShellManager.showsOn`).
 - A toast the user closes closes on every screen.
 - Toasts take their entry's uid when they're created (`uidOf`), because invoking an action can close the notification.
 - **Placement:** `NotificationsConfig` sets the toasts' corner and gaps. They are measured inside the work area by an Overlay-layer anchor window with Normal exclusion, like `OverlayPanel`. While the screen shows a fullscreen window the anchor ignores exclusive zones, so the gaps are measured from the screen's edges.

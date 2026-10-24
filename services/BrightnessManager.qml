@@ -2,7 +2,6 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.config
 
@@ -220,7 +219,7 @@ QtObject {
 
   // Brightness keys (keybind actions brightnessUp, ...), on the focused
   // monitor: the OSD shows the change
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "brightness"
 
     function up(): void {

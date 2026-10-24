@@ -1,0 +1,207 @@
+# The DockEntry definition (#/definitions/DockEntry).
+
+type: object
+additionalProperties: false
+properties:
+  id: {$ref: '#/definitions/ItemId'}
+  name:
+    type: string
+    title: Name
+    default: ''
+    description: Shown on its tab here. Empty names it by its edge.
+  enabled: {type: boolean, title: Enabled, default: true}
+  screen:
+    $ref: '#/definitions/ScreenTarget'
+    title: Monitors
+    x-properties:
+      mode:
+        x-scope: look
+        type: string
+        title: Monitors
+        enum: [inherit, primary, focused, all, named]
+        default: inherit
+        x-enumLabels:
+          inherit: As in General
+          primary: Primary monitor
+          focused: Focused monitor
+          all: Every monitor
+          named: These monitors
+        x-link: {setting: General.screen}
+  edge:
+    type: string
+    title: Screen edge
+    default: bottom
+    enum: [top, bottom, left, right]
+  position:
+    type: integer
+    title: Position along edge
+    x-unit: '%'
+    default: 50
+    minimum: 0
+    maximum: 100
+    description: 'Where along the edge its centre sits: 0 is the start (left/top), 100 the end. It never runs off the screen.'
+  detached:
+    type: boolean
+    title: Detach from edge
+    default: true
+    description: A separate box held off the edge. Off, the dock grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge.
+  gap:
+    type: integer
+    x-control: stepper
+    x-auto: {value: -1, start: 8}
+    x-beside: true
+    title: Gap
+    default: -1
+    minimum: -1
+    maximum: 200
+    x-unit: px
+    description: Space between the dock and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows. Reserving its space, it keeps the compositor's gap between windows from them.
+    x-showIf: {detached: true}
+  visibility:
+    type: string
+    title: Visibility
+    default: always
+    enum: [always, hover, intellihide]
+    x-enumLabels:
+      always: Always shown
+      hover: Show on hover
+      intellihide: Hide when a window overlaps
+    description: Always shown stays up. Show on hover slides in when the pointer rests on the screen edge. Hide when a window overlaps stays up until a window on the monitor's workspace covers it, then works like Show on hover.
+  reserveSpace:
+    type: boolean
+    title: Reserve space
+    default: true
+    x-showIf: {visibility: always}
+    description: Keep windows out of the dock's strip, as a bar does. Magnified icons still grow over windows.
+  timing:
+    $ref: '#/definitions/Timing'
+    x-showIf: {visibility: [hover, intellihide]}
+    x-properties:
+      openDelay:
+        type: integer
+        title: Open delay
+        x-unit: ms
+        default: 150
+        minimum: 0
+        maximum: 2000
+      closeDelay:
+        type: integer
+        title: Close delay
+        x-unit: ms
+        default: 400
+        minimum: 0
+        maximum: 5000
+  trigger:
+    $ref: '#/definitions/Trigger'
+    x-showIf: {visibility: [hover, intellihide]}
+    x-properties:
+      size:
+        type: integer
+        x-control: stepper
+        title: Trigger size
+        x-unit: px
+        default: 4
+        minimum: 1
+        maximum: 50
+        description: How far from the screen edge the pointer opens it.
+      length: null
+  iconSize: {type: integer, title: Icon size, default: 48, minimum: 16, maximum: 128, x-unit: px}
+  spacing:
+    type: integer
+    x-control: stepper
+    title: Icon spacing
+    default: 6
+    minimum: 0
+    maximum: 48
+    x-unit: px
+  padding:
+    type: integer
+    x-control: stepper
+    title: Padding
+    default: 8
+    minimum: 0
+    maximum: 48
+    x-unit: px
+    description: Space between the dock's box and its icons.
+  magnify:
+    type: object
+    title: Magnify
+    additionalProperties: false
+    properties:
+      enabled:
+        type: boolean
+        title: Magnify under the pointer
+        default: false
+        description: Grow the icons near the pointer, as macOS does.
+      size:
+        type: integer
+        title: Magnified size
+        default: 80
+        minimum: 16
+        maximum: 256
+        x-unit: px
+        x-showIf: {enabled: true}
+        description: Size of the icon right under the pointer.
+      range:
+        type: integer
+        x-control: stepper
+        title: Magnify range
+        default: 3
+        minimum: 1
+        maximum: 8
+        x-showIf: {enabled: true}
+        description: How many icons to each side of the pointer grow with it.
+  running:
+    type: object
+    title: Running apps
+    additionalProperties: false
+    properties:
+      show:
+        type: boolean
+        title: Show running apps
+        default: true
+        description: Also show apps with open windows that aren't pinned, after the pinned ones.
+      scope:
+        type: string
+        title: Windows counted
+        default: all
+        enum: [all, monitor, workspace]
+        x-enumLabels:
+          all: Every window
+          monitor: Windows on this monitor
+          workspace: Windows on this monitor's workspace
+        description: 'Which windows make an app running here: its indicator, what a click focuses, and the running apps shown.'
+      indicator:
+        type: string
+        title: Running indicator
+        default: dots
+        enum: [dots, line, none]
+        x-enumLabels: {dots: A dot per window (up to 3), line: A line, none: None}
+      separator:
+        type: boolean
+        title: Separator
+        default: true
+        description: A line between the pinned apps and the other running ones.
+        x-showIf: {show: true}
+  showLabels:
+    type: boolean
+    title: Names on hover
+    default: true
+    description: Show an app's name in a tooltip when the pointer rests on it.
+  backgroundColor: {type: string, title: Background, x-options: colors, default: base00}
+  borderColor: {type: string, title: Border, x-options: colors, default: base05}
+  pinnedOwn:
+    type: boolean
+    title: Own pinned apps
+    x-settings: false
+    default: false
+    description: The dock shows its own pinned apps (pinned) instead of Apps → pinned, the list every other dock shares.
+  pinned:
+    x-scope: personal
+    type: array
+    title: Pinned apps
+    x-settings: false
+    default: []
+    items: {type: string}
+    description: "Desktop entry ids, in order: the dock's own, shown with pinnedOwn."
+required: [id]

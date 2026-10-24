@@ -289,10 +289,26 @@ QtObject {
 
   // The schema of the setting at a key path
   function schemaAt(path) {
-    let node = ConfigManager.configSchema;
+    const schema = ConfigManager.configSchema;
+    let node = schema;
     for (const key of path)
-      node = node?.properties?.[key];
+      node = SchemaValidation.resolveRef(node?.properties?.[key], schema);
     return node;
+  }
+
+  // What a setting marked `x-inherit` (a dotted path) is while it's null:
+  // the setting it follows, followed on while that is null too
+  // (widgetRadius → Interface.radius → Appearance.shape.radius); null if
+  // none is set
+  function inheritedValue(fieldSchema) {
+    let follows = fieldSchema?.["x-inherit"];
+    for (let hops = 0; follows && hops < 8; hops++) {
+      const value = root.configValueAt(follows) ?? null;
+      if (value !== null)
+        return value;
+      follows = root.schemaAt(follows.split("."))?.["x-inherit"];
+    }
+    return null;
   }
 
   // The choices for a string setting (`enum` or `x-options`), else null
@@ -334,7 +350,7 @@ QtObject {
       return ["", ...NotesManager.allNotes];
     case "calendars":
       // Those new events can go to
-      return ["", ...CalendarConfig.calendars.filter(calendar => calendar.writable).map(calendar => calendar.id)];
+      return ["", ...CalendarManager.calendars.filter(calendar => calendar.writable).map(calendar => calendar.id)];
     }
     return null;
   }
@@ -354,7 +370,7 @@ QtObject {
 
   // Never offered, whatever the schema says: the bar and overlay editors
   // own these
-  readonly property var _blockedPrefixes: ["Bars", "Overlay.views", "EdgeMenus"]
+  readonly property var _blockedPrefixes: ["Bars.items", "Overlay.items", "EdgeMenus"]
 
   // Every value the settings page shows, as { path, key, schema }, with
   // key the dotted path. `x-applyOnSave` settings are left out: they wait

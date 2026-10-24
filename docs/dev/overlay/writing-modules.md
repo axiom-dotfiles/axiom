@@ -1,13 +1,13 @@
 # Writing overlay modules
 
-> **Files:** `components/content/<Type>.qml`, `components/content/base/SlotContext.qml`, `components/content/parts/`, `components/methods/GridPlacement.qml`, `config/json/config.schema.json` (`definitions.OverlayModule`)
-> **Config:** `Overlay.views[].modules[]`, `EdgeMenus[].modules[]` (`{ type, place, properties }`)
+> **Files:** `components/content/<Type>/<Type>.qml`, `components/content/base/SlotContext.qml`, `components/content/parts/`, `components/methods/GridPlacement.qml`, `config/json/config.schema.json` (`definitions.OverlayModule`)
+> **Config:** `Overlay.items[].layout.modules[]`, `EdgeMenus.items[].layout.modules[]` (`{ type, place, properties }`)
 > **Related:** [Content roots](content-roots.md), [Pages and grid](pages-and-grid.md), [Growing and expanding](grow-expand.md), [Utility modules](utility-modules.md), [Shared UI pieces](../core/shared-ui-pieces.md)
 
 How a module adapts to any size, the shared parts in `content/parts/`, where data comes from, and how to try a new module safely on the live shell.
 
 ### Adding a module type
-- The file `content/<type>.qml` plus an `…OverlayModule` definition in `OverlayModule.oneOf`, with a `"place": { "$ref": "#/definitions/GridPlace" }` property like the others.
+- The file `content/<type>/<type>.qml` plus an `…OverlayModule` definition in `OverlayModule.oneOf`, with a `"place": { "$ref": "#/definitions/GridPlace" }` property like the others.
 - Every module takes every size, from one unit up.
   - `x-defaultSize` is only the size it's added at (left out, a card: `OverlayConfig.defaultSize`).
   - `x-minSize` is only how far a drop into a gap shrinks it.

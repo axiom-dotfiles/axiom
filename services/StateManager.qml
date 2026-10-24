@@ -65,7 +65,7 @@ QtObject {
 
   // FileView doesn't create folders, so this one is made first, 0700 (the
   // clipboard pins are kept here). chmod too: mkdir -m leaves a folder that
-  // already exists alone, as one the XDG move (migrate_xdg.sh) made is.
+  // already exists alone, whatever its mode.
   property Process _makeDir: Process {
     running: true
     command: ["sh", "-c", 'mkdir -p "$1" && chmod 700 "$1"', "sh", root.stateDir]

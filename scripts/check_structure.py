@@ -8,9 +8,11 @@ running anything:
 
   - every schema type (BarWidget → bar/widgets, OverlayView → views,
     OverlayModule → content) and every PopoutAnchor popoutName (→ content)
-    has its file, and nothing is left under retired directories
-  - every URL-loaded directory is imported by name somewhere (qs only makes
-    sibling types visible to URL-loaded files in directories it scanned)
+    has its type folder <root>/<Type>/<Type>.qml, and nothing is left under
+    retired directories
+  - every URL-loaded folder with several files is imported by name
+    somewhere (qs only makes sibling types visible to URL-loaded files in
+    directories it scanned)
   - every `import qs.…` names a directory that exists
   - every file starts with `pragma ComponentBehavior: Bound` (or Singleton)
   - no file instantiates a type that two of its visible directories define
@@ -22,6 +24,9 @@ running anything:
   - every overlay module goes on the desktop too (`x-hosts`), and one that
     takes typing (a text field in it or its parts) says so (`x-keyboard`,
     false when it deliberately stays read-only there)
+  - only the files in scripts/quickshell-io-allowlist.json use Process,
+    FileView, Socket, IpcHandler or Quickshell.execDetached directly, and
+    the list only shrinks (these move to the axiom daemon)
 and warns about files in the loaded directories that nothing registers or
 uses.
 
@@ -38,19 +43,29 @@ from qml_modules import qml_files
 ROOT = Path(__file__).resolve().parent.parent
 SCHEMA = ROOT / "config" / "json" / "config.schema.json"
 
-# (schema oneOf definition, directory its types load from, import that must
-# exist somewhere so qs scans that directory)
+# (schema oneOf definition, root its types load from): a type is a folder
+# <root>/<Type>/ with <Type>.qml (docs/dev/core/config-v2.md, rule 11)
 LOADERS = [
-    ("BarWidget", "components/bar/widgets", "qs.components.bar.widgets"),
-    ("OverlayView", "components/views", "qs.components.views"),
-    ("OverlayModule", "components/content", "qs.components.content"),
+    ("BarWidget", "components/bar/widgets"),
+    ("OverlayView", "components/views"),
+    ("OverlayModule", "components/content"),
 ]
-# Bar popouts load content/<popoutName>.qml, from the same directory as
-# overlay modules (a content file can be both)
+# Bar popouts load content/<popoutName>/<popoutName>.qml, from the same root
+# as overlay modules (a content type can be both)
 POPOUT_DIR = "components/content"
-POPOUT_IMPORT = "qs.components.content"
+# Beside the type folders, the folders of what they share (lowercase)
+SHARED_FOLDERS = {"base", "parts"}
 # Directories retired by restructuring: nothing may live or be imported there
 RETIRED = ["components/widgets", "components/stolen"]
+# Quickshell.Io's side effects, frozen to the files that use them now
+IO_ALLOWLIST = ROOT / "scripts" / "quickshell-io-allowlist.json"
+IO_KINDS = {
+    "Process": re.compile(r"(?<![\w.])Process\s*\{"),
+    "FileView": re.compile(r"(?<![\w.])FileView\s*\{"),
+    "Socket": re.compile(r"(?<![\w.])Socket\s*\{"),
+    "IpcHandler": re.compile(r"(?<![\w.])IpcHandler\s*\{"),
+    "execDetached": re.compile(r"\bQuickshell\.execDetached\("),
+}
 
 errors, warnings = [], []
 
@@ -81,19 +96,92 @@ def main():
         pattern = re.compile(r"\b" + re.escape(name) + r"\b")
         return any(pattern.search(text) for path, text in sources.items() if path != besides)
 
-    # Schema types -> files, and the directories' named imports
-    for definition, directory, required_import in LOADERS:
+    # Schema types -> folders. A root holds only type folders (and the
+    # shared ones); a folder whose files use each other is imported
+    # somewhere, so qs scans it for the one loaded by URL
+    for definition, directory in LOADERS:
         types = schema_types(schema, definition)
         for t in types:
-            if not (ROOT / directory / f"{t}.qml").exists():
-                errors.append(f"{definition} type '{t}' has no {directory}/{t}.qml")
-        if required_import not in imports:
-            errors.append(f"nothing imports {required_import}: files loaded by URL from {directory} won't see each other's types")
+            if not (ROOT / directory / t / f"{t}.qml").exists():
+                errors.append(f"{definition} type '{t}' has no {directory}/{t}/{t}.qml")
         for f in sorted((ROOT / directory).glob("*.qml")):
+            errors.append(f"{rel(f)}: a root holds only type folders: move it to {directory}/{f.stem}/ (or base/)")
+        for d in sorted(p for p in (ROOT / directory).iterdir() if p.is_dir()):
+            if d.name in SHARED_FOLDERS:
+                continue
+            if not (d / f"{d.name}.qml").exists():
+                errors.append(f"{rel(d)}/: a type folder without {d.name}.qml")
             if directory == POPOUT_DIR:
                 continue  # content: checked below, with popout names
-            if f.stem not in types and not used_as_type(f.stem, rel(f)):
-                warnings.append(f"{rel(f)}: not a {definition} type and not used anywhere")
+            if d.name not in types and not used_as_type(d.name, f"{rel(d)}/{d.name}.qml"):
+                warnings.append(f"{rel(d)}/: not a {definition} type and not used anywhere")
+
+    # qs scans a module folder only when the import graph from shell.qml
+    # reaches it, never through a file loaded by URL (every type file). So
+    # whatever a type file imports, and a type folder whose files use each
+    # other, must be imported by a statically reached file (the hosts do,
+    # with `// qmllint disable unused-imports`)
+    def imports_of(text):
+        return set(re.findall(r"^import (qs(?:\.\w+)+)", text, re.M))
+    scanned, todo = set(), imports_of(sources["shell.qml"])
+    while todo:
+        module = todo.pop()
+        if module in scanned:
+            continue
+        scanned.add(module)
+        for f in (ROOT / Path(*module.split(".")[1:])).glob("*.qml"):
+            todo |= imports_of(sources.get(rel(f), "")) - scanned
+    unreached = {}
+    for _, directory in LOADERS:
+        for f in sorted((ROOT / directory).rglob("*.qml")):
+            own = "qs." + rel(f.parent).replace("/", ".")
+            needed = imports_of(sources[rel(f)])
+            if len(list(f.parent.glob("*.qml"))) > 1:
+                needed.add(own)
+            for module in sorted(needed - scanned):
+                unreached.setdefault(module, rel(f))
+    for module, path in sorted(unreached.items()):
+        errors.append(f"{path} needs {module}, which no file reached from shell.qml imports: qs won't scan it (import it in the host that loads it)")
+
+    # Processes, file views, sockets and IPC handlers are moving to the
+    # axiom daemon: only the files listed in quickshell-io-allowlist.json
+    # use them directly, each only the kinds listed, and the list only
+    # shrinks (an entry no longer used is an error too). New code goes
+    # through CommandManager, FileManager, StateManager or IpcTarget
+    allowed = json.loads(IO_ALLOWLIST.read_text())["files"]
+    used = {}
+    for path, text in sources.items():
+        if path.startswith("tests/"):
+            continue
+        code = re.sub(r"//[^\n]*", "", text)
+        kinds = [kind for kind, pattern in IO_KINDS.items() if pattern.search(code)]
+        if kinds:
+            used[path] = kinds
+    for path, kinds in sorted(used.items()):
+        for kind in kinds:
+            if kind not in allowed.get(path, []):
+                errors.append(f"{path}: uses {kind} directly (only the files in {rel(IO_ALLOWLIST)} may; "
+                              "go through CommandManager, FileManager, StateManager or IpcTarget, or the axiom daemon)")
+    for path, kinds in sorted(allowed.items()):
+        for kind in kinds:
+            if kind not in used.get(path, []):
+                errors.append(f"{rel(IO_ALLOWLIST)}: {path} no longer uses {kind}: remove it from the list (it only shrinks)")
+
+    # IPC targets are IpcTargets (an IpcHandler that registers with axiom,
+    # which reaches it without a process per call): a bare IpcHandler is
+    # out of `axiom ipc`'s fast path and of ipc.md
+    for path, text in sources.items():
+        if path != "services/IpcTarget.qml" and re.search(r"\bIpcHandler\s*\{", text):
+            errors.append(f"{path}: an IpcHandler: use IpcTarget (services/IpcTarget.qml)")
+
+    # An optional call on a computed member crashes V4's compiler (Qt 6.12)
+    # when the file loads: a hot reload of the live shell segfaults it
+    optional_call = re.compile(r"\]\s*\?\.\(")
+    for path, text in sources.items():
+        for n, line in enumerate(text.split("\n"), 1):
+            code = line.split("//", 1)[0]
+            if optional_call.search(code):
+                errors.append(f"{path}:{n}: an optional call on a computed member (x[k]?.()) crashes Qt's QML compiler: take it into a const first (docs/dev/core/qml-pitfalls.md)")
 
     # Every library type joins one of the root's `x-libraryGroups` (the
     # editors' libraries group by them); required modules aren't offered
@@ -113,6 +201,7 @@ def main():
     # One with a text field (in its file or a content part it uses) must
     # say whether the desktop hands it the keyboard: `x-keyboard`
     content_parts = {f.stem: f.read_text() for f in (ROOT / "components/content/parts").rglob("*.qml")}
+    content_parts.update({f.stem: f.read_text() for f in (ROOT / POPOUT_DIR).glob("*/*.qml") if f.stem != f.parent.name})
     typing = re.compile(r"\b(?:StyledTextEntry|StyledTextArea|TextInput|TextEdit|TextArea|TextField)\s*\{|wantsKeyboardFocus:\s*true")
 
     def with_parts(text, seen):
@@ -128,16 +217,19 @@ def main():
         hosts = target.get("x-hosts", ["overlay", "edgeMenu", "desktop"])
         if "overlay" in hosts and "desktop" not in hosts:
             errors.append(f"OverlayModule {const}: x-hosts lists overlay but not desktop (every module goes on the desktop)")
-        source = ROOT / POPOUT_DIR / f"{const}.qml"
+        source = ROOT / POPOUT_DIR / const / f"{const}.qml"
         if "desktop" in hosts and "x-keyboard" not in target and source.exists() and typing.search(with_parts(source.read_text(), set())):
             errors.append(f"OverlayModule {const}: has a text field but no x-keyboard (true so the desktop hands it the keyboard, false to keep it read-only there)")
 
-    # Hand-built settings parts: x-card loads views/settings/<Name>Card.qml,
-    # x-intro views/settings/<Name>.qml (by URL, so a typo only shows in the log)
+    # Hand-built settings parts: x-card's `file` loads
+    # views/Settings/<file>Card.qml, x-intro views/Settings/<Name>.qml (by
+    # URL, so a typo only shows in the log)
     def annotated(node, found):
         if isinstance(node, dict):
             for key, value in node.items():
-                if key in ("x-card", "x-intro"):
+                if key == "x-card" and isinstance(value, dict) and value.get("file"):
+                    found.append((key, value["file"]))
+                elif key == "x-intro":
                     found.append((key, value))
                 annotated(value, found)
         elif isinstance(node, list):
@@ -145,25 +237,25 @@ def main():
                 annotated(value, found)
         return found
     for key, name in annotated(schema, []):
-        target = f"components/views/settings/{name}{'Card' if key == 'x-card' else ''}.qml"
+        target = f"components/views/Settings/{name}{'Card' if key == 'x-card' else ''}.qml"
         if not (ROOT / target).exists():
             errors.append(f"schema {key} {name!r} has no {target}")
 
-    # Tool pages (x-tool) are always in config: the Overlay.views default
+    # Tool pages (x-tool) are always in config: the Overlay.items default
     # carries every one (and a migration adds a new one to existing configs)
-    default_views = {v.get("type") for v in schema["properties"]["Overlay"]["properties"]["views"]["default"]}
+    default_views = {v.get("type") for v in schema["properties"]["Overlay"]["properties"]["items"]["default"]}
     for option in schema["definitions"]["OverlayView"]["oneOf"]:
         target = schema["definitions"].get(option.get("$ref", "").split("/")[-1], option)
         if target.get("x-tool"):
             const = target["properties"]["type"]["const"]
             if const not in default_views:
-                errors.append(f"tool page {const} isn't in the Overlay.views default")
+                errors.append(f"tool page {const} isn't in the Overlay.items default")
 
     # Every IPC target is in docs/usage.md's IPC table, and the table names
     # no target that's gone
     targets = {}
     for path, text in sources.items():
-        for m in re.finditer(r"IpcHandler\s*\{", text):
+        for m in re.finditer(r"\bIpcTarget\s*\{", text):
             found = re.search(r'target:\s*"(\w+)"', text[m.end():m.end() + 400])
             if found:
                 targets.setdefault(found.group(1), path)
@@ -175,7 +267,7 @@ def main():
         if target not in listed:
             errors.append(f"{path}: IPC target {target!r} is missing from the IPC table in docs/usage.md")
     for target in sorted(listed - set(targets)):
-        errors.append(f"docs/usage.md: IPC target {target!r} has no IpcHandler")
+        errors.append(f"docs/usage.md: IPC target {target!r} has no IpcTarget")
 
     # Every file says what it's for above its root object (docs/dev/generated/files.md)
     for path, text in sources.items():
@@ -195,16 +287,16 @@ def main():
         for m in re.finditer(r'popoutName:\s*"([^"]+)"', text):
             names.setdefault(m.group(1), path)
     for name, path in sorted(names.items()):
-        if not (ROOT / POPOUT_DIR / f"{name}.qml").exists():
-            errors.append(f'{path}: popoutName "{name}" has no {POPOUT_DIR}/{name}.qml')
-    if POPOUT_IMPORT not in imports:
-        errors.append(f"nothing imports {POPOUT_IMPORT}: popout content won't see its sibling types")
-    # A content file is fine if it's an overlay module type, a popout name,
+        # A name with a slash is another file in a type's folder (Paths.contentUrl)
+        file = name if "/" in name else f"{name}/{name}"
+        if not (ROOT / POPOUT_DIR / f"{file}.qml").exists():
+            errors.append(f'{path}: popoutName "{name}" has no {POPOUT_DIR}/{file}.qml')
+    # A content type is fine if it's an overlay module type, a popout name,
     # or used by name somewhere
     module_types = set(schema_types(schema, "OverlayModule"))
-    for f in sorted((ROOT / POPOUT_DIR).glob("*.qml")):
-        if f.stem not in names and f.stem not in module_types and not used_as_type(f.stem, rel(f)):
-            warnings.append(f"{rel(f)}: not an overlay module, no PopoutAnchor opens it, and nothing uses it")
+    for d in sorted(p for p in (ROOT / POPOUT_DIR).iterdir() if p.is_dir() and p.name not in SHARED_FOLDERS):
+        if d.name not in names and d.name not in module_types and not used_as_type(d.name, f"{rel(d)}/{d.name}.qml"):
+            warnings.append(f"{rel(d)}/: not an overlay module, no PopoutAnchor opens it, and nothing uses it")
 
     # Retired directories stay empty
     for d in RETIRED:
@@ -240,11 +332,12 @@ def main():
     # its Quickshell module or None, what talks to it)
     backends = [
         ("Sway", "sway", "I3", r"\bSwayManager\.|\bSwayIpcManager\.|\"swaymsg\""),
-        ("Niri", "niri", None, r"\bNiriManager\.|\bNiriIpcManager\.|\bNiriConfigWriter\.|\"NIRI_SOCKET\"|\[\"niri\","),  # its CLI: ["niri", "msg", …]
+        ("Niri", "niri", None, r"\bNiriManager\.|\bNiriIpcManager\.|\"NIRI_SOCKET\"|\[\"niri\","),  # its CLI: ["niri", "msg", …]
     ]
     for prefix, name, module, talks in backends:
         for path, text in sources.items():
-            if re.fullmatch(rf"services/{prefix}\w*\.qml", path) or path == "services/CompositorManager.qml":
+            # (CompositorKind names the variables that say which one runs)
+            if re.fullmatch(rf"services/{prefix}\w*\.qml", path) or path in ("services/CompositorManager.qml", "components/methods/CompositorKind.qml"):
                 continue
             code = "\n".join(line.split("//", 1)[0] for line in text.splitlines())
             if module and re.search(rf"^import Quickshell\.{module}\b", text, re.M):
@@ -273,7 +366,7 @@ def main():
         code = "\n".join(line.split("//", 1)[0] for line in re.sub(r"/\*.*?\*/", "", text, flags=re.S).splitlines())
         if not path.startswith(("services/", "components/", "shell/", "config/")):
             continue
-        if not re.fullmatch(r"(services|components/methods)/Hypr\w*\.qml", path) and path not in hyprland_features and re.search(r"\b(HyprLua|HyprConfigLua|HyprState)\.", code):
+        if not re.fullmatch(r"(services|components/methods)/Hypr\w*\.qml", path) and path not in hyprland_features and re.search(r"\b(HyprLua|HyprState)\.", code):
             errors.append(f"{path}: uses a Hyprland Lua helper (only the Hyprland* services and helpers may; go through CompositorManager / CompositorConfigManager)")
         for prefix, name, _, _ in backends:
             if not re.fullmatch(rf"(services|components/methods)/{prefix}\w*\.qml", path) and re.search(rf"\b({prefix}Conf|{prefix}State)\.", code):

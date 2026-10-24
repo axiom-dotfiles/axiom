@@ -1,0 +1,16 @@
+# The CalendarEntry definition (#/definitions/CalendarEntry).
+
+type: object
+additionalProperties: false
+properties:
+  href: {type: string, default: ''}
+  name:
+    type: string
+    default: ''
+    description: A name overriding the server's, or empty (a local calendar's is its own).
+  color:
+    type: string
+    default: ''
+    description: A theme color name overriding the server's, or empty.
+  enabled: {type: boolean, default: true}
+description: A calendar of an account, as the user set it up. What the server says of it (its name, color, whether it's read-only) is the calendar cache's (CalendarManager).

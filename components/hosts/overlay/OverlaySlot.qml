@@ -1,8 +1,11 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-// Modules are loaded by URL; importing their directory is what makes qs
-// scan them, so their own qs.* imports (e.g. modules.settings) resolve
-import qs.components.content // qmllint disable unused-imports
+import qs.config
+// Imported (though modules load by URL) so qs scans what they import
+// (scripts/check_structure.py)
+import qs.components.content.parts.calendar // qmllint disable unused-imports
+import qs.components.content.parts.chat // qmllint disable unused-imports
+import qs.components.content.parts.notes // qmllint disable unused-imports
 
 // Hosts one overlay module in its slot on a grid: loads content/<type>.qml and
 // hands it the entry's `properties` (defaults filled from the schema, as
@@ -35,7 +38,7 @@ Item {
 
   anchors.fill: parent
 
-  readonly property string componentPath: root.config?.type ? Qt.resolvedUrl("../../content/" + root.config.type + ".qml") : ""
+  readonly property string componentPath: root.config?.type ? Paths.contentUrl(root.config.type) : ""
 
   // Created with its properties already set, then bound so later config
   // edits reach it (as BarWidgetHost does)

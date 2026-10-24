@@ -34,10 +34,10 @@ The page only offers actions your compositor can do. In managed mode, **Merge** 
 
 ## IPC
 
-Every surface can be controlled over Quickshell IPC, so you can bind it to anything:
+Every surface can be controlled over IPC, so you can bind it to anything:
 
 ```bash
-qs -c axiom ipc call <target> <function>
+axiom ipc <target> <function> [args]
 ```
 
 <details>
@@ -77,21 +77,23 @@ qs -c axiom ipc call <target> <function>
 
 </details>
 
+The common actions also have their own commands, which are easier to remember: `axiom launcher toggle`, `axiom overlay toggle`, `axiom volume up`, `axiom brightness down`, `axiom media play-pause`, `axiom screenshot take region`, `axiom lock`. `axiom --help` lists them all, and `axiom <command> --help` each one's options.
+
 To bind them in your compositor's own config instead, run the same command. On Hyprland, a `"Section: Label"` description also sets where the bind appears on the Keybinds page:
 
 ```lua
 -- hyprland.lua
-hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs -c axiom ipc call appLauncher toggle"), { description = "Axiom: App launcher" })
+hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("axiom ipc appLauncher toggle"), { description = "Axiom: App launcher" })
 ```
 
 ```kdl
 // niri config.kdl, inside binds { }
-Mod+Space hotkey-overlay-title="Axiom: App launcher" { spawn-sh "qs -c axiom ipc call appLauncher toggle"; }
+Mod+Space hotkey-overlay-title="Axiom: App launcher" { spawn-sh "axiom ipc appLauncher toggle"; }
 ```
 
 ```
 # sway config
-bindsym $mod+space exec qs -c axiom ipc call appLauncher toggle
+bindsym $mod+space exec axiom ipc appLauncher toggle
 ```
 
 ## Launcher
@@ -124,7 +126,7 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | **Calendar and notes** | `/event <when> <title>` `/notes [text]` `/todo [text]` `/pomodoro [start\|pause\|skip\|stop]` `/timer <duration> [label]` `/stopwatch [start\|pause\|lap\|reset]` |
 | **Searches** | `/calc` `/run` `/web` `/clipboard` `/emoji` `/chat [conversation]` |
 | **Shell** | `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/config example <name>` `/update` `/welcome` `/reload` `/help` |
-| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/screenshot <region\|window\|screen>` `/record` |
+| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/dev [on\|off\|rebuild]` `/ws <n>` `/screenshot <region\|window\|screen>` `/record` |
 
 Every provider can be switched off under **Settings → Launcher**. The same page sets:
 - the launcher's size, hidden apps, terminal and search engine

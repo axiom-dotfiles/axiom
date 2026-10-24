@@ -1,0 +1,28 @@
+# The WidgetLayout definition (#/definitions/WidgetLayout).
+
+type: object
+title: Sizing
+description: Overrides for how much room a bar widget takes. Anything left out uses the widget's own sizing.
+additionalProperties: false
+properties:
+  size:
+    type: integer
+    title: Size
+    minimum: 0
+    maximum: 2000
+    x-unit: px
+    description: "Length along the bar (px): the widget's size, or for one that shrinks when crowded, the most it takes."
+  minSize:
+    type: integer
+    title: Minimum size
+    minimum: 0
+    maximum: 2000
+    x-unit: px
+    description: Smallest length the widget may shrink to when the bar is crowded (px).
+  priority:
+    type: integer
+    x-control: stepper
+    title: Priority
+    minimum: -100
+    maximum: 100
+    description: "When the bar can't fit its widgets, lower priorities are hidden first: higher ones stay longest."

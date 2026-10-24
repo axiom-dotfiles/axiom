@@ -4,7 +4,7 @@ import qs.services
 
 // Reader for the Keybinds section: axiom's own binds, edited on the
 // Keybinds page (KeybindManager) and applied by the compositor's config
-// writer (on Hyprland, HyprlandConfigWriter)
+// writer (the daemon's)
 QtObject {
   id: root
 

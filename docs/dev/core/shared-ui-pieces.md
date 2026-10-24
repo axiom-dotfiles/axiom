@@ -1,6 +1,6 @@
 # Shared UI pieces
 
-> **Files:** `components/reusable/`, `components/forms/`, `components/content/parts/`, `components/methods/Utils.qml`, `components/methods/Search.qml`, `components/views/settings/FoldingCard.qml`, `components/views/settings/EntryListCard.qml`, `components/views/settings/ScreenSpotPicker.qml`
+> **Files:** `components/reusable/`, `components/forms/`, `components/content/parts/`, `components/methods/Utils.qml`, `components/methods/Search.qml`, `components/views/Settings/FoldingCard.qml`, `components/views/Settings/EntryListCard.qml`, `components/views/Settings/ScreenSpotPicker.qml`
 > **Config:** none
 > **Related:** [Editors pattern](editors-pattern.md), [Content roots](../overlay/content-roots.md), [Writing modules](../overlay/writing-modules.md), [Popout surface context](../popouts/surface-context.md), [Translucency and blur](../theming/translucency-blur.md)
 
@@ -76,7 +76,7 @@ Bars size their own widgets (`Bar.enrichBarConfig`) and never use these: a share
   - Signals: `started` / `moved` / `dropped`.
 - `TrashTarget`: a "Drop to remove" pill shown while `active`, `targetKind: "trash"`, above overlapping targets. The layer's `accepts` says what it takes and its `dropped` removes it.
 - `DragChip`: a carryable icon + name pill.
-- `views/layouts/EntryListTarget`: a list of rows that reorders its own carried rows.
+- `views/Layouts/EntryListTarget`: a list of rows that reorders its own carried rows.
 - `InspectorHeader`: icon well, name, place, actions, divider.
 - `content/base/SaveResetActions`: an editor's Save/Discard pair, both shown only with unsaved edits or typed text. `compact` drops to icons, as `CardHeader` does when its row is too narrow. Items placed in a `CardHeader` sit just after its title.
 
@@ -97,10 +97,10 @@ Bars size their own widgets (`Bar.enrichBarConfig`) and never use these: a share
 - `methods/BarShapes` (caps and SVG outlines), `methods/BarWidgetStyle` (colors per widget style), `methods/BarAutoColors` (Auto widget colors).
 
 ### Workspace pieces
-- **Active workspace** (`bar/widgets/workspaces/ActiveCellIndicator`): the active cell's box or underline (`CellUnderline`, shared with `WorkspaceCell`), drawn once under a switcher's row of cells and sliding between them.
+- **Active workspace** (`bar/widgets/Workspaces/ActiveCellIndicator`): the active cell's box or underline (`CellUnderline`, shared with `WorkspaceCell`), drawn once under a switcher's row of cells and sliding between them.
   - Lives in `WorkspaceCellRow`; cells it stands in for set `indicated`.
   - Dots-only bars keep the cells' own recolour.
-- **Strip windows** (`bar/widgets/workspaces/StripWindows`): a workspace's windows in strip order as bar `WorkspaceCell`s (app icons, the last focused active, click focuses). Used by `ActiveStrip` (both switchers) and the `WorkspaceStrips` popout.
+- **Strip windows** (`bar/widgets/Workspaces/StripWindows`): a workspace's windows in strip order as bar `WorkspaceCell`s (app icons, the last focused active, click focuses). Used by `ActiveStrip` (both switchers) and the `WorkspaceStrips` popout.
 - **Window previews** (`surfaces/workspaces/WindowPreview`): a Hyprland client's capture, rounded.
   - Shows the app icon until it gives a frame.
   - One frame per open unless `live` (or `hovered` / `resizing`).
@@ -146,7 +146,7 @@ Bars size their own widgets (`Bar.enrichBarConfig`) and never use these: a share
 - `PopoutAnchor`: opens one from anything in a bar or popout; `openOnHover: false` leaves opening to its owner's click.
 - `content/Submenu`: a module opening another edge menu as a submenu.
 
-### Settings cards (`views/settings/`)
+### Settings cards (`views/Settings/`)
 - `FoldingCard`: fold header + a `FoldingColumn` body.
 - `SettingsGroupCard`: generated.
 - `EntryListCard`: a list of entries as tabs with a screen picker.
@@ -155,7 +155,7 @@ Bars size their own widgets (`Bar.enrichBarConfig`) and never use these: a share
 
 ### Content and calendar parts
 - **Content parts** (`content/parts/`): see [Content roots](../overlay/content-roots.md) and [Writing modules](../overlay/writing-modules.md). Also `AudioRow` (a mixer line: icon, title, volume slider, percentage, mute) and `TrayMenuList` / `TrayMenuItem` (a tray menu's entries, for the tray popout and its submenus).
-- **Todo and pomodoro parts** (`content/parts/`): `TodoList` (the add field and the items, `fill` or capped at `maxListHeight`) `PomodoroDial` (the timer's ring, session dots, controls and task picker, `horizontal` for a wide card) and `TimeRing` (a countdown ring with the time and a label in the middle, used by `PomodoroDial` and the one-off timer in `content/Stopwatch.qml`); see [Todo and pomodoro](../features/todo-pomodoro.md).
+- **Todo and pomodoro parts** (`content/parts/`): `TodoList` (the add field and the items, `fill` or capped at `maxListHeight`) `PomodoroDial` (the timer's ring, session dots, controls and task picker, `horizontal` for a wide card) and `TimeRing` (a countdown ring with the time and a label in the middle, used by `PomodoroDial` and the one-off timer in `content/Stopwatch/Stopwatch.qml`); see [Todo and pomodoro](../features/todo-pomodoro.md).
 - **Calendar parts** (`content/parts/calendar/`): see [Calendar](../features/calendar.md).
 
 ### Pure helpers (`methods/`)

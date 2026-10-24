@@ -57,35 +57,6 @@ QtObject {
   }
 
   /**
-   * What the runtime layer does with `binds` (axiom's, each with a `key`)
-   * given the compositor's `entries`: { apply: [bind], skipped: [key],
-   * unreadable: [key] }. A key an entry outside a submap already holds is
-   * skipped, so the user's own config wins; so is one keyId can't read.
-   * Call it with the compositor's binds as they are without axiom's.
-   */
-  function runtimeBinds(binds, entries) {
-    const taken = {};
-    for (const entry of entries ?? [])
-      if (!entry.submap)
-        taken[entryId(entry)] = true;
-    const result = {
-      "apply": [],
-      "skipped": [],
-      "unreadable": []
-    };
-    for (const bind of binds ?? []) {
-      const id = keyId(bind.key);
-      if (id === "")
-        result.unreadable.push(String(bind.key ?? ""));
-      else if (taken[id])
-        result.skipped.push(String(bind.key).trim());
-      else
-        result.apply.push(bind);
-    }
-    return result;
-  }
-
-  /**
    * How many binds on each key id are the user's: every entry outside a
    * submap, less one for each of axiom's `applied` binds (its own binds
    * show up among the entries too).
@@ -133,5 +104,39 @@ QtObject {
       }
     }
     return result;
+  }
+
+  /**
+   * `binds` with every bind given an id (the schema's ItemId: required,
+   * unique in the list): a valid one not taken by an earlier bind is kept,
+   * the rest get one made from the key, as the config conversion names
+   * them ("SUPER + Y" → "super-y", then "super-y-2"; "bind" with no key).
+   * New, duplicated, merged and preset binds come without one, or with a
+   * copy of another's. Returns a new list; binds keeping theirs are the
+   * same objects.
+   */
+  function withIds(binds) {
+    const taken = {};
+    const fresh = base => {
+      let id = base;
+      for (let n = 2; taken[id]; n++)
+        id = `${base}-${n}`;
+      return id;
+    };
+    return (binds ?? []).map(bind => {
+      const own = bind?.id;
+      if (typeof own === "string" && /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(own) && !taken[own]) {
+        taken[own] = true;
+        return bind;
+      }
+      const slug = String(bind?.key ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "");
+      const id = fresh(slug || "bind");
+      taken[id] = true;
+      return Object.assign({
+        "id": id
+      }, bind, {
+        "id": id
+      });
+    });
   }
 }

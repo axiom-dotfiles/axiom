@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.config
 import qs.components.methods
@@ -65,8 +64,8 @@ QtObject {
       return [];
     const output = CompositorManager.outputFor(screen);
     const workspaceId = output?.activeWorkspaceId ?? -1;
-    const windows = CompositorManager.windows.filter(w => DockLayout.inScope(w, dock.windowScope, output?.name ?? "", workspaceId));
-    return DockLayout.buildItems(DockConfig.pinnedOf(dock), windows, w => root.appKey(w), dock.showRunning);
+    const windows = CompositorManager.windows.filter(w => DockLayout.inScope(w, dock.running.scope, output?.name ?? "", workspaceId));
+    return DockLayout.buildItems(DockConfig.pinnedOf(dock), windows, w => root.appKey(w), dock.running.show);
   }
 
   readonly property string focusedId: CompositorManager.windows.find(w => w.focusRank === 0)?.id ?? ""
@@ -114,7 +113,7 @@ QtObject {
     }
     dock.pinned = change(dock.pinned);
     SettingsManager.commitValues({
-      "Dock.docks": docks
+      "Dock.items": docks
     });
   }
 
@@ -280,7 +279,7 @@ QtObject {
       return;
     root._previewEnd.stop();
     root.previewDock = Utils.clone(dock);
-    root.previewScreen = ShellManager.targetFor(dock.monitors, dock.monitor);
+    root.previewScreen = ShellManager.targetFor(dock.screen);
     root.previewShown = true;
     root.previewActive = true;
     root._previewHold.restart();
@@ -320,7 +319,7 @@ QtObject {
       CompositorManager.refresh();
   }
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "dock"
 
     function toggle(id: string): void {

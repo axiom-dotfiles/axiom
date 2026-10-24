@@ -1,6 +1,6 @@
 # Workspace strips (Hyprland scrolling layout)
 
-> **Files:** `config/WorkspacesConfig.qml`, `components/methods/DynamicWorkspaces.qml`, `components/methods/HyprLua.qml` (`stripsLua`, `stripsRuntimeLua`), `services/HyprlandManager.qml` (`stripWindows`, `stepStrip`), `components/methods/WorkspaceGeometry.qml`, `components/bar/widgets/workspaces/ActiveStrip.qml`, `components/bar/widgets/workspaces/StripWindows.qml`
+> **Files:** `config/WorkspacesConfig.qml`, `components/methods/DynamicWorkspaces.qml`, `components/methods/HyprLua.qml` (`stripsLua`, `stripsRuntimeLua`), `services/HyprlandManager.qml` (`stripWindows`, `stepStrip`), `components/methods/WorkspaceGeometry.qml`, `components/bar/widgets/Workspaces/ActiveStrip.qml`, `components/bar/widgets/Workspaces/StripWindows.qml`
 > **Config:** `Workspaces.strips`, `Workspaces.stripColumnWidth`, `Workspaces.stripFollowFocus`
 > **Related:** [Workspaces](workspaces.md), [Config modes](config-modes.md), [Keybinds](keybinds.md), [Onboarding](../features/onboarding.md)
 
@@ -11,17 +11,17 @@ Monitors on Hyprland's `scrolling` layout: how they're configured, how the Lua r
   - `*` means every monitor, and a named entry wins over it
   - an empty monitor means the primary monitor.
 - **The scrolling layout** (`Workspaces.layout: scrolling`, the one-choice niri-style setup) makes every monitor a horizontal strip: `WorkspacesConfig.strips` is `[{ monitor: "*", direction: "horizontal" }]` and the list is hidden, but kept for switching back. The onboarder offers it as a layout and then doesn't ask tiling or strips.
-- `stripColumnWidth`/`stripFollowFocus` show only while there are strips (`x-showIf` `{ notEmpty: true }`, or the scrolling layout). They are `x-hypr` fields, like `managed`'s, written through `configTable`.
+- `stripColumnWidth`/`stripFollowFocus` show only while there are strips (`x-showIf` `{ notEmpty: true }`, or the scrolling layout). They are `x-compositor.hyprland` fields, like the managed options, written through `configTable`.
 - `WorkspacesConfig.strips` resolves the monitors and keeps each monitor's first entry.
 - `stripDirection(screenName)` is `horizontal`, `vertical`, or `""` (tiles).
 
-### Lua (`HyprLua.stripsLua`, the same in every mode)
+### Lua (`render.StripsLua`, the same in every mode)
 - A `*` strip makes `scrolling` the layout everywhere, with its `scrolling.direction`: horizontal is `right`, vertical is `down`.
 - Each named monitor gets a `hl.workspace_rule` on `m[<name>]` with `layout = "scrolling"` and its direction in `layout_opts`. This wins over the `*` strip.
 - **Included / managed:** `M.strips()` runs from `setup()`.
   - It runs after managed's `hl.config`, so it wins over `general.layout`.
   - `general.layout` only offers dwindle and master; scrolling belongs to the strips.
-- **Detached:** it runs in the runtime eval, wrapped by `HyprLua.stripsRuntimeLua` to apply once per Hyprland load (workspace rules add up rather than replace).
+- **Detached:** it runs in the runtime eval, wrapped by `render.StripsRuntimeLua` to apply once per Hyprland load (workspace rules add up rather than replace).
   - `AXIOM_STRIPS` names the strips applied. It lives in Hyprland's Lua state, so a Hyprland reload resets it and a shell reload keeps it.
   - Different strips can't be taken back, so a change reloads Hyprland's config. Its `configreloaded` then applies the new strips over the user's config alone.
 

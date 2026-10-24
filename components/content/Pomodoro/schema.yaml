@@ -1,0 +1,10 @@
+label: Pomodoro timer
+icon: timer
+group: Tools
+defaultSize: [4, 4]
+settings:
+  showTask:
+    type: boolean
+    title: Task
+    default: true
+    description: Pick the todo the session is for.

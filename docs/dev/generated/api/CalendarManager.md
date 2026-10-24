@@ -3,7 +3,7 @@
 
 > **File:** `services/CalendarManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Calendars (the Calendar section): CalDAV accounts and .ics subscriptions, through scripts/calendar_sync.py (run with the system python3; passwords from SecretsManager on its stdin). The helper keeps the server's objects in $XDG_STATE_HOME/axiom/calendar/objects.json and writes their occurrences in `range` to events.json, which this reads (so the calendar shows at once, and offline). Syncs every `Calendar.syncInterval` minutes while something has acquire()d it, or while reminders are on; one helper runs at a time, later jobs queued. CalendarManager.acquire(owner) / release(owner) CalendarManager.eventsOn("2026-10-05") // that day's, in order CalendarManager.dotsFor("2026-10-05") // its calendars' colors CalendarManager.save(draft, scope, cb) / remove(event, scope, cb) Nothing runs in the greeter, which can't read the user's state anyway.
+Calendars (the Calendar section): CalDAV accounts and .ics subscriptions, through scripts/calendar_sync.py (run with the system python3; passwords from SecretsManager on its stdin). The helper keeps the server's objects in $XDG_STATE_HOME/axiom/calendar/objects.json and writes their occurrences in `range` to events.json, which this reads (so the calendar shows at once, and offline). Syncs every `Calendar.syncInterval` minutes while something has acquire()d it, or while reminders are on; one helper runs at a time, later jobs queued. CalendarManager.acquire(owner) / release(owner) CalendarManager.eventsOn("2026-10-05") // that day's, in order CalendarManager.dotsFor("2026-10-05") // its calendars' colors CalendarManager.save(draft, scope, cb) / remove(event, scope, cb) What a server says of a calendar (its name, color, whether it's read-only, what it holds) is kept here, in the calendar state (`info`), not in config: an account's calendars there hold only what the user set (CalendarConfig.accounts). `calendars` joins the two. Nothing runs in the greeter, which can't read the user's state anyway.
 
 ### Properties
 
@@ -16,11 +16,19 @@ Calendars (the Calendar section): CalDAV accounts and .ics subscriptions, throug
 - `missingModule` (string)
 - `request` (var): What the page or a module was asked to show next ({ kind: "new" | "day", key }), taken by the first one that can (takeRequest)
 - `range` (var): The span of events kept, widened as views page past it
+- `info` (var): What servers said of each calendar, by "<account>|<href>": { name, serverColor, readOnly, components }, kept in the calendar state
+- `calendars` (readonly var): Every account's calendars, flattened: { id ("<account>|<href>"), account, accountName, kind, href, name (its own, else the server's), color (its own, else the server's, else the accent), enabled, rea…
+- `shownCalendars` (readonly var): The calendars shown, and those of them new events can go to
+- `writableCalendars` (readonly var)
+- `newEventCalendar` (readonly string): Where a new event goes: the default calendar while it's shown and writable, else the first that is ("" with none)
+- `colors` (readonly var): calendar id -> its color, for the views
 - `byDay` (readonly var): Shown calendars' events by day ({ "YYYY-MM-DD": [event] })
 - `hasCalendars` (readonly bool)
 
 ### Functions
 
+- `calendar(id)`
+- `remember(accountId, found)`: Keeps what a server said of an account's calendars (discover's `calendars`: { href, name, color, readOnly, components })
 - `eventsOn(key)`
 - `dotsFor(key)`
 - `timeText(event, key)`: When an event happens on a day, for its row: "All day", "9:00 – 10:00", "From 22:00" (it runs past the day), "Until 2:00" (it began before)

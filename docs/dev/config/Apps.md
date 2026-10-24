@@ -26,7 +26,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Apps.pinned`** · array<string> = []
   - Pinned apps: Desktop entry ids, in order: the apps every dock shows first, unless it has its own (Dock → pinnedOwn).
   - x-scope="personal", x-settings=false
-  - read: `Apps.pinned` (computed) · in: `components/methods/ConfigMigration.qml`, `components/views/settings/DockListCard.qml`, `config/DockConfig.qml`, `services/DockManager.qml`
+  - read: `Apps.pinned` (computed) · in: `components/views/Settings/DockListCard.qml`, `config/DockConfig.qml`, `services/DockManager.qml`
 
 ### Reader members
 
@@ -39,12 +39,12 @@ Every public member of `Apps`, with the files that use it.
 - `Apps.browser` (string)
   - in: `components/surfaces/onboarding/pages/AppsPage.qml`
 - `Apps.pinned` (var)
-  - in: `components/methods/ConfigMigration.qml`, `components/views/settings/DockListCard.qml`, `config/DockConfig.qml`, `services/DockManager.qml`
+  - in: `components/views/Settings/DockListCard.qml`, `config/DockConfig.qml`, `services/DockManager.qml`
 - `Apps.terminalCommand` (string): What a bind (or the onboarder) runs to open each
-  - in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - in: `services/CompositorConfigManager.qml`
 - `Apps.fileManagerCommand` (string)
-  - in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - in: `services/CompositorConfigManager.qml`
 - `Apps.inTerminal(argv, terminal)`: `argv` run in a terminal: `terminal` (a widget's own), else the Apps one (which may carry arguments of its own), else xdg-terminal-exec, which takes the comman…
   - in: `services/LauncherManager.qml`, `services/UpdatesManager.qml`
 - `Apps.browserCommand` (string)
-  - in: `services/HyprlandConfigWriter.qml`, `services/NiriConfigWriter.qml`, `services/SwayConfigWriter.qml`
+  - in: `services/CompositorConfigManager.qml`

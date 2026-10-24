@@ -1,6 +1,6 @@
 # Self-update
 
-> **Files:** `services/SelfUpdateManager.qml`, `scripts/self_update.sh`, `config/SelfUpdate.qml`, `components/views/settings/SelfUpdateStatusCard.qml`
+> **Files:** `services/SelfUpdateManager.qml`, `scripts/self_update.sh`, `config/SelfUpdate.qml`, `components/views/Settings/SelfUpdateStatusCard.qml`
 > **Config:** `SelfUpdate.*` (reader `SelfUpdate`)
 > **Related:** [Notifications](notifications.md), [Launcher](launcher.md)
 
@@ -23,6 +23,7 @@ A channel change triggers a recheck.
 - `ahead`, `behind`
 - `blocked`: `dirty` | `diverged` | `branch` | `nogit`
 - `notes`, `error`
+- `rebuilt`, `buildError`: after an `apply`, the axiom binary (`$AXIOM_BIN`, set by `axiom run`) built again from the updated clone (`scripts/generate.sh`, then `go build` beside it and swapped in), so its embedded schema is the tree's. Only a binary this user can replace (install.sh's in `~/.local/bin`); a failed build leaves the old one and says why, the update itself staying in.
 
 What it will and won't do:
 - It only fast-forwards: `merge --ff-only`, or a detached `checkout` when the clone is detached.
@@ -31,6 +32,7 @@ What it will and won't do:
 
 ### Modes (`SelfUpdate.mode`)
 - **`auto`:** applies, notifies, then calls `Quickshell.reload`. git replaces files by inode, which the file watcher misses, so the explicit reload is needed.
+  - With the binary rebuilt, it runs `axiom daemon reexec`: the new image takes the daemon over, and when the update changed the schema it restarts the shell (locked first when it was), whose hello would otherwise be refused ([backend](../backend/README.md) › Re-exec). A failed build is notified.
 - **`notify`:** sends a notification whose `desktopEntry` (`axiom-update`) is a `NotificationManager.registerHandler` key. Clicking it runs `openSettings()`, which opens Settings → Updates (the `SelfUpdateStatusCard`).
 - **`off`:** never checks.
 

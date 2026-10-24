@@ -3,7 +3,7 @@
 
 > **File:** `services/StopwatchManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-One one-off timer and one stopwatch, for every Stopwatch widget and module, both able to run at once. Their states (StopwatchClock's) hold absolute times, kept across a QML reload (PersistentProperties) and a restart (StateManager "stopwatch"). A timer's end notifies (with Stopwatch.notify) and runs with nothing showing it; displays acquire(owner, interval) a `now` ticking at the shortest interval asked (a stopwatch's tenths want 100 ms), only while one runs. qs -c axiom ipc call stopwatch timer "10m tea"
+One one-off timer and one stopwatch, for every Stopwatch widget and module, both able to run at once. Their states (StopwatchClock's) hold absolute times, kept across a QML reload (PersistentProperties) and a restart (StateManager "stopwatch"). A timer's end notifies (with Stopwatch.notify) and runs with nothing showing it; displays acquire(owner, interval) a `now` ticking at the shortest interval asked (a stopwatch's tenths want 100 ms), only while one runs. axiom ipc stopwatch timer "10m tea"
 
 ### Properties
 

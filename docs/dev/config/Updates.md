@@ -14,7 +14,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Updates.includeAur`** · boolean = false
   - Include AUR: Also count outdated AUR packages.
   - x-showIf={"/$distro":"arch"}
-  - read: `UpdatesConfig.includeAur` · in: `components/bar/widgets/Updates.qml`
+  - read: `UpdatesConfig.includeAur` · in: `components/bar/widgets/Updates/Updates.qml`
 - **`Updates.aurHelper`** · string = "paru" · enum paru|yay
   - AUR helper
   - x-showIf={"includeAur":true,"/$distro":"arch"}
@@ -22,23 +22,23 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Updates.terminal`** · string = ""
   - Terminal: Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal.
   - x-link={"setting":"Apps.terminal"}, x-scope="commands"
-  - read: `UpdatesConfig.terminal` · in: `components/bar/widgets/Updates.qml`
+  - read: `UpdatesConfig.terminal` · in: `components/bar/widgets/Updates/Updates.qml`
 - **`Updates.upgradeCommand`** · string = ""
   - Upgrade command: Run on click. Empty uses your distribution's upgrade (`sudo pacman -Syu`, `sudo dnf upgrade`), or the AUR helper with -Syu.
   - x-scope="commands"
-  - read: `UpdatesConfig.upgradeCommand` · in: `components/bar/widgets/Updates.qml`
+  - read: `UpdatesConfig.upgradeCommand` · in: `components/bar/widgets/Updates/Updates.qml`
 
 ### Reader members
 
 Every public member of `UpdatesConfig`, with the files that use it.
 
 - `UpdatesConfig.includeAur` (bool)
-  - in: `components/bar/widgets/Updates.qml`
+  - in: `components/bar/widgets/Updates/Updates.qml`
 - `UpdatesConfig.aurHelper` (string): "paru" | "yay"
   - in: only inside the reader
 - `UpdatesConfig.activeAurHelper` (string): The helper to check the AUR with, "" for none
-  - in: `components/bar/widgets/Updates.qml`, `components/content/Updates.qml`
+  - in: `components/bar/widgets/Updates/Updates.qml`, `components/content/Updates/Updates.qml`
 - `UpdatesConfig.terminal` (string)
-  - in: `components/bar/widgets/Updates.qml`
+  - in: `components/bar/widgets/Updates/Updates.qml`
 - `UpdatesConfig.upgradeCommand` (string)
-  - in: `components/bar/widgets/Updates.qml`
+  - in: `components/bar/widgets/Updates/Updates.qml`

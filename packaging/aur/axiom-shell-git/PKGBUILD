@@ -1,7 +1,9 @@
 # Maintainer: Travis Hepworth <travis at batk dot me>
 #
 # axiom built from main; axiom-shell is the same package at the latest
-# release (scripts/release.sh bumps that one). Both keep
+# release. CI pushes both to the AUR on every release tag, with .SRCINFO
+# (.github/workflows/release.yml); pkgver() sets the real version at build
+# time. Both keep
 # their depends and optdepends in step with install.sh's tables
 # (scripts/check_packages.py). docs/dev/packaging.md says how it's laid out.
 
@@ -9,7 +11,7 @@ pkgname=axiom-shell-git
 pkgver=1.1.10.r7.g35d3a17
 pkgrel=1
 pkgdesc='A Quickshell desktop shell for Hyprland, sway and niri: bar, launcher, notifications, lock and login screens, overlay pages'
-arch=('any')
+arch=('x86_64' 'aarch64')
 url='https://github.com/axiom-shell/axiom'
 license=('MIT')
 # No compositor: it's the shell, not the session, and any one of
@@ -48,7 +50,7 @@ optdepends=(
   'greetd: axiom as the login screen (set up from Settings → Login screen)'
   'greetd-agreety: axiom as the login screen (its text fallback)'
 )
-makedepends=('git')
+makedepends=('git' 'go')
 install=axiom-shell-git.install
 source=("axiom::git+$url.git#branch=main")
 sha256sums=('SKIP')
@@ -59,20 +61,36 @@ pkgver() {
   git describe --long --tags --match 'v*' --abbrev=7 | sed 's/^v//;s/-\([0-9]*\)-g/.r\1.g/'
 }
 
+prepare() {
+  cd axiom/backend
+  go mod download
+}
+
+# The axiom binary (the shell's parent: `axiom run`) and the files a clone
+# generates that it is built from: the config schema (from config/schema/)
+# and the copies it embeds
+build() {
+  cd axiom
+  export CGO_ENABLED=0 GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw"
+  scripts/generate.sh
+  (cd backend && go build -o axiom ./cmd/axiom)
+}
+
 package() {
   cd axiom
+  install -Dm755 backend/axiom "$pkgdir/usr/bin/axiom"
   local dest="$pkgdir/usr/share/axiom"
   install -d "$dest"
   cp -r --no-preserve=ownership . "$dest"
   # What only working on axiom needs (the greeter's copy leaves out the same)
-  rm -rf "$dest"/{.git,tests,docs,.github,.githooks,.claude,packaging,scripts/dev}
+  rm -rf "$dest"/{.git,tests,docs,.github,.githooks,.claude,packaging,scripts/dev,backend}
   rm -f "$dest"/{install.sh,.gitignore,.gitattributes,.qmlformat.ini,.qmlls.ini,.shellcheckrc} \
     "$dest"/scripts/{check_*,gen_docs.py,gen_theme_template.py,ci_summary.py,run_tests.sh,release.sh,qml_modules.py,qmllint-baseline.json}
   find "$dest" -name '*.md' -delete
   # The marker the shell reads (Paths.packaged): updates come from pacman,
   # and the login screen runs this copy
   printf '%s\n' "$pkgver-$pkgrel" >"$dest/.packaged"
-  # Where `qs -c axiom` looks after ~/.config/quickshell/axiom
+  # Where `axiom run` looks after ~/.config/quickshell/axiom
   install -d "$pkgdir/etc/xdg/quickshell"
   ln -s /usr/share/axiom "$pkgdir/etc/xdg/quickshell/axiom"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"

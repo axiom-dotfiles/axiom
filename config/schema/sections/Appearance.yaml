@@ -1,0 +1,226 @@
+# The Appearance section of the config (config.json's "Appearance").
+
+type: object
+x-category: Look & Feel
+x-links: [Themes]
+title: Appearance
+additionalProperties: false
+properties:
+  theme:
+    type: object
+    title: Theme
+    x-scope: look
+    additionalProperties: false
+    properties:
+      name:
+        type: string
+        default: gruvbox-dark
+        description: Active theme (set on the overlay's Themes page).
+        x-settings: false
+      schedule:
+        type: object
+        title: Light and dark by time
+        additionalProperties: false
+        properties:
+          enabled:
+            type: boolean
+            title: Switch by time of day
+            default: false
+            description: Use the theme's light variant during the day and its dark one at night. Switching by hand lasts until the next change.
+          lightAt:
+            type: string
+            title: Light from
+            default: '07:00'
+            pattern: '^([01]?\d|2[0-3]):[0-5]\d$'
+            description: '24-hour time, like 07:00.'
+            x-showIf: {enabled: true}
+          darkAt:
+            type: string
+            title: Dark from
+            default: '19:00'
+            pattern: '^([01]?\d|2[0-3]):[0-5]\d$'
+            description: '24-hour time, like 19:00.'
+            x-showIf: {enabled: true}
+  wallpaper:
+    type: object
+    title: Wallpaper
+    additionalProperties: false
+    properties:
+      mode:
+        type: string
+        x-snapshot: true
+        title: Wallpaper mode
+        enum: [fixed, rotate, variant]
+        x-enumLabels:
+          fixed: Fixed
+          rotate: Rotate on a timer
+          variant: One for light, one for dark
+        default: fixed
+        description: Fixed keeps the wallpaper you pick. Rotate changes it on a timer, from the wallpaper folder. One for light, one for dark shows the wallpaper you picked for the theme's current variant on every monitor. A generated theme follows the wallpaper as it changes. Also set on the overlay's Themes page.
+      file:
+        type: string
+        x-snapshot: true
+        default: ''
+        description: The primary monitor's wallpaper file URL, used by the lockscreen (set on the overlay's Themes page).
+        x-settings: false
+      perScreen:
+        type: object
+        x-snapshot: true
+        default: {}
+        description: Monitor name → wallpaper file URL (set on the overlay's Themes page). A monitor with no entry shows `wallpaper`.
+        additionalProperties: {type: string}
+        x-settings: false
+      folder:
+        type: string
+        x-snapshot: true
+        title: Wallpaper folder
+        x-control: folder
+        default: '~/Pictures/wallpapers'
+        pattern: '\S'
+        description: Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder.
+      rotation:
+        type: object
+        x-snapshot: true
+        title: Wallpaper rotation
+        additionalProperties: false
+        x-showIf: {mode: rotate}
+        properties:
+          interval:
+            type: integer
+            title: Change every
+            x-unit: min
+            default: 1800000
+            minimum: 60000
+            maximum: 86400000
+            description: How long each wallpaper stays up.
+          order:
+            type: string
+            title: Order
+            enum: [random, sequential]
+            x-enumLabels: {random: Random, sequential: 'In order, by name'}
+            default: random
+            description: Random never picks the wallpaper already showing.
+          sameOnAll:
+            type: boolean
+            title: Same on every monitor
+            default: false
+            description: Show one wallpaper on all monitors. Off, each monitor gets its own.
+      variants:
+        type: object
+        x-snapshot: true
+        default: {}
+        description: The wallpapers for the light and dark variants, as file URLs (set on the overlay's Themes page).
+        additionalProperties: false
+        properties: {dark: {type: string, default: ''}, light: {type: string, default: ''}}
+        x-settings: false
+      backend:
+        type: string
+        title: Wallpaper backend
+        enum: [quickshell, awww]
+        x-enumLabels: {quickshell: Axiom (built in), awww: awww}
+        default: quickshell
+        description: What draws the wallpaper. Axiom needs nothing installed and crossfades; awww (AUR) adds wipe and wave transitions.
+      daemon:
+        x-scope: machine
+        type: boolean
+        title: Start awww
+        default: true
+        description: Start awww-daemon for the wallpaper picker.
+        x-showIf: {backend: awww}
+  font:
+    x-scope: look
+    type: object
+    title: Font
+    additionalProperties: false
+    properties:
+      family:
+        type: string
+        title: Family
+        default: monospace
+        description: Font used throughout the shell.
+      size:
+        type: integer
+        x-control: stepper
+        title: Size
+        default: 14
+        minimum: 8
+        maximum: 32
+        x-unit: px
+        description: Base font size (px). Larger text is derived from it.
+  shape:
+    x-scope: look
+    type: object
+    title: Shape
+    additionalProperties: false
+    properties:
+      radius:
+        x-link: {setting: Interface.radius}
+        type: integer
+        x-control: stepper
+        title: Corner radius
+        default: 6
+        minimum: 0
+        maximum: 50
+        x-unit: px
+        description: 'Roundness of outer edges: the screen border, bars, popouts and windows (px). Everything inside follows it unless Panels & controls sets its own.'
+      borderWidth:
+        type: integer
+        x-control: stepper
+        title: Border width
+        default: 1
+        minimum: 0
+        maximum: 10
+        x-unit: px
+        description: Thickness of every outline (px).
+      screenBorder:
+        type: boolean
+        title: Screen border
+        default: true
+        description: Draw a frame around the screen edges.
+      screenMargin:
+        type: integer
+        x-control: stepper
+        title: Screen margin
+        default: 8
+        minimum: 0
+        maximum: 100
+        x-unit: px
+        description: Width of the screen frame, and the gap kept from the screen edges (px).
+  surface:
+    x-scope: look
+    type: object
+    title: Translucency
+    x-intro: TranslucencyStatus
+    additionalProperties: false
+    properties:
+      opacity:
+        x-link:
+          - {setting: WindowLook.opacity}
+          - {setting: WindowLook.surfaceBlur}
+        type: integer
+        title: Surface opacity
+        x-unit: '%'
+        default: 100
+        minimum: 60
+        maximum: 100
+        description: "How solid the shell's surfaces are: bars, the screen border, popouts, menus and panels (not your apps' windows: Compositor → Window look → Window opacity). 100 is fully solid. A translucent surface needs the compositor to blur behind it (Compositor → Window look → Blur)."
+        x-enabledIf: {/$supports.blur: true}
+  motion:
+    x-scope: look
+    type: object
+    title: Motion
+    additionalProperties: false
+    properties:
+      enabled:
+        type: boolean
+        title: Animations
+        default: true
+        description: Turn every animation in the shell on or off.
+      speed:
+        type: integer
+        title: Animation speed
+        x-unit: '%'
+        default: 100
+        minimum: 25
+        maximum: 400
+        description: Speed of every animation. 100 is normal, 200 is twice as fast, 50 is half speed.

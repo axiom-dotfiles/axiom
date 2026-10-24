@@ -424,9 +424,6 @@ def main():
         palettes = generate(args.wallpaper, analysis, output_dir, style)
         if args.preview:
             preview(style, palettes)
-    # The pywal backends' pairs, from before styles
-    for old in output_dir.glob("pywal-*.json"):
-        old.unlink()
 
 
 if __name__ == "__main__":

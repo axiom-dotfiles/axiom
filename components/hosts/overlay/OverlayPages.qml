@@ -2,8 +2,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
 import qs.services
-import qs.components.views
 import qs.components.reusable
+import qs.components.views.Layouts
 
 // The overlay's pages on one screen: a view per Overlay.views entry, the
 // current one and its neighbours loaded, sliding between them.
@@ -179,7 +179,7 @@ Item {
   function buildViewsModel(viewConfigArray) {
     const shown = (viewConfigArray || []).map((viewConf, index) => ({
           // views/<type>.qml; unknown types are rejected by schema validation
-          "component": Qt.resolvedUrl("../../views/" + viewConf.type + ".qml"),
+          "component": Paths.viewUrl(viewConf.type),
           "viewConfig": viewConf,
           "index": index
         })).filter(view => view.viewConfig.visible !== false && root._supported(view.viewConfig.type));

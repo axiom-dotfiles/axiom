@@ -256,7 +256,7 @@ PanelWindow {
         cut: true
         cutSource: backing.cutByUnion ? union : copied
         autoPaddingEnabled: false
-        look: group.lead?.shadow ?? BarStyle.values
+        look: group.lead?.shadow ?? BarStyle.look
       }
     }
   }

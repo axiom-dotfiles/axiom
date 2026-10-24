@@ -3,7 +3,7 @@
 
 > **File:** `services/NightLightManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The night light (the NightLight section): warmer colors through hyprsunset, or wlsunset without it, started and stopped by axiom. On a schedule it turns on at `startAt` and off at `endAt` (DailySchedule); a switch by hand (the quick action, /nightlight, the `nightLight` IPC target or bind) lasts until the next of those. A new temperature or gamma restarts it while it's on. `active` is what axiom last set, kept across QML reloads; at startup it's whether the tool is already running. Created from shell.qml's `_services`. qs -c axiom ipc call nightLight toggle
+The night light (the NightLight section): warmer colors through hyprsunset, or wlsunset without it, started and stopped by axiom. On a schedule it turns on at `startAt` and off at `endAt` (DailySchedule); a switch by hand (the quick action, /nightlight, the `nightLight` IPC target or bind) lasts until the next of those. A new temperature or gamma restarts it while it's on. `active` is what axiom last set, kept across QML reloads; at startup it's whether the tool is already running. Created from shell.qml's `_services`. axiom ipc nightLight toggle
 
 ### Properties
 

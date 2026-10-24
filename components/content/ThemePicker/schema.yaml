@@ -1,0 +1,5 @@
+label: Themes
+link: {page: Themes}
+icon: palette
+group: Look & layout
+defaultSize: [4, 8]

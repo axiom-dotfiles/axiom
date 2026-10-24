@@ -14,12 +14,12 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-scope="look"
 - **`Appearance.shape.radius`** · integer = 6 · 0–50 · px
   - Corner radius: Roundness of outer edges: the screen border, bars, popouts and windows (px). Everything inside follows it unless Panels & controls sets its own.
-  - x-link={"setting":"Widget.radius"}, x-control="stepper"
+  - x-link={"setting":"Interface.radius"}, x-control="stepper"
   - read: `Appearance.borderRadius` · in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/EdgeSurface.qml`, `components/hosts/popout/FloatingPopout.qml`, `components/hosts/popout/PillBarJoin.qml`, `components/hosts/popout/SubPopout.qml`, `components/reusable/CornerPiece.qml`, `components/surfaces/border/RoundedBorders.qml` (+10 more)
 - **`Appearance.shape.borderWidth`** · integer = 1 · 0–10 · px
   - Border width: Thickness of every outline (px).
   - x-control="stepper"
-  - read: `Appearance.borderWidth` · in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/bar/WidgetBackground.qml`, `components/content/AudioMixer.qml`, `components/content/ColorSwatch.qml`, `components/content/Greeting.qml`, `components/content/Login.qml`, `components/content/Network.qml`, `components/content/NightLightControls.qml`, `components/content/NowPlaying.qml`, `components/content/Palette.qml`, `components/content/Password.qml`, `components/content/Session.qml` (+64 more)
+  - read: `Appearance.borderWidth` · in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/bar/WidgetBackground.qml`, `components/content/AudioMixer/AudioMixer.qml`, `components/content/ColorSwatch/ColorSwatch.qml`, `components/content/Greeting/Greeting.qml`, `components/content/Login/Login.qml`, `components/content/Network/Network.qml`, `components/content/NightLightControls/NightLightControls.qml`, `components/content/NowPlaying/NowPlaying.qml`, `components/content/Palette/Palette.qml`, `components/content/Password/Password.qml`, `components/content/Session/Session.qml` (+64 more)
 - **`Appearance.shape.screenBorder`** · boolean = true
   - Screen border: Draw a frame around the screen edges.
   - read: `Appearance.screenBorder` · in: `components/bar/BarContainer.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`, `shell/ScreenBorder.qml`

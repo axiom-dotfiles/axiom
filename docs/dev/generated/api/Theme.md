@@ -62,4 +62,4 @@ The active theme's colors: base16 (base00-base0F) and semantic names, filled fro
 
 ### Functions
 
-- `resolveColor(name)`: Color from a config string: a base key ("base0C"), a semantic name ("info", or the older "Theme.info" form) or anything Qt parses as a color ("#ff5733").
+- `resolveColor(name)`: Color from a config string: a base key ("base0C"), a semantic name ("info") or anything Qt parses as a color ("#ff5733").
