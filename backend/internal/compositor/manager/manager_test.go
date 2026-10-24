@@ -376,3 +376,100 @@ func TestStoppedManagerNeverBlocks(t *testing.T) {
 		t.Fatal("blocked")
 	}
 }
+
+func (h *harness) approved() bool {
+	return approvals{path: filepath.Join(h.m.o.StateDir, "ui", "takeover.json")}.has("hyprland")
+}
+
+func (h *harness) state(key string) any { return h.m.State(context.Background()).Value(key) }
+
+// Saving managed (a mode change while axiom runs) is never the approval:
+// the card asks, as for a config loaded with the mode, without a
+// notification on top
+func TestSavingManagedAsksForApproval(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, "detached")
+	f := h.w.files(Inputs{})
+	os.MkdirAll(f.ConfigDir, 0o755)
+	os.WriteFile(f.ManagedPath, []byte("-- mine\n"), 0o644)
+	h.inputs("f1", "l1", "k1")
+	h.eventually("the runtime layer", h.called("runtime:live l1"))
+	h.setMode("managed")
+	h.eventually("the takeover pending", func() bool { return h.state("takeoverPending") == true })
+	if readFile(f.ManagedPath) != "-- mine\n" || h.approved() {
+		t.Fatal("saving managed took the config over")
+	}
+	for len(h.pushes) > 0 {
+		if p := <-h.pushes; strings.Contains(p, `"approval"`) {
+			t.Fatalf("notified on top of the card: %s", p)
+		}
+	}
+	h.m.AllowTakeover()
+	h.eventually("taken over", func() bool { return readFile(f.ManagedPath) == hyprHeader+" managed f1\n" })
+	// Giving it back uses the approval up: the next takeover asks again
+	h.setMode("detached")
+	h.eventually("given back", func() bool { return readFile(f.ManagedPath) == "-- mine\n" })
+	h.eventually("the approval used up", func() bool { return !h.approved() })
+	h.setMode("managed")
+	h.eventually("asked again", func() bool { return h.state("takeoverPending") == true })
+	if readFile(f.ManagedPath) != "-- mine\n" {
+		t.Fatal("taken over again without asking")
+	}
+}
+
+// A config still axiom's outside managed mode (a mode changed while axiom
+// wasn't running) is given back at the first apply
+func TestAConfigLeftOursIsGivenBack(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, "detached")
+	f := h.w.files(Inputs{})
+	os.MkdirAll(f.UserDir, 0o755)
+	os.WriteFile(f.ManagedPath, []byte(hyprHeader+" managed f0\n"), 0o644)
+	h.inputs("f1", "l1", "k1")
+	h.eventually("given back", func() bool { return readFile(f.ManagedPath) == "-- given back\n" })
+}
+
+// A release that fails is tried again, the shell told why meanwhile
+func TestAFailedReleaseIsRetried(t *testing.T) {
+	t.Parallel()
+	if os.Geteuid() == 0 {
+		t.Skip("root writes anywhere")
+	}
+	h := newHarness(t, "detached")
+	h.m.releaseFirst = 100 * time.Millisecond
+	f := h.w.files(Inputs{})
+	os.MkdirAll(f.UserDir, 0o755)
+	os.WriteFile(f.ManagedPath, []byte(hyprHeader+" managed f0\n"), 0o644)
+	// Nothing can be written in the config dir
+	os.Chmod(f.ConfigDir, 0o555)
+	t.Cleanup(func() { os.Chmod(f.ConfigDir, 0o755) })
+	h.inputs("f1", "l1", "k1")
+	h.eventually("the problem", func() bool { return jsonx.ToString(h.state("releaseProblem")) != "" })
+	os.Chmod(f.ConfigDir, 0o755)
+	h.eventually("given back on a retry", func() bool { return readFile(f.ManagedPath) == "-- given back\n" })
+	h.eventually("the problem gone", func() bool { return jsonx.ToString(h.state("releaseProblem")) == "" })
+}
+
+// The managed config given back behind the manager's back (a command
+// line's release) is never written over: taking it over again asks first
+func TestAConfigGivenBackMeanwhileIsntWrittenOver(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, "managed")
+	h.w.mu.Lock()
+	h.w.loaded = true
+	h.w.mu.Unlock()
+	f := h.w.files(Inputs{})
+	h.inputs("f1", "l1", "k1", "borders")
+	h.eventually("taken over", func() bool { return readFile(f.ManagedPath) == hyprHeader+" managed f1\n" })
+	h.w.reloadCh <- ipc.Reload{}
+	h.eventually("loaded", func() bool { return h.status() == "loaded" })
+	h.m.AllowTakeover()
+	h.eventually("approved", h.approved)
+	os.WriteFile(f.ManagedPath, []byte("-- mine again\n"), 0o644)
+	// A live change: evaluated, then the file synced after 2 s
+	h.inputs("f1", "l2", "k1", "borders")
+	h.eventually("asked again", func() bool { return h.state("takeoverPending") == true })
+	if readFile(f.ManagedPath) != "-- mine again\n" || h.approved() {
+		t.Fatal("written over, or the approval kept")
+	}
+}

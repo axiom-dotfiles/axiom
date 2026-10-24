@@ -47,13 +47,14 @@ How axiom sets the compositor up, the same on every compositor with `supports.co
 
 ### Approving a takeover
 - Managed mode takes over a config of the user's only once they've allowed it on that compositor. The approvals are state, not config (`$XDG_STATE_HOME/axiom/ui/takeover.json`, `{ approved: [kind] }`), so a config imported, or carried over from another compositor, with `mode: "managed"` never counts as one.
-- Allowed by: picking managed while axiom runs (a mode change after the first apply), or `allowTakeover()` (the card's Allow takeover, the notification's button).
-- Before claiming, the takeover's `check` runs: with nothing of the user's to take over (`ours`, `new`, `stock`, `released`) it approves and claims; `blocked` claims, which reports it. `adopt` waits: `takeoverPending`, the runtime layer stands in, and a notification (once per session) offers Allow.
+- Allowed only by `allowTakeover()` (the card's Allow takeover, the notification's button). Saving managed is never the approval: after Save the card shows Allow takeover, as it does when a session starts in managed mode with the user's config in place.
+- An approval is for one takeover: giving the config back (leaving managed) uses it up, and so does finding it given back behind axiom's back (`axiom compositor release` while managed: the managed config is then never written over). Taking it over again asks again.
+- Before claiming, the takeover's `check` runs: with nothing of the user's to take over (`ours`, `new`, `stock`, `released`) it claims without asking; `blocked` claims, which reports it. `adopt` waits: `takeoverPending`, the runtime layer stands in, and a notification (once per session) offers Allow, except right after Save, where the card already does.
 - Never press Allow for the user while testing (AGENTS.md › Never).
 
 ### Leaving a mode
-- Only a switch made while axiom runs gives anything back (the mode last applied is "" until the first apply).
-- Leaving managed runs the takeover's release ([Managed takeover](../hyprland/managed-takeover.md#release)); detached waits for it before applying its runtime layer.
+- A switch made while axiom runs gives back what the mode took. Outside managed mode, a compositor config that's still axiom's (its header on the first line) is given back too, whatever the mode last applied: a mode changed while axiom wasn't running, or a release that failed.
+- Leaving managed runs the takeover's release ([Managed takeover](../hyprland/managed-takeover.md#release)); detached waits for it before applying its runtime layer. A release that fails (an error, or the dir now a link or in git) is tried again after 10 s, doubling up to 5 min, while `releaseProblem` says why (the status card shows it).
 - Leaving included, or leaving managed for detached, empties the module if it exists: every part becomes a no-op, so a config still loading it gets nothing (the runtime layer only adds, and couldn't undo it).
 
 ### The writers
@@ -61,4 +62,6 @@ One per compositor in `manager/` (`hypr.go`, `sway.go`, `niri.go`), each the `wr
 
 ### Testing
 - Never switch the user's real config into or out of `managed` to test it. (Rule: AGENTS.md › Never, while testing.) Try the modes in a nested session (`scripts/dev/nested.sh <compositor> [--managed]`), which runs its own daemon on scratch folders.
-- The texts: `render`'s frozen cases (`testdata/frozen.jsonl.gz`, recorded from the JS helpers before they went) and the shared cases of the helpers the shell still uses; `TestCompositorsReadTheFiles` has `luac`, Hyprland (`--verify-config`) and niri (`validate`) read the files, where they're installed. The manager's flows: `manager_test.go` (a fake writer); the IPC clients against fake sockets.
+- The texts: `render`'s frozen cases (`testdata/frozen.jsonl.gz`, recorded from the JS helpers before they went) and the shared cases of the helpers the shell still uses; `TestCompositorsReadTheFiles` has `luac`, Hyprland (`--verify-config`) and niri (`validate`) read the files, where they're installed.
+- The whole files: `TestGoldenFiles` (`manager/golden_test.go`) has each writer make every file (module, managed, released for each mode, empty module, the live lines) from one shell's inputs (`manager/testdata/inputs.json`, captured from a live shell, its paths and names made generic) and compares them byte for byte with `manager/testdata/golden/<kind>/`; `luac`, Hyprland, `sway --validate` and `niri validate` read them where installed. A change meant to show in a user's config: `go test ./internal/compositor/manager -run Golden -update`, and read the diff.
+- The manager's flows: `manager_test.go` (a fake writer); the IPC clients against fake sockets.

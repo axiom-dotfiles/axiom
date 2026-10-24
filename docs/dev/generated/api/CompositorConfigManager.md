@@ -14,6 +14,7 @@ The compositor set up for axiom (the Compositor section's mode, CompositorConfig
 - `status` (readonly string): "runtime" (detached), "loaded" (the file is in effect), "fallback" (it isn't: see `problem`) or "pending" (still checking)
 - `skippedKeys` (readonly var): Configured keys the runtime layer skipped because the compositor's config already binds them
 - `takeoverPending` (readonly bool)
+- `releaseProblem` (readonly string): Why the managed config couldn't be given back on leaving managed mode (the daemon tries again), or ""
 - `managedCheck` (readonly string): What switching to managed would do: "ours" | "adopt" | "stock" | "released" | "new" | "blocked" (by managedBlockedBy "link" or "git")
 - `managedBlockedBy` (readonly string)
 - `managedBlockedRepo` (readonly string)

@@ -24,6 +24,9 @@ running anything:
   - every overlay module goes on the desktop too (`x-hosts`), and one that
     takes typing (a text field in it or its parts) says so (`x-keyboard`,
     false when it deliberately stays read-only there)
+  - only the files in scripts/quickshell-io-allowlist.json use Process,
+    FileView, Socket, IpcHandler or Quickshell.execDetached directly, and
+    the list only shrinks (these move to the axiom daemon)
 and warns about files in the loaded directories that nothing registers or
 uses.
 
@@ -54,6 +57,15 @@ POPOUT_DIR = "components/content"
 SHARED_FOLDERS = {"base", "parts"}
 # Directories retired by restructuring: nothing may live or be imported there
 RETIRED = ["components/widgets", "components/stolen"]
+# Quickshell.Io's side effects, frozen to the files that use them now
+IO_ALLOWLIST = ROOT / "scripts" / "quickshell-io-allowlist.json"
+IO_KINDS = {
+    "Process": re.compile(r"(?<![\w.])Process\s*\{"),
+    "FileView": re.compile(r"(?<![\w.])FileView\s*\{"),
+    "Socket": re.compile(r"(?<![\w.])Socket\s*\{"),
+    "IpcHandler": re.compile(r"(?<![\w.])IpcHandler\s*\{"),
+    "execDetached": re.compile(r"\bQuickshell\.execDetached\("),
+}
 
 errors, warnings = [], []
 
@@ -130,6 +142,30 @@ def main():
                 unreached.setdefault(module, rel(f))
     for module, path in sorted(unreached.items()):
         errors.append(f"{path} needs {module}, which no file reached from shell.qml imports: qs won't scan it (import it in the host that loads it)")
+
+    # Processes, file views, sockets and IPC handlers are moving to the
+    # axiom daemon: only the files listed in quickshell-io-allowlist.json
+    # use them directly, each only the kinds listed, and the list only
+    # shrinks (an entry no longer used is an error too). New code goes
+    # through CommandManager, FileManager, StateManager or IpcTarget
+    allowed = json.loads(IO_ALLOWLIST.read_text())["files"]
+    used = {}
+    for path, text in sources.items():
+        if path.startswith("tests/"):
+            continue
+        code = re.sub(r"//[^\n]*", "", text)
+        kinds = [kind for kind, pattern in IO_KINDS.items() if pattern.search(code)]
+        if kinds:
+            used[path] = kinds
+    for path, kinds in sorted(used.items()):
+        for kind in kinds:
+            if kind not in allowed.get(path, []):
+                errors.append(f"{path}: uses {kind} directly (only the files in {rel(IO_ALLOWLIST)} may; "
+                              "go through CommandManager, FileManager, StateManager or IpcTarget, or the axiom daemon)")
+    for path, kinds in sorted(allowed.items()):
+        for kind in kinds:
+            if kind not in used.get(path, []):
+                errors.append(f"{rel(IO_ALLOWLIST)}: {path} no longer uses {kind}: remove it from the list (it only shrinks)")
 
     # IPC targets are IpcTargets (an IpcHandler that registers with axiom,
     # which reaches it without a process per call): a bare IpcHandler is

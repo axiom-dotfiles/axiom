@@ -35,6 +35,7 @@ import (
 
 	"github.com/axiom-shell/axiom/backend/internal/compositor/actions"
 	"github.com/axiom-shell/axiom/backend/internal/compositor/binds"
+	"github.com/axiom-shell/axiom/backend/internal/compositor/edit"
 	"github.com/axiom-shell/axiom/backend/internal/compositor/ipc"
 	"github.com/axiom-shell/axiom/backend/internal/compositor/render"
 	"github.com/axiom-shell/axiom/backend/internal/compositor/takeover"
@@ -58,7 +59,11 @@ type Options struct {
 	CommitBinds func(binds *jsonx.Array) error
 	// Push sends the shell a compositor.* push
 	Push func(method string, params any)
-	Log  *slog.Logger
+	// Bin and Tree: the binary (the daemon's own, /proc/self/exe) and tree
+	// a bind merge reads Hyprland's files in, a child with its memory
+	// limited (binds.Options.Isolate); "" reads them in this process
+	Bin, Tree string
+	Log       *slog.Logger
 }
 
 // Manager drives the layer for the compositor axiom runs under.
@@ -85,7 +90,16 @@ type Manager struct {
 	problem         string
 	loaded          bool
 	takeoverPending bool
-	releasing       bool
+	// pickedHere: managed was picked while axiom runs (its card's Save),
+	// where the card asks for the approval: no notification
+	pickedHere bool
+	releasing  bool
+	// releaseProblem: why the managed config couldn't be given back (retried
+	// after releaseBackoff)
+	releaseProblem string
+	releaseBackoff time.Duration
+	// releaseFirst is the first retry's delay (tests shorten it)
+	releaseFirst    time.Duration
 	managedCheck    string
 	monitorConflict []string
 	merging         bool
@@ -93,13 +107,13 @@ type Manager struct {
 	mergeable       float64
 	pushed          string
 
-	debounce, liveDebounce, fileSync *time.Timer
+	debounce, liveDebounce, fileSync, releaseRetry *time.Timer
 }
 
 // New is the manager for the compositor the environment names; Kind is ""
 // (and it does nothing) under none of axiom's config modes' compositors.
 func New(o Options) *Manager {
-	m := &Manager{o: o, wake: make(chan struct{}, 1), stopped: make(chan struct{}), mergeable: -1}
+	m := &Manager{o: o, wake: make(chan struct{}, 1), stopped: make(chan struct{}), mergeable: -1, releaseFirst: 10 * time.Second}
 	instance := ""
 	switch {
 	case o.Getenv("HYPRLAND_INSTANCE_SIGNATURE") != "":
@@ -123,6 +137,7 @@ func New(o Options) *Manager {
 	m.debounce = m.timer(func(ctx context.Context) { m.apply(ctx) })
 	m.liveDebounce = m.timer(m.liveChanged)
 	m.fileSync = m.timer(m.syncFile)
+	m.releaseRetry = m.timer(func(ctx context.Context) { m.apply(ctx) })
 	return m
 }
 
@@ -196,7 +211,7 @@ func (m *Manager) Run(ctx context.Context) error {
 		close(m.stopped)
 		m.queue = nil
 		m.mu.Unlock()
-		for _, t := range []*time.Timer{m.debounce, m.liveDebounce, m.fileSync} {
+		for _, t := range []*time.Timer{m.debounce, m.liveDebounce, m.fileSync, m.releaseRetry} {
 			t.Stop()
 		}
 	})
@@ -374,7 +389,7 @@ func (m *Manager) state() *jsonx.Object {
 		"takeoverPending", m.takeoverPending, "managedCheck", check, "managedBlockedBy", by, "managedBlockedRepo", repo,
 		"monitorConflicts", conflicts, "skippedKeys", skipped, "complete", complete, "merging", m.merging,
 		"lastMerge", m.lastMerge, "mergeable", m.mergeable, "runningConfig", runningConfig, "userBindsRead", userBindsRead,
-		"files", fs)
+		"releaseProblem", m.releaseProblem, "files", fs)
 }
 
 // push sends the state when it changed
@@ -485,8 +500,18 @@ func (m *Manager) apply(ctx context.Context) {
 	if m.undoLive(ctx) && m.mode == "detached" {
 		return
 	}
-	if m.st.AppliedMode != "" && m.st.AppliedMode != m.mode {
-		m.leave(ctx, m.st.AppliedMode)
+	previous := m.st.AppliedMode
+	// The config still axiom's outside managed mode (a release that failed,
+	// or a mode changed while axiom wasn't running): given back now, and
+	// again until it is
+	if m.mode != "managed" && previous != "managed" && m.configIsOurs() {
+		previous = "managed"
+	}
+	if m.mode == "managed" {
+		m.releaseDone()
+	}
+	if previous != "" && previous != m.mode {
+		m.leave(ctx, previous)
 	}
 	m.st.AppliedMode = m.mode
 	m.st.save()
@@ -510,11 +535,9 @@ func (m *Manager) modeChanged() {
 	m.loaded = false
 	m.takeoverPending = false
 	m.monitorConflict = nil
-	// Managed picked while axiom runs (its card's Save) is the approval to
-	// take this compositor's config over; a mode loaded with a config isn't
-	if m.mode == "managed" && m.st.AppliedMode != "" {
-		m.approve()
-	}
+	// Saving managed never approves a takeover: the card shows Allow
+	// takeover after it, as it does for a config loaded with the mode
+	m.pickedHere = m.mode == "managed"
 }
 
 // --- Approving a takeover ---
@@ -534,10 +557,12 @@ func (m *Manager) approvalProblem() string {
 		` needs your approval (Settings › Compositor). Applying axiom's layer at runtime meanwhile.`
 }
 
-// AllowTakeover is the status card's (and the notification's) Allow.
+// AllowTakeover is the status card's (and the notification's) Allow: the
+// one approval to take over the user's own config, used up when it's given
+// back.
 func (m *Manager) AllowTakeover() {
 	m.enqueue(func(ctx context.Context) {
-		if m.w == nil {
+		if m.w == nil || m.mode != "managed" {
 			return
 		}
 		m.approve()
@@ -553,6 +578,13 @@ func (m *Manager) takeoverOptions(mode string) takeover.Options {
 	kind, _ := takeover.KindNamed(m.w.takeoverKind())
 	return takeover.Options{Kind: kind, Dir: m.files().ConfigDir, Header: m.w.header(),
 		Fallback: m.w.releasedText(m.in, mode), Getenv: m.o.Getenv}
+}
+
+// configIsOurs: the compositor's config is the one axiom wrote (its first
+// line starts with the header)
+func (m *Manager) configIsOurs() bool {
+	first, _, _ := strings.Cut(readFile(m.files().ManagedPath), "\n")
+	return strings.HasPrefix(first, m.w.header())
 }
 
 // CheckManaged says what switching to managed would do: ours, adopt,
@@ -577,6 +609,10 @@ func (m *Manager) check(ctx context.Context) {
 	m.managedCheck = result
 }
 
+// claimIfApproved takes the config over when there's nothing of the
+// user's in it (axiom's already, none, the example, what a release wrote),
+// or they allowed it; else it waits for Allow takeover, the runtime layer
+// standing in
 func (m *Manager) claimIfApproved(ctx context.Context) {
 	if !m.approvals().has(m.kind) {
 		m.check(ctx)
@@ -584,13 +620,12 @@ func (m *Manager) claimIfApproved(ctx context.Context) {
 		switch word {
 		// Nothing of the user's to take over, or blocked anyway (claim says)
 		case "ours", "new", "stock", "released", "blocked":
-			if word != "blocked" {
-				m.approve()
-			}
 		default:
 			m.takeoverPending = true
 			m.warnOnce(m.approvalProblem())
-			m.notify("approval")
+			if !m.pickedHere {
+				m.notify("approval")
+			}
 			m.runtimeApply(ctx)
 			return
 		}
@@ -599,16 +634,28 @@ func (m *Manager) claimIfApproved(ctx context.Context) {
 	m.claim(ctx)
 }
 
+// claim takes the config over and writes the managed config, both under
+// the config dir's lock, so a command line's release can't come between
+// them
 func (m *Manager) claim(ctx context.Context) {
-	result, err := takeover.Claim(ctx, m.takeoverOptions(m.mode))
+	lock, err := edit.LockDir(ctx, m.files().ConfigDir)
+	if err != nil {
+		m.o.Log.Warn("compositor: taking over "+m.files().ManagedPath, "err", err)
+		return
+	}
+	o := m.takeoverOptions(m.mode)
+	o.Locked = true
+	result, err := takeover.Claim(ctx, o)
 	m.findMonitorConflicts()
 	if err != nil {
+		lock.Release()
 		m.o.Log.Warn("compositor: taking over "+m.files().ManagedPath, "err", err)
 		return
 	}
 	word, rest, _ := strings.Cut(result, ":")
 	switch word {
 	case "blocked":
+		lock.Release()
 		m.warnOnce(m.w.problems(m.in).Blocked)
 		m.runtimeApply(ctx)
 		return
@@ -618,21 +665,37 @@ func (m *Manager) claim(ctx context.Context) {
 		m.logf("Replaced %s (the example config is kept as a dated backup beside it)", m.files().ManagedPath)
 	}
 	m.writeIfChanged(ctx, m.files().ManagedPath, m.w.managedText(m.in, m.in.get("specFile")))
+	lock.Release()
 	// The adopted config's binds would fight axiom's: they move in. Only
 	// that file's: the user's other files are left to the Keybinds page's
-	// Merge
+	// Merge (which takes the lock itself)
 	if word == "adopted" {
 		m.merge(ctx, rest, false)
 	}
 }
 
+// release gives the config back. One that fails (an error, or the dir now
+// a link or in git) is tried again, ever later, while the mode isn't
+// managed, and the shell shows why (releaseProblem)
 func (m *Manager) release(ctx context.Context) {
 	result, err := takeover.Release(ctx, m.takeoverOptions(m.mode))
 	m.releasing = false
-	if err != nil {
-		m.o.Log.Warn("compositor: giving back "+m.files().ManagedPath, "err", err)
-	}
 	word, rest, _ := strings.Cut(result, ":")
+	switch {
+	case err != nil:
+		m.releaseFailed("Couldn't give back " + m.files().ManagedPath + ": " + err.Error())
+	case word == "blocked":
+		m.releaseFailed(m.files().ManagedPath + " is a symlink or in a git repository now, so axiom can't give it back: " +
+			"make it a plain file outside git, or replace it with your own config")
+	default:
+		m.releaseDone()
+		if word != "notours" {
+			// The approval was for this takeover: the next asks again
+			if err := m.approvals().remove(m.kind); err != nil {
+				m.o.Log.Warn("compositor: forgetting the takeover's approval", "err", err)
+			}
+		}
+	}
 	switch word {
 	case "restored":
 		from, n, _ := strings.Cut(rest, ":")
@@ -643,8 +706,6 @@ func (m *Manager) release(ctx context.Context) {
 		}
 	case "written":
 		m.logf("Gave back %s: it now starts axiom and loads %s, and is yours to edit", m.files().ManagedPath, m.files().UserFiles)
-	case "blocked":
-		m.o.Log.Warn("compositor: " + m.files().ManagedPath + " is a symlink or in a git repository, so axiom didn't give it back")
 	}
 	// A reload brings the given-back config in, and with it the runtime
 	// layer; without one, the runtime layer goes on now
@@ -653,6 +714,28 @@ func (m *Manager) release(ctx context.Context) {
 	} else if m.mode == "detached" {
 		m.runtimeApply(ctx)
 	}
+}
+
+// releaseFailed notes why a release failed (logged when it changes) and
+// tries again later: 10 s, doubling up to 5 min
+func (m *Manager) releaseFailed(why string) {
+	if why != m.releaseProblem {
+		m.o.Log.Warn("compositor: " + why)
+	}
+	m.releaseProblem = why
+	switch {
+	case m.releaseBackoff == 0:
+		m.releaseBackoff = m.releaseFirst
+	case m.releaseBackoff < 5*time.Minute:
+		m.releaseBackoff = min(2*m.releaseBackoff, 5*time.Minute)
+	}
+	m.releaseRetry.Reset(m.releaseBackoff)
+}
+
+func (m *Manager) releaseDone() {
+	m.releaseProblem = ""
+	m.releaseBackoff = 0
+	m.releaseRetry.Stop()
 }
 
 // leave gives back what previous took: leaving managed, the config it
@@ -832,6 +915,25 @@ func (m *Manager) syncFile(ctx context.Context) {
 	if path == "" || readFile(path) == text {
 		return
 	}
+	if m.mode == "managed" {
+		lock, err := edit.LockDir(ctx, m.files().ConfigDir)
+		if err != nil {
+			m.o.Log.Warn("compositor: could not write "+path, "err", err)
+			return
+		}
+		defer lock.Release()
+		// Given back meanwhile (a command line's release): never written
+		// over. The takeover allowed is over, so apply() asks again
+		if !m.configIsOurs() {
+			m.logf("%s isn't axiom's any more: taking it over needs your approval again", path)
+			if err := m.approvals().remove(m.kind); err != nil {
+				m.o.Log.Warn("compositor: forgetting the takeover's approval", "err", err)
+			}
+			m.loaded = false
+			m.debounce.Reset(300 * time.Millisecond)
+			return
+		}
+	}
 	if err := writeFile(path, text); err != nil {
 		m.o.Log.Warn("compositor: could not write "+path, "err", err)
 	}
@@ -905,7 +1007,8 @@ func (m *Manager) PreviewMerge() {
 }
 
 func (m *Manager) mergeOptions(only string) binds.Options {
-	return binds.Options{Kind: m.kind, Dir: m.files().ConfigDir, Only: only, Actions: m.o.Actions, Getenv: m.o.Getenv}
+	return binds.Options{Kind: m.kind, Dir: m.files().ConfigDir, Only: only, Actions: m.o.Actions, Getenv: m.o.Getenv,
+		Isolate: m.o.Bin, Tree: m.o.Tree}
 }
 
 // merge: every bind in user/ that can move becomes one of axiom's, saved

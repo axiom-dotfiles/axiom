@@ -84,7 +84,28 @@ func (a approvals) add(kind string) error {
 	if a.has(kind) {
 		return nil
 	}
-	data, _ := json.MarshalIndent(map[string][]string{"approved": append(a.list(), kind)}, "", "  ")
+	return a.save(append(a.list(), kind))
+}
+
+// remove forgets kind's approval (its config was given back)
+func (a approvals) remove(kind string) error {
+	if !a.has(kind) {
+		return nil
+	}
+	var kept []string
+	for _, k := range a.list() {
+		if k != kind {
+			kept = append(kept, k)
+		}
+	}
+	return a.save(kept)
+}
+
+func (a approvals) save(kinds []string) error {
+	if kinds == nil {
+		kinds = []string{}
+	}
+	data, _ := json.MarshalIndent(map[string][]string{"approved": kinds}, "", "  ")
 	if err := os.MkdirAll(filepath.Dir(a.path), 0o755); err != nil {
 		return err
 	}

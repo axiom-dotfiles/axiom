@@ -1,6 +1,6 @@
 # Packaging: install.sh and the AUR packages
 
-> **Files:** `install.sh`, `packaging/aur/axiom-shell/PKGBUILD`, `packaging/aur/axiom-shell-git/PKGBUILD`, `scripts/check_packages.py`, `scripts/release.sh`, `components/methods/Packages.qml`, `config/Paths.qml`
+> **Files:** `install.sh`, `packaging/aur/axiom-shell/PKGBUILD`, `packaging/aur/axiom-shell-git/PKGBUILD`, `scripts/check_packages.py`, `scripts/release.sh`, `.github/workflows/release.yml`, `components/methods/Packages.qml`, `config/Paths.qml`
 > **Config:** none
 > **Related:** [Self-update](features/self-update.md), [Greeter install](features/greeter-install.md), [Onboarding](features/onboarding.md), [Config manager](core/config-manager.md)
 
@@ -45,8 +45,11 @@ Not on the AUR yet: AUR account registration is closed, so they wait in `packagi
   - The marker `/usr/share/axiom/.packaged`, holding `pkgver-pkgrel`.
 - Nothing writes under the code ([config-manager.md](core/config-manager.md) › Where files live). Python's bytecode cache can't be written there either, which Python ignores; the package ships none, since bytecode for one Python version goes stale on the next.
 - `axiom-shell.install` prints the autostart lines on install (`'/usr/bin/axiom' run`), and on upgrade to run `axiom daemon reexec` then `axiom restart` (pacman replaces files, which qs's watcher can miss).
-- **Release binaries** (none are published yet): a release's assets are to hold `axiom-linux-amd64`, `axiom-linux-arm64` (static, `CGO_ENABLED=0 go build -trimpath`) and a `SHA256SUMS` listing them, as `sha256sum` writes it. The greeter install takes the binary from there for a tag, else builds it ([greeter-install.md](features/greeter-install.md)).
-- **Releases:** `scripts/release.sh`, after pushing the tag, sets the release PKGBUILD's `pkgver`, `pkgrel=1` and the tarball's `sha256sums`, and regenerates `.SRCINFO` (`makepkg --printsrcinfo`). Committing that and pushing it to the AUR is the maintainer's step.
+- **Releases:** `scripts/release.sh` checks main, opens the notes and pushes an annotated `v*` tag. The tag runs `.github/workflows/release.yml`, and nothing is committed back:
+  - **The GitHub release** (`binaries` job), once the tag is checked to be on main: the tag's message as its notes, and the assets `axiom-linux-amd64` and `axiom-linux-arm64` (static: `CGO_ENABLED=0 go build -trimpath`, the tag stamped in as `buildinfo.version`, checked with `axiom version`) and a `SHA256SUMS` listing them, as `sha256sum` writes it. The greeter install takes the binary from there for a tag, else builds it ([greeter-install.md](features/greeter-install.md)); the installer will too.
+  - **The AUR** (`aur` job, skipped without the `AUR_SSH_PRIVATE_KEY` secret): `packaging/aur/` as main has it, `axiom-shell` given the tag's `pkgver`, the `pkgrel` and the tag tarball's `sha256sums`, built once with `makepkg --nodeps` as a check, `.SRCINFO` made for both, and each pushed to its AUR repository when it changed. The repository keeps no `.SRCINFO`, and the PKGBUILD's version fields are only the last release's.
+  - Settings: the `AUR_SSH_PRIVATE_KEY` secret (the AUR account's key); optional variables `AUR_HOST_FINGERPRINT` (pins `aur.archlinux.org`'s ed25519 key, `SHA256:…`), `AUR_GIT_NAME` and `AUR_GIT_EMAIL` (the AUR commits' author).
+  - **A packaging-only fix:** merge it to main, then run the workflow by hand (Actions → Release → Run workflow) with the tag and a higher `pkgrel`. A rerun also publishes the binaries again.
 - **Testing:** `makepkg` in a scratch copy of the folder (or its functions sourced with `srcdir`/`pkgdir` on a scratch clone, which tests uncommitted work), then `axiom schema check --tree <pkgdir>/usr/share/axiom`, `namcap` on the PKGBUILD and the package (in an `archlinux` container if it isn't installed: its QML-module and `bash`/`sh` warnings are expected), and `tar -tf` the package to see its files.
 
 ### A packaged shell

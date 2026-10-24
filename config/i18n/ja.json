@@ -2513,7 +2513,6 @@
     "Monitor layouts, one per set of connected monitors.": "接続されたモニターの組み合わせごとのモニターレイアウト。",
     "Gives {0} back: your previous one returns (in {1}, or the example config's backup), else a new one that starts axiom and loads {2}": "{0} を返します：以前のもの（{1} 内、またはサンプル設定のバックアップ）が戻り、なければ axiom を起動して {2} を読み込む新しいものになります",
     "Empties {0}, so a config that still loads it gets nothing": "{0} を空にするため、まだそれを読み込む設定には何も渡りません",
-    "Moves your {0} into {1}, where it keeps working, with a dated backup beside it": "{0} を {1} に移動し、そこでそのまま動作します（日付付きのバックアップも横に残ります）",
     "Replaces the example config {0}, keeping a dated backup beside it: its binds and monitor rule would fight axiom's": "サンプル設定 {0} を置き換え、日付付きのバックアップを横に残します（そのバインドとモニタールールは axiom のものと競合するため）",
     "Writes {0} from the cards below, loading {1} after it": "下のカードから {0} を書き込み、その後に {1} を読み込みます",
     "Reloads {0}": "{0} を再読み込みします",
@@ -3142,6 +3141,9 @@
     "The power menu: lock, suspend, hibernate, log out, reboot and power off, opened by the power button, a keybind or `axiom ipc powermenu toggle`.": "",
     "How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `axiom ipc workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.": "",
     "the file couldn't be read or written ({0})": "",
-    "the merge failed ({0})": ""
+    "the merge failed ({0})": "",
+    "Asks for your approval (Allow takeover) before it touches your {0}": "",
+    "Then moves your {0} into {1}, where it keeps working, with a dated backup beside it": "",
+    "axiom tries again by itself.": ""
   }
 }

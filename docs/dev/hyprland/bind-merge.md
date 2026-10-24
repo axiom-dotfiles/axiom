@@ -17,7 +17,9 @@
 - What a command calling axiom (`axiom ipc …`, `axiom lock`, `axiom restart`) or a volume, brightness or media command maps onto comes from `compositor/actions`, which reads `BindActions.qml`'s `ipcActions` and `actionFlags` from the tree, so a new IPC action needs no Go change.
 
 ### Extracting
-- It runs the files in-process under gopher-lua (Lua 5.1), with no `lua` binary.
+- It runs the files under gopher-lua (Lua 5.1), with no `lua` binary.
+  - The daemon runs them in a child (`axiom compositor binds extract --memory-limit`, its own image through `/proc/self/exe`) that caps itself at 1 GiB (`RLIMIT_DATA`, `binds.MemoryLimit`): gopher-lua has no heap limit, and a file building a huge string allocates it in one instruction, so only the kernel can refuse it, and then only the child dies, never the daemon (the shell's parent). The merge then fails with what happened, and nothing moves.
+  - In any process, `string.rep` refuses a result over 16 MiB and the call stack is bounded.
   - Each file is required as `user.<name>` against a stand-in `hl` that records `hl.bind`/`hl.unbind` with their file and line.
   - Because the files really run, variables, string building and loops work.
   - Limits:

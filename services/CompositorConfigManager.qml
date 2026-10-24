@@ -44,6 +44,9 @@ Singleton {
   // config already binds them
   readonly property var skippedKeys: _state.skippedKeys ?? []
   readonly property bool takeoverPending: _state.takeoverPending === true
+  // Why the managed config couldn't be given back on leaving managed mode
+  // (the daemon tries again), or ""
+  readonly property string releaseProblem: _state.releaseProblem ?? ""
   // What switching to managed would do: "ours" | "adopt" | "stock" |
   // "released" | "new" | "blocked" (by managedBlockedBy "link" or "git")
   readonly property string managedCheck: _state.managedCheck ?? ""
@@ -154,13 +157,16 @@ Singleton {
   // reads: Compositor.hyprland.*, WindowBehaviour.*
   readonly property var _managed: Object.assign({}, HyprlandConfig.managed, WindowBehaviourConfig.behaviour)
 
-  // The theme colors the managed options name, as "rrggbb"
+  // The theme colors the managed options name, as "rrggbb" (every string
+  // is tried: one that isn't a color, a curve's name, is left out)
   function _colors(values) {
     const out = {};
     const walk = v => {
-      if (typeof v === "string")
-        out[v] = CompositorLayer.hex(Theme.resolveColor(v));
-      else if (v !== null && typeof v === "object")
+      if (typeof v === "string") {
+        const hex = CompositorLayer.hex(Theme.resolveColor(v));
+        if (/^[0-9a-fA-F]{6}$/.test(hex))
+          out[v] = hex;
+      } else if (v !== null && typeof v === "object")
         for (const key in v)
           walk(v[key]);
     };

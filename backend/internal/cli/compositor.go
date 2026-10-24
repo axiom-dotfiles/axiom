@@ -83,9 +83,15 @@ func bindsCommand(verb, summary, synopsis string) *Command {
 			kind := fs.String("kind", "", "hyprland, sway or niri")
 			only := fs.String("only", "", "extract: just this file of user/ (the one a takeover adopted)")
 			dir := fs.String("tree", "", "the axiom tree whose bind actions to use (default: $AXIOM_TREE, the one here, else the installed one)")
+			memory := fs.Int64("memory-limit", 0, "extract: cap this process's memory at this many bytes first (the daemon's child running Hyprland's files)")
 			return func(ctx context.Context, e *Env, args []string) error {
 				if want := strings.Count(synopsis, " ") + 1; len(args) != want {
 					return usageError(trail, "takes "+synopsis)
+				}
+				if *memory > 0 && verb == "extract" {
+					if err := binds.LimitMemory(*memory); err != nil {
+						return err
+					}
 				}
 				wd, _ := os.Getwd()
 				root, err := tree.Find(*dir, e.Getenv, wd)

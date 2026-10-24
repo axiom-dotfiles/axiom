@@ -1,7 +1,9 @@
 # Maintainer: Travis Hepworth <travis at batk dot me>
 #
 # axiom built from main; axiom-shell is the same package at the latest
-# release (scripts/release.sh bumps that one). Both keep
+# release. CI pushes both to the AUR on every release tag, with .SRCINFO
+# (.github/workflows/release.yml); pkgver() sets the real version at build
+# time. Both keep
 # their depends and optdepends in step with install.sh's tables
 # (scripts/check_packages.py). docs/dev/packaging.md says how it's laid out.
 

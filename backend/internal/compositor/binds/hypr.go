@@ -12,6 +12,7 @@ import (
 
 	"github.com/axiom-shell/axiom/backend/internal/compositor/actions"
 	"github.com/axiom-shell/axiom/backend/internal/compositor/edit"
+	"github.com/axiom-shell/axiom/backend/internal/compositor/luacheck"
 	"github.com/axiom-shell/axiom/backend/internal/jsonx"
 )
 
@@ -235,83 +236,6 @@ func toAxiom(b luaBind, adopted bool) (*jsonx.Object, [2]string) {
 
 // --- Lua source ---
 
-// longBracket is the length of a long bracket opening at i ("[[", "[==["),
-// else 0
-func longBracket(text string, i int) int {
-	if i >= len(text) || text[i] != '[' {
-		return 0
-	}
-	j := i + 1
-	for j < len(text) && text[j] == '=' {
-		j++
-	}
-	if j < len(text) && text[j] == '[' {
-		return j - i + 1
-	}
-	return 0
-}
-
-// skipToken: if a string or comment starts at i, the index after it, else
-// -1
-func skipToken(text string, i int) int {
-	c := text[i]
-	if c == '"' || c == '\'' {
-		j := i + 1
-		for j < len(text) && text[j] != c {
-			if text[j] == '\\' {
-				j++
-			} else if text[j] == '\n' {
-				return j
-			}
-			j++
-		}
-		return j + 1
-	}
-	closing := func(from, n int) int {
-		end := strings.Index(text[from:], "]"+strings.Repeat("=", n-2)+"]")
-		if end < 0 {
-			return len(text)
-		}
-		return from + end + n
-	}
-	if strings.HasPrefix(text[i:], "--") {
-		if n := longBracket(text, i+2); n > 0 {
-			return closing(i+2+n, n)
-		}
-		end := strings.IndexByte(text[i:], '\n')
-		if end < 0 {
-			return len(text)
-		}
-		return i + end
-	}
-	if c == '[' {
-		if n := longBracket(text, i); n > 0 {
-			return closing(i+n, n)
-		}
-	}
-	return -1
-}
-
-// codeOnly is text with strings and comments blanked out (newlines kept),
-// so positions still line up
-func codeOnly(text string) string {
-	out := []byte(text)
-	for i := 0; i < len(text); {
-		end := skipToken(text, i)
-		if end < 0 {
-			i++
-			continue
-		}
-		for j := i; j < min(end, len(text)); j++ {
-			if out[j] != '\n' {
-				out[j] = ' '
-			}
-		}
-		i = end
-	}
-	return string(out)
-}
-
 var assignedTo = regexp.MustCompile(`^\s*(?:local\s+)?([A-Za-z_]\w*)\s*=\s*$`)
 
 // statementSpan is where the statement made of the call ("hl.bind")
@@ -478,7 +402,7 @@ func extractHypr(ctx context.Context, o Options) (*jsonx.Object, error) {
 		src, ok := texts[file]
 		if !ok {
 			data, _ := os.ReadFile(file)
-			src = source{string(data), codeOnly(string(data))}
+			src = source{string(data), luacheck.CodeOnly(string(data))}
 			texts[file] = src
 		}
 		_, _, reason := statementSpan(src.text, src.code, line, call)
@@ -601,7 +525,7 @@ func removeHypr(ctx context.Context, o Options, sites *jsonx.Array) (*jsonx.Obje
 			continue
 		}
 		text := string(data)
-		code := codeOnly(text)
+		code := luacheck.CodeOnly(text)
 		lines := byFile[file]
 		sort.Ints(lines)
 		type span struct{ start, end int }

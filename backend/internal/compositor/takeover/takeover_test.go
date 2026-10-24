@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/axiom-shell/axiom/backend/internal/axerr"
+	"github.com/axiom-shell/axiom/backend/internal/compositor/edit"
 	"github.com/axiom-shell/axiom/backend/internal/compositor/luacheck"
 )
 
@@ -468,6 +469,28 @@ func TestHyprlandAdoptKeepsAFileThatWouldntParse(t *testing.T) {
 	eq(t, f.read("user/00-previous.lua"), mine)
 }
 
+// Without luac, gopher-lua (5.1) can't read a 5.4 config: an edit is made
+// when each line it changes is whole statements, and given back on release
+func TestHyprlandAdoptsA54ConfigWithoutLuac(t *testing.T) {
+	t.Parallel()
+	f := newFx(t, "hyprland")
+	f.lua = luacheck.Checker{LookPath: func(string) (string, error) { return "", errors.New("none") }}
+	mine := "local gap <const> = 10 // 2\nhl.on(\"hyprland.start\", function() hl.exec_cmd(\"axiom run\") end) -- axiom\nhl.config({ gaps = gap })\n"
+	f.write("hyprland.lua", mine)
+	eq(t, f.run("claim"), "adopted:00-previous.lua")
+	eq(t, f.read("user/00-previous.lua"), strings.Replace(mine, "hl.on(", f.kind.marker+"hl.on(", 1))
+	f.ours()
+	f.run("release")
+	eq(t, f.read("hyprland.lua"), mine)
+	// One that isn't whole (inside a call over lines) stays as it was
+	g := newFx(t, "hyprland")
+	g.lua = f.lua
+	split := "local gap <const> = 10 // 2\nhl.exec_cmd(\n  \"axiom run\")\n"
+	g.write("hyprland.lua", split)
+	g.run("claim")
+	eq(t, g.read("user/00-previous.lua"), split)
+}
+
 func TestHyprlandReleaseGivesTheAdoptedConfigBack(t *testing.T) {
 	t.Parallel()
 	f := newFx(t, "hyprland")
@@ -646,4 +669,34 @@ func TestHyprlandClaimAfterAReleaseCopiesTheConfigAnew(t *testing.T) {
 	}
 	eq(t, got, "adopted:00-previous.lua")
 	eq(t, f.read("user/00-previous.lua"), "-- mine\n")
+}
+
+// Every verb holds the config dir's lock: one waits while another process
+// (the daemon, a command line) changes the dir, unless its caller holds it
+func TestVerbsWaitForTheDirsLock(t *testing.T) {
+	t.Parallel()
+	f := newFx(t, "hyprland")
+	f.write("hyprland.lua", "-- mine\n")
+	held, err := edit.LockDir(context.Background(), f.dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, verb := range []func(context.Context, Options) (string, error){Check, Claim, Release} {
+		ctx, cancel := context.WithTimeout(context.Background(), 150*time.Millisecond)
+		_, err := verb(ctx, f.options(f.dir))
+		cancel()
+		var ae *axerr.Error
+		if !errors.As(err, &ae) || ae.Kind != axerr.Running {
+			t.Fatalf("not refused while locked: %v", err)
+		}
+	}
+	eq(t, f.read("hyprland.lua"), "-- mine\n")
+	o := f.options(f.dir)
+	o.Locked = true
+	got, err := Claim(context.Background(), o)
+	if err != nil || got != "adopted:00-previous.lua" {
+		t.Fatalf("the holder's own claim: %q %v", got, err)
+	}
+	held.Release()
+	eq(t, f.run("check"), "adopt")
 }

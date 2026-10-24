@@ -1,6 +1,6 @@
 # Services pattern
 
-> **Files:** `services/*.qml`, `services/ConsumerRegistry.qml`, `services/CommandManager.qml`, `services/SystemManager.qml`, `services/UpdatesManager.qml`, `config/Paths.qml`, `shell.qml`
+> **Files:** `services/*.qml`, `scripts/quickshell-io-allowlist.json`, `services/ConsumerRegistry.qml`, `services/CommandManager.qml`, `services/SystemManager.qml`, `services/UpdatesManager.qml`, `config/Paths.qml`, `shell.qml`
 > **Config:** none of its own
 > **Related:** [Config manager](config-manager.md), [Config readers](config-readers.md), [Editors pattern](editors-pattern.md), [Shell manager and screen targeting](shell-manager-targeting.md)
 
@@ -38,7 +38,7 @@ How `services/` is built: one singleton per domain, owning state and side effect
 - `run(command, callback, input)` runs a service's one-off command.
   - callback is `(exitCode, stdout, stderr)`
   - `input` goes to stdin.
-- So services keep no `Process` of their own for one-off commands.
+- So services keep no `Process` of their own. Direct `Process`, `FileView`, `Socket`, `IpcHandler` and `Quickshell.execDetached` are frozen to the files in `scripts/quickshell-io-allowlist.json` (`check_structure`), which shrinks as those side effects move to the axiom daemon ([protocol](../backend/protocol.md)). Funnelling through `CommandManager`, `FileManager` and `StateManager` means each can later be switched to the daemon in one place.
 
 ### Other domain services
 They follow the same pattern:

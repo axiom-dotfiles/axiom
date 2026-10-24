@@ -1,7 +1,9 @@
 # Maintainer: Travis Hepworth <travis at batk dot me>
 #
-# axiom's release package. scripts/release.sh bumps pkgver, sha256sums and
-# .SRCINFO; axiom-shell-git is the same package built from main. Both keep
+# axiom's release package. CI fills in pkgver, pkgrel and sha256sums for
+# each release tag, makes .SRCINFO and pushes it to the AUR
+# (.github/workflows/release.yml): the values here are only the last
+# release's. axiom-shell-git is the same package built from main. Both keep
 # their depends and optdepends in step with install.sh's tables
 # (scripts/check_packages.py). docs/dev/packaging.md says how it's laid out.
 

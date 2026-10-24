@@ -1,0 +1,137 @@
+{
+  "_comment": "Files allowed to run processes, read or write files, open sockets or take IPC directly through Quickshell.Io (Process, FileView, Socket, IpcHandler, Quickshell.execDetached). This list only shrinks: these side effects are moving to the axiom daemon (docs/dev/backend/protocol.md). New code goes through CommandManager, FileManager, StateManager, IpcTarget or the daemon. scripts/check_structure.py fails on a use not listed here and on an entry no longer used.",
+  "files": {
+    "config/I18n.qml": [
+      "FileView"
+    ],
+    "services/BackendManager.qml": [
+      "Socket"
+    ],
+    "services/CalculatorManager.qml": [
+      "Process"
+    ],
+    "services/ChatManager.qml": [
+      "FileView",
+      "execDetached"
+    ],
+    "services/ChatRequest.qml": [
+      "Process",
+      "FileView",
+      "execDetached"
+    ],
+    "services/ClaudeUsageManager.qml": [
+      "Process",
+      "FileView"
+    ],
+    "services/ClipboardManager.qml": [
+      "Process"
+    ],
+    "services/CommandManager.qml": [
+      "Process",
+      "execDetached"
+    ],
+    "services/CommunityFetch.qml": [
+      "Process"
+    ],
+    "services/CompositorConfigManager.qml": [
+      "execDetached"
+    ],
+    "services/DependencyManager.qml": [
+      "Process"
+    ],
+    "services/EmojiManager.qml": [
+      "execDetached"
+    ],
+    "services/FileManager.qml": [
+      "FileView"
+    ],
+    "services/FilePickerManager.qml": [
+      "Process"
+    ],
+    "services/GreetdManager.qml": [
+      "execDetached"
+    ],
+    "services/HypridleManager.qml": [
+      "Process",
+      "FileView"
+    ],
+    "services/HyprlandIpcManager.qml": [
+      "Socket"
+    ],
+    "services/IntegrationHookupManager.qml": [
+      "Process"
+    ],
+    "services/IpcTarget.qml": [
+      "IpcHandler"
+    ],
+    "services/LauncherManager.qml": [
+      "execDetached"
+    ],
+    "services/LockManager.qml": [
+      "execDetached"
+    ],
+    "services/MediaManager.qml": [
+      "Process"
+    ],
+    "services/NetworkingManager.qml": [
+      "Process"
+    ],
+    "services/NightLightManager.qml": [
+      "Process"
+    ],
+    "services/NiriIpcManager.qml": [
+      "Socket"
+    ],
+    "services/NotesManager.qml": [
+      "FileView"
+    ],
+    "services/NotificationManager.qml": [
+      "FileView",
+      "execDetached"
+    ],
+    "services/PolkitManager.qml": [
+      "Process"
+    ],
+    "services/ScreenshotManager.qml": [
+      "Process",
+      "execDetached"
+    ],
+    "services/SelfUpdateManager.qml": [
+      "Process",
+      "execDetached"
+    ],
+    "services/ShellManager.qml": [
+      "execDetached"
+    ],
+    "services/StateManager.qml": [
+      "Process",
+      "FileView"
+    ],
+    "services/SystemManager.qml": [
+      "Process",
+      "FileView",
+      "execDetached"
+    ],
+    "services/TailscaleManager.qml": [
+      "Process"
+    ],
+    "services/ThemeManager.qml": [
+      "Process",
+      "FileView",
+      "execDetached"
+    ],
+    "services/TimeZoneManager.qml": [
+      "Process"
+    ],
+    "services/TodoManager.qml": [
+      "FileView"
+    ],
+    "services/UpdatesManager.qml": [
+      "Process"
+    ],
+    "services/WallpaperManager.qml": [
+      "Process",
+      "execDetached"
+    ]
+  }
+}

@@ -1,8 +1,11 @@
 package fsx
 
 import (
+	"context"
+	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"golang.org/x/sys/unix"
 )
@@ -28,5 +31,41 @@ func TestAdoptSetsCloseOnExec(t *testing.T) {
 	flags, err := unix.FcntlInt(uintptr(int(adopted.File().Fd())), unix.F_GETFD, 0)
 	if err != nil || flags&unix.FD_CLOEXEC == 0 {
 		t.Errorf("flags %#x err %v: close-on-exec not set", flags, err)
+	}
+}
+
+func TestLockDirWaitsForTheHolder(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	l, err := LockDir(context.Background(), dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Held (another descriptor counts as another holder): a second waits,
+	// until its context ends
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+	if _, err := LockDir(ctx, dir); err == nil {
+		t.Fatal("locked twice")
+	}
+	got := make(chan error, 1)
+	go func() {
+		l2, err := LockDir(context.Background(), dir)
+		l2.Release()
+		got <- err
+	}()
+	time.Sleep(100 * time.Millisecond)
+	l.Release()
+	select {
+	case err := <-got:
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("never got the lock once released")
+	}
+	// Nothing was added to the folder
+	if entries, _ := os.ReadDir(dir); len(entries) != 0 {
+		t.Fatalf("left %v", entries)
 	}
 }

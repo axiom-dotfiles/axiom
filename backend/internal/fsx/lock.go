@@ -1,11 +1,13 @@
 package fsx
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/sys/unix"
 
@@ -96,4 +98,32 @@ func (l *Lock) Release() error {
 	err := l.f.Close()
 	l.f = nil
 	return err
+}
+
+// LockDir takes the exclusive lock on a directory itself (flock on the
+// directory, its links followed), waiting while another process holds it,
+// until ctx ends. For a folder of the user's (a compositor's config dir)
+// that two processes may change at once: it adds no file to it, and a
+// rename inside it never replaces the inode the lock is on.
+func LockDir(ctx context.Context, dir string) (*Lock, error) {
+	f, err := os.OpenFile(dir, os.O_RDONLY|unix.O_DIRECTORY|unix.O_CLOEXEC, 0)
+	if err != nil {
+		return nil, axerr.Wrap(axerr.Unavailable, err, "opening %s to lock it", dir)
+	}
+	for {
+		err := unix.Flock(int(f.Fd()), unix.LOCK_EX|unix.LOCK_NB)
+		if err == nil {
+			return &Lock{f: f}, nil
+		}
+		if !errors.Is(err, unix.EWOULDBLOCK) {
+			f.Close()
+			return nil, axerr.Wrap(axerr.Unavailable, err, "locking %s", dir)
+		}
+		select {
+		case <-ctx.Done():
+			f.Close()
+			return nil, axerr.Wrap(axerr.Running, ctx.Err(), "%s is being changed by another axiom", dir)
+		case <-time.After(50 * time.Millisecond):
+		}
+	}
 }

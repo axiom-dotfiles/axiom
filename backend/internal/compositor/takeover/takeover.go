@@ -62,6 +62,23 @@ type Options struct {
 	// Git is the repository dir is in, if any (default `git rev-parse`)
 	Git func(ctx context.Context, dir string) (string, bool)
 	Lua luacheck.Checker
+	// Locked: the caller holds Dir's lock (edit.LockDir), as the compositor
+	// manager does across a claim and the managed write after it; else
+	// each verb takes it
+	Locked bool
+}
+
+// lock takes Dir's lock unless the caller holds it; a missing Dir is made
+// only to claim it (nothing else to keep apart there)
+func (c *call) lock(ctx context.Context, create bool) (func(), error) {
+	if c.Locked || (!create && !exists(c.Dir)) {
+		return func() {}, nil
+	}
+	l, err := edit.LockDir(ctx, c.Dir)
+	if err != nil {
+		return nil, err
+	}
+	return func() { l.Release() }, nil
 }
 
 // call is one verb's working state.
@@ -126,6 +143,11 @@ func Check(ctx context.Context, o Options) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	unlock, err := c.lock(ctx, false)
+	if err != nil {
+		return "", err
+	}
+	defer unlock()
 	if c.isOurs() {
 		return "ours", nil
 	}
@@ -149,6 +171,11 @@ func Claim(ctx context.Context, o Options) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	unlock, err := c.lock(ctx, true)
+	if err != nil {
+		return "", err
+	}
+	defer unlock()
 	if c.isOurs() {
 		return "ours", nil
 	}
@@ -206,6 +233,11 @@ func Release(ctx context.Context, o Options) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	unlock, err := c.lock(ctx, false)
+	if err != nil {
+		return "", err
+	}
+	defer unlock()
 	if !c.isOurs() {
 		return "notours", nil
 	}
@@ -335,7 +367,7 @@ func (c *call) adopt(ctx context.Context, path string) error {
 		}
 		return line
 	})
-	if edited == text || (c.Kind.parses && !c.Lua.Parses(ctx, edited)) {
+	if edited == text || !c.keepsParsing(ctx, text, edited, edited) {
 		return nil
 	}
 	return edit.WriteMode(path, []byte(edited), modeOf(path))
@@ -344,10 +376,42 @@ func (c *call) adopt(ctx context.Context, path string) error {
 // enable undoes adopt's commenting out, unless that leaves it unparsable
 func (c *call) enable(ctx context.Context, text string) string {
 	enabled := mapLines(text, func(line string) string { return strings.TrimPrefix(line, c.Kind.marker) })
-	if c.Kind.parses && enabled != text && !c.Lua.Parses(ctx, enabled) {
+	if enabled == text || !c.keepsParsing(ctx, text, enabled, text) {
 		return text
 	}
 	return enabled
+}
+
+// keepsParsing: after, the edit of before (lines commented out or back in),
+// still parses where it must (the kind's parses). The checker decides when
+// it reads before; when it can't (Lua 5.4's syntax, with gopher-lua
+// standing in for luac), each changed line must be whole statements in
+// commented, the side holding them as code
+func (c *call) keepsParsing(ctx context.Context, before, after, commented string) bool {
+	if !c.Kind.parses || c.Lua.Parses(ctx, after) {
+		return true
+	}
+	if c.Lua.Parses(ctx, before) {
+		return false
+	}
+	code := after
+	if commented == after {
+		code = before
+	}
+	return luacheck.WholeLines(code, changedLines(before, after))
+}
+
+// changedLines are the 1-based lines that differ between a and b (the same
+// number of lines)
+func changedLines(a, b string) []int {
+	x, y := splitLines(a), splitLines(b)
+	var out []int
+	for i := range min(len(x), len(y)) {
+		if x[i] != y[i] {
+			out = append(out, i+1)
+		}
+	}
+	return out
 }
 
 // splitLines is text's lines, without a last empty one after the final

@@ -58,7 +58,10 @@ func (d *Daemon) newCompositor() *manager.Manager {
 		Push: func(method string, params any) {
 			d.server.Broadcast(method, json.RawMessage(jsonx.MarshalCompact(params)), subscribedTo(topicCompositor))
 		},
-		Log: d.opts.Log.With("part", "compositor"),
+		// This image, even once the file it came from is replaced
+		Bin:  "/proc/self/exe",
+		Tree: d.opts.Tree,
+		Log:  d.opts.Log.With("part", "compositor"),
 	})
 }
 

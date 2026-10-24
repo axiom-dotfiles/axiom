@@ -82,7 +82,8 @@ FieldGroup {
     if (root.pendingMode === "managed") {
       switch (CompositorConfigManager.managedCheck) {
       case "adopt":
-        steps.push(I18n.tr("Moves your {0} into {1}, where it keeps working, with a dated backup beside it", managed, user));
+        steps.push(I18n.tr("Asks for your approval (Allow takeover) before it touches your {0}", managed));
+        steps.push(I18n.tr("Then moves your {0} into {1}, where it keeps working, with a dated backup beside it", managed, user));
         break;
       case "stock":
         steps.push(I18n.tr("Replaces the example config {0}, keeping a dated backup beside it: its binds and monitor rule would fight axiom's", managed));
@@ -267,6 +268,15 @@ FieldGroup {
         onClicked: CompositorConfigManager.allowTakeover()
       }
     }
+  }
+
+  StyledText {
+    visible: CompositorConfigManager.releaseProblem !== ""
+    text: CompositorConfigManager.releaseProblem + "\n" + I18n.tr("axiom tries again by itself.")
+    textColor: Theme.warning
+    textSize: Appearance.fontSizeBy(-1)
+    wrapMode: Text.WordWrap
+    Layout.fillWidth: true
   }
 
   StyledText {

@@ -10,9 +10,10 @@
 #              than the latest tag. Checks for a clean main that matches
 #              origin, runs the same checks as CI, opens git's editor on notes
 #              prefilled with the commits since the last tag, then tags and
-#              pushes. Last, it points the AUR package
-#              (packaging/aur/axiom-shell) at the new tag, for you to commit
-#              and push to the AUR. --dry-run stops before tagging.
+#              pushes. The tag starts .github/workflows/release.yml, which
+#              publishes the GitHub release (the binaries and SHA256SUMS) and
+#              the AUR packages: nothing to commit afterwards. --dry-run stops
+#              before tagging.
 
 set -euo pipefail
 
@@ -108,27 +109,4 @@ git tag -a "$tag" -F "$notes" --cleanup=strip
 git push origin "$tag" || die "push failed; $tag exists locally only (retry: git push origin $tag)"
 info "Released $tag"
 
-if command -v gh >/dev/null; then
-  read -rp ":: Create a GitHub release page too? [y/N] " answer || answer=""
-  if [[ "$answer" == [yY]* ]]; then
-    gh release create "$tag" --notes-from-tag --verify-tag
-  fi
-fi
-
-# ─── The AUR package ─────────────────────────────────────────────────────────
-
-# Its PKGBUILD at the new tag: pkgver, pkgrel 1, the tag tarball's checksum
-# and .SRCINFO (docs/dev/packaging.md)
-aur=packaging/aur/axiom-shell
-url=$(sed -n "s/^url='\(.*\)'$/\1/p" "$aur/PKGBUILD")
-info "Pointing $aur at $tag"
-sum=$(curl -fsSL "$url/archive/refs/tags/$tag.tar.gz" | sha256sum | cut -d' ' -f1) ||
-  die "downloading $tag's tarball failed; update $aur/PKGBUILD by hand"
-sed -i -e "s/^pkgver=.*/pkgver=$version/" -e "s/^pkgrel=.*/pkgrel=1/" \
-  -e "s/^sha256sums=.*/sha256sums=('$sum')/" "$aur/PKGBUILD"
-if command -v makepkg >/dev/null; then
-  (cd "$aur" && makepkg --printsrcinfo >.SRCINFO)
-else
-  info "makepkg isn't installed: regenerate $aur/.SRCINFO on Arch (makepkg --printsrcinfo > .SRCINFO)"
-fi
-info "Commit $aur to main, then copy its PKGBUILD, axiom-shell.install and .SRCINFO into the AUR's axiom-shell repository and push them there"
+info "CI publishes the release and the AUR packages: $(git remote get-url origin | sed -E 's#^git@github.com:#https://github.com/#; s#\.git$##')/actions/workflows/release.yml"

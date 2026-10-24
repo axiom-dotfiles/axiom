@@ -53,6 +53,13 @@ type Options struct {
 	Lua     luacheck.Checker
 	// Timeout: how long Hyprland's files may run (default 30 s)
 	Timeout time.Duration
+	// Locked: the caller holds Dir's lock (edit.LockDir); else Remove
+	// takes it
+	Locked bool
+	// Isolate: the axiom binary to read Hyprland's files in, a child
+	// limited to MemoryLimit (the daemon's own, /proc/self/exe), with Tree
+	// the tree whose bind actions it reads; "" reads them in this process
+	Isolate, Tree string
 }
 
 func (o *Options) defaults() error {
@@ -89,6 +96,10 @@ func Extract(ctx context.Context, o Options) (*jsonx.Object, error) {
 	}
 	switch o.Kind {
 	case "hyprland":
+		// The only one that runs the user's files
+		if o.Isolate != "" {
+			return extractIsolated(ctx, o)
+		}
 		return extractHypr(ctx, o)
 	case "sway":
 		return extractSway(ctx, o), nil
@@ -98,10 +109,18 @@ func Extract(ctx context.Context, o Options) (*jsonx.Object, error) {
 	return nil, axerr.New(axerr.BadRequest, "unknown compositor %q", o.Kind)
 }
 
-// Remove takes the sites extract named out of their files.
+// Remove takes the sites extract named out of their files, holding the
+// config dir's lock.
 func Remove(ctx context.Context, o Options, sites *jsonx.Array) (*jsonx.Object, error) {
 	if err := o.defaults(); err != nil {
 		return nil, err
+	}
+	if !o.Locked {
+		l, err := edit.LockDir(ctx, o.Dir)
+		if err != nil {
+			return nil, err
+		}
+		defer l.Release()
 	}
 	switch o.Kind {
 	case "hyprland":

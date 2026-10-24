@@ -2,6 +2,9 @@
 // a user's Hyprland files: an edit that would leave a file unparsable is
 // never written. Hyprland embeds Lua 5.4, and gopher-lua parses 5.1, so
 // `luac` decides where it's installed and gopher-lua only stands in for it.
+// Where neither reads a file (5.4's syntax without luac), WholeLines says
+// whether a line can be commented out without touching the rest: what a
+// takeover's edits do. No `lua` dependency is needed for either.
 package luacheck
 
 import (

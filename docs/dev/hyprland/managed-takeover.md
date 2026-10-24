@@ -15,6 +15,7 @@ How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how l
 - On this machine, `user/` is a symlink to `~/repos/dotfiles/hypr/user`.
 
 ### `check` and `claim`
+- Every verb holds the config dir's lock (`edit.LockDir`: `flock` on the dir itself, no file added; 10 s of waiting, then an error), as does the bind merge's removal, so the daemon and a command line never interleave. The daemon holds it across a claim and the managed write after it (`Options.Locked`), and rewrites the managed config later only while it's still axiom's.
 - The takeover is the binary's (`backend/internal/compositor/takeover`, the same on every compositor: `Kind` holds what differs). The daemon runs it as it applies the managed mode (`compositor.checkManaged` asks for the check), and `axiom compositor check|claim|release --kind hyprland -- DIR HEADER [FALLBACK]` runs it from the command line. Its verbs:
   - `check`, used by `checkManaged()`
   - `claim`, which does the takeover
@@ -30,7 +31,7 @@ How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how l
   - `claim` only backs a stock file up (`replaced`) instead of adopting it into `user/`, since its binds and `hl.monitor` rule would fight axiom's.
 - **Results.** `claim` prints one of:
   - `adopted:<name>`: the file is copied to `user/00-previous.lua`, or to `00-previous-<date>.lua` when that's taken.
-    - Lines in it that start axiom (not a bind calling its IPC, which the bind merge reads), or that `dofile` its included module, are commented out, unless the file then no longer parses (`luacheck`: `luac -p` where it's installed, else gopher-lua, which parses Lua 5.1 only, so a file using 5.4's syntax is left as it is).
+    - Lines in it that start axiom (not a bind calling its IPC, which the bind merge reads), or that `dofile` its included module, are commented out, unless the file then no longer parses (`luacheck`: `luac -p` where it's installed, else gopher-lua). gopher-lua parses Lua 5.1 only: for a file it can't read (5.4's syntax), the edit is made when each line it changes holds whole statements (`luacheck.WholeLines`: outside any string or comment, its brackets and blocks closed on it), which 5.4's additions don't change. No `lua` package is needed.
     - Those lines are commented out because a second start without `-n` would be a second shell, and the include would bind everything twice.
   - `created`: there was no file.
 - **Released files.** A file that `release` wrote (`releasedLua()`, unedited apart from the include lines) is reported as `released` by `check`. It is only replaced, not kept.

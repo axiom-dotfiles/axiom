@@ -47,7 +47,10 @@ type luaFound struct {
 // rename do nothing, and there's no debug library. Lua 5.1 (gopher-lua):
 // a file using 5.4's syntax is one of the errors.
 func runHyprFiles(ctx context.Context, dir string, modules []string, getenv func(string) string) (*luaFound, error) {
-	L := lua.NewState(lua.Options{SkipOpenLibs: true})
+	// A bounded stack (a runaway recursion, unpack of a huge range): an
+	// error, not memory without end. The heap has no such bound: the
+	// daemon reads the files in a child limited to MemoryLimit
+	L := lua.NewState(lua.Options{SkipOpenLibs: true, CallStackSize: 1024, RegistrySize: 1024 * 20, RegistryMaxSize: 1 << 20})
 	defer L.Close()
 	L.SetContext(ctx)
 	for _, lib := range []struct {
@@ -158,6 +161,29 @@ func sandbox(L *lua.LState, getenv func(string) string) {
 	// What the files print goes nowhere
 	L.SetGlobal("print", noop)
 
+	// string.rep (and s:rep) as 5.4 has it (a separator too), refusing a
+	// result past maxRep: one call would otherwise allocate it all at once
+	str := L.GetGlobal("string").(*lua.LTable)
+	L.SetField(str, "rep", L.NewFunction(func(L *lua.LState) int {
+		s, n, sep := L.CheckString(1), L.CheckInt64(2), L.OptString(3, "")
+		if n <= 0 {
+			L.Push(lua.LString(""))
+			return 1
+		}
+		if (int64(len(s))+int64(len(sep)))*n > maxRep {
+			L.RaiseError("string.rep: a result over %d bytes", maxRep)
+		}
+		var b strings.Builder
+		for i := range n {
+			if i > 0 {
+				b.WriteString(sep)
+			}
+			b.WriteString(s)
+		}
+		L.Push(lua.LString(b.String()))
+		return 1
+	}))
+
 	// Lua 5.4's names for what 5.1 has, or close to it
 	table := L.GetGlobal("table").(*lua.LTable)
 	L.SetField(table, "unpack", L.GetGlobal("unpack"))
@@ -185,6 +211,9 @@ func sandbox(L *lua.LState, getenv func(string) string) {
 		return 1
 	}))
 }
+
+// maxRep is the longest string string.rep makes
+const maxRep = 16 << 20
 
 func osTime(L *lua.LState) int {
 	L.Push(lua.LNumber(0))

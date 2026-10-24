@@ -2,7 +2,7 @@
 
 > **Use when:** a feature needs state, a process, polling, file writes or Hyprland dispatches. UI never does those itself.
 > **Copy from:**
-> - `services/TailscaleManager.qml`: polled state through a `ConsumerRegistry`; its consumer is `components/bar/widgets/Tailscale/Tailscale.qml`.
+> - `services/TailscaleManager.qml`: polled state through a `ConsumerRegistry`; its consumer is `components/bar/widgets/Tailscale/Tailscale.qml`. It predates the Quickshell.Io allowlist and keeps a `Process` of its own: a new service runs its command through `CommandManager.run`, as the skeleton below does.
 > - `services/IdleInhibitManager.qml`: an IPC handler, and state kept across reloads in `PersistentProperties`.
 > **Docs:** [services-pattern](../dev/core/services-pattern.md), `services/AGENTS.md`, generated API `docs/dev/generated/api/<Name>.md`
 
@@ -10,13 +10,12 @@
 1. `services/<Name>Manager.qml`: a `pragma Singleton` (`QtObject`, or Quickshell's `Singleton` when it holds child objects like `PersistentProperties`).
 2. Its consumers: widgets, modules, other services.
 3. `shell.qml` → `_services`: only if nothing else references it (e.g. it exists only for IPC or a background job).
-4. `docs/usage.md` → the IPC targets table, if it has an `IpcHandler`.
+4. `docs/usage.md` → the IPC targets table, if it has an `IpcTarget`.
 
 ## Skeleton
 ```qml
 pragma Singleton
 import QtQuick
-import Quickshell.Io
 
 // One or two sentences: what this owns and who uses it.
 QtObject {
@@ -38,8 +37,18 @@ QtObject {
   }
 
   function refresh() {
-    if (!_check.running)
-      _check.running = true;
+    if (root._checking)
+      return;
+    root._checking = true;
+    CommandManager.run(["sh", "-c", "command -v foo >/dev/null || exit 127; foo status --json"], (exitCode, out) => {
+      root._checking = false;
+      root.available = exitCode !== 127;
+      let status = null;
+      try {
+        status = JSON.parse(out);
+      } catch (e) {}
+      root.state = status?.State ?? "";
+    });
   }
 
   // -- Private --
@@ -54,21 +63,9 @@ QtObject {
     onTriggered: root.refresh()
   }
 
-  property Process _check: Process {
-    command: ["sh", "-c", "command -v foo >/dev/null || exit 127; foo status --json"]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        let status = null;
-        try {
-          status = JSON.parse(text);
-        } catch (e) {}
-        root.state = status?.State ?? "";
-      }
-    }
-    onExited: exitCode => root.available = exitCode !== 127
-  }
+  property bool _checking: false
 
-  property IpcHandler _ipc: IpcHandler {
+  property IpcTarget _ipc: IpcTarget {
     target: "foo"
 
     function refresh(): void {
@@ -97,12 +94,13 @@ Consumer (the request comes from config only, never from live values):
 3. **Polled data:** use a private `ConsumerRegistry`.
    - The interval is the shortest one asked for, with a floor.
    - The timer runs only while `_registry.active`, so nothing is fetched with no consumers.
-4. **IPC:** a `property IpcHandler _ipc` with typed functions (`(): void`, `(): string`, `(text: string): void`). Per-screen handlers live on the surface instead, `enabled: ShellManager.isTarget(…)`.
-5. **Persistence:**
+4. **IPC:** a `property IpcTarget _ipc` with typed functions (`(): void`, `(): string`, `(text: string): void`). Per-screen handlers live on the surface instead, `enabled: ShellManager.isTarget(…)`.
+5. **Processes and files:** no `Process`, `FileView`, `Socket`, `IpcHandler` or `Quickshell.execDetached` of its own (`check_structure` refuses them outside `scripts/quickshell-io-allowlist.json`, a list that only shrinks as these move to the axiom daemon). Use `CommandManager.run` / `runDetached`, `FileManager.read`, `StateManager` for small state, and a daemon method for anything else (a file to watch or write, a socket).
+6. **Persistence:**
    - State that must survive a QML reload goes in `PersistentProperties` (needs a `Singleton` root, see `IdleInhibitManager`).
    - Small state that must survive a restart goes in `StateManager` (`~/.local/state/axiom/ui/*.json`) or `Paths.userStatePath`, written atomically (temp file + rename).
-6. **Config:** read it through readers. Write it only through `ConfigManager` / `SettingsManager`.
-7. Add it to `shell.qml`'s `_services` if nothing else references it, or it never gets created.
+7. **Config:** read it through readers. Write it only through `ConfigManager` / `SettingsManager`.
+8. Add it to `shell.qml`'s `_services` if nothing else references it, or it never gets created.
 
 ## Gotchas
 - **Greeter:** a side effect reachable from the greeter (writes, integrations, network) checks `Paths.greeter` first, as `CalendarManager` does.
@@ -112,7 +110,7 @@ Consumer (the request comes from config only, never from live values):
   - An identical re-`acquire` is a no-op, but a new object every sample churns every binding on `requests`.
   - Build requests from config only. Never key a Repeater model on live values (the 25 GB lesson).
 - **`check_structure.py`** errors on a `<Name>Manager.` reference with no `services/<Name>Manager.qml`, and on near-miss names.
-- **Hot reload:** a new singleton is picked up on reload. A service that holds a `Process` restarts it on every reload, so make `refresh()` idempotent.
+- **Hot reload:** a new singleton is picked up on reload, and its timer starts again, so make `refresh()` idempotent (the skeleton's `_checking`).
 - **Showing `show`:** `show` is a qs IPC keyword (`ipc call foo show` lists functions), so don't name a function `show`.
 
 ## Verify
