@@ -264,7 +264,7 @@ Singleton {
     });
   }
 
-  // --- Managed takeover: ConfigTakeover, on claim_sway.sh ---
+  // --- Managed takeover: ConfigTakeover, through the daemon ---
 
   // The takeover of the config is done (`adopted`: the file name the
   // previous one went to in user/, or "")
@@ -277,7 +277,7 @@ Singleton {
   ConfigTakeover {
     id: takeover
     mode: CompositorConfig.mode
-    script: Paths.scriptsPath + "claim_sway.sh"
+    kind: "sway"
     configDir: Paths.swayPath
     managedPath: root.managedPath
     userDir: root.userDir

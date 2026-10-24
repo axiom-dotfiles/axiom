@@ -457,7 +457,7 @@ Singleton {
     callback(root._userEntries.concat(NiriConf.bindEntries(root._plan.apply, root._bindCtx)));
   }
 
-  // --- Managed takeover: ConfigTakeover, on claim_niri.sh ---
+  // --- Managed takeover: ConfigTakeover, through the daemon ---
 
   // The takeover of the config is done (`adopted`: the file name the
   // previous one went to in user/, or "")
@@ -470,7 +470,7 @@ Singleton {
   ConfigTakeover {
     id: takeover
     mode: CompositorConfig.mode
-    script: Paths.scriptsPath + "claim_niri.sh"
+    kind: "niri"
     configDir: Paths.niriPath
     managedPath: root.managedPath
     userDir: root.userDir

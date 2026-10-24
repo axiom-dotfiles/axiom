@@ -3,8 +3,9 @@ import QtQuick
 
 /*
  * Taking a compositor's config over for the managed mode, and giving it
- * back, through its claim script (scripts/claim_<compositor>.sh, every one
- * with the same verbs and results), for that compositor's config writer,
+ * back, through the daemon (`compositor.takeover`: backend/internal/
+ * compositor/takeover, the same verbs and results on every compositor),
+ * for that compositor's config writer,
  * which acts on the results (claimed, blocked, released). Not a singleton:
  * each config writer owns one (docs/dev/compositor/config-modes.md).
  */
@@ -13,8 +14,8 @@ QtObject {
 
   // CompositorConfig.mode, to tell what the results are for
   property string mode: ""
-  // The claim script, and the compositor's config folder it's run on
-  property string script: ""
+  // The compositor (`takeover.KindNamed`'s name), and its config folder
+  property string kind: ""
   property string configDir: ""
   // The managed config in it, its user/ folder, and the user's files there
   // as the managed config loads them ("user/*.lua")
@@ -64,8 +65,16 @@ QtObject {
   // Callers waiting for a check's answer
   property var _checkWaiting: []
 
-  function _script(verb) {
-    return [root.script, verb, root.configDir, root.header, root.releasedText];
+  // Runs a takeover verb, calling back with its one-word result ("" when it
+  // failed) and the error's message
+  function _takeover(verb, callback) {
+    BackendManager.call("compositor.takeover", {
+      "verb": verb,
+      "kind": root.kind,
+      "dir": root.configDir,
+      "header": root.header,
+      "fallback": root.releasedText
+    }, (err, result) => callback(err ? "" : result.result, err ? err.message : ""));
   }
 
   // Looks again what a takeover would do (`managedCheck`), then calls back
@@ -76,9 +85,9 @@ QtObject {
     if (_checking)
       return;
     _checking = true;
-    CommandManager.run(_script("check"), (code, out) => {
+    _takeover("check", out => {
       root._checking = false;
-      root._managedCheck = out.trim();
+      root._managedCheck = out;
       const waiting = root._checkWaiting;
       root._checkWaiting = [];
       waiting.forEach(callback => callback(root.managedCheck));
@@ -110,11 +119,11 @@ QtObject {
     if (_claiming)
       return;
     _claiming = true;
-    CommandManager.run(_script("claim"), (code, out, err) => {
+    _takeover("claim", (out, err) => {
       root._claiming = false;
-      if (err.trim() !== "")
-        console.warn(`[${root.logTag}] Taking over ${root.managedPath}:`, err.trim());
-      const words = out.trim().split(":");
+      if (err !== "")
+        console.warn(`[${root.logTag}] Taking over ${root.managedPath}:`, err);
+      const words = out.split(":");
       const result = words[0];
       if (result === "blocked") {
         root.blocked();
@@ -136,10 +145,10 @@ QtObject {
   // aside: releasedText), "notours" (already the user's) or "blocked" (a
   // symlinked or git-tracked one, never written)
   function release() {
-    CommandManager.run(_script("release"), (code, out, err) => {
-      if (err.trim() !== "")
-        console.warn(`[${root.logTag}] Giving back ${root.managedPath}:`, err.trim());
-      const words = out.trim().split(":");
+    _takeover("release", (out, err) => {
+      if (err !== "")
+        console.warn(`[${root.logTag}] Giving back ${root.managedPath}:`, err);
+      const words = out.split(":");
       const result = words[0];
       if (result === "restored") {
         console.log(`[${root.logTag}] Gave back ${root.managedPath}: it's ${words[1]} again`);

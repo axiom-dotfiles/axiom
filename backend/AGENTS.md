@@ -37,6 +37,7 @@ Standard library first. A new module needs a line here saying why, and must be p
 | `golang.org/x/vuln` (tool) | govulncheck, pinned the same way |
 | `go.yaml.in/yaml/v3` | reads the config schema's YAML source (`schema/yamlsrc`, which adds the strictness) |
 | `github.com/dop251/goja` | a pure-Go JS engine, used only by `migrate/legacy` to run the frozen format-1 migrations (`legacy.js`) exactly as the shell did, instead of a hand port that could drift |
+| `github.com/yuin/gopher-lua` | a pure-Go Lua (5.1) parser and VM: checks that an edit to a user's Hyprland Lua still parses where `luac` isn't installed (`compositor/luacheck`), and will run their files for the bind merge, without `lua` as a dependency |
 
 ## Checks
 

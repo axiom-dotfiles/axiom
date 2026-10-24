@@ -1,6 +1,6 @@
 # Managed takeover (claim and release)
 
-> **Files:** `scripts/claim_hyprland.sh`, `services/ConfigTakeover.qml`, `services/HyprlandConfigWriter.qml`, `services/CompositorConfigManager.qml`, `components/methods/HyprConfigLua.qml`, `tests/scripts/test_scripts.py`
+> **Files:** `backend/internal/compositor/takeover/`, `backend/internal/compositor/luacheck/`, `backend/internal/daemon/compositor.go`, `services/ConfigTakeover.qml`, `services/HyprlandConfigWriter.qml`, `services/CompositorConfigManager.qml`, `components/methods/HyprConfigLua.qml`
 > **Config:** `Compositor.mode` (`managed`), `Compositor.hyprland`
 > **Related:** [Config modes](config-modes.md), [Bind merge](bind-merge.md), [Onboarding](../features/onboarding.md)
 
@@ -15,9 +15,10 @@ How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how l
 - On this machine, `user/` is a symlink to `~/repos/dotfiles/hypr/user`.
 
 ### `check` and `claim`
-- `scripts/claim_hyprland.sh` has two entry points:
+- The takeover is the binary's (`backend/internal/compositor/takeover`, the same on every compositor: `Kind` holds what differs). `ConfigTakeover` asks the daemon (`compositor.takeover`, the shell only), and `axiom compositor check|claim|release --kind hyprland -- DIR HEADER [FALLBACK]` runs it from the command line. Its verbs:
   - `check`, used by `checkManaged()`
-  - `claim`, which does the takeover.
+  - `claim`, which does the takeover
+  - `release` (below).
 - **Refusals.** It refuses a symlinked or git-tracked dir:
   - the codes are `blocked:link` and `blocked:git:<repo>`
   - `managedCheck` is then `blocked`
@@ -29,17 +30,18 @@ How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how l
   - `claim` only backs a stock file up (`replaced`) instead of adopting it into `user/`, since its binds and `hl.monitor` rule would fight axiom's.
 - **Results.** `claim` prints one of:
   - `adopted:<name>`: the file is copied to `user/00-previous.lua`, or to `00-previous-<date>.lua` when that's taken.
-    - Lines in it that start axiom (not a bind calling its IPC, which the bind merge reads), or that `dofile` its included module, are commented out, unless `luac -p` then rejects the file.
+    - Lines in it that start axiom (not a bind calling its IPC, which the bind merge reads), or that `dofile` its included module, are commented out, unless the file then no longer parses (`luacheck`: `luac -p` where it's installed, else gopher-lua, which parses Lua 5.1 only, so a file using 5.4's syntax is left as it is).
     - Those lines are commented out because a second start without `-n` would be a second shell, and the include would bind everything twice.
   - `created`: there was no file.
 - **Released files.** A file that `release` wrote (`releasedLua()`, unedited apart from the include lines) is reported as `released` by `check`. It is only replaced, not kept.
 - **Writing.** `claim` leaves hyprland.lua in place, for the managed write to replace atomically. Hyprland reloads when the file changes, and must never find it missing.
-- **Re-claiming.** Claiming the same file again reuses its copies.
+- **Re-claiming.** Claiming the same file again reuses its copies (making the edits to the adopted copy again, which change nothing twice).
+- **The record.** Each claim notes what it set aside in `.axiom-claimed` beside the config (`previous=`, `backup=`), so release gives back that, never an older claim's dated backup still lying there. A claim from before records gets the newest of each.
 - **Binds.** Only the adopted file's binds are merged straight away (`mergeUserBinds(name)`, `extract --only`), so managed mode starts with no conflicts. The rest of `user/` waits for the Merge button ([Bind merge](bind-merge.md)).
 
 ### Release
-- Leaving managed runs `claim_hyprland.sh release`. hyprland.lua goes back to what `claim` set aside:
-  - the newest adopted `user/00-previous*.lua`, with its commented-out lines that start or load axiom enabled again
+- Leaving managed runs the takeover's `release`. hyprland.lua goes back to what `claim` set aside (as its record names it):
+  - the adopted `user/00-previous*.lua`, with its commented-out lines that start or load axiom enabled again
   - else the example config's backup.
 - It prints `restored:<from>:<n>`, with a warning when `<n>` files in `user/` are no longer loaded.
 - With nothing set aside it writes `releasedLua()`. That file starts axiom, loads the module in included mode, and loads `user/*.lua` as the managed file does (`HyprConfigLua.userFilesLua()`).
@@ -47,4 +49,4 @@ How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how l
 
 ### Testing
 - Never switch the real config into or out of `managed`.
-- Test the script on scratch dirs, as `tests/scripts/test_scripts.py` does.
+- Test the takeover on scratch dirs, as `backend/internal/compositor/takeover/takeover_test.go` does (`axiom compositor claim|release` on a live config dir is refused by the guard).

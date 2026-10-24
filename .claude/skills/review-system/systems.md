@@ -16,7 +16,7 @@ Seams: every feature reading windows, outputs, workspaces or `supports`.
 ## hyprland
 Scope: the Hyprland backend: services, Lua, config writer, binds merge, claim, monitors, workspaces, switcher, strips, managed takeover.
 Docs: hyprland/*.md
-Extra: scripts/claim_hyprland.sh scripts/merge_hypr_binds.py scripts/hypr_binds.lua
+Extra: backend/internal/compositor/takeover/kinds.go scripts/merge_hypr_binds.py scripts/hypr_binds.lua
 Checks:
 - Only the `Hyprland*` services import `Quickshell.Hyprland` or send `hl.*` Lua.
 - The writer's output is the same as what the runtime layer applies (one table, two renderers), and it never touches the user's own files outside its module.
@@ -27,7 +27,7 @@ Seams: CompositorManager; OnboardingManager and GreetdManager (the Hyprland-only
 ## sway
 Scope: the sway / SwayFX backend: IPC, state parsing, config writer, claim, binds merge.
 Docs: compositor/sway-backend.md
-Extra: scripts/claim_sway.sh scripts/merge_sway_binds.py scripts/sway_config_text.py
+Extra: backend/internal/compositor/takeover/kinds.go scripts/merge_sway_binds.py scripts/sway_config_text.py
 Checks:
 - Every contract member behaves as the Hyprland one does, or is a declared `supports` gap.
 - SwayFX-only features (blur, shadows, corners) are gated on detecting SwayFX, not assumed.
@@ -37,7 +37,7 @@ Seams: CompositorManager.
 ## niri
 Scope: the niri backend: IPC event stream, state parsing, KDL config writer, claim, binds merge.
 Docs: compositor/niri-backend.md
-Extra: scripts/claim_niri.sh scripts/merge_niri_binds.py scripts/niri_config.py scripts/niri_kdl.py
+Extra: backend/internal/compositor/takeover/kinds.go scripts/merge_niri_binds.py scripts/niri_config.py scripts/niri_kdl.py
 Checks:
 - The event stream recovers when niri restarts or the socket drops; state rebuilt, not patched.
 - KDL is written and parsed by one module, round-trips the user's own nodes untouched, and is never loaded into the live session from a test.
@@ -48,7 +48,7 @@ Seams: CompositorManager.
 Scope: the three backends compared: same contract, same semantics, same edge cases.
 Mode: parity
 Docs: compositor/contract.md compositor/sway-backend.md compositor/niri-backend.md hyprland/config-modes.md hyprland/bind-merge.md
-Extra: services/HyprlandManager.qml services/SwayManager.qml services/NiriManager.qml services/HyprlandConfigWriter.qml services/SwayConfigWriter.qml services/NiriConfigWriter.qml services/HyprlandRuntimeLayer.qml services/SwayRuntimeLayer.qml scripts/claim_*.sh scripts/merge_*_binds.py
+Extra: services/HyprlandManager.qml services/SwayManager.qml services/NiriManager.qml services/HyprlandConfigWriter.qml services/SwayConfigWriter.qml services/NiriConfigWriter.qml services/HyprlandRuntimeLayer.qml services/SwayRuntimeLayer.qml backend/internal/compositor/takeover/ scripts/merge_*_binds.py
 Checks:
 - Build a table: each contract member and `supports` key × backend. Every cell is implemented the same way, or the difference is a declared `supports` key, or it's a finding.
 - Same inputs → same outputs: workspace numbering and naming, focus order, output names and scale, window shapes (class/app id, title, workspace, floating, fullscreen).

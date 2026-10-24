@@ -3,12 +3,12 @@
 
 > **File:** `services/ConfigTakeover.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Taking a compositor's config over for the managed mode, and giving it back, through its claim script (scripts/claim_<compositor>.sh, every one with the same verbs and results), for that compositor's config writer, which acts on the results (claimed, blocked, released). Not a singleton: each config writer owns one (docs/dev/compositor/config-modes.md).
+Taking a compositor's config over for the managed mode, and giving it back, through the daemon (`compositor.takeover`: backend/internal/ compositor/takeover, the same verbs and results on every compositor), for that compositor's config writer, which acts on the results (claimed, blocked, released). Not a singleton: each config writer owns one (docs/dev/compositor/config-modes.md).
 
 ### Properties
 
 - `mode` (string): CompositorConfig.mode, to tell what the results are for
-- `script` (string): The claim script, and the compositor's config folder it's run on
+- `kind` (string): The compositor (`takeover.KindNamed`'s name), and its config folder
 - `configDir` (string)
 - `managedPath` (string): The managed config in it, its user/ folder, and the user's files there as the managed config loads them ("user/*.lua")
 - `userDir` (string)

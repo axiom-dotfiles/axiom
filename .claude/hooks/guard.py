@@ -96,7 +96,7 @@ def simple(tokens, exported):
     if Path(argv[0]).name in SHELLS and command_flag is not None:
         inner = argv[command_flag + 1]
         return [(dict(env, **e), a) for e, a in split_commands(inner)]
-    # A script run through a shell (`bash scripts/claim_sway.sh …`): judge the script
+    # A script run through a shell (`bash scripts/merge_sway_binds.py …`): judge the script
     if Path(argv[0]).name in SHELLS:
         rest = argv[1:]
         while rest and rest[0].startswith("-"):
@@ -145,7 +145,7 @@ def scratch(value):
 
 # What `axiom` runs against: the live display's daemon unless the command
 # names a scratch socket, runtime dir or config dir
-AXIOM_VALUE_OPTS = {"--socket", "--config-dir", "--tree", "--qs", "-o"}
+AXIOM_VALUE_OPTS = {"--socket", "--config-dir", "--tree", "--qs", "-o", "--kind"}
 LIVE_RUNTIME = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
 
 
@@ -182,7 +182,7 @@ def axiom_words(args):
     return words
 
 
-def check_axiom(env, args):
+def check_axiom(env, args, cwd):
     words = axiom_words(args)
     if not words:
         return
@@ -204,6 +204,10 @@ def check_axiom(env, args):
         shown = env.get("AXIOM_GREETER_WINDOWED") == "1" or "--no-shell" in args
         if not shown or not scratch(gdir) or installed:
             deny("Never, while testing", "run the greeter only windowed on a scratch folder: AXIOM_GREETER_WINDOWED=1 AXIOM_COMPOSITOR=none axiom greeter --dir <scratch> (or --no-shell).")
+    # A compositor claim (managed mode) on the live config
+    if sub == "compositor" and words[1:2] and words[1] in {"claim", "release"} and words[2:3]:
+        if live_config_path(words[2], cwd, env):
+            deny("Never, while testing", f"`axiom compositor {words[1]}` only on a scratch dir, never the live compositor config.")
     if sub == "config" and "--takeover" in args:
         config_dir = axiom_flag(args, "--config-dir") or env.get("XDG_CONFIG_HOME", "")
         if not scratch(config_dir) or live:
@@ -246,7 +250,7 @@ def check_argv(env, argv, cwd):
 
     # The axiom binary: it is the shell's parent and its command line
     if name == "axiom":
-        check_axiom(env, args)
+        check_axiom(env, args, cwd)
 
     # Opening a GitHub issue: problems go in docs/dev/issues.md
     if name == "gh" and (args[:2] == ["issue", "create"] or args[:1] == ["api"] and gh_api_opens_issue(args[1:])):
@@ -261,11 +265,6 @@ def check_argv(env, argv, cwd):
     if name == "greeter_install.sh" and args and args[0] in {"install", "update", "uninstall"}:
         if not scratch(env.get("AXIOM_GREETER_ROOT", "")):
             deny("Never, while testing", "greeter_install.sh install/update/uninstall only with a scratch AXIOM_GREETER_ROOT=<dir>.")
-
-    # A compositor claim (managed mode) on the live config: Hyprland's, sway's
-    if re.fullmatch(r"claim_\w+\.sh", name) and len(args) >= 2 and args[0] in {"claim", "release"}:
-        if live_config_path(args[1], cwd, env):
-            deny("Never, while testing", f"{name} claim/release only on a scratch dir, never the live compositor config.")
 
     # Moving binds out of the live compositor config's files (managed mode's
     # bind merge): Hyprland's, sway's. Run directly or through python

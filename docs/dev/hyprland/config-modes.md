@@ -1,6 +1,6 @@
 # Hyprland config writer
 
-> **Files:** `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprConfigLua.qml`, `components/methods/HyprLua.qml`, `components/methods/BindKeys.qml`, `config/InputConfig.qml`, `config/SessionConfig.qml`, `scripts/claim_hyprland.sh`
+> **Files:** `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprConfigLua.qml`, `components/methods/HyprLua.qml`, `components/methods/BindKeys.qml`, `config/InputConfig.qml`, `config/SessionConfig.qml`
 > **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `Input.*`, `Session.*`, `Keybinds.binds`, `Compositor.hyprland`, `WindowLook`, `Monitors.items`, `Workspaces.strips`
 > **Related:** [Config modes](../compositor/config-modes.md), [Managed takeover](managed-takeover.md), [Window look](../compositor/window-look.md), [Bind merge](bind-merge.md), [Keybinds](keybinds.md), [Monitors](monitors.md), [Workspace strips](workspace-strips.md)
 
@@ -30,7 +30,7 @@ Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`
 
 ### `managed`
 - `managedText(spec)` (`HyprConfigLua.managedLua`) becomes `~/.config/hypr/hyprland.lua` itself, plus the `managed` options.
-- Taking the user's existing config over (`claim_hyprland.sh`) is described in [Managed takeover](managed-takeover.md).
+- Taking the user's existing config over (the binary's `compositor/takeover`) is described in [Managed takeover](managed-takeover.md).
 
 ### Include and autostart lines
 - `includeLines` (included) and `autostartLines` (included and detached) are hookup targets:
@@ -71,5 +71,5 @@ Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`
 
 ### Testing
 - Never switch the user's real config to `managed` to test it. (Rule: AGENTS.md › Never, while testing.)
-- Test `claim_hyprland.sh` on scratch dirs, as `tests/scripts/test_scripts.py` does.
+- Test the takeover on scratch dirs, as `backend/internal/compositor/takeover/takeover_test.go` does.
 - The Lua comes from `HyprConfigLua` (pure): `tests/tst_HyprConfigLua.qml` renders the included, managed and given-back files to `tests/.out/`, where `scripts/run_tests.sh` checks them with `luac -p`. `everything.hypr.lua` (the managed file with every look and input part on, every default bind and a monitor profile) is also read by Hyprland itself (`Hyprland --verify-config`, where it's installed: not in CI), which catches an option Hyprland refuses. Add a case there when changing what a file holds.

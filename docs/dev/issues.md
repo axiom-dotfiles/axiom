@@ -18,6 +18,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### The shell's socket warns when the daemon re-execs
+- **Where:** `services/BackendManager.qml` (its `Socket`)
+- **What:** Every daemon re-exec (each dev-mode rebuild) logs `quickshell.io.socket` `Socket error for Socket(0x…) QLocalSocket::PeerClosedError` once: the old image closing the connection reaches the shell as an error, though `BackendManager` reconnects and it's expected. Five in one session's log (`scripts/log.sh --all -g PeerClosed`). Quieting it means telling a close the daemon announced (re-exec, quit) from a real failure, maybe with a notification before the exec.
+- **Size:** small
+- **Found:** 2026-10-24, while moving the compositor takeover into the binary
+
 ### backend.json points at a protocol doc that doesn't exist
 - **Where:** `config/json/backend.json` (`_comment`)
 - **What:** The comment says "see docs/dev/backend/protocol.md", which was never written: what counts as a protocol change (and that push topics and new methods don't need one) is only in `docs/dev/backend/README.md`. Writing the page, or pointing the comment at the README, fixes it.
@@ -126,12 +132,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-19, while adding the scrolling layout
 
-### Hyprland's and niri's release can restore an older claim's backup
-- **Where:** `scripts/claim_hyprland.sh` (`newest_backup`), `scripts/claim_niri.sh` (`newest_backup`)
-- **What:** Release falls back to the newest dated `*.axiom-backup-*` beside the config, whichever claim made it. A claim that found no config (`created`) set nothing aside, yet its release brings back the backup an earlier claim left there. `claim_sway.sh` had the same bug, reproduced on scratch dirs (`ClaimSway.test_release_ignores_an_older_claims_backup`), and now records what each claim set aside (`.axiom-claimed`); the other two likely need the same record (not reproduced).
-- **Size:** small
-- **Found:** 2026-10-19, while reviewing the sway system
-
 ### The calendar doc's Files header leaves out its page
 - **Where:** `docs/dev/features/calendar.md` (its `Files:` header), `components/views/CalendarPage/CalendarPage.qml`
 - **What:** `CalendarPage.qml` is the only code file no doc's `Files:` header lists (`.claude/skills/review-system/scope.py --orphans`), though `calendar.md` describes it in its text. So `check_doc_drift.py` never flags the doc when the page changes, and a review of the calendar feature doesn't see the page.
@@ -236,9 +236,9 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 
-### claim_sway.sh doesn't check its own edits
-- **Where:** `scripts/claim_sway.sh` (`adopt_lines`)
-- **What:** `adopted:` is printed even when commenting out failed (its result isn't checked); `$dir` goes unescaped into a sed replacement with `|` as the delimiter, so a path holding `|`, `&` or `\` breaks it; quoted relative includes, and all but the first path of a multi-path `include`, aren't made absolute.
+### The takeover makes only some of sway's relative includes absolute
+- **Where:** `backend/internal/compositor/takeover/kinds.go` (`sway`'s `absInclude`)
+- **What:** Adopting a sway config makes its relative includes absolute (it moves to `user/`), but only an unquoted first path: a quoted relative include, and all but the first path of a multi-path `include`, stay relative and then resolve from `user/`. (The unchecked edit and the unescaped dir in the old script's sed went with the Go port.)
 - **Size:** small
 - **Found:** 2026-10-16, while auditing the sway branch for merge
 

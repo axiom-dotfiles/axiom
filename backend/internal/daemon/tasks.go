@@ -12,7 +12,7 @@ import (
 // A part is one piece of the daemon: the RPC methods it answers, what it
 // runs while the daemon runs, and what it does when the config changes.
 // Run starts every part's run on the daemon's tasks and waits for them, so
-// a new piece (the compositor's) is one more part, never more wiring.
+// a new piece (as the compositor's was) is one more part, never more wiring.
 type part struct {
 	name string
 	// methods registers its RPC methods

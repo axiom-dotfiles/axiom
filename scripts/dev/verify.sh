@@ -94,11 +94,8 @@ for f in "${changed[@]}"; do
     ;;
   scripts/integration_hookup.py) script_tests+=(HookupScript) ;;
   scripts/self_update.sh) script_tests+=(SelfUpdate) ;;
-  scripts/claim_hyprland.sh) script_tests+=(ClaimHyprland) ;;
-  scripts/claim_sway.sh) script_tests+=(ClaimSway) ;;
   scripts/merge_sway_binds.py | components/methods/BindActions.qml) script_tests+=(MergeSwayBinds MergeNiriBinds) ;;
   scripts/bind_merge_common.py) script_tests+=(MergeSwayBinds MergeHyprBinds MergeNiriBinds) ;;
-  scripts/claim_niri.sh) script_tests+=(ClaimNiri) ;;
   scripts/cursor_theme.py) script_tests+=(CursorTheme) ;;
   scripts/merge_niri_binds.py) script_tests+=(MergeNiriBinds) ;;
   scripts/niri_kdl.py | scripts/niri_config.py) script_tests+=(NiriConfig MergeNiriBinds) ;;

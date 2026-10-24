@@ -18,7 +18,7 @@ import qs.components.methods
  *             user's hyprland.lua loads (includeLines)
  *   managed   ~/.config/hypr/hyprland.lua itself, with the Hyprland
  *             section's options, loading ~/.config/hypr/user/*.lua after it
- * Also the managed takeover (ConfigTakeover, on claim_hyprland.sh) and
+ * Also the managed takeover (ConfigTakeover, through the daemon) and
  * moving the user's binds into axiom (UserBindMerge, on merge_hypr_binds.py).
  */
 Singleton {
@@ -172,7 +172,7 @@ Singleton {
   readonly property string emptyModuleText: HyprConfigLua.emptyModuleLua(_header)
 
   // The hyprland.lua leaving managed gives back when the takeover set
-  // nothing aside (claim_hyprland.sh release), starting axiom (and loading
+  // nothing aside (the takeover's release), starting axiom (and loading
   // its module in included mode)
   function releasedText(mode) {
     return HyprConfigLua.releasedLua(userDir, (mode === "included" ? includeLines + "\n" : "") + autostartLines);
@@ -240,7 +240,7 @@ Singleton {
     HyprlandIpcManager.request("reload", callback);
   }
 
-  // --- Managed takeover: ConfigTakeover, on claim_hyprland.sh ---
+  // --- Managed takeover: ConfigTakeover, through the daemon ---
 
   // The takeover of hyprland.lua is done (`adopted`: the file name the
   // previous one went to in user/, or "")
@@ -253,7 +253,7 @@ Singleton {
   ConfigTakeover {
     id: takeover
     mode: CompositorConfig.mode
-    script: Paths.scriptsPath + "claim_hyprland.sh"
+    kind: "hyprland"
     configDir: Paths.hyprlandPath
     managedPath: root.managedPath
     userDir: root.userDir

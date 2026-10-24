@@ -228,7 +228,7 @@ func Run(ctx context.Context, opts Options) error {
 	// delivery, since an apply may hold the service meanwhile
 	d.savedKick = newKicker(func(context.Context) { d.saved.Changed() })
 
-	parts := []part{d.corePart(), d.configPart(), d.ipcPart(), d.sharingPart(), d.dev.part()}
+	parts := []part{d.corePart(), d.configPart(), d.ipcPart(), d.sharingPart(), d.compositorPart(), d.dev.part()}
 	reg := d.registry(parts)
 	d.server = &rpc.Server{
 		Registry: reg,

@@ -69,17 +69,20 @@ class Bash(unittest.TestCase):
                     "AXIOM_GREETER_ROOT=/tmp/x scripts/greeter/greeter_install.sh install . me",
                     'export AXIOM_GREETER_ROOT="$tmp"; scripts/greeter/greeter_install.sh uninstall . me')
 
-    def test_claim_sway(self):
-        self.blocks(f"scripts/claim_sway.sh claim {HOME}/.config/sway axiom", "scripts/claim_sway.sh release ~/.config/sway h f")
-        self.allows("scripts/claim_sway.sh claim /tmp/scratch/sway axiom", "scripts/claim_sway.sh check ~/.config/sway axiom")
+    def test_compositor_claim(self):
+        self.blocks(f"axiom compositor claim --kind sway -- {HOME}/.config/sway '# axiom'",
+                    "axiom compositor release --kind hyprland -- ~/.config/hypr '-- h' f",
+                    "axiom compositor claim ~/.config/niri h --kind niri", "axiom --json compositor release --kind=sway ~/.config/sway h f")
+        self.allows("axiom compositor claim --kind sway -- /tmp/scratch/sway '# axiom'",
+                    "axiom compositor check --kind hyprland -- ~/.config/hypr '-- axiom'")
 
     def test_merge_binds(self):
         self.blocks("scripts/merge_sway_binds.py remove ~/.config/sway '[]'", f"python3 scripts/merge_hypr_binds.py remove {HOME}/.config/hypr '[]'")
         self.allows("scripts/merge_sway_binds.py extract ~/.config/sway", "scripts/merge_sway_binds.py remove /tmp/scratch/sway '[]'")
 
-    def test_claim_niri(self):
-        self.blocks(f"scripts/claim_niri.sh claim {HOME}/.config/niri axiom", "scripts/merge_niri_binds.py remove ~/.config/niri '[]'")
-        self.allows("scripts/claim_niri.sh claim /tmp/scratch/niri axiom", "scripts/claim_niri.sh check ~/.config/niri axiom")
+    def test_merge_niri_binds(self):
+        self.blocks("scripts/merge_niri_binds.py remove ~/.config/niri '[]'")
+        self.allows("scripts/merge_niri_binds.py remove /tmp/scratch/niri '[]'")
 
     def test_niri_session(self):
         with mock.patch.dict(os.environ, {"NIRI_SOCKET": "/run/user/1000/niri.wayland-1.100.sock"}):
@@ -89,22 +92,17 @@ class Bash(unittest.TestCase):
                         "NIRI_SOCKET=/run/user/1000/niri.wayland-2.200.sock niri msg action quit",
                         "export NIRI_SOCKET=/run/user/1000/niri.wayland-2.200.sock; niri msg output winit scale 1")
 
-    def test_claim_hyprland(self):
-        self.blocks(f"scripts/claim_hyprland.sh claim {HOME}/.config/hypr axiom", "scripts/claim_hyprland.sh release ~/.config/hypr h f")
-        self.allows("scripts/claim_hyprland.sh claim /tmp/scratch/hypr axiom", "scripts/claim_hyprland.sh check ~/.config/hypr axiom")
-
     def test_scripts_run_through_a_shell_and_variables(self):
-        self.blocks("bash scripts/claim_sway.sh claim ~/.config/sway axiom", "sh scripts/claim_hyprland.sh claim ~/.config/hypr axiom",
-                    "bash scripts/greeter/greeter_install.sh install . me")
-        self.assertTrue(denied("scripts/claim_sway.sh claim $HOME/.config/sway axiom", cwd="/tmp"))
-        self.assertTrue(denied("scripts/claim_sway.sh claim ${HOME}/.config/sway axiom", cwd="/tmp"))
+        self.blocks("python3 scripts/merge_sway_binds.py remove ~/.config/sway '[]'", "bash scripts/greeter/greeter_install.sh install . me")
+        self.assertTrue(denied("axiom compositor claim --kind sway $HOME/.config/sway axiom", cwd="/tmp"))
+        self.assertTrue(denied("axiom compositor claim --kind sway ${HOME}/.config/sway axiom", cwd="/tmp"))
         self.assertTrue(denied("export D=~/.config/hypr; scripts/merge_hypr_binds.py remove $D '[]'", cwd="/tmp"))
         self.blocks("bash -lc 'qs -c axiom kill'")
-        self.allows("scripts/claim_sway.sh claim scratch/sway axiom", "bash scripts/claim_sway.sh claim /tmp/s axiom")
+        self.allows("axiom compositor claim --kind sway scratch/sway axiom", "bash scripts/greeter/greeter_install.sh check .")
 
     def test_a_custom_xdg_config_home_is_live(self):
         with mock.patch.object(guard, "CONFIG_HOMES", guard.CONFIG_HOMES | {Path("/srv/conf")}):
-            self.assertTrue(denied("scripts/claim_sway.sh claim /srv/conf/sway axiom"))
+            self.assertTrue(denied("axiom compositor claim --kind sway /srv/conf/sway axiom"))
 
     def test_integration_hookup(self):
         self.blocks("python3 scripts/integration_hookup.py apply kitty", "scripts/integration_hookup.py apply kitty",

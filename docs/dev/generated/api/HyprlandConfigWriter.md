@@ -3,7 +3,7 @@
 
 > **File:** `services/HyprlandConfigWriter.qml` · **Docs:** see [docs/dev](../../README.md)
 
-section's options, loading ~/.config/hypr/user/*.lua after it Also the managed takeover (ConfigTakeover, on claim_hyprland.sh) and moving the user's binds into axiom (UserBindMerge, on merge_hypr_binds.py).
+section's options, loading ~/.config/hypr/user/*.lua after it Also the managed takeover (ConfigTakeover, through the daemon) and moving the user's binds into axiom (UserBindMerge, on merge_hypr_binds.py).
 
 ### Properties
 
@@ -45,7 +45,7 @@ section's options, loading ~/.config/hypr/user/*.lua after it Also the managed t
 - `isComplete(bind)`: Whether a configured bind has everything it needs to be bound
 - `moduleText(spec)`: The included file, from `spec` (CompositorConfigManager.spec(true)): a module whose setup() applies what's enabled
 - `managedText(spec)`: The managed hyprland.lua, from `spec` as for moduleText
-- `releasedText(mode)`: The hyprland.lua leaving managed gives back when the takeover set nothing aside (claim_hyprland.sh release), starting axiom (and loading its module in included mode)
+- `releasedText(mode)`: The hyprland.lua leaving managed gives back when the takeover set nothing aside (the takeover's release), starting axiom (and loading its module in included mode)
 - `liveLines(spec)`: The look, the input and the blur as Lua lines evaluated now, from `spec` (CompositorConfigManager.spec(false))
 - `runLive(lines)`: Evaluates `lines` now, then reads the options back (gapsOut)
 - `setCursor(cursor)`: `cursor`: CompositorLayer.input()'s.

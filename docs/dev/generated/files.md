@@ -888,7 +888,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `CompositorManager.qml`: The running compositor, for the rest of axiom: its windows, outputs and workspaces in shapes that don't depend on it, what it supports, and every workspace switch and window focus (docs/dev/compositor/README.md).
 - `ConfigDraft.qml`: A working copy of one config section for an editor (settings, bar, overlay, edge menu, keybind and monitor editors).
 - `ConfigManager.qml`: The config, as axiom (the binary, the shell's parent: `axiom run`) has it. axiom owns config.json: it loads it (converting older files), normalizes it and writes it.
-- `ConfigTakeover.qml`: Taking a compositor's config over for the managed mode, and giving it back, through its claim script (scripts/claim_<compositor>.sh, every one with the same verbs and results), for that compositor's config writer, which…
+- `ConfigTakeover.qml`: Taking a compositor's config over for the managed mode, and giving it back, through the daemon (`compositor.takeover`: backend/internal/ compositor/takeover, the same verbs and results on every compositor), for that com…
 - `ConsumerRegistry.qml`: Reference-counted consumers of a shared poller (SystemManager, UpdatesManager, ...): each owner registers one request, and the service polls for the union of them, stopping when there are none.
 - `CursorThemeManager.qml`: The cursor theme as XCursor readers get it (the compositor's xcursor-theme, XCURSOR_THEME, GTK's cursor-theme).
 - `DailySchedule.qml`: A daily window, `startAt` until `endAt` ("HH:MM"; past midnight when the end is earlier), that says when its state is due: `due(inWindow)` fires when the window opens or closes, when the schedule is turned on, and when …
@@ -906,7 +906,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `GreeterManager.qml`: Axiom as greetd's login screen, from the user's side (the greeter itself is greeter.qml, with GreetdManager).
 - `GridEditor.qml`: Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter cards), shared by the layouts editor's overlay pages and edge menus.
 - `HypridleManager.qml`: hypridle, run by axiom (the Idle section).
-- `HyprlandConfigWriter.qml`: section's options, loading ~/.config/hypr/user/*.lua after it Also the managed takeover (ConfigTakeover, on claim_hyprland.sh) and moving the user's binds into axiom (UserBindMerge, on merge_hypr_binds.py).
+- `HyprlandConfigWriter.qml`: section's options, loading ~/.config/hypr/user/*.lua after it Also the managed takeover (ConfigTakeover, through the daemon) and moving the user's binds into axiom (UserBindMerge, on merge_hypr_binds.py).
 - `HyprlandGrab.qml`: Hyprland's focus grab, for surfaces that close (or drop keyboard focus) on a click outside them: while `active`, keyboard focus stays in `windows` and a click anywhere else ends the grab (`cleared`).
 - `HyprlandIpcManager.qml`: Requests on Hyprland's request socket, as hyprctl makes them but without a process each: what Quickshell.Hyprland doesn't cover (options, Lua evals, binds, devices, layers, the cursor, reloads).
 - `HyprlandManager.qml`: CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprland's state as the compositor-neutral shapes (HyprState), and the primitives CompositorManager builds on.

@@ -34,7 +34,7 @@ The repo (`Paths.axiomPath`) is read-only to the shell: a package installs it wh
 
 - Files under `userStatePath` keep their names: users' own configs point at several (the Hyprland include, the fzf/nvim/ncspot outputs).
 - The greeter has its own folders (`Paths.greeterDir`) and reads none of these.
-- **Data others installed** (Wayland sessions, Hyprland's example config and wallpapers, cursor themes) is looked up in `Paths.dataSearchDirs` (`DataDirs.searchDirs`: `$XDG_DATA_HOME`, then `$XDG_DATA_DIRS`, else `/usr/local/share:/usr/share`), never at a fixed `/usr/share` path: NixOS keeps nothing there. `claim_hyprland.sh` does the same in shell.
+- **Data others installed** (Wayland sessions, Hyprland's example config and wallpapers, cursor themes) is looked up in `Paths.dataSearchDirs` (`DataDirs.searchDirs`: `$XDG_DATA_HOME`, then `$XDG_DATA_DIRS`, else `/usr/local/share:/usr/share`), never at a fixed `/usr/share` path: NixOS keeps nothing there. The binary's takeover (`compositor/takeover`, Hyprland's example) does the same.
 
 ### Load pipeline
 In axiom (`config.Pipeline.Load`), for config.json, saved configs and imports alike:

@@ -448,7 +448,7 @@ ${userFilesLua(opts.userDir)}
   }
 
   // The hyprland.lua leaving managed gives back when the takeover set
-  // nothing aside (claim_hyprland.sh release): the user's from then on,
+  // nothing aside (the takeover's release): the user's from then on,
   // running `startLines` (starting axiom, and loading its module in
   // included mode) and loading user/*.lua as the managed one did
   function releasedLua(userDir, startLines) {
