@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/axiom-shell/axiom/backend/internal/compositor/edit"
 	"github.com/axiom-shell/axiom/backend/internal/jsonx"
@@ -21,7 +22,10 @@ const (
 // the line's start, or at the bind's column (atCol), after a dated backup
 // of each file it changes in user/.backups/ (a backup beside it in user/
 // would be loaded by the managed config's include of user/). A line that
-// changed since extract is left.
+// changed since extract is left. A file that can't be read, backed up or
+// written is failed (io) and the others go on: what's done is reported, so
+// nothing removed is put back as kept. The bytes are kept as they are (a
+// file in another encoding too): only the marks are added.
 func removeMarked(o Options, sites *jsonx.Array, mark string, atCol bool) (*jsonx.Object, error) {
 	done := jsonx.Obj("removed", float64(0), "files", jsonx.Arr(), "failed", jsonx.Arr())
 	user := filepath.Join(o.Dir, "user")
@@ -41,9 +45,10 @@ func removeMarked(o Options, sites *jsonx.Array, mark string, atCol bool) (*json
 		}
 		data, err := os.ReadFile(name)
 		if err != nil {
-			return nil, err
+			push(done, "failed", failedEntry(name, 0, "io", err.Error()))
+			continue
 		}
-		lines := splitKeepEnds(strings.ToValidUTF8(string(data), "�"))
+		lines := splitKeepEnds(string(data))
 		fileSites := byFile[name]
 		if atCol {
 			// Right to left, so a column still points where it did
@@ -52,40 +57,67 @@ func removeMarked(o Options, sites *jsonx.Array, mark string, atCol bool) (*json
 				return a.line > b.line || (a.line == b.line && a.col > b.col)
 			})
 		}
-		changed := false
+		var marked []site
 		for _, s := range fileSites {
 			i := s.line - 1
-			if i < 0 || i >= len(lines) || (s.hasText && strings.TrimRight(lines[i], "\r\n") != s.text) {
+			// Extract read the text with invalid bytes as U+FFFD
+			if i < 0 || i >= len(lines) || (s.hasText && strings.ToValidUTF8(strings.TrimRight(lines[i], "\r\n"), "\uFFFD") != s.text) {
 				push(done, "failed", failedEntry(name, s.line, "changed", ""))
 				continue
 			}
 			if atCol {
-				r := []rune(lines[i])
-				col := min(max(s.col, 0), len(r))
-				lines[i] = string(r[:col]) + mark + string(r[col:])
+				// A column counts characters: one past a run of invalid
+				// bytes can't be placed
+				at, ok := byteOffset(lines[i], s.col)
+				if !ok {
+					push(done, "failed", failedEntry(name, s.line, "changed", ""))
+					continue
+				}
+				lines[i] = lines[i][:at] + mark + lines[i][at:]
 			} else {
 				lines[i] = mark + lines[i]
 			}
-			removed++
-			changed = true
+			marked = append(marked, s)
 		}
-		if !changed {
+		if len(marked) == 0 {
 			continue
 		}
 		backups := filepath.Join(user, ".backups")
-		if err := os.MkdirAll(backups, 0o755); err != nil {
-			return nil, err
+		err = os.MkdirAll(backups, 0o755)
+		if err == nil {
+			err = backup(o, name, backups)
 		}
-		if err := backup(o, name, backups); err != nil {
-			return nil, err
+		if err == nil {
+			err = edit.Replace(name, []byte(strings.Join(lines, "")))
 		}
-		if err := edit.Replace(name, []byte(strings.Join(lines, ""))); err != nil {
-			return nil, err
+		if err != nil {
+			for _, s := range marked {
+				push(done, "failed", failedEntry(name, s.line, "io", err.Error()))
+			}
+			continue
 		}
+		removed += len(marked)
 		push(done, "files", name)
 	}
 	done.Set("removed", float64(removed))
 	return done, nil
+}
+
+// byteOffset is where character col of line starts, its bytes valid UTF-8
+// up to there; ok false past the end or after an invalid byte
+func byteOffset(line string, col int) (int, bool) {
+	at := 0
+	for n := 0; n < max(col, 0); n++ {
+		if at >= len(line) {
+			return 0, false
+		}
+		r, size := utf8.DecodeRuneInString(line[at:])
+		if r == utf8.RuneError && size <= 1 {
+			return 0, false
+		}
+		at += size
+	}
+	return at, true
 }
 
 // splitKeepEnds splits text into lines that keep their \n, \r\n or \r

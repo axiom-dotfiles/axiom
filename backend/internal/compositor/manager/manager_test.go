@@ -140,8 +140,17 @@ func newHarness(t *testing.T, mode string) *harness {
 	h.w = &fakeWriter{dir: dir, reloadCh: make(chan ipc.Reload, 4)}
 	h.m.w = h.w
 	ctx, cancel := context.WithCancel(context.Background())
-	t.Cleanup(cancel)
-	go h.m.Run(ctx)
+	ran := make(chan struct{})
+	go func() {
+		defer close(ran)
+		h.m.Run(ctx)
+	}()
+	// Ended before t.TempDir's cleanup: a write still running would race
+	// the folder's removal
+	t.Cleanup(func() {
+		cancel()
+		<-ran
+	})
 	return h
 }
 
@@ -313,5 +322,57 @@ func TestMergedBindsGetIDs(t *testing.T) {
 	want := `[{"id":"super-y","key":"SUPER + Y"},{"id":"super-y-2","key":"SUPER + Y","action":"exec"},{"id":"super-u","key":"SUPER + U"},{"id":"bind","key":""},{"id":"print","key":"Print"},{"id":"print-2","key":"Print"}]`
 	if got != want {
 		t.Fatalf("got %s", got)
+	}
+}
+
+// Under a compositor without config modes nothing runs the queue: config
+// changes (the store's delivery) and calls must never wait on it
+func TestInertManagerNeverBlocks(t *testing.T) {
+	t.Parallel()
+	m := New(Options{Getenv: func(string) string { return "" }, Log: slog.New(slog.NewTextHandler(io.Discard, nil))})
+	ctx, cancel := context.WithCancel(context.Background())
+	ran := make(chan struct{})
+	go func() {
+		defer close(ran)
+		m.Run(ctx)
+	}()
+	done := make(chan struct{})
+	go func() {
+		for range 1000 {
+			m.ConfigChanged()
+		}
+		m.State(context.Background())
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(3 * time.Second):
+		t.Fatal("blocked")
+	}
+	cancel()
+	<-ran
+}
+
+// Once Run has ended, nothing waits on it
+func TestStoppedManagerNeverBlocks(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, "detached")
+	h.inputs("f1", "l1", "k1")
+	h.eventually("the runtime layer", h.called("runtime:live l1"))
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	m2 := h.m
+	m2.stop.Do(func() { close(m2.stopped) })
+	done := make(chan struct{})
+	go func() {
+		m2.ConfigChanged()
+		m2.State(context.Background())
+		m2.Entries(ctx)
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(3 * time.Second):
+		t.Fatal("blocked")
 	}
 }

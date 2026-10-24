@@ -20,6 +20,7 @@ Dependencies point one way, methods → data owners → readers → services →
 - [generated/api.md](generated/api.md): public members of every service and config reader, one page each.
 - [generated/files.md](generated/files.md): every QML file with its purpose comment. Long: grep it.
 - [generated/ipc.md](generated/ipc.md): every IPC target and its functions.
+- [generated/rpc.md](generated/rpc.md): every method, push and call between the shell and the axiom daemon, with the files on each side.
 - [generated/layers.md](generated/layers.md): every layer namespace's `order` and why, from `LayerStack.layers`.
 
 ### Known issues
@@ -33,6 +34,7 @@ Dependencies point one way, methods → data owners → readers → services →
 
 ### backend/: the axiom binary
 - [backend](backend/README.md): the Go binary (parent of the shell, owner of the config, the command line): what exists so far, building and checking it, its security rules, and the shared fixtures both sides replay.
+- [protocol](backend/protocol.md): how the shell and the binary talk: the environment, runtime files, the socket's calls and pushes, a session, topics, guards, and when to bump the protocol (every method and push: [generated/rpc.md](generated/rpc.md)).
 
 ### core/: config, services, schema, shared UI
 - [services-pattern](core/services-pattern.md): one singleton per domain, acquire/release for anything polled, CommandManager, the other domain services.

@@ -401,6 +401,8 @@ func TestHyprRunningTheFilesDoesNothingAndEnds(t *testing.T) {
 		`io.open("` + marker + `", "w")`,
 		`io.output("` + marker + `")`,
 		`os.execute("touch ` + marker + `")`,
+		`require("io").popen("touch ` + marker + `")`,
+		`package.loaded.io.output("` + marker + `")`,
 		`print("noise")`,
 		`hl.bind("SUPER + Y", hl.dsp.window.close(), { locked = false })`,
 		"",
@@ -588,4 +590,65 @@ func TestNotAUserFile(t *testing.T) {
 		done := f.remove(jsonx.Arr(jsonx.Obj("file", outside, "line", float64(1))))
 		eq(t, list(done, "failed")[0].Value("reason"), "notUser")
 	}
+}
+
+// Only names a file in user/: never a path out of it
+func TestOnlyIsAFileName(t *testing.T) {
+	t.Parallel()
+	f := newFx(t, "sway")
+	os.WriteFile(filepath.Join(f.dir, "config"), []byte("bindsym Mod4+q kill\n"), 0o644)
+	for _, only := range []string{"../config", "..", "a/b"} {
+		o := f.options()
+		o.Only = only
+		if _, err := Extract(context.Background(), o); err == nil {
+			t.Fatalf("%q was read", only)
+		}
+	}
+}
+
+// The marks are the only bytes a removal changes: a file in another
+// encoding stays as it was around them
+func TestRemovalKeepsTheFilesBytes(t *testing.T) {
+	t.Parallel()
+	for _, c := range []struct{ kind, name, text, want string }{
+		{"sway", "00-previous.conf", "# caf\xe9\nbindsym Mod4+q kill\n", "# caf\xe9\n# (moved into axiom) bindsym Mod4+q kill\n"},
+		{"niri", "00-previous.kdl", "// caf\xe9\nbinds {\n    Mod+Q { close-window; }\n}\n",
+			"// caf\xe9\nbinds {\n    /* (moved into axiom) */ /-Mod+Q { close-window; }\n}\n"},
+	} {
+		f := newFx(t, c.kind)
+		f.write(c.name, c.text)
+		done := f.remove(f.extract().Value("sites"))
+		eq(t, js(done.Value("failed")), "[]")
+		eq(t, f.read(c.name), c.want)
+	}
+}
+
+// A file that can't be written is failed, and the others still go: what
+// was removed is reported, so nothing removed is put back as kept
+func TestAnUnwritableFileFailsAlone(t *testing.T) {
+	t.Parallel()
+	if os.Geteuid() == 0 {
+		t.Skip("root writes anywhere")
+	}
+	f := newFx(t, "sway")
+	f.write("10-a.conf", "bindsym Mod4+a kill\n")
+	f.write("20-b.conf", "bindsym Mod4+b kill\n")
+	found := f.extract()
+	// No backup can go in a read-only .backups
+	os.MkdirAll(f.user(".backups"), 0o755)
+	os.Chmod(f.user(".backups"), 0o555)
+	t.Cleanup(func() { os.Chmod(f.user(".backups"), 0o755) })
+	done := f.remove(found.Value("sites"))
+	failed := list(done, "failed")
+	eq(t, len(failed), 2)
+	eq(t, failed[0].Value("reason"), "io")
+	eq(t, int(done.Value("removed").(float64)), 0)
+	os.Chmod(f.user(".backups"), 0o755)
+	f.write("20-b.conf", "bindsym Mod4+b kill\n")
+	os.Chmod(f.user("10-a.conf"), 0o444)
+	os.Chmod(f.dir+"/user", 0o555)
+	t.Cleanup(func() { os.Chmod(f.dir+"/user", 0o755) })
+	done = f.remove(found.Value("sites"))
+	// Neither file can be replaced in a read-only user/: both fail, alone
+	eq(t, len(list(done, "failed")), 2)
 }

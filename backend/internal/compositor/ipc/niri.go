@@ -67,10 +67,9 @@ func (n *Niri) Reloads(ctx context.Context, out chan<- Reload) error {
 	if err != nil {
 		return err
 	}
-	go func() {
-		<-ctx.Done()
-		conn.Close()
-	}()
+	defer conn.Close()
+	// Closing the connection is what ends a read blocked on it
+	defer context.AfterFunc(ctx, func() { conn.Close() })()
 	if _, err := conn.Write([]byte("\"EventStream\"\n")); err != nil {
 		return err
 	}

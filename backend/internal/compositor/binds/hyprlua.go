@@ -128,6 +128,9 @@ func sandbox(L *lua.LState, getenv func(string) string) {
 		L.SetField(io, name, empty)
 	}
 	L.SetGlobal("io", io)
+	// require("io") answers package.loaded's copy: the stand-in there too
+	loaded := L.GetField(L.GetGlobal("package"), "loaded").(*lua.LTable)
+	L.SetField(loaded, "io", io)
 
 	os := L.NewTable()
 	L.SetField(os, "time", L.NewFunction(osTime))

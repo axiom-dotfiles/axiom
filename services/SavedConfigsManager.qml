@@ -221,6 +221,7 @@ QtObject {
   }
 
   // One apply at a time: a second would replace the first's backup
+  // rpc: share.defaults, share.example, share.import, share.applyShared
   function _apply(name, method, params, label) {
     if (root._busy) {
       root.status = I18n.tr("Busy, try again");

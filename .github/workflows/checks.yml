@@ -169,7 +169,7 @@ jobs:
         # numpy, Pillow and icalendar for theme generation and calendars, as
         # users install them: never python-recurring-ical-events, which
         # Fedora doesn't package (the calendar tests make importing it fail)
-        run: pacman -Syu --noconfirm --needed git diffutils shellcheck lua jq gettext python python-numpy python-pillow python-icalendar
+        run: pacman -Syu --noconfirm --needed git diffutils shellcheck lua jq gettext python python-numpy python-pillow python-icalendar go
 
       - name: Checkout
         env:
@@ -183,6 +183,12 @@ jobs:
           auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
           git -c http.extraheader="AUTHORIZATION: basic $auth" fetch -q --depth=1 origin "$GITHUB_SHA"
           git checkout -q FETCH_HEAD
+
+      # config/json/config.schema.json, which the hookup tests read
+      - name: Generated files (scripts/generate.sh)
+        env:
+          GOTOOLCHAIN: local
+        run: scripts/generate.sh
 
       - name: shellcheck
         run: shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh scripts/greeter/*.sh scripts/dev/*.sh .githooks/pre-commit

@@ -112,10 +112,9 @@ func (s *Sway) Reloads(ctx context.Context, out chan<- Reload) error {
 	if err != nil {
 		return err
 	}
-	go func() {
-		<-ctx.Done()
-		conn.Close()
-	}()
+	defer conn.Close()
+	// Closing the connection is what ends a read blocked on it
+	defer context.AfterFunc(ctx, func() { conn.Close() })()
 	if err := swayWrite(conn, swaySubscribe, []byte(`["workspace"]`)); err != nil {
 		return err
 	}

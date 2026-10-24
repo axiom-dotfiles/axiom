@@ -76,10 +76,9 @@ func (h *Hypr) Reloads(ctx context.Context, out chan<- Reload) error {
 		return err
 	}
 	conn.SetDeadline(timeZero)
-	go func() {
-		<-ctx.Done()
-		conn.Close()
-	}()
+	defer conn.Close()
+	// Closing the connection is what ends a read blocked on it
+	defer context.AfterFunc(ctx, func() { conn.Close() })()
 	lines := bufio.NewScanner(conn)
 	lines.Buffer(make([]byte, 64*1024), 1024*1024)
 	for lines.Scan() {

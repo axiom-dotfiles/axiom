@@ -105,7 +105,10 @@ func (d *Daemon) compositorMethods(reg *rpc.Registry, m *manager.Manager) {
 		return jsonx.MarshalCompact(m.State(ctx)), nil
 	})
 	rpc.Handle(reg, "compositor.checkManaged", func(ctx context.Context, c *rpc.Conn, _ struct{}) (map[string]string, error) {
-		return map[string]string{"check": m.CheckManaged(ctx)}, shellOnly(c)
+		if err := shellOnly(c); err != nil {
+			return nil, err
+		}
+		return map[string]string{"check": m.CheckManaged(ctx)}, nil
 	})
 	rpc.Handle(reg, "compositor.entries", func(ctx context.Context, c *rpc.Conn, _ struct{}) (json.RawMessage, error) {
 		return jsonx.MarshalCompact(m.Entries(ctx)), nil

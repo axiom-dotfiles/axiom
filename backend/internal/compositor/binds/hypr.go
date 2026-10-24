@@ -570,7 +570,8 @@ func extractHypr(ctx context.Context, o Options) (*jsonx.Object, error) {
 // when nothing else is on it), after a dated backup of each file it changes
 // beside it (<file>.axiom-backup-<date>, which Hyprland doesn't load). A
 // file whose result doesn't parse is left alone (failed with line 0); a
-// call that isn't found any more is failed on its line.
+// call that isn't found any more is failed on its line; a file that can't
+// be read, backed up or written is failed (io) and the others go on.
 func removeHypr(ctx context.Context, o Options, sites *jsonx.Array) (*jsonx.Object, error) {
 	allowed := map[string]bool{}
 	for _, f := range hyprFiles(o.Dir, "") {
@@ -596,7 +597,8 @@ func removeHypr(ctx context.Context, o Options, sites *jsonx.Array) (*jsonx.Obje
 		}
 		data, err := os.ReadFile(file)
 		if err != nil {
-			return nil, err
+			failed = append(failed, failedEntry(file, 0, "io", err.Error()))
+			continue
 		}
 		text := string(data)
 		code := codeOnly(text)
@@ -639,11 +641,19 @@ func removeHypr(ctx context.Context, o Options, sites *jsonx.Array) (*jsonx.Obje
 			failed = append(kept, failedEntry(file, 0, "syntax", err.Error()))
 			continue
 		}
-		if err := backup(o, file, filepath.Dir(file)); err != nil {
-			return nil, err
+		err = backup(o, file, filepath.Dir(file))
+		if err == nil {
+			err = edit.Replace(file, []byte(edited))
 		}
-		if err := edit.Replace(file, []byte(edited)); err != nil {
-			return nil, err
+		if err != nil {
+			kept := failed[:0]
+			for _, f := range failed {
+				if f.Value("file") != file {
+					kept = append(kept, f)
+				}
+			}
+			failed = append(kept, failedEntry(file, 0, "io", err.Error()))
+			continue
 		}
 		removed += len(spans)
 		push(done, "files", file)

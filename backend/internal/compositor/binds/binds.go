@@ -22,7 +22,8 @@
 // file uses: detail), unclosed (the call isn't closed), continued (a sway
 // line continued with \), block (inside a sway `bindsym { … }` block),
 // changed (the file changed since extract), notUser (not one of user/'s
-// files), syntax (the result doesn't parse: detail).
+// files), syntax (the result doesn't parse: detail), io (it couldn't be
+// read, backed up or written: detail).
 package binds
 
 import (
@@ -57,6 +58,10 @@ type Options struct {
 func (o *Options) defaults() error {
 	if o.Dir == "" || o.Actions == nil {
 		return axerr.New(axerr.BadRequest, "a bind merge needs a dir and the bind actions")
+	}
+	// A file name in user/, never a path out of it
+	if o.Only != "" && (o.Only != filepath.Base(o.Only) || o.Only == "." || o.Only == "..") {
+		return axerr.New(axerr.BadRequest, "only names a file in user/, not %q", o.Only)
 	}
 	if o.Getenv == nil {
 		o.Getenv = os.Getenv

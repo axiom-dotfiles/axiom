@@ -30,6 +30,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/axiom-shell/axiom/backend/internal/compositor/actions"
@@ -66,7 +67,15 @@ type Manager struct {
 	kind  string
 	w     writer
 	st    *runtimeState
-	inbox chan func(context.Context)
+
+	// The manager's goroutine's work, in order. Queued without ever
+	// blocking: the store's event delivery and RPC handlers enqueue, and
+	// the goroutine may itself be waiting on the store (a merge's save)
+	mu      sync.Mutex
+	queue   []func(context.Context)
+	wake    chan struct{}
+	stopped chan struct{}
+	stop    sync.Once
 
 	in      Inputs
 	mode    string
@@ -90,7 +99,7 @@ type Manager struct {
 // New is the manager for the compositor the environment names; Kind is ""
 // (and it does nothing) under none of axiom's config modes' compositors.
 func New(o Options) *Manager {
-	m := &Manager{o: o, inbox: make(chan func(context.Context), 64), mergeable: -1}
+	m := &Manager{o: o, wake: make(chan struct{}, 1), stopped: make(chan struct{}), mergeable: -1}
 	instance := ""
 	switch {
 	case o.Getenv("HYPRLAND_INSTANCE_SIGNATURE") != "":
@@ -131,41 +140,90 @@ func (m *Manager) timer(fn func(context.Context)) *time.Timer {
 	return t
 }
 
-func (m *Manager) enqueue(fn func(context.Context)) {
-	m.inbox <- fn
+// enqueue queues fn for the manager's goroutine; dropped with no
+// compositor to drive (nothing would ever run it) or once Run has ended
+func (m *Manager) enqueue(fn func(context.Context)) bool {
+	if m.w == nil {
+		return false
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	select {
+	case <-m.stopped:
+		return false
+	default:
+	}
+	m.queue = append(m.queue, fn)
+	select {
+	case m.wake <- struct{}{}:
+	default:
+	}
+	return true
 }
 
-// do runs fn on the manager's goroutine and waits for it
+// next takes the first queued fn, or nil
+func (m *Manager) next() func(context.Context) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if len(m.queue) == 0 {
+		return nil
+	}
+	fn := m.queue[0]
+	m.queue[0] = nil
+	m.queue = m.queue[1:]
+	return fn
+}
+
+// do runs fn on the manager's goroutine and waits for it (not at all when
+// it can't run)
 func (m *Manager) do(ctx context.Context, fn func(context.Context)) {
 	done := make(chan struct{})
-	select {
-	case m.inbox <- func(c context.Context) { fn(c); close(done) }:
-	case <-ctx.Done():
+	if !m.enqueue(func(c context.Context) { fn(c); close(done) }) {
 		return
 	}
 	select {
 	case <-done:
 	case <-ctx.Done():
+	case <-m.stopped:
 	}
 }
 
 // Run runs the manager until ctx ends: its goroutine, and the compositor's
 // event stream (reconnected while the compositor runs).
 func (m *Manager) Run(ctx context.Context) error {
+	defer m.stop.Do(func() {
+		m.mu.Lock()
+		close(m.stopped)
+		m.queue = nil
+		m.mu.Unlock()
+		for _, t := range []*time.Timer{m.debounce, m.liveDebounce, m.fileSync} {
+			t.Stop()
+		}
+	})
 	if m.w == nil {
 		<-ctx.Done()
 		return nil
 	}
 	reloads := make(chan ipc.Reload, 8)
-	go m.watchReloads(ctx, reloads)
+	var watching sync.WaitGroup
+	watching.Add(1)
+	go func() {
+		defer watching.Done()
+		m.watchReloads(ctx, reloads)
+	}()
+	// The event stream ends with ctx: waited for, so nothing of the
+	// manager's outlives Run
+	defer watching.Wait()
 	poll := time.NewTicker(2 * time.Second)
 	defer poll.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-		case fn := <-m.inbox:
-			fn(ctx)
+		case <-m.wake:
+			for fn := m.next(); fn != nil && ctx.Err() == nil; fn = m.next() {
+				fn(ctx)
+			}
 			m.push()
 		case r := <-reloads:
 			m.configReloaded(ctx, r)
@@ -181,7 +239,9 @@ func (m *Manager) Run(ctx context.Context) error {
 func (m *Manager) watchReloads(ctx context.Context, out chan<- ipc.Reload) {
 	for ctx.Err() == nil {
 		inner := make(chan ipc.Reload)
+		forwarded := make(chan struct{})
 		go func() {
+			defer close(forwarded)
 			for r := range inner {
 				// Counted at once: a reload while the runtime layer reads the
 				// binds makes what it read stale
@@ -194,6 +254,7 @@ func (m *Manager) watchReloads(ctx context.Context, out chan<- ipc.Reload) {
 		}()
 		err := m.w.reloads(ctx, inner)
 		close(inner)
+		<-forwarded
 		if ctx.Err() != nil {
 			return
 		}
