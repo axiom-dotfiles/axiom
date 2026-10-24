@@ -167,12 +167,14 @@ func Claim(ctx context.Context, o Options) (string, error) {
 		return "replaced", c.setAside("", "")
 	}
 	// Already copied by a claim whose managed write never came (its edits
-	// made again, in case they failed then: they change nothing twice)
-	if last := c.newestBackup(); last != "" && sameBytes(c.file, filepath.Join(c.Dir, last)) {
-		if c.isStock() {
+	// made again, in case they failed then: they change nothing twice).
+	// Only as its record names it: a config released unchanged is the
+	// newest backup's bytes too, and user/ may hold an older claim's copy
+	if previous, last, ok := c.pending(); ok && sameBytes(c.file, filepath.Join(c.Dir, last)) {
+		if previous == "" && c.isStock() {
 			return "replaced", nil
 		}
-		if previous := c.newestPrevious(); previous != "" {
+		if previous != "" {
 			return "adopted:" + previous, c.adopt(ctx, filepath.Join(c.user, previous))
 		}
 	}
@@ -409,6 +411,24 @@ func (c *call) setAsideNow() (previous, backup string) {
 		backup = ""
 	}
 	return previous, backup
+}
+
+// pending is what a claim not yet followed by its managed write set aside:
+// its record, naming the newest backup (and, adopted, a copy still in
+// user/). Without records, the newest of each, as before them.
+func (c *call) pending() (previous, backup string, ok bool) {
+	last := c.newestBackup()
+	if last == "" {
+		return "", "", false
+	}
+	if !c.Kind.record {
+		return c.newestPrevious(), last, true
+	}
+	if !isFile(filepath.Join(c.Dir, recordName)) {
+		return "", "", false
+	}
+	previous, backup = c.setAsideNow()
+	return previous, backup, backup == last
 }
 
 // newestPrevious is the newest adopted config in user/ (00-previous<ext> is

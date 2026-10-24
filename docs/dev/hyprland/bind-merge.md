@@ -21,7 +21,7 @@
   - Each file is required as `user.<name>` against a stand-in `hl` that records `hl.bind`/`hl.unbind` with their file and line.
   - Because the files really run, variables, string building and loops work.
   - Limits:
-    - `io.popen` reads empty, `io.open` only reads, `os.execute`, `os.remove` and `os.rename` do nothing, and there's no `debug` library
+    - `io.popen` reads empty, `io.open` only reads, `os.execute`, `os.remove` and `os.rename` do nothing, and there's no `debug` library (`require("io")` and `package.loaded.io` are the stand-in too)
     - `print` goes nowhere
     - a stand-in value lists as empty
     - submap and `hl.on` handlers aren't seen
@@ -47,10 +47,11 @@
   - any variable it's kept in must be unused.
 
 ### Committing and removing
-1. The binds are committed first (`SettingsManager.commitValues`). `bindsMerged` lets KeybindManager add them to a dirty draft.
+1. The daemon saves the binds first (`Keybinds.binds`, through the store; refused while the config is read-only, `saveFailed`). The `compositor.bindsMerged` push lets KeybindManager add them to a dirty draft.
 2. `remove` then deletes those calls, plus any `hl.unbind` of a moved key (it would unbind the moved bind too).
    - It first writes a dated `<file>.axiom-backup-<date>` copy, keeping the file's mode.
    - It leaves a file alone if the result doesn't parse (`luacheck`: `luac -p` where it's installed, else gopher-lua).
+   - A file it can't read, back up or write is failed (`io`) and the others go on, so what was deleted is always known.
 3. Whatever it couldn't delete (`failed`, per file or per call) is taken back out.
    - The binds are committed again as `mergeBinds(before, binds from the sites that went)`, so no key is bound twice.
    - Only the binds that went are sent to `bindsMerged`.

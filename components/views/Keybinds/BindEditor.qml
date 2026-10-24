@@ -51,8 +51,10 @@ ColumnLayout {
       return I18n.tr("it goes on over several lines");
     case "block":
       return I18n.tr("it's inside a bindsym { } block");
+    case "io":
+      return I18n.tr("the file couldn't be read or written ({0})", entry.detail);
     case "crashed":
-      return I18n.tr("the merge script failed ({0})", entry.detail);
+      return I18n.tr("the merge failed ({0})", entry.detail);
     }
     return entry.detail || String(entry.reason ?? "");
   }

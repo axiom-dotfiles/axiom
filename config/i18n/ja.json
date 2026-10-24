@@ -1966,7 +1966,6 @@
     "the call isn't closed": "呼び出しが閉じられていません",
     "the file changed": "ファイルが変更されました",
     "the file wouldn't parse without it ({0})": "削除するとファイルを解析できなくなります（{0}）",
-    "the merge script failed ({0})": "マージスクリプトが失敗しました（{0}）",
     "axiom's config couldn't be saved, so nothing moved": "axiom の設定を保存できなかったため、何も移していません",
     "{0} is on {1} now: axiom uses {2}": "{0} は {1} に移りました（{2} は axiom が使用）",
     "{0} is in a git repository: commit or revert the change there": "{0} は git リポジトリ内にあります。そこで変更をコミットするか元に戻してください",
@@ -3141,6 +3140,8 @@
     "Warmer screen colors in the evening, through hyprsunset (or wlsunset). The Night light quick action, `/nightlight` in the launcher and `axiom ipc nightLight toggle` switch it by hand; that lasts until the next scheduled change.": "",
     "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `axiom lock` for the built-in one.": "",
     "The power menu: lock, suspend, hibernate, log out, reboot and power off, opened by the power button, a keybind or `axiom ipc powermenu toggle`.": "",
-    "How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `axiom ipc workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.": ""
+    "How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `axiom ipc workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.": "",
+    "the file couldn't be read or written ({0})": "",
+    "the merge failed ({0})": ""
   }
 }

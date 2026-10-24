@@ -627,3 +627,23 @@ func TestNiriLeftCountsFilesNotIncluded(t *testing.T) {
 	f.ours()
 	eq(t, f.run("release"), "restored:user/00-previous.kdl:1")
 }
+
+// A config given back unchanged is the newest backup's bytes again, and
+// user/ may hold an older claim's dated copy: claiming it again copies it
+// anew, never resuming with that older copy
+func TestHyprlandClaimAfterAReleaseCopiesTheConfigAnew(t *testing.T) {
+	t.Parallel()
+	f := newFx(t, "hyprland")
+	f.write("user/00-previous-20250101-000000.lua", "-- an old claim's\n")
+	f.write("hyprland.lua", "-- mine\n")
+	eq(t, f.run("claim"), "adopted:00-previous.lua")
+	f.ours()
+	eq(t, f.run("release"), "restored:user/00-previous.lua:1")
+	eq(t, f.read("hyprland.lua"), "-- mine\n")
+	got := f.run("claim")
+	if got == "adopted:00-previous-20250101-000000.lua" {
+		t.Fatal("resumed with an older claim's copy")
+	}
+	eq(t, got, "adopted:00-previous.lua")
+	eq(t, f.read("user/00-previous.lua"), "-- mine\n")
+}

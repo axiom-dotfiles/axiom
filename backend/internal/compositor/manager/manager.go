@@ -63,10 +63,10 @@ type Options struct {
 
 // Manager drives the layer for the compositor axiom runs under.
 type Manager struct {
-	o     Options
-	kind  string
-	w     writer
-	st    *runtimeState
+	o    Options
+	kind string
+	w    writer
+	st   *runtimeState
 
 	// The manager's goroutine's work, in order. Queued without ever
 	// blocking: the store's event delivery and RPC handlers enqueue, and

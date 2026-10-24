@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -210,6 +211,12 @@ func (w *niriWriter) validate(ctx context.Context, text string) string {
 	cmd.Stdin = strings.NewReader(strings.Join(own, "\n"))
 	out, err := cmd.CombinedOutput()
 	if err == nil {
+		return ""
+	}
+	// No niri to ask (not on the daemon's $PATH): niri itself checks the
+	// file when it loads it, and keeps the config it runs if it refuses it
+	if errors.Is(err, exec.ErrNotFound) {
+		w.logf("Can't check axiom's niri config before writing it: %v", err)
 		return ""
 	}
 	var lines []string
