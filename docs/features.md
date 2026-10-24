@@ -72,13 +72,13 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
 <p align="center"><img src="../assets/screenshots/overlay-home.webp" alt="The overlay's Home page: Wi-Fi, quick actions, media, notifications, a clock and calendar, the mixer, network, weather and disks" width="900"></p>
 
 - A full-screen overlay made of pages. Each page is a grid you place modules on, with gaps wherever you like. Pages have their own name and icon in the navigator.
-- **40 modules**, and every one adapts to its size and shape (square, wide or tall, down to a compact figure):
+- **41 modules**, and every one adapts to its size and shape (square, wide or tall, down to a compact figure):
 
   | Group | Modules |
   | --- | --- |
   | Media and sound | Now playing, Audio mixer, Volume dials |
   | System | System graphs, Top processes, Disks, Battery, Updates, Network |
-  | Controls | Quick actions (toggles, power, pin), Screenshot, Screen recording (region or screen, with sound, recent recordings), Night light, Bluetooth devices, Wi-Fi networks, Favourite apps |
+  | Controls | Quick actions (toggles, power, pin), Screenshot, Screen recording (region or screen, with sound, recent recordings), Night light, Brightness, Bluetooth devices, Wi-Fi networks, Favourite apps |
   | Time and plans | Clock (digital, stacked or analog, in any time zone), World clocks, Clock & calendar, Calendar, Agenda, Weather |
   | Workspace | Workspaces map, Notifications |
   | Writing | Notes, AI chat |
@@ -343,7 +343,12 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
 - **Brightness:** keys and an OSD bar for a laptop screen and for external monitors over DDC/CI.
 - **Night light:** warmer colors on a schedule, through `wlsunset` (or `hyprsunset` on Hyprland).
 - **Idle:** axiom can run hypridle from its own settings, on any compositor: dim, lock, screen off and suspend timeouts.
-- **Updates:** axiom updates itself from git, following releases or `main`, with a notification or automatically.
+- **Updates:** axiom updates itself from git, following releases or `main`, with a notification or automatically, and switches to the rebuilt `axiom` binary without logging out.
+- **The `axiom` command:** the shell's parent process, and a command line for scripts and keybinds.
+  - Run, restart or stop the shell (`axiom run`, `axiom restart`, `axiom quit`). If the shell crashes, axiom starts it again, locked first if it was locked.
+  - Drive any surface: `axiom launcher toggle`, `axiom volume up`, `axiom screenshot take region`, or any IPC target with `axiom ipc` (see [IPC](usage.md#ipc)).
+  - `axiom lock` succeeds only once the lock screen is really up, so idle daemons can rely on it.
+  - Read and change any setting: `axiom config get Bars`, `axiom config set Appearance.font.size 14`, `axiom config validate`.
 - **Translations:** English and Japanese, with more added as a single JSON file each.
 
 <details>

@@ -39,6 +39,7 @@ body:
         - Chat, calendar or notes
         - First-start setup
         - Installer or distribution package
+        - The axiom command or its daemon (axiom run, axiom config, …)
         - Self-update
         - Other
     validations:

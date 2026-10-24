@@ -46,6 +46,7 @@ body:
         - Chat, calendar or notes
         - First-start setup
         - Installer or distribution package
+        - The axiom command or its daemon (axiom run, axiom config, …)
         - Self-update
         - Other
     validations:
@@ -57,6 +58,7 @@ body:
       description: The output of `scripts/bug_info.sh`.
       placeholder: |
         axiom:      clone v1.2.0
+        Binary:     axiom v1.2.0 (commit …, linux/amd64, protocol 1), running
         Quickshell: Quickshell 0.3.2
         Compositor: Hyprland 0.55.0
         ...
@@ -67,7 +69,7 @@ body:
     id: logs
     attributes:
       label: Log
-      description: The output of `scripts/log.sh`, right after the problem happens. `scripts/log.sh --debug` gives more detail.
+      description: The output of `scripts/log.sh`, right after the problem happens. `scripts/log.sh --debug` gives more detail. If the shell won't start, crashes, or doesn't save settings, add `axiom daemon logs` too.
       render: text
     validations:
       required: true
@@ -83,4 +85,4 @@ body:
       options:
         - label: I searched the existing issues, and this isn't one of them.
           required: true
-        - label: I'm on the latest release (Settings → Updates), or on a distribution package's latest version.
+        - label: I'm on the latest release (Settings → Maintenance → axiom updates), or on a distribution package's latest version.
