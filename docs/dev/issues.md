@@ -18,6 +18,18 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### Leaving managed, the runtime layer can go on before the given-back config reloads
+- **Where:** `backend/internal/compositor/manager/manager.go` (`SetInputs`, `liveChanged`, `apply`)
+- **What:** The shell's first inputs arm both `debounce` and `liveDebounce` (300 ms each). When the live one fires first, `liveChanged` sees `AppliedMode != mode` and calls `apply`, which releases the managed config and asks for a reload; the layer debounce's `apply` then runs `runtimeApply` before that reload lands, so the runtime layer reads the managed config's binds (every axiom key looks taken, each logged once) and goes on over it. It's corrected after the reload (`configReloaded` applies again). Holding `runtimeApply` until `configReloaded` after a release that reloads would close it, but a missed reload event would then leave no runtime layer.
+- **Size:** small
+- **Found:** 2026-10-24, while reviewing the Go backend branch
+
+### `axiom lock` fails with no screen connected
+- **Where:** `services/LockManager.qml` (`_report`), `backend/internal/lock/lock.go` (`State.confirmed`)
+- **What:** `_report` sends `surfaces` and `outputs` from the same number (`Quickshell.screens.length`), so the daemon's `Surfaces >= Outputs` check can never catch a screen without a lock surface, and with no screen connected `confirmed()` needs `Surfaces > 0`, so `axiom lock` reports a failure. Locking should lock the session with no screens connected, and a screen connected while locked should get the lock surface; the shell should report the surfaces it actually built, and the daemon confirm on the session lock with zero outputs.
+- **Size:** small
+- **Found:** 2026-10-24, while reviewing the Go backend branch
+
 ### The shell's socket warns when the daemon re-execs
 - **Where:** `services/BackendManager.qml` (its `Socket`)
 - **What:** Every daemon re-exec (each dev-mode rebuild) logs `quickshell.io.socket` `QLocalSocket::PeerClosedError` (a `Socket error for Socket(0x…)`) once: the old image closing the connection reaches the shell as an error, though `BackendManager` reconnects and it's expected. Five in one session's log (`scripts/log.sh --all -g PeerClosed`). Quieting it means telling a close the daemon announced (re-exec, quit) from a real failure, maybe with a notification before the exec.
@@ -53,12 +65,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** `orderKeys` overwrites an author-written `x-order` on every object with more than one property, though `config/schema/annotations.yaml` lets authors write one. `axiom schema check` passes when `config/json/config.schema.json` is missing. Go's RE2 `\S`/`\s` are ASCII-only while JS's are Unicode: a value of only U+00A0 passes `"\\S"` in Go and fails in JS. Translating the classes, or refusing them in `check.go`, keeps the two sides equal.
 - **Size:** small
 - **Found:** 2026-10-24, while reviewing the Go backend
-
-### BlurManager.paused is undefined on a reload
-- **Where:** `services/BlurManager.qml` (`paused`), `config/Appearance.qml` (`blurPauseFullscreen`)
-- **What:** Every reload of the live shell logs `Unable to assign [undefined] to bool` at `BlurManager.qml[30:3]` (the `paused` binding), though the config has `WindowLook.surfaceBlurPauseFullscreen`. One of the `&&` operands is undefined while the singletons are created (likely `Appearance.blurPauseFullscreen` or `CompositorManager.hasFullscreen` read before they exist); a `=== true` on the operand, or finding which one, fixes it.
-- **Size:** trivial
-- **Found:** 2026-10-23, while gitignoring the generated files for the Go backend
 
 ### The schema root's description contradicts the annotations doc
 - **Where:** `config/schema/index.yaml` (root `description`), `docs/dev/core/schema-annotations.md` (`x-hosts`)

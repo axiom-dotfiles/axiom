@@ -113,11 +113,13 @@ func sandbox(L *lua.LState, getenv func(string) string) {
 			L.Push(lua.LString("not written while listing binds"))
 			return 2
 		}
+		// The results follow however many arguments it was given
+		base := L.GetTop()
 		L.Push(open)
 		L.Push(L.Get(1))
 		L.Push(lua.LString("r"))
 		L.Call(2, lua.MultRet)
-		return L.GetTop() - 2
+		return L.GetTop() - base
 	}))
 	L.SetField(io, "lines", L.GetField(orig, "lines"))
 	L.SetField(io, "type", L.GetField(orig, "type"))

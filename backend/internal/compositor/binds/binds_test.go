@@ -416,6 +416,28 @@ func TestHyprRunningTheFilesDoesNothingAndEnds(t *testing.T) {
 	eq(t, list(found, "binds")[0].Value("locked"), false)
 }
 
+// io.open still reads, however it's called (the mode left out, or extra
+// arguments)
+func TestHyprFilesCanReadFiles(t *testing.T) {
+	t.Parallel()
+	f := newFx(t, "hyprland")
+	data := filepath.Join(f.dir, "mod.txt")
+	if err := os.WriteFile(data, []byte("SUPER"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	f.write("binds.lua", strings.Join([]string{
+		`local a = io.open("` + data + `")`,
+		`local b = io.open("` + data + `", "r", "extra")`,
+		`hl.bind(a:read("*a") .. " + Y", hl.dsp.window.close())`,
+		`hl.bind(b:read("*a") .. " + U", hl.dsp.window.close())`,
+		"",
+	}, "\n"))
+	found := f.extract()
+	eq(t, js(found.Value("errors")), "[]")
+	eq(t, list(found, "binds")[0].Value("key"), "SUPER + Y")
+	eq(t, list(found, "binds")[1].Value("key"), "SUPER + U")
+}
+
 func TestHyprAFileThatNeverEndsTimesOut(t *testing.T) {
 	t.Parallel()
 	f := newFx(t, "hyprland")

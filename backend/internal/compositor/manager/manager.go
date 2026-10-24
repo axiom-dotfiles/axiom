@@ -93,7 +93,6 @@ type Manager struct {
 	// pickedHere: managed was picked while axiom runs (its card's Save),
 	// where the card asks for the approval: no notification
 	pickedHere bool
-	releasing  bool
 	// releaseProblem: why the managed config couldn't be given back (retried
 	// after releaseBackoff)
 	releaseProblem string
@@ -510,8 +509,9 @@ func (m *Manager) apply(ctx context.Context) {
 	if m.mode == "managed" {
 		m.releaseDone()
 	}
+	released := false
 	if previous != "" && previous != m.mode {
-		m.leave(ctx, previous)
+		released = m.leave(ctx, previous)
 	}
 	m.st.AppliedMode = m.mode
 	m.st.save()
@@ -522,8 +522,9 @@ func (m *Manager) apply(ctx context.Context) {
 		m.claimIfApproved(ctx)
 	default:
 		m.problem = ""
-		// Not over the managed layer a release is about to take out
-		if !m.releasing {
+		// A release has applied it, or reloads the given-back config
+		// first (the managed layer would be in the way)
+		if !released {
 			m.runtimeApply(ctx)
 		}
 	}
@@ -679,7 +680,6 @@ func (m *Manager) claim(ctx context.Context) {
 // managed, and the shell shows why (releaseProblem)
 func (m *Manager) release(ctx context.Context) {
 	result, err := takeover.Release(ctx, m.takeoverOptions(m.mode))
-	m.releasing = false
 	word, rest, _ := strings.Cut(result, ":")
 	switch {
 	case err != nil:
@@ -742,15 +742,17 @@ func (m *Manager) releaseDone() {
 // claimed; leaving included (or managed, whose restored config may load
 // it), the module, which then does nothing. Else the old layer stays in
 // the compositor's config, and the runtime layer, which only adds, can't
-// undo it.
-func (m *Manager) leave(ctx context.Context, previous string) {
+// undo it. True when it ran a release, which brings the runtime layer
+// in itself.
+func (m *Manager) leave(ctx context.Context, previous string) bool {
 	if m.mode != "included" {
 		m.emptyModule(ctx)
 	}
 	if previous == "managed" {
-		m.releasing = true
 		m.release(ctx)
+		return true
 	}
+	return false
 }
 
 func (m *Manager) emptyModule(ctx context.Context) {
